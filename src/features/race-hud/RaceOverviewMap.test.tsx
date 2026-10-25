@@ -98,7 +98,7 @@ describe("race overview SVG", () => {
     const html = render({ windFrom: null }, 844, 390);
     expect(html).toContain('viewBox="0 0 844 390"');
     expect(html).toContain('width="844" height="390"');
-    expect(html).toContain("width:100%;height:auto");
+    expect(html).toContain("width:100%;height:var(--race-map-height, auto)");
     expect(html).not.toContain("data-map-wind");
     expect(html).not.toContain("Wind aus");
   });

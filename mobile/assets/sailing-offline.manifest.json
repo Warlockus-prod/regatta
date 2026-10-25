@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "f00f8cff9f49",
-  "sha256": "2df87544137a0919dcb8cdda0ef24ba7e2de13b207bef87172c22fd261b96dc9",
-  "bytes": 6539065,
+  "version": "a129165d4b2b",
+  "sha256": "30395010b356060e62efd383cf5605d699c21b7afc93066d65104a71af036b21",
+  "bytes": 6539178,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -843,8 +843,8 @@
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 7249,
-      "sha256": "916a8693442a678cad5538edacac260eb49795b47e662fd81820e51bf7b65029"
+      "bytes": 7353,
+      "sha256": "27ef3043c1b1198b1176ba0d440a9bbe8b4b98dbdf3d0274ec53f1c43574fadb"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
@@ -1048,8 +1048,8 @@
     },
     {
       "path": "src/features/race-hud/RaceOverviewMap.tsx",
-      "bytes": 5124,
-      "sha256": "12451771af7a0f0d6c58058f888521cb84185656fa3c43c945042753d791d73c"
+      "bytes": 5148,
+      "sha256": "9f029bb37ea70865aa440b8e930dfe2ea1b8cc2f0ecce7d72defd5d31d3db283"
     },
     {
       "path": "src/features/race-hud/RaceWindInstrument.module.css",

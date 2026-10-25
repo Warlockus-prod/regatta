@@ -94,3 +94,31 @@ against direct world air-minus-boat vectors, maximum speed error1.07e-14kn;
 all direction vectors agree. After merge, strict types and scoped browser lint
 pass; AST review retains all113old Pro calls in order plus actual-frame wait and
 bounded observations. Shared map/gear/Helm tests15/3 pass after final CSS.
+
+## Installed G2 finding and superseded candidate1543
+
+Source1543d825 produced verified generated18, Simulator27, archive33 and IPA35,
+with independent real binary/IPA/UUID hashes. Cloud61 first-pass,1269web/475native
+and3Foundation checks pass. It was never uploaded. After the host restart,
+all8saved values and129journal entries survived its installation on26.5.
+Native Home, retained Pro/sliders/course preference, actual bundled3D, live
+Map, clock0:12.0 and pause1:24.7 were observed. This is not a Pro finish.
+
+G2 found that the initial SVG used width-driven auto height: the native safe
+area leaves less dock space and the start line was clipped below its initial
+view. Candidate1543 archive/export/logs/reports are preserved externally as
+native-archive64-1543d825, with original-path relocation documented. Its expanded
+Simulator app is preserved separately. No existing progress was cleared.
+
+The correction sizes only the Map SVG against its own panel's query-container
+height and reserves room for the caption. No new React state/timer/observer,
+physics, data or control change. Existing standalone Map height is the fallback.
+Actual production browser geometry shows full SVG and caption within every
+panel/viewport edge at390x844,320x568,390x720 and844x390. The strengthened single
+E2E repeats these four sizes before any Fleet scroll, restoring390x844 and all
+old controls/assertions.25s/15s/120s budgets remain unchanged.
+
+Source must freeze again with fresh sailing assets and exact new native proof,
+installed26.5/clean27, Apple validation/VALID/8notes/Self. Prior1543 checks do not
+stand in for the corrected package. Website PR84 still holds1543 until this
+source checkpoint is synchronized and its full gate repeats.

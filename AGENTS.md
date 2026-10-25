@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Candidate64 source1543 was never uploaded: native G2 found the initial map extended below its dock. Its archive/IPA/Simulator and proofs are preserved externally. The panel-relative SVG/caption correction has actual four-viewport browser evidence; freeze fresh assets/source and repeat exact native/delivery gates. See `docs/audits/2026-10-25/release64-harness.md`.
+
 - Active64 map/wind/settings presentation follows `docs/audits/2026-10-25/release64-harness.md`. Preserve actual course/wind truth, native visual preferences, reserved boat space and diagnostic privacy. No new physics, live weather service or physical race emission belongs to this slice.
 
 - SITE prepublication after the delivery snapshot: all 60 browser cases passed first attempt on c8ae4ef, with actual scene-ready, clock progression and canonical Pro evidence. `docs/audits/2026-10-25/checks/website63-prepublication.json` owns this portable proof. It does not claim website publication or full 65-item closure; APP 64 implementation is excluded from this site candidate.

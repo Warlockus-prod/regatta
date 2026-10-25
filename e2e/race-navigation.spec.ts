@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { buildSync } from "esbuild";
 import { makeStandardCourse } from "../src/lib/race-physics";
 import { DIFFICULTY_CONFIG } from "../src/app/game/config";
@@ -44,6 +44,32 @@ async function visualJournal(page: Page): Promise<VisualJournal> {
 function seconds(text: string | null): number {
   const match = text?.trim().match(/^(\d+):(\d{2})\.(\d)$/);
   return match ? Number(match[1]) * 60 + Number(match[2]) + Number(match[3]) / 10 : NaN;
+}
+
+async function mapGeometry(map: Locator) {
+  return map.evaluate(figure => {
+    // The map wrapper belongs to the existing scrollable cockpit panel. Read
+    // its actual client area, excluding borders and any scrollbar; never scroll
+    // the map into view to conceal a clipped start/finish line or caption.
+    const panel = figure.parentElement?.parentElement;
+    const svg = figure.querySelector("svg");
+    const caption = figure.querySelector("figcaption");
+    if (!(panel instanceof HTMLElement) || !(svg instanceof SVGSVGElement) || !(caption instanceof HTMLElement)) throw new Error("Map panel geometry is not ready");
+    const box = (element: Element) => {
+      const { left, top, right, bottom, width, height } = element.getBoundingClientRect();
+      return { left, top, right, bottom, width, height };
+    };
+    const panelBox = panel.getBoundingClientRect();
+    const client = { left: panelBox.left + panel.clientLeft, top: panelBox.top + panel.clientTop,
+      right: panelBox.left + panel.clientLeft + panel.clientWidth, bottom: panelBox.top + panel.clientTop + panel.clientHeight };
+    const svgBox = box(svg), captionBox = box(caption);
+    const contains = (outer: typeof client, inner: typeof svgBox) => inner.width > 0 && inner.height > 0 &&
+      inner.left >= outer.left - 1 && inner.top >= outer.top - 1 && inner.right <= outer.right + 1 && inner.bottom <= outer.bottom + 1;
+    const viewport = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    return { client, svg: svgBox, caption: captionBox, scrollTop: panel.scrollTop,
+      svgInsidePanel: contains(client, svgBox), captionInsidePanel: contains(client, captionBox),
+      svgInsideViewport: contains(viewport, svgBox), captionInsideViewport: contains(viewport, captionBox) };
+  });
 }
 
 test("Simple 3D keeps live wind, the course map and wind choices in the reserved cockpit", async ({ page, context }, testInfo) => {
@@ -112,6 +138,24 @@ test("Simple 3D keeps live wind, the course map and wind choices in the reserved
   await expect(map.locator('[data-map-boat="player"]')).toHaveCount(1);
   await expect(map.locator('[data-map-boat="rival"]')).toHaveCount(DIFFICULTY_CONFIG.easy.opponents);
   const dock = cockpit.locator("aside");
+  for (const [label, viewport] of [
+    ["portrait", { width: 390, height: 844 }],
+    ["short", { width: 320, height: 568 }],
+    ["native-available", { width: 390, height: 720 }],
+    ["landscape", { width: 844, height: 390 }],
+    ["restored", { width: 390, height: 844 }],
+  ] as const) {
+    await page.setViewportSize(viewport);
+    await expect(cockpit.getByRole("button", { name: "Карта трассы", exact: true })).toHaveAttribute("aria-pressed", "true");
+    // Check full containment before Fleet causes any intentional panel scroll.
+    // Intersection alone passes when the SVG's start/finish is below the fold.
+    await expect.poll(() => mapGeometry(map)).toMatchObject({
+      svgInsidePanel: true, captionInsidePanel: true, svgInsideViewport: true, captionInsideViewport: true,
+    });
+    await testInfo.attach(`race-map-geometry-${label}-${viewport.width}x${viewport.height}`, {
+      body: Buffer.from(JSON.stringify(await mapGeometry(map))), contentType: "application/json",
+    });
+  }
   await dock.getByRole("heading", { name: "Флот", exact: true }).scrollIntoViewIfNeeded();
   await expect(dock.getByRole("heading", { name: "Флот", exact: true })).toBeVisible();
   const fleet = dock.getByRole("list");
