@@ -1,3 +1,14 @@
+# Delivered63 harness, final evidence first
+
+Exact source88fdaac, rollback tag testflight-1.7.0-63. Self availability and8
+notes independently confirmed21:53:34UTC. Generated18/Simulator27/archive33/
+IPA35,1211web/472native+9tools, final26.5upgrade and clean27changed-screen
+acceptance pass. See `docs/design/mobile/testflight63-2026-10-25.md` and
+`checks/native63-delivery.json`. This closes this ordered DIAL/diagnostic hotfix,
+not every item in the full65product matrix. Site production, physical owner
+phone/performance and new map/wind/gear64 remain separate. The original ordered
+checklist and candidate observations below are preserved as a dated trail.
+
 # Release63: rotary SRC input, diagnostics and visible guide corrections
 
 Status: candidate, not delivered. Native62 remains immutable at e3d70a1 and is

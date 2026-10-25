@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Delivered1.7.0(63) to Self: finger-operated radio DIAL, moving index, retained arrows, native selection protection and bounded local diagnostics. Native copy/relaunch and progress-preserving upgrade plus clean27 pass; independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. The following map/wind/gear and physical-course checkpoints remain separate.
+
+- Website 63 prepublication passed all 60 browser cases on the first attempt with actual frame readiness and unchanged budgets; Pro observations and its canonical journal are verified. Native 63 delivery is separate, and website merge/deploy/production acceptance remain pending.
+
 - Pro browser startup now requires an actual rendered frame within the same 25s allowance as canvas visibility, before its unchanged 15s clock and 120s case checks. CI serializes independent browser cases after measured WebGL2/ReadPixels stalls and overlapping heavy scenes; contention remains an inference. Local defaults, real multiplayer clients, assertions, retries and trace policy are preserved.
 
 - Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.

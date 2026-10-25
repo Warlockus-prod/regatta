@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "checkedAtUTC": "2026-10-25T22:03:47.999595+00:00",
+  "scope": "Website 63 prepublication only; this does not prove production deployment or full product acceptance.",
+  "appRuntimeSource": "88fdaac37e1c0ac4acce35a5208ccceef0e04751",
+  "testedSiteHead": "c8ae4ef3af78e98d0acbeb79da6ca8795b198633",
+  "nativeDeliveryDocsSource": "9ed97594ac055943872d41ec056a9e1a33d930ec",
+  "shippingRuntimeAndOfflineAssetsExact": true,
+  "source64Included": false,
+  "workflowSha256": "770568145fdabd4872c09be9d7451baa656495e1741c4a836627378464985de6",
+  "predeploy": {
+    "run": 40237322187,
+    "url": "https://github.com/Warlockus-prod/regatta/actions/runs/40237322187",
+    "job": 121301556117,
+    "event": "workflow_dispatch",
+    "testedHeadFromLog": "c8ae4ef3af78e98d0acbeb79da6ca8795b198633",
+    "ciWorkers": 1,
+    "total": 60,
+    "passedFirstAttempt": 60,
+    "flaky": 0,
+    "failed": 0,
+    "skipped": 0,
+    "minutes": 5.1,
+    "publicationJob": "skipped",
+    "deploymentJob": "skipped",
+    "productionE2EJob": "skipped",
+    "registryLoginExecuted": false
+  },
+  "artifact": {
+    "id": 12614774501,
+    "bytes": 582779,
+    "sha256": "d44a8591da09b684a24b9c1d7ada006d3e0d1aada92abe3dd7069292768c69f1",
+    "reportPreservedAfterSuccess": true
+  },
+  "pro": {
+    "retry": 0,
+    "outcome": "passed",
+    "durationMs": 65094,
+    "observationsBytes": 5029,
+    "beforeClock": {
+      "actualSceneStartup": "ready",
+      "clock": "0:03.0",
+      "visibility": "visible"
+    },
+    "pageErrors": 0,
+    "journalEntries": 24,
+    "journalDropped": 0,
+    "canonicalSchemaValidation": "PASS",
+    "lifecycle": [
+      {
+        "action": "init",
+        "elapsedMs": 640
+      },
+      {
+        "action": "briefing",
+        "elapsedMs": 642
+      },
+      {
+        "action": "countdown",
+        "elapsedMs": 1023
+      },
+      {
+        "action": "scene-ready",
+        "elapsedMs": 8283
+      },
+      {
+        "action": "start",
+        "elapsedMs": 16126
+      },
+      {
+        "action": "pause",
+        "elapsedMs": 24657
+      },
+      {
+        "action": "resume",
+        "elapsedMs": 61098
+      },
+      {
+        "action": "exit",
+        "elapsedMs": 64078
+      }
+    ],
+    "combinedStartupChecksMs": 7630,
+    "sharedStartupDeadlineMs": 25000,
+    "clockBudgetMs": 15000,
+    "caseBudgetMs": 120000,
+    "originalProCallsRetained": 96
+  },
+  "ordinaryCIOnTestedHead": {
+    "push": 40237286190,
+    "pullRequest": 40237290182,
+    "checksPassed": 6,
+    "webTests": 1211,
+    "webFiles": 139,
+    "nativeTests": 472,
+    "nativeSuites": 71,
+    "releaseToolTests": 9,
+    "foundationBrowserCases": 3,
+    "bundleMB": 6.49,
+    "bundleLimitMB": 6.5
+  },
+  "offlinePackages": {
+    "sailing": {
+      "version": "60be91656d67",
+      "sha256": "3459fbf52bcfeb33f6cc8309f7a688b7ec19879e9b1cf60cf5f8f3b584e68dcf"
+    },
+    "radio": {
+      "version": "c57e213801a2",
+      "sha256": "a6540cb818b4a0f8f78ffe5785e6d8274390391c1593f5a35caf9490ba164154"
+    },
+    "sternik": {
+      "version": "775d74906866",
+      "sha256": "fa692b9f1671cfa8a130874a1c301f334b1fd43b5b1fd5853b771494633c6f64"
+    }
+  },
+  "boundaries": {
+    "nativeDeliveryProof": "docs/audits/2026-10-25/checks/native63-delivery.json",
+    "nativeBuild": 63,
+    "productionWebsite63Published": false,
+    "previousProductionRevision": "72b4f57ba4b6a039c1e8850a93c7077c55b2fb4d",
+    "mergeOrDeploymentAuthorized": false,
+    "full65ItemAcceptanceComplete": false,
+    "physicalPhoneAndBroaderDeviceLanguageMatrixStillQualified": true
+  },
+  "causality": "The prior clock window included real frame loading. WebGL2/ReadPixels stalls and concurrent heavy-worker overlap were observed; contention as the sole cause was not established. This run strengthens real readiness within the old budgets and serializes independent CI cases without changing product physics or in-test multiplayer clients."
+}
