@@ -770,20 +770,20 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `ops/deploy/compose.yml` - описание контейнеров, лежащее в `/etc/regatta-deploy`
   и доступное на запись только root. CI управляет содержимым образов, но никогда
   не монтированием, сетями и привилегиями рантайма.
-- `ops/deploy/test_deploy.py` - тесты именно границы привилегий, а не приложения.
+- `ops/deploy/test_deploy.py` - тесты границы привилегий: ограниченные deploy input/SSH/Compose/rollback, main-only publication/deployment и обязательные loopback learning/replay проверки без deploy secrets.
 - `ops/deploy/.gitignore` - прячет `__pycache__/` рядом с python-скриптами.
 - `ops/notify/README.md` - какие уведомления настроены и куда идут.
 - `ops/notify/asc-telegram-notify.mjs` - опрос статуса ревью App Store и сообщение в Telegram.
 - `ops/notify/asc-alert.sh` - управление launchd-задачей алерта.
 - `ops/notify/N8N_SUPPORT_SETUP.md` - настройка потока support@ в Telegram через n8n.
 - `ops/notify/regatta-support-email-to-telegram.workflow.json` - экспорт workflow n8n.
-- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима.
-- `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8).
+- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; catalog inventory отдельно от Diagnostics utility, для которой проверяются все7 названий, route, доступность при поиске и 44px. Три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены. Pro требует canvas и actual data-scene-startup=ready в одном 25s startup deadline перед прежней 15s clock-проверкой, без обхода renderer gate. Pro прикладывает before-clock/finally scene-startup, clock, visibility и максимум 10 pageerror stacks по 4KiB UTF-8. Read-only probe собирает shared pure parser внутри evaluate, возвращая только canonical 64KiB/200-entry journal либо present/invalid flags: raw invalid storage не попадает даже в retry trace. Переход Trainer/3D сохраняет actual pageerror stack в private synthetic CI report без изменения product telemetry.
+- `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8); отдельные120s сохраняют весь keyboard/WS/settings/layout/Fleet flow после доказанного60s deadline на поздней геометрии.
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
 - `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.
-- `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки.
+- `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев. Три модели проходят реальные SQL/Volume уроки мышью: actual LCD `Volume:`, вращение обода и индекса, Complete, release, Next и 44px альтернативы проверяются без изменения timeout.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
-- `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд.
+- `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд, compact Task и реальное изменение9m->11m с сохранением намерения через виды, панели и checkpoint; обычный30s бюджет этого case сохранен.
 
 ### 4.16 Корневые конфиги
 
@@ -793,14 +793,14 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `eslint.config.mjs` - правила ESLint (в CI пока advisory: 11 ошибок в общих веб-файлах на 2026-10-19).
 - `postcss.config.mjs` - подключение Tailwind v4 через PostCSS.
 - `vitest.config.ts` - web unit tests use the complete root tsconfig as a string, including pure native adapters without requiring Expo in root-only CI.
-- `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью.
+- `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью; CI использует одного worker для независимых тяжелых сцен, локальный default и два реальных клиента внутри multiplayer case сохранены. Retries, trace policy и бюджеты не меняются.
 - `Dockerfile` - образ веб-приложения (node alpine по digest, standalone); код принадлежит root, рантайм-пользователь 1001 пишет только в `/data` и `/app/.next/cache`.
 - `docker-compose.yml` - только локальная разработка (проект `regatta-local`): сервисы `regatta` (172.17.0.1:4500) и `regatta-ws` (172.17.0.1:4502), том `/data`, healthcheck. Прод его не использует (`ops/deploy/compose.yml`).
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.
 - `.dockerignore` - что не попадает в контекст сборки образа.
 - `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
-- `.github/workflows/ci.yml` - CI на ветки и PR: типы, lint (advisory), тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного.
-- `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Экшены закреплены по SHA.
+- `.github/workflows/ci.yml` - CI на ветки и PR: типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет неизменный JS-бюджет и выполняет `e2e/foundation.spec.ts` до публикации.
+- `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E включая sailing lessons/replay, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Non-main checks не получают deploy secrets и не публикуют образы. Экшены закреплены по SHA.
 - `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы (digest, без смены мажорной версии Node: она меняется вместе с `node-version` в воркфлоу), GitHub Actions; без автомержа, `mobile/` не входит.
 
 ---
@@ -874,9 +874,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - Откат: администратор (не деплой-аккаунт) поднимает образы из
   `/var/lib/regatta-deploy-state/previous.json` тем же фиксированным
   compose-файлом, см. `ops/deploy/README.md` ("Verification and rollback").
-  Ручного `workflow_dispatch` с произвольным ref больше нет: ручной запуск
-  деплоит ветку, на которой запущен, и проходит правила environment
-  `production`.
+  Ручной `workflow_dispatch` на другом ref выполняет проверки, но публикация
+  образов и deploy явно требуют `refs/heads/main`. Настройки environment
+  `production` - отдельный контроль владельца, их наличие нельзя выводить
+  из YAML или успешных unit-тестов.
 
 ---
 
@@ -1017,7 +1018,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
 
 - `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
-- `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer, exact end-time scrubbing, camera and reserved playback controls.
+- `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer and actual first rendered frame, exact end-time scrubbing, camera select/high preference and reserved playback controls within its own120s case budget. The corrected camera value passed at58.888s before the old60s deadline interrupted storage verification; assertions and global defaults remain unchanged.
 - A solo race captures its Simple/Pro classification at countdown start, independent of later preference changes in another tab. Sheet keyboard shortcuts are owned by the race across utility tabs; absolute course sliders set a target without accumulating render-delay errors.
 - Wheel hints read browser visit counts after identical server/client hydration. Desktop trainer wheel mode no longer duplicates the sheet/rudder sliders below its wheels.
 
@@ -1058,7 +1059,9 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
 - `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
 
-Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, radio workspace and offline browser suites against the loopback production build before publishing images. Production authority, pinned actions, immutable image deployment and forced SSH boundary are unchanged.
+Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, sailing learning, shared replay, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. `ops/deploy/test_deploy.py` locks the prepublication suite selection, loopback target, absence of deploy secrets and main-only publication/deployment conditions. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged. The expanded browser gate must still run on the combined source candidate before another publication.
+
+Both pre-deploy and production browser report steps use always() with the same pinned upload action, narrow playwright-report directory and 14-day retention, so successful retries preserve screenshots, retry traces and bounded Pro JSON attachments. The existing boundary tests also lock these artifact limits; the production job still requires successful deploy. This does not change trace-on-first-retry, UI assertions, budgets or host authority. Foundation-only CI report retention is unchanged.
 
 Completion and installed sailing package:
 
@@ -1095,7 +1098,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 
 Повторная сверка утвержденного плана: `docs/audits/2026-10-25/plan-recheck.md`. Реализация, свежие скриншоты и незакрытые проверки: `docs/audits/2026-10-25/corrections.md`. Новые общие данные не меняют содержание native или коэффициенты physics.
 
-- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; выполнение отмечается отдельно.
+- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; минимум 44px для возврата сравнивается с точностью 0,001px из-за погрешности DOM geometry; выполнение отмечается отдельно.
 - `src/app/radio/navigation.ts` - совместимый экспорт общего контракта SRC из src/lib.
 - `src/app/radio/navigation.test.ts` - ограниченные маршруты, история и защита выхода из экзамена SRC.
 - `src/lib/radio-navigation.ts` - общий ограниченный контракт маршрутов SRC, native entry, Back, подтверждение выхода; Metro видит src/lib.
@@ -1168,6 +1171,7 @@ Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-
 - `docs/audits/2026-10-25/release63-harness.md` owns the bounded SRC layout/guide-copy, Foundation gutter and Sternik information checkpoint, native verification and separate website gates.
 
 - `docs/audits/2026-10-25/checks/website62-runtime-gate.json` is the portable72b4f57 publication, immutable image/runtime and red final browser-gate record. Healthy deployment and targeted manual UI do not replace successful full acceptance.
+- `docs/audits/2026-10-25/checks/website63-browser-contracts.json` records the exact red60-case source/artifact, five diagnosed LCD/Menu expectation corrections and the required next combined gate without claiming runtime or delivery acceptance.
 
 - Language URL cleanup in `src/lib/i18n.tsx` preserves browser history state. Removing a lang query must not replace App Router metadata with null: that can change the Back URL while leaving the previous React screen mounted. The seven SRC course-return browser cases cover this flow.
 
@@ -1247,6 +1251,8 @@ actual Self/native evidence. `docs/audits/2026-10-25/diagnostics63.md` owns
 coverage limits. `docs/audits/2026-10-25/acceptance63.md` retains all65rows
 and current qualified acceptance. Next64 adds race map/wind display and shared gear affordance;
 physical motion/classes and full product acceptance remain separate.
+
+- `docs/audits/2026-10-25/checks/website63-prepublication.json` - immutable APP 88/runtime and SITE c8ae4ef first-pass 60 proof, validated Pro observations/artifact hashes and explicit unpublished/partial-acceptance boundaries; later docs-only sync does not add source 64.
 
 ### Map/wind presentation checkpoint64
 

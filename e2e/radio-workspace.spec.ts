@@ -320,8 +320,8 @@ for (const variant of ["m330", "m323", "real"] as const) {
     }
     await page.getByTestId("course-next").click();
     // M323 also cycles through channel and backlight; keep its real push sequence.
-    for (let presses = 0; presses < 5 && !(await lcd.innerText()).includes("VOL"); presses++) await dial.click();
-    await expect(lcd).toContainText("VOL");
+    for (let presses = 0; presses < 5 && !(await lcd.innerText()).includes("Volume:"); presses++) await dial.click();
+    await expect(lcd).toContainText("Volume:");
     point = await center();
     const radius = point.radius * .8;
     await page.mouse.move(point.x, point.y - radius); await page.mouse.down();
@@ -329,7 +329,7 @@ for (const variant of ["m330", "m323", "real"] as const) {
       for (const angle of [-75, -60, -45, -30, -15, 0]) await page.mouse.move(point.x + radius * Math.cos(angle * Math.PI / 180), point.y + radius * Math.sin(angle * Math.PI / 180));
       await expect(status).toContainText("Complete");
     } finally { await page.mouse.up(); }
-    await expect(lcd).toContainText("VOL");
+    await expect(lcd).toContainText("Volume:");
     await expect(page.getByTestId("course-next")).toBeEnabled();
     await radioWholeInView(page, { height: 874 });
     expect((await page.getByTestId("radio-dock").boundingBox())!.height).toBeGreaterThanOrEqual(90);

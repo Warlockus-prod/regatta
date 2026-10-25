@@ -16,7 +16,9 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // Cloud traces showed WebGL2 ReadPixels stalls while independent heavy scenes
+  // overlapped. Serialize CI cases; local concurrency and real in-test clients stay.
+  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',

@@ -9,6 +9,8 @@
 
 - Active64 map/wind/settings presentation follows `docs/audits/2026-10-25/release64-harness.md`. Preserve actual course/wind truth, native visual preferences, reserved boat space and diagnostic privacy. No new physics, live weather service or physical race emission belongs to this slice.
 
+- SITE prepublication after the delivery snapshot: all 60 browser cases passed first attempt on c8ae4ef, with actual scene-ready, clock progression and canonical Pro evidence. `docs/audits/2026-10-25/checks/website63-prepublication.json` owns this portable proof. It does not claim website publication or full 65-item closure; APP 64 implementation is excluded from this site candidate.
+
 - Delivered63 is immutable source88fdaac, tag testflight-1.7.0-63. Independent ASC GET21:53:34.798UTC confirms exact Self VALID/IN_BETA_TESTING and8notes match21:53:34.514UTC. Actual DIAL and bounded local diagnostics: `docs/design/mobile/testflight63-2026-10-25.md`. Current65row evidence: `docs/audits/2026-10-25/acceptance63.md`. Next owner-authorized64 adds live map, wind compass/3Darrow choices and an actual shared gear icon, without changing physics or enabling physical race emission. Dated candidate notes below remain history, not current delivery status.
 
 - Rapid native DIAL taps additionally cancel the local non-passive touchstart default, while pointer events remain the sole gesture owner and Inspect keeps its click. The verified00ea archive/simulator are preserved as another never-uploaded candidate; exact native acceptance must repeat.
@@ -201,6 +203,25 @@ npm run check:map            # карта проекта актуальна
   `node scripts/build-race-server.mjs --check`, затем `npx vitest run`, плюс
   `npm run test:multiplayer` и `npm run check:map`. Новый тестовый файл где
   угодно в `src` попадает в CI сам.
+- Отдельная джоба CI `Foundation browser flow` собирает web, проверяет прежний
+  JS-бюджет и запускает `e2e/foundation.spec.ts` на локальной production-сборке.
+  Те же сценарии входят в pre-deploy E2E до публикации образов: настоящий квиз,
+  черновик/reload, отказ записи/retry и возврат из практики. Это не приемка
+  установленного приложения или всей матрицы устройств/языков.
+- Pre-deploy E2E также включает курс парусов и shared replay. Проверки используют
+  реальные Task controls, изменение длины9m->11m, сохранение/восстановление и
+  select камеры; первый настоящий кадр3D остается обязательным.
+  двухклиентный multiplayer case получает120s по production report: keyboard
+  и положительный WS input прошли, затем60s истекли на геометрии дока.
+  Shared3D replay case также получает120s: corrected select/value прошли
+  на57.9s, но storage poll встретил прежний60s deadline. Все assertions
+  сохранены. Ошибка simulator smoke сохраняется со stack в private synthetic
+  CI report, это не изменение product telemetry.
+  Non-main workflow_dispatch проверяет candidate без публикации/деплоя.
+  Изменение тестов не означает, что следующий browser gate уже пройден.
+- Browser Menu inventory counts catalog destinations separately from its always-reachable Diagnostics utility. The utility must keep its localized name, exact route and 44px target during empty search and after clear. DIAL browser checks use the actual LCD label `Volume:` while preserving real SQL and rim motion, lesson completion, release and geometry checks; no timeout increase.
+- The Pro smoke case attaches private CI observations before its initial clock check and in finally: bounded pageerror stacks, actual scene-startup/clock/visibility and only the shared parser's canonical diagnostic snapshot. Invalid storage never leaves the browser probe. Both deploy-workflow browser reports upload on success/failure for 14 days, including flaky-success evidence; assertions, trace policy, permissions and main-only release guards stay unchanged.
+- Pro canvas visibility and actual first-frame readiness share one 25s startup deadline before the unchanged 15s clock check and 120s case limit. CI runs independent browser cases with one worker; local defaults and each multiplayer case's real concurrent clients stay unchanged. Recorded WebGL2/ReadPixels stalls and heavy-scene overlap justify isolation, but contention as the sole cause is not proven.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
   из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и
@@ -218,7 +239,9 @@ npm run check:map            # карта проекта актуальна
   работа по мобильному приложению (`mobile/`).
 - Деплой только из CI. Push в `main` запускает `.github/workflows/deploy.yml`:
   проверки (типы, типографика, карта, весь `npx vitest run`, сокеты), сборка и
-  pre-deploy E2E на раннере, затем неизменяемые образы в GHCR. Джоба деплоя
+  pre-deploy E2E на раннере, затем неизменяемые образы в GHCR.
+  Публикация образов и deploy имеют явное условие refs/heads/main; другой ref
+  запускает только проверки. Это не заменяет отдельные правила environment. Джоба деплоя
   (GitHub environment `production`) по SSH stdin отдает принудительной
   команде `regatta-deploy` на VPS commit, два digest образов и одноразовый
   токен GHCR этой джобы (стирается вместе с временной авторизацией Docker

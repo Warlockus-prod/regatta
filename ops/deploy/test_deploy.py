@@ -3,6 +3,8 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import re
+import shlex
 import subprocess
 import tempfile
 from types import SimpleNamespace
@@ -88,6 +90,52 @@ class DeployBoundary(unittest.TestCase):
             self.assertEqual(compose.call_args_list[1].args[0], old)
             self.assertEqual(json.loads((state / "current.json").read_text()), old)
             self.assertFalse((state / "previous.json").exists())
+
+
+class WorkflowBoundary(unittest.TestCase):
+    def setUp(self):
+        self.workflow = (HERE.parents[1] / ".github/workflows/deploy.yml").read_text()
+
+    def job(self, name):
+        match = re.search(r"^  " + re.escape(name) + r":\n(.*?)(?=^  [a-zA-Z0-9_-]+:\n|\Z)",
+                          self.workflow, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(match, name)
+        return match.group(1)
+
+    def test_lessons_and_replay_are_checked_before_publication_without_deploy_secrets(self):
+        candidate = self.job("build-check")
+        commands = re.findall(r"^\s+npx playwright test (.+)$", candidate, re.MULTILINE)
+        self.assertEqual(len(commands), 1)
+        args = shlex.split(commands[0])
+        self.assertEqual(set(arg for arg in args if arg.startswith("e2e/")), {
+            "e2e/smoke.spec.ts", "e2e/foundation.spec.ts", "e2e/sailing-learning.spec.ts",
+            "e2e/replay.spec.ts", "e2e/radio-workspace.spec.ts", "e2e/offline.spec.ts",
+        })
+        self.assertEqual(args[-2:], ["--grep-invert", "AI chat"])
+        self.assertIn("BASE_URL: http://localhost:3000", candidate)
+        self.assertNotIn("secrets.", candidate)
+        self.assertNotIn("packages: write", candidate)
+
+    def test_branch_checks_cannot_publish_or_deploy(self):
+        defaults = self.workflow.split("jobs:", 1)[0]
+        self.assertRegex(defaults, r"permissions:\n  contents: read\n")
+        for name in ["publish-images", "deploy"]:
+            job = self.job(name)
+            self.assertRegex(job, r"^    if: github\.ref == 'refs/heads/main'\n")
+        self.assertIn("needs: build-check", self.job("publish-images"))
+        self.assertIn("needs: [build-check, publish-images]", self.job("deploy"))
+        self.assertIn("needs: deploy", self.job("e2e"))
+        # Keep flaky-success traces/attachments without broadening artifact input
+        # or making the production job run when its deploy prerequisite is skipped.
+        for name in ["build-check", "e2e"]:
+            job = self.job(name)
+            uploads = re.findall(r"      - name: Upload[^\n]*\n(.*?)(?=      - |\Z)", job, re.DOTALL)
+            self.assertEqual(len(uploads), 1)
+            self.assertEqual(re.findall(r"^        if: (.+)$", uploads[0], re.MULTILINE), ["always()"])
+            self.assertEqual(re.findall(r"^        uses: (\S+)", uploads[0], re.MULTILINE),
+                             ["actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"])
+            self.assertEqual(re.findall(r"^          path: (.+)$", uploads[0], re.MULTILINE), ["playwright-report/"])
+            self.assertEqual(re.findall(r"^          retention-days: (.+)$", uploads[0], re.MULTILINE), ["14"])
 
 
 if __name__ == "__main__":
