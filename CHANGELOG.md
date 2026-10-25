@@ -7,17 +7,20 @@
 
 ## Unreleased
 
+- Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Candidate62 still requires installed-binary and TestFlight delivery verification.
+
 - The foundation return test keeps the 44px minimum while comparing browser geometry to 0.001px precision, avoiding a false failure at 43.999992px. Course return, navigation and progress assertions remain unchanged.
 
 - Fixed foreground simulation time freezing at2-3FPS. Ready, pause, visibility and enabled boundaries exclude inactive time, while simulation keeps its1/30second step. Race sliders now expose their existing translated names to accessibility tools.
 
-- Preparing the next checkpoint: stable simulation time on slower foreground displays and accessible race sliders, followed by physical-scale short/medium/long solo courses approved by the owner. This is planned work, not a delivered62 release.
+- Reprioritized checkpoint62 for the urgent SRC upgrade failure plus stable foreground time and accessible race sliders. Owner-approved physical-scale short/medium/long courses follow separately; they are not part of62.
 
 - Updated two website browser expectations to the current Polish radio help label and default 3D trim view. The checks still require working help without invented progress, a rendered first frame and hidden embed navigation. The separate race-clock assertion is retained.
 
 - Website image publication and deployment now explicitly require main, so a manual run on another branch or tag performs checks without changing production. The confined server policy and credentials are unchanged.
 
 - Website foundation browser journeys now run in branch/PR CI and before deployment: original checks, restored drafts, failed-save retry and return from practice must work before the website is published. App release sources and installed assets are unchanged by this site-only gate.
+
 - Delivered1.7.0(61) to Self with Apple VALID processing, verified membership/readiness and8notes. It includes the reviewed3D camera, radio/navigation, route advice and language corrections. Public website/AppReview and the next physical-scale short/long course stage remain separate.
 
 - Finished adapting12 SRC theory section headings in all seven languages. Radio mistakes and their Reset now stay within SRC, preserving saved Polish Sternik oral practice.

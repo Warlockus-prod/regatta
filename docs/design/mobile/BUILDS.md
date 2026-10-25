@@ -1,6 +1,6 @@
 # Mobile build journal
 
-Operational check dated2026-10-25: build61 from37c7079 is VALID and IN_BETA_TESTING in Self, all8notes verified15:35:51UTC. See `docs/design/mobile/testflight61-2026-10-25.md`. Website publication remains blocked by pre-deploy browser checks; physical-scale courses are approved for62.
+Operational check dated2026-10-25: build61 from37c7079 is VALID and IN_BETA_TESTING in Self, all8notes verified15:35:51UTC. See `docs/design/mobile/testflight61-2026-10-25.md`. Website publication remains held before publication. Urgent62 repairs SRC legacy snapshots plus foreground clock/slider access; approved physical-scale courses move to a following checkpoint.
 
 Historical check dated 2026-10-24: public 1.6.4 (48) is READY_FOR_SALE.
 Build 58 was confirmed VALID and in Self before this release. Build 59 from

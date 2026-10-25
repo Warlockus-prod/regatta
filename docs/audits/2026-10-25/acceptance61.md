@@ -95,3 +95,6 @@
 Доставка61 записана по свежим ASC GET, baseline остается неизменным. Website production не менялся: его pre-deploy gate остановил публикацию. Исторические ветки, review source/assets и dirty root сохраняются. Решение владельца о физическом масштабе и коротких/длинных трассах относится к следующему62 checkpoint.
 
 Новые actual61 доказательства: [повторный выход SRC](checks/21-native-src-repeat-exit.png), [прибор RU](checks/22-native-final-radio.png), [Pro wheels](checks/23-native-final-pro-wheels.png), [ручной main trim](checks/24-native-final-pro-trim.png), [свободный Orbit](checks/25-native-final-orbit-rotated.png), [upgrade26.5 scene](checks/26-native-upgrade-3d.png). Seven-language Learn/Exam DOM и сохраненные7upgrade values записаны рядом в checks.
+
+
+Later feedback triage2026-10-25: build60 native SRC failure matches a confirmed reader60/61 incompatibility with the retired lang.v1 key from48/49. The earlier upgrade fixture did not include that key. Checkpoint62 adds the missing historical-key regression and actual48->61->62 upgrade gate; see `docs/audits/2026-10-25/release62-harness.md`. This later finding does not rewrite the immutable61 binary or delivery proof.

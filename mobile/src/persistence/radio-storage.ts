@@ -5,6 +5,9 @@ export const RADIO_STORAGE_KEY = "regatta.radio.offline.web-storage.v1";
 export const RADIO_MESSAGE_LIMIT = 768 * 1024;
 export const RADIO_STORAGE_KEYS = [
   "radio.src.progress.v1", "radio.src.progress.v2", "radio.src.theory.progress.v2",
+  // Released builds 48/49 include this retired preference. Preserve it;
+  // the current course still takes its language from the app before v2.
+  "regatta.radio.offline.lang.v1",
   "regatta.radio.offline.lang.v2", "sternik.examBase.v1", "sternik.explHint.v1", "sternik.explLang.v1",
   "sternik.radio.cert-name.v1", "sternik.radio.guide.v2", "sternik.radio.mode.v1", "sternik.radio.model.v1",
   "sternik.radio.muted.v1", "sternik.radio.onboard.v1", "sternik.radio.progress.v1",

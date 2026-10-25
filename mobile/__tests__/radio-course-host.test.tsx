@@ -2,6 +2,7 @@ import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Alert, Linking } from "react-native";
 import type { ReactNode } from "react";
 import type { NavigationAction } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 jest.mock("../assets/radio-offline.html", () => 42);
@@ -10,8 +11,8 @@ jest.mock("@react-navigation/native", () => ({ usePreventRemove: (enabled: boole
 jest.mock("../src/design-system/components", () => ({ Screen: (props: object) => jest.requireActual("react").createElement(jest.requireActual("react-native").View, props), Text: jest.requireActual("react-native").Text }));
 jest.mock("../src/i18n/context", () => ({ useI18n: () => ({ lang: "en", tp: (_ru: string, en: string) => en }) }));
 jest.mock("../src/analytics/use-analytics", () => ({ useAnalytics: () => ({ capture: jest.fn() }) }));
-jest.mock("../src/persistence/analytics-consent", () => ({ useAnalyticsConsent: () => ({ enabled: false, ready: true }), webAnalyticsGuardScript: () => "/* no analytics */" }));
-jest.mock("../src/radio/useLocalRadioSpeech", () => ({ LOCAL_RADIO_SPEECH_SCRIPT: "/* local speech */", useLocalRadioSpeech: () => mockSpeech }));
+jest.mock("../src/persistence/analytics-consent", () => ({ useAnalyticsConsent: () => ({ enabled: false, ready: mockConsentReady }), webAnalyticsGuardScript: () => "/* no analytics */" }));
+jest.mock("../src/radio/useLocalRadioSpeech", () => ({ LOCAL_RADIO_SPEECH_SCRIPT: "/* local speech */", useLocalRadioSpeech: (_inject: unknown, enabled: boolean) => { mockSpeechEnabled(enabled); return mockSpeech; } }));
 jest.mock("../src/persistence/radio-storage", () => ({ ...jest.requireActual("../src/persistence/radio-storage"), readRadioEntries: jest.fn().mockResolvedValue(null), persistRadioEntries: jest.fn(async (entries: unknown) => entries) }));
 jest.mock("react-native-webview", () => {
   const React = require("react");
@@ -21,7 +22,7 @@ jest.mock("react-native-webview", () => {
 import { OfflineRadioCourse } from "../src/course/OfflineRadioCourse";
 import { darkColors } from "../src/design-system/tokens";
 import { mainNavigationHiddenByScreen } from "../src/navigation/visibility";
-import { persistRadioEntries, readRadioEntries } from "../src/persistence/radio-storage";
+import { persistRadioEntries, readRadioEntries, RADIO_STORAGE_KEY } from "../src/persistence/radio-storage";
 import { RADIO_FREE_HREF, RADIO_GUIDED_HREF } from "../../src/app/radio/navigation";
 
 type Guard = (event: { data: { action: NavigationAction } }) => void;
@@ -31,8 +32,10 @@ const mockNavigation = { dispatch: jest.fn() };
 const mockRouter = { back: jest.fn(), canGoBack: jest.fn(() => true), replace: jest.fn() };
 const mockInject = jest.fn();
 const mockSpeech = jest.fn(() => false);
+const mockSpeechEnabled = jest.fn();
+let mockConsentReady = true;
 const send = (web: ReturnType<typeof render>["root"], data: object) => act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify(data) } }));
-beforeEach(() => { jest.clearAllMocks(); mockRouter.canGoBack.mockReturnValue(true); });
+beforeEach(() => { jest.clearAllMocks(); mockConsentReady = true; mockRouter.canGoBack.mockReturnValue(true); });
 
 it("opens the actual local radio route with a matching dark native surface and no website-mode escape", async () => {
   const view = render(<OfflineRadioCourse />);
@@ -142,4 +145,143 @@ it("exits the app rather than injecting dead internal Back after the ready watch
     expect(view.queryByText("Retry")).toBeNull();
     expect(mockScreen.mock.calls.at(-1)![0].options?.headerShown).toBe(false);
   } finally { jest.useRealTimers(); }
+});
+
+it("bounds an unresolved storage read and ignores its late result after Retry", async () => {
+  jest.useFakeTimers();
+  let resolveOld!: (value: null) => void;
+  jest.mocked(readRadioEntries).mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; }));
+  try {
+    const view = render(<OfflineRadioCourse />);
+    expect(view.queryByTestId("src-webview")).toBeNull();
+    act(() => { jest.advanceTimersByTime(15000); });
+    expect(view.getByText("Support code: SRC-S03")).toBeTruthy();
+    expect(view.getByRole("button", { name: "Back to app" })).toBeTruthy();
+    expect(persistRadioEntries).not.toHaveBeenCalled();
+    fireEvent.press(view.getByText("Retry"));
+    await act(async () => { await Promise.resolve(); });
+    const web = view.getByTestId("src-webview");
+    send(web, { type: "radio-offline-ready" });
+    await act(async () => { resolveOld(null); await Promise.resolve(); });
+    expect(view.getByTestId("src-webview")).toBe(web);
+    expect(view.queryByText("Retry")).toBeNull();
+    act(() => { jest.advanceTimersByTime(15000); });
+    expect(view.queryByText("Retry")).toBeNull();
+  } finally { jest.useRealTimers(); }
+});
+
+it("does not spin forever if consent bootstrap stalls after storage has loaded", async () => {
+  jest.useFakeTimers();
+  mockConsentReady = false;
+  try {
+    const view = render(<OfflineRadioCourse />);
+    await act(async () => { await Promise.resolve(); });
+    expect(view.queryByTestId("src-webview")).toBeNull();
+    act(() => { jest.advanceTimersByTime(15000); });
+    expect(view.getByText("Support code: SRC-B01")).toBeTruthy();
+    fireEvent.press(view.getByRole("button", { name: "Back to app" }));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  } finally { jest.useRealTimers(); }
+});
+
+it.each([
+  [new Error("invalid-radio-storage"), "SRC-S01"],
+  [new SyntaxError("private storage contents"), "SRC-S01"],
+  [new Error("private device path"), "SRC-S02"],
+])("classifies storage failures without exposing the original error", async (error, code) => {
+  jest.mocked(readRadioEntries).mockRejectedValueOnce(error);
+  const view = render(<OfflineRadioCourse />);
+  await waitFor(() => expect(view.getByText(`Support code: ${code}`)).toBeTruthy());
+  expect(view.queryByText(/private/)).toBeNull();
+  expect(view.queryByTestId("src-webview")).toBeNull();
+  expect(persistRadioEntries).not.toHaveBeenCalled();
+});
+
+it("distinguishes WebView loading timeout from native storage/bootstrap", async () => {
+  jest.useFakeTimers();
+  try {
+    const view = render(<OfflineRadioCourse />);
+    await act(async () => { await Promise.resolve(); });
+    fireEvent(view.getByTestId("src-webview"), "loadStart");
+    act(() => { jest.advanceTimersByTime(15000); });
+    expect(view.getByText("Support code: SRC-W02")).toBeTruthy();
+    expect(view.queryByTestId("src-webview")).toBeNull();
+  } finally { jest.useRealTimers(); }
+});
+
+it("keeps safe WK details and ignores late ready/errors from the failed attempt", async () => {
+  const view = render(<OfflineRadioCourse />);
+  const web = await waitFor(() => view.getByTestId("src-webview"));
+  const old = web.props;
+  fireEvent(web, "loadStart");
+  fireEvent(web, "error", { nativeEvent: { domain: "NSURLErrorDomain", code: -1100, description: "private file URL and token" } });
+  expect(view.getByText("Support code: SRC-W01 / NSURLErrorDomain / -1100")).toBeTruthy();
+  expect(view.queryByText(/private/)).toBeNull();
+  act(() => old.onMessage({ nativeEvent: { data: JSON.stringify({ type: "radio-offline-ready" }) } }));
+  expect(view.getByText("Retry")).toBeTruthy();
+  fireEvent.press(view.getByText("Retry"));
+  const next = await waitFor(() => view.getByTestId("src-webview"));
+  send(next, { type: "radio-offline-ready" });
+  act(() => {
+    old.onError({ nativeEvent: { domain: "WKErrorDomain", code: 1 } });
+    old.onContentProcessDidTerminate();
+    old.onMessage({ nativeEvent: { data: JSON.stringify({ type: "radio-route", href: "/radio/teoria", canGoBack: true }) } });
+  });
+  expect(view.queryByText("Retry")).toBeNull();
+  expect(view.getByTestId("src-webview")).toBe(next);
+  expect(mockInject).not.toHaveBeenCalled();
+});
+
+it("offers a local retry and exit if WebKit terminates an already ready course", async () => {
+  const view = render(<OfflineRadioCourse />);
+  const web = await waitFor(() => view.getByTestId("src-webview"));
+  send(web, { type: "radio-offline-ready" });
+  fireEvent(web, "contentProcessDidTerminate", { nativeEvent: { url: "private URL" } });
+  expect(view.getByText("Support code: SRC-W03")).toBeTruthy();
+  expect(view.getByText("The system stopped the embedded course.")).toBeTruthy();
+  expect(view.getByRole("button", { name: "Back to app" })).toBeTruthy();
+  expect(view.queryByTestId("src-webview")).toBeNull();
+  expect(view.queryByText(/private/)).toBeNull();
+  expect(mockSpeechEnabled).toHaveBeenLastCalledWith(false);
+  fireEvent.press(view.getByText("Retry"));
+  await waitFor(() => view.getByTestId("src-webview"));
+  expect(mockSpeechEnabled).toHaveBeenLastCalledWith(true);
+});
+
+it("does not acknowledge an old progress write into a retried WebView", async () => {
+  let resolveSave!: (entries: Record<string, string>) => void;
+  jest.mocked(persistRadioEntries).mockImplementationOnce(() => new Promise(resolve => { resolveSave = resolve; }));
+  const view = render(<OfflineRadioCourse />);
+  const web = await waitFor(() => view.getByTestId("src-webview"));
+  send(web, { type: "radio-offline-ready" });
+  const entries = { "radio.src.progress.v1": "{}" };
+  send(web, { type: "radio-offline-progress", entries });
+  fireEvent(web, "contentProcessDidTerminate");
+  fireEvent.press(view.getByText("Retry"));
+  const next = await waitFor(() => view.getByTestId("src-webview"));
+  send(next, { type: "radio-offline-ready" });
+  await act(async () => { resolveSave(entries); await Promise.resolve(); });
+  expect(mockInject).not.toHaveBeenCalled();
+  expect(persistRadioEntries).toHaveBeenCalledWith(entries);
+});
+
+it("mounts the real host from a released48 native snapshot without rewriting saved progress", async () => {
+  const entries = {
+    "regatta.radio.offline.lang.v1": "ru",
+    "radio.src.progress.v1": '{"src-1-1":{"seen":2,"correct":1,"streak":1}}',
+    "sternik.radio.progress.v1": '{"fire-mayday":{"best":80}}',
+  };
+  const raw = JSON.stringify(entries);
+  await AsyncStorage.setItem(RADIO_STORAGE_KEY, raw);
+  jest.mocked(readRadioEntries).mockImplementationOnce(jest.requireActual("../src/persistence/radio-storage").readRadioEntries);
+  try {
+    const view = render(<OfflineRadioCourse />);
+    const web = await waitFor(() => view.getByTestId("src-webview"));
+    expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain(JSON.stringify(entries));
+    expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain('window.__REGATTA_APP_LANG__="en"');
+    expect(await AsyncStorage.getItem(RADIO_STORAGE_KEY)).toBe(raw);
+    expect(persistRadioEntries).not.toHaveBeenCalled();
+    send(web, { type: "radio-offline-ready" });
+    expect(view.queryByText("Retry")).toBeNull();
+  } finally { await AsyncStorage.removeItem(RADIO_STORAGE_KEY); }
 });
