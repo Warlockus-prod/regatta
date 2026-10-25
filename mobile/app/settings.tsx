@@ -1,5 +1,7 @@
 import { controlSoundCopy } from "../../src/features/trainer-controls/sound-copy";
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { diagnosticCopy, diagnosticText } from '../../src/lib/diagnostic-copy';
+import { nativeDiagnostics } from '../src/diagnostics/journal';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import { useCallback, useMemo, useState } from 'react';
@@ -51,6 +53,7 @@ const SUPPORT_EMAIL = 'support@gtframe.io';
  */
 export default function Settings() {
   const { tp, lang, setLang } = useI18n();
+  const router = useRouter();
   const version = Constants.expoConfig?.version ?? 'dev';
   const buildNumber =
     Constants.expoConfig?.ios?.buildNumber ??
@@ -280,6 +283,11 @@ export default function Settings() {
         <UnitsSection />
 
         <TrainersSection />
+
+        <Card onPress={() => router.push("/diagnostics")} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel={diagnosticText(diagnosticCopy.title, lang)}>
+          <Text variant="subtitle">{diagnosticText(diagnosticCopy.title, lang)}</Text>
+          <Text variant="caption">{diagnosticText(diagnosticCopy.intro, lang)}</Text>
+        </Card>
 
         <Text
           variant="muted"
@@ -1270,6 +1278,7 @@ async function wipeAllRegattaKeys(
   doneBody: string,
   okLabel: string,
 ): Promise<void> {
+  nativeDiagnostics.suspendForGlobalClear();
   try {
     const keys = await AsyncStorage.getAllKeys();
     const ours = keys.filter(

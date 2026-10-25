@@ -1251,6 +1251,19 @@
     }
   },
   {
+    "id": "0a7fdd4da5c809e4",
+    "source": "Naciśnij [DIAL] i wybierz VOL lub SQL. Obracaj obrzeże palcem, przesuwaj środek w lewo lub w prawo albo użyj strzałek.",
+    "known": {
+      "pl": "Naciśnij [DIAL] i wybierz VOL lub SQL. Obracaj obrzeże palcem, przesuwaj środek w lewo lub w prawo albo użyj strzałek.",
+      "ru": "Нажми [DIAL], выбери VOL или SQL. Вращай обод пальцем, веди центр влево-вправо или используй стрелки.",
+      "en": "Press [DIAL] and select VOL or SQL. Turn the rim with your finger, drag the centre left or right, or use the arrows.",
+      "es": "Pulsa [DIAL] y elige VOL o SQL. Gira el borde con el dedo, arrastra el centro a izquierda o derecha o usa las flechas.",
+      "fr": "Appuie sur [DIAL] et choisis VOL ou SQL. Tourne le bord avec le doigt, fais glisser le centre à gauche ou à droite, ou utilise les flèches.",
+      "de": "Drücke [DIAL] und wähle VOL oder SQL. Drehe den Rand mit dem Finger, ziehe die Mitte nach links oder rechts oder nutze die Pfeile.",
+      "it": "Premi [DIAL] e scegli VOL o SQL. Ruota il bordo con il dito, trascina il centro a sinistra o a destra oppure usa le frecce."
+    }
+  },
+  {
     "id": "0a957c06953a9dff",
     "source": "regatta:radio-route",
     "known": {}
@@ -26022,11 +26035,6 @@
   {
     "id": "e0ab46db3d8eaf9c",
     "source": "X-ray",
-    "known": {}
-  },
-  {
-    "id": "e0ad2bc26c989782",
-    "source": "Naciśnij [DIAL], wybierz VOL lub SQL i użyj strzałek obrotu.",
     "known": {}
   },
   {

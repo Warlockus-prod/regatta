@@ -16,6 +16,7 @@ import {
 import { stepRuntime } from '../runtime/step-runtime';
 import { createFixedClock, SAILING_STEP_SECONDS } from '../../sailing-lab/runtime/fixed-clock';
 import { bindClockLifecycle } from "../../sailing-lab/runtime/clock-lifecycle";
+import { recordDiagnostic } from "@/lib/diagnostics-controls";
 import type { SailingSession } from "../../sailing-lab/runtime/session";
 import { type RuntimeState } from '../runtime/runtime-types';
 import { recommendedTrim } from '../runtime/trim-heuristics';
@@ -191,6 +192,7 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
       // a huge jump against a now-unrelated prior scenario.
       telemetryAnchorRef.current = null;
       setFrame((f) => (f + 1) | 0);
+      recordDiagnostic({ type: "trainer.lifecycle", surface: "trainer", outcome: "accepted", action: "reset" });
     },
     [params],
   );
@@ -209,6 +211,7 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
     clockRef.current.reset();
     telemetryAnchorRef.current = null;
     setFrame(value => (value + 1) | 0);
+    recordDiagnostic({ type: "trainer.lifecycle", surface: "trainer", outcome: "accepted", action: "restore" });
   }, [params]);
 
   // ---------------------------------------------------------------------

@@ -1,5 +1,6 @@
 'use client';
 
+import DiagnosticAccess from "@/components/diagnostics/DiagnosticAccess";
 import { useMemo, useState, type ReactNode } from "react";
 import styles from "./TrainerControls.module.css";
 import { ControlSettingsSheet } from "./ControlSettingsSheet";
@@ -95,6 +96,7 @@ export function ControlDock(props: {
       </div>
       <div className={`${styles.panel} ${current === "wheels" ? styles.panelWheels : ""}`} role="tabpanel" id={`tc-panel-${surface}`} aria-labelledby={`tc-tab-${surface}-${current}`}>
         {panel}
+        <DiagnosticAccess />
       </div>
       {settingsOpen && (
         <ControlSettingsSheet

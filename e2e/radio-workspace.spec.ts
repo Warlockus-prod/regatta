@@ -254,9 +254,12 @@ for (const viewport of SHORT_SCREENS) {
     await page.goto("/radio/symulator?lang=pl&embed=1");
     await page.getByTestId("start-free-practice").click();
     const before = await page.getByTestId("lcd").boundingBox();
-    await page.getByTestId("dial-center").dispatchEvent("pointerdown", { pointerId: 1 });
-    await page.waitForTimeout(1150);
-    await page.getByTestId("dial-center").dispatchEvent("pointerup", { pointerId: 1 });
+    {
+      const knob = (await page.getByTestId("dial-center").boundingBox())!;
+      await page.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+      await page.mouse.down();
+      try { await expect(page.getByTestId("lcd")).toContainText("16"); } finally { await page.mouse.up(); }
+    }
     await page.getByTestId("key-menu").click();
     const after = await page.getByTestId("lcd").boundingBox();
     expect(after!.height).toBe(before!.height);
@@ -276,4 +279,86 @@ test("free practice uses the real controls and does not invent completed scenari
   await expect(page.getByTestId("inspect-panel")).toBeVisible();
   await page.getByTestId("exit-scenario").click();
   expect(await page.evaluate(() => localStorage.getItem("sternik.radio.progress.v1"))).toBe(before);
+});
+
+for (const variant of ["m330", "m323", "real"] as const) {
+  test(`DIAL finger motion drives the actual SQL and VOL lessons with visible alternatives: ${variant}`, async ({ page }) => {
+    test.setTimeout(60_000);
+    await skipTour(page);
+    await page.setViewportSize({ width: 402, height: 874 });
+    await page.goto("/radio/obsluga?lang=en&embed=1");
+    if (variant !== "m330") await page.getByTestId(`radio-variant-${variant}`).click();
+    await page.getByTestId("course-open").click();
+    const status = page.getByTestId("radio-workspace-status");
+    const dial = page.getByTestId("dial-center"), lcd = page.getByTestId("lcd"), index = page.getByTestId("dial-index");
+    await expect(dial).toBeVisible();
+    const center = async () => {
+      const box = (await dial.boundingBox())!;
+      return { x: box.x + box.width / 2, y: box.y + box.height / 2, radius: box.width / 2 };
+    };
+    let point = await center();
+    await page.mouse.move(point.x, point.y); await page.mouse.down();
+    try { await expect(status).toContainText("Complete"); } finally { await page.mouse.up(); }
+    await page.getByTestId("course-next").click();
+    await dial.click(); await dial.click();
+    await expect(lcd).toContainText("SQL");
+    const startAngle = Number(await index.getAttribute("data-angle"));
+    point = await center();
+    await page.mouse.move(point.x, point.y); await page.mouse.down();
+    try {
+      await page.mouse.move(point.x - 24, point.y, { steps: 8 });
+      await expect(status).toContainText("Complete");
+    } finally { await page.mouse.up(); }
+    await expect(lcd).toContainText("SQL"); // Release must not turn rotation into a push.
+    await expect(lcd).toContainText("OPEN");
+    expect(Number(await index.getAttribute("data-angle"))).not.toBe(startAngle);
+    for (const id of ["dial-ccw", "dial-cw"]) {
+      const alternative = page.getByTestId(id);
+      await expect(alternative).toBeVisible();
+      const box = (await alternative.boundingBox())!;
+      expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+    await page.getByTestId("course-next").click();
+    // M323 also cycles through channel and backlight; keep its real push sequence.
+    for (let presses = 0; presses < 5 && !(await lcd.innerText()).includes("VOL"); presses++) await dial.click();
+    await expect(lcd).toContainText("VOL");
+    point = await center();
+    const radius = point.radius * .8;
+    await page.mouse.move(point.x, point.y - radius); await page.mouse.down();
+    try {
+      for (const angle of [-75, -60, -45, -30, -15, 0]) await page.mouse.move(point.x + radius * Math.cos(angle * Math.PI / 180), point.y + radius * Math.sin(angle * Math.PI / 180));
+      await expect(status).toContainText("Complete");
+    } finally { await page.mouse.up(); }
+    await expect(lcd).toContainText("VOL");
+    await expect(page.getByTestId("course-next")).toBeEnabled();
+    await radioWholeInView(page, { height: 874 });
+    expect((await page.getByTestId("radio-dock").boundingBox())!.height).toBeGreaterThanOrEqual(90);
+  });
+}
+
+test("diagnostics shows actual radio results, survives reload and clears only its own journal", async ({ page }) => {
+  await skipTour(page);
+  await page.setViewportSize({ width: 402, height: 874 });
+  await page.goto("/radio/symulator?practice=free&lang=en&embed=1");
+  const dial = page.getByTestId("dial-center"), lcd = page.getByTestId("lcd");
+  const point = (await dial.boundingBox())!;
+  await page.mouse.move(point.x + point.width / 2, point.y + point.height / 2);
+  await page.mouse.down();
+  try { await expect(lcd).toContainText("16"); } finally { await page.mouse.up(); }
+  await dial.click();
+  for (let index = 0; index < 5; index++) await page.getByTestId("dial-cw").click();
+  await page.getByRole("tab", { name: "Diagnostics", exact: true }).click();
+  const panel = page.getByTestId("diagnostic-panel");
+  await expect(panel).toContainText("radio.command");
+  await expect(panel).toContainText("action: dial-hold");
+  await expect(panel).toContainText("reason: limit");
+  const radio = await page.getByTestId("dial-center").boundingBox(), dock = await page.getByTestId("radio-dock").boundingBox();
+  expect(radio!.y + radio!.height).toBeLessThanOrEqual(dock!.y);
+  await page.reload();
+  await page.getByRole("tab", { name: "Diagnostics", exact: true }).click();
+  await expect(panel).toContainText("action: dial-hold");
+  const progress = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(key => key.startsWith("sternik.radio.") || key.startsWith("regatta.radio.")).map(key => [key, localStorage.getItem(key)])));
+  await panel.getByRole("button", { name: "Clear journal", exact: true }).click();
+  await expect(panel).toContainText("No events yet");
+  expect(await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(key => key.startsWith("sternik.radio.") || key.startsWith("regatta.radio.")).map(key => [key, localStorage.getItem(key)])))).toEqual(progress);
 });

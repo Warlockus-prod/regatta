@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from "next/dynamic";
 import Link from 'next/link';
+import { recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage, type MissionReason } from '@/lib/mp-client';
 import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
@@ -61,6 +63,7 @@ function missionReasonText(
 }
 
 export default function MultiplayerClient() {
+  useEffect(() => { initializeDiagnosticBridge(); }, []);
   const { tp, tl } = useI18n();
   // Scenery around the race area: each player sees the venue they picked (cosmetic, not synced).
   const { venue } = useVenue();
@@ -102,14 +105,18 @@ export default function MultiplayerClient() {
   }, []);
   const setRudder = useCallback((value: number) => {
     const rudder = Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
+    const previous = inputRef.current.rudder;
     inputRef.current.rudder = rudder; inputRef.current.course = null;
     setHelm({ rudder, course: null });
+    recordControlChange("multiplayer", "rudder", rudder, previous);
   }, []);
   const setCourse = useCallback((degrees: number) => {
+    const previous = inputRef.current.course;
     const next = withMultiplayerCourse(inputRef.current, degrees);
     if (next === inputRef.current) return;
     inputRef.current = next;
     setHelm({ rudder: next.rudder, course: next.course });
+    if (next.course !== null) recordControlChange("multiplayer", "course", next.course, previous ?? undefined);
   }, []);
   const courseDelta = useCallback((degrees: number) => {
     if (!Number.isFinite(degrees)) return;
@@ -660,7 +667,7 @@ export default function MultiplayerClient() {
     <div style={{ height: embed ? "100dvh" : "calc(100dvh - var(--site-nav-h, 56px))" }}>
       <MultiplayerCockpit frame={frame} phase={phase} countdown={countdown} reconnecting={reconnecting} code={room?.code ?? ""}
         rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
-        camera={camera} setCamera={setCamera} onResetCamera={() => setCameraRevision(value => value + 1)} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={setGuidanceOn}>
+        camera={camera} setCamera={view => { setCamera(view); recordControlChange("multiplayer", "camera", view, camera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("multiplayer", "camera", camera); }} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={value => { setGuidanceOn(value); recordPreferenceChange("multiplayer", "guidance", value, guidanceOn); }}>
         <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} />
       </MultiplayerCockpit>
     </div>

@@ -26,6 +26,8 @@ import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/ana
 import { LOCAL_RADIO_SPEECH_SCRIPT, useLocalRadioSpeech } from "../radio/useLocalRadioSpeech";
 import { parseRadioEntries, persistRadioEntries, radioBootstrap, radioStorageEvent, readRadioEntries, RADIO_MESSAGE_LIMIT, type RadioEntries } from "../persistence/radio-storage";
 import { createRadioStartupDiagnostics, RADIO_STARTUP_TIMEOUT_MS, type RadioStartupDiagnostic } from "../radio/startup-diagnostics";
+import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from "../diagnostics/journal";
+import type { DiagnosticInput } from "../../../src/lib/diagnostics";
 
 const OFFLINE_SOURCE = require("../../assets/radio-offline.html");
 const ORIGIN = "https://weektoregatta.com";
@@ -74,10 +76,11 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
   // and the tab bar goes too, like in the trainers and the race
   useEffect(() => (workspaceOpen || examDirty ? hideMainNavigation() : undefined), [workspaceOpen, examDirty]);
   const requestExit = (continueExit: () => void) => {
+    recordNativeDiagnostic({ type: "navigation", surface: "radio", action: "back", outcome: "accepted", source: "native", from: "radio" });
     if (!dirty.current) { continueExit(); return; }
     if (exitPromptOpen.current) return;
     exitPromptOpen.current = true;
-    const stay = () => { exitPromptOpen.current = false; };
+    const stay = () => { exitPromptOpen.current = false; recordNativeDiagnostic({ type: "navigation", surface: "radio", action: "cancelled", outcome: "noop", reason: "cancelled", source: "native", from: "radio" }); };
     const copy = radioLeaveCopy(lang);
     Alert.alert(copy.title, copy.body, [
       { text: copy.stay, style: "cancel", onPress: stay },
@@ -97,14 +100,21 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
     headerLeft: () => <Pressable accessibilityRole="button" accessibilityLabel={internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("В приложение", "Back to app", "Do aplikacji", { es: "Volver a la app", fr: "Retour à l'app", de: "Zur App", it: "Torna all'app" })} onPress={back} style={styles.headerBack}><Text style={styles.headerBackText}>‹ {internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("Выйти", "Exit", "Wyjdź", { es: "Salir", fr: "Quitter", de: "Beenden", it: "Esci" })}</Text></Pressable>,
   };
   const bootstrap = (value: RadioEntries | null) => radioBootstrap(value, lang) + `window.__REGATTA_RADIO_ENTRY__=${JSON.stringify(initialHref)};true;`;
-  const showFailure = useCallback((diagnostic: RadioStartupDiagnostic | null) => {
+  const showFailure = useCallback((diagnostic: RadioStartupDiagnostic | null, id?: number) => {
     if (!diagnostic) return;
+    const event: Extract<DiagnosticInput, { type: "radio.startup" }> = { type: "radio.startup", surface: "radio", action: diagnostic.code === "SRC-W03" ? "process-terminated" : "error", outcome: "failed", supportCode: diagnostic.code,
+      reason: diagnostic.code === "SRC-S01" ? "storage-invalid" : diagnostic.code === "SRC-S02" ? "storage-read" : diagnostic.code === "SRC-W01" ? "webview-load" : diagnostic.code === "SRC-W03" ? "webview-process" : "timeout" };
+    if (id !== undefined) event.attempt = id;
+    if (diagnostic.wkDomain !== undefined) event.wkDomain = diagnostic.wkDomain;
+    if (diagnostic.wkCode !== undefined) event.wkCode = diagnostic.wkCode;
+    recordNativeDiagnostic(event);
     setFailure(diagnostic);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     const id = startup.begin();
+    recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "begin", outcome: "accepted", attempt: id });
     setAttemptId(id);
     setRestore(null);
     setLoading(true);
@@ -113,12 +123,16 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
     setInternalBack(false);
     latestEntries.current = null;
     // This also covers a stalled native storage read or consent bootstrap.
-    const timer = setTimeout(() => showFailure(startup.timeout(id)), RADIO_STARTUP_TIMEOUT_MS);
+    const timer = setTimeout(() => showFailure(startup.timeout(id), id), RADIO_STARTUP_TIMEOUT_MS);
     readRadioEntries()
       .then((value) => {
-        if (startup.storageLoaded(id)) setRestore(radioBootstrap(value, lang) + `window.__REGATTA_RADIO_ENTRY__=${JSON.stringify(initialHref)};true;`);
+        if (startup.storageLoaded(id)) {
+          recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "storage-read", outcome: "accepted", attempt: id });
+          setRestore(radioBootstrap(value, lang) + `window.__REGATTA_RADIO_ENTRY__=${JSON.stringify(initialHref)};true;`);
+          recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "bootstrap", outcome: "accepted", attempt: id });
+        }
       })
-      .catch((error: unknown) => showFailure(startup.storageError(id, error)));
+      .catch((error: unknown) => showFailure(startup.storageError(id, error), id));
     return () => {
       clearTimeout(timer);
       startup.invalidate(id);
@@ -126,6 +140,7 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
   }, [analyticsOn, initialHref, lang, reloadKey, showFailure, startup]);
 
   const retry = () => {
+    recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "retry", outcome: "accepted", attempt: attemptId });
     startup.invalidate();
     setRestore(null);
     setFailure(null);
@@ -141,10 +156,12 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
     const ticket = ++writeTicket.current;
     void persistRadioEntries(entries).then(() => {
       if (!startup.accepts(attemptId)) return;
+      recordNativeDiagnostic({ type: "storage.operation", surface: "radio", action: "write", target: "course", outcome: "accepted" });
       webRef.current?.injectJavaScript(radioStorageEvent(true));
       if (writeTicket.current === ticket) setSaveFailed(false);
     }).catch(() => {
       if (!startup.accepts(attemptId)) return;
+      recordNativeDiagnostic({ type: "storage.operation", surface: "radio", action: "write", target: "course", outcome: "failed", reason: "storage-write" });
       webRef.current?.injectJavaScript(radioStorageEvent(false));
       if (writeTicket.current === ticket) setSaveFailed(true);
     });
@@ -152,6 +169,7 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
 
   const onMessage = (event: WebViewMessageEvent) => {
     if (!startup.accepts(attemptId)) return;
+    if (handleNativeDiagnosticMessage(event.nativeEvent.data, "radio")) return;
     if (event.nativeEvent.data.length > RADIO_MESSAGE_LIMIT) return;
     if (handleLocalSpeech(event.nativeEvent.data)) return;
     const exam = parseExamFinished(event.nativeEvent.data);
@@ -163,7 +181,10 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
     try {
       const message = JSON.parse(event.nativeEvent.data) as ProgressMessage;
       if (message.type === "radio-offline-ready") {
-        if (startup.ready(attemptId)) setLoading(false);
+        if (startup.ready(attemptId)) {
+          recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "ready", outcome: "accepted", attempt: attemptId });
+          setLoading(false);
+        }
         return;
       }
       if (message.type === "radio-route" && parseRadioRoute(message.href)) { setInternalBack(message.canGoBack === true); return; }
@@ -180,7 +201,10 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
       if (message.type === "radio-offline-progress") {
         const entries = parseRadioEntries(message.entries);
         if (entries) saveEntries(entries);
-        else webRef.current?.injectJavaScript(radioStorageEvent(false));
+        else {
+          recordNativeDiagnostic({ type: "storage.operation", surface: "radio", action: "write", target: "course", outcome: "rejected", reason: "storage-invalid" });
+          webRef.current?.injectJavaScript(radioStorageEvent(false));
+        }
       }
     } catch {
       // Ignore messages not owned by the offline course.
@@ -224,7 +248,7 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
           webAnalyticsGuardScript(analyticsOn) + LOCAL_RADIO_SPEECH_SCRIPT + restore
         }
         onMessage={onMessage}
-        onLoadStart={() => { startup.webViewStarted(attemptId); }}
+        onLoadStart={() => { if (startup.webViewStarted(attemptId)) recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "load", outcome: "accepted", attempt: attemptId }); }}
         onShouldStartLoadWithRequest={(request) => {
           if (!startup.accepts(attemptId)) return false;
           const url = request.url;
@@ -257,13 +281,13 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
         onError={(event) => {
           const diagnostic = startup.webViewError(attemptId, event.nativeEvent);
           if (!diagnostic) return;
-          showFailure(diagnostic);
+          showFailure(diagnostic, attemptId);
           setWorkspaceOpen(false);
         }}
         onContentProcessDidTerminate={() => {
           const diagnostic = startup.processTerminated(attemptId);
           if (!diagnostic) return;
-          showFailure(diagnostic);
+          showFailure(diagnostic, attemptId);
           setWorkspaceOpen(false);
         }}
         startInLoadingState={false}

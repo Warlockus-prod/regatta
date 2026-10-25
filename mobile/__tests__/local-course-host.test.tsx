@@ -5,7 +5,7 @@ import type { NavigationAction } from "@react-navigation/native";
 import type { ReactNode } from "react";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
-jest.mock("expo-router", () => ({ Stack: { Screen: (props: object) => mockStackScreen(props) }, useNavigation: () => mockNavigation, useRouter: () => ({ canGoBack: mockNavigation.canGoBack, back: mockNavigation.goBack, replace: mockReplace }) }));
+jest.mock("expo-router", () => ({ Stack: { Screen: (props: object) => mockStackScreen(props) }, usePathname: () => "/kursy/motorowodny", useNavigation: () => mockNavigation, useRouter: () => ({ canGoBack: mockNavigation.canGoBack, back: mockNavigation.goBack, replace: mockReplace }) }));
 jest.mock("../src/i18n/context", () => ({ useI18n: () => ({ lang: "pl", tp: (_ru: string, _en: string, pl: string) => pl }) }));
 jest.mock("@react-navigation/native", () => ({ usePreventRemove: (enabled: boolean, callback: GuardCallback) => mockUsePreventRemove(enabled, callback) }));
 jest.mock("../src/design-system/components", () => ({ Screen: (props: object) => jest.requireActual("react").createElement(jest.requireActual("react-native").View, { ...props, testID: "course-screen" }), Text: jest.requireActual("react-native").Text }));
@@ -20,6 +20,7 @@ import { loadLocalCourseHtml } from "../src/course/local-course-asset";
 import { ANALYTICS_CONSENT_KEY, WEB_NO_ANALYTICS_SCRIPT, useAnalyticsConsent } from "../src/persistence/analytics-consent";
 import { parseSternikEntries, persistSternikEntries, readSternikEntries, sternikBootstrap, sternikHref, sternikStorageEvent, STERNIK_MESSAGE_LIMIT, STERNIK_STORAGE_KEY } from "../src/persistence/sternik-storage";
 import { mainNavigationHiddenByScreen } from "../src/navigation/visibility";
+import { nativeDiagnostics } from "../src/diagnostics/journal";
 
 type GuardCallback = (event: { data: { action: NavigationAction } }) => void;
 const mockUsePreventRemove = jest.fn<void, [boolean, GuardCallback]>();
@@ -30,7 +31,22 @@ const mockNavigation = { addListener: jest.fn(() => () => {}), dispatch: jest.fn
 const storage = { read: readSternikEntries, parse: parseSternikEntries, persist: persistSternikEntries, bootstrap: sternikBootstrap, response: sternikStorageEvent };
 const props = { asset: 42, title: "Sternik", baseUrl: "https://weektoregatta.com/sternik", href: "/sternik", readyMessage: "sternik-offline-ready", errorMessage: "sternik-offline-error", progressMessage: "sternik-offline-progress", messageLimit: STERNIK_MESSAGE_LIMIT, storage, localHref: sternikHref, examBase: "sternik" as const };
 const send = (web: ReturnType<typeof render>["root"], data: object) => act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify(data) } }));
-beforeEach(async () => { jest.clearAllMocks(); mockNavigation.canGoBack.mockReturnValue(true); await AsyncStorage.clear(); (loadLocalCourseHtml as jest.Mock).mockResolvedValue("<html>bundled-only</html>"); });
+beforeEach(async () => { await nativeDiagnostics.clear(); jest.clearAllMocks(); mockNavigation.canGoBack.mockReturnValue(true); await AsyncStorage.clear(); (loadLocalCourseHtml as jest.Mock).mockResolvedValue("<html>bundled-only</html>"); });
+
+it("consumes diagnostic batches before the course protocol, forces its host surface and rejects private fields", async () => {
+  const view = render(<LocalCourseWebView {...props} />);
+  const web = await waitFor(() => view.getByTestId("local-course-webview"));
+  const control = { type: "control.change", surface: "radio", control: "rudder", value: .2, outcome: "accepted" };
+  const injectedBefore = mockInject.mock.calls.length;
+  send(web, { type: "diagnostic-events", version: 1, events: [control] });
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "control.change" && entry.event.surface === "sternik")).toBe(true);
+  expect(mockInject).toHaveBeenCalledTimes(injectedBefore);
+  send(web, { type: "diagnostic-events", version: 1, events: [{ ...control, text: "PRIVATE_COURSE_ANSWER" }] });
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.reason === "invalid-message" && entry.event.surface === "sternik")).toBe(true);
+  expect(JSON.stringify(nativeDiagnostics.snapshot())).not.toContain("PRIVATE_COURSE_ANSWER");
+  send(web, { type: "sternik-offline-ready" });
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "embedded.lifecycle" && entry.event.action === "ready")).toBe(true);
+});
 
 it("loads packaged HTML with the legacy origin, consent and PL bootstrap, and routes all links locally", async () => {
   await AsyncStorage.setItem(ANALYTICS_CONSENT_KEY, JSON.stringify({ enabled: false }));
@@ -59,15 +75,18 @@ it("acknowledges only durable bounded progress and retries a failed save", async
   send(web, { type: "sternik-offline-progress", entries: { "regatta.analytics.v1": "erase" } });
   expect(mockInject).toHaveBeenLastCalledWith(expect.stringContaining("sternik-storage-error"));
   expect(await AsyncStorage.getItem(STERNIK_STORAGE_KEY)).toBeNull();
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "storage.operation" && entry.event.outcome === "rejected" && entry.event.reason === "storage-invalid")).toBe(true);
   mockInject.mockClear();
   (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error("disk full"));
   const entries = { "sternik.examBase.v1": "materialy" };
   send(web, { type: "sternik-offline-progress", entries });
   await waitFor(() => view.getByText("Ponów zapis"));
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "storage.operation" && entry.event.outcome === "failed" && entry.event.reason === "storage-write")).toBe(true);
   expect(mockInject).not.toHaveBeenCalledWith(expect.stringContaining("sternik-storage-saved"));
   fireEvent.press(view.getByText("Ponów zapis"));
   await waitFor(() => expect(mockInject).toHaveBeenLastCalledWith(expect.stringContaining("sternik-storage-saved")));
   expect(await readSternikEntries()).toEqual(entries);
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "storage.operation" && entry.event.action === "write" && entry.event.outcome === "accepted")).toBe(true);
   const consent = renderHook(() => useAnalyticsConsent());
   await waitFor(() => expect(consent.result.current.ready).toBe(true));
   act(() => consent.result.current.setEnabled(false));

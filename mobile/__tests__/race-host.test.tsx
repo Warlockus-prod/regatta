@@ -6,6 +6,7 @@ let mockParams: Record<string, string | string[]> = {};
 jest.mock("expo-router", () => ({
   Stack: { Screen: (props: { options?: { headerLeft?: () => React.ReactNode } }) => props.options?.headerLeft?.() ?? null },
   useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate, canGoBack: () => false }),
+  usePathname: () => "/game",
   useLocalSearchParams: () => mockParams,
 }));
 jest.mock("../src/analytics", () => ({

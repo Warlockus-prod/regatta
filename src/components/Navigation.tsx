@@ -1,5 +1,8 @@
 'use client';
 
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
+import { recordWebDiagnostic } from "@/lib/diagnostics-web";
+import { diagnosticDestination } from "@/lib/diagnostic-destination";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -17,6 +20,13 @@ export default function Navigation() {
   const pathname = usePathname();
   const { lang } = useI18n();
   const navRef = useRef<HTMLElement>(null);
+  const previous = useRef<string | null>(null);
+  useEffect(() => {
+    initializeDiagnosticBridge();
+    if (previous.current === pathname) return;
+    recordWebDiagnostic({ type: "navigation", surface: "app", action: "confirmed", outcome: "accepted", source: "system", ...(previous.current ? { from: diagnosticDestination(previous.current) } : {}), to: diagnosticDestination(pathname) });
+    previous.current = pathname;
+  }, [pathname]);
   const [embed, setEmbed] = useState(false);
   useEffect(() => {
     const bookmark = bookmarkForPath(pathname, "web");

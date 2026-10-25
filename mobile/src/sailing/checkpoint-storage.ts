@@ -4,7 +4,7 @@ import { PRACTICE_RESULTS_KEY, mergePracticeResults, readPracticeResults } from 
 
 let writes: Promise<void> = Promise.resolve();
 
-export async function handleCheckpointMessage(message: string, reply: (script: string) => void): Promise<boolean> {
+export async function handleCheckpointMessage(message: string, reply: (script: string) => void, onResult?: (action: "read" | "write", ok: boolean) => void): Promise<boolean> {
   const request = parseStorageRequest(message);
   if (!request) return false;
   let result: StorageReply = { id: request.id, ok: false, raw: null };
@@ -23,6 +23,7 @@ export async function handleCheckpointMessage(message: string, reply: (script: s
     if (raw !== null && raw.length > STORAGE_LIMIT) throw new Error("Checkpoint too large");
     result = { id: request.id, ok: true, raw };
   } catch { /* Keep the previous save; the page reports failure and offers retry. */ }
+  try { onResult?.(request.action, result.ok); } catch { /* diagnostics cannot change the durable result or ACK */ }
   reply(`window.dispatchEvent(new CustomEvent(${JSON.stringify(STORAGE_CHANNEL)}, { detail: ${JSON.stringify(result)} })); true;`);
   return true;
 }

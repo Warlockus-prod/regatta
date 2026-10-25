@@ -7,7 +7,7 @@ export function showsMainNavigation(path: string): boolean {
 /** The native frame must match the installed instrument content it surrounds. */
 export function usesDarkNavigation(path: string): boolean {
   const clean = path.split(/[?#]/)[0];
-  return /^\/(?:kursy\/(?:radio|motorowodny)|anatomy(?:-offline)?|game|multiplayer|replay|simulator(?:-basics|-v1|-v3|2)?)(?:\/|$)/.test(clean);
+  return /^\/(?:kursy\/(?:radio|motorowodny)|anatomy(?:-offline)?|diagnostics|game|multiplayer|replay|simulator(?:-basics|-v1|-v3|2)?)(?:\/|$)/.test(clean);
 }
 
 // A screen whose page runs its own full-screen activity inside a WebView (the

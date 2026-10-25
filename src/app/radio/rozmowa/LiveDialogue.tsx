@@ -5,6 +5,7 @@ import { useRadioI18n } from "@/app/radio/localization/context";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import RadioFront from '../symulator/RadioFront';
+import { recordRadioCommand, recordRadioCommandFailure } from '../symulator/commandDiagnostics';
 import { PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
 import { useRadioAudio } from '../symulator/audio/useRadioAudio';
 import { fetchStationVoice } from '../symulator/audio/stationVoice';
@@ -93,8 +94,11 @@ export default function LiveDialogue() {
 
   const dispatch = useCallback((e: RadioEvent) => {
     const prev = rsRef.current;
-    const next = radioReducer(prev, e);
+    let next: RadioState;
+    try { next = radioReducer(prev, e); }
+    catch (error) { recordRadioCommandFailure(prev, e); throw error; }
     rsRef.current = next;
+    recordRadioCommand(prev, e, next);
     setRs(next);
     audioRef.current.onEvent(e, prev, next);
     if (next.deviceLog.length > prev.deviceLog.length) {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import RadioFront from '../symulator/RadioFront';
+import { recordRadioCommand, recordRadioCommandFailure } from '../symulator/commandDiagnostics';
 import { InspectPanel } from '../symulator/InspectPanel';
 import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
 import { radioRuntimeSearch } from '../runtimeSearch';
@@ -337,8 +338,11 @@ export default function InteractiveRadioCourse() {
 
   const dispatch = useCallback((event: RadioEvent) => {
     const prev = stateRef.current;
-    const next = radioReducer(prev, event);
+    let next: RadioState;
+    try { next = radioReducer(prev, event); }
+    catch (error) { recordRadioCommandFailure(prev, event); throw error; }
     stateRef.current = next;
+    recordRadioCommand(prev, event, next);
     // The radio's own sounds: a keypress, a refusal, a dial detent, the hiss
     // behind the squelch. A refused PTT on CH 70 must not sound like success.
     audio.onEvent(event, prev, next);

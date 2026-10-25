@@ -9,6 +9,7 @@ import { RADIO_GUIDED_HREF } from '../navigation';
 import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
+import { recordRadioCommand, recordRadioCommandFailure } from './commandDiagnostics';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
 import { InspectPanel } from './InspectPanel';
 import { useRadioAudio } from './audio/useRadioAudio';
@@ -227,8 +228,11 @@ function RadioSimulator() {
   // --- the dispatch: run reducer, then feed the scenario engine --------------
   const dispatch = useCallback((e: RadioEvent) => {
     const prev = rsRef.current;
-    const next = radioReducer(prev, e);
+    let next: RadioState;
+    try { next = radioReducer(prev, e); }
+    catch (error) { recordRadioCommandFailure(prev, e); throw error; }
     rsRef.current = next;
+    recordRadioCommand(prev, e, next);
 
     // the radio's own sounds - hiss behind the squelch, key beeps, the refusal
     // beep on CH 70, the DSC alarm. Read through the ref so `dispatch` stays a
@@ -950,7 +954,7 @@ function RadioSimulator() {
                   <p className="text-sm leading-relaxed" style={{color:"var(--text-secondary)"}}>{radioText(FREE_PRACTICE.brief.pl)}</p>
                   <ol className="list-inside list-decimal space-y-2 text-sm">
                     <li>{radioText("Przytrzymaj [DIAL] przez sekundę, aby włączyć radio.")}</li>
-                    <li>{radioText("Naciśnij [DIAL], wybierz VOL lub SQL i użyj strzałek obrotu.")}</li>
+                    <li>{tl({ ru: "Нажми [DIAL], выбери VOL или SQL. Вращай обод пальцем, веди центр влево-вправо или используй стрелки.", en: "Press [DIAL] and select VOL or SQL. Turn the rim with your finger, drag the centre left or right, or use the arrows.", pl: "Naciśnij [DIAL] i wybierz VOL lub SQL. Obracaj obrzeże palcem, przesuwaj środek w lewo lub w prawo albo użyj strzałek.", es: "Pulsa [DIAL] y elige VOL o SQL. Gira el borde con el dedo, arrastra el centro a izquierda o derecha o usa las flechas.", fr: "Appuie sur [DIAL] et choisis VOL ou SQL. Tourne le bord avec le doigt, fais glisser le centre à gauche ou à droite, ou utilise les flèches.", de: "Drücke [DIAL] und wähle VOL oder SQL. Drehe den Rand mit dem Finger, ziehe die Mitte nach links oder rechts oder nutze die Pfeile.", it: "Premi [DIAL] e scegli VOL o SQL. Ruota il bordo con il dito, trascina il centro a sinistra o a destra oppure usa le frecce." })}</li>
                     <li>{radioText("Sprawdź kanały i [HI/LO]. Kanał 70 nie pozwala na nadawanie głosem.")}</li>
                     <li>{radioText("Otwórz MENU i ćwicz DSC. To symulacja: żaden sygnał nie jest nadawany na prawdziwej częstotliwości.")}</li>
                   </ol>

@@ -10,6 +10,8 @@ import { replayFrame } from "@/lib/race-replay";
 import { useI18n } from "@/lib/i18n";
 import { useRaceCopy } from "./race-copy";
 import styles from "./RaceCockpit.module.css";
+import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(m => m.RaceScene), { ssr: false });
 
@@ -26,6 +28,18 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
   const [time, setTime] = useState(samples[0]?.t ?? 0);
   const cursor = useRef(time);
   const total = samples.at(-1)?.t ?? 0;
+  const seek = (next: number) => {
+    const previous = cursor.current;
+    cursor.current = next; setTime(next);
+    recordDiagnostic({ type: "race.replay", surface: "replay", outcome: next === previous ? "noop" : "accepted", action: "seek", timeSeconds: next });
+  };
+  const close = () => { recordDiagnostic({ type: "race.replay", surface: "replay", outcome: "accepted", action: "close" }); onClose(); };
+  useEffect(() => { initializeDiagnosticBridge(); recordDiagnostic({ type: "race.replay", surface: "replay", outcome: "accepted", action: "open" }); }, []);
+  const previousRate = useRef(playbackRate);
+  useEffect(() => {
+    if (previousRate.current !== playbackRate) recordDiagnostic({ type: "race.replay", surface: "replay", outcome: "accepted", action: "rate", rate: playbackRate as 0.25 | 0.5 | 1 | 2 | 4 });
+    previousRate.current = playbackRate;
+  }, [playbackRate]);
   const courseRef = useRef(course);
   const windDirRef = useRef(0);
   const boatsRef = useRef<Race3DBoat[]>([]);
@@ -54,17 +68,17 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
   }, [playing, samples, total, title, playbackRate]);
 
   return <div className={`${styles.cockpit} absolute inset-0`} data-testid="race-replay-3d">
-    <header className={styles.toolbar}><button type="button" onClick={onClose}>{c.back}</button><strong>{title}</strong></header>
+    <header className={styles.toolbar}><button type="button" onClick={close}>{c.back}</button><strong>{title}</strong></header>
     <div className="flex shrink-0 flex-wrap items-center gap-2 px-4 py-2">
-      <select className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 text-sm text-[var(--text-primary)]" aria-label={c.view} value={camera} onChange={event => setCamera(event.target.value as RaceCamera)}>{(["orbit", "stern", "high"] as const).map(view => <option key={view} value={view}>{c[view]}</option>)}</select>
-      <button type="button" onClick={() => setCameraRevision(value => value + 1)}>{c.resetCamera}</button>
+      <select className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 text-sm text-[var(--text-primary)]" aria-label={c.view} value={camera} onChange={event => { setCamera(event.target.value as RaceCamera); recordControlChange("replay", "camera", event.target.value as RaceCamera, camera); }}>{(["orbit", "stern", "high"] as const).map(view => <option key={view} value={view}>{c[view]}</option>)}</select>
+      <button type="button" onClick={() => { setCameraRevision(value => value + 1); recordControlChange("replay", "camera", camera); }}>{c.resetCamera}</button>
     </div>
     <div className={styles.scene} style={{ flex: 1 }}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={labels} /></div>
     <div className="px-4 py-3 flex items-center gap-4">
-      <button type="button" onClick={() => { if (cursor.current >= total) cursor.current = samples[0]?.t ?? 0; setPlaying(p => !p); }}>{playing ? c.pause : c.resume}</button>
+      <button type="button" onClick={() => { if (cursor.current >= total) cursor.current = samples[0]?.t ?? 0; setPlaying(p => !p); recordDiagnostic({ type: "race.replay", surface: "replay", outcome: "accepted", action: playing ? "pause" : "play" }); }}>{playing ? c.pause : c.resume}</button>
       <input type="range" className="flex-1 min-w-0 min-h-11" aria-label={title} min={samples[0]?.t ?? 0} max={total} step="any" value={time}
-        onChange={e => { cursor.current = Number(e.target.value); setTime(cursor.current); }}
-        onKeyDown={e => { if (e.key === "Home" || e.key === "End") { e.preventDefault(); cursor.current = e.key === "Home" ? samples[0]?.t ?? 0 : total; setTime(cursor.current); } }} />
+        onChange={e => seek(Number(e.target.value))}
+        onKeyDown={e => { if (e.key === "Home" || e.key === "End") { e.preventDefault(); seek(e.key === "Home" ? samples[0]?.t ?? 0 : total); } }} />
       <output>{Math.floor(time / 60)}:{String(Math.floor(time % 60)).padStart(2, "0")}</output>
     </div>
   </div>;
