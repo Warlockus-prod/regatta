@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Recorded healthy website63 publication and its red final browser gate. Trainer geometry now waits for the real first3Dframe within the existing startup allowance and counts the44px Diagnostics utility as occupied content while retaining blank-gap, viewport and no-overlap checks. The real63 multiplayer accessibility defect remains visible to its unchanged assertion; no runtime, budget or deployment privilege changed.
+
 - Delivered1.7.0(63) to Self: finger-operated radio DIAL, moving index, retained arrows, native selection protection and bounded local diagnostics. Native copy/relaunch and progress-preserving upgrade plus clean27 pass; independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. The following map/wind/gear and physical-course checkpoints remain separate.
 
 - Website 63 prepublication passed all 60 browser cases on the first attempt with actual frame readiness and unchanged budgets; Pro observations and its canonical journal are verified. Native 63 delivery is separate, and website merge/deploy/production acceptance remain pending.

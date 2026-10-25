@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Website63 is published and healthy at b75c1e4, but its final production browser gate has2failures and1flaky case. `docs/audits/2026-10-25/checks/website63-production.json` separates the real multiplayer slider-name defect from the Diagnostics occupied-content and first-frame test contracts. The multiplayer assertion stays strict; its source correction belongs to the following64 candidate. Local test corrections do not prove a green production rerun.
+
 - SITE prepublication after the delivery snapshot: all 60 browser cases passed first attempt on c8ae4ef, with actual scene-ready, clock progression and canonical Pro evidence. `docs/audits/2026-10-25/checks/website63-prepublication.json` owns this portable proof. It does not claim website publication or full 65-item closure; APP 64 implementation is excluded from this site candidate.
 
 - Delivered63 is immutable source88fdaac, tag testflight-1.7.0-63. Independent ASC GET21:53:34.798UTC confirms exact Self VALID/IN_BETA_TESTING and8notes match21:53:34.514UTC. Actual DIAL and bounded local diagnostics: `docs/design/mobile/testflight63-2026-10-25.md`. Current65row evidence: `docs/audits/2026-10-25/acceptance63.md`. Next owner-authorized64 adds live map, wind compass/3Darrow choices and an actual shared gear icon, without changing physics or enabling physical race emission. Dated candidate notes below remain history, not current delivery status.
