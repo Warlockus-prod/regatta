@@ -22,6 +22,8 @@ const KEY = 'sternik.radio.weak.v1';
 
 export type WeakArea = 'voice' | 'procedure' | 'dialogue' | 'control' | 'position' | 'theory' | 'oral';
 
+export const RADIO_WEAK_AREAS = ['voice', 'procedure', 'dialogue', 'control', 'position', 'theory'] as const satisfies readonly WeakArea[];
+
 export interface WeakSpot {
   /** stable id: the check id, the mistake id, the lesson id */
   id: string;
@@ -83,9 +85,10 @@ export function record(area: WeakArea, missed: { id: string; label: string }[], 
  * since fixed four is not a weak spot any more, and telling a learner otherwise
  * is how a trainer loses their trust.
  */
-export function weakest(limit = 6): WeakSpot[] {
+export function weakest(limit = 6, areas?: readonly WeakArea[]): WeakSpot[] {
   if (typeof window === 'undefined') return [];
   return Object.values(load())
+    .filter((w) => !areas || areas.includes(w.area))
     .map((w) => ({ ...w, net: w.misses - w.hits * 0.5 }))
     .filter((w) => w.net >= 1)
     .sort((a, b) => b.net - a.net || b.lastMissAt - a.lastMissAt)
@@ -93,7 +96,15 @@ export function weakest(limit = 6): WeakSpot[] {
     .map(({ ...w }) => w);
 }
 
-export function clearWeakSpots(): void {
+export function clearWeakSpots(areas?: readonly WeakArea[]): void {
   if (typeof window === 'undefined') return;
+  if (areas) {
+    const store = load();
+    for (const [key, spot] of Object.entries(store)) {
+      if (areas.includes(spot.area)) delete store[key];
+    }
+    save(store);
+    return;
+  }
   try { window.localStorage.removeItem(KEY); } catch { /* ignore */ }
 }

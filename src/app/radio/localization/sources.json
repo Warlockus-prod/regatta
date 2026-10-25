@@ -271,6 +271,19 @@
     }
   },
   {
+    "id": "01ecf12940522a53",
+    "source": "Procedura krok po kroku",
+    "known": {
+      "pl": "Procedura krok po kroku",
+      "ru": "Процедура по шагам",
+      "en": "Step-by-step procedure",
+      "es": "Procedimiento paso a paso",
+      "fr": "Procédure étape par étape",
+      "de": "Schrittweise Vorgehensweise",
+      "it": "Procedura passo per passo"
+    }
+  },
+  {
     "id": "01edc21b9f1fc499",
     "source": "Hold Down for 3 sec.",
     "known": {}
@@ -1791,6 +1804,19 @@
     }
   },
   {
+    "id": "0e99208cec27021d",
+    "source": "Co znajdziesz w pytaniach UKE",
+    "known": {
+      "pl": "Co znajdziesz w pytaniach UKE",
+      "ru": "Что встретится в вопросах UKE",
+      "en": "What the UKE questions cover",
+      "es": "Qué incluyen las preguntas UKE",
+      "fr": "Ce que couvrent les questions UKE",
+      "de": "Was die UKE-Fragen behandeln",
+      "it": "Cosa trattano le domande UKE"
+    }
+  },
+  {
     "id": "0e9a145880b72fdd",
     "source": "maksymalna wartość napięcia wyrażona w woltach",
     "known": {
@@ -1985,6 +2011,19 @@
     "known": {
       "pl": "Powtórz numer kanału, na który przechodzisz. To dowód, że oboje idziecie na ten sam kanał.",
       "ru": "Повторите номер канала, на который переходите. Это доказательство, что вы оба идёте на один и тот же канал."
+    }
+  },
+  {
+    "id": "0fe1d88b0d9ebc93",
+    "source": "Sedno na egzamin",
+    "known": {
+      "pl": "Sedno na egzamin",
+      "ru": "Суть для экзамена",
+      "en": "Exam essentials",
+      "es": "Lo esencial para el examen",
+      "fr": "L'essentiel pour l'examen",
+      "de": "Das Wesentliche für die Prüfung",
+      "it": "Punti essenziali per l'esame"
     }
   },
   {
@@ -4666,6 +4705,19 @@
     }
   },
   {
+    "id": "271262cf2c1ae886",
+    "source": "Europa i świat",
+    "known": {
+      "pl": "Europa i świat",
+      "ru": "Европа и мир",
+      "en": "Europe and the world",
+      "es": "Europa y el mundo",
+      "fr": "L'Europe et le monde",
+      "de": "Europa und die Welt",
+      "it": "L'Europa e il mondo"
+    }
+  },
+  {
     "id": "273cc8a43849da89",
     "source": "informacja dotycząca ataku piratów",
     "known": {
@@ -7334,6 +7386,19 @@
       "fr": "Tu navigues sur ton voilier (zone : {area} ; caractéristiques du navire dans la fiche de la variante à côté). Un incendie s'est déclaré dans le compartiment moteur, l'extincteur ne suffit pas, la fumée s'épaissit. La vie de l'équipage est directement menacée : c'est une situation de DISTRESS.",
       "de": "Du bist mit deiner Yacht unterwegs (Seegebiet: {area}; Schiffsdaten in der Variantenkarte daneben). Im Motorraum ist ein Feuer ausgebrochen, der Feuerlöscher reicht nicht, der Rauch wird dichter. Das Leben der Crew ist unmittelbar bedroht - das ist ein Seenotfall (DISTRESS).",
       "it": "Navighi con la tua barca (zona: {area}; dati dell'unità nella scheda della variante qui accanto). Nel vano motore è scoppiato un incendio, l'estintore non basta, il fumo si fa sempre più denso. La vita dell'equipaggio è in pericolo immediato: è una situazione di DISTRESS (pericolo)."
+    }
+  },
+  {
+    "id": "3f10d6671e1bf894",
+    "source": "Na prawdziwym rejsie",
+    "known": {
+      "pl": "Na prawdziwym rejsie",
+      "ru": "В реальном рейсе",
+      "en": "On a real voyage",
+      "es": "En una travesía real",
+      "fr": "En navigation réelle",
+      "de": "Auf einem echten Törn",
+      "it": "Durante una navigazione reale"
     }
   },
   {
@@ -10372,6 +10437,19 @@
     }
   },
   {
+    "id": "582a5371c40baa38",
+    "source": "Na egzaminie UKE",
+    "known": {
+      "pl": "Na egzaminie UKE",
+      "ru": "На экзамене UKE",
+      "en": "In the UKE exam",
+      "es": "En el examen UKE",
+      "fr": "À l'examen UKE",
+      "de": "In der UKE-Prüfung",
+      "it": "All'esame UKE"
+    }
+  },
+  {
     "id": "582ee6fe136eb79d",
     "source": "Transmitting Distress Alert",
     "known": {}
@@ -10911,6 +10989,19 @@
     "source": "64 km",
     "known": {
       "pl": "64 km"
+    }
+  },
+  {
+    "id": "5d20f63b7e497e01",
+    "source": "Model mentalny",
+    "known": {
+      "pl": "Model mentalny",
+      "ru": "Ментальная модель",
+      "en": "Mental model",
+      "es": "Modelo mental",
+      "fr": "Modèle mental",
+      "de": "Denkmodell",
+      "it": "Modello mentale"
     }
   },
   {
@@ -14024,6 +14115,19 @@
     "source": "Satelita jedynie retransmituje odebrane sygnały 406 MHz do naziemnej stacji LUT, która wykonuje obliczenia.",
     "known": {
       "pl": "Satelita jedynie retransmituje odebrane sygnały 406 MHz do naziemnej stacji LUT, która wykonuje obliczenia."
+    }
+  },
+  {
+    "id": "7ab9c3d9b665c27e",
+    "source": "Schemat: zobacz zależność",
+    "known": {
+      "pl": "Schemat: zobacz zależność",
+      "ru": "Схема: увидь связь",
+      "en": "Diagram: see the connection",
+      "es": "Esquema: observa la relación",
+      "fr": "Schéma : comprendre le lien",
+      "de": "Schema: den Zusammenhang erkennen",
+      "it": "Schema: scopri il collegamento"
     }
   },
   {
@@ -18817,6 +18921,19 @@
     "source": "Alarmowanie w niebezpieczeństwie DSC nadawane jest do wszystkich stacji (All Ships), aby każda mogła je odebrać.",
     "known": {
       "pl": "Alarmowanie w niebezpieczeństwie DSC nadawane jest do wszystkich stacji (All Ships), aby każda mogła je odebrać."
+    }
+  },
+  {
+    "id": "a537f4d7c2094449",
+    "source": "Sytuacja z życia",
+    "known": {
+      "pl": "Sytuacja z życia",
+      "ru": "Ситуация из жизни",
+      "en": "A real-life situation",
+      "es": "Una situación real",
+      "fr": "Une situation concrète",
+      "de": "Eine Situation aus der Praxis",
+      "it": "Una situazione reale"
     }
   },
   {
@@ -27872,6 +27989,19 @@
     }
   },
   {
+    "id": "f160b22f5c388d0f",
+    "source": "Dlaczego to działa właśnie tak",
+    "known": {
+      "pl": "Dlaczego to działa właśnie tak",
+      "ru": "Почему это работает именно так",
+      "en": "Why it works this way",
+      "es": "Por qué funciona así",
+      "fr": "Pourquoi cela fonctionne ainsi",
+      "de": "Warum es so funktioniert",
+      "it": "Perché funziona così"
+    }
+  },
+  {
     "id": "f17015deee7befa4",
     "source": "Przytrzymaj PWR (włączenie), ustaw kanał pokładowy o małej mocy, przełącz moc na 1 W ([HI/LO]), ustaw głośność (VOL) i próg blokady szumów (SQL).",
     "known": {
@@ -28374,6 +28504,19 @@
     "source": "częstotliwości nadajnika",
     "known": {
       "pl": "częstotliwości nadajnika"
+    }
+  },
+  {
+    "id": "f5a32bf64a064192",
+    "source": "Pojęcia, które trzeba rozróżnić",
+    "known": {
+      "pl": "Pojęcia, które trzeba rozróżnić",
+      "ru": "Понятия, которые нужно различать",
+      "en": "Concepts to distinguish",
+      "es": "Conceptos que debes distinguir",
+      "fr": "Notions à distinguer",
+      "de": "Begriffe unterscheiden",
+      "it": "Concetti da distinguere"
     }
   },
   {
@@ -29058,6 +29201,19 @@
     "source": "numer seryjny radiotelefonu VHF",
     "known": {
       "pl": "numer seryjny radiotelefonu VHF"
+    }
+  },
+  {
+    "id": "fbe49fff6c88e737",
+    "source": "Powiązane obszary banku UKE",
+    "known": {
+      "pl": "Powiązane obszary banku UKE",
+      "ru": "Связанные темы базы UKE",
+      "en": "Related UKE question topics",
+      "es": "Temas relacionados del banco UKE",
+      "fr": "Thèmes associés de la banque UKE",
+      "de": "Verwandte Themen der UKE-Fragenbank",
+      "it": "Argomenti correlati della banca UKE"
     }
   },
   {

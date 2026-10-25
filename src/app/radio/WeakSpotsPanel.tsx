@@ -4,7 +4,7 @@ import { useRadioI18n } from "@/app/radio/localization/context";
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { clearWeakSpots, weakest, type WeakSpot } from './weakSpots';
+import { clearWeakSpots, weakest, type WeakArea, type WeakSpot } from './weakSpots';
 
 // ============================================================================
 // "Here is what you keep getting wrong."
@@ -29,15 +29,15 @@ const AREA: Record<WeakSpot['area'], { icon: string; href: string }> = {
   oral: { icon: '🎓', href: '/sternik/ustny' },
 };
 
-export default function WeakSpotsPanel() {
+export default function WeakSpotsPanel({ areas }: { areas?: readonly WeakArea[] }) {
   const { rt: radioText } = useRadioI18n();
   const { tp } = useRadioI18n();
   const [spots, setSpots] = useState<WeakSpot[]>([]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setSpots(weakest()));
+    const frame = window.requestAnimationFrame(() => setSpots(weakest(6, areas)));
     return () => window.cancelAnimationFrame(frame);
-  }, []);
+  }, [areas]);
 
   if (spots.length === 0) return null;
 
@@ -54,7 +54,7 @@ export default function WeakSpotsPanel() {
         <button
           type="button"
           data-testid="clear-weak"
-          onClick={() => { clearWeakSpots(); setSpots([]); }}
+          onClick={() => { clearWeakSpots(areas); setSpots([]); }}
           className="ml-auto flex min-h-[44px] items-center rounded-full px-3 text-[11px]"
           style={{ color: 'var(--text-muted)' }}
         >

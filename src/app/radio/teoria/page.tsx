@@ -16,6 +16,7 @@ import {
   type TheoryChapter,
 } from "./courseData";
 import { TheoryDiagram } from "./diagrams";
+import { THEORY_SECTION_LABELS, type TheorySectionId } from "./sectionLabels";
 import { RADIO_ROUTE_EVENT, radioRuntimeHash, radioRuntimeSearch } from "../runtimeSearch";
 import { offlineRadio } from "../audio/localSpeech";
 
@@ -127,19 +128,16 @@ function Surface({
 
 function SectionTitle({
   icon,
-  pl,
-  ru,
+  id,
 }: {
   icon: string;
-  pl: string;
-  ru: string;
+  id: TheorySectionId;
 }) {
-  const { rt: radioText } = useRadioI18n();
-  const { explLang } = useSternikPrefs();
+  const { tl } = useRadioI18n();
   return (
     <h2 className="mb-3 flex items-center gap-2 text-base font-bold" style={{ color: "var(--text-primary)" }}>
-      <span aria-hidden>{radioText(icon)}</span>
-      {radioText(explLang === "ru" ? ru : pl)}
+      <span aria-hidden>{icon}</span>
+      {tl(THEORY_SECTION_LABELS[id])}
     </h2>
   );
 }
@@ -463,15 +461,15 @@ export default function RadioTheoryCourse() {
             {mode === "exam" ? (
               <div className="space-y-5 p-5 sm:p-7">
                 <Surface tone="amber" className="p-5">
-                  <SectionTitle icon="🎯" pl="Sedno na egzamin" ru="Суть для экзамена" />
+                  <SectionTitle icon="🎯" id="examSummary" />
                   <Text value={chapter.exam} as="p" className="text-sm leading-relaxed" />
                 </Surface>
                 <div>
-                  <SectionTitle icon="🧠" pl="Pojęcia, które trzeba rozróżnić" ru="Понятия, которые нужно различать" />
+                  <SectionTitle icon="🧠" id="distinguishConcepts" />
                   <ConceptGrid chapter={chapter} />
                 </div>
                 <Surface className="p-5">
-                  <SectionTitle icon="✅" pl="Powiązane obszary banku UKE" ru="Связанные темы базы UKE" />
+                  <SectionTitle icon="✅" id="questionAreas" />
                   <div className="flex flex-wrap gap-2">
                     {chapter.questionTopics.map((topic) => (
                       <span key={topic.pl} className="rounded-full border px-3 py-1.5 text-xs" style={{ color: "var(--text-secondary)", borderColor: "var(--border-subtle)" }}>
@@ -488,12 +486,12 @@ export default function RadioTheoryCourse() {
             ) : (
               <div className="space-y-7 p-5 sm:p-7">
                 <Surface tone="amber" className="p-5">
-                  <SectionTitle icon="⛵" pl="Sytuacja z życia" ru="Ситуация из жизни" />
+                  <SectionTitle icon="⛵" id="situation" />
                   <Text value={chapter.situation} as="p" className="text-sm leading-relaxed" />
                 </Surface>
 
                 <div>
-                  <SectionTitle icon="🗺️" pl="Schemat: zobacz zależność" ru="Схема: увидь связь" />
+                  <SectionTitle icon="🗺️" id="diagram" />
                   <div className="md:hidden">
                     <MobileTheoryFlow chapter={chapter} />
                   </div>
@@ -503,17 +501,17 @@ export default function RadioTheoryCourse() {
                 </div>
 
                 <Surface tone="cyan" className="p-5">
-                  <SectionTitle icon="💡" pl="Dlaczego to działa właśnie tak" ru="Почему это работает именно так" />
+                  <SectionTitle icon="💡" id="why" />
                   <Text value={chapter.why} as="p" className="text-sm leading-relaxed" />
                 </Surface>
 
                 <div>
-                  <SectionTitle icon="🧩" pl="Model mentalny" ru="Ментальная модель" />
+                  <SectionTitle icon="🧩" id="mentalModel" />
                   <ConceptGrid chapter={chapter} />
                 </div>
 
                 <div>
-                  <SectionTitle icon="📋" pl="Procedura krok po kroku" ru="Процедура по шагам" />
+                  <SectionTitle icon="📋" id="procedure" />
                   <ol className="space-y-3">
                     {chapter.steps.map((step, index) => (
                       <li key={step.pl} className="flex gap-3 rounded-xl border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}>
@@ -531,22 +529,22 @@ export default function RadioTheoryCourse() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <Surface tone="amber" className="p-5">
-                    <SectionTitle icon="🎯" pl="Na egzaminie UKE" ru="На экзамене UKE" />
+                    <SectionTitle icon="🎯" id="exam" />
                     <Text value={chapter.exam} as="p" className="text-sm leading-relaxed" />
                   </Surface>
                   <Surface tone="cyan" className="p-5">
-                    <SectionTitle icon="🌊" pl="Na prawdziwym rejsie" ru="В реальном рейсе" />
+                    <SectionTitle icon="🌊" id="practice" />
                     <Text value={chapter.practice} as="p" className="text-sm leading-relaxed" />
                   </Surface>
                 </div>
 
                 <Surface className="p-5">
-                  <SectionTitle icon="🌍" pl="Europa i świat" ru="Европа и мир" />
+                  <SectionTitle icon="🌍" id="world" />
                   <Text value={chapter.world} as="p" className="text-sm leading-relaxed" />
                 </Surface>
 
                 <Surface className="p-5">
-                  <SectionTitle icon="🔎" pl="Co znajdziesz w pytaniach UKE" ru="Что встретится в вопросах UKE" />
+                  <SectionTitle icon="🔎" id="questionPreview" />
                   <div className="flex flex-wrap gap-2">
                     {chapter.questionTopics.map((topic) => (
                       <span key={topic.pl} className="rounded-full border px-3 py-1.5 text-xs" style={{ color: "var(--text-secondary)", borderColor: "var(--border-subtle)" }}>

@@ -130,6 +130,7 @@ test('the native radio bundle grades position and conversation text with no netw
   await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Theory', exact: true }).click();
   const chapter = page.locator('#theory-chapter');
   await chapter.selectOption('dsc');
+  await page.getByRole('button', { name: 'Exam review', exact: true }).click();
   await page.locator('a[href="/radio/test?chapter=dsc"]').click();
   await page.getByTestId('start-training').click();
   await page.locator('button:has(> span.font-bold)').first().click();

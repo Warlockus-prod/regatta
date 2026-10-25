@@ -177,8 +177,8 @@
     },
     {
       "path": "src/app/radio/weakSpots.ts",
-      "bytes": 3642,
-      "sha256": "a9dd07146e007245561c5221b6b2932247145bb4df088340232ea18ebe26353a"
+      "bytes": 4083,
+      "sha256": "a9c362e6ce99f9e595e3dbdeafd961a51f95f9bf2396702d230eec608e4850a0"
     },
     {
       "path": "src/app/sternik/PersonalReport.tsx",

@@ -5,6 +5,7 @@ import { useRadioI18n } from "@/app/radio/localization/context";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import WeakSpotsPanel from "./WeakSpotsPanel";
+import { RADIO_WEAK_AREAS } from "./weakSpots";
 import { loadRadioCourseProgress, type RadioCourseProgress } from "./courseProgress";
 import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
 import { RADIO_GUIDED_HREF } from "./navigation";
@@ -206,7 +207,7 @@ export default function RadioCourseHome() {
         </section>
       </header>
 
-      <WeakSpotsPanel />
+      <WeakSpotsPanel areas={RADIO_WEAK_AREAS} />
 
       <section className="mb-10">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
