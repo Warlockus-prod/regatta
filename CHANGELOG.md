@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.
+
 - Preserve bounded Pro browser evidence on successful retries: actual scene readiness, clock, visibility, pageerror stacks and a validated local journal. Invalid journal contents stay inside the read-only probe. Both deployment browser reports retain their existing 14-day artifact scope after success or failure; UI checks, budgets, trace policy and publication privileges are unchanged.
 
 - Prevented iOS Copy/Look Up callouts on the radio hardware and its captions, so long holds cannot cover the instrument. Learning text and the diagnostic journal remain selectable.

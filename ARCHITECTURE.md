@@ -1216,7 +1216,8 @@ product acceptance item has passed.
 - `src/app/radio/symulator/commandDiagnostics.ts` - safe actual radio reducer outcome projection without transmission contents.
 - `src/app/radio/symulator/dialGesture.test.ts` - rim/centre motion, cancellation, keyboard and hold exclusivity.
 - `src/app/radio/symulator/dialGesture.ts` - pure detents and exclusive tap/hold/rotate lifecycle controller.
-- `src/app/radio/symulator/useRotaryDial.ts` - React pointer capture, moving index and gesture diagnostic adapter.
+- `src/app/radio/symulator/useRotaryDial.ts` - React pointer capture, moving index, gesture diagnostics and local non-passive touch-default cancellation outside Inspect.
+- `src/app/radio/symulator/useRotaryDial.test.ts` - actual hook/ref listener, pointer command exclusivity, Inspect and node/model cleanup contracts.
 - `src/components/diagnostics/DiagnosticAccess.tsx` - preloaded journal disclosure inside existing sailing dock space.
 - `src/components/diagnostics/DiagnosticPanel.tsx` - filtered local journal, explicit clear and guarded browser copy.
 - `src/components/diagnostics/DiagnosticPanelLoader.tsx` - shared dynamic panel split point, locally bundled in native builds.
