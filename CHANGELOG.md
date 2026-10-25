@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prevented iOS Copy/Look Up callouts on the radio hardware and its captions, so long holds cannot cover the instrument. Learning text and the diagnostic journal remain selectable.
+
 - Corrected the final DIAL browser checks to the actual LCD label Volume:, retaining real SQL and rim motion and every completion/layout check. Menu browser checks keep the catalog inventory separate from the Diagnostics utility and verify its seven translated names, exact route and 44px target during search. No runtime or timeout changed; the next full browser gate remains required.
 
 - Radio DIAL now turns with a finger and shows a moving index, with44px arrows retained in every layout and keyboard alternatives. Rotation, tap and power hold have separate cancellation paths.

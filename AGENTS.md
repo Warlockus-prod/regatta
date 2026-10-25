@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Installed63 QA found an iOS selection callout over radio captions during a long hold. The hardware stage now suppresses selection/callouts/contextmenu; teaching text and diagnostics retain copy. Source6aaa110 archive/export is preserved as a superseded, never-uploaded candidate. Freeze/rebuild exact corrected source before delivery.
+
 - Candidate63 adds actual rotary DIAL input and bounded local diagnostics. `docs/audits/2026-10-25/diagnostics63.md` owns the integration/coverage limits. Native journals are authoritative in AsyncStorage; embedded web journals stay in memory so Clear all cannot revive WebKit history. Diagnostic batches are append-only, finite, private-content-free and never commands. Native/ASC acceptance still follows the release harness.
 
 - Active63 reopened for the owner's finger-rotated DIAL, visible moving index, mandatory web arrows and a bounded local diagnostic journal across radio/controls/embedded startup/navigation. The first1b92567 archive passed33checks but was not exported/uploaded; it is preserved externally as native-archive63-1b92567. Source/new native acceptance must freeze again before any delivery.

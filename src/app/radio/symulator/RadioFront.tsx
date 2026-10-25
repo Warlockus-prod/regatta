@@ -1307,7 +1307,9 @@ export default function RadioFront({
       data-radio-highlight={highlightControl}
       data-compact={compact || undefined}
       className="radio-stage rounded-2xl"
+      onContextMenu={event => event.preventDefault()}
       style={{
+        userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none",
         background: 'radial-gradient(120% 100% at 50% 0%,#26527e 0%,#183a5c 45%,#0e263f 100%)',
         padding: compact && tight ? 4 : compact ? 8 : 'clamp(12px,2.2vw,22px)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 40px -20px rgba(6,26,50,.8)',
