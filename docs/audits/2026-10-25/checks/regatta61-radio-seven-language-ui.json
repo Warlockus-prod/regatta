@@ -1,0 +1,121 @@
+[
+  {
+    "headings": [
+      "⛵Eine Situation aus der Praxis",
+      "🗺️Schema: den Zusammenhang erkennen",
+      "💡Warum es so funktioniert",
+      "🧩Denkmodell",
+      "📋Schrittweise Vorgehensweise",
+      "🎯In der UKE-Prüfung",
+      "🌊Auf einem echten Törn",
+      "🌍Europa und die Welt",
+      "🔎Was die UKE-Fragen behandeln",
+      "Prüfe dein Verständnis"
+    ],
+    "lang": "de",
+    "overflow": false,
+    "selected": "de"
+  },
+  {
+    "headings": [
+      "⛵A real-life situation",
+      "🗺️Diagram: see the connection",
+      "💡Why it works this way",
+      "🧩Mental model",
+      "📋Step-by-step procedure",
+      "🎯In the UKE exam",
+      "🌊On a real voyage",
+      "🌍Europe and the world",
+      "🔎What the UKE questions cover",
+      "Check your understanding"
+    ],
+    "lang": "en",
+    "overflow": false,
+    "selected": "en"
+  },
+  {
+    "headings": [
+      "⛵Una situación real",
+      "🗺️Esquema: observa la relación",
+      "💡Por qué funciona así",
+      "🧩Modelo mental",
+      "📋Procedimiento paso a paso",
+      "🎯En el examen UKE",
+      "🌊En una travesía real",
+      "🌍Europa y el mundo",
+      "🔎Qué incluyen las preguntas UKE",
+      "Comprueba lo que has entendido"
+    ],
+    "lang": "es",
+    "overflow": false,
+    "selected": "es"
+  },
+  {
+    "headings": [
+      "⛵Une situation concrète",
+      "🗺️Schéma : comprendre le lien",
+      "💡Pourquoi cela fonctionne ainsi",
+      "🧩Modèle mental",
+      "📋Procédure étape par étape",
+      "🎯À l'examen UKE",
+      "🌊En navigation réelle",
+      "🌍L'Europe et le monde",
+      "🔎Ce que couvrent les questions UKE",
+      "Vérifiez vos connaissances"
+    ],
+    "lang": "fr",
+    "overflow": false,
+    "selected": "fr"
+  },
+  {
+    "headings": [
+      "⛵Una situazione reale",
+      "🗺️Schema: scopri il collegamento",
+      "💡Perché funziona così",
+      "🧩Modello mentale",
+      "📋Procedura passo per passo",
+      "🎯All'esame UKE",
+      "🌊Durante una navigazione reale",
+      "🌍L'Europa e il mondo",
+      "🔎Cosa trattano le domande UKE",
+      "Verifica la comprensione"
+    ],
+    "lang": "it",
+    "overflow": false,
+    "selected": "it"
+  },
+  {
+    "headings": [
+      "⛵Sytuacja z życia",
+      "🗺️Schemat: zobacz zależność",
+      "💡Dlaczego to działa właśnie tak",
+      "🧩Model mentalny",
+      "📋Procedura krok po kroku",
+      "🎯Na egzaminie UKE",
+      "🌊Na prawdziwym rejsie",
+      "🌍Europa i świat",
+      "🔎Co znajdziesz w pytaniach UKE",
+      "Sprawdź zrozumienie"
+    ],
+    "lang": "pl",
+    "overflow": false,
+    "selected": "pl"
+  },
+  {
+    "headings": [
+      "⛵Ситуация из жизни",
+      "🗺️Схема: увидь связь",
+      "💡Почему это работает именно так",
+      "🧩Ментальная модель",
+      "📋Процедура по шагам",
+      "🎯На экзамене UKE",
+      "🌊В реальном рейсе",
+      "🌍Европа и мир",
+      "🔎Что встретится в вопросах UKE",
+      "Проверь понимание"
+    ],
+    "lang": "ru",
+    "overflow": false,
+    "selected": "ru"
+  }
+]

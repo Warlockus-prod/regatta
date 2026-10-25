@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Delivered1.7.0(61) to Self with Apple VALID processing, verified membership/readiness and8notes. It includes the reviewed3D camera, radio/navigation, route advice and language corrections. Public website/AppReview and the next physical-scale short/long course stage remain separate.
+
 - Finished adapting12 SRC theory section headings in all seven languages. Radio mistakes and their Reset now stay within SRC, preserving saved Polish Sternik oral practice.
 
 - Fixed SRC Review topic opening the wrong offline theory chapter; Back now restores the chosen chapter and scroll position. Moved compact trainer camera presets into View so they do not overlap instruments on short screens.

@@ -7,7 +7,7 @@
 
 ## Current completion work
 
-- Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 is in verification, not yet delivered.
+- Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 from37c7079 was delivered to exact Self at2026-10-25 15:35:51UTC, VALID/IN_BETA_TESTING with8notes. `docs/audits/2026-10-25/acceptance61.md` records all65 current statuses. Website pre-deploy browser gate blocked publication; foreground low-FPS clock and owner-approved physical short/long courses are next62 work.
 
 - 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `docs/audits/2026-10-24/design-proposal.md`.
 - App branch `codex/app-1.7.0-completion`, site branch `codex/site-1.7.0-sync`. Shared engine, content and scenes stay in one repository. Do not discard historical dirty root work.
@@ -30,7 +30,9 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  Проверено 2026-10-24: публичная 1.6.4 (48), TestFlight 1.7.0 (60), группа Self.
+  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(61), группа Self.
+  Source37c7079, VALID/IN_BETA_TESTING,8notes проверены; `docs/design/mobile/testflight61-2026-10-25.md`.
+  Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
   Сборка 59 отклонена Apple при импорте, не распространялась. Описание
   Photos API встроенного Expo file reader исправлено на семи языках.

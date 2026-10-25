@@ -1,0 +1,47 @@
+{
+  "sourceCommit": "37c7079f758cf06e0bab2c8de307bd4008f527cc",
+  "version": "1.7.0",
+  "build": "61",
+  "appId": "6768134329",
+  "bundleId": "com.icoffio.regatta",
+  "buildId": "e8045f85-4ba1-407e-b9d0-3ec44cf91d9c",
+  "checkedAt": "2026-10-25T15:35:51.472Z",
+  "processingState": "VALID",
+  "internalState": "IN_BETA_TESTING",
+  "member": true,
+  "selfGroupId": "45b9252e-b6ac-4117-ae2b-c85afa520d73",
+  "readOnlyWrites": 0,
+  "notesLocales": [
+    "en-US",
+    "en-GB",
+    "ru",
+    "pl",
+    "es-ES",
+    "fr-FR",
+    "de-DE",
+    "it"
+  ],
+  "notesUnchanged": true,
+  "ipaBytes": 29901304,
+  "ipaSha256": "4dc5b5517df45082e1e9dfc4f76baab42559e1713aa39ce24fa9e485520493b5",
+  "checks": {
+    "generated": 18,
+    "archive": 33,
+    "ipa": 35,
+    "webTests": 1062,
+    "nativeTests": 435,
+    "releaseTools": 9,
+    "bundleMB": 6.48,
+    "bundleBudgetMB": 6.5
+  },
+  "website": {
+    "mergeCommit": "89dffdcbe7909a171b07f44736bbd60ea8905609",
+    "deployed": false,
+    "reason": "Pre-deploy browser gate blocked: two stale assertions and foreground software GPU timing under investigation."
+  },
+  "limits": [
+    "Physical TestFlight installation and speech models unverified",
+    "Full manual Pro finish unverified",
+    "Physical race scale and short/long distance profiles approved for next build62"
+  ]
+}
