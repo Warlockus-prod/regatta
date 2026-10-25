@@ -24,6 +24,7 @@ import { useLandscapeWhileFocused } from './orientation';
 import { ActivityBack } from '../navigation/ActivityBack';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
+import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from '../diagnostics/journal';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -220,6 +221,7 @@ export function SimWebView({
   // same require() to a bundled file; navigation stays confined to that asset.
   const developmentOrigin = __DEV__ && bundledUri?.startsWith("http") ? new URL(bundledUri).origin : null;
   const hasCheckpointBridge = Boolean(offlineSource && path === "/simulator-v3");
+  const diagnosticSurface = path === "/game" ? raceReplay ? "replay" : "race" : path === "/anatomy" ? "anatomy" : tier === "boat3d" ? "boat" : tier === "basics" ? "basics" : "trainer";
   const languageScript = `window.__REGATTA_SAILING_STORAGE__ = ${hasCheckpointBridge}; window.__REGATTA_LANGUAGE__ = ${JSON.stringify(lang)}; window.__REGATTA_EMBED__ = ${JSON.stringify({ path, query: new URLSearchParams(query ?? {}).toString() })}; window.dispatchEvent(new Event("regatta-language")); window.dispatchEvent(new Event("regatta-embed")); true;`;
   useEffect(() => {
     if (offlineSource) webRef.current?.injectJavaScript(languageScript);
@@ -238,6 +240,7 @@ export function SimWebView({
   useEffect(() => {
     if (!loading) return;
     const t = setTimeout(() => {
+      recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "timeout", attempt: reloadKey });
       setLoading(false);
       setFailed(true);
     }, tier === 'boat3d' ? 30000 : LOAD_TIMEOUT_MS);
@@ -245,6 +248,7 @@ export function SimWebView({
   }, [loading, reloadKey, tier]);
 
   const retry = () => {
+    recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "retry", outcome: "accepted", attempt: reloadKey });
     setFailed(false);
     setLoading(true);
     setReloadKey((k) => k + 1);
@@ -315,6 +319,7 @@ export function SimWebView({
         }}
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
+          if (handleNativeDiagnosticMessage(status, diagnosticSurface)) return;
           if (offlineSource && status.startsWith("{")) onOfflineMessage?.(status, script => webRef.current?.injectJavaScript(script));
           if (offlineSource && path !== "/game" && status.length <= 1024 && status.startsWith("{")) {
             try {
@@ -331,25 +336,33 @@ export function SimWebView({
             return;
           }
           if (hasCheckpointBridge && status.startsWith("{")) {
-            void handleCheckpointMessage(status, script => webRef.current?.injectJavaScript(script));
+            void handleCheckpointMessage(status, script => webRef.current?.injectJavaScript(script), (action, ok) => {
+              if (ok) recordNativeDiagnostic({ type: "storage.operation", surface: diagnosticSurface, action, target: "checkpoint", outcome: "accepted" });
+              else recordNativeDiagnostic({ type: "storage.operation", surface: diagnosticSurface, action, target: "checkpoint", outcome: "failed", reason: action === "read" ? "storage-read" : "storage-write" });
+            });
             return;
           }
           if (status === 'scene-ready' || (status === 'app-ready' && offlineSource && tier !== 'boat3d')
             || (status === 'ready' && !offlineSource && tier !== 'boat3d')) {
+            recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "ready", outcome: "accepted", attempt: reloadKey });
             setLoading(false);
             setFailed(false);
           }
           // Trainer owns its recoverable 3D boundary. Its Top/Rear/Side views
           // must stay accessible when WebGL fails; only root failures block it.
           if (status === 'app-error' || (status === 'scene-error' && tier !== 'trainer')) {
+            recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "scene-load", attempt: reloadKey });
             setLoading(false);
             setFailed(true);
           }
+          if (status === 'scene-error' && tier === 'trainer') recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "scene-load", attempt: reloadKey });
         }}
+        onLoadStart={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "begin", outcome: "accepted", attempt: reloadKey }); }}
         onLoadEnd={() => { if (!offlineSource && tier !== 'boat3d') setLoading(false); }}
-        onHttpError={() => { setLoading(false); setFailed(true); }}
-        onContentProcessDidTerminate={() => { setLoading(false); setFailed(true); }}
+        onHttpError={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "connection", attempt: reloadKey }); setLoading(false); setFailed(true); }}
+        onContentProcessDidTerminate={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "process-terminated", outcome: "failed", reason: "webview-process", attempt: reloadKey }); setLoading(false); setFailed(true); }}
         onError={() => {
+          recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "webview-load", attempt: reloadKey });
           setLoading(false);
           setFailed(true);
         }}

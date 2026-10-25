@@ -2,6 +2,8 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import type { Sensitivity } from "./mapping";
+import { recordDiagnostic, recordPreferenceChange } from "@/lib/diagnostics-controls";
+import type { DiagnosticInput } from "@/lib/diagnostics";
 
 // One record per device for every trainer surface (Basics, Trainer, 3D boat).
 // Web: localStorage. Inside the iOS app the WebView injects the app's copy as
@@ -116,14 +118,24 @@ export function readControlPrefs(): ControlPrefs {
 export function writeControlPrefs(next: ControlPrefs) {
   if (typeof window === "undefined") return;
   const w = window as ControlsWindow;
+  const previous = readControlPrefs();
   const clean = sanitizeControlPrefs(next);
+  let persisted = true;
   try {
     window.localStorage.setItem(CONTROL_PREFS_KEY, JSON.stringify(clean));
     window.localStorage.setItem(LEGACY_RACE_MUTE_KEY, clean.sound ? "0" : "1");
-  } catch { /* private mode */ }
+  } catch { persisted = false; }
   if (w.__REGATTA_CONTROLS__) w.__REGATTA_CONTROLS__ = clean;
   try { w.ReactNativeWebView?.postMessage(JSON.stringify({ type: "controls-prefs", prefs: clean })); } catch { /* not in the app */ }
   window.dispatchEvent(new CustomEvent(CONTROL_PREFS_EVENT));
+  const fields = [["mode", "mode"], ["helmReturnToCenter", "return-center"], ["sensitivity", "sensitivity"], ["jibSheetSide", "jib-side"], ["sound", "sound"]] as const;
+  for (const [key, preference] of fields) if (previous[key] !== clean[key]) recordDiagnostic({ type: "control.preferences", surface: "app", outcome: "accepted", preference, value: clean[key], previous: previous[key] } as Extract<DiagnosticInput, { type: "control.preferences" }>);
+  for (const surface of ["trainer", "boat"] as const) if (helmMappingFor(previous, surface) !== helmMappingFor(clean, surface)) recordDiagnostic({ type: "control.preferences", surface, outcome: "accepted", preference: "helm-mapping", value: helmMappingFor(clean, surface), previous: helmMappingFor(previous, surface) });
+  for (const surface of ["basics", "trainer", "boat"] as const) {
+    const before = previous.dock[surface]?.favorites ?? [], after = clean.dock[surface]?.favorites ?? [];
+    if (JSON.stringify(before) !== JSON.stringify(after)) recordPreferenceChange(surface, "favorites-count", after.length, before.length, true);
+  }
+  recordDiagnostic({ type: "storage.operation", surface: "app", outcome: persisted ? "accepted" : "failed", action: "write", target: "preferences", ...(persisted ? {} : { reason: "storage-write" }) });
 }
 
 let snapshotKey: string | null = null;

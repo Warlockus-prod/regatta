@@ -1,4 +1,6 @@
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { recordNativeDiagnostic } from "../diagnostics/journal";
+import { diagnosticDestination } from "../../../src/lib/diagnostic-destination";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { usePathname, useRouter, type Href } from "expo-router";
 import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +14,12 @@ import { nativeTabs, tabForPath } from "./tabs";
 export function AppNavigation({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const previous = useRef<string | null>(null);
+  useEffect(() => {
+    if (previous.current === pathname) return;
+    recordNativeDiagnostic({ type: "navigation", surface: "app", action: "confirmed", outcome: "accepted", source: "native", ...(previous.current ? { from: diagnosticDestination(previous.current) } : {}), to: diagnosticDestination(pathname) });
+    previous.current = pathname;
+  }, [pathname]);
   const { lang } = useI18n();
   const insets = useSafeAreaInsets();
   const [keyboard, setKeyboard] = useState(false);
@@ -29,7 +37,7 @@ export function AppNavigation({ children }: { children: ReactNode }) {
     <View style={[styles.root, dark && darkStyles.root]}>
       <View style={styles.content}>{children}</View>
       {visible && <View style={[styles.bar, dark && darkStyles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-        {nativeTabs.map(s => <Pressable key={s.id} accessibilityRole="tab" accessibilityLabel={s.title[lang]} accessibilityState={{ selected: selected === s.id }} onPress={() => { if (pathname !== s.route) router.replace(s.route as Href); }} style={({ pressed }) => [styles.tab, selected === s.id && styles.selected, pressed && (dark ? darkStyles.pressed : styles.pressed)]}>
+        {nativeTabs.map(s => <Pressable key={s.id} accessibilityRole="tab" accessibilityLabel={s.title[lang]} accessibilityState={{ selected: selected === s.id }} onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "app", action: "request", outcome: pathname === s.route ? "noop" : "accepted", source: "native", from: diagnosticDestination(pathname), to: diagnosticDestination(s.route) }); if (pathname !== s.route) router.replace(s.route as Href); }} style={({ pressed }) => [styles.tab, selected === s.id && styles.selected, pressed && (dark ? darkStyles.pressed : styles.pressed)]}>
           <Icon name={s.icon as IconName} size={24} color={selected === s.id ? palette.accentCyan : palette.textSecondary} />
           <Text style={[styles.label, selected === s.id && styles.activeLabel, { color: selected === s.id ? palette.accentCyan : palette.textSecondary }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>{s.title[lang]}</Text>
         </Pressable>)}

@@ -50,6 +50,8 @@ import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
 import { RaceReplay } from "./RaceReplay";
 import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-completion";
+import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -191,6 +193,7 @@ function makeCourse(): Course {
 // ============================================================================
 
 export default function GamePage() {
+  useEffect(() => { initializeDiagnosticBridge(); }, []);
   const { tp, tl, lang } = useI18n();
   // Scenery around the race area (src/data/venues): drawn by the canvas loop, so kept in refs.
   const { venue } = useVenue();
@@ -226,7 +229,12 @@ export default function GamePage() {
   const rudderRef = useRef(0);
   const [trim, setTrimState] = useState<Controls>(() => raceTrim({ mainHoisted: true }));
   const trimRef = useRef(trim);
-  const setTrim = useCallback((patch: Partial<Controls>) => { const next = raceTrim(patch, trimRef.current); trimRef.current = next; setTrimState(next); }, []);
+  const setTrim = useCallback((patch: Partial<Controls>) => {
+    const previous = trimRef.current, next = raceTrim(patch, previous);
+    trimRef.current = next; setTrimState(next);
+    for (const [key, control] of [["mainSheet", "mainsheet"], ["jibSheet", "jibsheet"], ["mainTwist", "main-twist"], ["jibTwist", "jib-twist"], ["reef", "reef"], ["jibFurl", "jib-furl"]] as const) if (key in patch) recordControlChange("race", control, next[key], previous[key]);
+    if ("mainHoisted" in patch) recordControlChange("race", "main-hoisted", next.mainHoisted !== false, previous.mainHoisted !== false);
+  }, []);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const raceClockRef = useRef(0);
@@ -244,7 +252,10 @@ export default function GamePage() {
   const [sceneRaceId, setSceneRaceId] = useState("");
   const [sceneReady, setSceneReady] = useState(false);
   const onSceneReady = useCallback(() => {
-    if (startupGate.current.rendered(sceneRaceId)) setSceneReady(true);
+    if (startupGate.current.rendered(sceneRaceId)) {
+      setSceneReady(true);
+      recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "scene-ready" });
+    }
   }, [sceneRaceId]);
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
@@ -387,6 +398,7 @@ export default function GamePage() {
   const saveResult = useCallback((withNickname?: string) => {
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2 || player.finishTime == null) {
+      recordDiagnostic({ type: "race.save", surface: "race", outcome: "rejected", action: "request", target: "leaderboard", reason: "not-ready" });
       setSaveState('error');
       setSaveError(tp('Не финишировал', 'Did not finish', 'Nie ukończono',
         { es: 'No has terminado', fr: 'Course non terminée', de: 'Nicht im Ziel', it: 'Regata non conclusa' }));
@@ -397,6 +409,7 @@ export default function GamePage() {
     const completedPenalty = ruleStateRef.current.penalties.player ?? 0;
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
     if (!effectiveNick) {
+      recordDiagnostic({ type: "race.save", surface: "race", outcome: "noop", action: "request", target: "leaderboard", reason: "not-ready" });
       setSaveState('prompting');
       return;
     }
@@ -407,6 +420,7 @@ export default function GamePage() {
 
     setSaveState('saving');
     setSaveError(null);
+    recordDiagnostic({ type: "race.save", surface: "race", outcome: "accepted", action: "request", target: "leaderboard" });
 
     const doSave = async () => {
       try {
@@ -439,8 +453,10 @@ export default function GamePage() {
         });
         const d = await res.json();
         if (!res.ok) throw new Error(d.error || tp('Не удалось сохранить результат', 'Failed to save result', 'Nie udało się zapisać wyniku', { es: 'No se pudo guardar el resultado', fr: 'Impossible d\'enregistrer le résultat', de: 'Ergebnis konnte nicht gespeichert werden', it: 'Impossibile salvare il risultato' }));
+        recordDiagnostic({ type: "race.save", surface: "race", outcome: "accepted", action: "ack", target: "leaderboard" });
         if (raceIdRef.current === completedRaceId) setSaveState('saved');
       } catch (err) {
+        recordDiagnostic({ type: "race.save", surface: "race", outcome: "failed", action: "error", target: "leaderboard", reason: "connection" });
         if (raceIdRef.current !== completedRaceId) return;
         setSaveState('error');
         setSaveError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci', { es: 'Error de red', fr: 'Erreur réseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
@@ -481,6 +497,7 @@ export default function GamePage() {
     if (logSamplesRef.current.length < 5) return;
     replayAttemptedRef.current = true;
     const completedRaceId = raceIdRef.current;
+    recordDiagnostic({ type: "race.save", surface: "race", outcome: "accepted", action: "request", target: "share" });
     fetch('/api/replay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -498,14 +515,15 @@ export default function GamePage() {
       }),
     })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
-      .then((d) => { if (raceIdRef.current === completedRaceId && d?.code) setReplayCode(d.code); })
-      .catch(() => { /* silent - replay is optional */ });
+      .then((d) => { recordDiagnostic({ type: "race.save", surface: "race", outcome: d?.code ? "accepted" : "failed", action: d?.code ? "ack" : "error", target: "share", ...(d?.code ? {} : { reason: "invalid-message" }) }); if (raceIdRef.current === completedRaceId && d?.code) setReplayCode(d.code); })
+      .catch(() => { recordDiagnostic({ type: "race.save", surface: "race", outcome: "failed", action: "error", target: "share", reason: "connection" }); });
   }, [gameState, difficulty, windStrength, selectedMission, nickname]);
 
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
   // -----------------------------------------------------------------------
   const initRace = useCallback((diff: Difficulty) => {
+    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "init" });
     setLockedMode(null);
     keysRef.current.clear();
     const cfg = DIFFICULTY_CONFIG[diff];
@@ -593,6 +611,7 @@ export default function GamePage() {
     });
     setResumeOffer(null);
     setGameState('briefing');
+    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode: racePrefs.mode });
   }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode]);
 
   const beginCountdown = useCallback(() => {
@@ -605,6 +624,7 @@ export default function GamePage() {
     setLockedMode(racePrefs.mode);
     setCountdown(3);
     setGameState('countdown');
+    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "countdown", mode: racePrefs.mode });
   }, [difficulty, windStrength, selectedMission, racePrefs.mode]);
 
   // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
@@ -627,6 +647,7 @@ export default function GamePage() {
         phase: 'racing',
       });
       setGameState('racing');
+      recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "start", mode: racePrefsRef.current.mode });
       return;
     }
     playBeep();
@@ -649,10 +670,16 @@ export default function GamePage() {
         setTrim({ [sheet]: trimRef.current[sheet] + (key === "q" || key === "w" ? .05 : -.05) });
         return;
       }
+      const previousTurn = Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft"));
+      const repeated = keysRef.current.has(key);
       keysRef.current.add(key);
+      if (!repeated && (key === "arrowleft" || key === "arrowright")) recordControlChange("race", "rudder", Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")), previousTurn);
       if (["arrowleft", "arrowright", "arrowup", "arrowdown", " "].includes(key)) e.preventDefault();
     };
-    const onUp = (e: KeyboardEvent) => keysRef.current.delete(e.key.toLowerCase());
+    const onUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase(), previous = Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft"));
+      if (keysRef.current.delete(key) && (key === "arrowleft" || key === "arrowright")) recordControlChange("race", "rudder", Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")) || rudderRef.current, previous);
+    };
     const clear = () => keysRef.current.clear();
     window.addEventListener("keydown", onDown);
     window.addEventListener("keyup", onUp);
@@ -851,6 +878,7 @@ export default function GamePage() {
         ended = true;
         setResults(sorted);
         setGameState('finished');
+        recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
         // Race ended cleanly - drop the resume offer so the next reload
         // starts from a fresh menu.
         clearRaceSetup();
@@ -908,7 +936,9 @@ export default function GamePage() {
             course, samples: logSamplesRef.current, events: logEventsRef.current, coaching: localCoaching,
             penaltySeconds: ruleStateRef.current.penalties.player ?? 0 };
           pendingNativeSaves.current.add(snapshot);
-          setNativeSave(postNativeRace(pendingNativeSaves.current.get(snapshot.id)!) ? "saving" : "error");
+          const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
+          setNativeSave(sent ? "saving" : "error");
+          recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "request", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
         }
         setCoachingLoading(!isNativeRace());
         const completedRaceId = raceIdRef.current;
@@ -974,6 +1004,7 @@ export default function GamePage() {
   // Reset
   // -----------------------------------------------------------------------
   const backToMenu = useCallback(() => {
+    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "exit" });
     setLockedMode(null);
     setGameState('menu');
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -984,23 +1015,27 @@ export default function GamePage() {
   const hudPlayer = boatsRef.current.find((b) => b.isPlayer);
   const setRudder = useCallback((value: number) => {
     const next = Math.max(-1, Math.min(1, value));
+    const previous = rudderRef.current;
     rudderRef.current = next; setRudderState(next);
     autopilotOnRef.current = false; setAutopilotOn(false);
+    recordControlChange("race", "rudder", next, previous);
   }, []);
   const setCourse = useCallback((degrees: number) => {
     const next = ((degrees % 360) + 360) % 360;
+    const previous = autopilotOnRef.current ? autopilotHeadingRef.current : undefined;
     autopilotHeadingRef.current = next;
     setTargetHeading(next);
     rudderRef.current = 0; setRudderState(0);
     autopilotOnRef.current = true; setAutopilotOn(true);
+    recordControlChange("race", "course", next, previous);
   }, []);
   const courseDelta = useCallback((degrees: number) => {
     const player = boatsRef.current.find(b => b.isPlayer);
     if (player) setCourse((autopilotOnRef.current ? autopilotHeadingRef.current : player.heading) + degrees);
   }, [setCourse]);
-  const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); }, []);
+  const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: pausedRef.current ? "pause" : "resume" }); }, []);
   useEffect(() => {
-    const hide = () => { if (document.hidden && (gameState === "racing" || gameState === "countdown")) { pausedRef.current = true; setPaused(true); keysRef.current.clear(); } };
+    const hide = () => { if (document.hidden && !pausedRef.current && (gameState === "racing" || gameState === "countdown")) { pausedRef.current = true; setPaused(true); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "pause", reason: "hidden", source: "system" }); } };
     document.addEventListener("visibilitychange", hide);
     return () => document.removeEventListener("visibilitychange", hide);
   }, [gameState]);
@@ -1016,6 +1051,7 @@ export default function GamePage() {
   const retryNativeSave = useCallback(() => {
     for (const race of pendingNativeSaves.current.values()) {
       const sent = postNativeRace(race);
+      recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "retry", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
       if (race.id === raceIdRef.current) setNativeSave(sent ? "saving" : "error");
     }
   }, []);
@@ -1023,10 +1059,12 @@ export default function GamePage() {
     const saved = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
       if (typeof id !== "string" || !pendingNativeSaves.current.acknowledge(id)) return;
+      recordDiagnostic({ type: "race.save", surface: "race", outcome: "accepted", action: "ack", target: "local" });
       if (id === raceIdRef.current) setNativeSave("saved");
     };
     const error = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
+      if ((typeof id === "string" && pendingNativeSaves.current.get(id)) || (id === undefined && pendingNativeSaves.current.get(raceIdRef.current))) recordDiagnostic({ type: "race.save", surface: "race", outcome: "failed", action: "error", target: "local", reason: "storage-write" });
       if ((id === undefined || id === raceIdRef.current) && pendingNativeSaves.current.get(raceIdRef.current)) setNativeSave("error");
     };
     window.addEventListener("regatta:race-history-saved", saved); window.addEventListener("regatta:race-history-error", error);
@@ -1043,6 +1081,7 @@ export default function GamePage() {
       if (player?.trim) setTrim(player.trim);
     }
     writeRacePrefs(patch);
+    for (const [key, preference] of [["guidance", "guidance"], ["trimHints", "trim-hints"], ["rules", "rules"], ["penalties", "penalties"]] as const) if (patch[key] !== undefined) recordPreferenceChange("race", preference, patch[key]!, racePrefsRef.current[key]);
   }, [writeRacePrefs, setTrim]);
   const trimCoach = hudPlayer && playingPrefs.mode === "pro" && playingPrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
   useEffect(() => {
@@ -1232,12 +1271,13 @@ export default function GamePage() {
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
-          camera={raceCamera} setCamera={setRaceCamera} onResetCamera={() => setCameraRevision(value => value + 1)} paused={paused} onPause={togglePause} onExit={backToMenu}
+          camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu}
           autopilot={autopilotOn} onAutopilot={() => {
             autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
             setTargetHeading(autopilotHeadingRef.current);
             rudderRef.current = 0; setRudderState(0);
             autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
+            recordControlChange("race", "course-assist", autopilotOnRef.current, !autopilotOnRef.current);
           }} muted={muted} onSound={() => updateControls({ sound: !controlPrefs.sound })} penalty={penalty}
           countdown={gameState === "countdown" ? countdown : undefined}>
           <RaceScene key={sceneRaceId} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}

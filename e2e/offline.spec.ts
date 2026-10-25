@@ -155,9 +155,12 @@ test('the native radio bundle grades position and conversation text with no netw
   await page.getByTestId('free-scenarios').click();
   await page.locator('a[href="/radio/rozmowa"]').click();
   await page.getByTestId('dialogue-radio-check').click();
-  await page.getByTestId('dial-center').dispatchEvent('pointerdown', { pointerId: 1 });
-  await page.waitForTimeout(1150);
-  await page.getByTestId('dial-center').dispatchEvent('pointerup', { pointerId: 1 });
+  {
+    const knob = (await page.getByTestId("dial-center").boundingBox())!;
+    await page.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+    await page.mouse.down();
+    try { await expect(page.getByTestId("lcd")).toContainText("16"); } finally { await page.mouse.up(); }
+  }
   for (let i = 0; i < 4; i++) await page.getByTestId('key-down').click();
   const dialogue = DIALOGUES.find(dialogue => dialogue.id === 'radio-check')!;
   await page.getByTestId('local-transcript-input').fill(dialogue.turns[0].youSay);
@@ -187,9 +190,12 @@ test('web position and conversation accept typed practice without starting a mic
   await page.getByTestId('local-transcript-check').click();
   await expect(page.getByTestId('dialogue-setup-warning')).toContainText('Switch the radio on');
   await expect(page.getByTestId('next-turn')).toHaveCount(0);
-  await page.getByTestId('dial-center').dispatchEvent('pointerdown', { pointerId: 1 });
-  await page.waitForTimeout(1150);
-  await page.getByTestId('dial-center').dispatchEvent('pointerup', { pointerId: 1 });
+  {
+    const knob = (await page.getByTestId("dial-center").boundingBox())!;
+    await page.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+    await page.mouse.down();
+    try { await expect(page.getByTestId("lcd")).toContainText("16"); } finally { await page.mouse.up(); }
+  }
   await page.getByTestId('local-transcript-check').click();
   await expect(page.getByTestId('dialogue-setup-warning')).toContainText('Select channel 12');
   await expect(page.getByTestId('next-turn')).toHaveCount(0);

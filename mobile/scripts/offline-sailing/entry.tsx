@@ -1,3 +1,6 @@
+import { initializeDiagnosticBridge } from "../../../src/lib/diagnostics-bridge";
+import { recordWebDiagnostic } from "../../../src/lib/diagnostics-web";
+import { diagnosticDestination, diagnosticSurface } from "../../../src/lib/diagnostic-destination";
 import { createRoot } from "react-dom/client";
 import { useEffect, useLayoutEffect, useState } from "react";
 import SimulatorV2 from "../../../src/features/simulator-3d/SimulatorV2";
@@ -10,6 +13,7 @@ import { readSailingEmbed, sailingSearch } from "./embed";
 
 function OfflineSailingApp() {
   const [embed, setEmbed] = useState(readSailingEmbed);
+  useEffect(() => { initializeDiagnosticBridge(); recordWebDiagnostic({ type: "navigation", surface: diagnosticSurface(embed.path), action: "confirmed", outcome: "accepted", to: diagnosticDestination(embed.path) }); }, [embed.path]);
   useLayoutEffect(() => {
     // Content pages retain document scrolling and the poster's body scroll lock.
     document.documentElement.dataset.sailingDocument = String(embed.path === "/anatomy" || embed.path === "/simulator");
@@ -29,7 +33,7 @@ function OfflineSailingApp() {
     : embed.path === "/anatomy" ? <AnatomyPage /> : <SimulatorV2 />}</OfflineSailingI18n>;
 }
 
-const reportAppError = () => window.ReactNativeWebView?.postMessage("app-error");
+const reportAppError = () => { recordWebDiagnostic({ type: "embedded.lifecycle", surface: "app", action: "error", outcome: "failed", reason: "unknown" }); window.ReactNativeWebView?.postMessage("app-error"); };
 // R3F reports some recoverable canvas errors through window.onerror before
 // its SceneBoundary renders. Do not convert those into fatal app errors:
 // the Trainer's 2D views must remain usable. Root errors have their own signal.

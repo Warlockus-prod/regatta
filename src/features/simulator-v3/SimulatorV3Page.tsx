@@ -6,7 +6,9 @@ import styles from "./SimulatorV3.module.css";
 import { SavePractice } from "../sailing-lab/ui/SavePractice";
 import { LessonReturn } from "../sailing-lab/ui/LessonReturn";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type SetStateAction } from 'react';
+import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
 import type { CameraView } from "../simulator-3d/camera";
@@ -21,6 +23,7 @@ import { TrimStudyGoal, TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
 import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
 import { useTrainerCheckpoint } from "./hooks/use-trainer-checkpoint";
 import { resolveTrainerDeepLink } from './runtime/deep-link';
+import { uiToControls } from "./runtime/create-runtime-state";
 import {
   type DrillDefinition,
   type ScenarioPreset,
@@ -150,6 +153,7 @@ function buildShareUrl(ui: UiState): string {
 // ============================================================================
 
 export default function SimulatorV3Page({ initialSearch }: { initialSearch?: string } = {}) {
+  useEffect(() => { initializeDiagnosticBridge(); }, []);
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
   // Start from the free 3D setup on both server and client so hydration matches;
@@ -157,8 +161,35 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   // window.location.search during render made the client's first render
   // differ from the SSR HTML on /simulator-v3?twa=... and threw React
   // hydration errors. The 1-frame settle after mount is acceptable.
-  const [ui, setUi] = useState<UiState>(FREE_TRAINER_UI);
+  const [ui, setUiState] = useState<UiState>(FREE_TRAINER_UI);
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
+  const setUi = useCallback((action: SetStateAction<UiState>) => {
+    const previous = uiRef.current, next = typeof action === "function" ? action(previous) : action;
+    uiRef.current = next; setUiState(action);
+    for (const [key, control, divisor] of [["twa", "twa", 1], ["windSpeed", "wind-speed", 1], ["mainAngle", "main-angle", 1], ["jibAngle", "jib-angle", 1], ["mainTwistPct", "main-twist", 100], ["jibTwistPct", "jib-twist", 100]] as const) if (next[key] !== previous[key]) recordControlChange("trainer", control, next[key] / divisor, previous[key] / divisor);
+    if (next.reefLevel !== previous.reefLevel || next.jibFurlPct !== previous.jibFurlPct) {
+      const before = uiToControls(previous, params), after = uiToControls(next, params);
+      if (next.reefLevel !== previous.reefLevel) recordControlChange("trainer", "reef", after.reef, before.reef);
+      if (next.jibFurlPct !== previous.jibFurlPct) recordControlChange("trainer", "jib-furl", after.jibFurl, before.jibFurl);
+    }
+    if (next.tack !== previous.tack) recordControlChange("trainer", "tack", next.tack, previous.tack);
+    if (next.windMode !== previous.windMode) recordControlChange("trainer", "wind-mode", next.windMode, previous.windMode);
+    if (next.view !== previous.view) recordControlChange("trainer", "view", next.view, previous.view);
+    if (next.showOptimal !== previous.showOptimal) recordControlChange("trainer", "show-optimal", next.showOptimal, previous.showOptimal);
+    if (next.sailsRaised !== previous.sailsRaised) {
+      recordControlChange("trainer", "main-hoisted", next.sailsRaised !== "jib", previous.sailsRaised !== "jib");
+      recordControlChange("trainer", "jib-open", next.sailsRaised !== "main", previous.sailsRaised !== "main");
+    }
+    if (next.mainTrim) {
+      if (next.mainTrim.workingLength !== previous.mainTrim?.workingLength) recordControlChange("trainer", "main-working-length", next.mainTrim.workingLength, previous.mainTrim?.workingLength);
+      if (next.mainTrim.traveler !== previous.mainTrim?.traveler) recordControlChange("trainer", "traveler", next.mainTrim.traveler, previous.mainTrim?.traveler);
+      if (next.mainTrim.outhaulEase !== previous.mainTrim?.outhaulEase) recordControlChange("trainer", "outhaul", next.mainTrim.outhaulEase ?? .5, previous.mainTrim?.outhaulEase ?? .5);
+      if (next.mainTrim.vangSpan !== previous.mainTrim?.vangSpan && next.mainTrim.vangSpan !== undefined) recordControlChange("trainer", "vang-span", next.mainTrim.vangSpan, previous.mainTrim?.vangSpan);
+    }
+  }, [params]);
   const [boatView, setBoatView] = useState<CameraView>("sails");
+  const selectBoatView = (view: CameraView) => { setBoatView(view); recordControlChange("trainer", "camera", view, boatView); };
   const activeBoatView = boatView === "mainsheet" && !ui.mainTrim ? "sails" : boatView;
   // ?embed=1 (sent by the iOS app's WebView) strips the in-page chrome
   // (tier switcher, Share, glossary footer) and locks the layout to 100dvh
@@ -215,13 +246,13 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const { prefs, update: updatePrefs } = useControlPrefs();
   const controlLabels = useControlLabels();
   const helmMapping = helmMappingFor(prefs, 'trainer');
-  const [rudder, setRudder] = useState(0);
+  const [rudder, setRudderState] = useState(0);
+  const requestedRudder = useRef(0);
+  const setRudder = (value: number) => { const previous = requestedRudder.current; requestedRudder.current = value; setRudderState(value); recordControlChange("trainer", "rudder", value, previous); };
   const [desktopSettings, setDesktopSettings] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
   const onClient = useClientOnly();
   const { sim, reset, restore } = useSimulatorV3({ ui, tp, paused, rudder: helmMapping === 'rudder' ? rudder : null });
-  const uiRef = useRef(ui);
-  uiRef.current = ui;
   // Rudder steering moves the boat itself; keep the course slider and the
   // share link in step with the real heading so nothing snaps back later.
   useEffect(() => {
@@ -229,7 +260,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     const signed = ((sim.session.wind.baseDir - sim.session.boat.heading) % 360 + 540) % 360 - 180;
     const twa = Math.round(Math.abs(signed));
     const tack = signed >= 0 ? 'starboard' : 'port';
-    if (twa !== uiRef.current.twa || tack !== uiRef.current.tack) setUi((p) => ({ ...p, twa, tack }));
+    if (twa !== uiRef.current.twa || tack !== uiRef.current.tack) setUiState((p) => ({ ...p, twa, tack }));
   }, [helmMapping, rudder, sim.session.ticks, sim.session.wind.baseDir, sim.session.boat.heading]);
   // The wheel turns the course in fractions of a degree; the UI keeps whole degrees.
   const exactCourse = useRef<{ twa: number; tack: UiState['tack'] } | null>(null);
@@ -242,7 +273,6 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     exactCourse.current = { twa: next.twa, tack: next.tack };
     const twa = Math.round(next.twa);
     if (twa !== cur.twa || next.tack !== cur.tack) {
-      uiRef.current = { ...cur, twa, tack: next.tack };
       setUi((p) => ({ ...p, twa, tack: next.tack }));
     }
     return next.crossed;
@@ -411,6 +441,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     exitDrill();
     setActiveScenarioId(null);
   };
+  const togglePause = () => { setPaused(value => !value); recordDiagnostic({ type: "trainer.lifecycle", surface: "trainer", outcome: "accepted", action: paused ? "resume" : "pause" }); };
 
   const startRigStudy = () => {
     trimAssessment.cancel();
@@ -462,10 +493,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     panel.querySelector("summary")?.focus({ preventScroll: true });
   };
 
-  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />
-    {ui.view === "3d" && <BoatViewPresets view={activeBoatView} onSelect={setBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp} />}
+  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />
+    {ui.view === "3d" && <BoatViewPresets view={activeBoatView} onSelect={selectBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp} />}
   </>;
-  const sessionPanel = <ViewPod section="session" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>;
+  const sessionPanel = <ViewPod section="session" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>;
   const controlsLabel = tp("Управление парусами", "Sail controls", "Obsługa żagli", { es: "Controles de velas", fr: "Commandes des voiles", de: "Segelbedienung", it: "Comandi delle vele" });
   const conditionsLabel = tp("Условия: ветер и курс", "Conditions: wind and course", "Warunki: wiatr i kurs", { es: "Condiciones: viento y rumbo", fr: "Conditions : vent et cap", de: "Bedingungen: Wind und Kurs", it: "Condizioni: vento e rotta" });
   const sessionLabel = tp("Настройки и сохранение", "Settings and saving", "Ustawienia i zapis", { es: "Ajustes y guardado", fr: "Réglages et sauvegarde", de: "Einstellungen und Speichern", it: "Impostazioni e salvataggio" });
@@ -907,10 +938,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 </DrawerGroup>
                 {ui.view === "3d" && <DrawerGroup>
                   <BoatViewPresets view={activeBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp}
-                    onSelect={view => { setBoatView(view); setViewsOpen(false); }} />
+                    onSelect={view => { selectBoatView(view); setViewsOpen(false); }} />
                 </DrawerGroup>}
                 <DrawerGroup>
-                  <DrawerItem pressed={paused} onClick={() => setPaused((value) => !value)}>{pauseLabel(tp, paused)}</DrawerItem>
+                  <DrawerItem pressed={paused} onClick={togglePause}>{pauseLabel(tp, paused)}</DrawerItem>
                 </DrawerGroup>
               </SceneDrawer>
             </div>

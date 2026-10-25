@@ -1,4 +1,6 @@
 'use client';
+import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 
 import { FoundationReturn } from "@/components/FoundationReturn";
 
@@ -126,13 +128,23 @@ type WakeParticle = { x: number; y: number; age: number; maxAge: number; size: n
 // Main Component
 // ============================================================
 export default function SimulatorPage() {
+  useEffect(() => { initializeDiagnosticBridge(); }, []);
   const { tp, lang } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number>(0);
 
-  const [boatAngle, setBoatAngle] = useState(90); // Compass degrees, 0 points north.
-  const [windDir, setWindDir] = useState(DEFAULT_WIND_DIR); // compass bearing wind blows from
+  const [boatAngle, setBoatAngleState] = useState(90); // Compass degrees, 0 points north.
+  const [windDir, setWindDirState] = useState(DEFAULT_WIND_DIR); // compass bearing wind blows from
+  const requestedHeading = useRef(90), requestedWind = useRef(DEFAULT_WIND_DIR);
+  const setBoatAngle = useCallback((action: React.SetStateAction<number>) => {
+    const previous = requestedHeading.current, next = typeof action === "function" ? action(previous) : action;
+    requestedHeading.current = next; setBoatAngleState(action); recordControlChange("basics", "course", next, previous);
+  }, []);
+  const setWindDir = useCallback((action: React.SetStateAction<number>) => {
+    const previous = requestedWind.current, next = typeof action === "function" ? action(previous) : action;
+    requestedWind.current = next; setWindDirState(action); recordControlChange("basics", "wind-direction", next, previous);
+  }, []);
   const [isDragging, setIsDragging] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ w: 600, h: 600 });
   const windDirRef = useRef(DEFAULT_WIND_DIR);
@@ -207,7 +219,7 @@ export default function SimulatorPage() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [setBoatAngle]);
 
   // ---- Mouse / Touch drag on canvas ----
   //
@@ -282,7 +294,7 @@ export default function SimulatorPage() {
       }
       dragStartRef.current.startAngle = angle;
     },
-    [isDragging, getAngleFromPointer],
+    [isDragging, getAngleFromPointer, setBoatAngle, setWindDir],
   );
 
   const onPointerUp = useCallback(() => {
@@ -847,12 +859,13 @@ export default function SimulatorPage() {
   // ---- Slider handler ----
   const onSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setBoatAngle(parseFloat(e.target.value));
-  }, []);
+  }, [setBoatAngle]);
 
   const onReset = useCallback(() => {
     setBoatAngle(90);
     wakeRef.current = [];
-  }, []);
+    recordDiagnostic({ type: "trainer.lifecycle", surface: "basics", outcome: "accepted", action: "reset" });
+  }, [setBoatAngle]);
 
   // ---- Render ----
   const onCourseDelta = (deg: number) => {

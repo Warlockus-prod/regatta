@@ -26,6 +26,27 @@ it("reports a write failure and leaves the preceding save intact", async () => {
   expect(await AsyncStorage.getItem(TRAINER_STORAGE_KEY)).toBe(checkpoint);
 });
 
+it("reports the actual durable outcome only after completion and isolates observer failure from the ACK", async () => {
+  let complete!: () => void;
+  const delay = new Promise<void>(resolve => { complete = resolve; });
+  jest.mocked(AsyncStorage.setItem).mockImplementationOnce(async () => { await delay; });
+  const reply = jest.fn(), result = jest.fn();
+  const saving = handleCheckpointMessage(message("write", checkpoint), reply, result);
+  await Promise.resolve(); await Promise.resolve();
+  expect(result).not.toHaveBeenCalled(); expect(reply).not.toHaveBeenCalled();
+  complete(); await saving;
+  expect(result).toHaveBeenCalledWith("write", true);
+  expect(reply).toHaveBeenCalledWith(expect.stringContaining('"ok":true'));
+  jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error("PRIVATE_STORAGE_READ"));
+  const brokenObserver = jest.fn(() => { throw new Error("PRIVATE_OBSERVER"); });
+  await expect(handleCheckpointMessage(message("read"), reply, brokenObserver)).resolves.toBe(true);
+  expect(brokenObserver).toHaveBeenCalledWith("read", false);
+  expect(reply).toHaveBeenLastCalledWith(expect.stringContaining('"ok":false'));
+  expect(reply).not.toHaveBeenLastCalledWith(expect.stringContaining("PRIVATE_"));
+  await handleCheckpointMessage("{", reply, result);
+  expect(result).toHaveBeenCalledTimes(1);
+});
+
 it("does not execute malformed messages or storage operations outside the contract", async () => {
   const reply = jest.fn();
   for (const raw of ["{", message("delete"), message("write", "x".repeat(65537))]) {

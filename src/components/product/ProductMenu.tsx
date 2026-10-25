@@ -1,5 +1,6 @@
 'use client';
 
+import { diagnosticTitle, diagnosticText } from "@/lib/diagnostic-title";
 import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -30,6 +31,7 @@ export default function ProductMenu() {
       </section>)}
       {!groups.length && <p role="status" className={styles.description}>{copy.empty[lang]}</p>}
     </div>
+    <Link href="/diagnostics" className={styles.row}><strong>{diagnosticText(diagnosticTitle, lang)}</strong><span aria-hidden="true" className={styles.arrow}>→</span></Link>
     <div className={styles.menuAppearance}><span>{menuCopy.appearance[lang]}</span><ThemeToggle /></div>
   </div>;
 }

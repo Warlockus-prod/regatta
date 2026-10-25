@@ -1171,3 +1171,64 @@ Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-
 - `docs/audits/2026-10-25/checks/website62-runtime-gate.json` is the portable72b4f57 publication, immutable image/runtime and red final browser-gate record. Healthy deployment and targeted manual UI do not replace successful full acceptance.
 
 - Language URL cleanup in `src/lib/i18n.tsx` preserves browser history state. Removing a lang query must not replace App Router metadata with null: that can change the Back URL while leaving the previous React screen mounted. The seven SRC course-return browser cases cover this flow.
+
+
+## Local diagnostics and rotary radio input, candidate63
+
+The typed journal accepts only finite command projections and fixed outcome/reason
+codes. It retains at most200 entries/64KiB with a48h persisted envelope. Adjacent
+control samples can coalesce while retaining their input count and endpoints.
+Browser journals use one debounced localStorage row. Installed WebViews use
+memory only; validated append-only batches flow to the authoritative native
+AsyncStorage journal. Neither transport can invoke navigation, storage or speech
+commands. Raw messages, answers, callsigns, MMSI, positions, audio, URLs and
+exception text never enter these entries. No automatic upload is added.
+
+Native Settings opens the app journal with filter, clear and confirmed clipboard
+copy. Clear all suspends native persistence before deletion and removes any late
+write. One pending diagnostic flush and one latest-state follow-up bound a stalled
+writer. Radio panels and sailing docks expose the current screen journal in
+reserved space. One preloaded split point shares its seven-language panel without
+duplicating the catalog in every route; offline builders embed that code locally.
+
+Radio DIAL uses one pointer owner, centre horizontal detents or rim angle detents,
+a visible index, tap selection and1000ms power hold. Rotation cancels tap/hold;
+cancellation, model/Inspect changes and unmount clear pending timers. All layouts
+retain44px arrow controls and keyboard alternatives. Runtime radio commands are
+projected from actual previous/next reducer states, outside React updaters.
+Race/trainer adapters log user commands and actual save acknowledgements, excluding
+physics ticks and automatic helm corrections. Coverage and limits are recorded
+in `docs/audits/2026-10-25/diagnostics63.md`; a journal is not proof that every
+product acceptance item has passed.
+
+- `mobile/__tests__/screens/diagnostics.test.tsx` - native journal filtering, progress-preserving clear and confirmed clipboard outcomes.
+- `mobile/app/diagnostics.tsx` - native Settings destination for the whole app journal.
+- `mobile/src/diagnostics/DiagnosticLifecycle.tsx` - nonblocking native initialization and foreground/background flush boundaries.
+- `mobile/src/diagnostics/journal.test.ts` - native delayed read/write, wipe, failed storage, transport and boundedness checks.
+- `mobile/src/diagnostics/journal.ts` - native asynchronous journal, coalesced flushes, safe embedded transport and global-clear epoch barrier.
+- `src/app/diagnostics/page.tsx` - web Menu destination for the current browser journal.
+- `src/app/game/GameClient.commands.test.tsx` - actual solo handler normalization, rapid commands, no-op and recorder failure isolation.
+- `src/app/radio/symulator/RadioFront.test.tsx` - all model/skin/layout arrow and index markup contracts.
+- `src/app/radio/symulator/commandDiagnostics.test.ts` - radio clamp/rejection results and private-data exclusion.
+- `src/app/radio/symulator/commandDiagnostics.ts` - safe actual radio reducer outcome projection without transmission contents.
+- `src/app/radio/symulator/dialGesture.test.ts` - rim/centre motion, cancellation, keyboard and hold exclusivity.
+- `src/app/radio/symulator/dialGesture.ts` - pure detents and exclusive tap/hold/rotate lifecycle controller.
+- `src/app/radio/symulator/useRotaryDial.ts` - React pointer capture, moving index and gesture diagnostic adapter.
+- `src/components/diagnostics/DiagnosticAccess.tsx` - preloaded journal disclosure inside existing sailing dock space.
+- `src/components/diagnostics/DiagnosticPanel.tsx` - filtered local journal, explicit clear and guarded browser copy.
+- `src/components/diagnostics/DiagnosticPanelLoader.tsx` - shared dynamic panel split point, locally bundled in native builds.
+- `src/features/simulator-3d/physics/useSailingSim.diagnostics.test.ts` - real control hook commands, no-op, automatic correction suppression and logger failure isolation.
+- `src/features/simulator-v3/SimulatorV3Page.diagnostics.test.tsx` - actual trainer UI trim geometry/reef/furl projection.
+- `src/features/simulator-v3/hooks/use-trainer-checkpoint.test.ts` - pending versus acknowledged checkpoint saves, errors and restore.
+- `src/lib/diagnostic-copy.ts` - complete seven-language journal/outcome copy.
+- `src/lib/diagnostic-destination.test.ts` - static route projection and unknown-route privacy regression.
+- `src/lib/diagnostic-destination.ts` - fixed route and surface identifiers that omit all dynamic path/query data.
+- `src/lib/diagnostic-title.ts` - small shared title and language lookup without the full panel catalog.
+- `src/lib/diagnostics-bridge.test.ts` - batch bounds, original event counts, private-field rejection and failed transport isolation.
+- `src/lib/diagnostics-bridge.ts` - one append-only native transport for original validated events.
+- `src/lib/diagnostics-controls.test.ts` - actual outcome and unchanged-value projections.
+- `src/lib/diagnostics-controls.ts` - failure-isolated normalized control and preference recording.
+- `src/lib/diagnostics-web.test.ts` - SSR isolation, persistence failures, original-input subscription and native memory-only regression.
+- `src/lib/diagnostics-web.ts` - per-window browser journal and memory-only native WebView adapter.
+- `src/lib/diagnostics.test.ts` - privacy, event ranges, byte/entry bounds, coalescing and expiry regressions.
+- `src/lib/diagnostics.ts` - pure bounded journal, exact event schemas and validated persistence/transport codecs.

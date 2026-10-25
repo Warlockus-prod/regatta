@@ -1,3 +1,6 @@
+import { initializeDiagnosticBridge } from "../../../src/lib/diagnostics-bridge";
+import { recordWebDiagnostic } from "../../../src/lib/diagnostics-web";
+import { diagnosticDestination } from "../../../src/lib/diagnostic-destination";
 import {
   createContext,
   useCallback,
@@ -70,18 +73,26 @@ export function OfflineRouterProvider({
   }, []);
 
   const navigate = useCallback((href: string) => {
-    if (!parseRadioRoute(href) || !confirmRadioLeave()) return;
+    if (!parseRadioRoute(href)) { recordWebDiagnostic({ type: "navigation", surface: "radio", action: "request", outcome: "rejected", reason: "invalid-input" }); return; }
+    if (!confirmRadioLeave()) { recordWebDiagnostic({ type: "navigation", surface: "radio", action: "cancelled", outcome: "noop", reason: "cancelled" }); return; }
+    recordWebDiagnostic({ type: "navigation", surface: "radio", action: "request", outcome: "accepted", to: diagnosticDestination(href) });
     apply(pushRadioRoute(historyRef.current, href, window.scrollY));
   }, [apply]);
   const replace = useCallback((href: string, options?: { scroll?: boolean }) => {
-    if (!parseRadioRoute(href) || !confirmRadioLeave()) return;
+    if (!parseRadioRoute(href)) { recordWebDiagnostic({ type: "navigation", surface: "radio", action: "request", outcome: "rejected", reason: "invalid-input" }); return; }
+    if (!confirmRadioLeave()) { recordWebDiagnostic({ type: "navigation", surface: "radio", action: "cancelled", outcome: "noop", reason: "cancelled" }); return; }
+    recordWebDiagnostic({ type: "navigation", surface: "radio", action: "request", outcome: "accepted", to: diagnosticDestination(href) });
     apply(replaceRadioRoute(historyRef.current, href), false, options?.scroll !== false);
   }, [apply]);
   const back = useCallback(() => {
-    if (confirmRadioLeave()) apply(popRadioRoute(historyRef.current), true);
+    const approved = confirmRadioLeave();
+    recordWebDiagnostic({ type: "navigation", surface: "radio", action: approved ? "back" : "cancelled", outcome: approved ? "accepted" : "noop", ...(approved ? {} : { reason: "cancelled" }) });
+    if (approved) apply(popRadioRoute(historyRef.current), true);
   }, [apply]);
 
   useEffect(() => {
+    initializeDiagnosticBridge();
+    recordWebDiagnostic({ type: "navigation", surface: "radio", action: "confirmed", outcome: "accepted", to: diagnosticDestination(route.path) });
     window.__REGATTA_OFFLINE_SEARCH__ = route.search;
     postRadioMessage({ type: "radio-route", href: radioHref(route), canGoBack: history.length > 1 });
   }, [route, history.length]);

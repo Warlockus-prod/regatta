@@ -1,3 +1,4 @@
+import { nativeDiagnostics, recordNativeDiagnostic } from '../../diagnostics/journal';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
@@ -88,6 +89,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
+    recordNativeDiagnostic({ type: 'embedded.lifecycle', surface: 'app', action: 'error', outcome: 'failed', reason: 'unknown', source: 'native' });
+    void nativeDiagnostics.flush();
     // eslint-disable-next-line no-console
     console.error('[Regatta] ErrorBoundary caught:', error, info.componentStack);
   }

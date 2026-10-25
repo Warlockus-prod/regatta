@@ -1,4 +1,4 @@
-# Release63: compact SRC and complete visible guide copy
+# Release63: rotary SRC input, diagnostics and visible guide corrections
 
 Status: candidate, not delivered. Native62 remains immutable at e3d70a1 and is
 available in Self. Build63 was unused in a read-only ASC inventory at
@@ -17,7 +17,7 @@ physical race movement, profile selection and new results remain disabled.
 3. [x] Label guided Back for its existing previous-screen route; inline guide
    close still stays on the guide. Align Foundation content edges at20pt and
    make default informational Sternik values neutral. Sternik stays Polish.
-4. [ ] Reopened after the owner's DIAL/diagnostics requirements below. The
+4. [x] Expanded source gates completed after the owner's DIAL/diagnostics requirements below. The
    first1b92567 source passed the following bounded checks and is preserved;
    freeze the expanded source and rollback commit again. Independent language review passed.
    Complete web/native tests, TS/lint/map/dash/build/budget, current generated
@@ -87,3 +87,53 @@ requirements before the next delivered candidate, not completed features here.
   source suffix. Actual native26.5 upgrade retained7rows, SRC1% and lesson2;
   new status row was readable. Back/DIAL/new diagnostics still require the
   expanded exact binary. Physical owner phone is not certified.
+
+
+## Expanded source checkpoint, 2026-10-25
+
+- Actual browser402px and desktop checks confirm held power, rim rotation
+  changing VOL16to20, limit no-op and arrow20to19, visible journal and reserved
+  instrument/panel geometry. Actual Back restores the free-practice component.
+  This is source/browser evidence, not installed63 or physical-phone acceptance.
+- DIAL42focused checks and race/trainer76focused checks passed before expanded
+  full gates. Independent reviews found and corrected native WK journal revival
+  and coalesced a stalled native journal writer. Native adapter/host checks and
+  exact installed acceptance are still required.
+- A first full web test run during concurrent builds hit3existing timeout
+  budgets;1198 assertions passed. Repeat without CPU oversubscription using
+  four workers, retaining every timeout and assertion.
+- Static chunk inspection found copy/panel duplicated across9/8route chunks.
+  A small shared title plus one preloaded panel split point restores6.48/6.5MB
+  with the same features; the limit remains unchanged.
+- Exact old-source SITEf857 browser control run40229374197 passed56cases:
+ 55first-pass plus1Pro retry,0failures. All7Back regressions pass; publish, deploy
+  and production tests were skipped. It does not certify the expanded source;
+  keep PR83 draft until the new exact source passes its own gates.
+- Integration details and explicit open coverage: [diagnostics](diagnostics63.md).
+
+
+## Source freeze gates for expanded63
+
+- Final expanded native check:472tests/71suites plus9release-tool checks,
+  three fresh offline packages, content synchronization, lint and TypeScript
+  all pass. Two old navigation test mocks were adapted to the actual
+  usePathname/diagnostic boundary; return and durable-save assertions remain.
+- Production web build, strict TypeScript and full ESLint pass. The current
+  static chunk total is6.49/6.5MiB; largest0.94/2MiB. Shared panel/copy remains
+  single-delivery rather than9/8duplicate bodies. All7catalogs enumerate3761
+  resources and7503aliases with missing0; the new rotary hint replaces only
+  its prior arrow-only copy.
+- DIAL/diagnostic unit tests also cover native exit flush ordering. Native
+  global-clear and coalesced stalled-write regressions pass.
+- Generated sailing HTML retains vendor TSL template whitespace already
+  present in the prior bundle. Source/docs diff whitespace is clean; do not
+  edit generated shader literals solely to change a Git whitespace report.
+- Device Hub capture recovered after raising/zooming its window. The actual
+  old candidate remains at Polish lesson2; install the expanded exact Release
+  Simulator build before claiming its DIAL, Back, journal or upgrade pass.
+
+- Final source-freeze web run:1206tests/138files PASS with four workers. No
+  timeout budgets or assertions changed. The four new fixed-route cases and
+  pre-exit diagnostic flush order are included. Source map now covers676
+  tracked code files. ASC GET2026-10-25 20:31:36UTC still finds no build63;
+ 61known builds, latest62VALID, writes0.

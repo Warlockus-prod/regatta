@@ -1,8 +1,9 @@
 import { ActivityIndicator } from "react-native";
-import { act, fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SimWebView } from "../src/simulator/SimWebView";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_CHANNEL, TRAINER_STORAGE_KEY } from "../../src/features/sailing-lab/runtime/storage-protocol";
+import { nativeDiagnostics } from "../src/diagnostics/journal";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 
@@ -10,6 +11,7 @@ const mockNavigate = jest.fn();
 jest.mock("expo-router", () => ({
   Stack: { Screen: ({ options }: { options?: { headerShown?: boolean; headerLeft?: () => React.ReactNode } }) => options?.headerShown === false ? null : options?.headerLeft?.() ?? null },
   useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate, canGoBack: () => true, back: jest.fn() }),
+  usePathname: () => "/simulator-v3",
 }));
 jest.mock("../src/i18n/context", () => ({
   useI18n: () => ({ lang: "en", tp: (_ru: string, en: string) => en }),
@@ -34,8 +36,38 @@ jest.mock("react-native-webview", () => {
   }) };
 });
 
-beforeEach(() => { jest.useFakeTimers(); jest.clearAllMocks(); });
-afterEach(() => jest.useRealTimers());
+beforeEach(async () => { jest.useFakeTimers(); await nativeDiagnostics.clear(); jest.clearAllMocks(); });
+afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
+
+it("routes sanitized diagnostic batches to the host journal before any offline callback or checkpoint handler", async () => {
+  const handle = jest.fn();
+  const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={{ uri: "file:///bundle/sailing-offline.html" }} onOfflineMessage={handle} />);
+  const web = view.getByTestId("webview");
+  const control = { type: "control.change", surface: "radio", control: "rudder", value: .25, outcome: "accepted" };
+  fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "diagnostic-events", version: 1, events: [control] }) } });
+  expect(handle).not.toHaveBeenCalled();
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "control.change" && entry.event.surface === "trainer")).toBe(true);
+  fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "diagnostic-events", version: 1, events: [{ ...control, text: "PRIVATE_TRANSCRIPT" }] }) } });
+  expect(JSON.stringify(nativeDiagnostics.snapshot())).not.toContain("PRIVATE_TRANSCRIPT");
+  expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.reason === "invalid-message")).toBe(true);
+  const raw = JSON.stringify({ version: 1, snapshot: "PRIVATE_CHECKPOINT_DATA" });
+  await act(async () => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ channel: STORAGE_CHANNEL, id: "diag-write", action: "write", raw }) } }));
+  await waitFor(() => expect(nativeDiagnostics.snapshot().entries.some(entry => entry.event.type === "storage.operation" && entry.event.target === "checkpoint" && entry.event.outcome === "accepted")).toBe(true));
+  expect(await AsyncStorage.getItem(TRAINER_STORAGE_KEY)).toBe(raw);
+  expect(JSON.stringify(nativeDiagnostics.snapshot())).not.toContain("PRIVATE_CHECKPOINT_DATA");
+});
+
+it("records actual page ready, process failure and user Retry with only static lifecycle fields", () => {
+  const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={{ uri: "file:///bundle/sailing-offline.html" }} />);
+  const web = view.getByTestId("webview");
+  fireEvent(web, "loadStart");
+  fireEvent(web, "message", { nativeEvent: { data: "app-ready" } });
+  fireEvent(web, "contentProcessDidTerminate", { nativeEvent: { url: "PRIVATE_URL", description: "PRIVATE_STACK" } });
+  fireEvent.press(view.getByText("Retry"));
+  const lifecycle = nativeDiagnostics.snapshot().entries.flatMap(entry => entry.event.type === "embedded.lifecycle" ? [entry.event.action] : []);
+  expect(lifecycle).toEqual(["begin", "ready", "process-terminated", "retry"]);
+  expect(JSON.stringify(nativeDiagnostics.snapshot())).not.toContain("PRIVATE_");
+});
 
 it("returns to a known lesson and hides tier switching during lesson practice", async () => {
   const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "mainsheet", study: "mainsheet" }} />);

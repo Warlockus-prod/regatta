@@ -3,12 +3,41 @@ import {
   CHANNELS, DSC_VOICE_CHANNELS, RADIO_PROFILES, createInitialRadio, otherDscRows, radioReducer,
   type RadioState,
 } from './radioModel';
+import { RadioDialInput } from './dialGesture';
 
 function powered(model: 'M330' | 'M323' = 'M330') {
   return radioReducer(createInitialRadio(model), { type: 'dial-hold' });
 }
 
 describe('radio model hardware profiles', () => {
+  for (const model of ['M330', 'M323'] as const) {
+    it(`${model}: a center drag adjusts SQL and VOL through the real reducer without a release push`, () => {
+      let state = powered(model);
+      const events: string[] = [];
+      const input = new RadioDialInput(event => { events.push(event.type); state = radioReducer(state, event); }, () => {});
+      state = radioReducer(state, { type: 'dial-push' });
+      const initialVolume = state.volume;
+      input.pointerDown(1, { x: 30, y: 30 }, { left: 0, top: 0, width: 60, height: 60 });
+      input.pointerMove(1, { x: 18, y: 30 }); input.pointerUp(1);
+      expect(state.screen).toBe('volume'); expect(state.volume).toBe(initialVolume - 2);
+      state = radioReducer(state, { type: 'dial-push' });
+      const initialSql = state.squelch;
+      input.pointerDown(2, { x: 30, y: 30 }, { left: 0, top: 0, width: 60, height: 60 });
+      input.pointerMove(2, { x: 30 - initialSql * 6, y: 30 }); input.pointerUp(2);
+      expect(state.screen).toBe('squelch'); expect(state.squelch).toBe(0);
+      expect(events.every(type => type === 'dial-rotate')).toBe(true);
+      input.dispose();
+    });
+    it(`${model}: angular turns use the existing menu detents`, () => {
+      let state = radioReducer(powered(model), { type: 'menu' });
+      const before = state.menuCursor;
+      const input = new RadioDialInput(event => { state = radioReducer(state, event); }, () => {});
+      input.pointerDown(1, { x: 55, y: 30 }, { left: 0, top: 0, width: 60, height: 60 });
+      input.pointerMove(1, { x: 30 + 25 * Math.cos(Math.PI / 6), y: 42.5 }); input.pointerUp(1);
+      expect(state.screen).toBe('menu'); expect(state.menuCursor).toBe(before + 2);
+      input.dispose();
+    });
+  }
   it('uses DIAL rotation for volume on IC-M330 standby', () => {
     const before = powered('M330');
     const after = radioReducer(before, { type: 'dial-rotate', dir: -1 });

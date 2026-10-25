@@ -1,3 +1,5 @@
+import { initializeDiagnosticBridge } from "../../../src/lib/diagnostics-bridge";
+import { recordWebDiagnostic } from "../../../src/lib/diagnostics-web";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import { canLeaveSternikExam, postSternikProgress } from "./bridge";
 import { sternikRoute, type SternikRoute } from "./model";
@@ -13,7 +15,9 @@ export function OfflineRouterProvider({ children }: { children: (route: SternikR
   const [route, setRoute] = useState(initial);
   const navigate = useCallback((href: string) => {
     const next = sternikRoute(href);
-    if (!next || !canLeaveSternikExam()) return;
+    if (!next) { recordWebDiagnostic({ type: "navigation", surface: "sternik", action: "request", outcome: "rejected", reason: "invalid-input", to: "unknown" }); return; }
+    if (!canLeaveSternikExam()) { recordWebDiagnostic({ type: "navigation", surface: "sternik", action: "cancelled", outcome: "noop", reason: "cancelled" }); return; }
+    recordWebDiagnostic({ type: "navigation", surface: "sternik", action: "request", outcome: "accepted", to: "motor" });
     postSternikProgress(true);
     setRoute(next);
   }, []);
@@ -26,6 +30,8 @@ export function OfflineRouterProvider({ children }: { children: (route: SternikR
     return () => window.removeEventListener("regatta:sternik-navigate", fromNative);
   }, [navigate]);
   useEffect(() => {
+    initializeDiagnosticBridge();
+    recordWebDiagnostic({ type: "navigation", surface: "sternik", action: "confirmed", outcome: "accepted", to: "motor" });
     if (route.hash) {
       let id = route.hash.slice(1);
       try { id = decodeURIComponent(id); } catch { /* Keep the literal fragment. */ }

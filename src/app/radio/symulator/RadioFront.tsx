@@ -4,6 +4,7 @@ import { useRadioI18n } from "@/app/radio/localization/context";
 
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTrainerI18n } from './trainerText';
+import { useRotaryDial } from './useRotaryDial';
 import {
   DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
   channel, dscFieldValues, effectivePower, menuItems, otherDscRows, radioProfile, softkeys,
@@ -839,6 +840,7 @@ export default function RadioFront({
   }, []);
   const [coverOpen, setCoverOpen] = useState(false);
   const profile = radioProfile(model);
+  const dial = useRotaryDial(dispatch, !inspect, `${model}:${realistic}:${compact}:${tight}`);
 
   // The wide "realistic" faceplate is a 3-column grid whose min-content (softkeys
   // 4x44, keypad 3x44, DISTRESS tab) overflows a phone below ~480px. Under that
@@ -867,27 +869,10 @@ export default function RadioFront({
   };
   /** pointer handlers are dropped entirely while inspecting (no holds fire) */
   const hold = <T,>(handler: T): T | undefined => (inspect ? undefined : handler);
-  const dialTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dialFiredHold = useRef(false);
   const callTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callFiredHold = useRef(false);
 
   // Both manuals specify a one second hold for power and Call Channel.
-  const dialDown = useCallback(() => {
-    dialFiredHold.current = false;
-    dialTimer.current = setTimeout(() => {
-      dialFiredHold.current = true;
-      dispatch({ type: 'dial-hold' });
-    }, 1000);
-  }, [dispatch]);
-  const dialUp = useCallback(() => {
-    if (dialTimer.current) clearTimeout(dialTimer.current);
-    if (!dialFiredHold.current) dispatch({ type: 'dial-push' });
-  }, [dispatch]);
-  const dialCancel = useCallback(() => {
-    if (dialTimer.current) clearTimeout(dialTimer.current);
-    dialFiredHold.current = true; // a cancelled gesture must not fire dial-push later
-  }, []);
   const callDown = useCallback(() => {
     callFiredHold.current = false;
     callTimer.current = setTimeout(() => {
@@ -905,7 +890,6 @@ export default function RadioFront({
   }, []);
   const isActivationKey = (key: string) => key === ' ' || key === 'Enter';
   useEffect(() => () => {
-    if (dialTimer.current) clearTimeout(dialTimer.current);
     if (callTimer.current) clearTimeout(callTimer.current);
   }, []);
 
@@ -981,27 +965,22 @@ export default function RadioFront({
       data-testid="dial-center"
       data-ik="dial"
       aria-label={radioText("Dial: press for volume/squelch, hold for power")}
-      onClick={inspect ? () => onInspect?.('dial') : undefined}
-      onPointerDown={hold(dialDown)}
-      onPointerUp={hold(dialUp)}
-      onPointerLeave={hold(dialCancel)}
-      onPointerCancel={hold(dialCancel)}
-      onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-        if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dialDown(); }
-      })}
-      onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-        if (isActivationKey(e.key)) { e.preventDefault(); dialUp(); }
-      })}
-      className="relative select-none shrink-0"
+      aria-keyshortcuts={inspect ? undefined : dial.shortcuts}
+      {...dial.handlers}
+      onClick={inspect ? () => onInspect?.('dial') : dial.handlers.onClick}
+      className="relative select-none shrink-0 active:cursor-grabbing"
       style={{
         width: compact ? 60 : 76, height: compact ? 60 : 76, borderRadius: '50%',
         border: inspect && inspectKey === 'dial' ? `2px solid ${HL}` : 'none',
         background: 'radial-gradient(circle at 38% 32%,#565d69,#2b2f38 70%,#1c1f26)',
         boxShadow: 'inset 0 2px 3px rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.5)',
         touchAction: 'none',
+        WebkitUserSelect: 'none', WebkitTouchCallout: 'none', cursor: inspect ? 'pointer' : 'grab',
       }}
     >
-      <span style={{ position: 'absolute', top: compact ? 5 : 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: compact ? 13 : 16, borderRadius: 2, background: '#cfd6e0' }} />
+      <span aria-hidden="true" data-testid="dial-index" data-angle={Number(dial.rotation.toFixed(2))} style={{ position: 'absolute', inset: 0, transform: `rotate(${dial.rotation}deg)`, pointerEvents: 'none' }}>
+        <span style={{ position: 'absolute', top: compact ? 5 : 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: compact ? 13 : 16, borderRadius: 2, background: '#cfd6e0' }} />
+      </span>
       <span style={{ position: 'absolute', inset: compact ? 16 : 20, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%,#3a3f49,#23272f)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,.12)' }} />
     </button>
   );
@@ -1020,8 +999,8 @@ export default function RadioFront({
 
   const dialRockers = (
     <div className="flex gap-1.5">
-      <Key id="dial-ccw" ik="dial" small ariaLabel={radioText("Rotate dial counter-clockwise")} onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: -1 }))}>↺</Key>
-      <Key id="dial-cw" ik="dial" small ariaLabel={radioText("Rotate dial clockwise")} onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: 1 }))}>↻</Key>
+      <Key id="dial-ccw" ik="dial" small ariaLabel={radioText("Rotate dial counter-clockwise")} onClick={act('dial', () => dial.step(-1))}>↺</Key>
+      <Key id="dial-cw" ik="dial" small ariaLabel={radioText("Rotate dial clockwise")} onClick={act('dial', () => dial.step(1))}>↻</Key>
     </div>
   );
 
@@ -1087,6 +1066,7 @@ export default function RadioFront({
         {dialKnob}
       </div>
       {dialCaption}
+      {dialRockers}
     </div>
   );
 
@@ -1276,8 +1256,8 @@ export default function RadioFront({
       <div className="grid grid-cols-5 gap-1">
         {key16c}{kMenu}{kUp}{kEnt}{kClr}
         {kLeft}{kDown}{kRight}
-        <Key id="dial-ccw" ik="dial" small ariaLabel={radioText("Rotate dial counter-clockwise")} onClick={act('dial', () => dispatch({type:'dial-rotate',dir:-1}))}>↺</Key>
-        <Key id="dial-cw" ik="dial" small ariaLabel={radioText("Rotate dial clockwise")} onClick={act('dial', () => dispatch({type:'dial-rotate',dir:1}))}>↻</Key>
+        <Key id="dial-ccw" ik="dial" small ariaLabel={radioText("Rotate dial counter-clockwise")} onClick={act('dial', () => dial.step(-1))}>↺</Key>
+        <Key id="dial-cw" ik="dial" small ariaLabel={radioText("Rotate dial clockwise")} onClick={act('dial', () => dial.step(1))}>↻</Key>
       </div>
       <div className="grid grid-cols-2 gap-2">{distressBlock}{pttButton}</div>
     </div>
@@ -1297,6 +1277,7 @@ export default function RadioFront({
             {key16c}
             {dialKnob}
             {dialCaption}
+            {dialRockers}
           </div>
         </div>
       ) : (

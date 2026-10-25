@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Radio DIAL now turns with a finger and shows a moving index, with44px arrows retained in every layout and keyboard alternatives. Rotation, tap and power hold have separate cancellation paths.
+
+- Added a bounded local diagnostic journal for radio, sailing controls, embedded startup/navigation and real save results, with clear/copy and outcome filtering in the dock and native Settings. It excludes private transmission/storage contents and automatic physics updates; native global data clearing prevents delayed journal revival. Complete product and native delivery acceptance remain separate.
+
 - Fixed browser Back after a language link: clearing the language query now preserves navigation history, so the free radio page can restore instead of leaving the lesson mounted under its URL.
 
 - Gave the shared3D replay browser case120s after its real camera selection passed at57.9s and the storage check met the former60s deadline. All readiness, recording, playback, camera and geometry assertions remain. The simulator smoke now retains actual error stacks in its private synthetic CI report; product telemetry is unchanged.

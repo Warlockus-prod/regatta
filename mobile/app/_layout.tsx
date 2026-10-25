@@ -1,3 +1,4 @@
+import { DiagnosticLifecycle } from '../src/diagnostics/DiagnosticLifecycle';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -45,6 +46,7 @@ export default function RootLayout() {
             <AnalyticsProvider>
               <SplashGate fontsReady={fontsLoaded || Boolean(fontError)}>
                 <FirstLaunchGate>
+                  <DiagnosticLifecycle />
                   <AppNavigation>
                   <Stack
                     screenOptions={({ route }) => ({

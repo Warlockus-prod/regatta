@@ -1,4 +1,6 @@
 'use client';
+import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
+import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { RegattaScene } from "./RegattaScene";
@@ -101,8 +103,10 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     maneuver: { ...DEFAULT_LABELS.maneuver, ...labels?.maneuver },
     tour: { ...DEFAULT_LABELS.tour, ...labels?.tour },
   }), [labels]);
+  useEffect(() => { initializeDiagnosticBridge(); }, []);
   const [mode, setMode] = useState<Mode>(initialMode);
   const [free, setFree] = useState<YachtState>({ ...FREE_DEFAULT });
+  const requestedFree = useRef(free);
   const yachtRef = useRef<YachtState>({ ...FREE_DEFAULT });
   const [view, setView] = useState<CameraView>("whole");
   const [cameraRevision, setCameraRevision] = useState(0);
@@ -170,14 +174,20 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   useEffect(() => {
     if (mode !== "sail" || !wheels || helmMapping !== "course" || courseTarget === null) return;
     const error = ((courseTarget - t.heading) % 360 + 540) % 360 - 180;
-    setControlRef.current("rudder", Math.max(-1, Math.min(1, error / 25)));
+    setControlRef.current("rudder", Math.max(-1, Math.min(1, error / 25)), false);
   }, [mode, wheels, helmMapping, courseTarget, t.heading]);
-  const setFreeField = (patch: Partial<YachtState>) => setFree((state) => ({ ...state, ...patch }));
-  const selectView = (next: CameraView) => { setView(next); setCameraRevision((revision) => revision + 1); };
+  const setFreeField = (patch: Partial<YachtState>) => {
+    const previous = requestedFree.current, next = { ...previous, ...patch };
+    requestedFree.current = next; setFree(state => ({ ...state, ...patch }));
+    for (const [key, control, divisor] of [["boomAngle", "main-angle", 1], ["jibAngle", "jib-angle", 1], ["camber", "camber", 1], ["twist", "main-twist", 1], ["luff", "luff", 1], ["reef", "reef", 1], ["rudderAngle", "rudder", 35], ["heel", "heel", 1]] as const) if (key in patch) recordControlChange("boat", control, next[key] / divisor, previous[key] / divisor);
+  };
+  const selectPose = (next: YachtState, action: "preset" | "reset") => { setFreeField(next); recordDiagnostic({ type: "trainer.lifecycle", surface: "boat", outcome: "accepted", action, mode: "free" }); };
+  const selectView = (next: CameraView) => { setView(next); setCameraRevision((revision) => revision + 1); recordControlChange("boat", "camera", next); };
+  const selectMode = (next: Mode) => { setMode(next); recordDiagnostic({ type: "trainer.lifecycle", surface: "boat", outcome: next === mode ? "noop" : "accepted", action: "preset", mode: next }); };
   const header = <header className={styles.header}>
       <div className={styles.modes}>
-        <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => setMode("sail")}>{L.modeSail}</button>
-        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => setMode("free")}>{poseLabels.mode}</button>
+        <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => selectMode("sail")}>{L.modeSail}</button>
+        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => selectMode("free")}>{poseLabels.mode}</button>
         <button className={styles.button} aria-label={L.tour.open} aria-expanded={guide} onClick={() => { setGuide(!guide); panelRef.current?.scrollTo({ top: 0 }); }}>?</button>
       </div>
       {headerSlot}
@@ -193,12 +203,12 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           <button className={styles.button} style={{ marginLeft: "auto" }} aria-label={L.scene.resetView}
             onClick={() => selectView("whole")}>↺</button>
           <label className={styles.venueSelect}>
-            <input type="checkbox" checked={shoreOn} onChange={(e) => setShoreOn(e.target.checked)} />
+            <input type="checkbox" checked={shoreOn} onChange={(e) => { setShoreOn(e.target.checked); recordControlChange("boat", "shore", e.target.checked, shoreOn); }} />
             <span>{shoreLabel[lang]}</span>
           </label>
           <label className={styles.venueSelect}>
             <span>{venueLabel[lang]}</span>
-            <select value={picked.id} disabled={!shoreOn} onChange={(e) => setVenue(e.target.value as typeof picked.id)}>
+            <select value={picked.id} disabled={!shoreOn} onChange={(e) => { const next = e.target.value as typeof picked.id; setVenue(next); recordControlChange("boat", "venue", next, picked.id); }}>
               {PICKABLE_VENUES.map((v) => <option key={v.id} value={v.id}>{v.name[lang]}</option>)}
             </select>
           </label>
@@ -209,7 +219,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   </>;
   const windReadout = <>
         {mode === "sail" && <WindReadout awa={t.awaSigned} aws={t.awsKn} tws={sim.wind.twsKn}
-          showFlow={showFlow} onToggle={() => setShowFlow(!showFlow)} labels={L.scene} />}
+          showFlow={showFlow} onToggle={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }} labels={L.scene} />}
   </>;
   const viewport = <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
@@ -255,7 +265,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           </div>;
   const toggleSound = () => { toggle(); updatePrefs({ sound: !enabled }); };
   const extras = <div className="mt-2 flex flex-wrap gap-1">
-          <button className={styles.button} aria-pressed={light} onClick={() => setLight(!light)}>{L.scene.light}</button>
+          <button className={styles.button} aria-pressed={light} onClick={() => { setLight(!light); recordControlChange("boat", "light-renderer", !light, light); }}>{L.scene.light}</button>
           {mode === "sail" && <button className={styles.button} aria-pressed={enabled} onClick={toggleSound}>{L.sound}</button>}
           {mode === "sail" && <button className={styles.button} onClick={reset}>{L.reset}</button>}
         </div>;
@@ -267,7 +277,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         ariaNow: Math.round(courseTarget ?? t.heading),
         ariaMin: 0,
         ariaMax: 359,
-        onCourseDelta: (d) => { setCourseTarget((c) => (((c ?? t.heading) + d) % 360 + 360) % 360); return null; },
+        onCourseDelta: (d) => { const previous = courseTarget ?? t.heading, next = ((previous + d) % 360 + 360) % 360; setCourseTarget((c) => (((c ?? t.heading) + d) % 360 + 360) % 360); recordControlChange("boat", "course", next, previous); return null; },
       }
     : {
         mapping: "rudder",
@@ -297,14 +307,14 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     </div>
     <details className={styles.details}><summary>{poseLabels.details}</summary><div>
       <div className="mb-3 flex flex-wrap gap-1">{FREE_PRESETS.map(preset => <button key={preset.key} className={styles.button}
-        onClick={() => setFree({ ...FREE_DEFAULT, reef: 0, ...preset.state })}>{L.presets[preset.key]}</button>)}</div>
+        onClick={() => selectPose({ ...FREE_DEFAULT, reef: 0, ...preset.state }, "preset")}>{L.presets[preset.key]}</button>)}</div>
       <Slider label={L.camber} value={free.camber} min={0} max={1} fmt={percent} onChange={v => setFreeField({ camber: v })} />
       <Slider label={L.twist} value={free.twist} min={0} max={1} fmt={percent} onChange={v => setFreeField({ twist: v })} />
       <Slider label={L.luffing} value={free.luff} min={0} max={1} fmt={percent} onChange={v => setFreeField({ luff: v })} />
       <Slider label={L.reef} value={free.reef} min={0} max={1} fmt={percent} onChange={v => setFreeField({ reef: v })} />
       <Slider label={L.rudder} value={free.rudderAngle} min={-35} max={35} step={1} fmt={degrees} onChange={v => setFreeField({ rudderAngle: v })} />
       <Slider label={L.heel} value={free.heel} min={0} max={35} step={1} fmt={degrees} onChange={v => setFreeField({ heel: v })} />
-      <button className={styles.button} onClick={() => setFree({ ...FREE_DEFAULT })}>{L.reset}</button>
+      <button className={styles.button} onClick={() => selectPose({ ...FREE_DEFAULT }, "reset")}>{L.reset}</button>
     </div></details>
     {extras}
   </section>;
@@ -327,8 +337,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     const sailsView = (["sails", "main", "jib"] as CameraView[]).includes(view);
     const sceneBar = <SceneBar
       status={<div className={styles.modes}>
-        <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => setMode("sail")}>{L.modeSail}</button>
-        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => setMode("free")}>{poseLabels.mode}</button>
+        <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => selectMode("sail")}>{L.modeSail}</button>
+        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => selectMode("free")}>{poseLabels.mode}</button>
       </div>}
       actions={<>
         <ViewButton iconOnly label={controlLabels.view} current={L.scene[sailsView ? "sails" : view as "whole" | "stern" | "deck"]} open={viewsOpen}
@@ -371,12 +381,12 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             </DrawerGroup>}
             <DrawerGroup>
               <p className={styles.drawerLabel}>{venueLabel[lang]}</p>
-              <DrawerItem pressed={shoreOn} onClick={() => setShoreOn(!shoreOn)}>{shoreLabel[lang]}</DrawerItem>
+              <DrawerItem pressed={shoreOn} onClick={() => { setShoreOn(!shoreOn); recordControlChange("boat", "shore", !shoreOn, shoreOn); }}>{shoreLabel[lang]}</DrawerItem>
               {shoreOn && PICKABLE_VENUES.map((v) => <DrawerItem key={v.id} pressed={picked.id === v.id}
-                onClick={() => { setVenue(v.id); setViewsOpen(false); }}>{v.name[lang]}</DrawerItem>)}
+                onClick={() => { setVenue(v.id); setViewsOpen(false); recordControlChange("boat", "venue", v.id, picked.id); }}>{v.name[lang]}</DrawerItem>)}
             </DrawerGroup>
             <DrawerGroup>
-              {mode === "sail" && <DrawerItem pressed={showFlow} onClick={() => setShowFlow(!showFlow)}>{L.scene.flow}</DrawerItem>}
+              {mode === "sail" && <DrawerItem pressed={showFlow} onClick={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }}>{L.scene.flow}</DrawerItem>}
               <DrawerItem onClick={() => { selectView("whole"); setViewsOpen(false); }}>↺ {L.scene.resetView}</DrawerItem>
             </DrawerGroup>
           </SceneDrawer>
