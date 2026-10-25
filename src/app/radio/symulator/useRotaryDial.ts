@@ -20,6 +20,7 @@ function recordGesture(notice: DialNotice) {
 
 export function useRotaryDial(dispatch: (event: RadioEvent) => void, enabled: boolean, identity: string) {
   const node = useRef<HTMLButtonElement | null>(null);
+  const enabledRef = useRef(enabled);
   const [rotation, setRotation] = useState(0);
   const [input] = useState(() => new RadioDialInput(dispatch, delta => setRotation(previous => (previous + delta) % 360), recordGesture));
   useLayoutEffect(() => { input.setEmit(dispatch); }, [dispatch, input]);
@@ -31,14 +32,21 @@ export function useRotaryDial(dispatch: (event: RadioEvent) => void, enabled: bo
     input.cancel(reason);
     release(node.current, id);
   }, [input, release]);
+  // Cancel the native touch default on the actual control. Pointer events
+  // remain the only gesture owner; Inspect must keep its normal click.
+  const preventNativeTouch = useCallback((event: TouchEvent) => {
+    if (enabledRef.current && event.cancelable) event.preventDefault();
+  }, []);
   const ref = useCallback((target: HTMLButtonElement | null) => {
     if (node.current !== target) {
+      node.current?.removeEventListener("touchstart", preventNativeTouch);
       const id = input.pointerId;
       input.cancel(); release(node.current, id);
+      target?.addEventListener("touchstart", preventNativeTouch, { passive: false });
     }
     node.current = target;
-  }, [input, release]);
-  useLayoutEffect(() => { cancel(enabled ? "cancelled" : "inspect"); }, [cancel, enabled, identity]);
+  }, [input, release, preventNativeTouch]);
+  useLayoutEffect(() => { enabledRef.current = enabled; cancel(enabled ? "cancelled" : "inspect"); }, [cancel, enabled, identity]);
   useEffect(() => {
     const hidden = () => { if (document.hidden) cancel("hidden"); };
     const blur = () => cancel("blur");

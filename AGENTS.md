@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Rapid native DIAL taps additionally cancel the local non-passive touchstart default, while pointer events remain the sole gesture owner and Inspect keeps its click. The verified00ea archive/simulator are preserved as another never-uploaded candidate; exact native acceptance must repeat.
+
 - Installed63 QA found an iOS selection callout over radio captions during a long hold. The hardware stage now suppresses selection/callouts/contextmenu; teaching text and diagnostics retain copy. Source6aaa110 archive/export is preserved as a superseded, never-uploaded candidate. Freeze/rebuild exact corrected source before delivery.
 
 - Candidate63 adds actual rotary DIAL input and bounded local diagnostics. `docs/audits/2026-10-25/diagnostics63.md` owns the integration/coverage limits. Native journals are authoritative in AsyncStorage; embedded web journals stay in memory so Clear all cannot revive WebKit history. Diagnostic batches are append-only, finite, private-content-free and never commands. Native/ASC acceptance still follows the release harness.

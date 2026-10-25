@@ -164,3 +164,31 @@ requirements before the next delivered candidate, not completed features here.
 - Corrected old-source SITE18592b5 safe60 is green:59first-pass plus1Pro
   retry,0failures. All3actualSQL/rimVolume lessons and7locale utility/Back
   contracts pass. It remains proof of6aaa110 only, not this callout correction.
+
+## Rapid-tap touch-default checkpoint
+
+- Exact00ea archive33 and Simulator27 pass, with7old core rows and38journal
+  entries preserved on installation. Isolated native holds and separated taps
+  work; a centre drag reaches SQL OPEN and marks lesson2 complete. A rapid
+  hold-plus-two-taps sequence still selected the nearest Task tab outside the
+  protected stage, without the previous popup. This is not full no-selection
+  acceptance. The00ea archive, simulator, proofs and logs are preserved with
+  source suffix; no build63 has been uploaded.
+- Add a non-passive touchstart listener only to the actual enabled DIAL node.
+  It cancels the native default without emitting commands or stopping
+  propagation. Pointer events retain sole ownership; Inspect allows its click.
+  Stable ref replacement/null removes listeners, model changes cancel holds.
+- Five actual-hook tests plus24pure gesture tests pass, including an exact
+  hold/push/push sequence and SQL4, noncancelable touches, Inspect and cleanup.
+  This does not replace native WebKit UI verification. Repeat quick taps,
+  rotation, arrows, Inspect, native Back and copy before final delivery.
+- Site60 on00ea completed59first-pass and1Pro on retry2. The first clock
+  assertion stalled at0:00.0; missing retry artifacts prevent attributing it
+  to scene readiness or a runtime error. Add bounded read-only observations
+  and preserve reports even on successful retries, with existing assertions,
+  actions and budgets unchanged. This is observability, not a physics fix.
+
+- Fresh full gates after the local touch guard:1211web tests/139files and
+  native472tests/71suites plus9release tools PASS. Strict types, lint, all
+  offline package/content checks, typography and production build pass. New
+  radio packagec57e213801a2; native archive/UI/delivery must use this source.

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.
+
 - Prevented iOS Copy/Look Up callouts on the radio hardware and its captions, so long holds cannot cover the instrument. Learning text and the diagnostic journal remain selectable.
 
 - Radio DIAL now turns with a finger and shows a moving index, with44px arrows retained in every layout and keyboard alternatives. Rotation, tap and power hold have separate cancellation paths.
