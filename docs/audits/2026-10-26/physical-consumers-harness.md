@@ -196,3 +196,24 @@ The following checkpoint must satisfy all of these before physical emission:
 
 The implementation choice and rollback source are recorded when P03 begins;
 no code or native protocol is changed by this planning entry.
+
+
+### P03 preparation after delivered67
+
+Rollback is now immutable testflight-1.7.0-67/source77c52dd. The planned PB
+command carries explicit current-engine comparison metadata and adjusted time;
+it does not backfill historical native race provenance. Daily/mission history
+identity and existing legacy PB keys must remain compatible. A durable PB row
+needs a bounded same-result receipt so a lost ACK followed by retry does not
+turn an actually written record into a false new write or erase another result.
+History and PB replies remain independently visible and correlated.
+
+Read-only inspection also found that `wipeAllRegattaKeys` in
+`mobile/app/settings.tsx` currently removes keys outside the shared serial
+queue and shows its existing completion alert after a caught error. This is a
+source gap, not an observed user-data incident. P03 must prevent a stale PB
+reply/write from reviving cleared data; P08 owns the broader honest global-clear
+outcome and remaining writer coverage. A WebView reload/disposal must invalidate
+its old injection callback before any new result can receive a reply.
+
+No P03 runtime implementation or durability closure is claimed by this entry.

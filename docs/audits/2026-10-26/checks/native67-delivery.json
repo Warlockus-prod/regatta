@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T18:54:39.580808+00:00",
+  "sourceCommit": "77c52dd78230151dd1642d4c97b289c9dd8d3e85",
+  "tag": "testflight-1.7.0-67",
+  "version": "1.7.0",
+  "build": "67",
+  "scope": "P02 shared first lesson, local3Dpractice and one Scheme/Picture sail-shape pilot. The wider completion program remains open.",
+  "apple": {
+    "buildId": "866302e3-81e4-4389-989c-b65e4e1be465",
+    "selfCheckedAt": "2026-10-26T18:53:17.294Z",
+    "notesCheckedAt": "2026-10-26T18:53:14.931Z",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "exactSelfMember": true,
+    "independentGETWrites": 0,
+    "all8NotesMatchSource": true,
+    "notesGETStatus": "PLANNED",
+    "notesGETMeaning": "GET-only comparison; every selected locale unchanged and SHA256 matches.",
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 631,
+        "bytes": 631,
+        "sha256": "0cd4ff08052146a1937e87c1c873488181871100bda8f6795bfd2c3f290c4e0c",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 631,
+        "bytes": 631,
+        "sha256": "0cd4ff08052146a1937e87c1c873488181871100bda8f6795bfd2c3f290c4e0c",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 622,
+        "bytes": 1125,
+        "sha256": "ceb94c5c89a2f0bc9030ce87600bfbcfdbbb8ff5807e0a59821cbdfe3d489432",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 660,
+        "bytes": 682,
+        "sha256": "06ba93fd73b975980859a51f0c0c3a8dadcf67e42e635efc323065fbde323be2",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 684,
+        "bytes": 699,
+        "sha256": "dcee82faa21e050f73840015d1cef42aeb7758976c356db86c11462381d19621",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 676,
+        "bytes": 700,
+        "sha256": "f1a4bb71440d71b432a5f2f7c5823205f7c473badc31a1f8595af43f22d96f3d",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 675,
+        "bytes": 687,
+        "sha256": "2331157d7ce1e094109c2ebbe2cdd290ec1e22073bd1132ff5bf494601f82f42",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 675,
+        "bytes": 676,
+        "sha256": "9cb6a7424d6bf763209d3c9f4e660b40292367101d5a65244c840f5a68f0aa76",
+        "action": "unchanged"
+      }
+    ],
+    "validationExit": 0,
+    "uploadExit": 0,
+    "importExit": 0,
+    "notesApplyWrites": 8,
+    "selfApplyWrites": 1
+  },
+  "artifactChecks": {
+    "generated-final": {
+      "checks": 18,
+      "sha256": "e0ad766006c91df522f49510100e94fc941bd8141eb34d3704c8adb31d5bdb50",
+      "checkedAt": "2026-10-26T18:27:13.451850+00:00",
+      "passed": true
+    },
+    "expanded-simulator": {
+      "checks": 29,
+      "sha256": "3857924ae1ef16f3ec6f39a66858188088829b9f8b6ce6e689291316a8dfb294",
+      "checkedAt": "2026-10-26T18:27:41.176217+00:00",
+      "passed": true
+    },
+    "archive": {
+      "checks": 36,
+      "sha256": "25da2cdbc19f4412b62a79c4c29bcafba1787cb20a7ca641255ad628c6bc04fc",
+      "checkedAt": "2026-10-26T18:27:41.178086+00:00",
+      "passed": true
+    },
+    "export-ipa": {
+      "checks": 38,
+      "sha256": "031332b909c14b31c84779e1364a5bf79727cf79fefb4b54f6ae6b83b0d128a0",
+      "checkedAt": "2026-10-26T18:30:25.484915+00:00",
+      "passed": true
+    }
+  },
+  "ipa": {
+    "bytes": 30540427,
+    "sha256": "1ebe837c29a469d7a82760aa70701f59ac64e9aaa5c71caff80c3e1984e7998e"
+  },
+  "sourceChecks": {
+    "webTests": 1551,
+    "webFiles": 156,
+    "nativeTests": 569,
+    "nativeSuites": 77,
+    "releaseToolTests": 9,
+    "releaseVerifierPythonTests": 20,
+    "releaseAPIContractTests": 18,
+    "webLintErrors": 0,
+    "webPreexistingLintWarnings": 15,
+    "nativeLintWarnings": 0,
+    "browserFirstAttempt": 77,
+    "staticChunks": 110,
+    "staticMB": 6.47,
+    "unchangedBudgetMB": 6.5,
+    "all3OfflinePackagesFresh": true,
+    "contentTwinsFresh": true
+  },
+  "installedProof": "native67-installed.json",
+  "browserProof": "source67-predeploy.json",
+  "rollbackTag": "testflight-1.7.0-66",
+  "physicalRaceEmissionEnabled": false,
+  "websitePublished": false,
+  "publicAppReviewSubmitted": false,
+  "limits": [
+    "Only one illustrated Foundation lesson; remaining lesson collection stays open.",
+    "Simulator counterpart and explicit executable/asset equivalence reviewed; physical phone, network blackhole, microphone, thermal/FPS and full product acceptance remain open.",
+    "Native PB durability, physical courses, radio free transcript, ghost and complete PL/RU/EN adaptation remain ordered work.",
+    "The prior site production multiplayer failure has not been rerun or repaired by this TestFlight delivery."
+  ]
+}

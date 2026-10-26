@@ -8,9 +8,10 @@
 ## Current completion work
 
 - Owner-approved follow-up: `docs/audits/2026-10-26/completion-program.md` is the ordered harness. Priorities include reliable offline learning, shared boat/controls, configurable courses/help/judging, reviewed Scheme/Picture learning visuals, visible bounded radio speech practice, actual outcome diagnostics, PL/RU/EN first, and recoverable cleanup. SwiftUI is a staged shell migration proposal, not permission to duplicate the force model.
-- P02 is active under `docs/audits/2026-10-26/learning-visuals-harness.md`: shared first-lesson teaching and3Dpractice, plus one illustrated sail-shape pilot. Public JPEGs are bundled through a narrow Metro asset path; web teaching copy is server data and native teaching remains local. Quiz/reload and ready3Dreturn have separate30s browser cases, with the same25s scene startup deadline. Do not claim all lesson illustrations or delivery from source checks alone.
-- P01 is delivered as66: native View owns the compass accessibility actions, removing the Skia crash; native live-weather is removed. Retained26.5/27 lesson/drill/wind/Back/repeat/cold relaunch and exact72first-attempt browser gate pass. P02 shared first lesson and Scheme/Picture integration remain next; two draft renders are not released lessons.
-- Delivered66 is immutable source422b628/tagtestflight-1.7.0-66. Independent Apple GET15:26:15.868UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match15:26:13.688UTC. Proof and limits: `docs/audits/2026-10-26/checks/native66-delivery.json`, `docs/design/mobile/testflight66-2026-10-26.md`. Current65-ID acceptance: `docs/audits/2026-10-26/acceptance66.md`. Delivered65 remains rollback, not full product completion.
+- P02 limited checkpoint is delivered as67 under `docs/audits/2026-10-26/learning-visuals-harness.md`: shared first lesson/local3Dpractice and one Scheme/Picture sail pilot. Exact77c passes77first-attempt browser cases; retained26.5/clean27 UI uses an explicit120-file executable/asset equivalence proof plus final exact121-file installations. The wider illustration collection stays open.
+- Delivered67 is immutable source77c52dd/tagtestflight-1.7.0-67. Independent Apple GET18:53:17.294UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match18:53:14.931UTC. Proof: `docs/audits/2026-10-26/checks/native67-delivery.json`; report: `docs/design/mobile/testflight67-2026-10-26.md`; current65IDs: `docs/audits/2026-10-26/acceptance67.md`. Physical phone and full program remain open.
+- P03 native PB durability is next. History acknowledgement must not certify an optimistic PB row; preserve distinct outcomes, bounded correlation/retries and data across relaunch/clear. Follow `docs/audits/2026-10-26/physical-consumers-harness.md`; keep physical emission OFF.
+- Rollback66 remains immutable source422b628/tagtestflight-1.7.0-66. Its first-drill Skia crash/local-wind correction, installed evidence and independent15:26UTC delivery proof stay unchanged.
 - Independent product audit: `docs/audits/2026-10-26/independent-product-audit.md`. Its audit-only state is historical; the owner subsequently authorized the completion program. All22screens and two native crash records remain unchanged.
 - Physical emission stays OFF until native PB durability, class-aware consumers/server, engine, bots, guidance and recorded-data gates pass. Use `docs/audits/2026-10-26/physical-consumers-harness.md`; outcome logging gaps remain in `docs/audits/2026-10-26/diagnostics-followup.md`.
 - APP active checkout is NEXT, SITE5df0ee5 and delivered APP64/65 are separate checkpoints. Do not mutate the frozen APP64 checkout or protected dirty root. Before cleanup, preserve unique changes and archival references.
@@ -28,9 +29,9 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight1.7.0(66), группа Self: source422b628,
-  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 15:26UTC;
-  `docs/design/mobile/testflight66-2026-10-26.md`. Публичная1.6.4(48)
+  TestFlight1.7.0(67), группа Self: source77c52dd,
+  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 18:53UTC;
+  `docs/design/mobile/testflight67-2026-10-26.md`. Публичная1.6.4(48)
   остается отдельно от TestFlight.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.

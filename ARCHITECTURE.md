@@ -1598,3 +1598,22 @@ physics and result classes are untouched.
   no image/deploy mutation, prior production health and the bounded two-journey
   SITE correction. The unchanged eight-file policy now selects69cases; future
   browser/native/production acceptance is recorded separately.
+
+
+P02 portable acceptance evidence:
+
+- `docs/audits/2026-10-26/checks/source67-predeploy.json` - exact77c safe gate,
+  77first-attempt browser cases, active-worker image fault injection and3skipped
+  main-only publication jobs.
+- `docs/audits/2026-10-26/checks/native67-installed.json` - actual teaching and
+  picture review, exact installed packages, explicit120-file runtime/asset
+  equivalence plus local Expo manifest identity/time, upgrade preservation and
+  bounded journals; exact delivery is recorded separately below and physical-phone checks remain open.
+
+- `docs/audits/2026-10-26/checks/native67-delivery.json` - exact source/tag,
+  18/29/36/38package checks, unchanged IPA hash, VALID import and independent
+  Self/eight-note GET proof; physical emission OFF.
+- `docs/audits/2026-10-26/acceptance67.md` - all65ordered product IDs with
+  qualified fresh P02 evidence and explicit broader completion gaps.
+- `docs/design/mobile/testflight67-2026-10-26.md` - delivered P02 pilot scope,
+  package equivalence, installed/source proof and immutable66rollback.

@@ -1,11 +1,11 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
 Operational snapshot verified2026-10-26: public App Store1.6.4(48),
-TestFlight1.7.0(66), exact Self. Immutable source422b628,
-independent Apple GET15:26:15.868UTC confirms VALID/IN_BETA_TESTING;
-eight notes match15:26:13.688UTC. P01 fixes native first-lesson practice
-and removes native live-weather. The full completion program remains open.
-See `testflight66-2026-10-26.md`; archive/upload alone never establish delivery.
+TestFlight1.7.0(67), exact Self. Immutable source77c52dd,
+independent Apple GET18:53:17.294UTC confirms VALID/IN_BETA_TESTING;
+eight notes match18:53:14.931UTC. P02 ships shared first-lesson3Dpractice
+and one illustrated sail-shape pilot; the wider completion program stays open.
+See `testflight67-2026-10-26.md`; archive/upload alone never establish delivery.
 
 Historical release submission verified 2026-09-17: website `972df53`, native source
 `b5580aa`, app 1.6.2 (43). Build 43 is VALID, attached to TestFlight Self and

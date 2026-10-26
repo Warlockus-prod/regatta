@@ -1,6 +1,9 @@
 # CHANGELOG
 
-Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased`
+Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
+
+- Delivered1.7.0(67) to exact TestFlight Self: shared first-lesson3Dpractice plus one Scheme/Picture sail pilot with filled/luffing views, preserved force states and actual image-result diagnostics. Exact77c passes77first-attempt browser cases and qualified installed26.5/27 acceptance; independent18:53UTC Apple GET verifies VALID/IN_BETA_TESTING and8notes. Wider lessons, PB durability, physics/courses, radio transcript and public/device acceptance remain open. [Release67](docs/design/mobile/testflight67-2026-10-26.md).
+`
 добавляют в том же коммите, что и само изменение, если оно видно пользователю
 или эксплуатации. Подробные разборы релизов лежат в `docs/design/*`, здесь
 только короткая запись и ссылка.
@@ -11,7 +14,7 @@
 
 - Keep picture retries and stale-load protection consistent across app and web while each platform retains its own React runtime.
 
-- Share the first Foundation lesson across app and web, with real3Dwind observation and return to the same lesson step. Add a Scheme/Picture pilot with filled/luffing mainsail views, readable callouts, preserved force diagrams and local image-result diagnostics. Picture selection does not pass a lesson; a failed image returns to the diagram. Native Image sizing keeps picture callouts aligned with the sail. Native delivery is still pending P02 acceptance.
+- Share the first Foundation lesson across app and web, with real3Dwind observation and return to the same lesson step. Add a Scheme/Picture pilot with filled/luffing mainsail views, readable callouts, preserved force diagrams and local image-result diagnostics. Picture selection does not pass a lesson; a failed image returns to the diagram. Native Image sizing keeps picture callouts aligned with the sail. Delivered in67 within the qualified P02 pilot scope.
 
 - Delivered1.7.0(66) to exact TestFlight Self: the first lesson's native practice no longer passes an unsupported accessibility action to Skia Canvas. Local wind remains; live-weather requests are removed from the native trainer. Installed26.5/27 checks and72first-attempt browser cases pass. Independent Apple GET confirms VALID/IN_BETA_TESTING and eight matching notes. [Scope and limits](docs/design/mobile/testflight66-2026-10-26.md).
 

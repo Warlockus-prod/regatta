@@ -1,0 +1,72 @@
+{
+  "sourceCommit": "77c52dd78230151dd1642d4c97b289c9dd8d3e85",
+  "runId": 40377011723,
+  "url": "https://github.com/Warlockus-prod/regatta/actions/runs/40377011723",
+  "event": "workflow_dispatch",
+  "conclusion": "success",
+  "browserStats": {
+    "total": 77,
+    "expected": 77,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "firstAttemptCases": 77,
+  "durationMs": 713629.1359999999,
+  "errors": 0,
+  "files": 8,
+  "focusedLearningCases": [
+    {
+      "title": "legacy visits remain ungraded, original checks and draft resume survive reload, and practice returns to the same lesson",
+      "durationMs": 10192,
+      "attempts": 1
+    },
+    {
+      "title": "first wind practice renders the whole yacht and returns after a real first frame without grading",
+      "durationMs": 18391,
+      "attempts": 1
+    },
+    {
+      "title": "failed durable check write keeps the counter unchanged and retries without losing the answers",
+      "durationMs": 867,
+      "attempts": 1
+    },
+    {
+      "title": "immersive Basics, Trainer and Race preserve a visible course return outside the scene",
+      "durationMs": 2687,
+      "attempts": 1
+    },
+    {
+      "title": "illustration and force diagram retain their meaning on a narrow pl screen without grading",
+      "durationMs": 961,
+      "attempts": 1
+    },
+    {
+      "title": "illustration and force diagram retain their meaning on a narrow ru screen without grading",
+      "durationMs": 835,
+      "attempts": 1
+    },
+    {
+      "title": "illustration and force diagram retain their meaning on a narrow en screen without grading",
+      "durationMs": 839,
+      "attempts": 1
+    },
+    {
+      "title": "an unavailable illustration preserves the force diagram and a real retry can recover",
+      "durationMs": 731,
+      "attempts": 1
+    }
+  ],
+  "artifact": {
+    "id": 12677892181,
+    "bytes": 1201412,
+    "sha256": "1efdb545132fd3d7d0834359800b7e8e66dd86f0c0d824cf46b49d35f3955519"
+  },
+  "nonMainJobsSkipped": [
+    "Build immutable deployment images",
+    "Deploy to VPS",
+    "Playwright E2E on prod"
+  ],
+  "websitePublished": false
+}

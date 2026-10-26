@@ -19,11 +19,11 @@ Owner authorization and order: [completion program](completion-program.md). Roll
 - [x] Initial native30cases and web25cases pass, including unchanged geometry, finite diagnostic privacy, actual error recovery and no false lesson pass. Later content edits still require the final full checks.
 - [x] Initial production build passes the existing budget. Generated-picture markers and filled/luffing change observed through real browser UI; screenshots remain private until source acceptance is qualified.
 - [x] Final web/native types, lint, sync, all three fresh offline packages, WS/generated-server and production build/budget pass. Full suites:1551web cases in156files,569native cases in77suites and9release-tool cases; static chunks6.47MB/110files under the unchanged6.5MB limit. Private final logs are under the P02 source evidence directory.
-- [ ] Final PL/RU/EN browser acceptance on narrow screens: both images really decode,44px controls, state/reload/no-grade and unavailable-image/retry. The original first-lesson test must open a ready3Dscene and return; no assertion or deadline is weakened.
-- [ ] Freeze exact source and unused increasing native build number. Release Simulator and archive/IPA checks must additionally verify both new image assets against their source hashes.
-- [ ] Retained-data upgrade plus clean newest-runtime native UI: shared first lesson, real3Dwind practice/return, picture states, force state retained, error-free ordinary navigation. No existing device data is erased.
-- [ ] Apple validation/import, exact Self, eight matching notes and independent final GETs before claiming delivery.
-- [ ] Map, current acceptance, source tag and release proof updated together. Then return to the ordered program.
+- [x] Final PL/RU/EN browser acceptance on narrow screens: both images really decode,44px controls, state/reload/no-grade and unavailable-image/retry. The original first-lesson test must open a ready3Dscene and return; no assertion or deadline is weakened.
+- [x] Freeze exact source and unused increasing native build number. Release Simulator and archive/IPA checks must additionally verify both new image assets against their source hashes.
+- [x] Retained-data upgrade plus clean newest-runtime native UI: shared first lesson, real3Dwind practice/return, picture states, force state retained, error-free ordinary navigation. No existing device data is erased.
+- [x] Apple validation/import, exact Self, eight matching notes and independent final GETs before claiming delivery.
+- [x] Map, current acceptance, source tag and release proof updated together. Then return to the ordered program.
 
 ## Explicit remaining work
 
@@ -108,3 +108,44 @@ generated-server and real sockets, production build and unchanged size budget.
 One earlier local Node test runner stayed alive after its9completed assertions;
 that stopped run is retained separately, not counted green. The unchanged full
 native command then completed with exit0 under a90s external bound.
+
+
+## Accepted source and installed checkpoint67
+
+Exact77c52dd passes safe workflow40377011723: all77browser cases pass on their
+first attempt,0failed/flaky/skipped and0report errors across the same8files.
+The real image-failure case intercepts a request with the active worker and
+checks fallback/retry. PL/RU/EN decode,44px targets, state preservation and no
+false grade pass. Quiz/reload and ready3Dreturn each keep30s; startup stays25s.
+All source/package steps pass; all3main-only publication jobs are skipped.
+Portable report: [source67 gate](checks/source67-predeploy.json).
+
+Generated18, Simulator29, archive36 and exportedIPA38 exact-source checks pass.
+The IPA is30540427bytes, SHA256
+`1ebe837c29a469d7a82760aa70701f59ac64e9aaa5c71caff80c3e1984e7998e`.
+Apple validation/upload/import pass. Independent Self GET18:53:17.294UTC
+confirms VALID/IN_BETA_TESTING;8notes match18:53:14.931UTC, writes0.
+[Delivery67 proof](checks/native67-delivery.json) and
+[release report](../../design/mobile/testflight67-2026-10-26.md) own this boundary.
+
+The full installed teaching review uses accepted runtime5e57569. Release77c
+changes only tests/docs. All120executable/JS/asset files are identical; only
+the121st Expo manifest changes its build UUID/time, with updates disabled and
+all asset/launch fields identical. Both exact77c installed packages match all
+121expected files. Final reinstall preserves14/14retained26.5 and7/7new27rows
+before launch, then repeats actual image/control/Back/cold checks. This is an
+explicit equivalence proof, not a claim that two manifests are byte-identical.
+[Installed evidence and limits](checks/native67-installed.json) records actual
+first-lesson whole-yacht3D0/180/return/repeat/cold, PL/RU/EN pictures, retained
+force state, lower actions and bounded canonical journals. No matching local
+app crash report was found during this review interval.
+
+A timed CUA click on the inherited radio was actually a tap, so this checkpoint
+does not claim a fresh power-hold pass. Native ordinary image paths pass; its
+forced asset-error path is covered by actual-component tests, not a claimed
+Simulator fault injection. Physical phone/network/ASR/FPS and the wider
+illustration collection remain open in the completion program.
+
+P02 limited checkpoint is delivered as67/tagtestflight-1.7.0-67. The broader
+illustration collection stays open. Return to P03 in the completion program;
+physical emission stays OFF and rollback66 remains unchanged.
