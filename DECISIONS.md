@@ -662,3 +662,25 @@ Trainer numerical parity, real metre/second and turn-radius checks, legacy bot/W
 ### References
 
 `docs/audits/2026-10-25/release62-harness.md`, `src/features/sailing-lab/runtime/session.ts`, `src/lib/race-physics.ts`, `src/lib/race-native.ts`, `src/lib/race-replay.ts`.
+
+## ADR-0012 - Paired learning visuals and bounded completion stages
+
+Date:2026-10-26. Status: accepted for the completion program; a complete Swift engine migration is not approved by this ADR.
+
+### Context
+
+The owner accepted the independent audit, requested clearer realistic learning illustrations alongside schemes, local training without live weather, a visible free-radio transcript, configurable courses/help/judging and recoverable repository cleanup. The installed65 lesson drill also exposed an unsupported native Skia accessibility setter.
+
+### Decision
+
+- Preserve reviewed schemes and add a named Scheme/Picture choice. Generated images illustrate recognizable shape; they never define rigging, force coefficients or passing truth. Arrows/labels use reviewed coordinates and localization outside the raster. An image view is not learning completion.
+- Prioritize full PL/RU/EN acceptance. Keep existing additional locales, stable IDs, saved answers and question truth. Full adaptation of other languages follows separately; Sternik remains Polish.
+- Local synthetic wind is the training default. Remove native trainer live-weather acquisition; multiplayer remains the network-dependent game mode.
+- Keep native accessibility actions on supported native Views, not on a Skia drawing surface without the corresponding setter. Preserve gesture input and accessible adjustment.
+- Treat live multiplayer, replay viewing and a following historical ghost challenge as different activities. A ghost never collides, claims right of way or changes the live player's physics. New comparisons require the same versioned course/model/conditions.
+- Visible radio recognition belongs in a finite session transcript. General diagnostics remain content-free, bounded and separate from recognition/answer text. No automatic upload or audio persistence is introduced.
+- Continue the ordered program with rollback commits and separate source, installed, TestFlight and website evidence. A native SwiftUI shell can later reuse the same offline3D/content and versioned bridge; another physics/rendering implementation needs its own measured justification and migration decision.
+
+### Verification
+
+Follow `docs/audits/2026-10-26/completion-program.md`. First close the real Lesson1 -> drill -> control -> return path on the exact installed release. For learning visuals verify technical meaning, PL/RU/EN labels, accessibility, offline assets and unchanged assessment. For speech verify real recording lifecycle, cancellation, absent models and separation of transcript from diagnostics. Physical race activation remains governed by ADR-0011 and its consumer gates.

@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Start the owner-approved completion program with an ordered harness and recoverable checkpoints. Current source moves the native trainer's accessibility actions off unsupported Skia Canvas and removes its live-weather feature, retaining local wind. Installed acceptance and the next TestFlight delivery remain separate.
+
+- Recorded an independent product audit with fresh installed/web screens and a twice-reproduced first-lesson native simulator crash. The report separates strengths, remaining learning/game/UX gaps and proposed priorities; no product behavior or release changed.
+
 Следующие source checkpoints уже входят в APP65, где явно указано ниже;
 синхронизация SITE и оставшиеся физические/продуктовые gates остаются отдельно.
 

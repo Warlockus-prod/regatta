@@ -1505,6 +1505,25 @@ history. This boundary is not a new result class or physical writer.
   Apple Self/notes proof, without private journals or signed URLs.
 - `docs/audits/2026-10-26/acceptance65.md` - the same65ordered product IDs,
   historical statuses plus qualified fresh65 evidence and remaining work.
+- `docs/audits/2026-10-26/independent-product-audit.md` - audit-only second
+  product review with15prioritized findings, confidence, proposed decision gates,
+  twelve observed journeys and explicit physical-device/full-course limits.
+- `docs/audits/2026-10-26/checks/independent-product-audit.json` - bounded
+  audit provenance, two confirmed native Skia terminations and22screen hashes;
+  no raw native journal or personal data.
+- `docs/audits/2026-10-26/independent-product-screens/` - exact accepted PNGs
+  captured in this audit, linked in journey order; no generated concept images.
+- `docs/audits/2026-10-26/completion-program.md` - owner-approved P00-P12
+  completion harness, current P01 native crash/offline-weather contract, ghost
+  versus live multiplayer semantics and a staged SwiftUI shell proposal.
+- `docs/audits/2026-10-26/completion-history-before-program.md` - preserved
+  former AGENTS current-work block; historical statuses are not current gates.
+- `docs/audits/2026-10-26/release66-harness.md` - P01 native crash/offline
+  hotfix66, old-source regression, final source gates and ordered exact
+  installed/archive/Apple delivery checks; later program stages stay open.
+- `docs/design/learning-renders/README.md` - exact built-in ImageGen prompts,
+  artifact hashes and review limits for the first filled/luffing mainsail pair.
+  Its two WebP assets are art preparation, not bundled production lesson content.
 - `docs/design/mobile/testflight65-2026-10-26.md` - delivered65 scope,
   first-candidate native rejection, final G2 and exact Apple delivery limits.
 

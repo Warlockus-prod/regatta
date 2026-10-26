@@ -1,0 +1,283 @@
+{
+  "schema": "regatta-independent-product-audit-v1",
+  "date": "2026-10-26",
+  "purpose": "Owner decision document. No implementation or delivery authorized by this audit.",
+  "source": {
+    "appHead": "4caed0e2380fc101c3588d9a6fa9416b998bb692",
+    "runtimeCommit": "b0e5868e0b1cc368360d0c84e10fcc304e22020a",
+    "runtimeTag": "testflight-1.7.0-65",
+    "siteWorktreeHead": "5df0ee593cf1a86fc6e4ae7d1e381773852199a4",
+    "runtimeDiffFromTag": false,
+    "siteArtifactIdentityReverified": false
+  },
+  "native": {
+    "bundle": "com.icoffio.regatta",
+    "installedVersion": "1.7.0",
+    "installedBuild": "65",
+    "device": "iPhone18 Pro",
+    "runtime": "iOS27.0 Simulator",
+    "language": "ru",
+    "state": "Existing QA storage, not a fresh installation",
+    "input": "CUA UI actions",
+    "capture": "CUA window screenshots; images03/04 are same-state simctl display captures, compared with observed window"
+  },
+  "web": {
+    "origin": "https://weektoregatta.com",
+    "viewport": [
+      1280,
+      720
+    ],
+    "language": "ru",
+    "state": "Existing browser storage",
+    "capture": "CUA in-app browser"
+  },
+  "confirmedFailure": {
+    "id": "F01",
+    "journey": [
+      "Foundation lesson1",
+      "Practice",
+      "Try this in the simulator"
+    ],
+    "observedTerminations": 2,
+    "exception": "NSInvalidArgumentException",
+    "selector": "SkiaUIView setOnAccessibilityAction:",
+    "timestampsUTC": [
+      "2026-10-26T13:20:16.184106Z",
+      "2026-10-26T13:21:28.782152Z"
+    ],
+    "result": "System Home; application relaunched through actual app icon",
+    "rawJournalInRepository": false,
+    "fixedInThisAudit": false
+  },
+  "freshObservedFacts": {
+    "raceRendered3D": true,
+    "raceClockAdvanced": true,
+    "orbitChangedView": true,
+    "miniMapOpenedFullMap": true,
+    "windVisibleAcrossObservedTabs": true,
+    "raceReturnsToSetupAndNativeHub": true,
+    "trimTrainerRendered": true,
+    "radioPowerHoldWorked": true,
+    "radioDialVolume": [
+      16,
+      20
+    ],
+    "radioIndexRotated": true,
+    "guideEntryAndBackWorked": true,
+    "scenarioEntryWorked": true,
+    "radioExitToNativePracticeWorked": true
+  },
+  "sourceFindings": {
+    "legacyMetresPerKnotSecond": 4.8,
+    "physicalMetresPerKnotSecond": 0.514444,
+    "legacyScaleRatio": 9.330461624588876,
+    "physicalRaceEmissionEnabled": false,
+    "nativeFirstLessonPilot": "mobile/src/lessons/pilots.ts",
+    "sharedFirstLessonGuidePresent": false,
+    "localBranchHeads": 78,
+    "appAncestorHeads": 60,
+    "appNotAncestorHeads": 18,
+    "siteAncestorHeads": 59,
+    "siteNotAncestorHeads": 19,
+    "ancestryIsNotPatchEquivalence": true
+  },
+  "earlierProofNotRerun": {
+    "source": "native65-delivery.json",
+    "browserCases": 72,
+    "webTests": 1547,
+    "nativeTests": 565,
+    "budgetBytes": 6815470,
+    "budgetLimitBytes": 6815744,
+    "budgetHeadroomBytes": 274,
+    "interpretation": "Historical exact65 evidence, not fresh execution during this audit"
+  },
+  "limits": [
+    "No physical iPhone",
+    "No complete race finish or multiplayer journey",
+    "No microphone, ASR, TTS or full radio lesson result",
+    "No whole seven-language visual matrix",
+    "No full Back inventory",
+    "No Dynamic Type or VoiceOver acceptance",
+    "No fresh offline cold install/network isolation",
+    "No complete certification content review",
+    "No full patch comparison of every historical branch",
+    "No new website production browser gate",
+    "No end-user learning or retention study"
+  ],
+  "screenDirectory": "../independent-product-screens",
+  "acceptedScreens": [
+    {
+      "file": "01-home-window.png",
+      "bytes": 299661,
+      "sha256": "f45a06ee14768ecdcd26cb63e750bfc7a8b0490225206a04d8d7cd87eec37423",
+      "width": 3024,
+      "height": 1748
+    },
+    {
+      "file": "02-course-window.png",
+      "bytes": 249154,
+      "sha256": "b07ebe461ac0363da00dba49e369eafb6da8700a205f4b228e2597c3ae50b854",
+      "width": 3024,
+      "height": 1748
+    },
+    {
+      "file": "03-lesson.png",
+      "bytes": 256944,
+      "sha256": "ab343d2949aab7d1931a8ee475886861ceae4c35df52d507657ab1fb28debfeb",
+      "width": 1206,
+      "height": 2622
+    },
+    {
+      "file": "04-practice-copy.png",
+      "bytes": 244063,
+      "sha256": "5bd39aa3af34d2f70ba0262756320092d13202f1ec8dde3026149bcac60bf9b6",
+      "width": 1206,
+      "height": 2622
+    },
+    {
+      "file": "05-practice-failure-window.png",
+      "bytes": 281203,
+      "sha256": "e395fbe72f1fb9cfcd48623e99bb9a098e762b45e572a28f0001ee908f5be898",
+      "width": 3024,
+      "height": 1748
+    },
+    {
+      "file": "06-race-hub-window.png",
+      "bytes": 298943,
+      "sha256": "2af56dd88392e30a72e6e356ea40dab86577f69ee8ffd697b9118b504106b2a9",
+      "width": 3024,
+      "height": 1748
+    },
+    {
+      "file": "07-race-briefing.png",
+      "bytes": 165911,
+      "sha256": "ae6b188d2708ec7c12fecc44e917635bafa6b564531e44c82a8bd1c92cec3808",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "08-race-course-briefing.png",
+      "bytes": 164183,
+      "sha256": "b9ad6cb637bf77d02dfc580ba0cc038bce764bcb4fb13c99b3f890779851aca2",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "09-race-pro.png",
+      "bytes": 198588,
+      "sha256": "554466cab7aa4f8deb6f65f30a9c4d0180f8fdba80cac0debc1ac52873dadfaa",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "10-race-orbit.png",
+      "bytes": 180836,
+      "sha256": "9f0b73c2fef7d1ffaae26c2cca9c1611445508e9ce34cc9eb0408849daee104f",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "11-race-settings.png",
+      "bytes": 173806,
+      "sha256": "3e7b52074228cb52cd7907326c7343bd528ad3a2de25351dd9240a280cf5c971",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "12-race-map.png",
+      "bytes": 166423,
+      "sha256": "0ac22c0f37e0f07ce873b0a63a392981192ca322bcb3826be832a2d23a8770c4",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "13-practice-catalog.png",
+      "bytes": 159589,
+      "sha256": "5305dc6af3b05c9e9606d0051a993a30bdae3f4967906d37f38190c90af326ff",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "14-trim-trainer.png",
+      "bytes": 207667,
+      "sha256": "f457405598f370dcc9ed67d0bc499ee5fb09fda22720205a14ccd49171ec03a4",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "15-radio-free.png",
+      "bytes": 181941,
+      "sha256": "092f520c7762bdd34ada55307799305440a94e859639e440c368c2873beb2df2",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "16-radio-dial.png",
+      "bytes": 193568,
+      "sha256": "5c3dee56b96675376e6a325a5f13d76e92179296c7c174c10e9f05fbc50c884c",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "17-radio-guide.png",
+      "bytes": 185632,
+      "sha256": "14a935fc8090ad7a622af774ddaf0476d680d455e58bf0b8a1290b73575671d2",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "18-radio-scenarios.png",
+      "bytes": 202774,
+      "sha256": "6e56cfcc861f979aad9227023691675fefc65a6c261609cae434c55267c3c443",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "19-radio-situation.png",
+      "bytes": 196798,
+      "sha256": "f99cbd8c3ac280a97e8f3b5bc5e690831448da4df4ca4f68fc1a001da597603f",
+      "width": 804,
+      "height": 1748
+    },
+    {
+      "file": "20-website-home.png",
+      "bytes": 82874,
+      "sha256": "0a2ac4f48fd13c859ec89d5f95f60f82f8a17e955a5adc30a4115138f59fee93",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "21-website-lesson.png",
+      "bytes": 62653,
+      "sha256": "5924b011ec7fa481a2e78336a80e213c07492fd079f6041d2595bf52454368eb",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "22-website-practice.png",
+      "bytes": 65457,
+      "sha256": "2836013a2c38d90c20f4a4f110598ca655c563df7c26ae3183c6a883cda96c87",
+      "width": 1280,
+      "height": 720
+    }
+  ],
+  "journeyGroups": 12,
+  "findings": 15,
+  "changes": {
+    "runtime": false,
+    "websiteDeployment": false,
+    "testflightDelivery": false,
+    "branchCleanup": false,
+    "documentationOnly": true
+  },
+  "fullProductAcceptanceComplete": false,
+  "documentationValidation": {
+    "webTypecheck": "passed",
+    "productionBuild": "passed",
+    "projectMap": "passed",
+    "typography": "passed",
+    "all22ScreenHashes": "passed",
+    "allLocalDocumentLinks": "passed",
+    "freshRuntimeTestSuite": "not rerun, documentation-only task"
+  }
+}

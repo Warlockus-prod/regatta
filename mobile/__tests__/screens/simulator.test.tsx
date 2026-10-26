@@ -21,7 +21,7 @@ jest.mock('expo-screen-orientation', () => ({
   lockAsync: jest.fn().mockResolvedValue(undefined),
   unlockAsync: jest.fn().mockResolvedValue(undefined),
 }));
-// Live wind is opt-in and network-backed; keep it offline.
+// The training screen must not offer or request live weather.
 jest.mock('../../src/api/weather', () => ({
   fetchWeatherNow: jest.fn().mockResolvedValue({ ok: false, error: 'offline' }),
 }));
@@ -32,6 +32,11 @@ jest.mock('@shopify/react-native-skia', () => {
   const { View } = require('react-native');
   const passthrough = (props: { children?: React.ReactNode }) =>
     React.createElement(View, props, props && props.children);
+  // The real SkiaUIView does not export the native accessibility-action setter.
+  const canvas = (props: { children?: React.ReactNode; onAccessibilityAction?: unknown }) => {
+    if (props.onAccessibilityAction !== undefined) throw new Error('Skia Canvas cannot own accessibility actions');
+    return passthrough(props);
+  };
   const makePath = () => {
     const path: Record<string, () => unknown> = {};
     for (const m of ['moveTo', 'lineTo', 'quadTo', 'cubicTo', 'close', 'addCircle', 'addPath', 'transform', 'reset']) {
@@ -41,7 +46,7 @@ jest.mock('@shopify/react-native-skia', () => {
   };
   return {
     __esModule: true,
-    Canvas: passthrough,
+    Canvas: canvas,
     Group: passthrough,
     Path: passthrough,
     Circle: passthrough,
@@ -120,6 +125,8 @@ describe('Native trainer (/simulator)', () => {
     expect(chip(view, 'Top').props.accessibilityState.selected).toBe(true);
     expect(view.getByLabelText(/^Wind and steering control/)).toBeTruthy();
     expect(fetchWeatherNow).not.toHaveBeenCalled();
+    expect(view.queryByText('Live wind')).toBeNull();
+    expect(view.queryByText('Palma')).toBeNull();
     // A clean install uses the same wheel cockpit as the 3D trainers.
     expect(view.getByTestId('wheel-deck')).toBeTruthy();
     expect(view.queryByLabelText('Steer to port')).toBeNull();
