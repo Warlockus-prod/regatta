@@ -1318,3 +1318,48 @@ available panel height with caption space, preserving standalone auto height.
 The race-navigation E2E checks complete SVG/caption containment at four viewport
 sizes before any scroll. Native1543 clipping was found before upload; its
 verified artifacts remain a historical never-uploaded candidate.
+
+### Physical record readers, isolated phase2
+
+- `src/lib/physical-race-record.ts` - strict physical sample validation without
+  legacy coercion or dropped rows, actual world bounds, t0 and optional exact
+  finished endpoint. Unfinished public replay does not invent a finish.
+- `src/lib/race-record-context.test.ts` - old identity/bytes, all3 physical
+  geometries, unknown/conflicting contexts, raw rounding, strict samples and
+  disabled result/start emission.
+- `src/lib/race-native-env.ts` - synchronous native marker, injected race query
+  and fixed race/history navigation, without importing the saved-record decoder.
+- `src/lib/race-native-env.test.ts` - public reexport identity, SSR/query
+  precedence, unchanged input and native destination allowlist contracts.
+- `src/lib/race-replay-frame.ts` - recorded-time interpolation kept separate
+  from shared replay parsing, with the existing public reexport preserved.
+- `src/lib/race-replay-frame.test.ts` - public function identity, irregular
+  recorded intervals, final frames, wrapped heading/wind and saved rig playback.
+
+The existing race-courses matcher compares raw registered physical geometry;
+race-native validates optional raceContext before accepting any world snapshot.
+The replay context reader checks both direct and stored metadata locations
+before legacy normalization. replayRecordMetadata is shared with the API so
+mode cannot hide future coordinates or lose a context-only record. Historical
+records without context keep their previous parser/serialized shape.
+Physical records require an explicit Simple/Pro mode and retain exact recorded
+coordinates, headings, speeds and timestamps. Explicit future replay schemas
+are rejected before historical defaults. Legacy rounding remains unchanged.
+PHYSICAL_RACE_EMISSION_ENABLED remains false at every new producer boundary;
+this reader checkpoint does not introduce playable physical races or new PB.
+
+Replay POST validates the same direct/nested metadata and raw physical samples
+before player lookup, global quota or storage; known physical uploads remain422
+while emission is disabled. Rebuilt course UTF-8 JSON keeps its existing16KiB
+cap. GET returns422 for unsupported physical records instead of silently changing
+coordinate classes, preserving the existing404 and legacy scenery behavior.
+Native entry classification is mapped in docs/design/mobile/ARCHITECTURE.md.
+The same classifier guards Coach before pixel-course lookup or remote requests;
+late requests from a previous race cannot replace the current result. The shared
+native unavailable screen and its seven-language copy keep stored history intact.
+Local dependency directories and symlinks are both ignored, so worktree reuse
+cannot accidentally add a machine-specific node_modules path to the repository.
+Race preferences and camera hooks import only the lightweight environment;
+the live replay component imports interpolation without the upload/read codec.
+These synchronous boundaries preserve offline behavior. The existing6.5MiB
+budget is unchanged; actual final measurements belong to the phase2 harness.

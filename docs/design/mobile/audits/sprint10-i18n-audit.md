@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-25T20:32:48.557Z
+Generated: 2026-10-26T00:17:22.964Z
 
-Files scanned: 91
+Files scanned: 92
 
 ## Summary
 
@@ -62,23 +62,20 @@ Files scanned: 91
 | --- | --- | --- |
 | `mobile/src/simulator/SimWebView.tsx:361` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |
 
+## Reader checkpoint manual classification,2026-10-26
 
-## Candidate63 manual classification
+The12 heuristic findings above are not missing or empty translations:
 
-The12 heuristic findings above are not missing/empty translations:
-
-- Eight are the intentionally Polish Sternik host and its exam/storage UI.
-  The owner explicitly retains this course in Polish. SRC uses its separate
-  seven-language OfflineRadioCourse host.
+- Eight belong to the intentionally Polish Sternik host and exam/storage UI.
+  SRC uses its separate seven-language OfflineRadioCourse host.
 - Two are the real place name Hyères, shared across languages.
 - One is the universal multiplication/count symbol in the journal.
 - The SimWebView Cyrillic finding spans JSX callback code because the regex
-  scanner loses string boundaries. Its real recovery copy is supplied through
-  complete seven-language tp calls; no quoted Cyrillic label is present at the
-  reported line.
+  scanner loses string boundaries. Actual recovery text uses complete
+  seven-language tp calls; the reported callback has no Cyrillic label.
 
-The tp arity and missing language-overlay counts are both0. Shared diagnostic
-copy has explicit ru/en/pl/es/fr/de/it values and passes strict compilation.
-SRC catalog validation covers3761resources in all7catalogs with missing0.
-This classification is source evidence, not a complete physical-device language
-walkthrough or a claim that every official question has been visually inspected.
+The scanner reports0 tp arity errors and0 missing language overlays. The new
+shared saved-race notice for replay and Coach adds five complete resources,
+35 explicit language values in mobile/src/replay/ReplayUnavailable.tsx.
+This classification is source evidence. Installed narrow-screen language
+acceptance and complete official-question review remain separate.

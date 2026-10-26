@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from "react";
-import { isNativeRace, readRaceSearch } from "@/lib/race-native";
+import { isNativeRace, readRaceSearch } from "@/lib/race-native-env";
 import { DEFAULT_RACE_ASSISTS, sanitizeRaceAssists, type RaceAssists } from "@/lib/race-visual-prefs";
 import { recordPreferenceChange } from "@/lib/diagnostics-controls";
 

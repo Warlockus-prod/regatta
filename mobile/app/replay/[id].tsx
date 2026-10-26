@@ -62,7 +62,8 @@ import {
   useRaceHistory,
   type RaceRecord,
 } from '../../src/persistence/race-history';
-import { validateNativeRace } from '../../../src/lib/race-native';
+import { classifyNativeReplayEntry, type NativeReplayEntry } from '../../src/replay/entry';
+import { ReplayUnavailable } from '../../src/replay/ReplayUnavailable';
 import {
   frameAt,
   summarizeReplay,
@@ -989,15 +990,21 @@ const styles = StyleSheet.create({
 
 /** Instrument screen: dark ocean palette, see design-system/surface. */
 export default function ReplayRoute() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const [checked, setChecked] = useState<{ id: string | undefined; shared: boolean } | null>(null);
+  const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const id = typeof rawId === "string" ? rawId : undefined;
+  const [checked, setChecked] = useState<{ id: string; entry: NativeReplayEntry } | null>(null);
   useEffect(() => {
     let active = true;
     if (!id) return undefined;
-    loadRaceById(id).then(record => { if (active) setChecked({ id, shared: Boolean(validateNativeRace(record?.webRace)) }); });
+    loadRaceById(id).then(record => {
+      if (active) setChecked({ id, entry: classifyNativeReplayEntry(record) });
+    }).catch(() => {
+      if (active) setChecked({ id, entry: { kind: "unavailable", reason: "corrupt" } });
+    });
     return () => { active = false; };
   }, [id]);
   if (id && checked?.id !== id) return <DarkSurface><Screen><ActivityIndicator color={colors.accentCyan} /></Screen></DarkSurface>;
-  if (checked?.shared && id) return <Redirect href={{ pathname: "/game", params: { replayId: id } }} />;
+  if (checked?.entry.kind === "shared" && id) return <Redirect href={{ pathname: "/game", params: { replayId: id } }} />;
+  if (id && checked?.entry.kind === "unavailable") return <ReplayUnavailable reason={checked.entry.reason} />;
   return <DarkSurface><Replay /></DarkSurface>;
 }

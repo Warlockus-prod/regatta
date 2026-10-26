@@ -6,7 +6,7 @@ import type { NativeRaceSnapshot } from "@/lib/race-native";
 import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
 import { useVenue } from "@/features/venues/useVenue";
 import { useRaceView } from "@/features/race-3d/useRaceView";
-import { replayFrame } from "@/lib/race-replay";
+import { replayFrame } from "@/lib/race-replay-frame";
 import { useI18n } from "@/lib/i18n";
 import { useRaceCopy } from "./race-copy";
 import styles from "./RaceCockpit.module.css";

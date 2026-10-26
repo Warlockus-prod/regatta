@@ -169,7 +169,7 @@ All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
 | `/settings` | `app/settings.tsx` | Language (7) + units + privacy + data | plain RN |
 | `/leaderboard` | `app/leaderboard/index.tsx` | Local + global leaderboard | plain RN |
 | `/history` | `app/history/index.tsx` | Race history + replay/coach actions | plain RN |
-| `/replay/[id]` | `app/replay/[id].tsx` | Race replay scrubber | **Skia** + `SkiaYacht` |
+| `/replay/[id]` | `app/replay/[id].tsx` | World records use bundled3D; historical pixel records keep their scrubber; unavailable world data shows Back | **Bundled3D** / legacy **Skia** |
 | `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
 | `/race-3d` | `app/race-3d/index.tsx` | The solo race seen from the boat: web `/game?view=3d` in `SimWebView` (online), with the Race hub venue and shore written into the page's localStorage (`localStorage` prop); offline falls back to the native `/game` | WebView |
 
@@ -310,3 +310,23 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
 - `mobile/app/simulator/index.tsx` retains the simplified recovery trainer with overlays moved to a reserved scrollable dock. Wheels do not acquire a second rudder; core physics is unchanged.
 - Pure foundation sources are canonical in `src/data/bootcamp-quiz.ts`, `src/data/foundation-guide.ts` and `src/lib/learning/foundation-drawings.ts`. The old mobile modules re-export them; mobile-only practice routes remain native.
 - Focused contracts: `mobile/__tests__/activity-back.test.tsx`, `mobile/__tests__/sailing-navigation.test.ts`, `mobile/__tests__/radio-course-host.test.tsx`. Installed UI evidence remains separate in `docs/audits/2026-10-25/corrections.md`.
+
+## Versioned replay entry before physical emission
+
+- `mobile/src/replay/entry.ts` classifies absent records, historical pixel rows,
+  validated world snapshots and unsupported/corrupt world payloads. A rejected
+  webRace never enters the pixel renderer. Existing history is never rewritten.
+- `mobile/__tests__/replay-entry.test.tsx` covers27 classifier/route cases,
+  all3 physical profiles, unchanged storage bytes, actual Back/history fallback,
+  asynchronous ID changes and read failure.
+- `mobile/src/replay/ReplayUnavailable.tsx` owns the common saved-race notice
+  for replay and Coach, with five text resources in all seven languages and a
+  real native Back/history fallback.
+- `mobile/__tests__/coach-entry.test.tsx` covers22 cases: known world records
+  use local analysis, unsupported/corrupt world data never reaches pixel course
+  lookup or the remote Coach, and late requests cannot overwrite a new race.
+
+The replay and Coach notice has RU/EN/PL/ES/FR/DE/IT adaptations. The existing Button
+provides a48px minimum. This is source/test evidence; installed native acceptance
+and playable physical races remain separate. saveNativeRace explicitly refuses
+new physical emission until result classes and the engine are ready.

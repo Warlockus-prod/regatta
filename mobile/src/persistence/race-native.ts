@@ -2,11 +2,12 @@ import { validateNativeRace, type NativeRaceSnapshot } from "../../../src/lib/ra
 import { analyseRaceLocally } from "../../../src/lib/fallback-coach";
 import type { Lang } from "../i18n/languages";
 import { saveRaceRecord, type RaceRecord } from "./race-history";
+import { PHYSICAL_RACE_EMISSION_ENABLED } from "../../../src/lib/race-context";
 
 /** Store canonical world-space data additively. Old pixel recordings are untouched. */
 export async function saveNativeRace(raw: unknown, lang: Lang, daily = false): Promise<RaceRecord> {
   const snapshot = validateNativeRace(raw);
-  if (!snapshot) throw new Error("invalid-race");
+  if (!snapshot || (!PHYSICAL_RACE_EMISSION_ENABLED && snapshot.raceContext?.model === "physical-cruiser-v1")) throw new Error("invalid-race");
   const coaching = snapshot.coaching ?? analyseRaceLocally({
     difficulty: snapshot.difficulty,
     courseInfo: { windDirection: 0, windwardMark: snapshot.course.marks[0].pos, startY: snapshot.course.startLine.a.y },

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prepared versioned physical race record readers without changing live racing: known tracks retain geometry and exact recorded trajectory, unknown future coordinates cannot fall back to pixel replay or remote coaching, and new result emission stays disabled until score classes and the engine are ready. Saved history stays intact, with a shared seven-language explanation and working Back for unsupported records.
+
 - Fitted the complete course map and legend inside the available cockpit panel, including the native safe area and short/landscape screens. Marks and boats are visible before scrolling; boat space and controls stay reserved.
 
 - Prepared native build64 with refreshed radio, sailing and Sternik offline packages. The running map and four wind choices join the existing browser check before website publication; deployment privileges and budgets stay unchanged.

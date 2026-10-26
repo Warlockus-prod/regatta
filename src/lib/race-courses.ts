@@ -1,5 +1,5 @@
 import type { RaceCourse, Vec2 } from "./race-physics";
-import { PHYSICAL_RACE_PROFILES, physicalRaceContext, type PhysicalRaceContext, type PhysicalRaceProfile } from "./race-context";
+import { PHYSICAL_RACE_PROFILES, physicalRaceContext, readRaceContext, type PhysicalRaceContext, type PhysicalRaceProfile } from "./race-context";
 
 export const PHYSICAL_COURSE_PROFILES = PHYSICAL_RACE_PROFILES;
 export interface MetricRacePoint { readonly eastMetres: number; readonly southMetres: number }
@@ -54,6 +54,25 @@ export function makePhysicalRaceCourse(profile: PhysicalRaceProfile): RaceCourse
     { pos: { ...a }, radius: d.hardware.buoyRadiusMetres / m, label: "Start L", type: "start" },
     { pos: { ...b }, radius: d.hardware.committeeRadiusMetres / m, label: "Start R", type: "start" },
   ], startLine: { a, b }, finishLine: { a: { ...a }, b: { ...b } } };
+}
+
+/** A physical class owns its geometry revision. Labels may be translated, but
+ * a different track must not be accepted under the same result/replay class. */
+export function matchesPhysicalRaceCourse(context: PhysicalRaceContext, value: unknown): boolean {
+  const read = readRaceContext(context);
+  if (!read.ok || read.context.model !== "physical-cruiser-v1") return false;
+  const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+  const number = (v: unknown, expected: number) => typeof v === "number" && Number.isFinite(v) && Math.abs(v - expected) < 1e-7;
+  const point = (v: unknown, expected: Vec2) => object(v) && number(v.x, expected.x) && number(v.y, expected.y);
+  const line = (v: unknown, expected: { a: Vec2; b: Vec2 }) => object(v) && point(v.a, expected.a) && point(v.b, expected.b);
+  const expected = makePhysicalRaceCourse(read.context.profile);
+  return object(value) && line(value.startLine, expected.startLine) && line(value.finishLine, expected.finishLine)
+    && Array.isArray(value.marks) && value.marks.length === expected.marks.length
+    && value.marks.every((mark, index) => {
+      const canonical = expected.marks[index];
+      return object(mark) && mark.type === canonical.type && point(mark.pos, canonical.pos) && number(mark.radius, canonical.radius)
+        && (canonical.type !== "windward" || mark.roundSide === undefined || mark.roundSide === "port");
+    });
 }
 
 /** Player first at centre, then alternating sides. Same fleet spacing and

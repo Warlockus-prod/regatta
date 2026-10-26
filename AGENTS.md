@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- This temporary next-worktree prepares physical phase2 readers after corrected immutable build64 sourceef180df. See `docs/audits/2026-10-26/physical-readers-harness.md`. Known physical contexts retain canonical geometry and recorded trajectory precision; unknown context never becomes pixel replay or reaches the legacy remote Coach. Physical result emission stays disabled until PB/native/server classes and the engine are integrated. Do not archive this branch as64 or alter the frozen APP checkout.
+
 - Candidate64 source1543 was never uploaded: native G2 found the initial map extended below its dock. Its archive/IPA/Simulator and proofs are preserved externally. The panel-relative SVG/caption correction has actual four-viewport browser evidence; freeze fresh assets/source and repeat exact native/delivery gates. See `docs/audits/2026-10-25/release64-harness.md`.
 
 - Active64 map/wind/settings presentation follows `docs/audits/2026-10-25/release64-harness.md`. Preserve actual course/wind truth, native visual preferences, reserved boat space and diagnostic privacy. No new physics, live weather service or physical race emission belongs to this slice.

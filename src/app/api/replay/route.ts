@@ -4,7 +4,10 @@ import { insertReplay, getPlayer } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
 import { rateLimitClient, rateLimitGlobal, clientKeys } from '@/lib/rate-limit';
 import { isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
-import { defaultReplayCourse, replayCourse, replayMetadata, replaySamples } from '@/lib/race-replay';
+import { defaultReplayCourse, replayCourse, replayRecordMetadata, replaySamples } from '@/lib/race-replay';
+import { PHYSICAL_RACE_EMISSION_ENABLED, type RaceContext } from '@/lib/race-context';
+import { matchesPhysicalRaceCourse } from '@/lib/race-courses';
+import { physicalRaceSamplesValid } from '@/lib/physical-race-record';
 
 export const runtime = 'nodejs';
 
@@ -37,6 +40,7 @@ interface Payload {
   nicknameFallback?: string;
   mode?: "simple" | "pro";
   penaltySeconds?: number;
+  raceContext?: RaceContext;
 }
 
 interface ReplayEvent { type: string; t: number; note?: string }
@@ -105,10 +109,6 @@ export async function POST(req: Request) {
   if (bytes(body.events) > MAX_EVENTS_BYTES) {
     return NextResponse.json({ error: 'Events payload too large' }, { status: 400 });
   }
-  const samples = replaySamples(body.samples);
-  if (!samples || samples.length < 3) {
-    return NextResponse.json({ error: 'Race too short to share' }, { status: 400 });
-  }
   const events = rebuildEvents(body.events);
   const missionId = parseMissionId(body.missionId);
   if (missionId === 'invalid') {
@@ -117,15 +117,35 @@ export async function POST(req: Request) {
   if (body.course != null && bytes(body.course) > MAX_COURSE_BYTES) {
     return NextResponse.json({ error: 'Course payload too large' }, { status: 400 });
   }
-  const metadata = replayMetadata(body);
+  const metadata = replayRecordMetadata(body);
   if (!metadata) return NextResponse.json({ error: 'Bad replay metadata' }, { status: 400 });
   const course = body.course == null ? null : replayCourse(body.course);
   if (body.course != null && !course) return NextResponse.json({ error: 'Bad course' }, { status: 400 });
+  if (metadata.raceContext?.model === "physical-cruiser-v1") {
+    if (!matchesPhysicalRaceCourse(metadata.raceContext, body.course)) return NextResponse.json({ error: 'Bad physical course' }, { status: 400 });
+    if (!physicalRaceSamplesValid(body.samples, metadata.raceContext, body.finishTimeSec ?? undefined)) return NextResponse.json({ error: "Bad physical samples" }, { status: 400 });
+  }
+  const samples = replaySamples(body.samples, true, metadata.raceContext?.model === "physical-cruiser-v1");
+  if (!samples || samples.length < 3) {
+    return NextResponse.json({ error: 'Race too short to share' }, { status: 400 });
+  }
   if (!['easy', 'medium', 'hard'].includes(body.difficulty)) {
     return NextResponse.json({ error: 'Bad difficulty' }, { status: 400 });
   }
   if (!['light', 'medium', 'heavy'].includes(body.windStrength)) {
     return NextResponse.json({ error: 'Bad windStrength' }, { status: 400 });
+  }
+
+  const nestedMetadata = course ? (body.course as { replayMetadata?: unknown }).replayMetadata : undefined;
+  const storedCourse = body.mode !== undefined || body.penaltySeconds !== undefined || metadata.raceContext !== undefined || nestedMetadata !== undefined
+    ? { ...(course ?? defaultReplayCourse()), replayMetadata: metadata } : course;
+  // Rebuilding missing translated labels and adding metadata can grow a course.
+  // The actual JSON written to the existing column keeps the same byte cap.
+  if (storedCourse !== null && bytes(storedCourse) > MAX_COURSE_BYTES) {
+    return NextResponse.json({ error: 'Course payload too large' }, { status: 400 });
+  }
+  if (!PHYSICAL_RACE_EMISSION_ENABLED && metadata.raceContext?.model === "physical-cruiser-v1") {
+    return NextResponse.json({ error: "Physical race sharing is not enabled" }, { status: 422 });
   }
 
   const player = sid ? getPlayer(sid) : null;
@@ -148,8 +168,7 @@ export async function POST(req: Request) {
     samples,
     events,
     // Metadata shares the existing bounded JSON column, preserving old rows.
-    course: body.mode !== undefined || body.penaltySeconds !== undefined
-      ? { ...(course ?? defaultReplayCourse()), replayMetadata: metadata } : course,
+    course: storedCourse,
   });
   if (!code) return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
 

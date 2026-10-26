@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import {
@@ -25,6 +25,8 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
 import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
 import { validateNativeRace } from '../../../src/lib/race-native';
 import { analyseRaceLocally } from '../../../src/lib/fallback-coach';
+import { classifyNativeReplayEntry } from '../../src/replay/entry';
+import { ReplayUnavailable } from '../../src/replay/ReplayUnavailable';
 
 type LoadState =
   | { kind: 'idle' }
@@ -32,6 +34,7 @@ type LoadState =
   | { kind: 'loading-coach' }
   | { kind: 'loaded'; coaching: CoachResponse['coaching'] }
   | { kind: 'error'; message: string }
+  | { kind: 'unavailable'; reason: 'unsupported' | 'corrupt' }
   | { kind: 'race-missing' };
 
 /**
@@ -49,13 +52,16 @@ export default function Coach() {
 
   const [race, setRace] = useState<RaceRecord | null>(null);
   const [state, setState] = useState<LoadState>({ kind: 'loading-race' });
+  const generation = useRef(0);
 
   // 1. Hydrate the race from AsyncStorage. We do this once per raceId.
   useEffect(() => {
     let cancelled = false;
+    const current = ++generation.current;
+    setRace(null);
     if (!raceId) {
       setState({ kind: 'race-missing' });
-      return;
+      return () => { generation.current += 1; };
     }
     setState({ kind: 'loading-race' });
     loadRaceById(raceId).then((rec) => {
@@ -64,7 +70,11 @@ export default function Coach() {
         setState({ kind: 'race-missing' });
         return;
       }
-      setRace(rec);
+      const entry = classifyNativeReplayEntry(rec);
+      if (entry.kind === 'unavailable') {
+        setState({ kind: 'unavailable', reason: entry.reason });
+        return;
+      }
       const localRace = validateNativeRace(rec.webRace);
       if (localRace) {
         const coaching = analyseRaceLocally({
@@ -73,20 +83,29 @@ export default function Coach() {
           finishTime: localRace.finishTimeSec, position: localRace.position, totalBoats: localRace.totalBoats,
           samples: localRace.samples, events: localRace.events,
         }, lang);
+        setRace(rec);
         setState({ kind: 'loaded', coaching });
         return;
       }
+      if (entry.kind !== 'legacy-pixel') {
+        setState({ kind: 'unavailable', reason: 'corrupt' });
+        return;
+      }
+      setRace(rec);
       setState({ kind: 'loading-coach' });
+    }).catch(() => {
+      if (!cancelled) setState({ kind: 'unavailable', reason: 'corrupt' });
     });
     return () => {
       cancelled = true;
+      if (generation.current === current) generation.current += 1;
     };
   }, [raceId, lang]);
 
   // 2. Build the /api/coach payload from the race + fire the request
   //    once race is hydrated. Re-fires when the user taps "Try again".
   const coachPayload = useMemo(() => {
-    if (!race) return null;
+    if (!race || race.webRace !== undefined) return null;
     const course = findCourse(race.courseId);
     const samples: CoachLogSample[] =
       race.samples ??
@@ -130,12 +149,14 @@ export default function Coach() {
 
   const fetchCoach = useCallback(async () => {
     if (!coachPayload) return;
+    const current = generation.current;
     analytics.capture(AnalyticsEvent.CoachRequested, {
       difficulty: coachPayload.difficulty,
       finish_time_sec: Math.round(coachPayload.finishTime),
     });
     setState({ kind: 'loading-coach' });
     const result = await requestCoaching(coachPayload);
+    if (generation.current !== current) return;
     if (!result.ok || !result.data) {
       setState({
         kind: 'error',
@@ -303,6 +324,8 @@ export default function Coach() {
     if (!raceId) return;
     router.push(`/replay/${encodeURIComponent(raceId)}`);
   }, [raceId, router]);
+
+  if (state.kind === 'unavailable') return <ReplayUnavailable reason={state.reason} />;
 
   return (
     <Screen>

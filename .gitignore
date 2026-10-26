@@ -1,5 +1,6 @@
 # Dependencies
-node_modules/
+# Includes local dependency symlinks used by isolated worktrees.
+node_modules
 .pnp
 .pnp.*
 .yarn/*

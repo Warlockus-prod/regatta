@@ -1,5 +1,12 @@
 # i18n audit - 7-language status across the app
 
+2026-10-26 reader checkpoint: `mobile/src/replay/ReplayUnavailable.tsx` owns
+the shared saved-race notice for replay and Coach. Its five resources have35
+explicit RU/EN/PL/ES/FR/DE/IT values, including Back. Wording describes the
+saved race in either destination and states that history was preserved. Source
+coverage is reviewed; narrow installed rendering remains a native acceptance
+gate. Protocol phrases and the Polish-only Sternik course are unchanged.
+
 **Date:** 2026-04-24 (post-ES/FR/DE/IT rollout).
 **Stack:** `useI18n()` hook with three call-site helpers:
 - `tl({ ru, en, pl, es, fr, de, it })` - object-based, extensible; preferred for new code.
