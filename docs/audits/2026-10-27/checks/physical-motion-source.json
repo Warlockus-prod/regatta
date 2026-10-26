@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T23:36:00.480318+00:00",
+  "scope": "P04 unwired motion API source checkpoint; no live/native physical race or new release.",
+  "baseFrozenSource": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+  "inputSHA256": {
+    "src/lib/race-physics.ts": "dd4244dcab9508e4462b436ff635c2c9c1de3c300c6649824ce111a3d34ad7e3",
+    "src/lib/race-physical-motion.ts": "507b366847df6178ed812068cf697d27de138cbbff375de8e82bdd1a89f24be6",
+    "src/lib/race-physical-motion.test.ts": "f65357bc12a406b00b51d990eed9692cd8a18a109dabcc8c408233bcd921f473",
+    "src/lib/race-legacy-motion.test.ts": "f24c711adcc11f5910f11c4956defca0891db7c73628b9bbb72f1413ccbc40d3",
+    "src/lib/race-legacy-motion.fixture.json": "12e022418e25637bffc204d6bc5f0228b1d04d86deaccb07ae6f07bdf3813b8f",
+    "ws-server/race-physics.js": "ffd1ae50bdf92f4edbb174d696ec746032228cf64c72c7ab1ce85d03baa60c45",
+    "mobile/assets/sailing-offline.html": "6e02a97e0aa1106ec6b20d0cd7d79bbec84014b7e7af46545e0b30b013f71e5e",
+    "mobile/assets/sailing-offline.manifest.json": "81b39628a5fd993edd64eddeef709720a80c51cb442b6ec3663744489e7a0211"
+  },
+  "web": {
+    "passed": 1621,
+    "files": 159,
+    "failed": 0
+  },
+  "native": {
+    "passed": 587,
+    "suites": 78,
+    "isolatedRunInBand": true,
+    "unchangedTimeoutMs": 5000,
+    "previousConcurrentRun": {
+      "passed": 582,
+      "failedTimeouts": 5,
+      "suites": 78,
+      "reason": "Timeouts under simultaneous web/build/native work; sole cause not established. No assertion or timeout was changed."
+    }
+  },
+  "releaseToolsPassed": 9,
+  "allThreeOfflinePackagesFresh": true,
+  "contentTwinsFresh": true,
+  "rootTypes": true,
+  "nativeTypes": true,
+  "rootLint": {
+    "errors": 0,
+    "existingWarnings": 15
+  },
+  "nativeLintWarnings": 0,
+  "generatedServerFresh": true,
+  "realWebSocketLifecycle": true,
+  "productionBuild": true,
+  "staticBudget": {
+    "MiBDisplay": 6.48,
+    "unchangedLimitMiB": 6.5,
+    "files": 110
+  },
+  "physicalEmissionEnabled": false,
+  "installedPhysicalRaceAccepted": false,
+  "testflightReleaseCreated": false,
+  "sitePublished": false
+}

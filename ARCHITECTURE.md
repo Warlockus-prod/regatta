@@ -1661,3 +1661,16 @@ physical consumer harness; no private storage or raw journal enters this map.
 - `docs/audits/2026-10-26/checks/source68-predeploy.json` - exact77first-attempt cloud gate and qualified mobile CI retry history.
 
 Physical emission remains OFF. Shared replay uses its own native route/host, preserving the original race route and dismissing to History; the full program is still ordered in the completion harness.
+
+## P04 physical motion boundary
+
+- `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
+- `src/lib/race-physical-motion.test.ts` - actual integrated metre travel, helm/course assist, low-speed choice, force/trim/handicap parity, rejected-input atomicity and collision-independent endpoint tests.
+- `src/lib/race-legacy-motion.fixture.json` - twelve pre-extraction legacy/responsive trajectories captured from frozen68 sourcef7, not generated from the new implementation.
+- `src/lib/race-legacy-motion.test.ts` - preserves those independent legacy trajectories after extracting the shared force/trim boundary.
+- `docs/audits/2026-10-27/physical-motion-harness.md` - verified foundation and explicit remaining activation/release gates.
+
+`src/lib/race-physics.ts` now exports the same force/trim step for both motion adapters. Its existing `stepBoat` keeps legacy turning,8units/knot-second and20unit clamp; generated server behavior and no-context defaults remain unchanged. Physical emission stays OFF. The trainer's transient rig integration remains separate and is not claimed identical to steady race trim.
+
+- `docs/audits/2026-10-27/checks/physical-motion-observations.json` - three synthetic metre/heading measurements, explicitly not installed acceptance.
+- `docs/audits/2026-10-27/checks/physical-motion-source.json` - production input hashes, source gates and qualified native timing retry.

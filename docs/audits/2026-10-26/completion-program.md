@@ -31,7 +31,7 @@
 | P01 | Исправить Skia crash первого drill; убрать живую погоду из старого native trainer | exact422b проверен | два runtime: урок -> drill -> ветер -> возврат, повторный вход, cold relaunch;72browser first-pass | доставлен66: independent Self/8notes GET15:26UTC; физический iPhone отдельно |
 | P02 | Единый первый урок и двухвидовые иллюстрации | общий первый урок,3Dпрактика и один Scheme/Picture pilot проверены |77browser first-pass, retained26.5/clean27, PL/RU/EN и exact package equivalence; [harness](learning-visuals-harness.md) | checkpoint доставлен67, independent Self/8notes18:53UTC; остальные иллюстрации открыты |
 | P03 | Закрыть надежность PB/результатов до новой физики | exactf7: отдельные ACK/receipt/retry, clear guards и replay route ownership | реальные finishes/History/Personal/Replay/Coach/Back/cold на26.5/27; exact-f7 fresh27; forced failures только tests | доставлен68: independent Self23:23:36.856UTC/8notes23:23:11.300UTC; physical emission OFF |
-| P04 | Согласовать единицы движения и управление общей лодки | API/reader foundation есть, emission OFF | сравнительные сценарии, боты, подсказки, replay, native/server classes | отдельный checkpoint |
+| P04 | Согласовать единицы движения и управление общей лодки | explicit physical-motion foundation в отдельной рабочей копии; shared metres/heading/force, emission OFF | initial41adapter/12frozen legacy/9server drift cases; full engine/bots/guidance/native gates открыты | отдельный checkpoint, пока без нового бинарника |
 | P05 | Трассы разной длины, затем маршруты вокруг острова | план | каждый маршрут проходим, не пересекает сушу; старые классы сохранены | послеP04 |
 | P06 | Общие пресеты свободно/гонка/обучение, автотрим/ручной; независимые помощь и судья | частично в65 | полный Simple/Pro заезд и учебное объяснение, сохраненные настройки | послеP04/P05 |
 | P07 | Радио: видимое распознавание в свободной практике | план | start/result/silence/denied/cancel, текстовый fallback; физический микрофон отдельно | отдельный checkpoint |
@@ -105,3 +105,13 @@ Replay показывает сохраненную гонку. P09 превра�
 ## Поставка P03 checkpoint68
 
 Exactf7/tag68 доставлен в Self: independent GET2026-10-26T23:23:36.856Z,8notes match2026-10-26T23:23:11.300Z. [Release68](../../design/mobile/testflight68-2026-10-27.md), [65-ID matrix68](acceptance68.md). Candidate0a никогда не загружался после найденной петли. Source/browser/native и Apple доказательства разделены. Следующий P04 использует отдельную временную рабочую копию; source68 остается immutable. Полная программа не завершена.
+
+## Дополнительная задача Ads
+
+Владелец27октября запросил вкладку Ads в настройках: тестовые сцены с
+переключением камер, свободным осмотром по горизонтали/вертикали и рекламными
+плейсментами для последующей проверки SDK. Рекламной интеграции в исходнике
+сейчас нет; провайдер/SDK уточняется. Подготовить отдельный изолированный
+прототип, явно отличать локальный preview/симуляцию от реального SDK callback.
+Не включать настоящую рекламную доставку и не заявлять прохождение сигнала
+без выбранного SDK и реальной проверки. Основная программа сохраняется.

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "a4cb84fb30e8",
-  "sha256": "265500d6e53b58ef755ca501fb9c571f4d4085bab80196f58a5dc54c3c2bcdb2",
-  "bytes": 6565589,
+  "version": "bd8f0b83ddbc",
+  "sha256": "6e02a97e0aa1106ec6b20d0cd7d79bbec84014b7e7af46545e0b30b013f71e5e",
+  "bytes": 6565646,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1815,8 +1815,8 @@
     },
     {
       "path": "src/lib/race-physics.ts",
-      "bytes": 26502,
-      "sha256": "6213cb3946e147c6ea8e7b4ae62e9f80b0fd4b4ff878c274874e7581ecfceea2"
+      "bytes": 27125,
+      "sha256": "dd4244dcab9508e4462b436ff635c2c9c1de3c300c6649824ce111a3d34ad7e3"
     },
     {
       "path": "src/lib/race-record-class.ts",

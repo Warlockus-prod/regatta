@@ -7,6 +7,7 @@
 
 ## Unreleased
 
+- Prepare an explicit physical race motion boundary using the trainer's metre and heading helpers and the existing race force/trim integration. Preserve twelve frozen legacy trajectories and server defaults. This is currently an unwired API; physical races stay disabled until course/bot/guidance/progression/recorder/native consumer and installed gates pass.
 - Delivered1.7.0(68) to exact TestFlight Self: independent confirmed native PB/History, idempotent receipts and a corrected shared3D replay Back route. Actual26.5/27 finishes, cold results and exact-f7 fresh27 startup pass;77first-attempt browser cases and independent23:23UTC Self/8notes GETs. Physical races and the wider completion program remain open. [Release68](docs/design/mobile/testflight68-2026-10-27.md).
 
 - Keep a saved shared3D replay inside its own native route, so opening it cannot replace the original race parameters and Back cannot cycle between History and Replay. The first68 candidate was held at native G2; corrected f7 is delivered68.
