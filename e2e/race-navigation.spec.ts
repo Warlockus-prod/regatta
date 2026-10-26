@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { buildSync } from "esbuild";
 import { makeStandardCourse } from "../src/lib/race-physics";
 import { DIFFICULTY_CONFIG } from "../src/app/game/config";
@@ -72,10 +72,8 @@ async function mapGeometry(map: Locator) {
   });
 }
 
-test("Simple 3D keeps live wind, the course map and wind choices in the reserved cockpit", async ({ page, context }, testInfo) => {
-  // One complete real 3D startup, running map and four settings transitions.
-  // The shared scene deadline stays 25s; existing test budgets are unchanged.
-  test.setTimeout(120_000);
+async function startSimpleRace(page: Page, context: BrowserContext) {
+  // Each journey uses its own real scene, ordinary input and unchanged deadlines.
   await context.addInitScript(() => {
     try {
       localStorage.setItem("regatta.lang.v1", "ru");
@@ -122,6 +120,12 @@ test("Simple 3D keeps live wind, the course map and wind choices in the reserved
   await expect(cockpit.getByRole("slider")).toHaveCount(1); // Simple still owns its auto trim.
   const clock = cockpit.getByText(/^\d+:\d\d\.\d$/);
   await expect(clock).not.toHaveText("0:00.0", { timeout: 15_000 });
+  return { scene, cockpit, canvas, startup, compact, direction, windSpeed, helm, clock };
+}
+
+test("Simple 3D keeps the complete live course and fleet in a running reserved Map", async ({ page, context }, testInfo) => {
+  test.setTimeout(120_000);
+  const { scene, cockpit, helm, clock, startup } = await startSimpleRace(page, context);
   const beforeScene = await scene.boundingBox();
   expect(beforeScene).not.toBeNull();
 
@@ -149,11 +153,16 @@ test("Simple 3D keeps live wind, the course map and wind choices in the reserved
     await expect(cockpit.getByRole("button", { name: "Карта трассы", exact: true })).toHaveAttribute("aria-pressed", "true");
     // Check full containment before Fleet causes any intentional panel scroll.
     // Intersection alone passes when the SVG's start/finish is below the fold.
-    await expect.poll(() => mapGeometry(map)).toMatchObject({
+    let validatedGeometry: Awaited<ReturnType<typeof mapGeometry>> | undefined;
+    await expect.poll(async () => {
+      validatedGeometry = await mapGeometry(map);
+      return validatedGeometry;
+    }).toMatchObject({
       svgInsidePanel: true, captionInsidePanel: true, svgInsideViewport: true, captionInsideViewport: true,
     });
+    if (!validatedGeometry) throw new Error("Validated Map geometry is unavailable");
     await testInfo.attach(`race-map-geometry-${label}-${viewport.width}x${viewport.height}`, {
-      body: Buffer.from(JSON.stringify(await mapGeometry(map))), contentType: "application/json",
+      body: Buffer.from(JSON.stringify(validatedGeometry)), contentType: "application/json",
     });
   }
   await dock.getByRole("heading", { name: "Флот", exact: true }).scrollIntoViewIfNeeded();
@@ -174,6 +183,25 @@ test("Simple 3D keeps live wind, the course map and wind choices in the reserved
   expect(Number.isFinite(mapClock)).toBe(true);
   // After confirming its real journal entry, keep Map open while a full second
   // advances. This proves it does not pause the race, without a fixed sleep.
+  await expect.poll(async () => seconds(await clock.textContent()), { timeout: 15_000 }).toBeGreaterThan(mapClock + 1);
+  await expect(startup).toHaveAttribute("data-scene-startup", "ready");
+
+  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  await expect(helm).toBeVisible();
+  await expect(cockpit.getByRole("slider")).toHaveCount(1);
+  await expect.poll(() => visualJournal(page)).toEqual({ status: "valid", mapOpened: true, mapClosed: true, windValues: [] });
+  await testInfo.attach("race-map-journal", { body: Buffer.from(JSON.stringify(await visualJournal(page))), contentType: "application/json" });
+});
+
+test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", async ({ page, context }, testInfo) => {
+  test.setTimeout(120_000);
+  const { cockpit, canvas, startup, compact, direction, windSpeed, helm, clock } = await startSimpleRace(page, context);
+  // Exercise the ordinary Map-to-Settings transition in this fresh journey too.
+  await cockpit.getByRole("button", { name: "Карта трассы", exact: true }).click();
+  await expect(cockpit.getByTestId("race-overview-map").getByRole("img", { name: "Карта трассы", exact: true })).toBeVisible();
+  await expect.poll(async () => (await visualJournal(page)).mapOpened).toBe(true);
+  const mapClock = seconds(await clock.textContent());
+  expect(Number.isFinite(mapClock)).toBe(true);
   await expect.poll(async () => seconds(await clock.textContent()), { timeout: 15_000 }).toBeGreaterThan(mapClock + 1);
   await expect(startup).toHaveAttribute("data-scene-startup", "ready");
 
