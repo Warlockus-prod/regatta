@@ -94,3 +94,14 @@ source measurements, not a judgement of installed handling feel.
 input hashes, all gate totals and the failed concurrent native run without
 relabeling it green. A fresh cloud browser/native check still follows before
 any candidate can be shipped. Frozen68 remains the delivered runtime.
+
+## First cloud portability finding
+
+Run40421105351 on exactd7 stopped in three frozen-trajectory cases before the
+browser gate. Linux reports heel/leeway differences from the Mac-captured
+fixture of about5e-15 (for example8.552946026875903vs8.552946026875908).
+All other shown force fields agree. The fixture is unchanged. Only those two
+fields now use12-decimal numerical precision, like the existing trajectory
+comparisons; remaining force fields and trim keep exact equality. No engine,
+rate, movement, timeout or browser assertion changes. A corrected exact-source
+cloud run must pass before declaring this gate green.

@@ -7,6 +7,7 @@
 
 ## Unreleased
 
+- Keep frozen legacy trajectory checks portable across Mac/Linux: only heel/leeway allow12-decimal precision after observed5e-15 runtime differences. All remaining force-state fields and trim stay exact; motion comparisons retain their existing precision. The frozen fixture and production engine are unchanged.
 - Prepare an explicit physical race motion boundary using the trainer's metre and heading helpers and the existing race force/trim integration. Preserve twelve frozen legacy trajectories and server defaults. This is currently an unwired API; physical races stay disabled until course/bot/guidance/progression/recorder/native consumer and installed gates pass.
 - Delivered1.7.0(68) to exact TestFlight Self: independent confirmed native PB/History, idempotent receipts and a corrected shared3D replay Back route. Actual26.5/27 finishes, cold results and exact-f7 fresh27 startup pass;77first-attempt browser cases and independent23:23UTC Self/8notes GETs. Physical races and the wider completion program remain open. [Release68](docs/design/mobile/testflight68-2026-10-27.md).
 
