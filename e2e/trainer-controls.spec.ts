@@ -7,9 +7,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 const PHONE = { width: 390, height: 844 };
 const ROUTES = [
-  { path: "/simulator?embed=1&lang=en", scene: "canvas" },
-  { path: "/simulator-v3?embed=1&lang=en", scene: '[data-testid="trainer-scene"]' },
-  { path: "/simulator2?embed=1&lang=en", scene: "canvas" },
+  { path: "/simulator?embed=1&lang=en", scene: "canvas", firstFrame: false },
+  { path: "/simulator-v3?embed=1&lang=en", scene: '[data-testid="trainer-scene"]', firstFrame: true },
+  { path: "/simulator2?embed=1&lang=en", scene: "canvas", firstFrame: true },
 ];
 
 async function sceneInView(page: Page, selector: string) {
@@ -25,8 +25,13 @@ for (const route of ROUTES) {
     test.setTimeout(60_000);
     await page.setViewportSize(PHONE);
     await page.goto(route.path);
-    await expect(page.getByTestId("control-dock")).toBeVisible({ timeout: 25_000 });
-    await expect(page.locator(route.scene).first()).toBeVisible({ timeout: 25_000 });
+    const deadline = Date.now() + 25_000;
+    const remaining = () => Math.max(1, deadline - Date.now());
+    await expect(page.getByTestId("control-dock")).toBeVisible({ timeout: remaining() });
+    await expect(page.locator(route.scene).first()).toBeVisible({ timeout: remaining() });
+    if (route.firstFrame) {
+      await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+    }
     await page.getByRole("tab", { name: "More", exact: true }).click();
     await page.getByRole("tabpanel").evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
     await page.mouse.wheel(0, 2000);
@@ -70,7 +75,10 @@ for (const route of [
     await page.setViewportSize(PHONE);
     await page.goto(route.path);
     const scene = page.locator(route.scene).first();
-    await expect(scene).toBeVisible({ timeout: 25_000 });
+    const deadline = Date.now() + 25_000;
+    const remaining = () => Math.max(1, deadline - Date.now());
+    await expect(scene).toBeVisible({ timeout: remaining() });
+    await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
     const s = (await scene.boundingBox())!;
     const bar = (await page.getByTestId("scene-bar").boundingBox())!;
     const readouts = (await page.getByTestId("trainer-readouts").boundingBox())!;
@@ -85,15 +93,34 @@ for (const route of [
   });
 }
 
-test("wheel mode: the dock is as tall as the wheels, no empty band under them", async ({ page }) => {
+test("wheel mode: wheels and Diagnostics occupy the dock without an empty band", async ({ page }) => {
   await page.setViewportSize(PHONE);
   await page.addInitScript(() => {
     localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
   });
   await page.goto("/simulator-v3?embed=1&lang=en");
-  await expect(page.getByRole("slider", { name: "Helm", exact: true })).toBeVisible({ timeout: 20_000 });
-  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  const deadline = Date.now() + 20_000;
+  const remaining = () => Math.max(1, deadline - Date.now());
+  await expect(page.getByRole("slider", { name: "Helm", exact: true })).toBeVisible({ timeout: remaining() });
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  const dockElement = page.getByTestId("control-dock");
+  const summary = dockElement.locator("details > summary");
+  await expect(summary).toHaveCount(1);
+  await expect(summary).toHaveText("Diagnostics");
+  await expect(summary).toBeVisible();
+  const utility = dockElement.locator("details").filter({ has: page.locator("summary", { hasText: /^Diagnostics$/ }) });
+  const dock = (await dockElement.boundingBox())!;
   const deck = (await page.getByTestId("wheel-deck").boundingBox())!;
-  expect(dock.y + dock.height - (deck.y + deck.height)).toBeLessThan(24);
+  const utilityBox = (await utility.boundingBox())!;
+  const target = (await summary.boundingBox())!;
+  const scene = (await page.getByTestId("trainer-scene").boundingBox())!;
+  // Diagnostics is occupied content, not the empty band this contract rejects.
+  expect(target.width).toBeGreaterThanOrEqual(44);
+  expect(target.height).toBeGreaterThanOrEqual(44);
+  expect(utilityBox.y).toBeGreaterThanOrEqual(deck.y + deck.height);
+  expect(utilityBox.y - (deck.y + deck.height)).toBeLessThan(24);
+  expect(dock.y + dock.height - (utilityBox.y + utilityBox.height)).toBeLessThan(24);
+  expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
+  expect(utilityBox.y + utilityBox.height).toBeLessThanOrEqual(PHONE.height);
   expect(deck.y + deck.height).toBeLessThanOrEqual(PHONE.height);
 });

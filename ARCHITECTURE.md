@@ -780,7 +780,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; catalog inventory отдельно от Diagnostics utility, для которой проверяются все7 названий, route, доступность при поиске и 44px. Три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены. Pro требует canvas и actual data-scene-startup=ready в одном 25s startup deadline перед прежней 15s clock-проверкой, без обхода renderer gate. Pro прикладывает before-clock/finally scene-startup, clock, visibility и максимум 10 pageerror stacks по 4KiB UTF-8. Read-only probe собирает shared pure parser внутри evaluate, возвращая только canonical 64KiB/200-entry journal либо present/invalid flags: raw invalid storage не попадает даже в retry trace. Переход Trainer/3D сохраняет actual pageerror stack в private synthetic CI report без изменения product telemetry.
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8); отдельные120s сохраняют весь keyboard/WS/settings/layout/Fleet flow после доказанного60s deadline на поздней геометрии.
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
-- `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.
+- `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры. Scroll и оба3D drawer-кейса ждут actual first frame в прежнем общем25s startup deadline до геометрии; drawer сохраняет1px bounds, view actions и60s total. Wheel-dock проверяет локализованный44px Diagnostics summary как занятое место, отсутствие перекрытий и настоящие пустые промежутки<24px, без увеличения бюджетов.
 - `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев. Три модели проходят реальные SQL/Volume уроки мышью: actual LCD `Volume:`, вращение обода и индекса, Complete, release, Next и 44px альтернативы проверяются без изменения timeout.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
 - `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд, compact Task и реальное изменение9m->11m с сохранением намерения через виды, панели и checkpoint; обычный30s бюджет этого case сохранен.
@@ -1253,6 +1253,8 @@ and current qualified acceptance. Next64 adds race map/wind display and shared g
 physical motion/classes and full product acceptance remain separate.
 
 - `docs/audits/2026-10-25/checks/website63-prepublication.json` - immutable APP 88/runtime and SITE c8ae4ef first-pass 60 proof, validated Pro observations/artifact hashes and explicit unpublished/partial-acceptance boundaries; later docs-only sync does not add source 64.
+- `docs/audits/2026-10-25/checks/website63-production.json` - published b75c1e4/runtime88 image digests,60 first-pass prepublication cases,16 healthy public routes and exact catalogs/privacy; final74-case production gate has70 first-pass,1flaky,2failed,1skipped. Records the real63 multiplayer accessible-name defect and proposed bounded trainer test corrections, with fresh OPS/volume verification explicitly unknown.
+
 
 ### Map/wind presentation checkpoint64
 
@@ -1307,7 +1309,7 @@ The shared Settings button uses the toothed icon; its full accessible name stays
 available even where the visible tab contains only the gear.
 
 Checkpoint64 extends the existing loopback pre-deploy E2E file set with the
-shared race navigation case. The finite expected list in ops/deploy/test_deploy.py
+shared race navigation case and the existing trainer-controls suite. The finite expected list in ops/deploy/test_deploy.py
 changes with it; all9 deployment boundary tests pass. Publication/deployment
 remain main-only, with the same secrets, pinned actions, report retention and
 confined forced command. No host/runtime/permission policy changes.

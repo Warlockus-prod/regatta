@@ -5,6 +5,46 @@ compass or incoming-air arrows like the trainer, and a proper Settings gear.
 The preceding63 is immutable source88fdaac and already available in Self.
 This is a separate presentation checkpoint. Physical course emission stays off.
 
+## Website integration after the63 production gate
+
+SITE initially merged APP1543d825, then adds frozen Map-fit source
+ef180dfc520df389353bc6e208e7187894b9f976 while retaining0198d63 and7d87bf3
+trainer browser contracts and portable website63-production.json.
+Published63/b75c1e4 was healthy, but its74-case production report has70 first-pass,
+1flaky,2failed and1skipped. The multiplayer range had no accessible name because
+its implicit label selected the earlier output element;64 explicitly supplies
+aria-label. Keep the guest's existing strict localized rudder-name expectation, all input,
+WebSocket, camera and fleet checks. This source repair is not yet proof of a
+successful future production run.
+
+The other failed contract counted the real Diagnostics utility as empty space.
+The retained test now checks its localized44px summary, occupied bounds and
+actual blank gaps below24px without boat overlap. The flaky simulator2 case
+sampled a150px canvas while Loading yacht was still visible; actual first-frame
+readiness now shares the existing startup deadline before geometry. The former
+>150px, viewport and scroll assertions remain, with no increased timeout.
+
+The normal loopback gate now includes e2e/trainer-controls.spec.ts. With the new
+map/wind case,68cases are expected before publication. The9finite boundary
+tests still require loopback, no deployment secrets in checks and main-only
+publication/deployment. A fresh combined cloud run remains required; no64
+runtime or installed package differs from the frozen APP source.
+
+The first combined68-case non-main run40242561385 on3fefb602 succeeded with
+67first-pass and1flaky, no failures/skips, and all publication/deployment jobs
+skipped. The corrected scroll and occupied-Diagnostics cases passed first
+attempt. The unchanged V3 drawer case sampled boxes after597ms while its
+retained screenshot still displayed Loading yacht; readoutsY330.5 missed the
+scene-bottom-minus1 threshold330.747833. Retry1 passed in12.646s. Both3D
+drawer cases now require the actual first rendered frame inside their same25s
+startup allowance before reading boxes. All1px bounds, drawer actions and60s
+total budgets remain unchanged; execution of this correction is pending.
+
+The source1543 installed native Map still needed scrolling to expose its start
+line/player under the reduced safe-area height. That separate shared Map-fit
+repair and fresh combined/native verification are required before publication;
+the successful68-case run does not close this installed UI defect.
+
 1. [x] Confirm source causes: missing live overview/TWD/TWS, literal sun-shaped
    shared settings SVG and inherited arrow stroke on the briefing wind label.
 2. [x] Shared toothed gear and clean briefing label, actual browser inspection,
@@ -118,7 +158,8 @@ panel/viewport edge at390x844,320x568,390x720 and844x390. The strengthened singl
 E2E repeats these four sizes before any Fleet scroll, restoring390x844 and all
 old controls/assertions.25s/15s/120s budgets remain unchanged.
 
-Source must freeze again with fresh sailing assets and exact new native proof,
-installed26.5/clean27, Apple validation/VALID/8notes/Self. Prior1543 checks do not
-stand in for the corrected package. Website PR84 still holds1543 until this
-source checkpoint is synchronized and its full gate repeats.
+Corrected sourceef180df is frozen with fresh sailing asseta129165d4b2b. Exact
+new native proof, installed26.5/clean27, Apple validation/VALID/8notes/Self remain
+required. Prior1543 checks do not stand in for the corrected package. Website
+PR84 now synchronizesef180df with the retained drawer-readiness correction;
+normal CI and the full68-case non-main gate must repeat before publication.
