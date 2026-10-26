@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Physical result-class integration starts with a pure, reviewed API in `src/lib/race-record-class.ts`. The ordered consumer gates and compatibility decisions are in `docs/audits/2026-10-26/physical-classes-harness.md`. Local historical PB defaults do not classify global or native saved records. Keep physical emission OFF until every consumer and engine gate passes.
+
 - Replay copy now has a small synchronous shared boundary, retaining every label and all seven languages while avoiding the full rules dictionary in the replay route. Source measurements and remaining gates: `docs/audits/2026-10-26/replay-bundle-harness.md`. The frozen64 archive is unchanged.
 
 - The separate16/C cancellation follow-up is recorded in `docs/audits/2026-10-26/radio-cancel-harness.md`. Actual pointer cancellation clears the hold without selecting CH16 and writes one bounded local cancel/noop event. It is not included in the frozen64 binary. Phase2 reader rollback checkpoint is723b17d; physical emission remains OFF.

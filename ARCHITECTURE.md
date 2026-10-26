@@ -1387,3 +1387,19 @@ both models/layouts and actual reducer/timer behavior. The catalog generator
 excludes only the internal16c diagnostic ID, retaining visible[16/C] guide copy;
 the real-generator regression guards that distinction.
 Source and delivery limits: `docs/audits/2026-10-26/radio-cancel-harness.md`.
+
+### Physical comparison and result classes
+
+- `src/lib/race-record-class.ts` - pure canonical local comparison keys, closed
+  registered class lookup and global unclassified/classified selection. It has
+  no storage, React, database or physics dependency and does not prove eligibility.
+- `src/lib/race-record-class.test.ts` - all18 historical/54 physical keys,
+  supported whole-store capacity, explicit physical mode, global provenance,
+  derived class authority, unknown metadata and nonmutation.
+
+Missing local PB context keeps the exact old key convention. Missing global
+context remains unclassified even when a valid mode is supplied. Classified
+saved-record/result eligibility additionally requires explicit context, mode and
+raw registered geometry. Unsupported native records cannot inherit a Simple or
+Short fallback. Consumer implementation and emission gates are owned by
+`docs/audits/2026-10-26/physical-classes-harness.md`.
