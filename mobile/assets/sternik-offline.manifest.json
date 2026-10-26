@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "06fb7a5862b3",
+  "version": "aa6333c12160",
   "lang": "pl",
-  "sha256": "c1ed0a8468c71e1eb2942e4c42de40505b6ccaf91fa4ef35e91fe00118d03575",
-  "bytes": 2580498,
+  "sha256": "97469b320559bee72dfd38c413b9a9300546aee21bb068b592d5266bb223bf48",
+  "bytes": 2580727,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -291,8 +291,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 25155,
-      "sha256": "07c81ba3b4cf94cb478f11352cab1f31c578eb254f2c955e08f0c124d2e3f1f5"
+      "bytes": 25624,
+      "sha256": "be7084259faa633b4ee923098400d19ea955f2bd810c5e4278a8ddd1875e27f6"
     },
     {
       "path": "src/lib/race-visual-prefs.ts",

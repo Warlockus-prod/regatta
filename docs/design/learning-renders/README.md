@@ -1,6 +1,6 @@
 # Sailing learning renders: first comparison pair
 
-Status: P02 art preparation, not a released lesson or an approved rigging diagram.
+Status: P02 packaging candidate for the first Scheme/Picture lesson. Native delivery is pending; these images are not an approved rigging diagram.
 Created2026-10-26 using the built-in `image_gen` tool. The second image edits the first reference; no CLI/API fallback was used. Original PNGs remain in the generation output, while these project-local WebP copies preserve1536x1024 composition at quality90.
 
 | Asset | Purpose | SHA256 |
@@ -30,6 +30,22 @@ Create the matching second instructional image using this render as the exact ya
 ```
 
 ## Current outputs
+
+The production candidates are `public/learning/mainsail-filled.jpg` and
+`public/learning/mainsail-luffing.jpg`, encoded from the WebP pair without
+cropping, retouching or new generation. The same two files serve web and native;
+Metro watches only this shared asset directory. Code-native numbered leaders
+identify luff, cloth and leech; the existing force diagram stays below the image.
+It is a comparison of shape, not a calculated aerodynamic field. Labels and
+observations are shared in `src/data/sail-shape.ts` and adapted in all seven
+languages. The wider illustration collection remains unfinished.
+
+| Packaged asset | Bytes | SHA256 |
+| --- | --- | --- |
+| `public/learning/mainsail-filled.jpg` | 256611 | `3744dfed92411fad4e5eeccc1f365be4c1a302fa55d137b9060d1e06efb5389f` |
+| `public/learning/mainsail-luffing.jpg` | 276132 | `17180fbfe8f4ce56bd30655b0dcfc0054ec639114b2ba2bd520afbff19940def` |
+
+Acceptance: `docs/audits/2026-10-26/learning-visuals-harness.md`.
 
 ![Filled mainsail close-up](mainsail-filled-v1.webp)
 ![Luffing mainsail close-up](mainsail-luffing-v1.webp)

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "f1e7d8edd8cd",
-  "sha256": "1fb9c43e213bb130c857e440241dbc8bedb6838241d04d393e9444d148a78720",
-  "bytes": 6553586,
+  "version": "ef9e2baae3ad",
+  "sha256": "7c6c4e4b47dfd945a59de54aa0afb368c3171182e777052118aea5847a4124be",
+  "bytes": 6556985,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -614,6 +614,7 @@
     "src/data/bootcamp.ts",
     "src/data/drills.ts",
     "src/data/foundation-copy.ts",
+    "src/data/foundation-practice.ts",
     "src/data/missions.ts",
     "src/data/sailing-data.ts",
     "src/data/sailing-lab/assessment-copy.ts",
@@ -941,8 +942,8 @@
     },
     {
       "path": "src/data/bootcamp.ts",
-      "bytes": 28461,
-      "sha256": "b8260a6a1c2800a50e6dd4559da350d506a81f8e4fec355fafa0b2ea960665de"
+      "bytes": 27440,
+      "sha256": "884500745e41ad78a6479540535b86ad73df5309b5d79ec11a8caaa5ca0dbe68"
     },
     {
       "path": "src/data/drills.ts",
@@ -951,8 +952,13 @@
     },
     {
       "path": "src/data/foundation-copy.ts",
-      "bytes": 1733,
-      "sha256": "6e28d680febd3055619e968e594b93963549ffffdd65968ea04811798cbd81f5"
+      "bytes": 2506,
+      "sha256": "cc1a48ebc711eebe08f6de17f0e3bc59b9d714f3f637b140fa57ab19c50c1c23"
+    },
+    {
+      "path": "src/data/foundation-practice.ts",
+      "bytes": 2951,
+      "sha256": "72552cc393793b2c2cbe171d1112d70990ad7600e8e369ba56d3cd3aaa925ecc"
     },
     {
       "path": "src/data/missions.ts",
@@ -1421,8 +1427,8 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 49671,
-      "sha256": "89caef0c05005d8063de901ec74603ba4291953dbf6e4e279a5f577a472d2660"
+      "bytes": 48743,
+      "sha256": "23eef71926ee96b1adbcc0e07317969e36fe3bffbca6f6fb5717277be8ec3126"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -1451,8 +1457,8 @@
     },
     {
       "path": "src/features/simulator-v3/runtime/deep-link.ts",
-      "bytes": 1513,
-      "sha256": "47cbc17627c6afa78eca6334f8bd97dd2692d012ccc63ba2a47e648801c7c9a8"
+      "bytes": 3124,
+      "sha256": "9cae573011ced7a423d9c0e61853caf80380791a9a4fdac876cc761dd1a05cd9"
     },
     {
       "path": "src/features/simulator-v3/runtime/drill-clock.ts",
@@ -1601,8 +1607,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/pods/WindPod.tsx",
-      "bytes": 4513,
-      "sha256": "57535d216f96d596af3aeba4dddf2c4ead2c520b20c38a66c55b72ec0d22cf92"
+      "bytes": 4512,
+      "sha256": "3dc8bb07b595d340316390b7c88e8cbad058b1e2d55560e9086570b61668bd49"
     },
     {
       "path": "src/features/simulator-v3/ui/sail-projection.ts",
@@ -1741,8 +1747,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 25155,
-      "sha256": "07c81ba3b4cf94cb478f11352cab1f31c578eb254f2c955e08f0c124d2e3f1f5"
+      "bytes": 25624,
+      "sha256": "be7084259faa633b4ee923098400d19ea955f2bd810c5e4278a8ddd1875e27f6"
     },
     {
       "path": "src/lib/fallback-coach.ts",

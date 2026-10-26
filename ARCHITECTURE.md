@@ -570,7 +570,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/simulator-v3/runtime/trainer-catalog.test.ts` - сверка сценариев с `src/data/drills.ts`.
 - `src/features/simulator-v3/runtime/drill-clock.ts` - часы упражнения.
 - `src/features/simulator-v3/runtime/drill-clock.test.ts` - тесты часов упражнения.
-- `src/features/simulator-v3/runtime/deep-link.ts` - разбор ссылки на конкретное упражнение.
+- `src/features/simulator-v3/runtime/deep-link.ts` - чистый разбор упражнения и share-state; известный первый урок выбирает камеру всей яхты, сохраняя приоритет учебных preset-входов. TWA принимает0..180.
 - `src/features/simulator-v3/runtime/deep-link.test.ts` - тесты диплинков.
 - `src/features/simulator-v3/runtime/wind-dynamics.ts` - совместимость: динамика ветра у общей сессии.
 - `src/features/simulator-v3/runtime/wind-dynamics.test.ts` - тесты динамики ветра.
@@ -1540,6 +1540,33 @@ history. This boundary is not a new result class or physical writer.
   first-candidate native rejection, final G2 and exact Apple delivery limits.
 - `docs/design/mobile/testflight66-2026-10-26.md` - delivered P01 offline
   practice fix, retained-data/native/browser checks, exact Apple GETs and rollback.
+
+P02 shared teaching and illustration boundary:
+
+- `src/data/foundation-wind.ts` - reviewed first-lesson teaching and wind-scene
+  copy shared by native compatibility entries and the web Foundation guide.
+- `src/data/foundation-practice.ts` - shared wind-observation task, title and
+  explicit web/native routes to the same3Dboat, retaining bounded lesson return.
+- `src/data/lesson-copy.ts` - shared seven-language lesson-template labels;
+  native pilots retain their compatibility re-export.
+- `src/data/sail-shape.ts` - generated-illustration frames, callout labels,
+  observations and limits; no calculated pressure field or procedural rigging.
+- `src/lib/learning/sail-shape-markers.ts` - read-only numeric leader geometry
+  in the image coordinate system, without external assets or baked text.
+- `src/app/start/FoundationClient.tsx` - existing interactive Foundation flow;
+  the server page supplies teaching copy as serializable data.
+- `src/app/start/SailShapeIllustration.tsx` and
+  `src/app/start/sail-shape.module.css` - web Scheme/Picture pilot, real asset
+  outcomes, stale callback guard and preserved force diagram.
+- `mobile/src/bootcamp/SailShapeIllustration.tsx` - native version using the
+  same content/markers and bundled images, preserving lesson/quiz schemas.
+- `public/learning/mainsail-filled.jpg` and
+  `public/learning/mainsail-luffing.jpg` - shared web/native packaging assets
+  derived from the reviewed draft pair; narrow Metro watch path bundles them.
+- `mobile/__tests__/learning-illustration.test.tsx` - shared teaching identity,
+  seven-language completeness, no false credit, image error/retry and stale events.
+- `docs/audits/2026-10-26/learning-visuals-harness.md` - P02 scope, ordered
+  source/browser/native/delivery gates and the explicit wider-illustration limits.
 
 History keeps every row newest-first and projects once per history array.
 Leaderboard filters already projected rows, keeps historical score ranks in

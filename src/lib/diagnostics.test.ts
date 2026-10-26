@@ -217,6 +217,14 @@ describe("diagnostic strict transport and privacy", () => {
     expect(parseDiagnosticBatch({ version: 1, events: [getter] })).toBeNull();
   });
 
+  it("accepts only finite illustration events and rejects asset URLs, text and unknown lesson IDs", () => {
+    const event = { type: "learning.visual", surface: "learn", outcome: "failed", action: "image-error", lesson: "how-sail-works", mode: "picture", frame: "luffing", reason: "asset-load" };
+    expect(parseDiagnosticBatch({ version: 1, events: [event] })?.events).toEqual([event]);
+    for (const extra of [{ uri: "private-file" }, { text: "private-answer" }, { lesson: "private-lesson" }, { frame: "unknown" }, { mode: "3d" }]) {
+      expect(parseDiagnosticBatch({ version: 1, events: [{ ...event, ...extra }] })).toBeNull();
+    }
+  });
+
   it("supports bounded learning and storage operations without recording answer or storage contents", () => {
     const events: DiagnosticInput[] = [
       { type: "navigation", surface: "diagnostics", outcome: "accepted", action: "confirmed", from: "settings", to: "diagnostics" },
@@ -224,6 +232,7 @@ describe("diagnostic strict transport and privacy", () => {
       { type: "storage.operation", surface: "app", outcome: "failed", action: "write", target: "progress", reason: "storage-unavailable" },
       { type: "storage.operation", surface: "race", outcome: "failed", action: "write", target: "personal-best", reason: "storage-write" },
       { type: "storage.operation", surface: "app", outcome: "accepted", action: "clear", target: "history", source: "native" },
+      { type: "learning.visual", surface: "learn", outcome: "accepted", action: "mode", lesson: "how-sail-works", mode: "picture", frame: "filled" },
     ];
     expect(parseDiagnosticBatch(serializeDiagnosticBatch(events))?.events).toEqual(events);
     expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[1], step: 1.2 }] })).toBeNull();

@@ -15,9 +15,17 @@ vi.mock("../trainer-controls", async original => ({ ...await original<typeof imp
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (text: Record<string, string>) => text.en, tp: (_ru: string, en: string) => en }) }));
 vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
 import SimulatorV3Page from "./SimulatorV3Page";
+import { WindPod } from "./ui/pods/WindPod";
+import { FREE_TRAINER_UI } from "./ui/shared";
 beforeEach(() => { capture.setUi = null; vi.mocked(recordWebDiagnostic).mockReset(); vi.stubGlobal("React", React); });
 afterEach(() => { vi.unstubAllGlobals(); });
 describe("actual trainer UI command boundary", () => {
+  it("lets a first-lesson learner select head-to-wind through the actual TWA slider", () => {
+    const html = renderToStaticMarkup(<WindPod ui={FREE_TRAINER_UI} setUi={vi.fn()} tp={(_ru, en) => en} tackLabel="Starboard" part="course" />);
+    expect(html).toContain('min="0"');
+    expect(html).toContain('max="180"');
+    expect(html).toContain('Angle TWA');
+  });
   it("uses the canonical reef and open-sail mapping, and keeps rapid working-length/traveler targets", () => {
     const journal = createDiagnosticJournal({ now: () => 0 });
     vi.mocked(recordWebDiagnostic).mockImplementation(event => journal.record(event));

@@ -22,7 +22,7 @@ import { assessmentCopy } from "../../data/sailing-lab/assessment-copy";
 import { TrimStudyGoal, TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
 import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
 import { useTrainerCheckpoint } from "./hooks/use-trainer-checkpoint";
-import { resolveTrainerDeepLink } from './runtime/deep-link';
+import { resolveTrainerDeepLink, readTrainerSetupFromSearch, resolveWindObservationEntry } from './runtime/deep-link';
 import { uiToControls } from "./runtime/create-runtime-state";
 import {
   type DrillDefinition,
@@ -50,7 +50,6 @@ import { WindPod } from './ui/pods/WindPod';
 import {
   DEFAULT_UI,
   FREE_TRAINER_UI,
-  type ReefLevel,
   type SimulationModel,
   type UiState,
 } from './ui/shared';
@@ -96,34 +95,6 @@ const useClientOnly = () => useSyncExternalStore(noopSubscribe, () => true, () =
 // separately by resolveTrainerDeepLink in runtime/deep-link.ts.
 // ---------------------------------------------------------------------------
 
-function readUiFromUrl(search?: string): Partial<UiState> | null {
-  if (typeof window === 'undefined') return null;
-  const p = new URLSearchParams(search ?? window.location.search);
-  if (!p.toString()) return null;
-  const out: Partial<UiState> = {};
-  const num = (k: string) => {
-    const v = p.get(k);
-    if (v === null) return undefined;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : undefined;
-  };
-  const twa = num('twa');
-  if (twa !== undefined && twa >= 30 && twa <= 180) out.twa = Math.round(twa);
-  const tws = num('tws');
-  if (tws !== undefined && tws >= 4 && tws <= 25) out.windSpeed = Math.round(tws);
-  const main = num('main');
-  if (main !== undefined && main >= 0 && main <= 85) out.mainAngle = main;
-  const jib = num('jib');
-  if (jib !== undefined && jib >= 5 && jib <= 55) out.jibAngle = jib;
-  const reef = p.get('reef');
-  if (reef === '0' || reef === '1' || reef === '2') {
-    out.reefLevel = Number(reef) as ReefLevel;
-  }
-  const tack = p.get('tack');
-  if (tack === 'p') out.tack = 'port';
-  if (tack === 's') out.tack = 'starboard';
-  return Object.keys(out).length ? out : null;
-}
 
 function buildShareUrl(ui: UiState): string {
   const origin =
@@ -396,7 +367,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       } else if (search.get("study") === "shape") {
         startRigStudy();
       } else {
-        const fromUrl = readUiFromUrl(initialSearch);
+        const observation = resolveWindObservationEntry(search);
+        if (observation) selectBoatView(observation.boatView);
+        const fromUrl = readTrainerSetupFromSearch(initialSearch ?? window.location.search);
         if (fromUrl) {
           const next = { ...FREE_TRAINER_UI, ...fromUrl };
           setUi(next);

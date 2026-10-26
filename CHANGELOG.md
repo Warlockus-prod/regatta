@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Share the first Foundation lesson across app and web, with real3Dwind observation and return to the same lesson step. Add a Scheme/Picture pilot with filled/luffing mainsail views, readable callouts, preserved force diagrams and local image-result diagnostics. Picture selection does not pass a lesson; a failed image returns to the diagram. Native delivery is still pending P02 acceptance.
+
 - Delivered1.7.0(66) to exact TestFlight Self: the first lesson's native practice no longer passes an unsupported accessibility action to Skia Canvas. Local wind remains; live-weather requests are removed from the native trainer. Installed26.5/27 checks and72first-attempt browser cases pass. Independent Apple GET confirms VALID/IN_BETA_TESTING and eight matching notes. [Scope and limits](docs/design/mobile/testflight66-2026-10-26.md).
 
 - Safely archive50inactive local branch heads with52verified recovery refs. Remote branches, active worktrees, unique work and user files remain preserved. The manifest records the two safe-delete refusals; full cleanup remains open.

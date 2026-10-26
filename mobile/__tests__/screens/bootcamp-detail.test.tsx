@@ -98,7 +98,7 @@ describe('Bootcamp lesson detail', () => {
       expect(parsed).toContain('wind-direction');
     });
     const mocks = (globalThis as any).__regattaMocks as RegattaMocks;
-    expect(mocks.pushMock).toHaveBeenCalledWith('/courses?fromLesson=wind-direction#wind');
+    expect(mocks.pushMock).toHaveBeenCalledWith('/simulator-v3?fromLesson=wind-direction');
   });
 
   it('opening the practice does not pass the lesson', async () => {

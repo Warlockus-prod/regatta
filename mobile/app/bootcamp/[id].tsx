@@ -268,7 +268,7 @@ function LessonContent({ id }: { id: string }) {
           }}
           variant="primary"
         >
-          {practiceDestination?.title[lang] ?? foundationCopy.practice[lang]} →
+          {focusedPractice?.title?.[lang] ?? practiceDestination?.title[lang] ?? foundationCopy.practice[lang]} →
         </Button>
       </View>
 
