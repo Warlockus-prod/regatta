@@ -56,11 +56,26 @@ trailing spaces; generated files are accepted through exact rebuild comparison.
    shared seven-language title resource, never expose raw IDs as course names.
 3. Integrate native PB durability with the actual finish acknowledgement. A
    successful history save cannot acknowledge a separate optimistic PB write.
-4. Complete alias-consistency checks at actual Replay/Coach entry points and
-   measure projection work once per stable history array.
+4. Alias consistency is now source checked at actual Replay/Coach entry points
+   and reused by the projection. Measure projection work once per stable history
+   array when integrating the remaining real list views.
 5. Run consumer UI/browser/native/CI gates and record rollback checkpoints.
    Then implement physical movement, gates, bots, advice, recording and course
    choices. Keep legacy/no-context multiplayer goldens unchanged.
 
 Diagnostics coverage remains the separate D01-D09 matrix. Pure schema additions
 and these source adapters do not mean every product action is instrumented.
+
+## Native alias entry follow-up
+
+The shared classifier now checks namespaced wrapper identities after canonical
+world validation. A known mismatch is corrupt; a future class is unsupported.
+Bare historical aliases do not override validated world geometry. A minimal
+classifier input without courseId remains readable. The projection reuses this
+check rather than owning a second implementation. Actual Replay/Coach route
+tests preserve stored bytes and prove the localized notice/Back appears before
+pixel geometry, shared redirect, local analysis or a remote request.
+
+Focused native component gate66tests/3suites and full551tests/75suites pass,
+along with strict web/native types, native lint and all3package freshness checks.
+This remains source evidence outside the installed64 binary.

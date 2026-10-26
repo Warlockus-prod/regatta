@@ -127,6 +127,22 @@ it("distinguishes unknown web schema from malformed payloads without removing th
   }
 });
 
+it.each([
+  ["physical-cruiser-v1:long:r1", "Could not read saved race"],
+  ["physical-cruiser-v2:short:r1", "Saved race not supported"],
+])("rejects wrapper %s at the actual Replay route and preserves history", async (courseId, title) => {
+  const record = { ...legacy, courseId, webRace: snapshot("short") }, bytes = JSON.stringify([record]);
+  expect(classifyNativeReplayEntry({ webRace: record.webRace })).toEqual({ kind: "shared" });
+  await AsyncStorage.setItem(KEY, bytes); (AsyncStorage.setItem as jest.Mock).mockClear();
+  const view = render(<ReplayRoute />);
+  await waitFor(() => expect(view.getByText(title)).toBeTruthy());
+  expect(view.getByRole("button", { name: "Back" })).toBeTruthy();
+  expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
+  expect(mockUseHistory).not.toHaveBeenCalled();
+  expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
+});
+
 it.each(PHYSICAL_RACE_PROFILES)("redirects a saved known %s world replay to the existing shared route", async profile => {
   const record = { ...legacy, webRace: snapshot(profile) }, bytes = JSON.stringify([record]);
   await AsyncStorage.setItem(KEY, bytes); (AsyncStorage.setItem as jest.Mock).mockClear();

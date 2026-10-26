@@ -1,5 +1,5 @@
-import { raceClassId, readRaceContext, type RaceClassId } from "../../../src/lib/race-context";
-import { raceComparisonKey, raceContextForClassId, readRaceComparison, readRaceResultSelection, type RaceComparison } from "../../../src/lib/race-record-class";
+import { readRaceContext, type RaceClassId } from "../../../src/lib/race-context";
+import { raceComparisonKey, readRaceComparison, readRaceResultSelection, type RaceComparison } from "../../../src/lib/race-record-class";
 import { matchesRegisteredRaceCourse } from "../../../src/lib/race-result-eligibility";
 import { classifyNativeReplayEntry } from "../replay/entry";
 import type { RaceRecord } from "./race-history";
@@ -48,13 +48,6 @@ export function projectNativeRaceRecord(record: Pick<RaceRecord, "courseId" | "w
   if (!snapshot) return unavailable("corrupt");
   const context = readRaceContext(snapshot.raceContext);
   if (!context.ok) return unavailable(context.reason === "unsupported" ? "unsupported" : "corrupt");
-  // Historical bare aliases are not physical class authority. An explicit
-  // namespaced identity, however, must agree with the validated snapshot.
-  if (/^(?:legacy-race|physical-cruiser)-v\d+:/.test(record.courseId)) {
-    const declared = raceContextForClassId(record.courseId);
-    if (!declared) return unavailable("unsupported");
-    if (raceClassId(declared) !== raceClassId(context.context)) return unavailable("corrupt");
-  }
   if (context.context.model === "physical-cruiser-v1" && snapshot.missionId !== null) return unavailable("corrupt");
   if (snapshot.mode === undefined) return historical("historical-world-unclassified");
   const selection = readRaceResultSelection(snapshot);

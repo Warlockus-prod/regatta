@@ -1,4 +1,5 @@
-import { readRaceContext } from "../../../src/lib/race-context";
+import { raceClassId, readRaceContext } from "../../../src/lib/race-context";
+import { raceContextForClassId } from "../../../src/lib/race-record-class";
 import { validateNativeRace } from "../../../src/lib/race-native";
 
 export type NativeReplayEntry =
@@ -24,5 +25,13 @@ export function classifyNativeReplayEntry(record: unknown): NativeReplayEntry {
   };
   const context = readRaceContext(value.raceContext);
   if (!context.ok) return { kind: "unavailable", reason: context.reason === "unsupported" ? "unsupported" : "corrupt" };
-  return validateNativeRace(value) ? { kind: "shared" } : { kind: "unavailable", reason: "corrupt" };
+  if (!validateNativeRace(value)) return { kind: "unavailable", reason: "corrupt" };
+  // Bare historical aliases never establish world provenance. A namespaced
+  // class, when supplied, must agree at every real Replay/Coach entry point.
+  if (typeof record.courseId === "string" && /^(?:legacy-race|physical-cruiser)-v\d+:/.test(record.courseId)) {
+    const declared = raceContextForClassId(record.courseId);
+    if (!declared) return { kind: "unavailable", reason: "unsupported" };
+    if (raceClassId(declared) !== raceClassId(context.context)) return { kind: "unavailable", reason: "corrupt" };
+  }
+  return { kind: "shared" };
 }

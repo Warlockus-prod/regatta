@@ -150,6 +150,23 @@ it.each([
   expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
+it.each([
+  ["physical-cruiser-v1:long:r1", "Could not read saved race"],
+  ["physical-cruiser-v2:short:r1", "Saved race not supported"],
+])("rejects the contradictory wrapper %s before any Coach analysis or request", async (courseId, title) => {
+  const bytes = JSON.stringify([{ ...legacy, courseId, webRace: snapshot("short") }]);
+  await AsyncStorage.setItem(KEY, bytes); (AsyncStorage.setItem as jest.Mock).mockClear();
+  const view = render(<Coach />);
+  await waitFor(() => expect(view.getByText(title)).toBeTruthy());
+  fireEvent.press(view.getByRole("button", { name: "Back" }));
+  expect(mockBack).toHaveBeenCalledTimes(1);
+  expect(mockFindCourse).not.toHaveBeenCalled();
+  expect(mockRequest).not.toHaveBeenCalled();
+  expect(mockAnalyse).not.toHaveBeenCalled();
+  expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
+});
+
 it.each([undefined, ...PHYSICAL_RACE_PROFILES])("keeps known world %s coaching local and uses its saved geometry", async profile => {
   const race = snapshot(profile), bytes = JSON.stringify([{ ...legacy, webRace: race }]);
   await AsyncStorage.setItem(KEY, bytes); (AsyncStorage.setItem as jest.Mock).mockClear();

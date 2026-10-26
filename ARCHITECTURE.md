@@ -1456,6 +1456,13 @@ Delivered64 is documented in `docs/design/mobile/testflight64-2026-10-26.md`,
 with all65IDs retained in `docs/audits/2026-10-26/acceptance64.md` and safe portable
 proof `docs/audits/2026-10-26/checks/native64-delivery.json`. NEXT source is excluded.
 
+Native namespaced class-alias consistency belongs to the shared Replay/Coach
+entry classifier, so the projection and both real routes cannot disagree about
+a contradictory or future wrapper identity. Old bare aliases and minimal
+historical classifier inputs remain supported. Actual-route tests verify safe
+notice/Back, no shared redirect/pixel geometry/Coach request and byte-preserved
+history. This boundary is not a new result class or physical writer.
+
 - `docs/audits/2026-10-25/checks/website64-prepublication-main.json` - exactb459ecc
   prepublication failure and retained timing/geometry proof,67passed/1deadline,
   no image/deploy mutation, prior production health and the bounded two-journey
