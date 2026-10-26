@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Replay copy now has a small synchronous shared boundary, retaining every label and all seven languages while avoiding the full rules dictionary in the replay route. Source measurements and remaining gates: `docs/audits/2026-10-26/replay-bundle-harness.md`. The frozen64 archive is unchanged.
+
 - The separate16/C cancellation follow-up is recorded in `docs/audits/2026-10-26/radio-cancel-harness.md`. Actual pointer cancellation clears the hold without selecting CH16 and writes one bounded local cancel/noop event. It is not included in the frozen64 binary. Phase2 reader rollback checkpoint is723b17d; physical emission remains OFF.
 
 - This temporary next-worktree contains locally checked physical phase2 readers after corrected immutable build64 sourceef180df. See `docs/audits/2026-10-26/physical-readers-harness.md`. Known physical contexts retain canonical geometry and recorded trajectory precision; unknown context never becomes pixel replay or reaches the legacy remote Coach. Physical result emission stays disabled until PB/native/server classes and the engine are integrated. Do not archive this branch as64 or alter the frozen APP checkout.
@@ -198,13 +200,13 @@ npm run dev -- --port 3007   # другой порт (нужно для ворк
 ```
 npx tsc --noEmit             # должно быть чисто
 npm run build                # прод-сборка Turbopack строже dev
-npm run test:physics         # 60 тестов, 7 файлов
+npm run test:physics         # общая физика и совместимость серверного движка
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 871 тест, 80 файлов
+npx vitest run               # все веб-юнит-тесты, текущие числа в harness
 npm run test:multiplayer     # живой ws-server: жизненный цикл сокетов
-npx playwright test          # 44 теста, 7 файлов (BASE_URL задает цель)
+npx playwright test          # все browser-сценарии (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
 ```

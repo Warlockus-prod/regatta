@@ -3,6 +3,7 @@
 import { useI18n } from "@/lib/i18n";
 import type { RaceGuidanceAction } from "@/lib/race-guidance";
 import type { RaceRuleEvent } from "@/lib/race-rules";
+import { REPLAY_COPY_RESOURCES } from "./replay-copy";
 
 export function useRaceCopy() {
   const { tl } = useI18n();
@@ -23,20 +24,20 @@ export function useRaceCopy() {
     main: tl({ ru: "Грот поднят", en: "Mainsail hoisted", pl: "Grot postawiony", es: "Mayor izada", fr: "Grand-voile hissée", de: "Großsegel gesetzt", it: "Randa issata" }),
     jib: tl({ ru: "Стаксель развернут", en: "Jib unfurled", pl: "Fok rozwinięty", es: "Foque desplegado", fr: "Foc déroulé", de: "Fock ausgerollt", it: "Fiocco aperto" }),
     reef: tl({ ru: "Рифление грота", en: "Mainsail reef", pl: "Refowanie grota", es: "Rizo de la mayor", fr: "Ris de grand-voile", de: "Großsegel reffen", it: "Terzaroli randa" }),
-    view: tl({ ru: "Камера", en: "Camera", pl: "Kamera", es: "Cámara", fr: "Caméra", de: "Kamera", it: "Camera" }),
-    orbit: tl({ ru: "Вокруг лодки", en: "Around the boat", pl: "Wokół łodzi", es: "Alrededor del barco", fr: "Autour du bateau", de: "Um das Boot", it: "Attorno alla barca" }),
-    resetCamera: tl({ ru: "Вернуть ракурс", en: "Reset view", pl: "Przywróć widok", es: "Restablecer vista", fr: "Rétablir la vue", de: "Ansicht zurücksetzen", it: "Ripristina vista" }),
+    view: tl(REPLAY_COPY_RESOURCES.view),
+    orbit: tl(REPLAY_COPY_RESOURCES.orbit),
+    resetCamera: tl(REPLAY_COPY_RESOURCES.resetCamera),
     cameraGesture: tl({ ru: "Вращай сцену пальцем или мышью. Масштаб: двумя пальцами или колесом мыши.", en: "Drag the scene to look around. Pinch or scroll to zoom.", pl: "Przeciągnij po scenie, żeby się rozejrzeć. Zbliżaj dwoma palcami lub kółkiem myszy.", es: "Arrastra la escena para mirar alrededor. Usa dos dedos o la rueda para acercar y alejar.", fr: "Fais glisser la scène pour regarder autour. Pince ou utilise la molette pour zoomer.", de: "Ziehe in der Szene, um dich umzusehen. Zoome mit zwei Fingern oder dem Mausrad.", it: "Trascina la scena per guardarti intorno. Usa due dita o la rotella per lo zoom." }),
-    high: tl({ ru: "Сверху", en: "Above", pl: "Z góry", es: "Desde arriba", fr: "En hauteur", de: "Von oben", it: "Dall'alto" }),
-    stern: tl({ ru: "За кормой", en: "Behind", pl: "Za rufą", es: "Tras la popa", fr: "Derrière", de: "Am Heck", it: "Da poppa" }),
+    high: tl(REPLAY_COPY_RESOURCES.high),
+    stern: tl(REPLAY_COPY_RESOURCES.stern),
     speed: tl({ ru: "Скорость", en: "Speed", pl: "Prędkość", es: "Velocidad", fr: "Vitesse", de: "Tempo", it: "Velocità" }),
     knots: tl({ ru: "уз", en: "kn", pl: "w.", es: "kn", fr: "nd", de: "kn", it: "kn" }),
     time: tl({ ru: "Время", en: "Time", pl: "Czas", es: "Tiempo", fr: "Temps", de: "Zeit", it: "Tempo" }),
     wind: tl({ ru: "К ветру", en: "To wind", pl: "Do wiatru", es: "Al viento", fr: "Au vent", de: "Zum Wind", it: "Al vento" }),
     position: tl({ ru: "Позиция", en: "Position", pl: "Pozycja", es: "Posición", fr: "Position", de: "Platz", it: "Posizione" }),
-    pause: tl({ ru: "Пауза", en: "Pause", pl: "Pauza", es: "Pausa", fr: "Pause", de: "Pause", it: "Pausa" }),
-    resume: tl({ ru: "Продолжить", en: "Resume", pl: "Wznów", es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" }),
-    back: tl({ ru: "Назад", en: "Back", pl: "Wróć", es: "Volver", fr: "Retour", de: "Zurück", it: "Indietro" }),
+    pause: tl(REPLAY_COPY_RESOURCES.pause),
+    resume: tl(REPLAY_COPY_RESOURCES.resume),
+    back: tl(REPLAY_COPY_RESOURCES.back),
     menu: tl({ ru: "Меню", en: "Menu", pl: "Menu", es: "Menú", fr: "Menu", de: "Menü", it: "Menu" }),
     settings: tl({ ru: "Настройки", en: "Settings", pl: "Ustawienia", es: "Ajustes", fr: "Réglages", de: "Einstellungen", it: "Impostazioni" }),
     fleet: tl({ ru: "Флот", en: "Fleet", pl: "Flota", es: "Flota", fr: "Flotte", de: "Flotte", it: "Flotta" }),
@@ -46,7 +47,7 @@ export function useRaceCopy() {
     saved: tl({ ru: "Гонка сохранена на устройстве", en: "Race saved on this device", pl: "Wyścig zapisany na urządzeniu", es: "Regata guardada en el dispositivo", fr: "Course enregistrée sur cet appareil", de: "Rennen auf dem Gerät gespeichert", it: "Regata salvata sul dispositivo" }),
     saving: tl({ ru: "Сохраняем гонку", en: "Saving race", pl: "Zapisujemy wyścig", es: "Guardando regata", fr: "Enregistrement de la course", de: "Rennen wird gespeichert", it: "Salvataggio regata" }),
     saveError: tl({ ru: "Не удалось сохранить. Повтори, пока гонка открыта.", en: "Could not save. Retry while the race is open.", pl: "Nie udało się zapisać. Spróbuj ponownie przed zamknięciem wyścigu.", es: "No se pudo guardar. Reintenta antes de cerrar la regata.", fr: "Échec de l'enregistrement. Réessaie avant de fermer la course.", de: "Speichern fehlgeschlagen. Vor dem Schließen erneut versuchen.", it: "Salvataggio non riuscito. Riprova prima di chiudere la regata." }),
-    retry: tl({ ru: "Повторить", en: "Retry", pl: "Ponów", es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" }),
+    retry: tl(REPLAY_COPY_RESOURCES.retry),
     trimHint: tl({ ru: "Лишний крен или малая тяга? Меняй шкот небольшими шагами и сравнивай скорость. При повороте настрой оба паруса заново.", en: "Too much heel or little drive? Adjust a sheet in small steps and compare speed. Retrim both sails after turning.", pl: "Duży przechył lub mały ciąg? Zmieniaj szot małymi krokami i porównuj prędkość. Po zwrocie ustaw oba żagle ponownie.", es: "¿Mucha escora o poco empuje? Ajusta la escota poco a poco y compara la velocidad. Reajusta ambas velas después de virar.", fr: "Trop de gîte ou peu de propulsion ? Règle l'écoute par petits pas et compare la vitesse. Règle les deux voiles après un virement.", de: "Zu viel Krängung oder wenig Vortrieb? Ändere die Schot schrittweise und vergleiche das Tempo. Trimme beide Segel nach der Wende neu.", it: "Troppo sbandamento o poca spinta? Regola la scotta a piccoli passi e confronta la velocità. Regola entrambe le vele dopo la virata." }),
     actions: {
       hold: tl({ ru: "Держи курс", en: "Hold this heading", pl: "Trzymaj ten kurs", es: "Mantén este rumbo", fr: "Garde ce cap", de: "Kurs halten", it: "Mantieni questa rotta" }),

@@ -1366,6 +1366,16 @@ the live replay component imports interpolation without the upload/read codec.
 These synchronous boundaries preserve offline behavior. The existing6.5MiB
 budget is unchanged; actual final measurements belong to the phase2 harness.
 
+- `src/app/game/replay-copy.ts` - canonical nine replay label resources and the
+  small synchronous hook, reused by the full race dictionary without a reverse
+  dependency on that dictionary.
+- `src/app/game/replay-copy.test.ts` - all seven languages, full dictionary
+  public-shape/formatter parity and the replay-only import boundary.
+
+The replay component no longer imports the complete rules/save dictionary.
+No async boundary or first-frame fetch was added. Actual measured headroom and
+offline package acceptance: `docs/audits/2026-10-26/replay-bundle-harness.md`.
+
 ### Radio16/C cancellation follow-up
 
 RadioFront Key accepts a distinct cancel callback. Only16/C overrides the

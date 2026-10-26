@@ -8,7 +8,7 @@ import { useVenue } from "@/features/venues/useVenue";
 import { useRaceView } from "@/features/race-3d/useRaceView";
 import { replayFrame } from "@/lib/race-replay-frame";
 import { useI18n } from "@/lib/i18n";
-import { useRaceCopy } from "./race-copy";
+import { useReplayCopy } from "./replay-copy";
 import styles from "./RaceCockpit.module.css";
 import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
@@ -20,7 +20,7 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
   samples: NativeRaceSnapshot["samples"]; course: NativeRaceSnapshot["course"]; onClose: () => void; playbackRate?: number;
 }) {
   const { tl, lang } = useI18n();
-  const c = useRaceCopy();
+  const c = useReplayCopy();
   const { venue } = useVenue();
   const { camera, setCamera } = useRaceView();
   const [cameraRevision, setCameraRevision] = useState(0);

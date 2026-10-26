@@ -7,6 +7,12 @@ saved race in either destination and states that history was preserved. Source
 coverage is reviewed; narrow installed rendering remains a native acceptance
 gate. Protocol phrases and the Polish-only Sternik course are unchanged.
 
+The following replay bundle checkpoint moves nine existing label resources to
+`src/app/game/replay-copy.ts`, shared by the full dictionary and replay-only
+hook. All63 locale values remain canonical in one place. Seven-language parity
+tests retain the full dictionary's43 fields and formatter results; this is a
+resource ownership change, with no new or rewritten user-facing copy.
+
 **Date:** 2026-04-24 (post-ES/FR/DE/IT rollout).
 **Stack:** `useI18n()` hook with three call-site helpers:
 - `tl({ ru, en, pl, es, fr, de, it })` - object-based, extensible; preferred for new code.
