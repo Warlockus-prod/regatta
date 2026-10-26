@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStandardCourse } from "./race-physics";
-import { isNativeRace, navigateNativeRace, postNativeRace, postNativeRaceStarted, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
+import { isNativeRace, navigateNativeRace, postNativeRace, postNativeRaceStarted, postNativePersonalBest, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
 import { raceNativeDestination } from "../../mobile/src/navigation/race-entry";
 import { readRaceResultSelection } from "./race-record-class";
+import { LEGACY_RACE_CONTEXT, physicalRaceContext } from "./race-context";
+import { makePhysicalRaceCourse } from "./race-courses";
 
 function fixture(): NativeRaceSnapshot {
   const course = makeStandardCourse();
@@ -14,6 +16,20 @@ function fixture(): NativeRaceSnapshot {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("native offline race boundary", () => {
+  it("posts a separate bounded PB command only through a working native bridge", () => {
+    const command = { schema: 1 as const, id: "race_123", requestId: "race_123_pb_1",
+      comparison: { raceContext: LEGACY_RACE_CONTEXT, mode: "pro" as const, difficulty: "medium" as const, windStrength: "medium" as const },
+      rawFinishTimeSec: 100, penaltySeconds: 5, finishTimeSec: 105, course: makeStandardCourse() };
+    expect(postNativePersonalBest(command)).toBe(false);
+    const postMessage = vi.fn(); vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true, ReactNativeWebView: { postMessage } });
+    expect(postNativePersonalBest(command)).toBe(true);
+    expect(JSON.parse(postMessage.mock.calls[0][0])).toEqual({ type: "race-personal-best", command });
+    expect(postNativePersonalBest({ ...command, finishTimeSec: 1 })).toBe(false);
+    expect(postNativePersonalBest({ ...command, comparison: { ...command.comparison, raceContext: physicalRaceContext("short") }, course: makePhysicalRaceCourse("short") })).toBe(false);
+    postMessage.mockImplementation(() => { throw Error("bridge unavailable"); });
+    expect(postNativePersonalBest(command)).toBe(false);
+    vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true }); expect(postNativePersonalBest(command)).toBe(false);
+  });
   it("keeps original world course, mode and complete replay data", () => {
     const race = fixture();
     expect(validateNativeRace(race)).toEqual(race);

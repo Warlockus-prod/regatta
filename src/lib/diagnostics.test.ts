@@ -184,6 +184,7 @@ describe("diagnostic strict transport and privacy", () => {
   it("round-trips a real safe batch and refuses metadata, unknown properties and sensitive sentinels", () => {
     const inputs: DiagnosticInput[] = [command, { type: "radio.startup", surface: "radio", outcome: "failed", action: "error", reason: "webview-load", supportCode: "SRC-W02", wkDomain: "WKErrorDomain", wkCode: 102 }, nav, change(.4),
       { type: "race.save", surface: "race", outcome: "accepted", action: "ack", target: "local" },
+      { type: "race.save", surface: "race", outcome: "failed", action: "error", target: "personal-best", reason: "storage-write" },
       { type: "trainer.checkpoint", surface: "trainer", outcome: "failed", action: "error", reason: "storage-write" }];
     const serialized = serializeDiagnosticBatch(inputs);
     expect(parseDiagnosticBatch(serialized)?.events).toEqual(inputs);

@@ -12,12 +12,16 @@ import { saveNativeRace, raceHistoryResponse, raceHistoryFailure } from "../../s
 import { parseRaceStorageEntries, RACE_STORAGE_BRIDGE_SCRIPT, useRaceWebStorage } from "../../src/persistence/race-web-storage";
 import { setRaceMode, setShoreOn, setVenue } from "../../src/persistence/venue";
 import { VENUES, type VenueId } from "../../../src/data/venues/venues";
-import { validateNativeRace, validateNativeRaceStarted, type NativeRaceSnapshot } from "../../../src/lib/race-native";
+import { validateNativeRace, validateNativeRaceStarted, type NativeRaceSnapshot, type NativeRaceStarted } from "../../../src/lib/race-native";
 import { isReviewPodium, recordReviewWin } from "../../src/review/review-prompt";
 import { AnalyticsEvent, useAnalytics } from "../../src/analytics";
 import { ActivityBack } from "../../src/navigation/ActivityBack";
 import { ReturnToLesson } from "../../src/bootcamp/ReturnToLesson";
 import { sanitizeRaceAssists } from "../../../src/lib/race-visual-prefs";
+import { nativeBestFailure, readNativeBestCommand, NATIVE_BEST_COMMAND_MAX_CHARS } from "../../../src/lib/race-best-command";
+import { saveNativePersonalBest, nativePersonalBestResponse, matchesNativeBestStart } from "../../src/persistence/race-personal-best";
+import { nativeDataEpoch } from "../../src/persistence/data-epoch";
+import { recordNativeDiagnostic } from "../../src/diagnostics/journal";
 
 const OFFLINE_SOURCE = require("../../assets/sailing-offline.html");
 
@@ -27,10 +31,15 @@ export default function Game() {
   const router = useRouter();
   const analytics = useAnalytics();
   const reportedRaces = useRef(new Set<string>());
-  const startedRaces = useRef(new Set<string>());
+  const startedRaces = useRef(new Map<string, NativeRaceStarted>());
+  const activeHost = useRef(true);
+  useEffect(() => { activeHost.current = true; return () => { activeHost.current = false; }; }, []);
   const params = useLocalSearchParams<Record<string, string | string[]>>();
   const storage = useRaceWebStorage();
   const persistStorage = storage.persist;
+  const acceptBestStore = storage.acceptBestStore;
+  const storageEpoch = storage.epoch;
+  useEffect(() => { startedRaces.current.clear(); reportedRaces.current.clear(); }, [storageEpoch]);
   const mode = storage.entries["regatta.race.mode.v1"] === "pro" ? "pro" : "simple";
   const query = useMemo(() => raceEntryQuery(params, mode), [params, mode]);
   const replayId = query.replayId;
@@ -48,7 +57,7 @@ export default function Game() {
   }, [replayId]);
 
   const onMessage = useCallback((message: string, inject: (script: string) => void) => {
-    if (message.length > 2 * 1024 * 1024) return;
+    if (message.length > 2 * 1024 * 1024 || storageEpoch !== nativeDataEpoch() || !activeHost.current) return;
     let data: Record<string, unknown>;
     try {
       const parsed: unknown = JSON.parse(message);
@@ -61,6 +70,25 @@ export default function Game() {
     } else if (data.type === "race-storage") {
       const entries = parseRaceStorageEntries(data.entries);
       if (entries) void persistStorage(entries).catch(() => undefined);
+    } else if (data.type === "race-personal-best") {
+      if (replayId || message.length > NATIVE_BEST_COMMAND_MAX_CHARS + 100) return;
+      const command = readNativeBestCommand(data.command);
+      if (!command) {
+        recordNativeDiagnostic({ type: "storage.operation", surface: "race", target: "personal-best", action: "write", outcome: "rejected", reason: "invalid-message" });
+        return;
+      }
+      if (!matchesNativeBestStart(command, startedRaces.current.get(command.id))) {
+        recordNativeDiagnostic({ type: "storage.operation", surface: "race", target: "personal-best", action: "write", outcome: "rejected", reason: "invalid-input" });
+        inject(nativePersonalBestResponse(nativeBestFailure(command, "invalid-input")));
+        return;
+      }
+      void saveNativePersonalBest(command, storageEpoch).then(result => {
+        if (!activeHost.current || storageEpoch !== nativeDataEpoch()) return;
+        if (result.serialized !== null && result.storeRevision !== undefined) acceptBestStore(result.serialized, storageEpoch, result.storeRevision);
+        inject(nativePersonalBestResponse(result.reply));
+      }).catch(() => {
+        if (activeHost.current && storageEpoch === nativeDataEpoch()) inject(nativePersonalBestResponse(nativeBestFailure(command, "storage-unavailable")));
+      });
     } else if (data.type === "race-prefs") {
       if (data.mode === "simple" || data.mode === "pro") setRaceMode(data.mode);
       if (typeof data.venue === "string" && VENUES.some(venue => venue.id === data.venue)) setVenue(data.venue as VenueId);
@@ -76,8 +104,8 @@ export default function Game() {
       if (replayId || message.length > 1024) return;
       const race = validateNativeRaceStarted(data);
       if (!race || startedRaces.current.has(race.id)) return;
-      if (startedRaces.current.size >= 128) startedRaces.current.delete(startedRaces.current.values().next().value!);
-      startedRaces.current.add(race.id);
+      if (startedRaces.current.size >= 128) startedRaces.current.delete(startedRaces.current.keys().next().value!);
+      startedRaces.current.set(race.id, race);
       analytics.capture(AnalyticsEvent.RaceStarted, {
         course: query.daily ? "daily" : "short", difficulty: race.difficulty,
         mode: race.mode, wind_strength: race.windStrength, mission_id: race.missionId,
@@ -86,6 +114,7 @@ export default function Game() {
       const snapshot = validateNativeRace(data.race);
       void saveNativeRace(snapshot, lang, Boolean(query.daily))
         .then(record => {
+          if (storageEpoch !== nativeDataEpoch()) return;
           inject(raceHistoryResponse(record.id));
           if (!record.webRace || reportedRaces.current.has(record.id)) return;
           reportedRaces.current.add(record.id);
@@ -99,9 +128,11 @@ export default function Game() {
           } catch { /* Optional telemetry cannot turn a durable save into an error. */ }
           if (isReviewPodium(race.position, race.totalBoats)) void recordReviewWin("race-podium").catch(() => undefined);
         })
-        .catch(error => inject(raceHistoryFailure(error instanceof Error && error.message === "invalid-race" ? "invalid-race" : "storage-unavailable", snapshot?.id)));
+        .catch(error => {
+          if (storageEpoch === nativeDataEpoch()) inject(raceHistoryFailure(error instanceof Error && error.message === "invalid-race" ? "invalid-race" : "storage-unavailable", snapshot?.id));
+        });
     }
-  }, [lang, query.daily, query.fromLesson, replayId, router, persistStorage, analytics]);
+  }, [lang, query.daily, query.fromLesson, replayId, router, persistStorage, analytics, storageEpoch, acceptBestStore]);
 
   const title = tp("Гонка", "Race", "Wyścig", { es: "Regata", fr: "Course", de: "Rennen", it: "Regata" });
   if (!storage.ready || !replayReady) return <DarkSurface><Screen>
@@ -123,7 +154,7 @@ export default function Game() {
     <Button onPress={() => router.replace("/history")}>{tp("История гонок", "Race history", "Historia regat", { es: "Historial de regatas", fr: "Historique des courses", de: "Rennverlauf", it: "Cronologia regate" })}</Button>
   </Screen></DarkSurface>;
 
-  return <SimWebView key={replayId ?? "race"} path="/game" title={title} query={query} fullScreen
+  return <SimWebView key={`${replayId ?? "race"}-${storageEpoch}`} path="/game" title={title} query={query} fullScreen
     offlineSource={OFFLINE_SOURCE} localStorage={storage.entries} raceReplay={replay}
     offlineBridgeScript={RACE_STORAGE_BRIDGE_SCRIPT} onOfflineMessage={onMessage}
     fallbackRoute="/race" fallbackLabel={tp("К выбору гонки", "Race menu", "Menu regat", { es: "Menú de regatas", fr: "Menu des courses", de: "Rennmenü", it: "Menu delle regate" })} />;

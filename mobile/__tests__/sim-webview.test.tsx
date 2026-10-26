@@ -8,6 +8,7 @@ import { nativeDiagnostics } from "../src/diagnostics/journal";
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 
 const mockNavigate = jest.fn();
+const mockWebInstances: { injectJavaScript: jest.Mock }[] = [];
 jest.mock("expo-router", () => ({
   Stack: { Screen: ({ options }: { options?: { headerShown?: boolean; headerLeft?: () => React.ReactNode } }) => options?.headerShown === false ? null : options?.headerLeft?.() ?? null },
   useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate, canGoBack: () => true, back: jest.fn() }),
@@ -31,13 +32,31 @@ jest.mock("react-native-webview", () => {
   const React = require("react");
   const { View } = require("react-native");
   return { WebView: React.forwardRef((props: object, ref: unknown) => {
-    React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+    React.useImperativeHandle(ref, () => { const instance = { injectJavaScript: jest.fn() }; mockWebInstances.push(instance); return instance; }, []);
     return React.createElement(View, { ...props, testID: "webview" });
   }) };
 });
 
-beforeEach(async () => { jest.useFakeTimers(); await nativeDiagnostics.clear(); jest.clearAllMocks(); });
+beforeEach(async () => { jest.useFakeTimers(); await nativeDiagnostics.clear(); jest.clearAllMocks(); mockWebInstances.length = 0; });
 afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
+
+it("binds a deferred local reply to its original WebView through Retry and disposal", () => {
+  const replies: ((script: string) => void)[] = [];
+  const view = render(<SimWebView path="/anatomy" title="Anatomy" offlineSource={{ uri: "file:///bundle/sailing-offline.html" }}
+    onOfflineMessage={(_message, inject) => { replies.push(inject); }} />);
+  fireEvent(view.getByTestId("webview"), "message", { nativeEvent: { data: '{"type":"local-result"}' } });
+  const original = mockWebInstances[0];
+  fireEvent(view.getByTestId("webview"), "contentProcessDidTerminate", { nativeEvent: {} });
+  fireEvent.press(view.getByText("Retry"));
+  const current = mockWebInstances[mockWebInstances.length - 1]; expect(current).not.toBe(original);
+  original.injectJavaScript.mockClear(); current.injectJavaScript.mockClear();
+  replies[0]("OLD_REPLY");
+  expect(original.injectJavaScript).not.toHaveBeenCalled(); expect(current.injectJavaScript).not.toHaveBeenCalled();
+  fireEvent(view.getByTestId("webview"), "message", { nativeEvent: { data: '{"type":"local-result"}' } });
+  replies[1]("CURRENT_REPLY"); expect(current.injectJavaScript).toHaveBeenCalledWith("CURRENT_REPLY");
+  view.unmount(); current.injectJavaScript.mockClear(); replies[1]("AFTER_DISPOSAL");
+  expect(current.injectJavaScript).not.toHaveBeenCalled();
+});
 
 it("routes sanitized diagnostic batches to the host journal before any offline callback or checkpoint handler", async () => {
   const handle = jest.fn();

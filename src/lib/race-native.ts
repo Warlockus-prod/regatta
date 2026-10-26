@@ -3,6 +3,7 @@ import { PHYSICAL_RACE_EMISSION_ENABLED, readRaceContext, type RaceContext } fro
 import { matchesPhysicalRaceCourse } from "./race-courses";
 import { physicalRaceSamplesValid } from "./physical-race-record";
 import { isNativeRace } from "./race-native-env";
+import { readNativeBestCommand, type NativeBestCommand } from "./race-best-command";
 export { isNativeRace, navigateNativeRace, readRaceSearch } from "./race-native-env";
 
 /** Versioned local race payload shared by the web scene and native history. */
@@ -85,6 +86,17 @@ export function postNativeRace(snapshot: NativeRaceSnapshot): boolean {
   try {
     (window as NativeRaceWindow).ReactNativeWebView?.postMessage(JSON.stringify({ type: "race-finished", race: validated }));
     return Boolean((window as NativeRaceWindow).ReactNativeWebView);
+  } catch { return false; }
+}
+
+export function postNativePersonalBest(command: NativeBestCommand): boolean {
+  const valid = readNativeBestCommand(command);
+  if (!isNativeRace() || !valid || (!PHYSICAL_RACE_EMISSION_ENABLED && valid.comparison.raceContext.model === "physical-cruiser-v1")) return false;
+  try {
+    const bridge = (window as NativeRaceWindow).ReactNativeWebView;
+    if (!bridge) return false;
+    bridge.postMessage(JSON.stringify({ type: "race-personal-best", command: valid }));
+    return true;
   } catch { return false; }
 }
 

@@ -2,6 +2,9 @@
 
 Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
 
+- Native race personal-best banners now wait for their own confirmed device write, separately from History. Same-row receipts make retries idempotent; stale replies, corrupt/read-failed stores and old WebKit row writes cannot claim a new record. Global clear invalidates old race work and reports an unconfirmed sweep on failure. Candidate68 passes local source checks; installed and delivery gates remain open, with physical races still disabled.
+
+
 - Delivered1.7.0(67) to exact TestFlight Self: shared first-lesson3Dpractice plus one Scheme/Picture sail pilot with filled/luffing views, preserved force states and actual image-result diagnostics. Exact77c passes77first-attempt browser cases and qualified installed26.5/27 acceptance; independent18:53UTC Apple GET verifies VALID/IN_BETA_TESTING and8notes. Wider lessons, PB durability, physics/courses, radio transcript and public/device acceptance remain open. [Release67](docs/design/mobile/testflight67-2026-10-26.md).
 `
 добавляют в том же коммите, что и само изменение, если оно видно пользователю

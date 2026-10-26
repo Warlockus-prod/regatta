@@ -30,8 +30,14 @@ describe("lightweight replay labels", () => {
     const copy = useRaceCopy();
     const messages = kinds.flatMap(kind => rules.flatMap(rule => [0, 3, 5].map(penaltySeconds =>
       copy.ruleMessage({ id: "copy-fixture", kind, rule, boatId: "player", time: 12, penaltySeconds }))));
-    expect(Object.keys(copy)).toHaveLength(43);
-    expect(createHash("sha256").update(JSON.stringify({ copy, messages })).digest("hex")).toBe(baseline[lang]);
+    expect(Object.keys(copy)).toHaveLength(47);
+    // P03 adds a separate four-label PB status. Keep the original43-field
+    // byte contract, including every existing formatter, unchanged.
+    const added = ["personalBestSaving", "personalBestChecked", "personalBestError", "retryPersonalBest"] as const;
+    for (const key of added) expect(copy[key].trim().length).toBeGreaterThan(0);
+    const existing = Object.fromEntries(Object.entries(copy).filter(([key]) => !(added as readonly string[]).includes(key)));
+    expect(Object.keys(existing)).toHaveLength(43);
+    expect(createHash("sha256").update(JSON.stringify({ copy: existing, messages })).digest("hex")).toBe(baseline[lang]);
     const replay = useReplayCopy();
     expect(Object.keys(replay)).toEqual(["view", "orbit", "resetCamera", "high", "stern", "pause", "resume", "back", "retry"]);
     for (const key of Object.keys(replay) as Array<keyof typeof replay>) {

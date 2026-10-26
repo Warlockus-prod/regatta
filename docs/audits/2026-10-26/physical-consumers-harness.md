@@ -217,3 +217,65 @@ outcome and remaining writer coverage. A WebView reload/disposal must invalidate
 its old injection callback before any new result can receive a reply.
 
 No P03 runtime implementation or durability closure is claimed by this entry.
+
+
+## Current P03 source candidate68
+
+The new `src/lib/race-best-command.ts` boundary validates explicit live PB
+comparison/time/course authority separately from historical native snapshots.
+It keeps every old PB key, rejects unknown envelopes/classes and uses a receipt
+inside the same PB row to recognize a lost ACK without a second write. A
+bounded32-result queue correlates each attempt, rejects stale/duplicate/foreign
+replies and keeps failed requests explicitly retryable. The live engine still
+supplies legacy context only for this local PB command; P04 must replace that
+with its actual engine context before physical activation. No historical
+snapshot or global result receives inferred metadata.
+
+`GameClient` retains checked synchronous web behavior. Native finish instead
+sends a distinct PB request, keeps the existing History request independent,
+and waits for the actual native PB reply before showing a new record. Failed
+PB and History have separate status/retry controls. The native host validates
+start ownership, performs serial read/compare/write and never accepts PB rows
+through generic WebKit storage messages. Corrupt/read-failed rows survive.
+Actual outcomes use the existing bounded journal with a finite personal-best
+save target, without IDs, times, receipts, rows or raw errors.
+
+A native data epoch invalidates old race commands and cache acknowledgements
+around global clear. The sweep is enqueued before publishing its new epoch so
+fresh mounted reads follow removal. Deferred injection belongs to its original
+WebView instance. The Settings two-step confirmation remains; a rejected sweep
+now shows localized unconfirmed-clear feedback instead of Done. This covers
+this race/PB boundary and honest sweep outcome, not every unrelated writer or
+all app caches. Broader P08 global-clear/diagnostic coverage stays open.
+
+Local source gates:1568web cases/157files,586native cases/78suites plus9release
+tool cases pass. The original43racing-copy fields and formatter hashes stay
+byte-identical in all7languages; four PB status labels are additive. Root lint
+has0errors/15existing warnings, native lint has0warnings. Three offline packages
+and content twins are fresh; WS lifecycle and generated-server checks pass.
+Production static chunks6.48MB/110files stay under6.5MB. The same two existing
+LessonContent act warnings and controlled course-failure fixture output remain
+in the native test log; they are not hidden or new P03 warnings. The i18n
+scanner retains12known heuristics with0arity/missing-overlay errors; all new
+PB/clear strings have7adaptations.
+
+Source gates do not prove the installed finished-result UI. Ordered next gates:
+
+- [x] Confirm68unused and increasing: read-only Apple GET19:16:33UTC finds
+  latest67,21train rows and0writes. Regenerate native project for build68.
+- [ ] Freeze source, exact Release Simulator and archive/IPA; verify local
+  packages/fonts and retain67rollback. No67artifact is overwritten.
+- [ ] Retained26.5 and clean27 actual Start -> mark -> finish -> separate
+  History/PB success, nonempty History/Personal, Replay/Coach/Back and cold
+  relaunch. Old saved rows/unknown contexts remain readable and unmodified.
+- [ ] Exact cloud source/browser gate and changed-screen geometry. Component
+  tests own delayed/disk/read/corrupt/clear/dispose branches until separately
+  exercised; do not label them installed failure injections.
+- [ ] Apple validation/import, independent exact Self and8notes GETs before
+  claiming68delivery. Physical emission remains OFF throughout this checkpoint.
+
+The confirmed PB cache also uses a native transaction revision, so a delayed
+older cache callback cannot replace a newer durable store. Both directions
+of independent History/PB failure and an optional recorder exception have
+actual-host/storage tests. The common native diagnostic boundary returns null
+on a synchronous recorder failure; it never converts a durable action to error.

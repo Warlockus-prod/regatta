@@ -53,7 +53,7 @@ export type DiagnosticInput = Common & (
   | ({ type: "control.change" } & Changes<ControlValues, "control">)
   | ({ type: "control.preferences" } & Changes<PreferenceValues, "preference">)
   | { type: "race.lifecycle"; action: "briefing" | "init" | "scene-ready" | "countdown" | "start" | "pause" | "resume" | "exit" | "finish" | "timeout"; mode?: "simple" | "pro"; phase?: "menu" | "briefing" | "countdown" | "racing" | "finished" | "replay"; elapsedSeconds?: number }
-  | { type: "race.save"; action: "request" | "ack" | "retry" | "error"; target: "local" | "share" | "leaderboard" | "coach"; attempt?: number }
+  | { type: "race.save"; action: "request" | "ack" | "retry" | "error"; target: "local" | "share" | "leaderboard" | "coach" | "personal-best"; attempt?: number }
   | { type: "race.replay"; action: "open" | "play" | "pause" | "seek" | "rate" | "close" | "error"; timeSeconds?: number; rate?: 0.25 | 0.5 | 1 | 2 | 4 }
   | { type: "trainer.lifecycle"; action: "reset" | "restore" | "pause" | "resume" | "preset" | "ready" | "error" | "assessment"; mode?: "free" | "sail" | "drill" | "scenario" | "lesson"; attempt?: number }
   | { type: "trainer.checkpoint"; action: "save" | "restore" | "clear" | "error"; attempt?: number }
@@ -114,7 +114,7 @@ const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Rec
   "control.change": { required: ["control", "value"], fields: { control: enumeration(Object.keys(controlChecks)), value: () => true, previous: () => true } },
   "control.preferences": { required: ["preference", "value"], fields: { preference: enumeration(Object.keys(preferenceChecks)), value: () => true, previous: () => true } },
   "race.lifecycle": { required: ["action"], fields: { action: enumeration(["briefing", "init", "scene-ready", "countdown", "start", "pause", "resume", "exit", "finish", "timeout"]), mode: enumeration(["simple", "pro"]), phase: enumeration(["menu", "briefing", "countdown", "racing", "finished", "replay"]), elapsedSeconds: numeric(0, 7200) } },
-  "race.save": { required: ["action", "target"], fields: { action: enumeration(["request", "ack", "retry", "error"]), target: enumeration(["local", "share", "leaderboard", "coach"]), attempt } },
+  "race.save": { required: ["action", "target"], fields: { action: enumeration(["request", "ack", "retry", "error"]), target: enumeration(["local", "share", "leaderboard", "coach", "personal-best"]), attempt } },
   "race.replay": { required: ["action"], fields: { action: enumeration(["open", "play", "pause", "seek", "rate", "close", "error"]), timeSeconds: numeric(0, 86400), rate: enumeration([.25, .5, 1, 2, 4]) } },
   "trainer.lifecycle": { required: ["action"], fields: { action: enumeration(["reset", "restore", "pause", "resume", "preset", "ready", "error", "assessment"]), mode: enumeration(["free", "sail", "drill", "scenario", "lesson"]), attempt } },
   "trainer.checkpoint": { required: ["action"], fields: { action: enumeration(["save", "restore", "clear", "error"]), attempt } },

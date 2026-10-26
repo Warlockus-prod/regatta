@@ -14,7 +14,8 @@ import { raceComparisonKey, readRaceComparison } from "./race-record-class";
 import { recordDiagnostic } from "./diagnostics-controls";
 import type { DiagnosticOutcome, DiagnosticReason } from "./diagnostics";
 
-const STORAGE_KEY = "regatta.best-times.v1";
+export const BEST_TIMES_STORAGE_KEY = "regatta.best-times.v1";
+const STORAGE_KEY = BEST_TIMES_STORAGE_KEY;
 export const BEST_TIMES_STORE_MAX_CHARS = 16_000;
 
 export type Difficulty = 'easy' | 'medium' | 'hard';

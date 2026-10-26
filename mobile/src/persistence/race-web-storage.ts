@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { serial } from "./serial";
+import { nativeDataEpoch, subscribeNativeDataEpoch } from "./data-epoch";
+import { BEST_TIMES_STORAGE_KEY } from "../../../src/lib/best-times";
 
 /** Only race-owned browser rows cross the local file/native storage boundary. */
 export const RACE_WEB_STORAGE_KEYS = [
@@ -22,10 +24,11 @@ export function parseRaceStorageEntries(raw: unknown): RaceWebStorage | null {
   return entries;
 }
 
-export async function persistRaceStorage(entries: RaceWebStorage): Promise<void> {
+export async function persistRaceStorage(entries: RaceWebStorage, epoch = nativeDataEpoch()): Promise<void> {
   const valid = parseRaceStorageEntries(entries);
-  if (!valid) throw new Error("Invalid race storage message");
+  if (!valid || Object.prototype.hasOwnProperty.call(valid, BEST_TIMES_STORAGE_KEY)) throw new Error("Invalid race storage message");
   await serial(async () => {
+    if (epoch !== nativeDataEpoch()) throw new Error("stale-race-storage");
     const set = Object.entries(valid).filter((entry): entry is [string, string] => entry[1] !== null);
     const remove = Object.entries(valid).filter(([, value]) => value === null).map(([key]) => key);
     if (set.length) await AsyncStorage.multiSet(set);
@@ -34,20 +37,29 @@ export async function persistRaceStorage(entries: RaceWebStorage): Promise<void>
 }
 
 export function useRaceWebStorage() {
+  const epoch = useSyncExternalStore(subscribeNativeDataEpoch, nativeDataEpoch, nativeDataEpoch);
+  const latestBestRevision = useRef(0);
   const [revision, setRevision] = useState(0);
-  const [state, setState] = useState<{ ready: boolean; failed: boolean; entries: RaceWebStorage }>({ ready: false, failed: false, entries: {} });
+  const [state, setState] = useState<{ epoch: number; ready: boolean; failed: boolean; entries: RaceWebStorage }>({ epoch, ready: false, failed: false, entries: {} });
   useEffect(() => {
     let active = true;
     serial(() => AsyncStorage.multiGet([...RACE_WEB_STORAGE_KEYS]))
-      .then(pairs => { if (active) setState({ ready: true, failed: false, entries: Object.fromEntries(pairs) }); })
-      .catch(() => { if (active) setState({ ready: false, failed: true, entries: {} }); });
+      .then(pairs => { if (active && epoch === nativeDataEpoch()) setState({ epoch, ready: true, failed: false, entries: Object.fromEntries(pairs) }); })
+      .catch(() => { if (active && epoch === nativeDataEpoch()) setState({ epoch, ready: false, failed: true, entries: {} }); });
     return () => { active = false; };
-  }, [revision]);
+  }, [revision, epoch]);
   const persist = useCallback(async (entries: RaceWebStorage) => {
-    await persistRaceStorage(entries);
-    setState(previous => ({ ...previous, entries: { ...previous.entries, ...entries } }));
+    const ticket = nativeDataEpoch();
+    await persistRaceStorage(entries, ticket);
+    if (ticket === nativeDataEpoch()) setState(previous => ({ ...previous, entries: { ...previous.entries, ...entries } }));
   }, []);
-  return { ...state, persist, retry: () => { setState({ ready: false, failed: false, entries: {} }); setRevision(value => value + 1); } };
+  const acceptBestStore = useCallback((serialized: string, ticket: number, revision: number) => {
+    if (ticket !== nativeDataEpoch() || !Number.isSafeInteger(revision) || revision <= latestBestRevision.current) return;
+    latestBestRevision.current = revision;
+    setState(previous => ({ ...previous, entries: { ...previous.entries, [BEST_TIMES_STORAGE_KEY]: serialized } }));
+  }, []);
+  return { ...state, epoch, ready: state.ready && state.epoch === epoch, persist, acceptBestStore,
+    retry: () => { setState({ epoch, ready: false, failed: false, entries: {} }); setRevision(value => value + 1); } };
 }
 
 /** Install before content loads, preserving changes without a file-origin dependency. */
@@ -55,7 +67,7 @@ export const RACE_STORAGE_BRIDGE_SCRIPT = `
 (function(){
   if(window.__REGATTA_RACE_STORAGE_BRIDGE__)return;
   window.__REGATTA_RACE_STORAGE_BRIDGE__=true;
-  var keys=${JSON.stringify(RACE_WEB_STORAGE_KEYS)};
+  var keys=${JSON.stringify(RACE_WEB_STORAGE_KEYS.filter(key => key !== BEST_TIMES_STORAGE_KEY))};
   var set=Storage.prototype.setItem,remove=Storage.prototype.removeItem;
   function changed(storage,key,value){
     if(storage!==window.localStorage||keys.indexOf(key)===-1)return;

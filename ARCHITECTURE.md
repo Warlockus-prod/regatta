@@ -1617,3 +1617,34 @@ P02 portable acceptance evidence:
   qualified fresh P02 evidence and explicit broader completion gaps.
 - `docs/design/mobile/testflight67-2026-10-26.md` - delivered P02 pilot scope,
   package equivalence, installed/source proof and immutable66rollback.
+
+
+P03 independent native personal-best acknowledgement:
+
+- `src/lib/race-best-command.ts` - closed command/reply validation, canonical
+  comparison/course/time, same-row durable receipt and bounded attempt queue.
+  `src/lib/race-best-command.test.ts` owns lost/stale/foreign/reordered reply,
+  receipt, opaque-row and all18legacy condition-bucket contracts.
+- `src/lib/race-native.ts` transports the separate PB command. The actual
+  `src/app/game/GameClient.tsx` finish waits for its PB reply independently of
+  History; web synchronous storage is retained. Four new7language labels live
+  in `src/app/game/race-copy.ts`; old43copy/formatter hashes stay unchanged.
+- `mobile/src/persistence/race-personal-best.ts` - start ownership, serial
+  native read/compare/write and finite result event. Generic race storage never
+  writes PB rows; `mobile/src/persistence/race-web-storage.ts` hydrates/accepts
+  only confirmed PB cache data and re-reads after epoch changes.
+- `mobile/src/persistence/data-epoch.ts` and
+  `mobile/src/persistence/clear-native-data.ts` - invalidate old race work and
+  serialize the actual global sweep before fresh race reads; preserve analytics
+  choice/unrelated keys. Settings reports an unconfirmed sweep on failure.
+  Other writers/app caches remain P08 acceptance work.
+- `mobile/app/game/index.tsx` - active-start ownership and independent PB reply;
+  `mobile/src/simulator/SimWebView.tsx` ties async injection to its owning view.
+- `mobile/__tests__/race-personal-best.test.tsx` exercises real host/storage
+  delayed ACK, independent History failure, retry, corrupt/read errors,
+  disposal, clear ordering and mounted-cache rehydration. Native Settings and
+  SimWebView route tests check actual failure alert and stale-injection guard.
+
+Current native candidate68 is not the delivered67binary. Physical emission
+remains OFF. Its ordered installed/cloud/delivery gates belong to the existing
+physical consumer harness; no private storage or raw journal enters this map.

@@ -38,7 +38,7 @@ import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
-import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
+import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, postNativePersonalBest, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
@@ -53,6 +53,8 @@ import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-complet
 import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
+import { createPendingNativeBestCommands, nativeBestFailure, NATIVE_BEST_PENDING_LIMIT } from "@/lib/race-best-command";
+import { LEGACY_RACE_CONTEXT } from "@/lib/race-context";
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -246,6 +248,8 @@ export default function GamePage() {
   const raceIdRef = useRef("");
   const [nativeSave, setNativeSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const pendingNativeSaves = useRef(createPendingRaceSaves());
+  const pendingNativeBests = useRef(createPendingNativeBestCommands());
+  const [nativeBestSave, setNativeBestSave] = useState<{ status: "idle" | "saving" | "saved" | "error"; id: string; requestId: string; retryable: boolean }>({ status: "idle", id: "", requestId: "", retryable: false });
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
   const startupGate = useRef(createRaceStartupGate());
@@ -269,6 +273,38 @@ export default function GamePage() {
   // finish modal and a "Your best: 1:27" badge in the briefing.
   const [bestRecord, setBestRecord] = useState<BestRecord | null>(null);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  const acceptNativeBestReply = useCallback((raw: unknown) => {
+    const reply = pendingNativeBests.current.settle(raw);
+    if (!reply) return;
+    recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action: reply.status === "failed" ? "error" : "ack",
+      outcome: reply.status === "failed" ? "failed" : "accepted", ...(reply.status === "failed" ? { reason: reply.reason } : {}) });
+    if (reply.id !== raceIdRef.current) return;
+    setNativeBestSave({ status: reply.status === "failed" ? "error" : "saved", id: reply.id, requestId: reply.requestId, retryable: reply.status === "failed" });
+    if (reply.status !== "failed") { setBestRecord(reply.currentBest); setIsNewRecord(reply.newRecord); }
+    else setIsNewRecord(false);
+  }, []);
+  const requestNativeBest = useCallback((raceId: string, action: "request" | "retry" = "request") => {
+    const command = pendingNativeBests.current.request(raceId);
+    if (!command) return;
+    if (raceId === raceIdRef.current) setNativeBestSave({ status: "saving", id: raceId, requestId: command.requestId, retryable: false });
+    const sent = postNativePersonalBest(command);
+    recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action, outcome: sent ? "accepted" : "failed",
+      ...(sent ? {} : { reason: "storage-unavailable" }) });
+    if (!sent) acceptNativeBestReply(nativeBestFailure(command, "storage-unavailable"));
+  }, [acceptNativeBestReply]);
+  useEffect(() => {
+    const result = (event: Event) => acceptNativeBestReply((event as CustomEvent<unknown>).detail);
+    window.addEventListener("regatta:personal-best-result", result);
+    return () => window.removeEventListener("regatta:personal-best-result", result);
+  }, [acceptNativeBestReply]);
+  useEffect(() => {
+    if (nativeBestSave.status !== "saving") return;
+    const timer = window.setTimeout(() => {
+      const command = pendingNativeBests.current.waiting(nativeBestSave.id);
+      if (command?.requestId === nativeBestSave.requestId) acceptNativeBestReply(nativeBestFailure(command, "timeout"));
+    }, 15_000);
+    return () => window.clearTimeout(timer);
+  }, [nativeBestSave, acceptNativeBestReply]);
   const [playerTWA, setPlayerTWA] = useState(0);
   const [playerSpeed, setPlayerSpeed] = useState(0);
   const [windReading, setWindReading] = useState<RaceWindReading | null>(null);
@@ -579,6 +615,7 @@ export default function GamePage() {
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
     setRuleNotice(null); setPenalty(0); setNativeSave("idle");
+    setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
     setElapsed(0);
     setCoaching(null); setCoachingSource("local");
@@ -902,7 +939,7 @@ export default function GamePage() {
         // Save / compare against personal-best for this (difficulty, wind)
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
-        if (player.finishTime != null) {
+        if (player.finishTime != null && !isNativeRace()) {
           const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
@@ -955,6 +992,18 @@ export default function GamePage() {
           const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
           setNativeSave(sent ? "saving" : "error");
           recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "request", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
+          // This live engine is legacy. This explicit PB authority does not
+          // backfill the separate historical snapshot's absent provenance.
+          const queued = pendingNativeBests.current.add({ schema: 1, id: snapshot.id,
+            comparison: { raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode, difficulty, windStrength },
+            rawFinishTimeSec: player.finishTime, penaltySeconds: snapshot.penaltySeconds ?? 0,
+            finishTimeSec: player.finishTime + (snapshot.penaltySeconds ?? 0), course: snapshot.course });
+          if (queued) requestNativeBest(snapshot.id);
+          else if (!pendingNativeBests.current.has(snapshot.id)) {
+            setNativeBestSave({ status: "error", id: snapshot.id, requestId: "", retryable: false });
+            recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action: "error", outcome: "failed",
+              reason: pendingNativeBests.current.size() >= NATIVE_BEST_PENDING_LIMIT ? "limit" : "invalid-input" });
+          }
         }
         setCoachingLoading(!isNativeRace());
         const completedRaceId = raceIdRef.current;
@@ -1014,7 +1063,7 @@ export default function GamePage() {
       if (simulationClockRef.current === clock) simulationClockRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, difficulty]);
+  }, [gameState, difficulty, requestNativeBest]);
   useEffect(() => {
     simulationClockRef.current?.synchronize(performance.now(), startupGate.current.active(pausedRef.current, document.hidden));
   }, [gameState, paused, sceneReady]);
@@ -1319,6 +1368,10 @@ export default function GamePage() {
         <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
           <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
+            {nativeRace && nativeBestSave.id === sceneRaceId && nativeBestSave.status !== "idle" && <div className="mb-4 text-sm" role="status" data-testid="native-personal-best-status">
+              {nativeBestSave.status === "saved" ? copy.personalBestChecked : nativeBestSave.status === "error" ? copy.personalBestError : copy.personalBestSaving}
+              {nativeBestSave.status === "error" && nativeBestSave.retryable && <button type="button" className="ml-2 underline" aria-label={copy.retryPersonalBest} onClick={() => requestNativeBest(nativeBestSave.id, "retry")}>{copy.retry}</button>}
+            </div>}
             <div className="text-center mb-5">
               <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK', { es: 'RESULTADO', fr: 'RÉSULTAT', de: 'ERGEBNIS', it: 'RISULTATO' })}</div>
               {playerFinished?.time !== undefined && playerFinished.time !== Infinity ? (
@@ -1332,8 +1385,8 @@ export default function GamePage() {
                   <div className="text-xl font-mono text-[var(--text-secondary)]">{formatTime(playerFinished.time)}</div>
                   {/* New-personal-best banner. Only shows after the player
                       finished AND beat their previous time on this
-                      difficulty + wind bucket. The lib has already saved
-                      the new value to localStorage by the time we render. */}
+                      difficulty + wind bucket. Native waits for its own
+                      durable PB ACK; web uses checked synchronous storage. */}
                   {isNewRecord && (
                     <div
                       className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold"

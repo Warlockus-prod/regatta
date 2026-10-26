@@ -320,7 +320,10 @@ export function SimWebView({
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
           if (handleNativeDiagnosticMessage(status, diagnosticSurface)) return;
-          if (offlineSource && status.startsWith("{")) onOfflineMessage?.(status, script => webRef.current?.injectJavaScript(script));
+          if (offlineSource && status.startsWith("{")) {
+            const owner = webRef.current;
+            onOfflineMessage?.(status, script => { if (owner && webRef.current === owner) owner.injectJavaScript(script); });
+          }
           if (offlineSource && path !== "/game" && status.length <= 1024 && status.startsWith("{")) {
             try {
               const data = JSON.parse(status) as { type?: string; href?: unknown };

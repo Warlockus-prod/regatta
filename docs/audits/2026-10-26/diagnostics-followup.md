@@ -10,7 +10,7 @@ are unchanged.
 
 | ID | Scope | Current state and remaining behavior |
 | --- | --- | --- |
-| D01 | Personal best persistence | Web source checked: failed read blocks write, failed write cannot claim a saved new record; bounded personal-best target records actual read/write outcomes. Native PB durability remains pending and separate from history ACK or synchronous web return. |
+| D01 | Personal best persistence | Web source checked: failed read blocks write, failed write cannot claim a saved new record; bounded personal-best target records actual read/write outcomes. Candidate68 source now records the separate native PB request/retry/ACK/error and actual native write, with no ID/time/row fields. Delayed/corrupt/read/write/dispose/clear branches pass real-host component tests; installed finished-result and delivery acceptance remain pending. History ACK and synchronous web return never certify this native row. |
 | D02 | Assessment correctness | Pending. The defined learning.command family has no production adapters. Emit actual start/check/next/complete with a closed pass/fail value, without answer/text/option/question payloads. Opening a lesson is never completion. |
 | D03 | Progress writes/retry | Pending. Log actual Foundation/Sails progress completion/failure after storage or native ACK, preserving pending work and retry. An answer check and its save are separate facts. |
 | D04 | Optional cloud results | Pending. Ask, legacy remote Coach, global leaderboard and feedback need safe request/retry/response classifications; no prompts, replies, contacts, URLs or raw errors. Known world Coach remains local. |

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "ef9e2baae3ad",
-  "sha256": "7c6c4e4b47dfd945a59de54aa0afb368c3171182e777052118aea5847a4124be",
-  "bytes": 6556985,
+  "version": "a4cb84fb30e8",
+  "sha256": "265500d6e53b58ef755ca501fb9c571f4d4085bab80196f58a5dc54c3c2bcdb2",
+  "bytes": 6565589,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -778,6 +778,7 @@
     "src/lib/learning/foundation-navigation.ts",
     "src/lib/physical-race-record.ts",
     "src/lib/product/catalog.ts",
+    "src/lib/race-best-command.ts",
     "src/lib/race-completion.ts",
     "src/lib/race-context.ts",
     "src/lib/race-courses.ts",
@@ -787,10 +788,12 @@
     "src/lib/race-physics.ts",
     "src/lib/race-record-class.ts",
     "src/lib/race-replay-frame.ts",
+    "src/lib/race-result-eligibility.ts",
     "src/lib/race-resume.ts",
     "src/lib/race-rules.ts",
     "src/lib/race-setup.ts",
     "src/lib/race-startup.ts",
+    "src/lib/race-submission.ts",
     "src/lib/race-trim-coach.ts",
     "src/lib/race-visual-prefs.ts",
     "src/lib/sailing-kinematics.ts",
@@ -842,8 +845,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 113909,
-      "sha256": "e2db56a9798174164fd8629d9b3a70cf8e83ba7e72baf56c0466468c8be1399b"
+      "bytes": 118383,
+      "sha256": "814e461150c084cc2872bd86401f34f745aa77967841647198d91de55cf44c38"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -872,8 +875,8 @@
     },
     {
       "path": "src/app/game/race-copy.ts",
-      "bytes": 15935,
-      "sha256": "3427dfca5b5b139045aaf328c30057124e03421a265c4bd184c25d9b57452426"
+      "bytes": 17386,
+      "sha256": "046eeb8d02add701f241d98064e6aa1ef78a72cb73946c2842ec5589d92027f4"
     },
     {
       "path": "src/app/game/race-prefs.ts",
@@ -1707,8 +1710,8 @@
     },
     {
       "path": "src/lib/best-times.ts",
-      "bytes": 7846,
-      "sha256": "a4e9d27f37e5efb1c154c9fa9feb6d64bdd0a07b2412f3919c3a09be2d69d7ac"
+      "bytes": 7908,
+      "sha256": "83e134e4b91b3acac2033823e2f36422702f2c6021e772a9ea336c59b9cfab07"
     },
     {
       "path": "src/lib/daily-challenge.ts",
@@ -1747,8 +1750,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 25624,
-      "sha256": "be7084259faa633b4ee923098400d19ea955f2bd810c5e4278a8ddd1875e27f6"
+      "bytes": 25659,
+      "sha256": "876ba4fc942f961529af705743273ec7dde5726bd5034f20046f3a0c129faadf"
     },
     {
       "path": "src/lib/fallback-coach.ts",
@@ -1774,6 +1777,11 @@
       "path": "src/lib/product/catalog.ts",
       "bytes": 15934,
       "sha256": "f1456d0b6c6e68b2d7532b273086fe81b1bb83f093a24ef811b2d2be74a839cf"
+    },
+    {
+      "path": "src/lib/race-best-command.ts",
+      "bytes": 10851,
+      "sha256": "bc91b3847d6f0a3ae814170abd9902f131c0c8ab9495fe87ebd35c476675d69c"
     },
     {
       "path": "src/lib/race-completion.ts",
@@ -1802,8 +1810,8 @@
     },
     {
       "path": "src/lib/race-native.ts",
-      "bytes": 8474,
-      "sha256": "92a4d6e80733578350c5ec4ddc30d3745b17aec08b2acf56f5622adf069a9223"
+      "bytes": 9076,
+      "sha256": "137eb59aef8ccc8f5987a551d33e709b16a37c0556fb7c1daa47515d810c56f9"
     },
     {
       "path": "src/lib/race-physics.ts",
@@ -1819,6 +1827,11 @@
       "path": "src/lib/race-replay-frame.ts",
       "bytes": 1150,
       "sha256": "5e29f7c670be42047f588a85714f7bc0f14ad77aa63d2116187b406e8aad02db"
+    },
+    {
+      "path": "src/lib/race-result-eligibility.ts",
+      "bytes": 4037,
+      "sha256": "771a629b2654fcb5e0dd036b18b5487d2ed03cd11d403bebaeea6dc2b35aa9aa"
     },
     {
       "path": "src/lib/race-resume.ts",
@@ -1839,6 +1852,11 @@
       "path": "src/lib/race-startup.ts",
       "bytes": 549,
       "sha256": "36d9863537eb1e204579b7e8525bf24f63116fe89bb756133cb9bac19f74b4d3"
+    },
+    {
+      "path": "src/lib/race-submission.ts",
+      "bytes": 2411,
+      "sha256": "5ad82c9bc022a9449d94062db43f9c5003bb7ac8e7a86a9f88a5f72f30692fdd"
     },
     {
       "path": "src/lib/race-trim-coach.ts",
