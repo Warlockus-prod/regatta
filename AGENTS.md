@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Remaining action/outcome logging is tracked in `docs/audits/2026-10-26/diagnostics-followup.md`. The native Sternik dirty-exam prompt now records actual request and one Stay/dismiss cancellation without changing its guard. Assessment, PB and other outcome gaps remain explicit; defining event schemas is not integration coverage.
+
 - Physical result-class integration starts with a pure, reviewed API in `src/lib/race-record-class.ts`. The ordered consumer gates and compatibility decisions are in `docs/audits/2026-10-26/physical-classes-harness.md`. Local historical PB defaults do not classify global or native saved records. Keep physical emission OFF until every consumer and engine gate passes.
 
 - Replay copy now has a small synchronous shared boundary, retaining every label and all seven languages while avoiding the full rules dictionary in the replay route. Source measurements and remaining gates: `docs/audits/2026-10-26/replay-bundle-harness.md`. The frozen64 archive is unchanged.

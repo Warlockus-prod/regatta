@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- The native Sternik exam journal now explains guarded Exit and Stay/system-dismiss outcomes once per prompt, preserving the exact exam exit behavior and Polish copy.
+
 - Prepared canonical comparison/result identities for physical courses, preserving old personal-best keys and keeping historical global results unclassified. New result emission remains disabled while storage and API consumers are integrated.
 
 - Reduced replay bundle duplication while keeping all seven languages and existing labels, leaving room for the following result-class work within the unchanged size limit.

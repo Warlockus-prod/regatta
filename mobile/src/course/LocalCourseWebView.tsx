@@ -96,12 +96,18 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     if (!dirty.current) { continueExit(); return; }
     if (exitPromptOpen.current) return;
     exitPromptOpen.current = true;
-    const stay = () => { exitPromptOpen.current = false; };
+    let settled = false;
+    try { recordNativeDiagnostic({ type: "navigation", surface: "sternik", action: "request", outcome: "accepted", source: "native", from: "motor" }); } catch { /* Diagnostics cannot block the exam guard. */ }
+    const stay = () => {
+      if (settled) return;
+      settled = true; exitPromptOpen.current = false;
+      try { recordNativeDiagnostic({ type: "navigation", surface: "sternik", action: "cancelled", outcome: "noop", reason: "cancelled", source: "native", from: "motor" }); } catch { /* Diagnostics cannot change the exit decision. */ }
+    };
     Alert.alert("Wyjść z egzaminu?", "Niezapisane odpowiedzi egzaminu zostaną utracone.", [
       { text: "Zostań", style: "cancel", onPress: stay },
       { text: "Wyjdź", style: "destructive", onPress: () => {
-        if (!exitPromptOpen.current) return;
-        exitPromptOpen.current = false; dirty.current = false; setExamDirty(false);
+        if (settled || !exitPromptOpen.current) return;
+        settled = true; exitPromptOpen.current = false; dirty.current = false; setExamDirty(false);
         continueExit();
       } },
     ], { cancelable: true, onDismiss: stay });

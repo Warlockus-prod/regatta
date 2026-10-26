@@ -1403,3 +1403,11 @@ saved-record/result eligibility additionally requires explicit context, mode and
 raw registered geometry. Unsupported native records cannot inherit a Simple or
 Short fallback. Consumer implementation and emission gates are owned by
 `docs/audits/2026-10-26/physical-classes-harness.md`.
+
+The native Sternik LocalCourseWebView guard records only actual dirty-exam
+prompt requests and one cancellation per prompt. Stay/system dismissal share a
+settled guard; confirmed Exit dispatches the original blocked action and a later
+dismiss cannot cancel it. local-course-host tests cover actual callbacks,
+duplicate suppression, stale dismissal, privacy and diagnostic failure isolation.
+The remaining nine-scope logging matrix is
+`docs/audits/2026-10-26/diagnostics-followup.md`.
