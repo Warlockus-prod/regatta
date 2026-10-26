@@ -65,3 +65,21 @@ packages, not the frozen64 assets. Exact source/CI/installed proof stays separat
 
 The following65candidate and exact native delivery sequence live in
 `release65-harness.md`.
+
+## Delivered65
+
+The exact finalb0e5868 safe gate40312922878 passed all72cases first attempt,
+0flaky/skipped; source tests now total1547 after the native16/C regression.
+Budget6815470/6815744bytes with274bytes headroom. The final radio package is
+a988b94fb68f; sailing/Sternik fingerprints above remain current.
+
+On retained26.5 and a dedicated clean27 device the real scene/clock, both
+corners, mini-map/full Map tap, Orbit from the wind area and native Back pass.
+Cold process relaunch preserves hidden mini-map and wind off with numeric wind;
+returning true/both restores both instruments. Real Pro course/sheet wheels
+change45to63,53to46 and35to29 on26.5. Clean27 RU Simple/Pro, version and radio
+also pass. `checks/native65-delivery.json` records the exact source/artifacts
+and independent Apple GET11:46:55.327UTC confirming VALID/IN_BETA_TESTING in
+Self; notes GET11:46:54.829UTC matches all8locales. Delivered64 is unchanged.
+The full product/physical-phone/scrolling matrix remains qualified in
+`acceptance65.md`.

@@ -63,3 +63,18 @@ The captured-release test fails the old source and covers all four sides in both
 models, skins and layouts with real callbacks/reducers and no pointerleave.
 Current source has1547passing web tests. Fresh exact installed cancellation,
 native gates and Apple delivery are still required.
+
+## Installed and delivered65
+
+Final sourceb0e5868/tagtestflight-1.7.0-65 repeats the actual captured release
+on retained26.5 and dedicated clean27.0. Each LCD staysCH17; the canonical
+journal delta is exactly one radio.gesture16c/cancel/noop/cancelled, with no
+key-16c or key-16c-hold command. Inside tapCH16 and holdCH06 still work on26.5.
+Clean27 RU DIAL shows Volume16to20to15 and a moving index.
+
+All1547web/565native plus9release-tool tests and the fresh72-case browser gate
+pass. Exact generated18/Simulator27/archive33/IPA35 and independent Apple
+Self/notes GETs pass; `checks/native65-delivery.json` and
+`../../design/mobile/testflight65-2026-10-26.md` contain portable scope.
+Physical owner-phone OS pointercancel and finger scrolling remain unverified;
+captured outside release is a separate event with reasoncancelled.

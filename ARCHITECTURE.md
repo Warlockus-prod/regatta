@@ -1500,6 +1500,13 @@ history. This boundary is not a new result class or physical writer.
 - `docs/audits/2026-10-26/release65-harness.md` - ordered source/version,
   corrected72-case browser, generated/native G2/archive/export and exact Self
   delivery gates for the corner-instrument candidate, retaining64rollback.
+- `docs/audits/2026-10-26/checks/native65-delivery.json` - portable exact65
+  source, all72browser first-pass, native package/installed and independent
+  Apple Self/notes proof, without private journals or signed URLs.
+- `docs/audits/2026-10-26/acceptance65.md` - the same65ordered product IDs,
+  historical statuses plus qualified fresh65 evidence and remaining work.
+- `docs/design/mobile/testflight65-2026-10-26.md` - delivered65 scope,
+  first-candidate native rejection, final G2 and exact Apple delivery limits.
 
 History keeps every row newest-first and projects once per history array.
 Leaderboard filters already projected rows, keeps historical score ranks in

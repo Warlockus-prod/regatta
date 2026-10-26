@@ -1,6 +1,7 @@
 # Build65 corner-instrument delivery harness
 
-This is a new1.7.0(65) TestFlight candidate. Delivered64 stays immutable at
+This records delivered1.7.0(65), sourceb0e5868/tagtestflight-1.7.0-65, including
+the ordered candidate history. Delivered64 stays immutable at
 ef180df/tagtestflight-1.7.0-64. No public App Review submission or website
 publication belongs to this delivery. Physical race emission remains OFF.
 
@@ -65,8 +66,9 @@ ofc6d84d8 passed; this is not an installed build or native G2.
    and unchanged notes. Then tag/preserve source and write delivery/acceptance
    documentation. Source/CI/archive success alone never means delivery.
 
-Native G2, archive/export and Apple gates are pending at this source checkpoint.
-The full65-item product audit is separate and remains qualified.
+Native G2, archive/export and Apple gates were pending at the preparation
+checkpoint above. Their final scoped proof is below. The full65-item product
+audit is separate and remains qualified.
 
 ## First65 candidate stopped by native G2
 
@@ -92,3 +94,33 @@ The next source checks release bounds, cancels the timer and writes one bounded
 cancelled/noop row. It retains real tap/1000ms hold and keyboard behavior.
 The first candidate remains preserved outside Git; new source, packages,
 archive/IPA, exact72-case run and installed gates must pass before upload.
+
+## Final ordered gate: delivered65
+
+1. Exactb0e5868 source/version frozen; generated18/18 and fresh G1 scan retain
+   the same12classified heuristics,0arity/missing-overlay findings. Seven
+   localized purposes, privacy and speech patches pass.
+2. Release Simulator27/27, archive33/33 and IPA35/35 pass. Xcode27.1/27A9275,
+   SDK24A94232, IPA30001035bytes/SHA256
+   fddd1eba6c88458afc3510f5cbcabf7759f94e2cc7aeae16b29e0c597c10730e.
+3. Retained26.5: real corners/Map/Orbit, all wind choices, cold mini-map false
+   restoration then true/both, Pro course45to63, sheets53to46/35to29; actual
+   captured16/C release keepsCH17 with one cancel/noop. Real tapCH16/holdCH06
+   and Sternik request/Stay/Exit pass. No erase/uninstall.
+4. Dedicated clean27: RU Home/Settings/version, Simple/Pro actual frames and
+   clocks, corner map/wind/full Map/Orbit/Back, empty History/Personal exits,
+   RU radio, DIAL16to20to15 and the same captured-release/no-command proof.
+5. Safe exact run40312922878 passed72first attempt,0flaky/skipped. Artifact
+   12645579750/SHA256ecef8994e289feb13d14c82ccbd47c3c6b3ce9417a88fe655a44a9bff2757103.
+   Apple validate/upload/import VALID and normal-text altool status pass.
+6. Independent GET11:46:55.327UTC confirms exact Self VALID/IN_BETA_TESTING;
+   notes GET11:46:54.829UTC compares all8unchanged values/hashes, writes0.
+   GET-only notes reportPLANNED is a comparison plan, not a pending write.
+   Source tag is testflight-1.7.0-65; first65 candidates were never uploaded.
+
+Current qualified product matrix: `acceptance65.md`. Portable proof:
+`checks/native65-delivery.json`. Native finger scrolling/physical phone,
+nonempty registered lists/PB/global UI, physical engine and the red website MP
+gate remain separate. The dock can inherit scroll offset between tabs; after
+Settings scrolling a sail toggle began above the visible panel. That UX issue
+is retained for follow-up, not counted as closed by this HUD delivery.

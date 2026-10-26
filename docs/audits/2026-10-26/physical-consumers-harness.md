@@ -151,3 +151,13 @@ in `docs/audits/2026-10-26/checks/next70-prepublication.json`; private report
 contents stay outside Git. This proves the preceding web/source checkpoint,
 not the following native list integration, an Apple delivery or a green rerun
 of the site's multiplayer production case.
+
+## Delivered65 boundary
+
+Sourceb0e5868/tagtestflight-1.7.0-65 now includes this compatibility foundation
+with physical emission still OFF. Exact installed65 verifies empty native
+History/Personal screens and Back in RU on clean27 and inherited PL checks on
+26.5. Source fixtures still own nonempty registered/unknown-class behavior;
+the next installed nonempty presentation and native PB acknowledgement gates
+remain required. Delivery of the foundation never activates the physical engine,
+new short/medium/long race choices or global class-query UI.

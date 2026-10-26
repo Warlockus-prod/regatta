@@ -7,9 +7,11 @@
 
 ## Current completion work
 
-- Build65 first sourcee316bb6 passed all72browser cases first attempt, but native G2 then reproduced16/C selectingCH16 after a captured touch ended outside the key. The next source cancels by actual release bounds with one bounded cancelled/noop event. Preserve the never-uploaded first65 archive/IPA and repeat exact native/delivery gates; see `docs/audits/2026-10-26/release65-harness.md` and the radio cancel harness.
+- Delivered65 is sourceb0e5868/tagtestflight-1.7.0-65. Independent Apple GET2026-10-26 11:46:55.327UTC confirms exact Self VALID/IN_BETA_TESTING; notes GET11:46:54.829UTC matches all8locales with writes0. Persistent corner map/wind, cold visibility, real Orbit, Simple/Pro and captured16/C cancellation passed on retained26.5/clean27; all72browser cases passed first attempt. Current65row matrix: `docs/audits/2026-10-26/acceptance65.md`; delivery: `docs/design/mobile/testflight65-2026-10-26.md`; portable proof: `docs/audits/2026-10-26/checks/native65-delivery.json`. Physical emission is OFF, native PB/global/nonempty-list gates and full product/device/website acceptance remain open. Delivered64 and SITE5df0ee5 remain unchanged.
 
-- Build65 candidate prepares the live corner instruments and the checked NEXT compatibility/UI changes, with physical emission still OFF. Apple GET found highest64 and unused65 before the lockstep version bump. `docs/audits/2026-10-26/release65-harness.md` owns the exact source, corrected72-case gate, generated/archive/IPA and installed/delivery gates. Do not upload before those pass; delivered64 remains the rollback.
+- Build65 first sourcee316bb6 passed all72browser cases first attempt, but native G2 then reproduced16/C selectingCH16 after a captured touch ended outside the key. Deliveredb0 cancels by actual release bounds with one bounded cancelled/noop event, proven on both runtimes. The never-uploaded first65 archive/IPA remains preserved; see `docs/audits/2026-10-26/release65-harness.md` and the radio cancel harness.
+
+- Build65 preparation found highest64 and unused65 before the lockstep version bump. `docs/audits/2026-10-26/release65-harness.md` owns the ordered source, corrected72-case gate, generated/archive/IPA and installed/delivery evidence, including the first candidate stopped by native G2. Delivered64 remains the rollback.
 
 - NEXT corner-instrument checkpoint follows the owner's26October request: the live mini-map stays at the sea's upper-right, true wind at upper-left, through Helm/Sails/Map/Settings. The map opens the existing full dock view; its saved visibility and bounded boolean journal use the existing assist bridge. Numeric wind remains visible for every wind style. Source, browser and next installed gates are separated in `docs/audits/2026-10-26/corner-instruments-harness.md`. Delivered64 remains unchanged.
 
@@ -87,9 +89,9 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight1.7.0(64), группа Self: sourceef180df,
-  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 06:58UTC;
-  `docs/design/mobile/testflight64-2026-10-26.md`. Публичная1.6.4(48)
+  TestFlight1.7.0(65), группа Self: sourceb0e5868,
+  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 11:46UTC;
+  `docs/design/mobile/testflight65-2026-10-26.md`. Публичная1.6.4(48)
   остается отдельно от TestFlight.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.

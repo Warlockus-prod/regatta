@@ -7,6 +7,9 @@
 
 ## Unreleased
 
+Следующие source checkpoints уже входят в APP65, где явно указано ниже;
+синхронизация SITE и оставшиеся физические/продуктовые gates остаются отдельно.
+
 - Cancel a radio16/C press released outside the button even when iOS retains pointer capture. Preserve the current channel, stop the pending hold and record one local cancellation. Real taps, completed holds and keyboard input retain their behavior. Native G2 found this before the first65 candidate was uploaded.
 
 - Prepare1.7.0(65) after confirming its number is unused, retaining64rollback. The first corner gate's diagnostic expectations now include the new field; geometry and cold persistence use independent journeys with unchanged assertions and budgets. Native/Apple acceptance is still required before delivery.
@@ -227,6 +230,18 @@
   логбук и задачи дня, механика шеринга результатов.
 - Мультиплеер: лимит сообщений считается на соединение, а не суммарно по IP
   (нужен глобальный бакет), см. `STRESS-REPORT.md`.
+
+## 1.7.0 (iOS build 65) - TestFlight2026-10-26
+
+- Постоянные мини-карта справа и истинный ветер слева от3D сцены; нажатие
+  открывает полный обзор, видимость карты сохраняется после перезапуска.
+- Реальное native G2 обнаружило отпускание16/C снаружи; исправление сохраняет
+  канал и пишет одну локальную отмену. Tap/hold и вращение DIAL сохранены.
+- Exactb0e5868/tagtestflight-1.7.0-65 доступен в Self: независимые GET11:46:55UTC
+  подтвердили VALID/IN_BETA_TESTING и8совпадающих заметок. Upgrade26.5 и
+  clean27,72browser first-pass и package gates пройдены. Все65пунктов продукта,
+  физические трассы, native PB durability и итоговый сайт/MP gate не закрыты.
+  [Приемка65](docs/audits/2026-10-26/acceptance65.md).
 
 ## 1.6.4 (iOS build 48) - отправлена на ревью 2026-10-18
 
