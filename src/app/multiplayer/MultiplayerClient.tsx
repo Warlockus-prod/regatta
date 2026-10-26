@@ -678,6 +678,7 @@ export default function MultiplayerClient() {
     <div style={{ height: embed ? "100dvh" : "calc(100dvh - var(--site-nav-h, 56px))" }}>
       <MultiplayerCockpit frame={frame} phase={phase} countdown={countdown} reconnecting={reconnecting} code={room?.code ?? ""}
         windReading={windReading} navigation={navigation} windDisplay={visualPrefs.windDisplay} setWindDisplay={windDisplay => updateVisualPrefs({ windDisplay })}
+        miniMap={visualPrefs.miniMap} setMiniMap={miniMap => updateVisualPrefs({ miniMap })}
         rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
         camera={camera} setCamera={view => { setCamera(view); recordControlChange("multiplayer", "camera", view, camera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("multiplayer", "camera", camera); }} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={value => { setGuidanceOn(value); recordPreferenceChange("multiplayer", "guidance", value, guidanceOn); }}>
         <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null}

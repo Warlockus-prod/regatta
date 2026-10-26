@@ -5,11 +5,10 @@
 .cockpit button[aria-pressed=true],.cockpit button[aria-checked=true] { color:var(--accent-cyan); background:#00d4ff12; border-color:#00d4ff44; }
 .toolbar { height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px; border-bottom:1px solid #ffffff0d; }
 .toolbar strong { font-size:14px; letter-spacing:.12em; }.toolbar strong span { font-size:10px; letter-spacing:.06em; color:var(--accent-cyan); margin-left:6px; }
-.metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); padding:9px 12px 11px; border-bottom:1px solid #ffffff12; gap:12px; }
+.metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:9px 12px 11px; border-bottom:1px solid #ffffff12; gap:12px; }
 .metrics>div { min-width:0; }.metrics>div>span { display:block; color:var(--text-muted); font-size:10px; margin-bottom:3px; }.metrics>div>strong { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 4px; font-size:clamp(18px,3.8vw,28px); font-weight:600; line-height:1.1; white-space:nowrap; }.metrics>div>strong>small { color:var(--text-secondary); font-size:11px; font-weight:400; }
-.windMetric { align-self:center; }
 .workspace { flex:1; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 344px; }
-.scene { position:relative; min-height:0; overflow:hidden; isolation:isolate; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
+.scene { position:relative; min-height:0; overflow:hidden; isolation:isolate; container-type:size; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
 .dock { min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid #ffffff12; background:var(--bg-primary,#071923); }
 .notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid #ffffff10; font-size:12px; line-height:1.45; color:#b9e8ed; }.notice strong { font-size:28px; }
 .tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); flex-shrink:0; border-bottom:1px solid #ffffff12; gap:2px; padding:2px 4px; }.tabs button { min-width:0; overflow-wrap:anywhere; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }

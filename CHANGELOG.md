@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Keep a live mini-map and wind readout in the3Dscene corners during solo and multiplayer races, through every dock tab. Tap the mini-map for the full overview; its on/off choice is saved and logged locally. Wind readings stay visible, with the existing optional compass/air arrows. The same boat, controls and physical model are retained.
+
 - History and Personal records now name saved courses from validated metadata, preserve unknown entries and show registered finish time plus penalties. Previous score records retain their order; each registered class, mode, difficulty and wind has its own PB without a shared rank. All names and conditions have seven language adaptations. Physical races remain disabled pending durability and engine gates.
 
 - Restarting an interrupted race now restores its saved Pro or Simple mode and wind before the sails are initialized. Mission and Daily identity survive, explicit activity links keep their own setup, and incompatible saved data stays protected until a new Start. The mobile restart buttons have44px touch targets; the same prepublication gate adds a real saved-mode regression for70cases.

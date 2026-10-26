@@ -27,6 +27,8 @@ The boat or radio occupies a protected rectangle. Main controls use reserved spa
 
 Simple and Pro use the same 3D boat/race scene. Simple is automatic trim; Pro is manual trim. Steering and sail input can use the shared wheel deck or a saved slider preference, independently of race difficulty. New installations use wheels. Do not add a second competing helm over the scene. Camera presets do not substitute for the expected ability to inspect the boat; validate orbit gestures and reset in the installed app as well as the browser.
 
+The owner's26October corner-instrument request allows a compact live map at the upper-right of the race water and a passive wind readout at upper-left, keeping the central yacht visible. They stay through dock-tab changes. Tap the mini-map to open the full overview in the reserved dock, and retain a saved visibility setting. The wind card passes camera gestures through; only the map button captures input. Numeric wind remains visible even when visual wind aids are off. Other auxiliary panels retain their reserved space below or beside the boat.
+
 Cyan means an actionable or selected element. Success, caution and errors use their semantic tokens plus text. Preserve the radio's real LCD colors and red DISTRESS control. Do not recolor protocol diagrams or reviewed sail geometry for decoration.
 
 ## Learning evidence and delivery

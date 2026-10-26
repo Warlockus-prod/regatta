@@ -20,6 +20,16 @@ const render = (extra: Partial<RaceNavigationInput> = {}, width?: number, height
   renderToStaticMarkup(<RaceOverviewMap snapshot={createRaceNavigationSnapshot(input(extra))} labels={labels} width={width} height={height} />);
 
 describe("race overview SVG", () => {
+  it("keeps actual course/fleet geometry and private IDs out of the compact button map", () => {
+    const snapshot = createRaceNavigationSnapshot(input());
+    const html = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} compact width={128} height={128} />);
+    expect(html).toContain('<span class="m-0" data-testid="race-mini-map">');
+    expect(html).toContain('viewBox="0 0 128 128"');
+    expect(html.match(/data-map-mark=/g)).toHaveLength(3);
+    expect(html.match(/data-map-boat=/g)).toHaveLength(2);
+    expect(html).not.toMatch(/figcaption|<figure|private-player-id|private-rival-id/);
+    expect(html).toContain('role="img" aria-label="Karte des Rennens"');
+  });
   it("renders the actual marks, shared start/finish, fleet and supplied accessible labels", () => {
     const errors = vi.spyOn(console, "error");
     const html = render();

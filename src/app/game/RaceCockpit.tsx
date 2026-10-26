@@ -20,6 +20,7 @@ import { useRaceNavigationCopy } from "@/features/race-hud/navigation-copy";
 import type { RaceNavigationSnapshot, RaceWindReading } from "@/features/race-hud/navigation-model";
 import { GearIcon } from "@/features/trainer-controls/GearIcon";
 import { recordControlChange } from "@/lib/diagnostics-controls";
+import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
 
 export function RaceModePicker({ prefs, update }: { prefs: RacePrefs; update: (p: Partial<RacePrefs>) => void }) {
   const c = useRaceCopy();
@@ -78,11 +79,13 @@ export function RaceCockpit(p: {
     </header>
     <div className={styles.metrics}>
       <div><span>{c.speed}</span><strong>{p.speed.toFixed(1)}<small>{c.knots}</small></strong></div>
-      <div className={styles.windMetric}><span>{nav.wind}</span><RaceWindInstrument reading={p.windReading} display={p.prefs.windDisplay} compact /></div>
       {[[c.time, p.time, p.penalty ? `+${p.penalty} s` : ""], [c.position, `${p.rank || "-"}/${p.rows.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
     </div>
     <div className={styles.workspace}>
-      <div className={styles.scene} data-testid="race-3d">{p.children}</div>
+      <div className={styles.scene} data-testid="race-3d">{p.children}
+        <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.prefs.windDisplay}
+          miniMap={p.prefs.miniMap} onOpenMap={() => selectTab("map")} you={c.you} fleet={c.fleet} />
+      </div>
       <aside className={styles.dock} aria-label={labels.controlsTitle}>
         <div className={styles.notice} role="status" aria-live="polite">
           {p.countdown !== undefined ? <strong>{p.countdown || "START"}</strong> : p.paused ? c.pause : p.message || (p.prefs.guidance && p.guidance ? c.actions[p.guidance.action] : pro ? c.proNote : c.simpleNote)}
@@ -135,6 +138,7 @@ export function RaceCockpit(p: {
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
             <p>{c.cameraGesture}</p>
             <RaceWindSettings display={p.prefs.windDisplay} onChange={windDisplay => p.updatePrefs({ windDisplay })} />
+            <Toggle label={nav.miniMapSetting} checked={p.prefs.miniMap} onChange={miniMap => p.updatePrefs({ miniMap })} />
             <Toggle label={c.guidance} checked={p.prefs.guidance} onChange={guidance => p.updatePrefs({ guidance })} />
             <Toggle label={c.trimHints} checked={p.prefs.trimHints} onChange={trimHints => p.updatePrefs({ trimHints })} />
             <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />

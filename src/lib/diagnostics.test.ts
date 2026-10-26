@@ -159,6 +159,11 @@ describe("diagnostic strict transport and privacy", () => {
     for (const value of [true, false]) {
       const event = { type: "control.change", surface: "race", outcome: "accepted", control: "race-map", value, previous: !value };
       expect(parseDiagnosticBatch({ version: 1, events: [event] })?.events).toEqual([event]);
+      const preference = { type: "control.preferences", surface: "race", outcome: "accepted", preference: "mini-map", value, previous: !value };
+      expect(parseDiagnosticBatch({ version: 1, events: [preference] })?.events).toEqual([preference]);
+    }
+    for (const extra of [{ value: "PRIVATE" }, { previous: 1 }, { position: { x: 1, y: 2 } }]) {
+      expect(parseDiagnosticBatch({ version: 1, events: [{ type: "control.preferences", surface: "race", outcome: "accepted", preference: "mini-map", value: true, previous: false, ...extra }] })).toBeNull();
     }
     for (const extra of [{ value: "PRIVATE" }, { previous: "PRIVATE" }, { value: true }, { text: "PRIVATE" }]) {
       expect(parseDiagnosticBatch({ version: 1, events: [{ type: "control.preferences", surface: "race", outcome: "accepted", preference: "wind-display", value: "both", previous: "off", ...extra }] })).toBeNull();

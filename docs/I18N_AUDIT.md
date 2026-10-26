@@ -1,5 +1,12 @@
 # i18n audit - 7-language status across the app
 
+2026-10-26 corner instruments: `src/features/race-hud/navigation-copy.ts`
+adds two resources/14explicit values for the mini-map visibility setting and
+Open course map action. The compact map and wind reuse the existing canonical
+labels and units. Actual cockpit handler tests switch through all7languages;
+the corner action opens the full map and each localized switch updates the
+same saved boolean. No protocol or Sternik wording changed.
+
 2026-10-26 saved-result list checkpoint: `src/lib/race-record-copy.ts` owns
 the native History/Leaderboard course names, Simple/Pro conditions, result time
 components and unavailable-record wording in all7languages. The historical

@@ -17,6 +17,7 @@ import type { RaceNavigationSnapshot, RaceWindReading } from "@/features/race-hu
 import type { WindDisplay } from "@/lib/race-visual-prefs";
 import { GearIcon } from "@/features/trainer-controls/GearIcon";
 import { recordControlChange } from "@/lib/diagnostics-controls";
+import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
 
 export function MultiplayerCockpit(p: {
   children: ReactNode; results?: ReactNode; frame: MultiplayerFrame | null;
@@ -26,6 +27,7 @@ export function MultiplayerCockpit(p: {
   guidanceOn: boolean; setGuidanceOn: (on: boolean) => void;
   windReading: RaceWindReading | null; navigation: RaceNavigationSnapshot | null;
   windDisplay: WindDisplay; setWindDisplay: (display: WindDisplay) => void;
+  miniMap: boolean; setMiniMap: (value: boolean) => void;
 }) {
   const c = useRaceCopy();
   const nav = useRaceNavigationCopy();
@@ -66,11 +68,13 @@ export function MultiplayerCockpit(p: {
     </header>
     <div className={styles.metrics}>
       <div><span>{c.speed}</span><strong>{player?.speed.toFixed(1) ?? "-"}<small>{c.knots}</small></strong></div>
-      <div className={styles.windMetric}><span>{nav.wind}</span><RaceWindInstrument reading={p.windReading} display={p.windDisplay} compact /></div>
       {[[c.time, `${minutes}:${seconds}`, ""], [c.position, `${player ? ranks.get(player.id) ?? "-" : "-"}/${fleet.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
     </div>
     <div className={styles.workspace}>
-      <div className={styles.scene} data-testid="multiplayer-scene">{p.children}</div>
+      <div className={styles.scene} data-testid="multiplayer-scene">{p.children}
+        <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.windDisplay}
+          miniMap={p.miniMap} onOpenMap={() => selectTab("map")} you={c.you} fleet={c.fleet} />
+      </div>
       <aside className={styles.dock} aria-label={labels.controlsTitle} data-testid="multiplayer-dock">
         <div className={styles.notice} role="status" aria-live="polite">
           {p.reconnecting ? reconnect : p.phase === "countdown" ? <strong>{p.countdown}</strong> : !p.frame ? waiting : <>
@@ -103,6 +107,7 @@ export function MultiplayerCockpit(p: {
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
             <p>{c.cameraGesture}</p>
             <RaceWindSettings display={p.windDisplay} onChange={p.setWindDisplay} />
+            <label className={styles.toggle}><span>{nav.miniMapSetting}</span><input type="checkbox" role="switch" checked={p.miniMap} onChange={e => p.setMiniMap(e.target.checked)} /></label>
             <label className={styles.toggle}><span>{c.guidance}</span><input type="checkbox" role="switch" checked={p.guidanceOn} onChange={e => p.setGuidanceOn(e.target.checked)} /></label>
             <label className={styles.toggle}><span>{labels.sound}</span><input type="checkbox" role="switch" checked={prefs.sound} onChange={e => update({ sound: e.target.checked })} /></label>
             <p>{auto}</p>

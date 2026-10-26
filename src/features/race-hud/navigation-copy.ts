@@ -5,6 +5,8 @@ import { useI18n } from "@/lib/i18n";
 export function useRaceNavigationCopy() {
   const { tl } = useI18n();
   return {
+    miniMapSetting: tl({ ru: "Мини-карта в углу", en: "Mini-map in the corner", pl: "Minimapa w rogu", es: "Minimapa en la esquina", fr: "Mini-carte dans le coin", de: "Minikarte in der Ecke", it: "Minimappa nell'angolo" }),
+    openMap: tl({ ru: "Открыть карту трассы", en: "Open course map", pl: "Otwórz mapę trasy", es: "Abrir el mapa del recorrido", fr: "Ouvrir la carte du parcours", de: "Kurskarte öffnen", it: "Apri la mappa del percorso" }),
     map: tl({ ru: "Карта трассы", en: "Course map", pl: "Mapa trasy", es: "Mapa del recorrido", fr: "Carte du parcours", de: "Kurskarte", it: "Mappa del percorso" }),
     north: tl({ ru: "Север", en: "North", pl: "Północ", es: "Norte", fr: "Nord", de: "Nord", it: "Nord" }),
     northShort: tl({ ru: "С", en: "N", pl: "N", es: "N", fr: "N", de: "N", it: "N" }),

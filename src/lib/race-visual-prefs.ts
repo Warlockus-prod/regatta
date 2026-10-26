@@ -7,10 +7,11 @@ export interface RaceAssists {
   rules: boolean;
   penalties: boolean;
   windDisplay: WindDisplay;
+  miniMap: boolean;
 }
 
 export const DEFAULT_RACE_ASSISTS: Readonly<RaceAssists> = Object.freeze({
-  guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass",
+  guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true,
 });
 
 export function isWindDisplay(value: unknown): value is WindDisplay {
@@ -25,6 +26,7 @@ export function sanitizeRaceAssists(raw: unknown, fallback: Readonly<RaceAssists
     trimHints: typeof value.trimHints === "boolean" ? value.trimHints : fallback.trimHints,
     rules: typeof value.rules === "boolean" ? value.rules : fallback.rules,
     penalties: typeof value.penalties === "boolean" ? value.penalties : fallback.penalties,
+    miniMap: typeof value.miniMap === "boolean" ? value.miniMap : typeof fallback.miniMap === "boolean" ? fallback.miniMap : true,
     windDisplay: isWindDisplay(value.windDisplay) ? value.windDisplay : isWindDisplay(fallback.windDisplay) ? fallback.windDisplay : DEFAULT_RACE_ASSISTS.windDisplay,
   };
 }

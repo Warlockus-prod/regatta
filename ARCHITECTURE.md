@@ -1485,6 +1485,14 @@ history. This boundary is not a new result class or physical writer.
 - `docs/audits/2026-10-26/checks/next70-prepublication.json` - exact16d4eed
   safe non-main gate:70first-attempt browser passes, retained artifact hash,
   source checks and explicitly skipped publication/deployment/production jobs.
+- `src/features/race-hud/RaceCornerInstruments.tsx` - shared solo/multiplayer
+  passive wind corner and live mini-map button, using the existing snapshots
+  and full dock Map action, with no second simulation or animation loop.
+- `src/features/race-hud/RaceCornerInstruments.module.css` - bounded scene-corner
+  positions, container-relative map sizing and pointer-through wind surface.
+- `docs/audits/2026-10-26/corner-instruments-harness.md` - owner-requested
+  persistent corner instrument contract, source/real browser evidence and
+  explicit next installed/delivery gates.
 
 History keeps every row newest-first and projects once per history array.
 Leaderboard filters already projected rows, keeps historical score ranks in
@@ -1493,6 +1501,21 @@ Registered groups are ordered by identity, with no cross-class time rank.
 Unavailable rows stay visible in All and never enter a PB. Titles wrap and
 course-filter chips retain44px targets. The native course registry reuses the
 same historical title resource without changing any saved ID, geometry or hint.
+
+The shared RaceCornerInstruments lives inside each real race scene, independently
+of the dock tab. Speed/time/position retain the header; the existing compact
+true-wind instrument moves to the upper-left, keeping its numeric readings even
+when compass/arrows are off. The upper-right mini-map reuses RaceOverviewMap's
+canonical projection without the full legend; compact clipping preserves edge
+boats inside the outer frame. Its44px-plus button opens the existing full dock
+map. The wind surface passes pointer input to the3Dcanvas; only the map button
+captures its own corner. Mini-map visibility defaults true, validates strictly
+as a boolean, persists in regatta.race.assists.v1 and records only bounded
+mini-map preference values. Native bridges keep the same allowed key/limits.
+The same prepublication files now select71cases, with one independent real3D
+journey for five viewport bounds, persistence/reload and canonical diagnostics.
+Existing browser assertions and timeout/publication guards stay unchanged;
+physics and result classes are untouched.
 
 - `docs/audits/2026-10-25/checks/website64-prepublication-main.json` - exactb459ecc
   prepublication failure and retained timing/geometry proof,67passed/1deadline,

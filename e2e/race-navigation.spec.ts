@@ -8,6 +8,7 @@ type VisualJournal = {
   mapOpened: boolean;
   mapClosed: boolean;
   windValues: string[];
+  miniMapValues: boolean[];
 };
 
 test("saved Pro briefing keeps its mode and wind after current preferences change", async ({ page, context }) => {
@@ -52,7 +53,7 @@ function journalParserSource() {
 async function visualJournal(page: Page): Promise<VisualJournal> {
   return page.evaluate<VisualJournal>(`(() => {
     ${journalParserSource()}
-    const empty = { mapOpened: false, mapClosed: false, windValues: [] };
+    const empty = { mapOpened: false, mapClosed: false, windValues: [], miniMapValues: [] };
     try {
       const raw = localStorage.getItem(RaceNavigationJournalParser.DIAGNOSTIC_STORAGE_KEY);
       if (raw === null) return { status: "absent", ...empty };
@@ -64,6 +65,7 @@ async function visualJournal(page: Page): Promise<VisualJournal> {
         mapOpened: events.some(event => event.type === "control.change" && event.control === "race-map" && event.value === true && event.outcome === "accepted"),
         mapClosed: events.some(event => event.type === "control.change" && event.control === "race-map" && event.value === false && event.outcome === "accepted"),
         windValues: [...new Set(events.filter(event => event.type === "control.preferences" && event.preference === "wind-display" && (event.outcome === "accepted" || event.outcome === "noop")).map(event => event.value))].sort(),
+        miniMapValues: [...new Set(events.filter(event => event.type === "control.preferences" && event.preference === "mini-map" && event.outcome === "accepted").map(event => event.value))].sort(),
       };
     } catch { return { status: "unavailable", ...empty }; }
   })()`);
@@ -150,6 +152,63 @@ async function startSimpleRace(page: Page, context: BrowserContext) {
   await expect(clock).not.toHaveText("0:00.0", { timeout: 15_000 });
   return { scene, cockpit, canvas, startup, compact, direction, windSpeed, helm, clock };
 }
+
+test("corner map and wind stay visible beside the running boat and remember the mini-map choice", async ({ page, context }, testInfo) => {
+  test.setTimeout(120_000);
+  const { scene, cockpit } = await startSimpleRace(page, context);
+  const mini = cockpit.getByTestId("race-mini-map-button");
+  const wind = cockpit.getByTestId("race-corner-wind");
+  const samples = [];
+  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 390, height: 720 },
+    { width: 844, height: 390 }, { width: 1280, height: 800 }]) {
+    await page.setViewportSize(viewport);
+    await expect(mini).toBeVisible();
+    await expect(wind.getByTestId("race-wind-compass")).toBeVisible();
+    const geometry = await scene.evaluate(element => {
+      const box = (e: Element) => { const b = e.getBoundingClientRect(); return { left: b.left, top: b.top, right: b.right, bottom: b.bottom, width: b.width, height: b.height }; };
+      const map = element.querySelector('[data-testid="race-mini-map-button"]')!;
+      const wind = element.querySelector('[data-testid="race-corner-wind"]')!;
+      return { scene: box(element), map: box(map), wind: box(wind) };
+    });
+    for (const instrument of [geometry.map, geometry.wind]) {
+      expect(instrument.left).toBeGreaterThanOrEqual(geometry.scene.left - 1);
+      expect(instrument.top).toBeGreaterThanOrEqual(geometry.scene.top - 1);
+      expect(instrument.right).toBeLessThanOrEqual(geometry.scene.right + 1);
+      expect(instrument.bottom).toBeLessThanOrEqual(geometry.scene.bottom + 1);
+    }
+    expect(geometry.map.width).toBeGreaterThanOrEqual(44);
+    expect(geometry.map.height).toBeGreaterThanOrEqual(44);
+    expect(geometry.map.width).toBeLessThanOrEqual(geometry.scene.width * .32 + 1);
+    expect(geometry.map.height).toBeLessThanOrEqual(geometry.scene.height * .4 + 1);
+    expect(geometry.map.left - geometry.wind.right).toBeGreaterThanOrEqual(geometry.scene.width * .2);
+    samples.push({ viewport, ...geometry });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mini.click();
+  await expect(cockpit.getByTestId("race-overview-map")).toBeVisible();
+  await expect(mini).toBeVisible();
+  await cockpit.getByRole("button", { name: "Паруса", exact: true }).click();
+  await expect(mini).toBeVisible();
+  await expect(wind).toBeVisible();
+  await cockpit.getByRole("button", { name: "Настройки", exact: true }).click();
+  await cockpit.getByRole("switch", { name: "Мини-карта в углу", exact: true }).uncheck();
+  await expect(mini).toHaveCount(0);
+  await expect(wind).toBeVisible();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("regatta.race.assists.v1") ?? "{}").miniMap)).toBe(false);
+  await expect.poll(async () => (await visualJournal(page)).miniMapValues).toEqual([false]);
+
+  // An actual new document must still hide it, rather than resetting the choice.
+  const reopened = await startSimpleRace(page, context);
+  await expect(reopened.cockpit.getByTestId("race-mini-map-button")).toHaveCount(0);
+  await expect(reopened.cockpit.getByTestId("race-corner-wind")).toBeVisible();
+  await reopened.cockpit.getByRole("button", { name: "Настройки", exact: true }).click();
+  await reopened.cockpit.getByRole("switch", { name: "Мини-карта в углу", exact: true }).check();
+  await expect(reopened.cockpit.getByTestId("race-mini-map-button")).toBeVisible();
+  await reopened.cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  await expect(reopened.helm).toBeVisible();
+  await expect.poll(async () => (await visualJournal(page)).miniMapValues).toEqual([false, true]);
+  await testInfo.attach("corner-instrument-layout", { contentType: "application/json", body: JSON.stringify(samples) });
+});
 
 test("Simple 3D keeps the complete live course and fleet in a running reserved Map", async ({ page, context }, testInfo) => {
   test.setTimeout(120_000);

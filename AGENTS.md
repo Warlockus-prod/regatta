@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- NEXT corner-instrument checkpoint follows the owner's26October request: the live mini-map stays at the sea's upper-right, true wind at upper-left, through Helm/Sails/Map/Settings. The map opens the existing full dock view; its saved visibility and bounded boolean journal use the existing assist bridge. Numeric wind remains visible for every wind style. Source, browser and next installed gates are separated in `docs/audits/2026-10-26/corner-instruments-harness.md`. Delivered64 remains unchanged.
+
 - NEXT16d4eed safe non-main gate40286829987 passed all70browser cases on the first attempt, with no skips/flakes; source checks and3offline freshness checks also passed. Publication/deploy/production jobs were skipped as designed. Exact portable proof: `docs/audits/2026-10-26/checks/next70-prepublication.json`. The following native list source and next installed G2 are excluded from this exact proof.
 
 - NEXT History/Leaderboard now consume the projection once per stable history array. Historical score PBs retain their order; registered PBs use snapshot raw finish plus penalty within one class/mode/difficulty/wind and have no shared rank. Unknown entries stay visible with a generic translated title and the existing Replay/Coach exits. Shared names/conditions live in `src/lib/race-record-copy.ts`; historical course names reuse that resource. Source tests do not replace next installed G2 or native PB acknowledgement.

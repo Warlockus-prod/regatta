@@ -46,6 +46,7 @@ export function writeRacePrefs(patch: Partial<RacePrefs>, surface: "race" | "mul
     w.ReactNativeWebView?.postMessage(JSON.stringify({ type: "race-prefs", mode: next.mode, assists: sanitizeRaceAssists(next) }));
   }
   if (patch.windDisplay !== undefined) recordPreferenceChange(surface, "wind-display", next.windDisplay, previous.windDisplay);
+  if (patch.miniMap !== undefined) recordPreferenceChange(surface, "mini-map", next.miniMap, previous.miniMap);
   window.dispatchEvent(new Event(EVENT));
 }
 export function useRacePrefs(surface: "race" | "multiplayer" = "race") {

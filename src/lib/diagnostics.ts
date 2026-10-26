@@ -41,7 +41,7 @@ type ControlValues = {
 type PreferenceValues = {
   mode: "sliders" | "wheels"; "helm-mapping": "course" | "rudder";
   "return-center": boolean; sensitivity: 0.5 | 1 | 2; "jib-side": "left" | "right";
-  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay;
+  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay; "mini-map": boolean;
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
 export type DiagnosticInput = Common & (
@@ -100,7 +100,7 @@ const controlChecks: Record<keyof ControlValues, Check> = {
 };
 const preferenceChecks: Record<keyof PreferenceValues, Check> = {
   mode: enumeration(["sliders", "wheels"]), "helm-mapping": enumeration(["course", "rudder"]), "return-center": boolean,
-  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS),
+  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS), "mini-map": boolean,
 };
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };
 const attempt = numeric(0, 100000, true);
