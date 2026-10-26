@@ -49,7 +49,7 @@ export function SailShapeIllustration({ children }: { children: ReactNode }) {
         {copy.frames.map((item, index) => <Pressable key={item.id} accessibilityRole="button" accessibilityState={{ selected: frameIndex === index }} onPress={() => chooseFrame(index)} style={[s.button, frameIndex === index && s.on]}><Text style={[s.label, frameIndex === index && s.onLabel]}>{item.label[lang]}</Text></Pressable>)}
       </View>
       <View style={s.photo}>
-        <Image key={`${frame.id}-${token}`} testID={`sail-shape-${frame.id}`} source={images[frameIndex]} accessible accessibilityLabel={frame.description[lang]} resizeMode="contain" style={StyleSheet.absoluteFill} onLoad={() => imageResult(true)} onError={() => imageResult(false)} />
+        <Image key={`${frame.id}-${token}`} testID={`sail-shape-${frame.id}`} source={images[frameIndex]} accessible accessibilityLabel={frame.description[lang]} resizeMode="contain" style={[StyleSheet.absoluteFill, s.image]} onLoad={() => imageResult(true)} onError={() => imageResult(false)} />
         <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={StyleSheet.absoluteFill}><SvgXml xml={renderSailShapeMarkers()} width="100%" height="100%" /></View>
       </View>
       <Text accessibilityLiveRegion="polite">{frame.note[lang]}</Text>
@@ -68,6 +68,7 @@ const styles = bySurface(c => StyleSheet.create({
   on: { backgroundColor: c.textPrimary, borderColor: c.textPrimary },
   label: { color: c.textPrimary, fontSize: 16, lineHeight: 24, fontWeight: "600", textAlign: "center" },
   onLabel: { color: c.bgCard },
+  image: { width: "100%", height: "100%" },
   photo: { width: "100%", aspectRatio: 3 / 2, overflow: "hidden", borderRadius: 16, backgroundColor: c.bgCard },
   limit: { color: c.textSecondary, fontSize: 14, lineHeight: 21 },
 }));

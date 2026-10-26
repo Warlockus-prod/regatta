@@ -161,3 +161,38 @@ History/Personal screens and Back in RU on clean27 and inherited PL checks on
 the next installed nonempty presentation and native PB acknowledgement gates
 remain required. Delivery of the foundation never activates the physical engine,
 new short/medium/long race choices or global class-query UI.
+
+## P03 next implementation contract
+
+Read-only inspection after the P02 source freeze confirms the remaining gap:
+`src/app/game/GameClient.tsx` shows the result of synchronous
+`tryUpdateBestRecord` while `RACE_STORAGE_BRIDGE_SCRIPT` posts the PB row to
+native storage independently. The native screen catches that write failure
+without replying. Its existing history ACK confirms `saveNativeRace`, not the
+separate PB row. This is source evidence of a durability gap, not a claim that
+an observed user's result was lost.
+
+The following checkpoint must satisfy all of these before physical emission:
+
+- A native PB banner and updated best value wait for the actual durable result.
+  Web synchronous storage retains its own checked behavior.
+- History and PB have distinct outcomes. A successful history save cannot hide
+  a failed PB write, and a PB retry cannot create duplicate history/review wins.
+- Requests and replies have finite validated identity, reject stale/foreign
+  responses and settle once. No reply after a disposed screen changes another
+  race. Retry is explicit and idempotent for the same finished result.
+- Read failure preserves stored bytes and prevents a destructive empty-store
+  replacement. Existing historical and unknown class entries remain readable;
+  unknown contexts never acquire a legacy/physical class by inference.
+- The authoritative comparison uses the same mode, difficulty, wind, class and
+  adjusted finish time on both sides. Old Daily/mission compatibility remains
+  separate. Physical writes stay gated OFF throughout this checkpoint.
+- Actual-route tests exercise delayed ACK, denial/failure, duplicate/reordered
+  replies, retry and relaunch. Canonical diagnostics record bounded outcomes,
+  never a raw storage row, transcript or arbitrary error.
+- Installed acceptance includes at least one real saved finish, nonempty
+  History/Personal, Replay/Coach return and cold relaunch on both retained and
+  clean data. Fixture tests alone do not close this gate.
+
+The implementation choice and rollback source are recorded when P03 begins;
+no code or native protocol is changed by this planning entry.

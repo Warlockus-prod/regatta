@@ -34,3 +34,37 @@ Immediate language-switch snapshots retain the prior server-rendered skip-link/m
 Generated sailing HTML retains28upstream shader lines with trailing whitespace, as in immutable66. Keep its exact generator output; source whitespace checks are separate from package freshness. The Next-managed AGENTS block is retained with its punctuation normalized to the repository's ASCII-hyphen rule.
 
 Physical iPhone speech, real finger ergonomics, network blackhole, thermal/FPS and complete product acceptance remain separately qualified. Source, browser, installed native and delivery are distinct states.
+
+## First candidate rejected during acceptance
+
+Source83ef857, build67, was not uploaded. Its generated18, Simulator29,
+archive36 and exportedIPA38 checks passed, including both exact JPEG payloads.
+Safe workflow40365784126 ran76cases:75passed,1failed,0flaky/skipped. The
+unavailable-image case did not actually inject failure: trace shows two200
+image responses, one owned by the active Service Worker. The correction routes
+at browser-context scope, keeps the real worker and adds a positive assertion
+that the fault was intercepted. No timeout, fallback, retry or no-grade check
+is removed. The official routing contract is documented at
+https://playwright.dev/docs/service-workers#network-events-and-routing.
+
+Actual clean27 first lesson,3D0/180 and return passed, but native G2 caught the
+illustration using intrinsic Image dimensions inside an absolute-fill frame.
+The cloth was cropped while numeric leaders kept their correct3:2coordinates.
+Explicit percentage width/height must override the native Image defaults. Both
+frames and marker alignment require a fresh installed pass before delivery.
+All14retained26.5rows were unchanged immediately after install and before launch.
+The rejected source/archive/IPA, Simulator copy and these observations remain
+external evidence; none becomes proof of the corrected candidate.
+
+Separate P06 clarity finding: the existing trim-quality metric can show100%
+head-to-wind alongside the correct no-go warning. The first task explicitly
+does not grade trim. P06 must distinguish trim quality from available drive;
+this checkpoint does not redefine a physical force or award a skill.
+
+Corrected source gate repeats1551web/156files,569native/77suites and9native
+release-tool tests, strict types, native lint, fresh packages, content twins,
+generated server, real socket lifecycle, production build and unchanged6.47MB
+budget. Full corrected browser/native/delivery acceptance is still pending.
+The rejected DerivedData directories may be reused only as build caches; the
+121-file frozen Simulator copy, original archive/IPA and original proofs remain
+unchanged. Corrected source must freeze again and own its own logs/proofs.

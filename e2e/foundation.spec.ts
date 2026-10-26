@@ -138,16 +138,20 @@ for (const lang of ["pl", "ru", "en"] as const) {
   });
 }
 
-test("an unavailable illustration preserves the force diagram and a real retry can recover", async ({ page }) => {
+test("an unavailable illustration preserves the force diagram and a real retry can recover", async ({ page, context }) => {
+  let failedRequests = 0;
+  // The production service worker owns its network fetch. Fault that request,
+  // retaining the real worker and every fallback/retry assertion.
+  await context.route("**/learning/mainsail-filled.jpg", route => { failedRequests += 1; return route.abort(); });
   await page.goto("/start?lesson=how-sail-works");
   await page.getByRole("button", { name: "Две составляющие", exact: true }).click();
-  await page.route("**/learning/mainsail-filled.jpg", route => route.abort());
   await page.getByRole("button", { name: "Рисунок", exact: true }).click();
   await expect(page.getByText(sailShapeContent.unavailable.ru, { exact: true })).toBeVisible();
+  expect(failedRequests).toBeGreaterThan(0);
   await expect(page.getByRole("button", { name: "Схема", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Две составляющие", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("img", { name: /Как работает парус: Две составляющие/ })).toBeVisible();
-  await page.unroute("**/learning/mainsail-filled.jpg");
+  await context.unroute("**/learning/mainsail-filled.jpg");
   await page.getByRole("button", { name: "Рисунок", exact: true }).click();
   const image = page.getByRole("img", { name: sailShapeContent.frames[0].description.ru, exact: true });
   await expect.poll(() => image.evaluate(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)).toBe(true);
