@@ -23,6 +23,7 @@
 import { PHYSICAL_RACE_EMISSION_ENABLED, readRaceContext, type RaceContext } from "./race-context";
 import { recordDiagnostic } from "./diagnostics-controls";
 import type { DiagnosticOutcome, DiagnosticReason } from "./diagnostics";
+import { dailySettings } from "./daily-challenge";
 
 const STORAGE_KEY = "regatta.race-resume.v1";
 const MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
@@ -46,6 +47,8 @@ export interface SavedRaceSetup {
   mode?: "simple" | "pro";
   /** Missing/null is historical absence, never an inferred physical course. */
   raceContext?: RaceContext | null;
+  /** Additive daily identity; older intents have no daily provenance. */
+  dailyDay?: string | null;
 }
 
 export type InspectedRaceSetup = { kind: "missing" | "unsupported" | "invalid" }
@@ -82,10 +85,18 @@ export function inspectRaceSetup(raw: string | null, now: number): InspectedRace
   if (!isDifficulty(parsed.difficulty) || !isWindStrength(parsed.windStrength) || !isPhase(parsed.phase)
     || (parsed.missionId !== null && typeof parsed.missionId !== "string")
     || typeof parsed.ts !== "number" || !Number.isFinite(parsed.ts) || parsed.ts < 0) return { kind: "invalid" };
+  if (parsed.dailyDay !== undefined && parsed.dailyDay !== null) {
+    if (typeof parsed.dailyDay !== "string" || parsed.missionId !== null) return { kind: "invalid" };
+    try {
+      const daily = dailySettings(parsed.dailyDay);
+      if (parsed.difficulty !== daily.difficulty || parsed.windStrength !== daily.windStrength) return { kind: "invalid" };
+    } catch { return { kind: "invalid" }; }
+  }
   const setup: SavedRaceSetup = { v: 1, difficulty: parsed.difficulty, windStrength: parsed.windStrength,
     missionId: parsed.missionId, phase: parsed.phase, ts: parsed.ts,
     ...(parsed.mode === undefined ? {} : { mode: parsed.mode }),
-    ...(parsed.raceContext === undefined ? {} : { raceContext: parsed.raceContext === null ? null : context.context }) };
+    ...(parsed.raceContext === undefined ? {} : { raceContext: parsed.raceContext === null ? null : context.context }),
+    ...(parsed.dailyDay === undefined ? {} : { dailyDay: parsed.dailyDay as string | null }) };
   return { kind: now - setup.ts > MAX_AGE_MS ? "expired" : "ready", setup };
 }
 
@@ -114,7 +125,7 @@ export function saveRaceSetup(setup: Omit<SavedRaceSetup, "v" | "ts">, options: 
   const now = Date.now();
   let candidate: InspectedRaceSetup;
   try {
-    candidate = inspectRaceSetup(JSON.stringify({ v: 1, ts: now, ...setup }), now);
+    candidate = inspectRaceSetup(JSON.stringify({ ...setup, v: 1, ts: now }), now);
   } catch { diagnostic("write", "rejected", "invalid-input"); return false; }
   if (candidate.kind !== "ready") { diagnostic("write", "rejected", candidate.kind === "unsupported" ? "unsupported" : "invalid-input"); return false; }
   const candidateReason = protectedReason(candidate);

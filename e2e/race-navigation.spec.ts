@@ -10,6 +10,34 @@ type VisualJournal = {
   windValues: string[];
 };
 
+test("saved Pro briefing keeps its mode and wind after current preferences change", async ({ page, context }) => {
+  await context.addInitScript(() => {
+    localStorage.setItem("regatta.lang.v1", "ru");
+    localStorage.setItem("regatta.onboarding.v1", "1");
+    localStorage.setItem("regatta.v3.tour.v1", "1");
+    localStorage.setItem("regatta.race.mode.v1", "simple");
+    localStorage.setItem("regatta.race-resume.v1", JSON.stringify({ v: 1, ts: Date.now(), phase: "racing",
+      difficulty: "easy", windStrength: "light", missionId: null, mode: "pro", raceContext: null }));
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/game?embed=1&mode=simple");
+  await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("Повторить гонку с прежними настройками?", { exact: true })).toBeVisible();
+  for (const name of ["Продолжить", "Закрыть"]) {
+    const box = await page.getByRole("button", { name, exact: true }).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.getByRole("button", { name: "Продолжить", exact: true }).click();
+  await expect(page.getByRole("button", { name: /Готов - старт/ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Pro", exact: true })).toBeChecked();
+  await expect(page.getByText("Лёгкий · слабый ветер", { exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem("regatta.race-resume.v1") ?? "null");
+    return saved ? { mode: saved.mode, wind: saved.windStrength, phase: saved.phase, nullContext: saved.raceContext === null } : null;
+  })).toEqual({ mode: "pro", wind: "light", phase: "briefing", nullContext: true });
+});
+
 let parserSource: string | undefined;
 function journalParserSource() {
   // Match SITE observability: raw storage is validated inside the browser and

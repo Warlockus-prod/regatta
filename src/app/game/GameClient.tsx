@@ -15,7 +15,7 @@ import {
   type BestRecord,
 } from '@/lib/best-times';
 import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
-import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
+import { saveRaceSetup, loadRaceSetup, clearRaceSetup, type SavedRaceSetup } from '@/lib/race-resume';
 // Shared sailing engine; the WebSocket server imports a generated bundle.
 import {
   stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, makeStandardCourse,
@@ -44,7 +44,7 @@ import { useRacePrefs } from "./race-prefs";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { bindClockLifecycle } from "@/features/sailing-lab/runtime/clock-lifecycle";
 import { createRaceStartupGate } from "@/lib/race-startup";
-import { linkedRaceSetup } from "@/lib/race-setup";
+import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
@@ -360,9 +360,9 @@ export default function GamePage() {
   const { prefs: controlPrefs, update: updateControls } = useControlPrefs();
   const muted = !controlPrefs.sound;
 
-  // Wind strength multiplier: 0.6 (light) / 1.0 (medium) / 1.3 (heavy)
+  // Existing wind multiplier: 0.65 (light), 1.0 (medium), 1.3 (heavy).
   const [windStrength, setWindStrength] = useState<'light' | 'medium' | 'heavy'>('medium');
-  const windStrengthMul = windStrength === 'light' ? 0.65 : windStrength === 'heavy' ? 1.3 : 1.0;
+  const windStrengthMul = raceSetupWindMultiplier(windStrength);
   const windStrengthRef = useRef(windStrengthMul);
   useEffect(() => { windStrengthRef.current = windStrengthMul; }, [windStrengthMul]);
 
@@ -377,10 +377,11 @@ export default function GamePage() {
   // resuming mid-position. That's a deliberate trade: we lose the
   // physics state but we never crash on schema skew.
   const [resumeOffer, setResumeOffer] = useState<ReturnType<typeof loadRaceSetup>>(null);
+  const setupContextRef = useRef<SavedRaceSetup["raceContext"]>(undefined);
   useEffect(() => {
     const saved = loadRaceSetup();
     if (saved && (saved.phase === 'briefing' || saved.phase === 'countdown' || saved.phase === 'racing')) {
-      setResumeOffer(saved);
+      setResumeOffer(planRaceResume(saved, readRaceSearch(), racePrefsRef.current.mode));
     }
   }, []);
 
@@ -599,6 +600,8 @@ export default function GamePage() {
   // Start race flow
   // -----------------------------------------------------------------------
   const openBriefing = useCallback(() => {
+    setupContextRef.current = undefined;
+    windStrengthRef.current = raceSetupWindMultiplier(windStrength);
     initRace(difficulty);
     // Look up the user's best for this (difficulty, wind) bucket so the
     // briefing can show a "Your best: 1:27" badge - small motivator without
@@ -612,25 +615,30 @@ export default function GamePage() {
       difficulty,
       windStrength,
       missionId: selectedMission?.id ?? null,
+      mode: racePrefs.mode,
+      dailyDay,
       phase: 'briefing',
-    });
+    }, { replaceUnsupported: true });
     setResumeOffer(null);
     setGameState('briefing');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode: racePrefs.mode });
-  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode]);
+  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode, dailyDay]);
 
   const beginCountdown = useCallback(() => {
     saveRaceSetup({
       difficulty,
       windStrength,
       missionId: selectedMission?.id ?? null,
+      mode: racePrefs.mode,
+      dailyDay,
+      raceContext: setupContextRef.current,
       phase: 'countdown',
     });
     setLockedMode(racePrefs.mode);
     setCountdown(3);
     setGameState('countdown');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "countdown", mode: racePrefs.mode });
-  }, [difficulty, windStrength, selectedMission, racePrefs.mode]);
+  }, [difficulty, windStrength, selectedMission, racePrefs.mode, dailyDay]);
 
   // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
 
@@ -649,6 +657,9 @@ export default function GamePage() {
         difficulty,
         windStrength,
         missionId: selectedMission?.id ?? null,
+        mode: racePrefsRef.current.mode,
+        dailyDay,
+        raceContext: setupContextRef.current,
         phase: 'racing',
       });
       setGameState('racing');
@@ -658,7 +669,7 @@ export default function GamePage() {
     playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady]);
+  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady, dailyDay]);
 
   // -----------------------------------------------------------------------
   // Keyboard input
@@ -1118,8 +1129,13 @@ export default function GamePage() {
             saved={resumeOffer}
             tp={tp}
             onResume={() => {
+              const mode = resumeOffer.mode ?? racePrefsRef.current.mode;
+              writeRacePrefs({ mode });
+              windStrengthRef.current = raceSetupWindMultiplier(resumeOffer.windStrength);
               setDifficulty(resumeOffer.difficulty);
               setWindStrength(resumeOffer.windStrength);
+              setDailyDay(resumeOffer.dailyDay ?? null);
+              setupContextRef.current = resumeOffer.raceContext;
               if (resumeOffer.missionId) {
                 const m = missions.find((x) => x.id === resumeOffer.missionId);
                 setSelectedMission(m ?? null);
@@ -1128,10 +1144,12 @@ export default function GamePage() {
               }
               setResumeOffer(null);
               initRace(resumeOffer.difficulty);
-              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, racePrefsRef.current.mode));
+              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, mode));
               setIsNewRecord(false);
-              saveRaceSetup({ difficulty: resumeOffer.difficulty, windStrength: resumeOffer.windStrength, missionId: resumeOffer.missionId, phase: "briefing" });
+              saveRaceSetup({ difficulty: resumeOffer.difficulty, windStrength: resumeOffer.windStrength, missionId: resumeOffer.missionId,
+                mode, dailyDay: resumeOffer.dailyDay, raceContext: resumeOffer.raceContext, phase: "briefing" });
               setGameState("briefing");
+              recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode });
             }}
             onDismiss={() => {
               clearRaceSetup();
@@ -1924,7 +1942,7 @@ function ResumeOffer({
           <button
             type="button"
             onClick={onResume}
-            className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
+            className="min-h-11 text-xs px-4 py-1.5 rounded-md font-semibold transition"
             style={{
               background: 'var(--accent-cyan)',
               color: 'var(--accent-ink)',
@@ -1936,7 +1954,7 @@ function ResumeOffer({
           <button
             type="button"
             onClick={onDismiss}
-            className="text-xs px-3 py-1.5 rounded-md transition border"
+            className="min-h-11 text-xs px-4 py-1.5 rounded-md transition border"
             style={{
               borderColor: 'rgba(139, 167, 184, 0.3)',
               color: 'var(--text-secondary)',

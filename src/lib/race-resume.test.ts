@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearRaceSetup, inspectRaceSetup, loadRaceSetup, RACE_RESUME_MAX_CHARS, saveRaceSetup, type SavedRaceSetup } from "./race-resume";
 import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext } from "./race-context";
 import { parseDiagnosticBatch } from "./diagnostics";
+import { dailySettings } from "./daily-challenge";
 
 const { diagnostic } = vi.hoisted(() => ({ diagnostic: vi.fn() }));
 vi.mock("./diagnostics-controls", () => ({ recordDiagnostic: diagnostic }));
@@ -24,6 +25,21 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("pure race setup inspection", () => {
+  it("round-trips canonical daily identity while leaving old intents without an invented day", () => {
+    const day = "2026-10-26", daily = dailySettings(day);
+    const setup = { ...oldSetup, mode: "pro" as const, dailyDay: day, difficulty: daily.difficulty, windStrength: daily.windStrength };
+    expect(inspectRaceSetup(JSON.stringify(setup), NOW)).toEqual({ kind: "ready", setup });
+    expect(saveRaceSetup(setup)).toBe(true);
+    expect(loadRaceSetup()).toEqual(setup);
+    expect(inspectRaceSetup(JSON.stringify(oldSetup), NOW)).toEqual({ kind: "ready", setup: oldSetup });
+    expect(inspectRaceSetup(JSON.stringify({ ...oldSetup, dailyDay: null }), NOW)).toEqual({ kind: "ready", setup: { ...oldSetup, dailyDay: null } });
+    for (const patch of [{ dailyDay: "2026-02-31" }, { dailyDay: 123 }, { missionId: "mission" },
+      { difficulty: daily.difficulty === "easy" ? "hard" : "easy" }, { windStrength: daily.windStrength === "light" ? "heavy" : "light" }]) {
+      const bytes = JSON.stringify({ ...setup, ...patch, ts: NOW - TTL - 1 });storage.set(KEY, bytes);
+      expect(inspectRaceSetup(bytes, NOW).kind).toBe("invalid");
+      expect(loadRaceSetup()).toBeNull();expect(storage.get(KEY)).toBe(bytes);
+    }
+  });
   it("keeps the exact old returned fields without inventing a context or mode", () => {
     expect(inspectRaceSetup(null, NOW)).toEqual({ kind: "missing" });
     const bytes = JSON.stringify(oldSetup, null, 2);
@@ -127,7 +143,7 @@ describe("resume storage preservation and explicit intent", () => {
   });
 
   it("uses only the old key and approved intent fields, never a nickname or live boat state", () => {
-    const input = { ...intent, mode: "pro" as const, nickname: "PRIVATE_NAME", boat: { x: 123, heading: 90 } };
+    const input = { ...intent, v: 99, ts: NOW + TTL, mode: "pro" as const, nickname: "PRIVATE_NAME", boat: { x: 123, heading: 90 } };
     expect(saveRaceSetup(input)).toBe(true);
     expect([...storage.keys()]).toEqual([KEY]);
     expect(JSON.parse(storage.get(KEY)!)).toEqual({ ...oldSetup, mode: "pro" });

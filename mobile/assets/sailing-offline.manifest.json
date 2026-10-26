@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "25ab4496b966",
-  "sha256": "36c78a67709c465891a238ef2d5ba9d32522c5b421cb6cba5afacb2f0f3bf8b5",
-  "bytes": 6550195,
+  "version": "4762feac7d21",
+  "sha256": "14beaa431ad4b547bc8a29d6e20565952f3affe0fda4d24a556fa73cdb7c1945",
+  "bytes": 6551358,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -839,8 +839,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 112796,
-      "sha256": "6eaa0dca2723baaaa0d275205da5489b9a0ea94e7d712defa7f435e8cd52d117"
+      "bytes": 113909,
+      "sha256": "e2db56a9798174164fd8629d9b3a70cf8e83ba7e72baf56c0466468c8be1399b"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -1804,8 +1804,8 @@
     },
     {
       "path": "src/lib/race-resume.ts",
-      "bytes": 8744,
-      "sha256": "57d6b7078784e08cf2e815be6e18816d39c39e87a0bbfa3e803cf8fa05a90b13"
+      "bytes": 9394,
+      "sha256": "6b31e2630fff22b7bef5d8ef77b8bb597466f172d2508f210c63e2b7347b2084"
     },
     {
       "path": "src/lib/race-rules.ts",
@@ -1814,8 +1814,8 @@
     },
     {
       "path": "src/lib/race-setup.ts",
-      "bytes": 1159,
-      "sha256": "d78cde84e5fe7a041f2f8e99ef1130edce42c93d74b53671df501c6e572cf4c4"
+      "bytes": 2159,
+      "sha256": "146dd5d8391b0c3a88e86f841713e95f6a33f7763ffb0e17ced9c3dedb76d28a"
     },
     {
       "path": "src/lib/race-startup.ts",

@@ -1014,7 +1014,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/app/multiplayer/presentation.ts` adapts server snapshots to shared scene poses without client-side stepping; `src/app/multiplayer/presentation.test.ts` protects identity, coordinates, input and render immutability.
 - `src/lib/best-times.test.ts` separates manual Pro records from existing auto-trim records while keeping old saved buckets readable.
 - `src/lib/race-clock.test.ts` verifies identical solo integration at 10/15/30/60/120 FPS and pause/background handling through the shared fixed clock.
-- `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options; `src/lib/race-setup.test.ts` protects mission wind and identical bare/parameterized daily links.
+- `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options and plans saved briefing restarts with recorded mode and known mission conditions. Explicit activity links suppress stale offers; unknown missions stay unavailable. `src/lib/race-setup.test.ts` protects these contracts and the unchanged wind multipliers.
 - `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
 
 - `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
@@ -1439,7 +1439,14 @@ The remaining nine-scope logging matrix is
   failed read/clear, unknown-row preservation and diagnostic failure isolation.
 
 best-times owns bounded pure update planning and honest synchronous web writes.
-race-resume owns protected intent storage, not live race state. Native validators
+race-resume owns protected intent storage, not live race state. Additive Daily
+identity validates its canonical conditions before TTL cleanup. GameClient uses
+the saved mode and sets the wind ref before initial trim, retaining context
+absence/null through briefing/countdown saves. Explicit new Start may replace
+an incompatible intent; dismiss and finish remain guarded against a concurrent
+future save. Restart buttons retain44px targets. The navigation browser suite
+adds one real saved-mode regression to the same70-case prepublication command,
+without changing permissions, assertions or timeout budgets. Native validators
 preserve null/absent context through actual messages; replay omits absent context
 and checks both locations before using a known nested context. No historical
 global/native record inherits a class from a local-PB default.

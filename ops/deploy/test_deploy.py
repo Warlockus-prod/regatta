@@ -108,7 +108,7 @@ class WorkflowBoundary(unittest.TestCase):
         self.assertEqual(len(commands), 1)
         args = shlex.split(commands[0])
         # Select the whole navigation file: Map and wind/Helm are independent
-        # real 3D journeys. The same eight-file gate now has 69 cases.
+        # real 3D journeys plus saved-mode regression: 70 selected cases.
         self.assertEqual(set(arg for arg in args if arg.startswith("e2e/")), {
             "e2e/smoke.spec.ts", "e2e/foundation.spec.ts", "e2e/sailing-learning.spec.ts",
             "e2e/replay.spec.ts", "e2e/race-navigation.spec.ts", "e2e/trainer-controls.spec.ts", "e2e/radio-workspace.spec.ts", "e2e/offline.spec.ts",

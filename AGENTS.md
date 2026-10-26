@@ -7,11 +7,13 @@
 
 ## Current completion work
 
+- NEXT saved briefing restart now retains its recorded mode, wind, mission and additive Daily identity. Explicit activity links own their setup; an unknown mission never turns into a free race. The real GameClient sets wind before initial trim and preserves null/absent context without enabling physical emission. New Start may replace an incompatible intent; ordinary cleanup stays guarded. Browser/native acceptance of this next source is separate from delivered64.
+
 - Native Replay/Coach and projection now share the same namespaced class-alias check. Contradictory known classes and future aliases show the existing localized notice/Back before pixel geometry, local analysis or a remote request, preserving saved bytes. Minimal historical classifier inputs remain supported. The installed64 binary is unchanged; actual History/Leaderboard presentation still follows.
 
 - Delivered64 is immutable sourceef180df, tagtestflight-1.7.0-64. Independent Apple GET2026-10-26 06:58:34.769UTC confirms exact Self VALID/IN_BETA_TESTING; separate06:58:33.721UTC confirms8notes. Installed map/wind/gear, Pro wheels, Orbit, Back and cold preference restoration passed on upgrade26.5 and clean27. Current65row matrix: `docs/audits/2026-10-26/acceptance64.md`; delivery: `docs/design/mobile/testflight64-2026-10-26.md`. Website5df0ee5 is published/healthy, but its final76-case browser gate remains red at74passed/1failed/1skipped. Do not equate delivery with full acceptance.
 
-- NEXT physical-consumer foundation and remaining integrations are tracked in `docs/audits/2026-10-26/physical-consumers-harness.md`. Local PB and protected setup APIs, additive SQLite/HTTP classes, native projection/builders and history outcomes have source gates; actual setup and History/Leaderboard UI consumers and native PB durability remain incomplete. Null context never manufactures saved provenance. Physical emission stays OFF; none of this NEXT work is in64.
+- NEXT physical-consumer foundation and remaining integrations are tracked in `docs/audits/2026-10-26/physical-consumers-harness.md`. Local PB and protected setup APIs, actual briefing restart, additive SQLite/HTTP classes, native projection/builders and history outcomes have source gates; actual History/Leaderboard UI consumers and native PB durability remain incomplete. Null context never manufactures saved provenance. Physical emission stays OFF; none of this NEXT work is in64.
 
 - Remaining action/outcome logging is tracked in `docs/audits/2026-10-26/diagnostics-followup.md`. The native Sternik dirty-exam prompt now records actual request and one Stay/dismiss cancellation without changing its guard. Assessment, PB and other outcome gaps remain explicit; defining event schemas is not integration coverage.
 
@@ -75,8 +77,10 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(63), группа Self.
-  Source88fdaac, VALID/IN_BETA_TESTING,8notes проверены21:53:34UTC; `docs/design/mobile/testflight63-2026-10-25.md`.
+  TestFlight1.7.0(64), группа Self: sourceef180df,
+  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 06:58UTC;
+  `docs/design/mobile/testflight64-2026-10-26.md`. Публичная1.6.4(48)
+  остается отдельно от TestFlight.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
   Сборка 59 отклонена Apple при импорте, не распространялась. Описание

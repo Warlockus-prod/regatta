@@ -46,10 +46,8 @@ trailing spaces; generated files are accepted through exact rebuild comparison.
 
 ## Required next consumers
 
-1. Wire GameClient explicit Start/discard/resume mode and context. Prevent a
-   stale intent from overriding an explicit mission/Daily/lesson/replay link.
-   Restore wind synchronously before initial trim, without changing constants.
-   Preserve the intentional briefing restart rather than claiming live resume.
+1. GameClient saved briefing restart is source integrated, with the browser
+   observations below. Exact candidate CI and installed acceptance still follow.
 2. Use the native projection in real History and Leaderboard. Keep historical
    score-first views and visible unknown records; compare registered groups by
    adjusted time only within the same class, mode, difficulty and wind. Add one
@@ -79,3 +77,36 @@ pixel geometry, shared redirect, local analysis or a remote request.
 Focused native component gate66tests/3suites and full551tests/75suites pass,
 along with strict web/native types, native lint and all3package freshness checks.
 This remains source evidence outside the installed64 binary.
+
+## Actual briefing restart follow-up
+
+GameClient now persists mode and additive Daily identity through briefing,
+countdown and racing intents. Resume uses the saved mode, removes the one-shot
+mode override and sets wind synchronously before initial trim. Known missions
+retain current canonical mission conditions; unknown missions never become a
+free race. Explicit mission/Daily/lesson/replay/profile links suppress a stale
+offer. Invalid Daily dates or contradictory conditions remain protected even
+after TTL. New Start explicitly replaces incompatible intent; ordinary dismiss
+and finish cannot clear a future record written concurrently. Physical emission
+stays OFF. This is a briefing restart, not restoration of live boat position.
+
+Actual local production UI at390x844: create Pro/light briefing, return to menu,
+select Simple, reload, Resume returns Pro/light. A second navigation carrying
+mode=simple also restores Pro. Start renders the real3Dscene with7.8kn initial
+wind and advancing0:07.7 then0:13.6clock, manual sheet wheels and working Pause.
+Separate activity ownership is checked independently. Screenshots and safe
+source/command evidence are retained externally. This is not installed-app
+acceptance or proof of a complete Pro finish.
+
+The same prepublication eight-file command gains a saved-mode browser case,
+including44px restart/dismiss targets, with unchanged timeout and publication
+guards. Its70-case cloud result remains pending until recorded separately.
+
+Final local gate for this follow-up:1538web tests/156files;551native tests/
+75suites and9release-tool tests;4real socket lifecycle contracts;9deployment
+boundary tests. Strict web/native types, scoped web lint, full native lint,
+all3fresh packages, content twins, map and typography pass. Production build
+and unchanged size limit pass:6810837bytes/111files,4907bytes headroom. Fresh
+sailing package4762feac7d21 has220inputs. Actual measured Resume/Dismiss
+targets at390x844 are44px high. The archived64 source and its delivery stay
+immutable; no new Apple submission is implied by these checks.
