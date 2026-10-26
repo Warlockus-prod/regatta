@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- MAIN64 prepublication onb459ecc stopped before image publication:67passed and the combined Map/wind case exhausted120s despite passing map containment and showing an advancing clock. SITE now separates Map/Fleet/clock from wind styles/Helm/preferences, each with real25s startup,15s clock and120s total. All assertions/five geometry samples remain; the same eight-file loopback gate now selects69cases. No runtime or native source changes. Proof: `docs/audits/2026-10-25/checks/website64-prepublication-main.json`.
+
 - Candidate64 source1543 was never uploaded: native G2 found the initial map extended below its dock. Its archive/IPA/Simulator and proofs are preserved externally. The panel-relative SVG/caption correction has actual four-viewport browser evidence; freeze fresh assets/source and repeat exact native/delivery gates. See `docs/audits/2026-10-25/release64-harness.md`.
 
 - SITE integrates frozen Map-fit APPef180df after1543d825, retaining0198d63 and7d87bf3 trainer contracts. Prepublication now includes the existing trainer-controls suite alongside the real map/wind case; the combined68-case gate must pass before another publication. Website63's red production evidence stays historical and does not become green through this source merge.

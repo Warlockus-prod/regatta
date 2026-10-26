@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "checkedAtUTC": "2026-10-26T00:19:04.765881+00:00",
+  "phase": "main-prepublication-failed-production-unchanged",
+  "webMergeCommit": "b459ecc308c10b6d4078ac814f75c000f9139867",
+  "testedSiteHead": "af58b0bcb6c3cf0a28c3ac7ce241309007b21025",
+  "frozenAppSource": "ef180dfc520df389353bc6e208e7187894b9f976",
+  "pullRequest": 84,
+  "runtimePathsEqualApp": true,
+  "workflowSHA256": "81ccc9efc1efa151732e4f0ed00497985824eb421d8fb1054a3b52c369fcf0c8",
+  "prepublication": {
+    "normalCIPassed": 6,
+    "safeTotal": 68,
+    "safeFirstPass": 68,
+    "safeFlaky": 0,
+    "safeFailed": 0,
+    "safeSkipped": 0,
+    "safeRun": 40243817962,
+    "fourSizeMapContainment": true,
+    "scrollTopBeforeFleet": 0
+  },
+  "deployment": {
+    "status": "skipped-by-failed-prepublication-gate",
+    "independentFreshSSHVolumeProof": "unknown-authorized-OPS-launcher-unavailable",
+    "manualHostChanges": 0,
+    "imagesPublished": false,
+    "productionChanged": false
+  },
+  "productionBrowser": {
+    "status": "skipped"
+  },
+  "releaseGatesComplete": false,
+  "boundaries": {
+    "NEXTPhysicalSourceIncluded": false,
+    "nativeDeliverySeparate": true,
+    "all65ProductAcceptanceSeparate": true,
+    "noManualDispatchOrRerun": true
+  },
+  "pipelineRun": 40245210698,
+  "pipelineURL": "https://github.com/Warlockus-prod/regatta/actions/runs/40245210698",
+  "mainPredeploy": {
+    "status": "failure",
+    "jobId": 121325216971,
+    "unitTests": 1269,
+    "unitFiles": 146,
+    "staticChunksReportedMB": 6.5,
+    "unchangedBudgetMiB": 6.5,
+    "allOfflinePackagesFresh": true,
+    "browser": {
+      "total": 68,
+      "passedFirstAttempt": 67,
+      "failed": 1,
+      "flaky": 0,
+      "skipped": 0,
+      "durationMinutes": 14.4,
+      "failedCase": "Simple race navigation/map/wind",
+      "classification": "global120s case deadline exhaustion after successful real UI assertions",
+      "mapGeometryAll5SnapshotsPassedInAll3Attempts": true,
+      "retry1ActiveClockReadings": [
+        "1:39.9",
+        "1:41.3"
+      ],
+      "retry1BaselineReadSeconds": [
+        118.439,
+        119.333
+      ],
+      "retry1PollReadSeconds": [
+        119.786,
+        120.689
+      ],
+      "retry0FinalCompassClickSeconds": [
+        118.591,
+        123.5
+      ],
+      "retry2CompassVisibleSeconds": [
+        119.3,
+        119.743
+      ],
+      "retry2HelmClickStartSeconds": 119.744,
+      "runtimeFailureProven": false
+    },
+    "artifact": {
+      "id": 12618593368,
+      "bytes": 8693791,
+      "sha256": "fcc786bd922de7ce396efb1755036236f8a1157bff0194b39d2c62bf6e218bb7"
+    }
+  },
+  "pipelineJobs": {
+    "predeploy": "failure",
+    "publishImages": "skipped",
+    "deploy": "skipped",
+    "productionBrowser": "skipped"
+  },
+  "publicAfterBlockedPublication": {
+    "checkedAtUTC": "2026-10-26T00:14:45.803961+00:00",
+    "phase": "after blocked website64 prepublication, previous production retained",
+    "routes": [
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/game",
+        "status": 200
+      },
+      {
+        "path": "/leaderboard",
+        "status": 200
+      },
+      {
+        "path": "/anatomy",
+        "status": 200
+      },
+      {
+        "path": "/simulator",
+        "status": 200
+      },
+      {
+        "path": "/simulator2",
+        "status": 200
+      },
+      {
+        "path": "/simulator-v3",
+        "status": 200
+      },
+      {
+        "path": "/courses",
+        "status": 200
+      },
+      {
+        "path": "/learn/sails",
+        "status": 200
+      },
+      {
+        "path": "/learn/sails/vang",
+        "status": 200
+      },
+      {
+        "path": "/learn/sails/outhaul",
+        "status": 200
+      },
+      {
+        "path": "/radio",
+        "status": 200
+      },
+      {
+        "path": "/radio/obsluga",
+        "status": 200
+      },
+      {
+        "path": "/radio/symulator",
+        "status": 200
+      },
+      {
+        "path": "/radio/zadania",
+        "status": 200
+      },
+      {
+        "path": "/radio/test",
+        "status": 200
+      }
+    ],
+    "health": {
+      "path": "/api/health",
+      "status": 200
+    },
+    "all16HTTP200": true
+  },
+  "siteCorrection": {
+    "type": "test-only independent journeys",
+    "sourceRuntimeUnchangedFrom": "ef180dfc520df389353bc6e208e7187894b9f976",
+    "journeys": [
+      "Map/Fleet/running clock/five geometry samples",
+      "Wind four styles/Helm/preferences/canonical journal"
+    ],
+    "startupMsPerJourney": 25000,
+    "clockMsPerCheck": 15000,
+    "totalMsPerJourney": 120000,
+    "originalAssertionsRetained": true,
+    "validatedGeometryReusedForAttachment": true,
+    "sameSelectedSpecFiles": 8,
+    "expectedSelectedCases": 69,
+    "normalCI": "pending",
+    "browserVerification": "pending",
+    "mainMergeAuthorizedByThisRecord": false
+  }
+}
