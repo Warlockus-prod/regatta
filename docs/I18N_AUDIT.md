@@ -1,5 +1,14 @@
 # i18n audit - 7-language status across the app
 
+2026-10-26 saved-result list checkpoint: `src/lib/race-record-copy.ts` owns
+the native History/Leaderboard course names, Simple/Pro conditions, result time
+components and unavailable-record wording in all7languages. The historical
+course registry reuses the exact previous28title values from this resource.
+Actual native component tests switch through all7languages, including generic
+unknown titles and canonical conditions; no raw course ID becomes a label.
+Adjusted time means raw sailing time plus penalties within one comparison.
+Installed narrow-screen rendering remains a separate next-candidate G2 gate.
+
 2026-10-26 reader checkpoint: `mobile/src/replay/ReplayUnavailable.tsx` owns
 the shared saved-race notice for replay and Coach. Its five resources have35
 explicit RU/EN/PL/ES/FR/DE/IT values, including Back. Wording describes the

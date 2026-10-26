@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-26T00:17:22.964Z
+Generated: 2026-10-26T07:49:35.755Z
 
-Files scanned: 92
+Files scanned: 93
 
 ## Summary
 
@@ -41,14 +41,14 @@ Files scanned: 92
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/course/LocalCourseWebView.tsx:100` | non-english-leak | Wyjść z egzaminu? |
-| `mobile/src/course/LocalCourseWebView.tsx:100` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
-| `mobile/src/course/LocalCourseWebView.tsx:101` | non-english-leak | Zostań |
-| `mobile/src/course/LocalCourseWebView.tsx:102` | non-english-leak | Wyjdź |
-| `mobile/src/course/LocalCourseWebView.tsx:170` | non-english-leak | Wyjdź z egzaminu |
-| `mobile/src/course/LocalCourseWebView.tsx:173` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
-| `mobile/src/course/LocalCourseWebView.tsx:197` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
-| `mobile/src/course/LocalCourseWebView.tsx:198` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
+| `mobile/src/course/LocalCourseWebView.tsx:106` | non-english-leak | Wyjść z egzaminu? |
+| `mobile/src/course/LocalCourseWebView.tsx:106` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
+| `mobile/src/course/LocalCourseWebView.tsx:107` | non-english-leak | Zostań |
+| `mobile/src/course/LocalCourseWebView.tsx:108` | non-english-leak | Wyjdź |
+| `mobile/src/course/LocalCourseWebView.tsx:176` | non-english-leak | Wyjdź z egzaminu |
+| `mobile/src/course/LocalCourseWebView.tsx:179` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
+| `mobile/src/course/LocalCourseWebView.tsx:203` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
+| `mobile/src/course/LocalCourseWebView.tsx:204` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
 
 ### `mobile/src/design-system/components/WindNowCard.tsx` (1)
 
@@ -79,3 +79,12 @@ shared saved-race notice for replay and Coach adds five complete resources,
 35 explicit language values in mobile/src/replay/ReplayUnavailable.tsx.
 This classification is source evidence. Installed narrow-screen language
 acceptance and complete official-question review remain separate.
+
+## Following native list checkpoint,2026-10-26
+
+The scanner again finds the same12 classified heuristic entries, with updated
+source locations and no arity/missing-overlay errors. It scans TSX, so the new
+shared TS resource is checked separately:25resources/175explicit locale values
+in src/lib/race-record-copy.ts, including all28unchanged historical title
+values. Actual History component tests render its titles and conditions in all7
+languages. Native narrow-screen G2 remains pending for this next source.

@@ -1456,7 +1456,8 @@ explicit finite class selectors. DB initialization publishes its connection only
 after all migrations succeed. Default/Daily/mission pools exclude classified
 rows; explicit class queries do not expose session IDs or arbitrary stored JSON.
 Native save preparation/projection does not yet connect real History/Leaderboard
-views or acknowledge a separate PB write. Ordered gates and evidence:
+views in the initial foundation; the following list integration is described
+below. A separate PB write still needs native acknowledgement. Ordered evidence:
 `docs/audits/2026-10-26/physical-consumers-harness.md`.
 
 Delivered64 is documented in `docs/design/mobile/testflight64-2026-10-26.md`,
@@ -1469,6 +1470,29 @@ a contradictory or future wrapper identity. Old bare aliases and minimal
 historical classifier inputs remain supported. Actual-route tests verify safe
 notice/Back, no shared redirect/pixel geometry/Coach request and byte-preserved
 history. This boundary is not a new result class or physical writer.
+
+- `src/lib/race-record-copy.ts` - shared seven-language saved-course titles,
+  mode/condition labels and adjusted/raw/penalty wording. Unknown descriptors
+  have a generic title; IDs and comparison keys never become display text.
+- `mobile/src/leaderboard/race-records.ts` - projection once per stable history
+  array, canonical profile/period filtering, previous score-first PBs and
+  adjusted-time PB selection within each registered comparison only.
+- `mobile/src/components/RaceRecordDetails.tsx` - native registered conditions,
+  raw finish, penalty and adjusted time, plus preserved unavailable-record copy.
+- `mobile/__tests__/race-list-consumers.test.tsx` - actual History/Leaderboard
+  consumers, old ordering, all54physical groups, period/profile filtering,
+  authoritative times, route exits, stable-array memoization and all7languages.
+- `docs/audits/2026-10-26/checks/next70-prepublication.json` - exact16d4eed
+  safe non-main gate:70first-attempt browser passes, retained artifact hash,
+  source checks and explicitly skipped publication/deployment/production jobs.
+
+History keeps every row newest-first and projects once per history array.
+Leaderboard filters already projected rows, keeps historical score ranks in
+their own section and chooses one adjusted-time PB per class/mode/conditions.
+Registered groups are ordered by identity, with no cross-class time rank.
+Unavailable rows stay visible in All and never enter a PB. Titles wrap and
+course-filter chips retain44px targets. The native course registry reuses the
+same historical title resource without changing any saved ID, geometry or hint.
 
 - `docs/audits/2026-10-25/checks/website64-prepublication-main.json` - exactb459ecc
   prepublication failure and retained timing/geometry proof,67passed/1deadline,

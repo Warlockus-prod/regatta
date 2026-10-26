@@ -3,12 +3,10 @@ import { raceComparisonKey, readRaceComparison, readRaceResultSelection, type Ra
 import { matchesRegisteredRaceCourse } from "../../../src/lib/race-result-eligibility";
 import { classifyNativeReplayEntry } from "../replay/entry";
 import type { RaceRecord } from "./race-history";
+import type { RaceRecordTitle } from "../../../src/lib/race-record-copy";
 
 export type HistoricalRaceCourseId = "short" | "medium" | "long" | "daily";
-export type NativeRaceTitle =
-  | { kind: "historical"; course: HistoricalRaceCourseId | null }
-  | { kind: "registered"; classId: RaceClassId }
-  | { kind: "unavailable" };
+export type NativeRaceTitle = RaceRecordTitle;
 type HistoricalProjection = {
   kind: "legacy-pixel" | "historical-world-unclassified";
   title: Extract<NativeRaceTitle, { kind: "historical" }>;

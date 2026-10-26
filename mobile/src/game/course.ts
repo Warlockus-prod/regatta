@@ -12,6 +12,7 @@
  * "medium" until the API tells us a richer mapping.
  */
 import type { TpExtras } from '../i18n/context';
+import { RACE_RECORD_COPY } from '../../../src/lib/race-record-copy';
 
 type Tp = (ru: string, en: string, pl: string, extras?: TpExtras) => string;
 
@@ -48,6 +49,13 @@ export interface CourseDef {
   marks: ReadonlyArray<CourseMark>;
 }
 
+function courseTitle(id: CourseId): CourseDef['title'] {
+  return tp => {
+    const copy = RACE_RECORD_COPY[id];
+    return tp(copy.ru, copy.en, copy.pl, { es: copy.es, fr: copy.fr, de: copy.de, it: copy.it });
+  };
+}
+
 const COURSE_SHORT: CourseDef = {
   id: 'short',
   parSec: 75,
@@ -55,13 +63,7 @@ const COURSE_SHORT: CourseDef = {
   windStrength: 'medium',
   initialWindDirRad: 0,
   initialWindKn: 10,
-  title: (tp) =>
-    tp('Короткая гонка', 'Short race', 'Krótki wyścig', {
-      es: 'Regata corta',
-      fr: 'Course courte',
-      de: 'Kurzes Rennen',
-      it: 'Regata breve',
-    }),
+  title: courseTitle('short'),
   hint: (tp) =>
     tp(
       'Старт - верхний знак - финиш. Около 75 секунд при чистом проходе.',
@@ -88,13 +90,7 @@ const COURSE_MEDIUM: CourseDef = {
   windStrength: 'medium',
   initialWindDirRad: 0,
   initialWindKn: 12,
-  title: (tp) =>
-    tp('Средняя гонка', 'Medium race', 'Średni wyścig', {
-      es: 'Regata media',
-      fr: 'Course moyenne',
-      de: 'Mittleres Rennen',
-      it: 'Regata media',
-    }),
+  title: courseTitle('medium'),
   hint: (tp) =>
     tp(
       'Длиннее верхняя нога. Лавируй чисто и держи скорость.',
@@ -121,13 +117,7 @@ const COURSE_LONG: CourseDef = {
   windStrength: 'heavy',
   initialWindDirRad: 0,
   initialWindKn: 16,
-  title: (tp) =>
-    tp('Длинная гонка', 'Long race', 'Długi wyścig', {
-      es: 'Regata larga',
-      fr: 'Course longue',
-      de: 'Langes Rennen',
-      it: 'Regata lunga',
-    }),
+  title: courseTitle('long'),
   hint: (tp) =>
     tp(
       'Длинная дистанция при свежем ветре. Контролируй крен.',
@@ -153,13 +143,7 @@ const COURSE_LONG: CourseDef = {
 const COURSE_DAILY: CourseDef = {
   ...COURSE_MEDIUM,
   id: 'daily',
-  title: (tp) =>
-    tp('Дневной вызов', 'Daily challenge', 'Wyzwanie dnia', {
-      es: 'Reto diario',
-      fr: 'Défi du jour',
-      de: 'Tagesherausforderung',
-      it: 'Sfida giornaliera',
-    }),
+  title: courseTitle('daily'),
   hint: (tp) =>
     tp(
       'Один шанс в день. Финишируй ниже par для попадания в таблицу.',

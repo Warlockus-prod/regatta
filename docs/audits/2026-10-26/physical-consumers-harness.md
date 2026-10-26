@@ -48,10 +48,8 @@ trailing spaces; generated files are accepted through exact rebuild comparison.
 
 1. GameClient saved briefing restart is source integrated, with the browser
    observations below. Exact candidate CI and installed acceptance still follow.
-2. Use the native projection in real History and Leaderboard. Keep historical
-   score-first views and visible unknown records; compare registered groups by
-   adjusted time only within the same class, mode, difficulty and wind. Add one
-   shared seven-language title resource, never expose raw IDs as course names.
+2. Native History/Leaderboard source integration is implemented below. Exact
+   next installed presentation, including long names, remains a G2 gate.
 3. Integrate native PB durability with the actual finish acknowledgement. A
    successful history save cannot acknowledge a separate optimistic PB write.
 4. Alias consistency is now source checked at actual Replay/Coach entry points
@@ -100,7 +98,7 @@ acceptance or proof of a complete Pro finish.
 
 The same prepublication eight-file command gains a saved-mode browser case,
 including44px restart/dismiss targets, with unchanged timeout and publication
-guards. Its70-case cloud result remains pending until recorded separately.
+guards. Its exact70-case cloud result is recorded below.
 
 Final local gate for this follow-up:1538web tests/156files;551native tests/
 75suites and9release-tool tests;4real socket lifecycle contracts;9deployment
@@ -110,3 +108,46 @@ and unchanged size limit pass:6810837bytes/111files,4907bytes headroom. Fresh
 sailing package4762feac7d21 has220inputs. Actual measured Resume/Dismiss
 targets at390x844 are44px high. The archived64 source and its delivery stay
 immutable; no new Apple submission is implied by these checks.
+
+## Actual History/Leaderboard source follow-up
+
+Both real screens now project once per stable history array. Filter/period or
+language rerenders reuse the projection rather than re-validating trajectories.
+History retains every row newest-first. Previous score PBs retain their old
+order and Daily filter alias; registered groups use raw finish plus penalty,
+ignoring contradictory wrapper score/time. Group identities include actual
+class, mode, difficulty and wind. Each chooses its own PB, with no cross-class
+time rank. Course filtering uses the canonical physical profile rather than
+an old wrapper alias. Unavailable rows remain visible in All without a PB,
+and both existing Replay/Coach routes remain reachable from History.
+
+One shared seven-language resource owns saved titles and conditions, also
+retaining every historical course name. Unknown names never fall back to Short
+or expose a raw ID. Titles wrap, and local filter chips have44px minimum height.
+Actual-route tests cover rendered authoritative time components, old ordering,
+all54physical comparison groups, period-before-PB selection, generic unknown
+titles, no storage writes, exits and stable-array memoization. All7language
+branches render their own titles and conditions in the actual History component.
+This is source/React test evidence, not installed visual acceptance. Native PB
+durability, class-aware remote query UI, engine activation and next G2 remain
+separate and incomplete. Physical emission stays OFF.
+
+Local source gate:1538web tests/156files;565native tests/76suites and9release
+tool tests; strict web/native types, full native lint, scoped shared-copy lint,
+all3fresh offline packages and content twins pass. Production build keeps the
+unchanged6.5MiB limit. The14new actual-list cases include all7language renders.
+The scanner retains12previously classified heuristic findings, with0arity and
+0missing-overlay errors; shared TS resources are reviewed separately from its
+TSX scan. No new installed or Apple delivery is claimed for this checkpoint.
+
+## Safe70 cloud gate for the preceding saved-briefing source
+
+Exact16d4eed passed workflow40286829987: all70browser cases passed on their
+first attempt, with0failed/flaky/skipped and one result per case. The saved-mode
+regression took732ms. All preceding source, real socket, build, budget and
+offline-package freshness steps passed. The three main-only image/deploy/prod
+jobs were skipped. Artifact12634582879 and its verified ZIP hash are recorded
+in `docs/audits/2026-10-26/checks/next70-prepublication.json`; private report
+contents stay outside Git. This proves the preceding web/source checkpoint,
+not the following native list integration, an Apple delivery or a green rerun
+of the site's multiplayer production case.

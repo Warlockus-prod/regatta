@@ -7,13 +7,17 @@
 
 ## Current completion work
 
+- NEXT16d4eed safe non-main gate40286829987 passed all70browser cases on the first attempt, with no skips/flakes; source checks and3offline freshness checks also passed. Publication/deploy/production jobs were skipped as designed. Exact portable proof: `docs/audits/2026-10-26/checks/next70-prepublication.json`. The following native list source and next installed G2 are excluded from this exact proof.
+
+- NEXT History/Leaderboard now consume the projection once per stable history array. Historical score PBs retain their order; registered PBs use snapshot raw finish plus penalty within one class/mode/difficulty/wind and have no shared rank. Unknown entries stay visible with a generic translated title and the existing Replay/Coach exits. Shared names/conditions live in `src/lib/race-record-copy.ts`; historical course names reuse that resource. Source tests do not replace next installed G2 or native PB acknowledgement.
+
 - NEXT saved briefing restart now retains its recorded mode, wind, mission and additive Daily identity. Explicit activity links own their setup; an unknown mission never turns into a free race. The real GameClient sets wind before initial trim and preserves null/absent context without enabling physical emission. New Start may replace an incompatible intent; ordinary cleanup stays guarded. Browser/native acceptance of this next source is separate from delivered64.
 
 - Native Replay/Coach and projection now share the same namespaced class-alias check. Contradictory known classes and future aliases show the existing localized notice/Back before pixel geometry, local analysis or a remote request, preserving saved bytes. Minimal historical classifier inputs remain supported. The installed64 binary is unchanged; actual History/Leaderboard presentation still follows.
 
 - Delivered64 is immutable sourceef180df, tagtestflight-1.7.0-64. Independent Apple GET2026-10-26 06:58:34.769UTC confirms exact Self VALID/IN_BETA_TESTING; separate06:58:33.721UTC confirms8notes. Installed map/wind/gear, Pro wheels, Orbit, Back and cold preference restoration passed on upgrade26.5 and clean27. Current65row matrix: `docs/audits/2026-10-26/acceptance64.md`; delivery: `docs/design/mobile/testflight64-2026-10-26.md`. Website5df0ee5 is published/healthy, but its final76-case browser gate remains red at74passed/1failed/1skipped. Do not equate delivery with full acceptance.
 
-- NEXT physical-consumer foundation and remaining integrations are tracked in `docs/audits/2026-10-26/physical-consumers-harness.md`. Local PB and protected setup APIs, actual briefing restart, additive SQLite/HTTP classes, native projection/builders and history outcomes have source gates; actual History/Leaderboard UI consumers and native PB durability remain incomplete. Null context never manufactures saved provenance. Physical emission stays OFF; none of this NEXT work is in64.
+- NEXT physical-consumer foundation and remaining integrations are tracked in `docs/audits/2026-10-26/physical-consumers-harness.md`. Local PB and protected setup APIs, actual briefing restart, additive SQLite/HTTP classes, native History/Leaderboard consumers and history outcomes have source gates; next installed presentation and native PB durability remain incomplete. Null context never manufactures saved provenance. Physical emission stays OFF; none of this NEXT work is in64.
 
 - Remaining action/outcome logging is tracked in `docs/audits/2026-10-26/diagnostics-followup.md`. The native Sternik dirty-exam prompt now records actual request and one Stay/dismiss cancellation without changing its guard. Assessment, PB and other outcome gaps remain explicit; defining event schemas is not integration coverage.
 

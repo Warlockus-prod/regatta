@@ -9,7 +9,7 @@ boundary9f9afb5. The new physical engine and course UI are not enabled.
 1. [x] Pure shared identity API and independent review. All18 historical local
    keys stay exact;54 physical buckets are isolated by profile/mode/conditions.
    The actual72-key store fits the unchanged16,000-character bridge bound.
-2. [ ] Local PB and setup intent integration. Failed read blocks write; failed
+2. [x] Source checked: local PB and actual setup intent integration. Failed read blocks write; failed
    write cannot claim a saved new record. Preserve unknown entries and enforce
    the actual complete store bound. Physical mode must be validated before any
    legacy default. Unsupported setup metadata is inspected before TTL cleanup;
@@ -71,4 +71,7 @@ pure API introduces no client route dependency. Types and scoped lint pass.
 Current release64 remains frozen at ef180df with its separate native G2 and
 Apple gates. No file in this phase enables PHYSICAL_RACE_EMISSION_ENABLED.
 
-Consumer foundation, aggregate local evidence and still-required UI/native durability gates: `docs/audits/2026-10-26/physical-consumers-harness.md`. Steps2,5and6 remain incomplete; source/schema coverage never enables physical emission.
+Consumer foundation, actual list UI integration and aggregate local evidence:
+`docs/audits/2026-10-26/physical-consumers-harness.md`. Steps5and6 remain
+incomplete until native durability, exact installed presentation and remaining
+query/CI gates pass; source/schema coverage never enables physical emission.

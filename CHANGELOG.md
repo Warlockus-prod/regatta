@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- History and Personal records now name saved courses from validated metadata, preserve unknown entries and show registered finish time plus penalties. Previous score records retain their order; each registered class, mode, difficulty and wind has its own PB without a shared rank. All names and conditions have seven language adaptations. Physical races remain disabled pending durability and engine gates.
+
 - Restarting an interrupted race now restores its saved Pro or Simple mode and wind before the sails are initialized. Mission and Daily identity survive, explicit activity links keep their own setup, and incompatible saved data stays protected until a new Start. The mobile restart buttons have44px touch targets; the same prepublication gate adds a real saved-mode regression for70cases.
 
 - Replay and Coach now reject a saved race whose namespaced class contradicts its world data, using the existing translated explanation and Back action while preserving history. The same check serves the native projection; no fallback geometry or coaching request is created.

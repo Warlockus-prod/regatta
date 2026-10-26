@@ -15,7 +15,7 @@
  * the AsyncStorage row and resets the in-memory list.
  */
 import { Stack, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import type { Lang } from '../../src/i18n/languages';
@@ -29,7 +29,10 @@ import {
   useRaceHistory,
   type RaceRecord,
 } from '../../src/persistence/race-history';
-import { findCourse } from '../../src/game/course';
+import { projectNativeRaceRecords } from '../../src/leaderboard/race-records';
+import type { NativeRaceRecordProjection } from '../../src/persistence/race-record-presentation';
+import { raceRecordTitle } from '../../../src/lib/race-record-copy';
+import { RaceRecordDetails } from '../../src/components/RaceRecordDetails';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
 function formatTime(sec: number): string {
@@ -65,6 +68,9 @@ export default function History() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const history = useRaceHistory();
+  const sorted = useMemo(() => projectNativeRaceRecords(history.races).sort(
+    (a, b) => b.race.finishedAt - a.race.finishedAt,
+  ), [history.races]);
 
   const screenTitle = tp('История гонок', 'Race history', 'Historia wyścigów', {
     es: 'Historial de regatas',
@@ -179,12 +185,6 @@ export default function History() {
     confirmYesLabel,
   ]);
 
-  // Sort newest-first. We don't mutate the underlying list - the hook
-  // owns it.
-  const sorted = [...history.races].sort(
-    (a, b) => b.finishedAt - a.finishedAt,
-  );
-
   if (history.ready && sorted.length === 0) {
     return (
       <Screen>
@@ -208,15 +208,15 @@ export default function History() {
     <Screen>
       <Stack.Screen options={{ title: screenTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        {sorted.map((race) => (
+        {sorted.map(({ race, projection }) => (
           <RaceCard
             key={race.id}
             race={race}
+            projection={projection}
             onWatch={() => router.push(`/replay/${encodeURIComponent(race.id)}`)}
             onCoach={() =>
               router.push(`/coach?raceId=${encodeURIComponent(race.id)}`)
             }
-            tp={tp}
             lang={lang}
             watchLabel={watchLabel}
             coachLabel={coachLabel}
@@ -246,9 +246,9 @@ export default function History() {
 
 interface RaceCardProps {
   race: RaceRecord;
+  projection: NativeRaceRecordProjection;
   onWatch: () => void;
   onCoach: () => void;
-  tp: ReturnType<typeof useI18n>['tp'];
   lang: Lang;
   watchLabel: string;
   coachLabel: string;
@@ -258,28 +258,28 @@ interface RaceCardProps {
 
 function RaceCard({
   race,
+  projection,
   onWatch,
   onCoach,
-  tp,
   lang,
   watchLabel,
   coachLabel,
   timeLabel,
   scoreLabel,
 }: RaceCardProps) {
-  const course = findCourse(race.courseId);
-  const courseTitle = course.title(tp);
+  const courseTitle = raceRecordTitle(projection.title, lang);
   return (
     <Card style={styles.raceCard}>
       <View style={styles.raceHeader}>
-        <Text variant="subtitle" style={styles.raceTitle} numberOfLines={1}>
+        <Text variant="subtitle" style={styles.raceTitle}>
           {courseTitle}
         </Text>
         <Text variant="muted" style={styles.raceMeta}>
           {formatFinishedAt(race.finishedAt, lang)}
         </Text>
       </View>
-      <View style={styles.raceStatsRow}>
+      <RaceRecordDetails projection={projection} lang={lang} />
+      {projection.kind !== 'classified' && projection.kind !== 'unavailable' ? <View style={styles.raceStatsRow}>
         <View style={styles.raceStat}>
           <Text style={styles.raceStatLabel}>{timeLabel}</Text>
           <Text style={styles.raceStatValue}>{formatTime(race.timeSec)}</Text>
@@ -288,7 +288,7 @@ function RaceCard({
           <Text style={styles.raceStatLabel}>{scoreLabel}</Text>
           <Text style={styles.raceStatValue}>{race.score}</Text>
         </View>
-      </View>
+      </View> : null}
       <View style={styles.raceActions}>
         <Pressable
           onPress={onWatch}
