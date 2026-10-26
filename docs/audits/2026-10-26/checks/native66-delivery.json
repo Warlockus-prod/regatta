@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T15:28:17.476428+00:00",
+  "sourceCommit": "422b628cd5fa7505e4ba0bd23890e0494c5ff563",
+  "tag": "testflight-1.7.0-66",
+  "version": "1.7.0",
+  "build": "66",
+  "scope": "P01 native practice crash and local wind; later completion-program stages remain open.",
+  "apple": {
+    "buildId": "ab5b6811-237b-4187-a0fd-b4de6ca9344d",
+    "selfCheckedAt": "2026-10-26T15:26:15.868Z",
+    "notesCheckedAt": "2026-10-26T15:26:13.688Z",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "exactSelfMember": true,
+    "independentGETWrites": 0,
+    "all8NotesMatchSource": true,
+    "notesGETStatus": "PLANNED",
+    "notesGETMeaning": "GET-only comparison; every locale unchanged and source SHA256 matches.",
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 326,
+        "bytes": 326,
+        "sha256": "60decb4b8a7edebcc05ae7f34d5a60da931c7fd1bac64ae096940b173876903b",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 326,
+        "bytes": 326,
+        "sha256": "60decb4b8a7edebcc05ae7f34d5a60da931c7fd1bac64ae096940b173876903b",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 305,
+        "bytes": 568,
+        "sha256": "daeb515b0642eb3b0786354b11b3eddfe989c42934822a5faf8a60c3b8e3575a",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 318,
+        "bytes": 329,
+        "sha256": "e657177ef830ea18ad9c606d907d7a3bfb161bc8b5daf715f4bc35950e43cd82",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 336,
+        "bytes": 342,
+        "sha256": "dafcbe7683de6376d6c667950fdc9abe84e9b1e612b07b17ed46db23551cfbdf",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 346,
+        "bytes": 360,
+        "sha256": "bc7b8aa828ed0dee3047aefc7781510d77df3812f45f7fccd0086fe83ed8f8d2",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 320,
+        "bytes": 323,
+        "sha256": "7cf2d5dccc10a07766af33d4105bb4eee1cb8ff568322b39cd6165b7ab987e49",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 320,
+        "bytes": 320,
+        "sha256": "6712cf3bc9116bdd7a823be181a98bc6b2c4a12895c0b8c2f82ee81513946426",
+        "action": "unchanged"
+      }
+    ]
+  },
+  "artifactChecks": {
+    "generated-final": {
+      "checks": 18,
+      "sha256": "eb07470c4974b943d4be7cb32cb9af7a73045baeff684d6d468094b581731548",
+      "passed": true
+    },
+    "expanded-simulator": {
+      "checks": 27,
+      "sha256": "03099d77fefdf18cbb944441f9b529c00d1bb46e23ea22863c09a712690f4457",
+      "passed": true
+    },
+    "archive": {
+      "checks": 33,
+      "sha256": "0c63217baeedd0bc8e8629985b2f590c2976edb48fea85d79c6409b437dfe3b9",
+      "passed": true
+    },
+    "export-ipa": {
+      "checks": 35,
+      "sha256": "0e2becbd8bc75dfd4ea24c341adac2afb9cc895c0971a21f1885b9d282cb21e8",
+      "passed": true
+    }
+  },
+  "ipa": {
+    "bytes": 29997745,
+    "sha256": "da6d11719597d1592af2d101a6bab9b61d7df19ce392bd4e39af5bd37564648f"
+  },
+  "appleUpload": {
+    "deliveryUUID": "ab5b6811-237b-4187-a0fd-b4de6ca9344d",
+    "validationSucceeded": true,
+    "uploadSucceeded": true,
+    "buildStatus": "VALID",
+    "importStatus": "VALID",
+    "isOnAppStoreConnect": true
+  },
+  "browserGate": {
+    "sourceCommit": "422b628cd5fa7505e4ba0bd23890e0494c5ff563",
+    "runId": 40343255976,
+    "event": "workflow_dispatch",
+    "conclusion": "success",
+    "browserStats": {
+      "total": 72,
+      "expected": 72,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "durationMs": 761839.011,
+    "errors": 0,
+    "artifact": {
+      "id": 12662056431,
+      "bytes": 621453,
+      "sha256": "e4746610ff9f72b191be84604a0857c29883153b800c7178f9296cbd9a71d016"
+    },
+    "nonMainJobsSkipped": [
+      "Build immutable deployment images",
+      "Deploy to VPS",
+      "Playwright E2E on prod"
+    ],
+    "websitePublished": false
+  },
+  "installedProof": "native66-installed.json",
+  "tests": {
+    "web": 1547,
+    "webFiles": 156,
+    "native": 565,
+    "nativeSuites": 76,
+    "nativeReleaseTools": 9,
+    "oldSourceRegressionFailsAtKnownBoundary": true,
+    "finalScreenCases": 10
+  },
+  "rollback": {
+    "deliveredSource": "b0e5868e0b1cc368360d0c84e10fcc304e22020a",
+    "tag": "testflight-1.7.0-65",
+    "preP01Checkpoint": "4caed0e"
+  },
+  "limits": [
+    "Installed acceptance uses Simulator26.5/27, not physical owner iPhone.",
+    "Full product plan, physics emission, learning pictures integration, free radio transcript and ghost are not completed by this hotfix.",
+    "Website/main stays5df0ee5; no publication or App Review submission.",
+    "Simplified Basics recovery was not forced through an asset error in this pass.",
+    "Private archives, logs, journals and signed links remain outside Git."
+  ]
+}

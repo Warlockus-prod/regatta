@@ -7,7 +7,11 @@
 
 ## Unreleased
 
-- Start the owner-approved completion program with an ordered harness and recoverable checkpoints. Current source moves the native trainer's accessibility actions off unsupported Skia Canvas and removes its live-weather feature, retaining local wind. Installed acceptance and the next TestFlight delivery remain separate.
+- Delivered1.7.0(66) to exact TestFlight Self: the first lesson's native practice no longer passes an unsupported accessibility action to Skia Canvas. Local wind remains; live-weather requests are removed from the native trainer. Installed26.5/27 checks and72first-attempt browser cases pass. Independent Apple GET confirms VALID/IN_BETA_TESTING and eight matching notes. [Scope and limits](docs/design/mobile/testflight66-2026-10-26.md).
+
+- Safely archive50inactive local branch heads with52verified recovery refs. Remote branches, active worktrees, unique work and user files remain preserved. The manifest records the two safe-delete refusals; full cleanup remains open.
+
+- Start the owner-approved completion program with an ordered harness and recoverable checkpoints. P01 is delivered in66; shared lessons, reviewed Scheme/Picture integration, physical courses, free radio transcription, ghost and full public acceptance remain following stages.
 
 - Recorded an independent product audit with fresh installed/web screens and a twice-reproduced first-lesson native simulator crash. The report separates strengths, remaining learning/game/UX gaps and proposed priorities; no product behavior or release changed.
 

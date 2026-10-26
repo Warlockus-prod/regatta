@@ -1,9 +1,11 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Operational snapshot verified 2026-10-24: public App Store 1.6.4 (48),
-TestFlight 1.7.0 (58), group Self. Candidate 1.7.0 (59) is undergoing local
-release verification; no archive, upload, VALID processing or Self delivery is
-claimed until the actual result is recorded in `BUILDS.md`.
+Operational snapshot verified2026-10-26: public App Store1.6.4(48),
+TestFlight1.7.0(66), exact Self. Immutable source422b628,
+independent Apple GET15:26:15.868UTC confirms VALID/IN_BETA_TESTING;
+eight notes match15:26:13.688UTC. P01 fixes native first-lesson practice
+and removes native live-weather. The full completion program remains open.
+See `testflight66-2026-10-26.md`; archive/upload alone never establish delivery.
 
 Historical release submission verified 2026-09-17: website `972df53`, native source
 `b5580aa`, app 1.6.2 (43). Build 43 is VALID, attached to TestFlight Self and

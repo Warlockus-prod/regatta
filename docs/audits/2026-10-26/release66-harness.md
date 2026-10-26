@@ -21,13 +21,15 @@ Web checks: generated race-server check,1547tests/156files, real multiplayer lif
 - [x] P00/P01 source and rollback boundary documented; delivered65 immutable.
 - [x] Old-source regression fails on the known native setter; candidate10screen checks pass.
 - [x] Full web/native source checks and prebuild. No new physical emission.
-- [ ] Freeze exact candidate commit; working runtime must remain identical through installed/archive/delivery checks.
-- [ ] Release Simulator build and independent package validation.
-- [ ] Installed retained26.5/newest27: lesson1 -> extra drill CTA -> running exercise -> wind adjustment -> lesson return; repeated entry without native termination.
-- [ ] Installed Basics/local wind, native recovery entry, ordinary navigation and known radio/race paths. Physical offline/network isolation remains separately named if unavailable.
-- [ ] Device archive, validation/export/IPA verification. Preserve all rejected candidates.
-- [ ] Branch CI and applicable browser gate; no weakening of prior checks.
-- [ ] Apple validate/upload/import VALID, exact Self group and all8locale notes, independent final GETs.
-- [ ] Delivery report, current acceptance matrix and source tag. Never equate the hotfix with full product completion.
+- [x] Freeze exact candidate422b628; working runtime remains identical through installed/archive/delivery checks.
+- [x] Release Simulator build and independent package validation27/27; generated18/18.
+- [x] Installed retained26.5/newest27: lesson1 -> extra drill CTA -> running exercise -> wind adjustment -> lesson return; repeated entry and cold relaunch without a new matching native crash file.
+- [x] Installed bundled Basics and Back on both runtimes, local wind180->221 on27, ordinary navigation plus radio power/DIAL/Exit and actual Pro3D frame/Menu return. Native recovery was not forced through an asset error; physical offline/network isolation remains open.
+- [x] Device archive33/33, Apple validation and export IPA35/35. The first export lacked command provenance in its log; it is preserved and a new logged export passed the unchanged verifier.
+- [x] Branch CI and exact-source safe browser gate40343255976:72first-attempt,0flaky/skipped. Publication/deploy/production jobs skipped; website unchanged.
+- [x] Apple validate/upload/import VALID, exact Self group and all8locale notes. Independent GET15:26:15.868UTC confirms Self IN_BETA_TESTING; notes match15:26:13.688UTC, both writes0.
+- [x] [Delivery report](../../design/mobile/testflight66-2026-10-26.md), [current acceptance](acceptance66.md) and exact source tagtestflight-1.7.0-66. The hotfix does not complete the full program.
 
 Rollback source/runtime before P01: `4caed0e` / `testflight-1.7.0-65`. Private logs, keys, native archive/IPA and raw journals remain outside Git. No existing device/user data is erased or uninstalled.
+
+Installed proof: [two runtime journeys](checks/native66-installed.json). Browser proof: [exact422b gate](checks/source66-predeploy.json). Every old native key was unchanged immediately after installation:12 on iOS27 and10 on iOS26.5. Later QA intentionally changed bookmark, resume, wheel hint and journal values. No all-actions logging, physical microphone, complete race finish or full product acceptance is implied.

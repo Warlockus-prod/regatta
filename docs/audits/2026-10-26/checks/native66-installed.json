@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "sourceCommit": "422b628cd5fa7505e4ba0bd23890e0494c5ff563",
+  "version": "1.7.0",
+  "build": "66",
+  "recordedAtUTC": "2026-10-26T15:16:18.478494+00:00",
+  "method": "Actual CUA interaction with installed Release Simulator app; simctl install/launch only, no uninstall or data erasure.",
+  "devices": [
+    {
+      "ios": "27.0",
+      "nativeLanguage": "ru",
+      "oldNativeKeys": 12,
+      "unchangedImmediatelyAfterInstall": 12,
+      "uninstallOrClear": false,
+      "oldNativeKeysStillPresentAfterQA": true,
+      "unchangedOldKeysAfterIntentionalQA": 8,
+      "changedKeysAfterIntentionalQA": [
+        "regatta.race-resume.v1",
+        "regatta.learning.bookmark.v1",
+        "regatta.diagnostics.v1",
+        "regatta.controls.wheelHint"
+      ],
+      "lesson1ExtraCTAToRunningDrill": true,
+      "compassAccessibleDirection": "0->15 degrees",
+      "lessonBack": true,
+      "repeatedEntryAndBack": true,
+      "coldRelaunch": true,
+      "bundledBasicsLaunchAndBack": true,
+      "nativeJournal": {
+        "entries": 200,
+        "boundedAt200": true,
+        "eventTypes": {
+          "race.lifecycle": 25,
+          "embedded.lifecycle": 18,
+          "storage.operation": 35,
+          "control.change": 3,
+          "navigation": 66,
+          "radio.startup": 15,
+          "radio.gesture": 23,
+          "radio.command": 15
+        }
+      },
+      "screenshots": [
+        {
+          "name": "qa27-basics-local-wind.png",
+          "bytes": 148536,
+          "sha256": "82d2d9b59fe0a9952557ddfb71f5ee4b1a172731a1e077727aea2ded52700e8a"
+        },
+        {
+          "name": "qa27-cold-restart-home.png",
+          "bytes": 224762,
+          "sha256": "6722403c5271163f143985427c30b91528162de0fb2dd0fdaec5233d06b29dfa"
+        },
+        {
+          "name": "qa27-first-drill-wind15.png",
+          "bytes": 171225,
+          "sha256": "0d20853b2e87fdd239aeb17f1836ff314e09998177b241618d4306661cfca576"
+        },
+        {
+          "name": "qa27-lesson-return.png",
+          "bytes": 196011,
+          "sha256": "1be11249bc901f4b502afa56549205c77105500f61892193f606d71a680e3f72"
+        },
+        {
+          "name": "qa27-race-pro.png",
+          "bytes": 207671,
+          "sha256": "5574bd79cc06fa1a8756bcfc9d4fdc761eb18959c1f23f979585a1fa511f7301"
+        },
+        {
+          "name": "qa27-radio-dial.png",
+          "bytes": 195645,
+          "sha256": "a9880196e63a5b10f3226bfbe267eb87657f48cd6f24f32eb8b0203001256db2"
+        },
+        {
+          "name": "qa27-repeat-drill.png",
+          "bytes": 171392,
+          "sha256": "2dd73b53ee03d0d17f105eb6f32bfc7bf4cd5e58bb4807caf831ddab06c1d471"
+        }
+      ],
+      "compassPointerDrag": "15->0 degrees",
+      "windStrengthTap": "12->6 knots",
+      "basicsLocalWindSlider": "180->221 degrees",
+      "radioPowerHold": true,
+      "radioRotaryVolume": "16->20, visible index rotates",
+      "radioExitToPractice": true,
+      "proRaceActual3DFrameAndMenuReturn": true,
+      "raceFinish": false
+    },
+    {
+      "ios": "26.5",
+      "nativeLanguage": "pl",
+      "oldNativeKeys": 10,
+      "unchangedImmediatelyAfterInstall": 10,
+      "uninstallOrClear": false,
+      "oldNativeKeysStillPresentAfterQA": true,
+      "unchangedOldKeysAfterIntentionalQA": 8,
+      "changedKeysAfterIntentionalQA": [
+        "regatta.learning.bookmark.v1",
+        "regatta.diagnostics.v1"
+      ],
+      "lesson1ExtraCTAToRunningDrill": true,
+      "compassAccessibleDirection": "0->15 degrees",
+      "lessonBack": true,
+      "repeatedEntryAndBack": true,
+      "coldRelaunch": true,
+      "bundledBasicsLaunchAndBack": true,
+      "nativeJournal": {
+        "entries": 200,
+        "boundedAt200": true,
+        "eventTypes": {
+          "storage.operation": 43,
+          "race.lifecycle": 24,
+          "embedded.lifecycle": 19,
+          "control.change": 10,
+          "control.preferences": 12,
+          "navigation": 59,
+          "radio.startup": 10,
+          "radio.gesture": 11,
+          "radio.command": 12
+        }
+      },
+      "screenshots": [
+        {
+          "name": "qa26-basics-local.png",
+          "bytes": 148517,
+          "sha256": "419bbe2a3e1ecb00c7cfb0386fbdcb49a1e489bf26c9a97f1237cfe5ff73b9ae"
+        },
+        {
+          "name": "qa26-cold-restart-bookmark.png",
+          "bytes": 192490,
+          "sha256": "7d6fe2b89332aea945492c06d025c6f30e3b1b3608b60c3f56c9b7978acce2b3"
+        },
+        {
+          "name": "qa26-first-drill-wind15.png",
+          "bytes": 170254,
+          "sha256": "4dfd38dfaed648ae453a2e688479227649401e190238288403947c74c2ee5d6e"
+        },
+        {
+          "name": "qa26-lesson-return.png",
+          "bytes": 191541,
+          "sha256": "35d6bee8be021c53d6138e4417f1c25a1c097103410c49227fe69ab0dadbcd5a"
+        },
+        {
+          "name": "qa26-repeat-drill.png",
+          "bytes": 170937,
+          "sha256": "f1d56a82c8060918ec58184fb92b0a73be2c44b4dc3a79b10a393d5a495de53f"
+        }
+      ],
+      "lessonBookmarkAfterColdRelaunch": "Lesson1, practice step3",
+      "settingsBuildObserved": "1.7.0 (66)"
+    }
+  ],
+  "newWeektoRegattaCrashReports": {
+    "sinceUTC": "2026-10-26T14:58:00Z",
+    "count": 0,
+    "meaning": "No new matching macOS Simulator app crash files in this interval; this is not a physical-device assertion."
+  },
+  "expectedDiagnosticRejection": {
+    "event": "radio.command",
+    "action": "dial-push",
+    "outcome": "rejected",
+    "reason": "power-off",
+    "meaning": "The initial hold at the exact 1s threshold did not turn power on; a later 1.6s hold did. No transcript or audio is included."
+  },
+  "limits": [
+    "No physical iPhone microphone, thermal/FPS or full network-blackhole acceptance.",
+    "Simplified native Basics recovery route was not forced through an asset error in this pass. Its source and existing tests remain unchanged.",
+    "No complete race finish, all Back catalog, all7locale visual/a11y certification or full product completion.",
+    "Source checks and installed Simulator acceptance do not by themselves prove Apple delivery."
+  ]
+}

@@ -1521,11 +1521,25 @@ history. This boundary is not a new result class or physical writer.
 - `docs/audits/2026-10-26/release66-harness.md` - P01 native crash/offline
   hotfix66, old-source regression, final source gates and ordered exact
   installed/archive/Apple delivery checks; later program stages stay open.
+- `docs/audits/2026-10-26/checks/native66-installed.json` - retained26.5/27
+  actual first-lesson drill, wind, Back, repeated entry and cold relaunch proof;
+  data-preservation counts, private screenshot hashes and physical-device limits.
+- `docs/audits/2026-10-26/checks/source66-predeploy.json` - exact422b safe
+  workflow,72first-attempt cases, artifact hash and skipped publication jobs.
+- `docs/audits/2026-10-26/checks/native66-delivery.json` - exact source/tag,
+  archive/IPA checks, independent Apple Self/eight-note GETs and delivery limits.
+- `docs/audits/2026-10-26/acceptance66.md` - preserved65ordered product IDs,
+  qualified fresh P01 evidence and corrected partial first-lesson parity status.
+- `docs/audits/2026-10-26/checks/local-branch-archive.json` -52local recovery
+  refs,50safely removed local heads and the two safe-delete refusals. Remote
+  branches, unique work and active worktrees are retained; this is partial cleanup.
 - `docs/design/learning-renders/README.md` - exact built-in ImageGen prompts,
   artifact hashes and review limits for the first filled/luffing mainsail pair.
   Its two WebP assets are art preparation, not bundled production lesson content.
 - `docs/design/mobile/testflight65-2026-10-26.md` - delivered65 scope,
   first-candidate native rejection, final G2 and exact Apple delivery limits.
+- `docs/design/mobile/testflight66-2026-10-26.md` - delivered P01 offline
+  practice fix, retained-data/native/browser checks, exact Apple GETs and rollback.
 
 History keeps every row newest-first and projects once per history array.
 Leaderboard filters already projected rows, keeps historical score ranks in

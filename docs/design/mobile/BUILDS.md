@@ -1,5 +1,7 @@
 # Mobile build journal
 
+Operational check dated2026-10-26: build66 from422b628/tagtestflight-1.7.0-66 is VALID and IN_BETA_TESTING in exact Self; independent GET15:26:15.868UTC and8notes comparison15:26:13.688UTC. Retained26.5/27 first-lesson drill/wind/Back/repeat/cold restart, archive/IPA and72first-attempt browser cases pass. Native live-weather removed; full learning/physics/ASR/physical-device acceptance remains open. See `testflight66-2026-10-26.md`.
+
 Operational check dated2026-10-26: build65 fromb0e5868/tagtestflight-1.7.0-65 is VALID and IN_BETA_TESTING in exact Self; independent GET11:46:55.327UTC and8notes comparison11:46:54.829UTC, both writes0. Persistent map/wind corners, exact native26.5/27 acceptance and captured16/C cancellation passed. See `docs/design/mobile/testflight65-2026-10-26.md`; full65-item/physical/PB/site gates remain qualified.
 
 Operational check dated2026-10-26: build64 fromef180df is VALID and IN_BETA_TESTING in exact Self; independent GET06:58:34.769UTC and8notes06:58:33.721UTC. Map/wind/gear changed-screen acceptance passed on upgrade26.5 and clean27, with real Pro trim/Orbit/Back and saved preferences. See `docs/design/mobile/testflight64-2026-10-26.md`. The full65-item matrix, physical courses, native PB durability and the red website multiplayer gate remain separate.

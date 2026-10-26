@@ -1,0 +1,376 @@
+{
+  "schema": "regatta-local-branch-archive-v1",
+  "checkedAtUTC": "2026-10-26T14:54:26.766816+00:00",
+  "sourceCheckpoint": "422b628cd5fa7505e4ba0bd23890e0494c5ff563",
+  "localHeadsBefore": 78,
+  "localHeadsAfter": 28,
+  "remoteChanges": false,
+  "worktreeOrUserFileDeletions": false,
+  "recovery": "git branch <original-branch> <archiveRef>",
+  "rows": [
+    {
+      "branch": "app",
+      "tip": "ff0b1654daaf6240f1b3f52ac55555afd44d66b6",
+      "archiveRef": "refs/archive/regatta-20261026/app",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/analytics-funnel",
+      "tip": "2a88207964ee9e26f562926d2a2a917936f4a1ab",
+      "archiveRef": "refs/archive/regatta-20261026/claude/analytics-funnel",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/api-hardening",
+      "tip": "bba5da3b798e74f802aab567a42bf4d92c5d5cbc",
+      "archiveRef": "refs/archive/regatta-20261026/claude/api-hardening",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/app-motorowodny-radio-courses",
+      "tip": "e122806468dc97a1709540c127445338954775bd",
+      "archiveRef": "refs/archive/regatta-20261026/claude/app-motorowodny-radio-courses",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/aso-regatta-audit-9b75c5",
+      "tip": "1011c1bef5b58e9cd306723e098d97ecc82ed10b",
+      "archiveRef": "refs/archive/regatta-20261026/claude/aso-regatta-audit-9b75c5",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/beautiful-pare-18a023",
+      "tip": "21432f4f79a524bb529c260ac352b409d51a77dd",
+      "archiveRef": "refs/archive/regatta-20261026/claude/beautiful-pare-18a023",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/charming-meitner-e4d0c1",
+      "tip": "cc0c488ac8ed120029cf9cfd8daea5f5a4f21029",
+      "archiveRef": "refs/archive/regatta-20261026/claude/charming-meitner-e4d0c1",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/elastic-lalande-4ae288",
+      "tip": "1f7142ed45c7da995cc63e01bee293d2225ba317",
+      "archiveRef": "refs/archive/regatta-20261026/claude/elastic-lalande-4ae288",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b1-api",
+      "tip": "4c35c302afa5f97bd842575a17021bc10a063cf7",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b1-api",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b2-analytics",
+      "tip": "dca0d024134d89d18addfbfeb5b8f423919becb9",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b2-analytics",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b2-analytics-r2",
+      "tip": "1966663aec3d73b0f4fb282c4ad703e76b346f3d",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b2-analytics-r2",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b3-ci-ops-docs",
+      "tip": "340d161c0dca7fe33b90418390622877190fbbb5",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b3-ci-ops-docs",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b4-privacy-listing",
+      "tip": "966b386b4484db49b45f37d3cf71b8397c9e0abd",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b4-privacy-listing",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b5-web-learner",
+      "tip": "85566d3706c50f6c4e93b57502a1f4369b6d6628",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b5-web-learner",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-b6-mobile",
+      "tip": "eaf366cd1bcbf1caa4a630166213d86890af35b1",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-b6-mobile",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/fix-flaky-smoke-onboarding",
+      "tip": "b652b12f296131ab01a3e30a25cdb3ed1efc6620",
+      "archiveRef": "refs/archive/regatta-20261026/claude/fix-flaky-smoke-onboarding",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/gallant-sanderson-001b6a",
+      "tip": "24113c2d1f683032e6521943e746f27ba6986bc5",
+      "archiveRef": "refs/archive/regatta-20261026/claude/gallant-sanderson-001b6a",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/hide-feedback-in-embed",
+      "tip": "e3ae92a66138f38eecd664f9e232dfa3f3bb3222",
+      "archiveRef": "refs/archive/regatta-20261026/claude/hide-feedback-in-embed",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/laughing-murdock-32856e",
+      "tip": "0cd715bd1555d86142f05cf60f11dddfbfec788e",
+      "archiveRef": "refs/archive/regatta-20261026/claude/laughing-murdock-32856e",
+      "archivedFromLocalHeads": false,
+      "keptReason": "Git refused safe merged-branch deletion; backup retained"
+    },
+    {
+      "branch": "claude/missing-sternik-dialog-d92a17",
+      "tip": "6ecfc5f68c786162d985dd71f3969a79dae0bf43",
+      "archiveRef": "refs/archive/regatta-20261026/claude/missing-sternik-dialog-d92a17",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/motorowodny-lang-policy",
+      "tip": "5b6e27859a1765d1b28e44bb180d8ebcddf20e3c",
+      "archiveRef": "refs/archive/regatta-20261026/claude/motorowodny-lang-policy",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/native-wheels",
+      "tip": "fddf030e2f083e8f23e834de518136a82eb89248",
+      "archiveRef": "refs/archive/regatta-20261026/claude/native-wheels",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/pl-diacritics",
+      "tip": "c79fd8d6405d211a300a816ffc347a0ce26a57bc",
+      "archiveRef": "refs/archive/regatta-20261026/claude/pl-diacritics",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/radio-26-tasks",
+      "tip": "809cf6906ac981daed0a9ceb7f23967ddbe941e9",
+      "archiveRef": "refs/archive/regatta-20261026/claude/radio-26-tasks",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/radio-group-call",
+      "tip": "e40e8ff5947ddf41f5310199ee327896ea238729",
+      "archiveRef": "refs/archive/regatta-20261026/claude/radio-group-call",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/radio-inspect-mode",
+      "tip": "e63014218f1fde49d0c0523dac9af2eaf595b05c",
+      "archiveRef": "refs/archive/regatta-20261026/claude/radio-inspect-mode",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/radio-panel-redesign",
+      "tip": "e63014218f1fde49d0c0523dac9af2eaf595b05c",
+      "archiveRef": "refs/archive/regatta-20261026/claude/radio-panel-redesign",
+      "archivedFromLocalHeads": false,
+      "keptReason": "Git refused safe merged-branch deletion; backup retained"
+    },
+    {
+      "branch": "claude/radio-receive-scenarios",
+      "tip": "a2981f28502928e97ca56082497469b1472d2bc6",
+      "archiveRef": "refs/archive/regatta-20261026/claude/radio-receive-scenarios",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/radio-scenarios-batch2",
+      "tip": "b8a1dd8c0514bfdd784ac2be7eb9c307c5aea919",
+      "archiveRef": "refs/archive/regatta-20261026/claude/radio-scenarios-batch2",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/release-1.7.0-all",
+      "tip": "52dc1f308b752ee0c1a0bac674575de9e8c8046e",
+      "archiveRef": "refs/archive/regatta-20261026/claude/release-1.7.0-all",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/review-fixes",
+      "tip": "071ad1336ee0a203b1ebf026f6b66bac598b194e",
+      "archiveRef": "refs/archive/regatta-20261026/claude/review-fixes",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/review-prompt",
+      "tip": "f2f34004c7059d55ae9d27f17eaad8b28dd23d00",
+      "archiveRef": "refs/archive/regatta-20261026/claude/review-prompt",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/review-report",
+      "tip": "6188821a7674e09453f200fcfa1fbe2fc505f830",
+      "archiveRef": "refs/archive/regatta-20261026/claude/review-report",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/river-education-diagrams-e13b8b",
+      "tip": "c3e50bfb8e3173044e600a2acb9a60a4b9c0eeee",
+      "archiveRef": "refs/archive/regatta-20261026/claude/river-education-diagrams-e13b8b",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/sailing-educational-materials-3b2792",
+      "tip": "e7e87d6371403e3bf0a2741eaaa4e95534a55925",
+      "archiveRef": "refs/archive/regatta-20261026/claude/sailing-educational-materials-3b2792",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/silly-lamarr-9f90b1",
+      "tip": "7ca1abf95a2fc8ea094e194d0fdaa55979286e58",
+      "archiveRef": "refs/archive/regatta-20261026/claude/silly-lamarr-9f90b1",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/sleepy-pascal-791adf",
+      "tip": "cc0c488ac8ed120029cf9cfd8daea5f5a4f21029",
+      "archiveRef": "refs/archive/regatta-20261026/claude/sleepy-pascal-791adf",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/sternik-exam-prep-site-b1555c",
+      "tip": "1517344a5db1d4b5225eb160d2a9da0caa0dba77",
+      "archiveRef": "refs/archive/regatta-20261026/claude/sternik-exam-prep-site-b1555c",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "claude/wonderful-cerf-0b2c8c",
+      "tip": "22709b6e001e61201b088315ccdcf6c20e17f45d",
+      "archiveRef": "refs/archive/regatta-20261026/claude/wonderful-cerf-0b2c8c",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "design/v3",
+      "tip": "946ca15feb82172285d476b6b81512d4665c23fd",
+      "archiveRef": "refs/archive/regatta-20261026/design/v3",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "main-fix",
+      "tip": "b6df5131121ff0bb065443ca2e62e9932eeb7d49",
+      "archiveRef": "refs/archive/regatta-20261026/main-fix",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "release/1.7.0-build49",
+      "tip": "84412ddc3584f0ade782ab92e18802ae481a5d62",
+      "archiveRef": "refs/archive/regatta-20261026/release/1.7.0-build49",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "wip/main-checkout-2026-09-28",
+      "tip": "c7a10479ce90bc606c7e1c1344b189eb777158b8",
+      "archiveRef": "refs/archive/regatta-20261026/wip/main-checkout-2026-09-28",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-1",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-1",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-12",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-12",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-14",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-14",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-15",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-15",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-2",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-2",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-3",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-3",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-4",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-4",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-5",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-5",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    },
+    {
+      "branch": "worktree-wf_5eb9185e-cf0-6",
+      "tip": "b9081e037ebbfd4250c21b6e4fdcd285e1b04119",
+      "archiveRef": "refs/archive/regatta-20261026/worktree-wf_5eb9185e-cf0-6",
+      "archivedFromLocalHeads": true,
+      "keptReason": null
+    }
+  ]
+}

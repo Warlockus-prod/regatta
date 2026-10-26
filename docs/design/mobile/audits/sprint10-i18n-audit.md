@@ -1,6 +1,6 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-26T07:49:35.755Z
+Generated: 2026-10-26T15:20:59.992Z
 
 Files scanned: 93
 
@@ -61,30 +61,3 @@ Files scanned: 93
 | Location | Kind | Snippet |
 | --- | --- | --- |
 | `mobile/src/simulator/SimWebView.tsx:361` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |
-
-## Reader checkpoint manual classification,2026-10-26
-
-The12 heuristic findings above are not missing or empty translations:
-
-- Eight belong to the intentionally Polish Sternik host and exam/storage UI.
-  SRC uses its separate seven-language OfflineRadioCourse host.
-- Two are the real place name Hyères, shared across languages.
-- One is the universal multiplication/count symbol in the journal.
-- The SimWebView Cyrillic finding spans JSX callback code because the regex
-  scanner loses string boundaries. Actual recovery text uses complete
-  seven-language tp calls; the reported callback has no Cyrillic label.
-
-The scanner reports0 tp arity errors and0 missing language overlays. The new
-shared saved-race notice for replay and Coach adds five complete resources,
-35 explicit language values in mobile/src/replay/ReplayUnavailable.tsx.
-This classification is source evidence. Installed narrow-screen language
-acceptance and complete official-question review remain separate.
-
-## Following native list checkpoint,2026-10-26
-
-The scanner again finds the same12 classified heuristic entries, with updated
-source locations and no arity/missing-overlay errors. It scans TSX, so the new
-shared TS resource is checked separately:25resources/175explicit locale values
-in src/lib/race-record-copy.ts, including all28unchanged historical title
-values. Actual History component tests render its titles and conditions in all7
-languages. Native narrow-screen G2 remains pending for this next source.
