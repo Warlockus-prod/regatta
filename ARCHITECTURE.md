@@ -1363,3 +1363,15 @@ Race preferences and camera hooks import only the lightweight environment;
 the live replay component imports interpolation without the upload/read codec.
 These synchronous boundaries preserve offline behavior. The existing6.5MiB
 budget is unchanged; actual final measurements belong to the phase2 harness.
+
+### Radio16/C cancellation follow-up
+
+RadioFront Key accepts a distinct cancel callback. Only16/C overrides the
+historical cancel-as-release behavior: it clears the real hold timer before
+recording one constant local radio.gesture cancel/noop. AQUA and PTT still release
+on cancellation. Pointerleave and cleanup do not masquerade as pointer-cancel,
+and diagnostics failure cannot revive a command or timer. RadioFront tests cover
+both models/layouts and actual reducer/timer behavior. The catalog generator
+excludes only the internal16c diagnostic ID, retaining visible[16/C] guide copy;
+the real-generator regression guards that distinction.
+Source and delivery limits: `docs/audits/2026-10-26/radio-cancel-harness.md`.

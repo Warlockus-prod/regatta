@@ -1,6 +1,7 @@
 'use client';
 
 import { useRadioI18n } from "@/app/radio/localization/context";
+import { recordWebDiagnostic } from "@/lib/diagnostics-web";
 
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTrainerI18n } from './trainerText';
@@ -122,11 +123,11 @@ interface Props {
 }
 
 function Key({
-  id, ik, children, onClick, onPointerDown, onPointerUp, onPointerLeave,
+  id, ik, children, onClick, onPointerDown, onPointerUp, onPointerLeave, onPointerCancel,
   onKeyDown, onKeyUp, wide, round, tone = 'grey', disabled, small, ariaLabel,
 }: {
   id: string; ik?: string; children: ReactNode; onClick?: () => void;
-  onPointerDown?: () => void; onPointerUp?: () => void; onPointerLeave?: () => void;
+  onPointerDown?: () => void; onPointerUp?: () => void; onPointerLeave?: () => void; onPointerCancel?: () => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onKeyUp?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   wide?: boolean; round?: boolean; tone?: 'grey' | 'blue' | 'red' | 'soft'; disabled?: boolean; small?: boolean;
@@ -150,7 +151,7 @@ function Key({
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
-      onPointerCancel={onPointerUp}
+      onPointerCancel={onPointerCancel ?? onPointerUp}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
       className={`select-none font-semibold transition active:translate-y-px active:brightness-95 disabled:opacity-35 ${
@@ -888,6 +889,13 @@ export default function RadioFront({
     if (callTimer.current) clearTimeout(callTimer.current);
     callFiredHold.current = true;
   }, []);
+  const callPointerCancel = useCallback(() => {
+    callCancel();
+    try {
+      recordWebDiagnostic({ type: 'radio.gesture', surface: 'radio', control: '16c', action: 'cancel',
+        outcome: 'noop', source: 'pointer', reason: 'pointer-cancel' });
+    } catch { /* diagnostics cannot interrupt cancellation */ }
+  }, [callCancel]);
   const isActivationKey = (key: string) => key === ' ' || key === 'Enter';
   useEffect(() => () => {
     if (callTimer.current) clearTimeout(callTimer.current);
@@ -1017,6 +1025,7 @@ export default function RadioFront({
       onPointerDown={hold(callDown)}
       onPointerUp={hold(callUp)}
       onPointerLeave={hold(callCancel)}
+      onPointerCancel={hold(callPointerCancel)}
       onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
       })}

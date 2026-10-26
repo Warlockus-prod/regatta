@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Canceling a radio16/C touch no longer selects CH16 or fires a delayed hold. A bounded local cancel/noop entry explains the canceled input; actual tap, one-second hold, AQUA and PTT keep their behavior.
+
 - Prepared versioned physical race record readers without changing live racing: known tracks retain geometry and exact recorded trajectory, unknown future coordinates cannot fall back to pixel replay or remote coaching, and new result emission stays disabled until score classes and the engine are ready. Saved history stays intact, with a shared seven-language explanation and working Back for unsupported records.
 
 - Fitted the complete course map and legend inside the available cockpit panel, including the native safe area and short/landscape screens. Marks and boats are visible before scrolling; boat space and controls stay reserved.

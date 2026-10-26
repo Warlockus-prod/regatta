@@ -25,6 +25,8 @@ const protocolModule=ts.transpileModule(fs.readFileSync(path.join(out,"protocolT
 const {protectRadioTerms,primaryRadioSource}=await import(`data:text/javascript;base64,${Buffer.from(protocolModule).toString("base64")}`);
 function human(s) {
  if (!s || s.length < 2 || !/[\p{L}]/u.test(s)) return false;
+ // The diagnostic control ID is not the visible hardware label [16/C].
+ if (s === "16c") return false;
  if (/^(?:[./#]|https?:|mailto:|data:|var\(|rgba?\(|linear-gradient|radial-gradient|repeating-|url\(|application\/|audio\/|--|@)/.test(s)) return false;
  if (/\b(?:px|rem|dvh)\b|[{};=]|^[\w.-]+(?:\/[\w.-]+)+$|^\w+(?:-\w+){2,}$/.test(s)) return false;
  if (/^[a-z][a-zA-Z0-9._-]*$/.test(s) && !/[ąćęłńóśźż]/i.test(s)) return false;
