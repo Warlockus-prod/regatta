@@ -67,3 +67,28 @@ ofc6d84d8 passed; this is not an installed build or native G2.
 
 Native G2, archive/export and Apple gates are pending at this source checkpoint.
 The full65-item product audit is separate and remains qualified.
+
+## First65 candidate stopped by native G2
+
+Sourcee316bb60c03b0b59b9769b9ac1f49a0a1843518d passed the corrected72-case
+safe run40309847125:72expected,0unexpected/flaky/skipped, all first attempt.
+ZIP12645265328 is596617bytes with SHA256
+7bb021ffa136ec6dd9cbff2d9f45e9d74806e4fdff4bba57b14a9eef6a1d2e5a.
+All three publication/deploy/production jobs were skipped.
+
+Generated18/18, Simulator27/27, archive33/33 and accepted export35/35 passed.
+The initial export lacked its invocation in the log and failed that one proof;
+it is preserved separately. A fresh export with its actual command passed.
+Neither IPA was uploaded to Apple. The first candidate's upgrade26.5 showed
+real clock progression, both corners, mini-map opening full Map, all four wind
+choices, hidden-map/full-process restoration, Orbit beginning under wind, helm
+45to63 and manual sheets53to46/35to29. Back and empty History/Personal records
+worked. All9stored keys survived upgrade; only diagnostics changed initially.
+
+The same installed binary reproduced an SRC edge: CH17 becameCH16 after a short
+16/C drag released outside. Implicit pointer capture can postpone pointerleave
+until after pointerup. The old source fails the captured-release regression.
+The next source checks release bounds, cancels the timer and writes one bounded
+cancelled/noop row. It retains real tap/1000ms hold and keyboard behavior.
+The first candidate remains preserved outside Git; new source, packages,
+archive/IPA, exact72-case run and installed gates must pass before upload.

@@ -44,3 +44,22 @@ translation values or changed protocol phrases.
 Installed exact-source cancellation and full radio/device acceptance follow the
 native release gate. The source tests do not claim owner iPhone touch behavior,
 new Apple delivery or complete diagnostics coverage across the whole product.
+
+## Native captured-release follow-up
+
+Installed first65 sourcee316bb6 on iOS26.5 reproduced CH17 changing toCH16 when
+a short16/C press ended outside the button. This is not an OS pointercancel
+proof: implicit touch capture can deliver pointerup first and pointerleave later.
+The candidate was not uploaded. Its DIAL rotation, moving index, tap and power
+hold worked; screenshots and journals remain private outside Git.
+
+The actual16/C pointerup now checks the rendered button bounds. An outside
+release cancels before the short command and records reasoncancelled. OS cancel
+retains reasonpointer-cancel. An already completed hold or cancellation does not
+write a second cancellation. No coordinates enter the journal. Inside taps,
+keyboard controls, AQUA and PTT retain their existing handlers.
+
+The captured-release test fails the old source and covers all four sides in both
+models, skins and layouts with real callbacks/reducers and no pointerleave.
+Current source has1547passing web tests. Fresh exact installed cancellation,
+native gates and Apple delivery are still required.

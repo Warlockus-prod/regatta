@@ -1390,6 +1390,10 @@ both models/layouts and actual reducer/timer behavior. The catalog generator
 excludes only the internal16c diagnostic ID, retaining visible[16/C] guide copy;
 the real-generator regression guards that distinction.
 Source and delivery limits: `docs/audits/2026-10-26/radio-cancel-harness.md`.
+The16/C release callback also checks actual button bounds before a short command:
+iOS implicit capture can deliver pointerup before pointerleave. Outside release
+uses the bounded cancelled/noop path; an OS pointercancel keeps its distinct
+pointer-cancel reason, and an already settled hold/cancellation is not logged twice.
 
 ### Physical comparison and result classes
 

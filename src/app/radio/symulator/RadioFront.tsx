@@ -127,7 +127,7 @@ function Key({
   onKeyDown, onKeyUp, wide, round, tone = 'grey', disabled, small, ariaLabel,
 }: {
   id: string; ik?: string; children: ReactNode; onClick?: () => void;
-  onPointerDown?: () => void; onPointerUp?: () => void; onPointerLeave?: () => void; onPointerCancel?: () => void;
+  onPointerDown?: () => void; onPointerUp?: (e: React.PointerEvent<HTMLButtonElement>) => void; onPointerLeave?: () => void; onPointerCancel?: () => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onKeyUp?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   wide?: boolean; round?: boolean; tone?: 'grey' | 'blue' | 'red' | 'soft'; disabled?: boolean; small?: boolean;
@@ -889,11 +889,12 @@ export default function RadioFront({
     if (callTimer.current) clearTimeout(callTimer.current);
     callFiredHold.current = true;
   }, []);
-  const callPointerCancel = useCallback(() => {
+  const callGestureCancel = useCallback((reason: 'pointer-cancel' | 'cancelled') => {
+    if (callFiredHold.current) return;
     callCancel();
     try {
       recordWebDiagnostic({ type: 'radio.gesture', surface: 'radio', control: '16c', action: 'cancel',
-        outcome: 'noop', source: 'pointer', reason: 'pointer-cancel' });
+        outcome: 'noop', source: 'pointer', reason });
     } catch { /* diagnostics cannot interrupt cancellation */ }
   }, [callCancel]);
   const isActivationKey = (key: string) => key === ' ' || key === 'Enter';
@@ -1023,9 +1024,13 @@ export default function RadioFront({
       ariaLabel={radioText("Channel 16, hold for Call Channel")}
       onClick={inspect ? () => onInspect?.('key-16c') : undefined}
       onPointerDown={hold(callDown)}
-      onPointerUp={hold(callUp)}
+      onPointerUp={hold((e: React.PointerEvent<HTMLButtonElement>) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) callGestureCancel('cancelled');
+        else callUp();
+      })}
       onPointerLeave={hold(callCancel)}
-      onPointerCancel={hold(callPointerCancel)}
+      onPointerCancel={hold(() => callGestureCancel('pointer-cancel'))}
       onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
       })}

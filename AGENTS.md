@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Build65 first sourcee316bb6 passed all72browser cases first attempt, but native G2 then reproduced16/C selectingCH16 after a captured touch ended outside the key. The next source cancels by actual release bounds with one bounded cancelled/noop event. Preserve the never-uploaded first65 archive/IPA and repeat exact native/delivery gates; see `docs/audits/2026-10-26/release65-harness.md` and the radio cancel harness.
+
 - Build65 candidate prepares the live corner instruments and the checked NEXT compatibility/UI changes, with physical emission still OFF. Apple GET found highest64 and unused65 before the lockstep version bump. `docs/audits/2026-10-26/release65-harness.md` owns the exact source, corrected72-case gate, generated/archive/IPA and installed/delivery gates. Do not upload before those pass; delivered64 remains the rollback.
 
 - NEXT corner-instrument checkpoint follows the owner's26October request: the live mini-map stays at the sea's upper-right, true wind at upper-left, through Helm/Sails/Map/Settings. The map opens the existing full dock view; its saved visibility and bounded boolean journal use the existing assist bridge. Numeric wind remains visible for every wind style. Source, browser and next installed gates are separated in `docs/audits/2026-10-26/corner-instruments-harness.md`. Delivered64 remains unchanged.

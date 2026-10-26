@@ -47,7 +47,34 @@ function panelControls(model: RadioModel, realistic = false, compact = false) {
     return button;
   } };
 }
-const touch = () => ({ pointerType: "touch", pointerId: 1, isPrimary: true } as React.PointerEvent<HTMLButtonElement>);
+const touch = (clientX = 50, clientY = 50) => ({ pointerType: "touch", pointerId: 1, isPrimary: true,
+  clientX, clientY, currentTarget: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }) },
+} as unknown as React.PointerEvent<HTMLButtonElement>);
+
+it("cancels a captured touch released outside16/C without requiring pointerleave", () => {
+  const journal = createDiagnosticJournal({ now: () => 0 });
+  vi.mocked(recordWebDiagnostic).mockImplementation(input => journal.record(input));
+  for (const model of ["M330", "M323"] as const) for (const realistic of [false, true]) for (const compact of [false, true]) {
+    for (const [x, y] of [[-1, 50], [101, 50], [50, -1], [50, 101]]) {
+      const panel = panelControls(model, realistic, compact), key = panel.button("key-16c"), initial = panel.state();
+      key.onPointerDown!(touch()); vi.advanceTimersByTime(100);
+      // iOS implicit pointer capture may deliver pointerup before pointerleave.
+      key.onPointerUp!(touch(x, y));
+      key.onPointerCancel!(touch()); key.onPointerUp!(touch());
+      vi.advanceTimersByTime(1500);
+      expect(panel.dispatch).not.toHaveBeenCalled();
+      expect(panel.state()).toBe(initial);
+      expect(vi.getTimerCount()).toBe(0);
+    }
+  }
+  expect(recordWebDiagnostic).toHaveBeenCalledTimes(32);
+  expect(journal.snapshot().entries.every(entry => entry.event.type === "radio.gesture"
+    && entry.event.action === "cancel" && entry.event.reason === "cancelled")).toBe(true);
+  const held = panelControls("M330"), heldKey = held.button("key-16c");
+  heldKey.onPointerDown!(touch()); vi.advanceTimersByTime(1000); heldKey.onPointerUp!(touch(50, -1));
+  expect(held.dispatch).toHaveBeenCalledExactlyOnceWith({ type: "key-16c-hold" });
+  expect(recordWebDiagnostic).toHaveBeenCalledTimes(32);
+});
 
 it("cancels a 16/C touch without selecting CH16 or firing a delayed Call Channel hold in either model/layout", () => {
   for (const model of ["M330", "M323"] as const) for (const realistic of [false, true]) for (const compact of [false, true]) {

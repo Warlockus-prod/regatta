@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Cancel a radio16/C press released outside the button even when iOS retains pointer capture. Preserve the current channel, stop the pending hold and record one local cancellation. Real taps, completed holds and keyboard input retain their behavior. Native G2 found this before the first65 candidate was uploaded.
+
 - Prepare1.7.0(65) after confirming its number is unused, retaining64rollback. The first corner gate's diagnostic expectations now include the new field; geometry and cold persistence use independent journeys with unchanged assertions and budgets. Native/Apple acceptance is still required before delivery.
 
 - Keep a live mini-map and wind readout in the3Dscene corners during solo and multiplayer races, through every dock tab. Tap the mini-map for the full overview; its on/off choice is saved and logged locally. Wind readings stay visible, with the existing optional compass/air arrows. The same boat, controls and physical model are retained.
