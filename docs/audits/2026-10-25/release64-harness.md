@@ -5,6 +5,24 @@ compass or incoming-air arrows like the trainer, and a proper Settings gear.
 The preceding63 is immutable source88fdaac and already available in Self.
 This is a separate presentation checkpoint. Physical course emission stays off.
 
+## Current SITE browser gate after the blocked MAIN run
+
+MAIN mergeb459ecc did not publish images: run40245210698 stopped at
+prepublication,67passed and1failed. The combined Map/wind case met its120s
+global deadline in all attempts. All five complete-SVG/caption samples passed;
+retry1 read an actual advancing clock1:39.9->1:41.3 at118.439..120.689s.
+Retry0 began its final Compass click at118.591s; retry2 reached Helm at119.744s.
+The retained trace records WebGL2 fallback and ReadPixels stalls, not a proven
+clock freeze. Exact proof: checks/website64-prepublication-main.json.
+
+SITE separates Map/Fleet/running-clock and wind styles/Helm/preferences into
+independent real3D journeys. Each retains25s startup,15s clock and120s total,
+with all original assertions and all five geometry samples. Attachments reuse
+the successful sampled geometry instead of a second browser read. The same
+eight spec files select69cases. No global budget, retry, trace, runtime,
+native package, privileged policy or NEXT physical source changes. Scoped
+checks and a fresh normal CI/browser gate are required before a new merge.
+
 ## Website integration after the63 production gate
 
 SITE initially merged APP1543d825, then adds frozen Map-fit source

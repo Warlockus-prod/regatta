@@ -1293,9 +1293,12 @@ CoursePreview wind text suppresses the inherited arrow stroke.
 - `src/components/ContentFooterNavLoader.tsx` - one shared dynamic import with
   default SSR. Eleven content pages share it; footer links and all translations
   stay server rendered. Keep ContentFooterNav's source path for offline adapters.
-- `e2e/race-navigation.spec.ts` - one real390px Simple race, actual ready frame,
-  numeric wind, all live course/fleet geometry, reserved running map, four wind
-  settings and Helm return. Validates private-free canonical journal in-browser.
+- `e2e/race-navigation.spec.ts` - two independent real390px Simple race journeys:
+  full live Map/Fleet/clock with five geometry samples, then wind styles/Helm
+  input/preferences. Each shares the original real25s startup and15s clock
+  checks within its120s total. All original assertions remain; attachments reuse
+  the successful geometry samples. Validates private-free canonical journals
+  in-browser, without reading invalid payloads into CI.
 
 Solo and multiplayer both read actual model data in their existing100ms HUD
 batch. No per-frame React updates, invented wind speed, new timer or protocol.
@@ -1452,3 +1455,9 @@ views or acknowledge a separate PB write. Ordered gates and evidence:
 Delivered64 is documented in `docs/design/mobile/testflight64-2026-10-26.md`,
 with all65IDs retained in `docs/audits/2026-10-26/acceptance64.md` and safe portable
 proof `docs/audits/2026-10-26/checks/native64-delivery.json`. NEXT source is excluded.
+
+- `docs/audits/2026-10-25/checks/website64-prepublication-main.json` - exactb459ecc
+  prepublication failure and retained timing/geometry proof,67passed/1deadline,
+  no image/deploy mutation, prior production health and the bounded two-journey
+  SITE correction. The unchanged eight-file policy now selects69cases; future
+  browser/native/production acceptance is recorded separately.
