@@ -1493,6 +1493,9 @@ history. This boundary is not a new result class or physical writer.
 - `docs/audits/2026-10-26/corner-instruments-harness.md` - owner-requested
   persistent corner instrument contract, source/real browser evidence and
   explicit next installed/delivery gates.
+- `docs/audits/2026-10-26/release65-harness.md` - ordered source/version,
+  corrected72-case browser, generated/native G2/archive/export and exact Self
+  delivery gates for the corner-instrument candidate, retaining64rollback.
 
 History keeps every row newest-first and projects once per history array.
 Leaderboard filters already projected rows, keeps historical score ranks in
@@ -1512,8 +1515,8 @@ map. The wind surface passes pointer input to the3Dcanvas; only the map button
 captures its own corner. Mini-map visibility defaults true, validates strictly
 as a boolean, persists in regatta.race.assists.v1 and records only bounded
 mini-map preference values. Native bridges keep the same allowed key/limits.
-The same prepublication files now select71cases, with one independent real3D
-journey for five viewport bounds, persistence/reload and canonical diagnostics.
+  The same prepublication files now select72cases, with independent real3D
+journeys for five viewport bounds and persistence/reload/canonical diagnostics.
 Existing browser assertions and timeout/publication guards stay unchanged;
 physics and result classes are untouched.
 

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prepare1.7.0(65) after confirming its number is unused, retaining64rollback. The first corner gate's diagnostic expectations now include the new field; geometry and cold persistence use independent journeys with unchanged assertions and budgets. Native/Apple acceptance is still required before delivery.
+
 - Keep a live mini-map and wind readout in the3Dscene corners during solo and multiplayer races, through every dock tab. Tap the mini-map for the full overview; its on/off choice is saved and logged locally. Wind readings stay visible, with the existing optional compass/air arrows. The same boat, controls and physical model are retained.
 
 - History and Personal records now name saved courses from validated metadata, preserve unknown entries and show registered finish time plus penalties. Previous score records retain their order; each registered class, mode, difficulty and wind has its own PB without a shared rank. All names and conditions have seven language adaptations. Physical races remain disabled pending durability and engine gates.

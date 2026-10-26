@@ -153,7 +153,7 @@ async function startSimpleRace(page: Page, context: BrowserContext) {
   return { scene, cockpit, canvas, startup, compact, direction, windSpeed, helm, clock };
 }
 
-test("corner map and wind stay visible beside the running boat and remember the mini-map choice", async ({ page, context }, testInfo) => {
+test("corner map and wind stay visible through dock tabs and five viewport sizes", async ({ page, context }, testInfo) => {
   test.setTimeout(120_000);
   const { scene, cockpit } = await startSimpleRace(page, context);
   const mini = cockpit.getByTestId("race-mini-map-button");
@@ -190,6 +190,16 @@ test("corner map and wind stay visible beside the running boat and remember the 
   await cockpit.getByRole("button", { name: "Паруса", exact: true }).click();
   await expect(mini).toBeVisible();
   await expect(wind).toBeVisible();
+  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  await expect(mini).toBeVisible();
+  await testInfo.attach("corner-instrument-layout", { contentType: "application/json", body: JSON.stringify(samples) });
+});
+
+test("corner mini-map visibility survives a new document and records actual changes", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  const { cockpit } = await startSimpleRace(page, context);
+  const mini = cockpit.getByTestId("race-mini-map-button");
+  const wind = cockpit.getByTestId("race-corner-wind");
   await cockpit.getByRole("button", { name: "Настройки", exact: true }).click();
   await cockpit.getByRole("switch", { name: "Мини-карта в углу", exact: true }).uncheck();
   await expect(mini).toHaveCount(0);
@@ -207,7 +217,6 @@ test("corner map and wind stay visible beside the running boat and remember the 
   await reopened.cockpit.getByRole("button", { name: "Руль", exact: true }).click();
   await expect(reopened.helm).toBeVisible();
   await expect.poll(async () => (await visualJournal(page)).miniMapValues).toEqual([false, true]);
-  await testInfo.attach("corner-instrument-layout", { contentType: "application/json", body: JSON.stringify(samples) });
 });
 
 test("Simple 3D keeps the complete live course and fleet in a running reserved Map", async ({ page, context }, testInfo) => {
@@ -276,7 +285,7 @@ test("Simple 3D keeps the complete live course and fleet in a running reserved M
   await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
   await expect(helm).toBeVisible();
   await expect(cockpit.getByRole("slider")).toHaveCount(1);
-  await expect.poll(() => visualJournal(page)).toEqual({ status: "valid", mapOpened: true, mapClosed: true, windValues: [] });
+  await expect.poll(() => visualJournal(page)).toEqual({ status: "valid", mapOpened: true, mapClosed: true, windValues: [], miniMapValues: [] });
   await testInfo.attach("race-map-journal", { body: Buffer.from(JSON.stringify(await visualJournal(page))), contentType: "application/json" });
 });
 
@@ -320,6 +329,6 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
   await helm.press("ArrowLeft");
   await expect(startup).toHaveAttribute("data-scene-startup", "ready");
 
-  await expect.poll(() => visualJournal(page)).toEqual({ status: "valid", mapOpened: true, mapClosed: true, windValues: ["arrows", "both", "compass", "off"] });
+  await expect.poll(() => visualJournal(page)).toEqual({ status: "valid", mapOpened: true, mapClosed: true, windValues: ["arrows", "both", "compass", "off"], miniMapValues: [] });
   await testInfo.attach("race-navigation-journal", { body: Buffer.from(JSON.stringify(await visualJournal(page))), contentType: "application/json" });
 });

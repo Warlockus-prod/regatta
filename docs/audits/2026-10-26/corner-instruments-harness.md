@@ -40,12 +40,13 @@ stays visible. Screenshots are retained outside Git. Final browser geometry,
 cold preference restoration and complete source gate are recorded with the
 checkpoint proof; these observations are not installed native G2.
 
-The unchanged eight-file prepublication command now includes71cases. The new
-independent real3Djourney keeps the existing25s startup,15s clock and120s case
-budgets. It checks five viewport bounds, the map's44px target, space between
-corners, actual full Map/Sails/Settings/Helm transitions, hidden-state reload,
-and the canonical bounded journal. Existing full Map/wind assertions remain.
-Cloud acceptance is pending until the exact run is recorded separately.
+The first71-case gate is preserved as red evidence in the build65harness. Its
+new corner case passed but took105.9seconds, and two older diagnostic expected
+objects lacked the new field. Corrected full equality checks and independent
+geometry/cold-persistence journeys now select72cases in the same eight files.
+Every existing assertion, five bounds samples,44px target, actual dock/reload
+actions, canonical journal and25s/15s/120s budgets remain. Fresh cloud acceptance
+is pending until the exact run is recorded separately.
 
 ## Delivery gates still separate
 
@@ -61,3 +62,6 @@ lint, content twins and3fresh packages pass. Production build and the unchanged
 6815744-byte limit pass at6815307bytes/111files, with437bytes headroom. Radio
 4d6dbd13aa10, sailingf1e7d8edd8cd/222inputs and Sternik06fb7a5862b3 are NEXT
 packages, not the frozen64 assets. Exact source/CI/installed proof stays separate.
+
+The following65candidate and exact native delivery sequence live in
+`release65-harness.md`.

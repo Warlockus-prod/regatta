@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Build65 candidate prepares the live corner instruments and the checked NEXT compatibility/UI changes, with physical emission still OFF. Apple GET found highest64 and unused65 before the lockstep version bump. `docs/audits/2026-10-26/release65-harness.md` owns the exact source, corrected72-case gate, generated/archive/IPA and installed/delivery gates. Do not upload before those pass; delivered64 remains the rollback.
+
 - NEXT corner-instrument checkpoint follows the owner's26October request: the live mini-map stays at the sea's upper-right, true wind at upper-left, through Helm/Sails/Map/Settings. The map opens the existing full dock view; its saved visibility and bounded boolean journal use the existing assist bridge. Numeric wind remains visible for every wind style. Source, browser and next installed gates are separated in `docs/audits/2026-10-26/corner-instruments-harness.md`. Delivered64 remains unchanged.
 
 - NEXT16d4eed safe non-main gate40286829987 passed all70browser cases on the first attempt, with no skips/flakes; source checks and3offline freshness checks also passed. Publication/deploy/production jobs were skipped as designed. Exact portable proof: `docs/audits/2026-10-26/checks/next70-prepublication.json`. The following native list source and next installed G2 are excluded from this exact proof.
