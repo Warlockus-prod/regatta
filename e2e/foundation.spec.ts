@@ -35,8 +35,7 @@ test("legacy visits remain ungraded, original checks and draft resume survive re
   await page.getByRole("button", { name: "3. Практика", exact: true }).click();
   await page.getByRole("link", { name: "Ветер на 3D-лодке", exact: false }).click();
   await expect(page).toHaveURL(/\/simulator-v3\?fromLesson=wind-direction$/);
-  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: 25000 });
-  await expect(page.getByTestId("boat-view-presets").getByRole("button", { name: "Вся яхта", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // Return without waiting for startup; ready-scene acceptance has its own30s case.
   const courseAngle = page.getByRole("slider", { name: /Угол TWA/ });
   await expect(courseAngle).toHaveAttribute("min", "0");
   await courseAngle.press("Home");
@@ -48,6 +47,20 @@ test("legacy visits remain ungraded, original checks and draft resume survive re
   await expect(page.getByText("Раздел практики открывался, результат не оценивался.", { exact: true })).toBeVisible();
   await page.goto("/");
   await expect(page.locator('main a[href="/start?lesson=points-of-sail"]')).toBeVisible();
+});
+
+test("first wind practice renders the whole yacht and returns after a real first frame without grading", async ({ page }) => {
+  await page.goto("/start?lesson=wind-direction&step=practice");
+  await page.getByRole("link", { name: "Ветер на 3D-лодке", exact: false }).click();
+  await expect(page).toHaveURL(/\/simulator-v3\?fromLesson=wind-direction$/);
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: 25000 });
+  await expect(page.getByTestId("boat-view-presets").getByRole("button", { name: "Вся яхта", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const courseReturn = page.getByTestId("foundation-return");
+  await expect(courseReturn).toBeVisible();
+  await courseReturn.click();
+  await expect(page).toHaveURL(/\/start\?lesson=wind-direction&step=practice$/);
+  await expect(page.getByText("Раздел практики открывался, результат не оценивался.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
 });
 
 test("failed durable check write keeps the counter unchanged and retries without losing the answers", async ({ page }) => {

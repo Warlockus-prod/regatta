@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Keep browser lesson acceptance within separate30s journeys for quiz/reload and ready3Dreturn, retaining the25s scene deadline and every prior assertion.
+
 - Keep picture retries and stale-load protection consistent across app and web while each platform retains its own React runtime.
 
 - Share the first Foundation lesson across app and web, with real3Dwind observation and return to the same lesson step. Add a Scheme/Picture pilot with filled/luffing mainsail views, readable callouts, preserved force diagrams and local image-result diagnostics. Picture selection does not pass a lesson; a failed image returns to the diagram. Native Image sizing keeps picture callouts aligned with the sail. Native delivery is still pending P02 acceptance.

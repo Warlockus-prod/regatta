@@ -85,3 +85,26 @@ full web lint with0errors/15pre-existing warnings and the same full web/native
 suites, types, fresh packages, real sockets and production budget. The language
 scanner retains its12known heuristics with0arity/missing-overlay errors; source
 teaching strings retain all7adaptations. No binary delivery is claimed yet.
+
+
+The5e57569 pre-deploy run40372002478 passed75/76 with0flaky cases. The
+expanded legacy quiz/reload/practice case exhausted its30s total on all three
+attempts; retry1 reached the actual visible return after successful first-frame,
+whole-yacht and course checks, then had no action budget left. Its separate PR
+Foundation flow passed, as did all source/mobile/lint jobs. This does not prove
+that all device performance is good, nor is the failed pre-deploy run green.
+
+The corrected test contract keeps every assertion and each30s case limit:
+legacy quiz/reload now exercises real practice entry,0degree controls and an
+early return; a separate focused journey owns actual first-frame readiness,
+whole-yacht selection and return with no false grade. The scene startup stays
+25s. The complete same-file browser gate becomes77cases. This is a test-only
+change after5e57569; final native payload equivalence must be checked and the
+new source/archive/installed identity must be recorded before delivery.
+
+Local gates for the split test contract pass: full lint/types,1551web tests,
+569native tests plus9release-tool cases, fresh packages/content twins,
+generated-server and real sockets, production build and unchanged size budget.
+One earlier local Node test runner stayed alive after its9completed assertions;
+that stopped run is retained separately, not counted green. The unchanged full
+native command then completed with exit0 under a90s external bound.
