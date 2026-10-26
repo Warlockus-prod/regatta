@@ -68,3 +68,20 @@ budget. Full corrected browser/native/delivery acceptance is still pending.
 The rejected DerivedData directories may be reused only as build caches; the
 121-file frozen Simulator copy, original archive/IPA and original proofs remain
 unchanged. Corrected source must freeze again and own its own logs/proofs.
+
+
+The6db89d0 candidate is also not deliverable: PR job121736029437 found the
+web illustration reading its ref token during render. This was the single
+lint error, separate from15existing warnings. Both surfaces now share a framework-free
+attempt guard and keep their render identity in platform-local React state.
+An intermediate shared React hook was rejected by native tests because it
+resolved the web React instance. No resolver or test mock is relaxed to hide
+that boundary; the common module imports no framework. Existing stale-frame, duplicate-load, unmount
+and retry checks remain required. The6db Simulator29proof/copy is preserved;
+its archive was interrupted after the failing gate, not exported or uploaded.
+
+Final local source checks after that boundary correction pass again, including
+full web lint with0errors/15pre-existing warnings and the same full web/native
+suites, types, fresh packages, real sockets and production budget. The language
+scanner retains its12known heuristics with0arity/missing-overlay errors; source
+teaching strings retain all7adaptations. No binary delivery is claimed yet.

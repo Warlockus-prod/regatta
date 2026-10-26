@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-26T15:20:59.992Z
+Generated: 2026-10-26T17:45:49.104Z
 
-Files scanned: 93
+Files scanned: 94
 
 ## Summary
 

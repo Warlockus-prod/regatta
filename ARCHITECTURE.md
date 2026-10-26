@@ -1551,6 +1551,8 @@ P02 shared teaching and illustration boundary:
   native pilots retain their compatibility re-export.
 - `src/data/sail-shape.ts` - generated-illustration frames, callout labels,
   observations and limits; no calculated pressure field or procedural rigging.
+- `src/lib/learning/illustration-attempt.ts` - framework-free stale/duplicate/
+  unmount image-event guard; each platform owns its React render token.
 - `src/lib/learning/sail-shape-markers.ts` - read-only numeric leader geometry
   in the image coordinate system, without external assets or baked text.
 - `src/app/start/FoundationClient.tsx` - existing interactive Foundation flow;

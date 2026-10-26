@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createIllustrationAttempt } from "../../../src/lib/learning/illustration-attempt";
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { sailShapeContent as copy } from "../../../src/data/sail-shape";
@@ -16,28 +17,27 @@ export function SailShapeIllustration({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<"scheme" | "picture">("scheme");
   const [frameIndex, setFrameIndex] = useState(0);
   const [failed, setFailed] = useState(false);
-  const attempt = useRef(0);
-  const settled = useRef(-1);
-  useEffect(() => () => { attempt.current += 1; }, []);
+  const [attempt] = useState(createIllustrationAttempt);
+  const [token, setToken] = useState(0);
+  useEffect(() => () => { attempt.invalidate(); }, [attempt]);
+  function restart() { setToken(attempt.start()); }
   const frame = copy.frames[frameIndex];
-  const token = attempt.current;
   function chooseMode(value: typeof mode) {
     const unchanged = mode === value;
     recordNativeDiagnostic({ type: "learning.visual", source: "native", surface: "learn", lesson: "how-sail-works", action: "mode", mode: value, frame: frame.id, outcome: unchanged ? "noop" : "accepted", ...(unchanged ? { reason: "unchanged" as const } : {}) });
     if (unchanged) return;
-    attempt.current += 1; setFailed(false); setMode(value);
+    restart(); setFailed(false); setMode(value);
   }
   function chooseFrame(index: number) {
     const unchanged = index === frameIndex;
     recordNativeDiagnostic({ type: "learning.visual", source: "native", surface: "learn", lesson: "how-sail-works", action: "frame", mode, frame: copy.frames[index].id, outcome: unchanged ? "noop" : "accepted", ...(unchanged ? { reason: "unchanged" as const } : {}) });
     if (unchanged) return;
-    attempt.current += 1; setFrameIndex(index); setFailed(false);
+    restart(); setFrameIndex(index); setFailed(false);
   }
   function imageResult(ok: boolean) {
-    if (attempt.current !== token || settled.current === token) return;
-    settled.current = token;
+    if (!attempt.settle(token)) return;
     recordNativeDiagnostic({ type: "learning.visual", source: "native", surface: "learn", lesson: "how-sail-works", action: ok ? "image-ready" : "image-error", mode: "picture", frame: frame.id, outcome: ok ? "accepted" : "failed", ...(!ok ? { reason: "asset-load" as const } : {}) });
-    if (!ok) { attempt.current += 1; setMode("scheme"); setFailed(true); }
+    if (!ok) { restart(); setMode("scheme"); setFailed(true); }
   }
   return <View style={s.wrap}>
     <View style={s.choices} accessibilityLabel={copy.view[lang]}>
