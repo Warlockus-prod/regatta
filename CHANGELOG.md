@@ -1,17 +1,18 @@
 # CHANGELOG
 
-Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
-
-- Native race personal-best banners now wait for their own confirmed device write, separately from History. Same-row receipts make retries idempotent; stale replies, corrupt/read-failed stores and old WebKit row writes cannot claim a new record. Global clear invalidates old race work and reports an unconfirmed sweep on failure. Candidate68 passes local source checks; installed and delivery gates remain open, with physical races still disabled.
-
-
-- Delivered1.7.0(67) to exact TestFlight Self: shared first-lesson3Dpractice plus one Scheme/Picture sail pilot with filled/luffing views, preserved force states and actual image-result diagnostics. Exact77c passes77first-attempt browser cases and qualified installed26.5/27 acceptance; independent18:53UTC Apple GET verifies VALID/IN_BETA_TESTING and8notes. Wider lessons, PB durability, physics/courses, radio transcript and public/device acceptance remain open. [Release67](docs/design/mobile/testflight67-2026-10-26.md).
-`
+Что изменилось, простым языком. Новую строку в `## Unreleased`
 добавляют в том же коммите, что и само изменение, если оно видно пользователю
 или эксплуатации. Подробные разборы релизов лежат в `docs/design/*`, здесь
 только короткая запись и ссылка.
 
 ## Unreleased
+
+- Keep a saved shared3D replay inside its own native route, so opening it cannot replace the original race parameters and Back cannot cycle between History and Replay. Candidate68 was held at native G2 for this correction before upload.
+
+- Native race personal-best banners now wait for their own confirmed device write, separately from History. Same-row receipts make retries idempotent; stale replies, corrupt/read-failed stores and old WebKit row writes cannot claim a new record. Global clear invalidates old race work and reports an unconfirmed sweep on failure. Candidate68 passes local source checks; installed and delivery gates remain open, with physical races still disabled.
+
+
+- Delivered1.7.0(67) to exact TestFlight Self: shared first-lesson3Dpractice plus one Scheme/Picture sail pilot with filled/luffing views, preserved force states and actual image-result diagnostics. Exact77c passes77first-attempt browser cases and qualified installed26.5/27 acceptance; independent18:53UTC Apple GET verifies VALID/IN_BETA_TESTING and8notes. Wider lessons, PB durability, physics/courses, radio transcript and public/device acceptance remain open. [Release67](docs/design/mobile/testflight67-2026-10-26.md).
 
 - Keep browser lesson acceptance within separate30s journeys for quiz/reload and ready3Dreturn, retaining the25s scene deadline and every prior assertion.
 

@@ -279,3 +279,35 @@ older cache callback cannot replace a newer durable store. Both directions
 of independent History/PB failure and an optional recorder exception have
 actual-host/storage tests. The common native diagnostic boundary returns null
 on a synchronous recorder failure; it never converts a durable action to error.
+
+
+### Native G2 correction before the first68 upload
+
+Candidate0a376a3 passed77first-attempt cloud browser cases,36archive and38IPA
+checks. A real clean iOS27 finish at3:50.5 produced one History row and one
+legacy easy/medium PB row with its same-row receipt. Both independent saved
+statuses appeared, the new-record badge followed the PB ACK, and the private
+canonical journal contains separate local/PB request and accepted ACK events.
+Replay advanced to0:17 and local Coach opened. This is positive installed
+evidence, not forced native storage-failure acceptance.
+
+The following Back journey exposed a History/Replay cycle. Saved world replay
+previously redirected into `/game`, allowing the existing race route's params
+to become replay params; the embedded Back then navigated to History again.
+The corrected replay route mounts the shared host directly with its explicit
+saved ID and dismisses to History. The main race route keeps its own state.
+The complete0a archive/IPA, frozen simulator and source checks are preserved
+externally; none was uploaded. Re-freeze68 and repeat exact gates.
+
+Additional audit observations stay open: rounding guidance needs explicit
+ordered-stage/progress feedback, and Coach called the head-to-wind portions
+"Never entered the no-go zone". The former was observed during manual play;
+the latter needs its log/event classification checked before a behavior fix.
+Do not declare either accepted through PB durability or widen gate geometry
+merely to make a manual QA run finish.
+
+The replay ownership correction passes1568web cases/157files and587native
+cases/78suites plus9release-tool tests. All3installed-package freshness,
+content twins, native types/lint, web types/build, generated server, real WS,
+map, typography and unchanged6.5MiB budget pass. The77-case cloud and installed
+Back/finish gates must now repeat for the corrected frozen source.

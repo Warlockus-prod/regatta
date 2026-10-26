@@ -1638,7 +1638,10 @@ P03 independent native personal-best acknowledgement:
   serialize the actual global sweep before fresh race reads; preserve analytics
   choice/unrelated keys. Settings reports an unconfirmed sweep on failure.
   Other writers/app caches remain P08 acceptance work.
-- `mobile/app/game/index.tsx` - active-start ownership and independent PB reply;
+- `mobile/app/game/index.tsx` re-exports `mobile/src/game/SharedRaceHost.tsx`,
+  which owns active starts and independent PB replies. `mobile/app/replay/[id].tsx`
+  mounts the same host with an explicit saved ID in its own route, preserving
+  the original race parameters and dismissing to History on replay Back;
   `mobile/src/simulator/SimWebView.tsx` ties async injection to its owning view.
 - `mobile/__tests__/race-personal-best.test.tsx` exercises real host/storage
   delayed ACK, independent History failure, retry, corrupt/read errors,

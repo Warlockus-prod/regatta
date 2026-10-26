@@ -1,11 +1,12 @@
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 jest.mock("../assets/sailing-offline.html", () => 123);
 const mockNavigate = jest.fn();
+const mockDismissTo = jest.fn();
 const mockCapture = jest.fn();
 let mockParams: Record<string, string | string[]> = {};
 jest.mock("expo-router", () => ({
   Stack: { Screen: (props: { options?: { headerLeft?: () => React.ReactNode } }) => props.options?.headerLeft?.() ?? null },
-  useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate, canGoBack: () => false }),
+  useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate, dismissTo: mockDismissTo, canGoBack: () => false }),
   usePathname: () => "/game",
   useLocalSearchParams: () => mockParams,
 }));
@@ -29,6 +30,8 @@ jest.mock("../src/simulator/SimWebView", () => {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import Game from "../app/game";
+import SharedRaceHost from "../src/game/SharedRaceHost";
+import { saveNativeRace } from "../src/persistence/race-native";
 import { readRaces } from "../src/persistence/race-history";
 import type { NativeRaceSnapshot } from "../../src/lib/race-native";
 
@@ -169,4 +172,21 @@ it("retains the old durable wind preference on a failed write and accepts an exp
   await act(async () => game.props.onOfflineMessage(payload, jest.fn()));
   await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage[key]).windDisplay).toBe("both"));
   expect(JSON.parse((await AsyncStorage.getItem(key))!).windDisplay).toBe("both");
+});
+
+// A saved replay must not redirect into the live race route or inherit its intent.
+it("mounts a saved replay with its own identity and dismisses back to History", async () => {
+  const record = await saveNativeRace(race, "en", false);
+  mockParams = { id: record.id, daily: "2026-10-26", fromLesson: "mini-race" };
+  const view = render(<SharedRaceHost savedReplayId={record.id} />);
+  const replay = await waitFor(() => view.getByTestId("local-race"));
+  expect(replay.props.query.replayId).toBe(record.id);
+  expect(replay.props.query).not.toHaveProperty("daily");
+  expect(replay.props.query).not.toHaveProperty("fromLesson");
+  expect(replay.props.raceReplay.id).toBe(race.id);
+  expect(mockNavigate).not.toHaveBeenCalled();
+  act(() => replay.props.onOfflineMessage(JSON.stringify({ type: "native-navigate", href: "/history" }), jest.fn()));
+  expect(mockDismissTo).toHaveBeenCalledTimes(1);
+  expect(mockDismissTo).toHaveBeenCalledWith("/history");
+  expect(mockNavigate).not.toHaveBeenCalled();
 });

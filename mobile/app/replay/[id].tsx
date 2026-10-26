@@ -29,7 +29,7 @@
  *    to where they happened on the track via `frameAt(event.t)` and drawn
  *    as colour-coded dots, with a small legend under the canvas.
  */
-import { Redirect, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
@@ -64,6 +64,7 @@ import {
 } from '../../src/persistence/race-history';
 import { classifyNativeReplayEntry, type NativeReplayEntry } from '../../src/replay/entry';
 import { ReplayUnavailable } from '../../src/replay/ReplayUnavailable';
+import SharedRaceHost from '../../src/game/SharedRaceHost';
 import {
   frameAt,
   summarizeReplay,
@@ -1004,7 +1005,7 @@ export default function ReplayRoute() {
     return () => { active = false; };
   }, [id]);
   if (id && checked?.id !== id) return <DarkSurface><Screen><ActivityIndicator color={colors.accentCyan} /></Screen></DarkSurface>;
-  if (checked?.entry.kind === "shared" && id) return <Redirect href={{ pathname: "/game", params: { replayId: id } }} />;
+  if (checked?.entry.kind === "shared" && id) return <SharedRaceHost savedReplayId={id} />;
   if (id && checked?.entry.kind === "unavailable") return <ReplayUnavailable reason={checked.entry.reason} />;
   return <DarkSurface><Replay /></DarkSurface>;
 }

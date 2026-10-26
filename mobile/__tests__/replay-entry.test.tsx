@@ -7,14 +7,16 @@ let mockHasBack = true;
 let mockParams: { id?: string } = {};
 let mockLang = "en";
 jest.mock("expo-router", () => {
-  const React = require("react");
-  const { View } = require("react-native");
   return {
-    Redirect: (props: object) => React.createElement(View, { ...props, testID: "shared-replay-redirect" }),
     Stack: { Screen: () => null },
     useLocalSearchParams: () => mockParams,
     useRouter: () => ({ back: mockBack, replace: mockReplace, canGoBack: () => mockHasBack }),
   };
+});
+jest.mock("../src/game/SharedRaceHost", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return { __esModule: true, default: (props: object) => React.createElement(View, { ...props, testID: "shared-replay-host" }) };
 });
 jest.mock("../src/i18n/context", () => ({ useI18n: () => ({
   lang: mockLang,
@@ -137,7 +139,7 @@ it.each([
   const view = render(<ReplayRoute />);
   await waitFor(() => expect(view.getByText(title)).toBeTruthy());
   expect(view.getByRole("button", { name: "Back" })).toBeTruthy();
-  expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
+  expect(view.queryByTestId("shared-replay-host")).toBeNull();
   expect(mockUseHistory).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
   expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
@@ -147,8 +149,10 @@ it.each(PHYSICAL_RACE_PROFILES)("redirects a saved known %s world replay to the 
   const record = { ...legacy, webRace: snapshot(profile) }, bytes = JSON.stringify([record]);
   await AsyncStorage.setItem(KEY, bytes); (AsyncStorage.setItem as jest.Mock).mockClear();
   const view = render(<ReplayRoute />);
-  const redirect = await waitFor(() => view.getByTestId("shared-replay-redirect"));
-  expect(redirect.props.href).toEqual({ pathname: "/game", params: { replayId: legacy.id } });
+  const redirect = await waitFor(() => view.getByTestId("shared-replay-host"));
+  expect(redirect.props.savedReplayId).toBe(legacy.id);
+  expect(mockReplace).not.toHaveBeenCalled();
+  expect(mockBack).not.toHaveBeenCalled();
   expect(mockUseHistory).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
   expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
@@ -159,7 +163,7 @@ it("continues to mount the historical pixel viewer for a record without webRace"
   await AsyncStorage.setItem(KEY, bytes); (AsyncStorage.setItem as jest.Mock).mockClear();
   const view = render(<ReplayRoute />);
   await waitFor(() => expect(mockUseHistory).toHaveBeenCalled());
-  expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
+  expect(view.queryByTestId("shared-replay-host")).toBeNull();
   expect(view.queryByText("Saved race not supported")).toBeNull();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
   expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
@@ -187,7 +191,7 @@ it.each([
   expect(mockBack).toHaveBeenCalledTimes(1);
   expect(mockReplace).not.toHaveBeenCalled();
   expect(mockUseHistory).not.toHaveBeenCalled();
-  expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
+  expect(view.queryByTestId("shared-replay-host")).toBeNull();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
   expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
@@ -216,7 +220,7 @@ it("does not let a late previous-id read replace the current unsupported notice"
   await waitFor(() => expect(view.getByText("Saved race not supported")).toBeTruthy());
   await act(async () => { resolveOld({ ...legacy, webRace: snapshot() }); });
   expect(view.getByText("Saved race not supported")).toBeTruthy();
-  expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
+  expect(view.queryByTestId("shared-replay-host")).toBeNull();
   expect(mockUseHistory).not.toHaveBeenCalled();
 });
 
@@ -237,5 +241,5 @@ it("does not keep a previous unsupported notice when the replay id is removed", 
   mockParams = {}; view.rerender(<ReplayRoute />);
   expect(view.queryByText("Saved race not supported")).toBeNull();
   expect(view.getByText("Race not found")).toBeTruthy();
-  expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
+  expect(view.queryByTestId("shared-replay-host")).toBeNull();
 });
