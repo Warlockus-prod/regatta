@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStandardCourse } from "./race-physics";
 import { isNativeRace, navigateNativeRace, postNativeRace, postNativeRaceStarted, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
 import { raceNativeDestination } from "../../mobile/src/navigation/race-entry";
+import { readRaceResultSelection } from "./race-record-class";
 
 function fixture(): NativeRaceSnapshot {
   const course = makeStandardCourse();
@@ -46,6 +47,21 @@ describe("native offline race boundary", () => {
     expect(JSON.parse(postMessage.mock.calls[0][0])).toMatchObject({ type: "race-finished", race: { schema: 1, id: "race_123" } });
     expect(postNativeRace({ ...fixture(), totalBoats: 0 })).toBe(false);
     expect(postMessage).toHaveBeenCalledTimes(1);
+  });
+  it("preserves null context through actual finish/start messages without manufacturing a result class", () => {
+    const postMessage = vi.fn();
+    vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true, ReactNativeWebView: { postMessage } });
+    const snapshot = { ...fixture(), raceContext: null };
+    expect(validateNativeRace(snapshot)).toBe(snapshot);
+    expect(postNativeRace(snapshot)).toBe(true);
+    const finished = JSON.parse(postMessage.mock.calls[0][0]).race;
+    expect(finished.raceContext).toBeNull();
+    expect(readRaceResultSelection(finished)).toEqual({ ok: true, value: { kind: "legacy-unclassified" } });
+    expect(postNativeRaceStarted({ ...snapshot, mode: "pro" })).toBe(true);
+    const started = JSON.parse(postMessage.mock.calls[1][0]);
+    expect(started.raceContext).toBeNull();
+    expect(readRaceResultSelection(started)).toEqual({ ok: true, value: { kind: "legacy-unclassified" } });
+    expect(snapshot.raceContext).toBeNull();
   });
   it("posts bounded starts only inside the native host", () => {
     const postMessage = vi.fn();

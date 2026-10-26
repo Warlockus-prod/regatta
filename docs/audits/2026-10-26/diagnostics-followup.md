@@ -10,14 +10,14 @@ are unchanged.
 
 | ID | Scope | Current state and remaining behavior |
 | --- | --- | --- |
-| D01 | Personal best persistence | Pending. Failed read must block write, failed write cannot claim a saved new record. Give PB its own finite storage target, separate from race-history ACK. Native durability is separate from synchronous web return. |
+| D01 | Personal best persistence | Web source checked: failed read blocks write, failed write cannot claim a saved new record; bounded personal-best target records actual read/write outcomes. Native PB durability remains pending and separate from history ACK or synchronous web return. |
 | D02 | Assessment correctness | Pending. The defined learning.command family has no production adapters. Emit actual start/check/next/complete with a closed pass/fail value, without answer/text/option/question payloads. Opening a lesson is never completion. |
 | D03 | Progress writes/retry | Pending. Log actual Foundation/Sails progress completion/failure after storage or native ACK, preserving pending work and retry. An answer check and its save are separate facts. |
 | D04 | Optional cloud results | Pending. Ask, legacy remote Coach, global leaderboard and feedback need safe request/retry/response classifications; no prompts, replies, contacts, URLs or raw errors. Known world Coach remains local. |
 | D05 | Web SRC speech service | Pending. Distinguish service failure, silence, fallback and actual recognition without logging audio/transcripts or grading service failure as an incorrect answer. |
 | D06 | Native Sternik guarded exit | Source checked below; installed acceptance pending. Actual prompt request and once-only Stay/system-dismiss cancellation are recorded, with exact blocked action behavior retained. |
 | D07 | Native recovery controls | Pending. Basics fallback heading/reset must log committed control results/noops, without per-frame pointer samples or coordinates. |
-| D08 | History clear and saved-record rejection | Pending. Await real serial deletion before success; distinguish missing/unsupported/corrupt/read failure without saved IDs or trajectories. Preserve unknown rows and pixel/world safety. |
+| D08 | History clear and saved-record rejection | Native source checked for actual history read and awaited serial clear, including failure and no resurrection. Pure projection separates unsupported/corrupt records; real History/Leaderboard presentation and all entry adapters remain pending. No saved IDs or trajectories enter diagnostics. |
 | D09 | External course link handoff | Pending. Log resolved/rejected system handoff, never claim remote page load or include URL/recipient/phone/title. |
 
 ## D06 source checkpoint

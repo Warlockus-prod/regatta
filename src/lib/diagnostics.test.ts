@@ -217,12 +217,18 @@ describe("diagnostic strict transport and privacy", () => {
       { type: "navigation", surface: "diagnostics", outcome: "accepted", action: "confirmed", from: "settings", to: "diagnostics" },
       { type: "learning.command", surface: "learn", outcome: "accepted", action: "answer", course: "foundation", step: 5 },
       { type: "storage.operation", surface: "app", outcome: "failed", action: "write", target: "progress", reason: "storage-unavailable" },
+      { type: "storage.operation", surface: "race", outcome: "failed", action: "write", target: "personal-best", reason: "storage-write" },
+      { type: "storage.operation", surface: "app", outcome: "accepted", action: "clear", target: "history", source: "native" },
     ];
     expect(parseDiagnosticBatch(serializeDiagnosticBatch(events))?.events).toEqual(events);
     expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[1], step: 1.2 }] })).toBeNull();
     expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[1], answer: 2 }] })).toBeNull();
     expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[2], key: "private-progress" }] })).toBeNull();
     expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[2], target: "PRIVATE_SENTINEL" }] })).toBeNull();
+    for (const payload of [{ value: "private-progress" }, { raceId: "private-race" }, { timeSec: 123 }]) {
+      expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[3], ...payload }] })).toBeNull();
+      expect(parseDiagnosticBatch({ version: 1, events: [{ ...events[4], ...payload }] })).toBeNull();
+    }
   });
 
   it("enforces transport version, event and UTF8 byte caps without truncating a partial batch", () => {

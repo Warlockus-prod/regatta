@@ -1411,3 +1411,44 @@ dismiss cannot cancel it. local-course-host tests cover actual callbacks,
 duplicate suppression, stale dismissal, privacy and diagnostic failure isolation.
 The remaining nine-scope logging matrix is
 `docs/audits/2026-10-26/diagnostics-followup.md`.
+
+### Physical consumer foundation, not activated
+
+- `src/lib/race-result-eligibility.ts` - canonical registered raw course matching
+  and closed classified Free-result eligibility, with physical emission disabled.
+- `src/lib/race-result-eligibility.test.ts` - geometry, provenance, adjusted-time,
+  condition and disabled-writer boundaries.
+- `src/lib/race-result-schema.ts` - transactional additive nullable SQLite class,
+  mode, context, raw finish and penalty columns, without historical backfill.
+- `src/lib/race-result-schema.test.ts` - real SQLite migration, retained rows,
+  rollback and repeat initialization.
+- `src/lib/db.race-classes.test.ts` - real DB historical winning rows, isolated
+  class/mode/conditions queries and all72comparison buckets.
+- `src/lib/db.race-init.test.ts` - failed initialization closes the unpublished
+  candidate connection and allows a clean retry.
+- `src/lib/race-resume.test.ts` - future metadata before TTL, protected intent,
+  explicit replacement/discard and actual storage outcome contracts.
+- `mobile/src/persistence/race-record-presentation.ts` - pure historical,
+  classified and unavailable native projection, separate from permissive replay.
+- `mobile/__tests__/race-record-presentation.test.ts` - raw plus penalty,
+  explicit provenance, class aliases, builder fixtures and writer-off boundary.
+- `mobile/__tests__/race-history-diagnostics.test.tsx` - awaited serial clear,
+  failed read/clear, unknown-row preservation and diagnostic failure isolation.
+
+best-times owns bounded pure update planning and honest synchronous web writes.
+race-resume owns protected intent storage, not live race state. Native validators
+preserve null/absent context through actual messages; replay omits absent context
+and checks both locations before using a known nested context. No historical
+global/native record inherits a class from a local-PB default.
+
+The real result/leaderboard routes retain cookie/rate/privacy contracts and
+explicit finite class selectors. DB initialization publishes its connection only
+after all migrations succeed. Default/Daily/mission pools exclude classified
+rows; explicit class queries do not expose session IDs or arbitrary stored JSON.
+Native save preparation/projection does not yet connect real History/Leaderboard
+views or acknowledge a separate PB write. Ordered gates and evidence:
+`docs/audits/2026-10-26/physical-consumers-harness.md`.
+
+Delivered64 is documented in `docs/design/mobile/testflight64-2026-10-26.md`,
+with all65IDs retained in `docs/audits/2026-10-26/acceptance64.md` and safe portable
+proof `docs/audits/2026-10-26/checks/native64-delivery.json`. NEXT source is excluded.

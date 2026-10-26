@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Delivered1.7.0(64) to exact Self with a complete fitted course map, four saved wind display choices and a real Settings gear. Upgrade26.5 and clean27 changed-screen checks, Apple VALID and independent eight-language notes/group checks passed. The website is published and healthy, with one remaining multiplayer production browser failure explicitly retained.
+
+- Prepared safe result-class consumers without enabling physical races: failed PB saves cannot announce a record, future setup intents survive implicit cleanup, historical SQLite rows stay unclassified, native preparation keeps explicit provenance and history clear reports its actual result. Real setup/history/leaderboard UI and native PB durability still follow before physical activation.
+
 - The native Sternik exam journal now explains guarded Exit and Stay/system-dismiss outcomes once per prompt, preserving the exact exam exit behavior and Polish copy.
 
 - Prepared canonical comparison/result identities for physical courses, preserving old personal-best keys and keeping historical global results unclassified. New result emission remains disabled while storage and API consumers are integrated.

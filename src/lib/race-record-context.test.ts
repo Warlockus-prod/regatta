@@ -76,6 +76,20 @@ describe("record readers before physical race emission", () => {
     expect(sharedReplay({ ...value, raceContext: undefined, mode: "pro", course: { ...value.course, replayMetadata: { raceContext: physicalRaceContext("short") } } })?.metadata.raceContext).toEqual(physicalRaceContext("short"));
   });
 
+  it("omits absent replay provenance and lets null yield to a known nested context", () => {
+    expect(replayMetadata({ raceContext: null })).toEqual({ schema: 1, mode: "simple", penaltySeconds: 0 });
+    expect(sharedReplay({ ...fixture(), raceContext: null })?.metadata).not.toHaveProperty("raceContext");
+    const value = physical("short");
+    const nested = { ...value, raceContext: null, course: { ...value.course,
+      replayMetadata: { schema: 1, mode: "pro", raceContext: physicalRaceContext("short") } } };
+    const bytes = JSON.stringify(nested);
+    expect(sharedReplay(nested)?.metadata.raceContext).toEqual(physicalRaceContext("short"));
+    expect(sharedReplay({ ...value, course: { ...value.course, replayMetadata: { raceContext: null } } })?.metadata.raceContext).toEqual(physicalRaceContext("short"));
+    expect(JSON.stringify(nested)).toBe(bytes);
+    expect(sharedReplay({ ...nested, course: { ...value.course,
+      replayMetadata: { raceContext: { ...physicalRaceContext("short"), geometryRevision: 2 } } } })).toBeNull();
+  });
+
   it("requires an explicit control mode for physical classes instead of assigning old Simple defaults", () => {
     const value = physical("short");
     expect(validateNativeRace({ ...value, mode: undefined })).toBeNull();
@@ -112,7 +126,7 @@ describe("record readers before physical race emission", () => {
     expect(sharedReplay({ ...value, course: null })).toBeNull();
     expect(sharedReplay({ ...value, course: { ...value.course, finishLine: undefined } })).toBeNull();
     expect(sharedReplay({ ...value, mode: "future-mode" })).toBeNull();
-    expect(validateNativeRace({ ...old, raceContext: null })?.raceContext).toEqual(LEGACY_RACE_CONTEXT);
+    expect(validateNativeRace({ ...old, raceContext: null })?.raceContext).toBeNull();
   });
 
   it.each(["future-rounding", null, 3])("checks raw physical rounding before legacy normalization: %j", roundSide => {

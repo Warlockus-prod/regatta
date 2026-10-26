@@ -14,10 +14,10 @@ boundary9f9afb5. The new physical engine and course UI are not enabled.
    the actual complete store bound. Physical mode must be validated before any
    legacy default. Unsupported setup metadata is inspected before TTL cleanup;
    only explicit new Start/discard may replace/remove an unsupported blob.
-3. [ ] Additive server columns and class queries. Old rows stay unclassified,
+3. [x] Source checked: additive server columns and class queries. Old rows stay unclassified,
    without backfill or invented mode. Default/Daily/mission queries preserve
    that pool and actual winning rows; explicit class queries isolate all axes.
-4. [ ] Actual result/leaderboard routes retain cookie/rate/privacy/scalar limits.
+4. [x] Source checked: actual result/leaderboard routes retain cookie/rate/privacy/scalar limits.
    Class is derived from validated context plus raw registered geometry;
    adjusted time is derived from raw finish and penalty. Physical writes stay
    closed while disabled, and legacy Daily/mission cannot acquire a new class.
@@ -70,3 +70,5 @@ pure API introduces no client route dependency. Types and scoped lint pass.
 
 Current release64 remains frozen at ef180df with its separate native G2 and
 Apple gates. No file in this phase enables PHYSICAL_RACE_EMISSION_ENABLED.
+
+Consumer foundation, aggregate local evidence and still-required UI/native durability gates: `docs/audits/2026-10-26/physical-consumers-harness.md`. Steps2,5and6 remain incomplete; source/schema coverage never enables physical emission.

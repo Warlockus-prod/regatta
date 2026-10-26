@@ -36,6 +36,8 @@ jest.mock("../src/persistence/race-history", () => ({
 }));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { nativeDiagnostics } from "../src/diagnostics/journal";
+import { DIAGNOSTIC_STORAGE_KEY } from "../../src/lib/diagnostics";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import ReplayRoute from "../app/replay/[id]";
@@ -63,6 +65,7 @@ function snapshot(profile?: typeof PHYSICAL_RACE_PROFILES[number]): NativeRaceSn
 }
 
 beforeEach(async () => {
+  await nativeDiagnostics.clear();
   jest.restoreAllMocks();
   jest.clearAllMocks();
   mockHasBack = true; mockParams = { id: legacy.id }; mockLang = "en";
@@ -132,7 +135,7 @@ it.each(PHYSICAL_RACE_PROFILES)("redirects a saved known %s world replay to the 
   expect(redirect.props.href).toEqual({ pathname: "/game", params: { replayId: legacy.id } });
   expect(mockUseHistory).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it("continues to mount the historical pixel viewer for a record without webRace", async () => {
@@ -143,7 +146,7 @@ it("continues to mount the historical pixel viewer for a record without webRace"
   expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
   expect(view.queryByText("Saved race not supported")).toBeNull();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it.each([
@@ -170,7 +173,7 @@ it.each([
   expect(mockUseHistory).not.toHaveBeenCalled();
   expect(view.queryByTestId("shared-replay-redirect")).toBeNull();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it("shows corrupt data without a pixel fallback and returns a direct-link user to history", async () => {
@@ -184,7 +187,7 @@ it("shows corrupt data without a pixel fallback and returns a direct-link user t
   expect(mockBack).not.toHaveBeenCalled();
   expect(mockUseHistory).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it("does not let a late previous-id read replace the current unsupported notice", async () => {

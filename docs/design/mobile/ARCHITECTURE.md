@@ -330,3 +330,7 @@ The replay and Coach notice has RU/EN/PL/ES/FR/DE/IT adaptations. The existing B
 provides a48px minimum. This is source/test evidence; installed native acceptance
 and playable physical races remain separate. saveNativeRace explicitly refuses
 new physical emission until result classes and the engine are ready.
+
+## Prepared native race classification, before physical activation
+
+`mobile/src/persistence/race-record-presentation.ts` projects historical pixel/world, explicit registered and unavailable records separately. `race-native.ts` prepares raw finish plus penalty without changing saved provenance; null remains absent authority through the actual shared bridge. The physical writer remains OFF. `race-history.ts` journals actual reads and awaited serial clear without private IDs or trajectories. `mobile/__tests__/race-record-presentation.test.ts` and `mobile/__tests__/race-history-diagnostics.test.tsx` cover these boundaries. Actual History/Leaderboard UI and native PB finish acknowledgement remain pending in `docs/audits/2026-10-26/physical-consumers-harness.md`.

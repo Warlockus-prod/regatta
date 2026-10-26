@@ -7,6 +7,10 @@
 
 ## Current completion work
 
+- Delivered64 is immutable sourceef180df, tagtestflight-1.7.0-64. Independent Apple GET2026-10-26 06:58:34.769UTC confirms exact Self VALID/IN_BETA_TESTING; separate06:58:33.721UTC confirms8notes. Installed map/wind/gear, Pro wheels, Orbit, Back and cold preference restoration passed on upgrade26.5 and clean27. Current65row matrix: `docs/audits/2026-10-26/acceptance64.md`; delivery: `docs/design/mobile/testflight64-2026-10-26.md`. Website5df0ee5 is published/healthy, but its final76-case browser gate remains red at74passed/1failed/1skipped. Do not equate delivery with full acceptance.
+
+- NEXT physical-consumer foundation and remaining integrations are tracked in `docs/audits/2026-10-26/physical-consumers-harness.md`. Local PB and protected setup APIs, additive SQLite/HTTP classes, native projection/builders and history outcomes have source gates; actual setup and History/Leaderboard UI consumers and native PB durability remain incomplete. Null context never manufactures saved provenance. Physical emission stays OFF; none of this NEXT work is in64.
+
 - Remaining action/outcome logging is tracked in `docs/audits/2026-10-26/diagnostics-followup.md`. The native Sternik dirty-exam prompt now records actual request and one Stay/dismiss cancellation without changing its guard. Assessment, PB and other outcome gaps remain explicit; defining event schemas is not integration coverage.
 
 - Physical result-class integration starts with a pure, reviewed API in `src/lib/race-record-class.ts`. The ordered consumer gates and compatibility decisions are in `docs/audits/2026-10-26/physical-classes-harness.md`. Local historical PB defaults do not classify global or native saved records. Keep physical emission OFF until every consumer and engine gate passes.

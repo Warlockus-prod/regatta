@@ -8,7 +8,8 @@ export { isNativeRace, navigateNativeRace, readRaceSearch } from "./race-native-
 /** Versioned local race payload shared by the web scene and native history. */
 export interface NativeRaceSnapshot {
   schema: 1;
-  raceContext?: RaceContext;
+  /** Null/missing is historical absence, not explicit legacy provenance. */
+  raceContext?: RaceContext | null;
   id: string;
   mode?: "simple" | "pro";
   difficulty: "easy" | "medium" | "hard";
@@ -71,7 +72,7 @@ export function validateNativeRace(raw: unknown): NativeRaceSnapshot | null {
     if (c.nextGoal !== undefined && !short(c.nextGoal, 4000)) return null;
     if (!c.mistakes.every(m => record(m) && finite(m.timeStart, 0, 3600) && finite(m.timeEnd, 0, 3600) && ["minor", "major"].includes(String(m.severity)) && short(m.titleRu, 4000) && short(m.explanationRu, 4000) && short(m.fixRu, 4000) && ["title", "explanation", "fix"].every(k => m[k] === undefined || short(m[k], 4000)))) return null;
   }
-  return (raw.raceContext === undefined ? raw : { ...raw, raceContext: context.context }) as unknown as NativeRaceSnapshot;
+  return (raw.raceContext == null ? raw : { ...raw, raceContext: context.context }) as unknown as NativeRaceSnapshot;
 }
 
 export function readNativeRaceReplay(): NativeRaceSnapshot | null {
@@ -94,7 +95,7 @@ export function validateNativeRaceStarted(raw: unknown): NativeRaceStarted | nul
   const context = readRaceContext(raw.raceContext);
   if (!context.ok) return null;
   return { id: raw.id, mode: raw.mode, difficulty: raw.difficulty, windStrength: raw.windStrength, missionId: raw.missionId,
-    ...(raw.raceContext !== undefined ? { raceContext: context.context } : {}) } as NativeRaceStarted;
+    ...(raw.raceContext === undefined ? {} : { raceContext: raw.raceContext === null ? null : context.context }) } as NativeRaceStarted;
 }
 
 /** Start telemetry is optional and independent of local race execution. */

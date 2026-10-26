@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "296b586ec85c",
-  "sha256": "1043485ea13444a365f38c307e0534d8b92ab9580011ffe0f7d564f98e073da2",
-  "bytes": 6544147,
+  "version": "25ab4496b966",
+  "sha256": "36c78a67709c465891a238ef2d5ba9d32522c5b421cb6cba5afacb2f0f3bf8b5",
+  "bytes": 6550195,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -782,6 +782,7 @@
     "src/lib/race-native-env.ts",
     "src/lib/race-native.ts",
     "src/lib/race-physics.ts",
+    "src/lib/race-record-class.ts",
     "src/lib/race-replay-frame.ts",
     "src/lib/race-resume.ts",
     "src/lib/race-rules.ts",
@@ -1688,8 +1689,8 @@
     },
     {
       "path": "src/lib/best-times.ts",
-      "bytes": 3644,
-      "sha256": "162fc824fa26a4f71e0cb7b169db7d6a41b047755670b3ceb2e9c0d440f3ea52"
+      "bytes": 7846,
+      "sha256": "a4e9d27f37e5efb1c154c9fa9feb6d64bdd0a07b2412f3919c3a09be2d69d7ac"
     },
     {
       "path": "src/lib/daily-challenge.ts",
@@ -1728,8 +1729,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 25055,
-      "sha256": "4bf2b2ad6a948157aa9e40130319fc4bf811c7a0abadf1252fa67b6af0020aa8"
+      "bytes": 25113,
+      "sha256": "cfd59dac81ebbfa96e108466c52adff6c823087f6e3deae37923b07080f6f03a"
     },
     {
       "path": "src/lib/fallback-coach.ts",
@@ -1783,13 +1784,18 @@
     },
     {
       "path": "src/lib/race-native.ts",
-      "bytes": 8362,
-      "sha256": "0c950ad33920d75f4786167cd48e378008e6866b6521ee9e9348837f75d2e198"
+      "bytes": 8474,
+      "sha256": "92a4d6e80733578350c5ec4ddc30d3745b17aec08b2acf56f5622adf069a9223"
     },
     {
       "path": "src/lib/race-physics.ts",
       "bytes": 26502,
       "sha256": "6213cb3946e147c6ea8e7b4ae62e9f80b0fd4b4ff878c274874e7581ecfceea2"
+    },
+    {
+      "path": "src/lib/race-record-class.ts",
+      "bytes": 4235,
+      "sha256": "671b3735ea74a5eb0826b5dcc43d5b23832073ee8022f22730cb6c4db7f558ba"
     },
     {
       "path": "src/lib/race-replay-frame.ts",
@@ -1798,8 +1804,8 @@
     },
     {
       "path": "src/lib/race-resume.ts",
-      "bytes": 3479,
-      "sha256": "200921cbc1aaf737f7481d4c8ce7f0c8bd2f7effe939e213fba627acf6851663"
+      "bytes": 8744,
+      "sha256": "57d6b7078784e08cf2e815be6e18816d39c39e87a0bbfa3e803cf8fa05a90b13"
     },
     {
       "path": "src/lib/race-rules.ts",

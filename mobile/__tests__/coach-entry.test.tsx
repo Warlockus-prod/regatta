@@ -51,6 +51,8 @@ jest.mock("../src/analytics", () => ({
 }));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { nativeDiagnostics } from "../src/diagnostics/journal";
+import { DIAGNOSTIC_STORAGE_KEY } from "../../src/lib/diagnostics";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import Coach from "../app/coach";
@@ -80,6 +82,7 @@ function snapshot(profile?: typeof PHYSICAL_RACE_PROFILES[number]): NativeRaceSn
 }
 
 beforeEach(async () => {
+  await nativeDiagnostics.clear();
   jest.clearAllMocks();
   mockHasBack = true; mockParams = { raceId: legacy.id }; mockLang = "en";
   mockLoadRaceById.mockImplementation(jest.requireActual("../src/persistence/race-history").loadRaceById);
@@ -113,7 +116,7 @@ it.each([
   expect(mockAnalyse).not.toHaveBeenCalled();
   expect(mockCapture).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it.each([
@@ -144,7 +147,7 @@ it.each([
   expect(mockRequest).not.toHaveBeenCalled();
   expect(mockAnalyse).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it.each([undefined, ...PHYSICAL_RACE_PROFILES])("keeps known world %s coaching local and uses its saved geometry", async profile => {
@@ -159,7 +162,7 @@ it.each([undefined, ...PHYSICAL_RACE_PROFILES])("keeps known world %s coaching l
   expect(mockFindCourse).not.toHaveBeenCalled();
   expect(mockRequest).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it("preserves remote coaching for historical pixel records with no webRace", async () => {
@@ -175,7 +178,7 @@ it("preserves remote coaching for historical pixel records with no webRace", asy
   }));
   expect(mockAnalyse).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(KEY)).toBe(bytes);
-  expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  expect((AsyncStorage.setItem as jest.Mock).mock.calls.filter(([key]) => key !== DIAGNOSTIC_STORAGE_KEY)).toEqual([]);
 });
 
 it("does not let an old legacy network response replace a newer unsupported world notice", async () => {

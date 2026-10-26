@@ -71,7 +71,7 @@ export function replayMetadata(raw: unknown): ReplayMetadata | null {
   if (!context.ok) return null;
   if (context.context.model === "physical-cruiser-v1" && raw.mode !== "simple" && raw.mode !== "pro") return null;
   return { schema: 1, mode: raw.mode === "pro" ? "pro" : "simple", penaltySeconds: (raw.penaltySeconds as number | undefined) ?? 0,
-    ...(raw.raceContext !== undefined ? { raceContext: context.context } : {}) };
+    ...(raw.raceContext != null ? { raceContext: context.context } : {}) };
 }
 
 /** Inspect both supported metadata locations before any legacy normalization.
@@ -85,9 +85,9 @@ export function readReplayRecordContext(raw: unknown): ReadRaceContext {
   const direct = readRaceContext(raw.raceContext), stored = readRaceContext(nested?.raceContext);
   if (!direct.ok) return direct;
   if (!stored.ok) return stored;
-  if (raw.raceContext !== undefined && nested?.raceContext !== undefined
+  if (raw.raceContext != null && nested?.raceContext != null
     && (direct.context.model !== stored.context.model || direct.context.profile !== stored.context.profile)) return { ok: false, reason: "invalid" };
-  return raw.raceContext !== undefined ? direct : stored;
+  return raw.raceContext != null ? direct : stored;
 }
 
 export function replayRecordMetadata(raw: unknown): ReplayMetadata | null {
@@ -97,7 +97,7 @@ export function replayRecordMetadata(raw: unknown): ReplayMetadata | null {
   const nested = record(raw.course) && record(raw.course.replayMetadata) ? raw.course.replayMetadata : undefined;
   const source = raw.mode !== undefined || raw.penaltySeconds !== undefined ? raw : nested ?? {};
   return replayMetadata({ mode: source.mode, penaltySeconds: source.penaltySeconds,
-    ...(raw.raceContext !== undefined || nested?.raceContext !== undefined ? { raceContext: context.context } : {}) });
+    ...(raw.raceContext != null || nested?.raceContext != null ? { raceContext: context.context } : {}) });
 }
 
 export interface SharedReplay {

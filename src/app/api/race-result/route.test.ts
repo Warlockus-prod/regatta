@@ -11,7 +11,8 @@ const mocks = vi.hoisted(() => {
   return {
     cookieStore: { value: undefined as string | undefined },
     db: {
-      insertRaceResult: vi.fn(() => 42),
+      insertRaceResult: vi.fn<(...args: unknown[]) => number | null>(() => 42),
+      insertClassifiedRaceResult: vi.fn<(...args: unknown[]) => number | null>(() => 84),
       getPlayer: vi.fn(() => ({ nickname: 'Tester' }) as { nickname: string } | null),
       insertEvent: vi.fn(),
     },
@@ -37,6 +38,9 @@ import { POST } from './route';
 import { FINISH_SEC_MAX, FINISH_SEC_MIN } from '@/lib/race-submission';
 import { __resetRateLimitsForTests } from '@/lib/rate-limit';
 import { MAX_SPEED } from '@/lib/race-physics';
+import { makeStandardCourse } from "@/lib/race-physics";
+import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext } from "@/lib/race-context";
+import { makePhysicalRaceCourse } from "@/lib/race-courses";
 import { buildRaceResultBody, MISSIONS, DIFFICULTIES, WINDS } from '../../../../ws-server/limits.js';
 
 function setSid(v: string | undefined) {
@@ -55,6 +59,7 @@ beforeEach(() => {
   __resetRateLimitsForTests();
   setSid('sid-test-1234');
   mocks.db.insertRaceResult.mockReset().mockReturnValue(42);
+  mocks.db.insertClassifiedRaceResult.mockReset().mockReturnValue(84);
   mocks.db.getPlayer.mockReset().mockReturnValue({ nickname: 'Tester' });
   mocks.db.insertEvent.mockReset();
 });
@@ -265,5 +270,95 @@ describe('POST /api/race-result - multiplayer bodies from ws-server', () => {
     mocks.db.getPlayer.mockReturnValueOnce(null);
     const res = await POST(makeReq({ finishTimeSec: 90, difficulty: 'easy', windStrength: 'light', nicknameFallback: 'A' }));
     expect(res.status).toBe(400);
+  });
+});
+
+describe("POST /api/race-result - classified identity", () => {
+  const legacy = { finishTimeSec: 90, difficulty: "easy", windStrength: "light" };
+  const result = () => ({ ...legacy, raceContext: LEGACY_RACE_CONTEXT, mode: "pro", course: makeStandardCourse(),
+    rawFinishTimeSec: 80.123456789, penaltySeconds: 5, finishTimeSec: 85.123456789 });
+  function noDatabaseWork() {
+    expect(mocks.db.getPlayer).not.toHaveBeenCalled();
+    expect(mocks.db.insertRaceResult).not.toHaveBeenCalled();
+    expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  }
+
+  it.each([null, [], "42"])("returns400 for a non-object result rather than throwing: %j", async value => {
+    expect((await POST(makeReq(value))).status).toBe(400); noDatabaseWork();
+  });
+
+  it("preserves the exact contextless insert, response and analytics contract", async () => {
+    const res = await POST(makeReq(legacy));
+    expect(await res.json()).toEqual({ ok: true, id: 42 });
+    expect(mocks.db.insertRaceResult).toHaveBeenCalledWith({ sid: "sid-test-1234", nickname: "Tester", difficulty: "easy", windStrength: "light", missionId: null,
+      finishTimeSec: 90, position: null, totalBoats: null, tacks: null, noGoEntries: null, topSpeed: null, score: null });
+    expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
+    expect(mocks.db.insertEvent.mock.calls[0][0].meta).toEqual({ finishTimeSec: 90, difficulty: "easy", windStrength: "light", missionId: null, position: null, totalBoats: null, tacks: null, score: null });
+  });
+
+  it.each([undefined, null])("does not classify missing/null context merely because mode is supplied: %j", async raceContext => {
+    expect((await POST(makeReq({ ...legacy, raceContext, mode: "pro" }))).status).toBe(200);
+    expect(mocks.db.insertRaceResult).toHaveBeenCalledTimes(1); expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
+    expect(mocks.db.insertRaceResult.mock.calls[0][0]).not.toHaveProperty("mode");
+  });
+
+  it("derives classified storage and analytics from validated metadata, retaining raw precision", async () => {
+    const body = result();
+    for (const mark of body.course.marks) mark.label = "Boja";
+    const res = await POST(makeReq({ ...body, finishTimeSec: body.finishTimeSec + 5e-8 }));
+    expect(res.status).toBe(200); expect(await res.json()).toEqual({ ok: true, id: 84 });
+    expect(mocks.db.insertRaceResult).not.toHaveBeenCalled();
+    expect(mocks.db.insertClassifiedRaceResult).toHaveBeenCalledWith(expect.objectContaining({
+      raceContext: LEGACY_RACE_CONTEXT, classId: "legacy-race-v1:standard:r1", mode: "pro", missionId: null,
+      rawFinishTimeSec: body.rawFinishTimeSec, penaltySeconds: 5, finishTimeSec: body.rawFinishTimeSec + 5, course: body.course,
+    }));
+    expect(mocks.db.insertEvent.mock.calls[0][0].meta).toMatchObject({ finishTimeSec: body.rawFinishTimeSec + 5, raceClass: "legacy-race-v1:standard:r1", raceMode: "pro" });
+  });
+
+  it.each([
+    { raceContext: { ...LEGACY_RACE_CONTEXT, model: "future" } }, { raceContext: { ...LEGACY_RACE_CONTEXT, geometryRevision: 2 } },
+    { raceContext: "legacy" }, { mode: undefined }, { mode: null }, { mode: "future" }, { classId: "physical-cruiser-v1:short:r1" },
+    { missionId: "sub-90" }, { dailyDay: "2026-10-26" }, { daily: null }, { daily: "2026-10-26" },
+    { rawFinishTimeSec: 0 }, { rawFinishTimeSec: 3600.01 }, { penaltySeconds: -1 }, { penaltySeconds: 3600.01 },
+    { finishTimeSec: 85.124 }, { course: {} }, { course: { ...makeStandardCourse(), marks: [] } },
+  ])("rejects classified identity before player lookup or writes: %j", async patch => {
+    expect((await POST(makeReq({ ...result(), ...patch }))).status).toBe(400); noDatabaseWork();
+  });
+
+  it("rejects a supplied classId without context instead of retrying the old writer", async () => {
+    expect((await POST(makeReq({ ...legacy, classId: "legacy-race-v1:standard:r1", mode: "simple" }))).status).toBe(400); noDatabaseWork();
+  });
+
+  it("checks raw rounding side rather than a coercing replay-course projection", async () => {
+    const body = result(); Object.assign(body.course.marks[0], { roundSide: null });
+    expect((await POST(makeReq(body))).status).toBe(400); noDatabaseWork();
+  });
+
+  it.each(PHYSICAL_RACE_PROFILES)("returns422 for canonical disabled %s physical writes before player lookup", async profile => {
+    const body = { ...result(), raceContext: physicalRaceContext(profile), course: makePhysicalRaceCourse(profile) };
+    expect((await POST(makeReq(body))).status).toBe(422); noDatabaseWork();
+  });
+
+  it.each(["geometry", "raw-time", "score", "daily"])("checks invalid physical %s before the disabled response", async error => {
+    const body = { ...result(), raceContext: physicalRaceContext("short"), course: makePhysicalRaceCourse("short") };
+    const patch = error === "raw-time" ? { rawFinishTimeSec: -1 } : error === "score" ? { score: 1e7 + 1 } : error === "daily" ? { dailyDay: "2026-10-26" } : {};
+    if (error === "geometry") body.course.marks[0].radius += 1;
+    expect((await POST(makeReq({ ...body, ...patch }))).status).toBe(400); noDatabaseWork();
+  });
+
+  it("returns500 on a classified DB failure without a legacy insert or finish event", async () => {
+    mocks.db.insertClassifiedRaceResult.mockReturnValueOnce(null);
+    const res = await POST(makeReq(result()));
+    expect(res.status).toBe(500); expect(mocks.db.insertRaceResult).not.toHaveBeenCalled(); expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  });
+
+  it("retains the same cookie and shared60-result hourly rate limit for classified writes", async () => {
+    setSid(undefined);
+    expect((await POST(makeReq(result()))).status).toBe(400); noDatabaseWork();
+    setSid("sid-test-1234");
+    for (let i = 0; i < 60; i++) expect((await POST(makeReq(legacy))).status).toBe(200);
+    expect((await POST(makeReq(result()))).status).toBe(429);
+    expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
   });
 });

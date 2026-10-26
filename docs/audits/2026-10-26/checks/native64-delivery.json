@@ -1,0 +1,242 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T07:04:51.953408+00:00",
+  "sourceCommit": "ef180dfc520df389353bc6e208e7187894b9f976",
+  "tag": "testflight-1.7.0-64",
+  "version": "1.7.0",
+  "build": "64",
+  "apple": {
+    "buildId": "c068abcf-b898-45dc-a94f-74d74c971063",
+    "selfCheckedAt": "2026-10-26T06:58:34.769Z",
+    "notesCheckedAt": "2026-10-26T06:58:33.721Z",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "exactSelfMember": true,
+    "independentGETWrites": 0,
+    "all8NotesMatchSource": true,
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 1888,
+        "bytes": 1888,
+        "sha256": "f339bba93b78dd2f9b3793126ad4ab0cd30c3d8c3f0dfa9acbfcffe845951207",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 1888,
+        "bytes": 1888,
+        "sha256": "f339bba93b78dd2f9b3793126ad4ab0cd30c3d8c3f0dfa9acbfcffe845951207",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 1903,
+        "bytes": 3441,
+        "sha256": "4a29e36ac39475a3afb40dbc2a742fda2a7a3b6202b6c06f6545b3eaccba8b1a",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 1866,
+        "bytes": 1940,
+        "sha256": "a967f69bac10927efda448f36f4f0f381a8f85d621e3ad79c130191e3d120cd3",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 1930,
+        "bytes": 1956,
+        "sha256": "961fb53caeab0a643e08605b3df5c5dad64605a12380e204e2a742e5b706371c",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 1984,
+        "bytes": 2032,
+        "sha256": "a8c876e9fb12ae95c8a44a9450e8d546c057ec83c78e34c8693d917774b69e44",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 2042,
+        "bytes": 2067,
+        "sha256": "e846da77d3b91594c92106897b91b431d9809c6f8394c706edc2a0ffc8deff64",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 1963,
+        "bytes": 1969,
+        "sha256": "24a2fe8935503e6fcdf1deab734c8453f922647545729771bf2b872ba61fc179",
+        "action": "unchanged"
+      }
+    ]
+  },
+  "artifactChecks": {
+    "generated": {
+      "passed": true,
+      "checks": 18
+    },
+    "simulator": {
+      "passed": true,
+      "checks": 27
+    },
+    "archive": {
+      "passed": true,
+      "checks": 33
+    },
+    "ipa": {
+      "passed": true,
+      "checks": 35
+    }
+  },
+  "ipa": {
+    "bytes": 29971648,
+    "sha256": "4b78df76fa7d6711b400749a517c26d95cf8f83760fdf8dfe8bb0026137c0908"
+  },
+  "nativeChangedScreens": {
+    "upgrade26_5": {
+      "observed": [
+        "native Home and Regaty; saved Pro",
+        "bundled Pro3D first frame and clock progression",
+        "whole live Map and caption without scroll",
+        "pause39.1 remained while inspecting four wind choices",
+        "compass, arrows, both and off with numeric wind always visible",
+        "main sheet35to29, jib53to46",
+        "rudder changes actual heading45to67 while racing",
+        "Orbit drag changes3D camera",
+        "Menu then native Back",
+        "cold relaunch retains wheels and both wind aids; race clock11.7 then pause"
+      ],
+      "all8RowsRetainedBeforeLaunch": true,
+      "priorDiagnosticEntriesRetained": 145,
+      "uninstallOrClear": false
+    },
+    "clean27_0": {
+      "dedicatedCleanInstall": true,
+      "uninstallOrClear": false,
+      "observed": [
+        "Release Home launch",
+        "Simple default and wheel default",
+        "briefing with unobscured wind label",
+        "actual3D first frame and clock10.9to22.8to58.1",
+        "whole running Map and caption without scrolling",
+        "gear opens real Settings",
+        "all four wind choices visibly affect compass/3D arrows, numeric remains",
+        "Helm return and actual Orbit drag",
+        "Menu then native Back"
+      ]
+    },
+    "screenshots": [
+      {
+        "name": "native64-map-full-final.png",
+        "sha256": "7ffc4379508979e88fbe62a240a4ebbb37e39dddd4399930c6d490a71530ab8a"
+      },
+      {
+        "name": "native64-map-wind-pro-orbit.png",
+        "sha256": "fa14e9bd8b44a5b8a60caba198482da6ad83e80dcd3b0477e1d874fe9b57a9b3"
+      },
+      {
+        "name": "native64-prefs-relaunch.png",
+        "sha256": "fbd889aa850dcb26cc87fae0e31c99ce54d765d297cb560e6dcec05a7129ba63"
+      },
+      {
+        "name": "native64-clean27-running-map.png",
+        "sha256": "6250456b76899cfedcfb4611cc67fbd9ebad738f1a22891df88cf1ca9513a6f0"
+      },
+      {
+        "name": "native64-clean27-orbit-wind.png",
+        "sha256": "6f51ee556cef2ada8401ac2ff54a4649be0ac008940875a53b92d5f617413097"
+      }
+    ],
+    "canonicalJournals": [
+      {
+        "device": "upgrade26",
+        "canonicalParserAccepted": true,
+        "bytes": 38760,
+        "entries": 191,
+        "sessions": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "windDisplays": [
+          "arrows",
+          "both",
+          "compass",
+          "off"
+        ],
+        "mapOpened": true,
+        "mapClosed": true,
+        "controls": [
+          "course",
+          "jibsheet",
+          "mainsheet",
+          "race-map"
+        ],
+        "types": [
+          "control.change",
+          "control.preferences",
+          "embedded.lifecycle",
+          "navigation",
+          "race.lifecycle",
+          "radio.command",
+          "radio.gesture",
+          "radio.startup",
+          "storage.operation"
+        ],
+        "previousWindDisplays": [
+          "arrows",
+          "both",
+          "compass",
+          "off"
+        ]
+      },
+      {
+        "device": "clean27",
+        "canonicalParserAccepted": true,
+        "bytes": 4435,
+        "entries": 23,
+        "sessions": [
+          1
+        ],
+        "windDisplays": [
+          "arrows",
+          "both",
+          "off"
+        ],
+        "mapOpened": true,
+        "mapClosed": true,
+        "controls": [
+          "race-map"
+        ],
+        "types": [
+          "control.change",
+          "control.preferences",
+          "embedded.lifecycle",
+          "navigation",
+          "race.lifecycle"
+        ],
+        "previousWindDisplays": [
+          "arrows",
+          "both",
+          "compass",
+          "off"
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Changed-screen release acceptance only; all65 product items remain separately qualified.",
+    "No physical owner phone, microphone/ASR, FPS or full manualPro/MP finish acceptance.",
+    "No physical motion or new record emission enabled.",
+    "DeviceHub scroll input did not scroll the inner WK panel; keyboard full-control focus exposed all controls. Real finger scrolling remains unverified."
+  ],
+  "fullProductAcceptanceComplete": false,
+  "newPhysicalEngineIncluded": false
+}
