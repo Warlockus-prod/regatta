@@ -28,7 +28,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight1.7.0(61), source37c7079, exactSelf VALID/IN_BETA_TESTING. Доставка61 не означает завершения всех65 требований; сайт удержан pre-deploy gate, физические short/long трассы согласованы для62. Свой CI-джоб и гейт релиза.
+- Мобильное: Expo / React Native в `mobile/`, публичная1.6.4(48), TestFlight1.7.0(68), sourcef7e7ed2/tag68. Independent23:23UTC Apple GET confirms exact Self VALID/IN_BETA_TESTING and8notes. P03 result/PB/Back checkpoint has qualified installed26.5/27 and fresh27 acceptance; physical emission/full65/public gates remain separate. Свой CI-джоб и гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -1651,3 +1651,13 @@ P03 independent native personal-best acknowledgement:
 Current native candidate68 is not the delivered67binary. Physical emission
 remains OFF. Its ordered installed/cloud/delivery gates belong to the existing
 physical consumer harness; no private storage or raw journal enters this map.
+
+## P03 delivered68 evidence
+
+- `docs/design/mobile/testflight68-2026-10-27.md` - exact source/IPA/native/browser/Apple scope and limits.
+- `docs/audits/2026-10-26/acceptance68.md` - all65stable IDs with new and inherited evidence separated.
+- `docs/audits/2026-10-26/checks/native68-delivery.json` - exact Self/notes independent GET, IPA and artifact checks.
+- `docs/audits/2026-10-26/checks/native68-installed.json` - real finished races, receipts/cold, Back and additional exact-f7 fresh27 startup.
+- `docs/audits/2026-10-26/checks/source68-predeploy.json` - exact77first-attempt cloud gate and qualified mobile CI retry history.
+
+Physical emission remains OFF. Shared replay uses its own native route/host, preserving the original race route and dismissing to History; the full program is still ordered in the completion harness.

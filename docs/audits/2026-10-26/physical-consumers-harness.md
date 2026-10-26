@@ -311,3 +311,9 @@ cases/78suites plus9release-tool tests. All3installed-package freshness,
 content twins, native types/lint, web types/build, generated server, real WS,
 map, typography and unchanged6.5MiB budget pass. The77-case cloud and installed
 Back/finish gates must now repeat for the corrected frozen source.
+
+## Доставленный P03 checkpoint68
+
+Исходный список незакрытых gates выше является историей candidate0a. Исправленный f7/tag68 заморожен, установлен и доставлен: exact cloud40393308267 дает77first-attempt; generated18/Simulator29/archive36/IPA38. Retained26.5 и dedicated27 завершили реальные гонки, подтверждены независимые History/PB ACK, same-row receipts, непустые Personal, replay/Coach/Back и cold bytes. Отдельный новый27 проверяет exact-f7 clean Home/start/3D/clock/Back. Independent Self GET2026-10-26T23:23:36.856Z,8notes match2026-10-26T23:23:11.300Z. Все перечисленные delivery gates выполнены в этом checkpoint; forced native failures остаются unit/storage evidence. [Release68](../../design/mobile/testflight68-2026-10-27.md), [installed proof](checks/native68-installed.json), [delivery](checks/native68-delivery.json).
+
+Physical PB writes и emission остаются OFF. P04 должен заменить явный legacy current authority фактическим engine context, проверить class-aware consumers, bots/guidance/progression/recorder и только затем включать новый класс. P06 rounding stages и P08 Coach no-go не закрыты этим выпуском.

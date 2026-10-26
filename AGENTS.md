@@ -10,8 +10,7 @@
 - Owner-approved follow-up: `docs/audits/2026-10-26/completion-program.md` is the ordered harness. Priorities include reliable offline learning, shared boat/controls, configurable courses/help/judging, reviewed Scheme/Picture learning visuals, visible bounded radio speech practice, actual outcome diagnostics, PL/RU/EN first, and recoverable cleanup. SwiftUI is a staged shell migration proposal, not permission to duplicate the force model.
 - P02 limited checkpoint is delivered as67 under `docs/audits/2026-10-26/learning-visuals-harness.md`: shared first lesson/local3Dpractice and one Scheme/Picture sail pilot. Exact77c passes77first-attempt browser cases; retained26.5/clean27 UI uses an explicit120-file executable/asset equivalence proof plus final exact121-file installations. The wider illustration collection stays open.
 - Delivered67 is immutable source77c52dd/tagtestflight-1.7.0-67. Independent Apple GET18:53:17.294UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match18:53:14.931UTC. Proof: `docs/audits/2026-10-26/checks/native67-delivery.json`; report: `docs/design/mobile/testflight67-2026-10-26.md`; current65IDs: `docs/audits/2026-10-26/acceptance67.md`. Physical phone and full program remain open.
-- Candidate68 source0a376a3 is preserved and was never uploaded. Native G2 confirmed a real finish and independent History/PB writes, then found a History/Replay Back cycle. Shared3D replay now mounts its own host within the replay route and dismisses to History; freeze and repeat exact source/native/delivery gates before shipping. Rounding-stage visibility and Coach no-go feedback remain following audit items.
-- P03 native PB durability is implemented in candidate68 source, not delivered: independent durable PB replies/receipts, bounded attempt correlation and explicit retry, preserved History identity, stale WebView/clear protection and honest clear failure feedback. Local1568web/586native plus9tools pass; installed finish/History/Personal/replay/Coach/cold and exact cloud/native/Apple gates remain in `docs/audits/2026-10-26/physical-consumers-harness.md`. Keep physical emission OFF; current live PB authority is explicitly legacy and must follow the actual engine in P04.
+- Delivered68 is immutable sourcef7e7ed2/tagtestflight-1.7.0-68. Independent Apple GET23:23:36.856UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match23:23:11.300UTC. P03 native PB has independent durable ACK/receipt/retry, clear guards and corrected shared replay route ownership. Real finishes/History/Personal/Replay/Coach/Back/cold on26.5/27 and exact-f7 fresh27 startup pass. Proof: `docs/design/mobile/testflight68-2026-10-27.md`; all65IDs: `docs/audits/2026-10-26/acceptance68.md`. Candidate0a was never uploaded. Physical emission OFF; rounding stages, Coach no-go, forced installed failures and full program remain open.
 - Rollback66 remains immutable source422b628/tagtestflight-1.7.0-66. Its first-drill Skia crash/local-wind correction, installed evidence and independent15:26UTC delivery proof stay unchanged.
 - Independent product audit: `docs/audits/2026-10-26/independent-product-audit.md`. Its audit-only state is historical; the owner subsequently authorized the completion program. All22screens and two native crash records remain unchanged.
 - Physical emission stays OFF until native PB durability, class-aware consumers/server, engine, bots, guidance and recorded-data gates pass. Use `docs/audits/2026-10-26/physical-consumers-harness.md`; outcome logging gaps remain in `docs/audits/2026-10-26/diagnostics-followup.md`.
@@ -30,9 +29,9 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight1.7.0(67), группа Self: source77c52dd,
-  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 18:53UTC;
-  `docs/design/mobile/testflight67-2026-10-26.md`. Публичная1.6.4(48)
+  TestFlight1.7.0(68), группа Self: sourcef7e7ed2,
+  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 23:23UTC;
+  `docs/design/mobile/testflight68-2026-10-27.md`. Публичная1.6.4(48)
   остается отдельно от TestFlight.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.

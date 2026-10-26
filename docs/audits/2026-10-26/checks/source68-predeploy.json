@@ -1,0 +1,114 @@
+{
+  "checkedAt": "2026-10-26T23:15:50.234630+00:00",
+  "sourceCommit": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+  "nativeBuild": "68",
+  "sourceGates": {
+    "webTests": 1568,
+    "webFiles": 157,
+    "nativeTests": 587,
+    "nativeSuites": 78,
+    "releaseToolTests": 9,
+    "webTypes": true,
+    "nativeTypes": true,
+    "nativeLintWarnings": 0,
+    "rootLintErrors": 0,
+    "rootExistingLintWarnings": 15,
+    "freshOfflinePackages": 3,
+    "map": true,
+    "typography": true,
+    "realWebSocketLifecycle": true,
+    "staticMiBLimit": 6.5,
+    "staticMiBDisplay": 6.48,
+    "staticFiles": 110
+  },
+  "cloud": {
+    "safeRun": "40393308267",
+    "exactSource": true,
+    "total": 77,
+    "firstAttempt": 77,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "reportErrors": 0,
+    "files": [
+      "foundation.spec.ts",
+      "offline.spec.ts",
+      "race-navigation.spec.ts",
+      "radio-workspace.spec.ts",
+      "replay.spec.ts",
+      "sailing-learning.spec.ts",
+      "smoke.spec.ts",
+      "trainer-controls.spec.ts"
+    ],
+    "artifactId": "12685068921",
+    "artifactSHA256": "cbc46c72a5f03887a66db43a3a7250f3aa28bfe049116699e914b85163a1124f",
+    "mainOnlyPublicationJobs": "all three skipped"
+  },
+  "mobileCI": {
+    "prRun": "40393297625",
+    "prAttempt": 1,
+    "pushRun": "40393290595",
+    "pushAttempt": 2,
+    "currentStatus": "all green",
+    "historicalFailure": "First push job stopped at strict radio-offline byte comparison. Same Git tree PR and exact-source retry pass; 15 private generations plus 3 original check runs match. Cause not established; no check was weakened."
+  },
+  "nativePackage": {
+    "generated-final": {
+      "passed": true,
+      "checks": 18,
+      "proofSHA256": "528001dd6d5fb6f24ee6d91c5a4163a3b2e4ac0817a3ac69ee5b4fceea7da66c"
+    },
+    "expanded-simulator": {
+      "passed": true,
+      "checks": 29,
+      "proofSHA256": "afd06a61c8c6b134b785009f45b61de488383ea8d1c32f2010fd2a68a1251c77"
+    },
+    "archive": {
+      "passed": true,
+      "checks": 36,
+      "proofSHA256": "29f01d23a80151349837d0695be565944b165238ccc8f59366b8b862da1e8308"
+    },
+    "export-ipa": {
+      "passed": true,
+      "checks": 38,
+      "proofSHA256": "6591f7bc62f4a1f9434b7a6fec756c970db892659bf649685d03742826decaeb"
+    }
+  },
+  "validation": {
+    "exit": 0,
+    "completedAt": "2026-10-26T21:38:26.563055+00:00"
+  },
+  "installedBeforeLaunch": {
+    "checkedAt": "2026-10-26T21:35:45.544374+00:00",
+    "sourceCommit": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+    "build": "68",
+    "frozenFiles": 121,
+    "devices": [
+      {
+        "runtime": "26",
+        "device": "D0DAA7B3-BDA0-4FD5-BF9E-37DC4FDC8DCE",
+        "installedFiles": 121,
+        "allFilesMatch": true,
+        "retainedStorageKeys": 14,
+        "allKeysIdenticalBeforeLaunch": true
+      },
+      {
+        "runtime": "27",
+        "device": "3547D24B-CB8D-4E8A-A21A-74FF35217FBF",
+        "installedFiles": 121,
+        "allFilesMatch": true,
+        "retainedStorageKeys": 8,
+        "allKeysIdenticalBeforeLaunch": true
+      }
+    ],
+    "launchAttempted": false
+  },
+  "requiredRemaining": [
+    "Full completion program, physical phone/network blackhole/FPS and public/site gates"
+  ],
+  "physicalRaceEmission": false,
+  "sitePublishedByThisCandidate": false,
+  "installedProof": "native68-installed.json",
+  "scope": "Exact f7 P03 durability/replay Back checkpoint; publication and full product acceptance separately qualified.",
+  "appleDeliveryProof": "native68-delivery.json"
+}

@@ -7,9 +7,11 @@
 
 ## Unreleased
 
-- Keep a saved shared3D replay inside its own native route, so opening it cannot replace the original race parameters and Back cannot cycle between History and Replay. Candidate68 was held at native G2 for this correction before upload.
+- Delivered1.7.0(68) to exact TestFlight Self: independent confirmed native PB/History, idempotent receipts and a corrected shared3D replay Back route. Actual26.5/27 finishes, cold results and exact-f7 fresh27 startup pass;77first-attempt browser cases and independent23:23UTC Self/8notes GETs. Physical races and the wider completion program remain open. [Release68](docs/design/mobile/testflight68-2026-10-27.md).
 
-- Native race personal-best banners now wait for their own confirmed device write, separately from History. Same-row receipts make retries idempotent; stale replies, corrupt/read-failed stores and old WebKit row writes cannot claim a new record. Global clear invalidates old race work and reports an unconfirmed sweep on failure. Candidate68 passes local source checks; installed and delivery gates remain open, with physical races still disabled.
+- Keep a saved shared3D replay inside its own native route, so opening it cannot replace the original race parameters and Back cannot cycle between History and Replay. The first68 candidate was held at native G2; corrected f7 is delivered68.
+
+- Native race personal-best banners now wait for their own confirmed device write, separately from History. Same-row receipts make retries idempotent; stale replies, corrupt/read-failed stores and old WebKit row writes cannot claim a new record. Global clear invalidates old race work and reports an unconfirmed sweep on failure. Delivered68 passes qualified installed and delivery gates; physical races remain disabled.
 
 
 - Delivered1.7.0(67) to exact TestFlight Self: shared first-lesson3Dpractice plus one Scheme/Picture sail pilot with filled/luffing views, preserved force states and actual image-result diagnostics. Exact77c passes77first-attempt browser cases and qualified installed26.5/27 acceptance; independent18:53UTC Apple GET verifies VALID/IN_BETA_TESTING and8notes. Wider lessons, PB durability, physics/courses, radio transcript and public/device acceptance remain open. [Release67](docs/design/mobile/testflight67-2026-10-26.md).

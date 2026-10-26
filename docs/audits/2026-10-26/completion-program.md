@@ -30,7 +30,7 @@
 | P00 | Сохранить аудит, доказательства и единый план; убрать историю из текущего статуса карты | готово | ссылки/карта/типографика проверены | документ, без релиза |
 | P01 | Исправить Skia crash первого drill; убрать живую погоду из старого native trainer | exact422b проверен | два runtime: урок -> drill -> ветер -> возврат, повторный вход, cold relaunch;72browser first-pass | доставлен66: independent Self/8notes GET15:26UTC; физический iPhone отдельно |
 | P02 | Единый первый урок и двухвидовые иллюстрации | общий первый урок,3Dпрактика и один Scheme/Picture pilot проверены |77browser first-pass, retained26.5/clean27, PL/RU/EN и exact package equivalence; [harness](learning-visuals-harness.md) | checkpoint доставлен67, independent Self/8notes18:53UTC; остальные иллюстрации открыты |
-| P03 | Закрыть надежность PB/результатов до новой физики | active candidate68: отдельные native ACK/receipt/retry и clear guards; local source проверен | непустые History/Personal, отказ записи, relaunch, неизвестная запись | отдельный checkpoint |
+| P03 | Закрыть надежность PB/результатов до новой физики | exactf7: отдельные ACK/receipt/retry, clear guards и replay route ownership | реальные finishes/History/Personal/Replay/Coach/Back/cold на26.5/27; exact-f7 fresh27; forced failures только tests | доставлен68: independent Self23:23:36.856UTC/8notes23:23:11.300UTC; physical emission OFF |
 | P04 | Согласовать единицы движения и управление общей лодки | API/reader foundation есть, emission OFF | сравнительные сценарии, боты, подсказки, replay, native/server classes | отдельный checkpoint |
 | P05 | Трассы разной длины, затем маршруты вокруг острова | план | каждый маршрут проходим, не пересекает сушу; старые классы сохранены | послеP04 |
 | P06 | Общие пресеты свободно/гонка/обучение, автотрим/ручной; независимые помощь и судья | частично в65 | полный Simple/Pro заезд и учебное объяснение, сохраненные настройки | послеP04/P05 |
@@ -101,3 +101,7 @@ Replay показывает сохраненную гонку. P09 превра�
 В P06 добавлены явные этапы обхода и статус зачета ворот. В P08 проверить
 соответствие Coach событию no-go: в ручной проверке были head-to-wind участки,
 а разбор назвал их отсутствующими. Наблюдение не меняет физические константы.
+
+## Поставка P03 checkpoint68
+
+Exactf7/tag68 доставлен в Self: independent GET2026-10-26T23:23:36.856Z,8notes match2026-10-26T23:23:11.300Z. [Release68](../../design/mobile/testflight68-2026-10-27.md), [65-ID matrix68](acceptance68.md). Candidate0a никогда не загружался после найденной петли. Source/browser/native и Apple доказательства разделены. Следующий P04 использует отдельную временную рабочую копию; source68 остается immutable. Полная программа не завершена.
