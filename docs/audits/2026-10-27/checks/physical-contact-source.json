@@ -1,0 +1,90 @@
+{
+  "checkedAt": "2026-10-27T05:09:56.678911+00:00",
+  "source": "09537f724ca9621311110aafa2725f0e4c15e625",
+  "web": {
+    "files": 172,
+    "passed": 1769,
+    "workers": 2,
+    "initialAllTestsPassedButRpcErrorAccepted": false,
+    "cooperativeRunExit": 0
+  },
+  "native": {
+    "suites": 79,
+    "passed": 589
+  },
+  "targeted": 89,
+  "fleet": {
+    "seed": 3,
+    "boatsPerCase": 5,
+    "hz": 30,
+    "profiles": [
+      "short",
+      "medium",
+      "long"
+    ],
+    "windStrengths": [
+      0.65,
+      1,
+      1.3
+    ],
+    "startStates": [
+      "ordinary",
+      "early"
+    ],
+    "cases": 18,
+    "allOrderedFinishesWithinOriginalLimits": true,
+    "emptyActualSweptContactSets": true,
+    "scope": "Canonical circular hull/mark envelopes in this matrix only; no full RRS or arbitrary future input claim."
+  },
+  "production": {
+    "files": 112,
+    "bytes": 6814872,
+    "limitBytes": 6815744,
+    "passed": true
+  },
+  "rootNativeTypesLintReleaseTools": "passed,9release-tool cases",
+  "packages": "all three rebuilt and fresh; content twins/catalog current; HTML bytes unchanged from89, only sailing source hashes in manifest revised",
+  "map": "759 tracked files,1425 quoted paths",
+  "dash": "passed",
+  "server": "legacy force/generated server sources unchanged; generated check and real socket lifecycle passed",
+  "inputs": {
+    "src/lib/race-courses.ts": "6e10514a01af5a379692d676b317c12fb8b25a90877b40e07d7c2987fffb2614",
+    "src/lib/race-physical-motion.ts": "38746c350b7fa1677ebf36b9d58c996fb6a319bbd34f48758f1a24f049b1e6f6",
+    "src/lib/race-physical-bot.ts": "fbff4efbe0c67379fcbdc9c47026321e4e31d06670ef8e118bca01f35bc71336",
+    "src/lib/race-physical-bot.test.ts": "68531af379cbb10679276378c3568d0080a85ce2b31919cfe57c590fa5c6c12f",
+    "src/lib/race-physical-fleet.ts": "e34256eb3516cb3db44c23632c1235262947f431b9b3772a56e51b242c9a19a9",
+    "src/lib/race-physical-fleet.test.ts": "4607a3941f5c32e4159b83430397eb1f3c491e8af6eafd76435079a5ae6c03df",
+    "src/lib/race-physical-contact.ts": "32cdd71ea33d00cd27e0938b0db3e0cb8597dbc93990da2c4db8c93d981974de",
+    "src/lib/race-physical-contact.test.ts": "34dd25ca4d46f449f3dec0b24775646eddb91d09cea8f60fa24e49b7aa927ade",
+    "mobile/assets/radio-offline.html": "9d73e91c083d5e0c2fe8db63c2a48d6619e066dd55ae41e2e35c33c56607178f",
+    "mobile/assets/sailing-offline.html": "4c43f89a504dc25f054fe2a3bec1d1fa81941597042529a3edec539fd2b73594",
+    "mobile/assets/sailing-offline.manifest.json": "bcd5d3db74619c2b5d2f774eb8021663c025f7d7582d63df0d2e643f88f05bdb",
+    "mobile/assets/sternik-offline.html": "ff6847fc3a840bc78b32c7baef075e5f0b85100588e72a6ace8ecf7aea540047"
+  },
+  "logs": {
+    "physical-contact-targeted.log": "ce030cc803681e759e11e22b6bec7a00db68ede54344009e5dbdfaf7d5a5219c",
+    "physical-contact-hardware-advice.log": "b1c1be5e7942206df441f3b8844e399446e0aaf2f5a739332191840934209533",
+    "physical-contact-intent-targeted.log": "cf734b47b014eabbca0182ad516fbdb9ebe1c4e3c4ecf5a31e2bab91b59d108f",
+    "physical-contact-web-final.log": "727a5b1705085b5054c68daae94669e57d41ae0964ee3110f88cca279c1f2a92",
+    "physical-contact-web-cooperative.log": "ce548b8b0b359eaf21428b33deadb81537bd213471e63705049660d0e6023a81",
+    "physical-contact-native-final.log": "b857608962233c3729506c517d251c1aa68c89f7b2d1041fe4c019422b20854b",
+    "physical-contact-native-static-final.log": "8249ade3d4697b633464b3986e5d0091ce8e806a3e76e1f15832b06825b3fd9f",
+    "physical-contact-types-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "physical-contact-build.log": "dc753d454d965abd2b0c7950b038d8e2724ac438113b5e57529ed8a30eb7d284",
+    "physical-contact-budget.log": "fd69654cc2c2be537865df4a2d96456e4ceac1e4804bc9920c0209c68c732b80",
+    "physical-contact-sockets.log": "5b803631003e8f834e91c89afce0da1272d6d8d39d01bc17f2447101810f92fd",
+    "physical-contact-twins.log": "6d2f34d6f0cf799034ef18754b719d2fa639590864fd194978803aa01d597446"
+  },
+  "rejected": {
+    "initialMarkMatrix": "17/18 journeys had mark-envelope intersections; not accepted",
+    "fullNominalRouteForecast": "Rejected actual contacts and deadline failures; distinct private8-file manifest preserved",
+    "shorterHardwareHorizon": "Rejected weak short early3/5",
+    "firstFullWebRun": "All1769tests passed but worker RPC errored at fleet file60076ms. Not accepted; cases now yield between whole journeys without assertion/deadline changes."
+  },
+  "followingBrowserGate": "pending exact following source; parent36 report acceptance separate",
+  "liveCallers": 0,
+  "physicalEmission": false,
+  "hardwareResponseAccepted": false,
+  "physicalInstalledAccepted": false,
+  "delivery": false
+}

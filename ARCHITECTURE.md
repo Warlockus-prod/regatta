@@ -1731,3 +1731,6 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/physical-motion-browser.json` - exact3f portable77-case report with one attempt each; physical activation remains off.
 - `docs/audits/2026-10-27/checks/ads-source.json` - source gates and qualified actual browser geometry/controls, with original screenshot hashes; native acceptance remains separate.
+
+- `docs/audits/2026-10-27/checks/radio-readiness-browser36.json` - exact downloaded/digest-checked82first-attempt radio/browser journeys after bounded faceplate readiness, separate from native microphone and physical095 acceptance.
+- `docs/audits/2026-10-27/checks/physical-contact-source.json` - exact095 source/log hashes,1769web/589native and89targeted checks,18contact-free circle-model fleets, preserved failed experiments and still-disabled physical emission.

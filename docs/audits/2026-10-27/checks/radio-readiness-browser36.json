@@ -1,0 +1,20 @@
+{
+  "source": "36cb83b8416a80dd76ef625c62ef93c01e41d40e",
+  "run": "40452106933",
+  "artifact": 12711311268,
+  "archiveSha256": "465e65ec67ddba5864b811618f2fe710d6de348db3cfd0f306783721f7faba33",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "publication": "skipped",
+  "nativeRuntimeSource": "89ced947ec6bca2580089362211c0ad17e763b8f",
+  "actualMicrophoneAccepted": false,
+  "delivery": false,
+  "scope": "Exact radio readiness test-only child of89. All82cases including four free-speech journeys pass first attempt. Original bounds,10s assertion and30s geometry case remain. Earlier81+1flaky report stays historical. This is not current095 physical engine or native microphone acceptance."
+}

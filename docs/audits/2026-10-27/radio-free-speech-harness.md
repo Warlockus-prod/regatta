@@ -105,11 +105,14 @@ its dock appeared,493ms into the case; retry passed. No out-of-bounds result
 was observed. Missing explicit faceplate readiness is a test-contract gap;
 the report alone does not establish the transient null's exact cause.
 
-The following test-only correction retries all original geometry assertions
-within the existing10s assertion budget and unchanged30s case. Coordinates,
-1px bounds, scrolling and required controls are preserved. Exact next cloud
-acceptance is still mandatory; a green job with a flaky report is not full
-first-attempt acceptance.
+Readiness child36cb83b retries all original geometry assertions within the
+existing10s assertion budget and unchanged30s case. Coordinates,1px bounds,
+scrolling and required controls are preserved. Exact [cloud36 proof](checks/radio-readiness-browser36.json)
+records82first-attempt cases, zero flaky/skipped/unexpected, from downloaded
+and digest-checked artifact12711311268/run40452106933. Publication/deployment
+remain skipped. This completes that source/browser gate; native typing/PTT
+and microphone still require actual acceptance. The earlier81+1flaky report
+stays historical.
 
 Exact [installed89](checks/radio-reset-native89.json) passes31package checks
 and121installed-file hashes on retained26.5. All16prior storage keys remain

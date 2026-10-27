@@ -64,7 +64,7 @@ recording, course/mode selection and installed acceptance
 remain mandatory before activation. No new turning model in TestFlight or
 completion of the whole P04-P12 program is claimed.
 
-## Completed source gate
+## Preceding fleet source gate (b22312a)
 
 [Input-bound source proof](checks/physical-fleet-source.json): all 1760 web
 tests in 171 files and 589 native tests in 79 suites pass. Root/native types,
@@ -123,7 +123,8 @@ full RRS liability. The old post-separation overlap claim stays withdrawn.
 The preceding draft remains recoverable as stash80a67308f9882054b3b43de44a961eb4b3207192;
 failed logs and distinct private proposals remain outside Git.
 
-The complete following gate passes1769web cases in172files and589native cases
+Exact09537f7 [following source proof](checks/physical-contact-source.json)
+passes1769web cases in172files and589native cases
 in79suites, root/native types/lint,9release tools, generated server/real sockets,
 all three package freshness/content checks, catalog, production budget and
 map/dash. The first full web run passed all1769cases but had a worker RPC error
@@ -136,6 +137,6 @@ This supports the cooperative reporting correction; it does not claim every
 prior local timeout had this cause.
 
 The three HTML package bytes stay identical to89; only the sailing manifest's
-source hashes change. The API has no live caller. Exact following-source cloud
+source hashes change. The API has no live caller. Exact following-source cloud40453750860
 and physical installed acceptance remain separate. Nothing reaches the live
 game or69binary; physical emission remains OFF.
