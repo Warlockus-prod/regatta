@@ -1,0 +1,21 @@
+{
+  "source": "09537f724ca9621311110aafa2725f0e4c15e625",
+  "run": "40453750860",
+  "artifact": 12712213233,
+  "archiveSha256": "fa9fe4e97611f596c75d1c395abb49c899de3d44fc1eb1bbe912cd6dc2d84498",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "publication": "skipped",
+  "physicalAPILiveCallers": 0,
+  "physicalInstalledAccepted": false,
+  "actualMicrophoneAccepted": false,
+  "delivery": false,
+  "scope": "Exact095 source and preserved existing app/browser runtime. All82journeys pass first attempt. Physical engine API remains unwired and is not played by these browser cases. Actual-game54case research and native PTT/phone acceptance remain separate."
+}

@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Human DIAL hold on frozen916 is now confirmed: actual CH16 power-on and localized native recognition-unavailable state on27, with121installed hashes still matching916. `docs/audits/2026-10-27/checks/radio-powered-native916.json` records API availability, not its underlying cause. Mac coordinate actions fail despite AX Raise; actual PTT/typing is pending a separate manual request. Source89reset/095 physical acceptance and69delivery are not inferred.
+
 - Following actual-game identities/difficulty research on095 has54autonomous cases:53finish the whole fleet,39meet the strict clean criterion and15observe contacts. Short/weak/ordinary/hard leaves ai3 unfinished at480s. `docs/audits/2026-10-27/checks/physical-game-fleet95.json` preserves scope and bounded-sample limits. This does not undo the narrower18baseline proof or establish activation; start/recovery/difficulty, hardware response and judging remain open.
 
 - P07 readiness child36cb83b passes82first-attempt cloud journeys with all geometry bounds and existing10s assertion/30s case budgets retained. Its source89ced94 fixed-Date reset and bounded session remain unchanged. The earlier81+1flaky report stays historical. Official89 Simulator passes31checks/121installed-file matches and preserves16prior keys on retained26.5; actual entry/Exit pass, typing/PTT/model/microphone remain unaccepted. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the qualified proofs. No69 delivery is implied.

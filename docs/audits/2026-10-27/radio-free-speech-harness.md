@@ -125,3 +125,17 @@ its manual hold request. The frozen89 package is preserved separately.
 This correction is not included in frozen916 or its82case proof. Its lack of
 physical microphone acceptance and the pending manual native hold remain
 explicit. TestFlight68 is still the delivered binary.
+
+## Human power-on follow-up on frozen916
+
+The owner confirmed a real DIAL hold on fresh27. Actual UI shows powered CH16
+and the localized unavailable English-recognition state. All121installed files
+still match frozen916. The bounded canonical journal records two closed
+availability outcomes; [powered916 proof](checks/radio-powered-native916.json)
+contains no speech content. The availability boolean does not distinguish a
+missing model from Simulator capability, so that cause remains unknown.
+
+Mac coordinate actions now fail even after rebinding/AX Raise while screenshots
+and native AX remain readable. No PTT click was delivered by those attempts.
+A separate manual PTT/typing request is pending. This does not certify actual
+microphone recognition, following89reset, native095 or delivery69.

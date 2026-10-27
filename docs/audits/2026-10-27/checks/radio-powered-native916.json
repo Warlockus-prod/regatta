@@ -1,0 +1,36 @@
+{
+  "source": "916a9ea69bc06bfcbb0f7848691b7a9936cf0b83",
+  "checkedAt": "2026-10-27T08:04:55.511361+00:00",
+  "runtime": "27.0",
+  "installedFiles": 121,
+  "allFilesMatchFrozen916": true,
+  "humanPowerHoldConfirmed": true,
+  "actualUI": "Powered CH16, localized unavailable English recognition state in the free dock",
+  "speechClosedOnly": [
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "availability",
+      "input": "voice",
+      "outcome": "failed",
+      "available": false,
+      "reason": "timeout"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "availability",
+      "input": "voice",
+      "outcome": "accepted",
+      "available": false
+    }
+  ],
+  "screenshotSha256": "424bb476aacd5e55e2bca64b234608e3a9db28c4fd68a335627c08d626d22ec8",
+  "coordinatePttAttemptDelivered": false,
+  "manualPttTyping": "pending separate human request after coordinate controls failed despite AX Raise",
+  "nativeTypingAccepted": false,
+  "nativeRecognitionAccepted": false,
+  "following89ResetAccepted": false,
+  "delivery": false,
+  "scope": "Frozen916 only, not new89/095 native acceptance. API unavailability is observed; missing model versus Simulator capability is not diagnosed by the availability boolean."
+}

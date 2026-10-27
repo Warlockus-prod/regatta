@@ -137,8 +137,10 @@ This supports the cooperative reporting correction; it does not claim every
 prior local timeout had this cause.
 
 The three HTML package bytes stay identical to89; only the sailing manifest's
-source hashes change. The API has no live caller. Exact following-source cloud40453750860
-and physical installed acceptance remain separate. Nothing reaches the live
+source hashes change. The API has no live caller. Exact095 [cloud proof](checks/physical-contact-browser95.json), run40453750860,
+passes82first-attempt journeys from a downloaded/digest-checked artifact. Those
+journeys verify the preserved existing UI and do not play the unwired physical
+API. Expanded54case research and physical installed acceptance remain separate. Nothing reaches the live
 game or69binary; physical emission remains OFF.
 
 ## Ordered activation gates after this checkpoint

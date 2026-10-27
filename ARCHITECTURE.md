@@ -1736,3 +1736,6 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-contact-source.json` - exact095 source/log hashes,1769web/589native and89targeted checks,18contact-free circle-model fleets, preserved failed experiments and still-disabled physical emission.
 
 - `docs/audits/2026-10-27/checks/physical-game-fleet95.json` - separate54case autonomous game-ID/handicap research:53full finishes,39strict clean,15contact observations and one short weak deadline miss; no human Pro or activation acceptance.
+
+- `docs/audits/2026-10-27/checks/physical-contact-browser95.json` - exact095 source passes82first-attempt preserved-UI journeys; physical API remains unwired and expanded54case/installed gates stay separate.
+- `docs/audits/2026-10-27/checks/radio-powered-native916.json` - human power-on, actual native unavailable recognition state and121retained916 hashes, with coordinate PTT/typing still unaccepted.
