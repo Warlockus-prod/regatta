@@ -97,6 +97,8 @@ interface Props {
   onDistressUp: () => void;
   onPttDown: () => void;
   onPttUp: () => void;
+  /** Optional cancelled hold, distinct from a completed free transmission. */
+  onPttCancel?: () => void;
   /** wall-clock string for the LCD, e.g. "14:30" */
   clock: string;
   /** seconds until next auto re-TX while waiting for ACK. */
@@ -828,7 +830,7 @@ function softIk(label: string): string {
 }
 
 export default function RadioFront({
-  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
+  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, onPttCancel, clock, nextTxSec,
   highlightControl, inspect = false, onInspect, inspectKey = null, busy = false, skin = 'green', realistic = false,
   compact = false,
 }: Props) {
@@ -1169,12 +1171,14 @@ export default function RadioFront({
     <button
       type="button"
       data-testid="ptt"
+      aria-pressed={s.ptt}
       data-ik="ptt"
       onClick={inspect ? () => onInspect?.('ptt') : undefined}
       onPointerDown={hold(onPttDown)}
       onPointerUp={hold(onPttUp)}
-      onPointerLeave={hold(onPttUp)}
-      onPointerCancel={hold(onPttUp)}
+      onPointerLeave={hold(onPttCancel ?? onPttUp)}
+      onPointerCancel={hold(onPttCancel ?? onPttUp)}
+      onBlur={hold(onPttCancel ?? onPttUp)}
       onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
       })}

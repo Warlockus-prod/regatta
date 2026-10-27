@@ -2167,6 +2167,19 @@
     }
   },
   {
+    "id": "111eba3708181790",
+    "source": "Lokalne rozpoznawanie angielskiej mowy jest niedostępne. Wpisz komunikat.",
+    "known": {
+      "ru": "Локальное распознавание английской речи недоступно. Введи передачу текстом.",
+      "en": "On-device English recognition is unavailable. Type your transmission.",
+      "pl": "Lokalne rozpoznawanie angielskiej mowy jest niedostępne. Wpisz komunikat.",
+      "es": "El reconocimiento local de inglés no está disponible. Escribe el mensaje.",
+      "fr": "La reconnaissance locale de l'anglais est indisponible. Saisis ton message.",
+      "de": "Englische Spracherkennung auf dem Gerät ist nicht verfügbar. Tippe den Funkspruch.",
+      "it": "Il riconoscimento locale dell'inglese non è disponibile. Scrivi il messaggio."
+    }
+  },
+  {
     "id": "11366eeda2682659",
     "source": "Wszystkie",
     "known": {
@@ -4436,6 +4449,19 @@
     "source": "Sygnał SECURITE poprzedza komunikaty ostrzegawcze, np. ostrzeżenia nawigacyjne lub meteorologiczne, a nie wezwania o pomoc.",
     "known": {
       "pl": "Sygnał SECURITE poprzedza komunikaty ostrzegawcze, np. ostrzeżenia nawigacyjne lub meteorologiczne, a nie wezwania o pomoc."
+    }
+  },
+  {
+    "id": "240c442ed82b09d4",
+    "source": "Wpisano",
+    "known": {
+      "ru": "Введено текстом",
+      "en": "Typed",
+      "pl": "Wpisano",
+      "es": "Escrito",
+      "fr": "Saisi",
+      "de": "Getippt",
+      "it": "Digitato"
     }
   },
   {
@@ -7461,6 +7487,19 @@
     }
   },
   {
+    "id": "3f4acec463c416ef",
+    "source": "Nie udało się rozpoznać mowy. Spróbuj ponownie lub wpisz tekst.",
+    "known": {
+      "ru": "Не удалось распознать речь. Попробуй ещё раз или введи текст.",
+      "en": "Recognition failed. Try again or type.",
+      "pl": "Nie udało się rozpoznać mowy. Spróbuj ponownie lub wpisz tekst.",
+      "es": "El reconocimiento falló. Inténtalo de nuevo o escribe.",
+      "fr": "La reconnaissance a échoué. Réessaie ou saisis le texte.",
+      "de": "Spracherkennung fehlgeschlagen. Versuche es erneut oder tippe den Text.",
+      "it": "Riconoscimento non riuscito. Riprova o scrivi il testo."
+    }
+  },
+  {
     "id": "3f4ff1c948de0464",
     "source": "nie nadawaj bez anteny",
     "known": {
@@ -8067,6 +8106,19 @@
     "id": "44db2dfaaea5c64f",
     "source": "brak liczby osób na pokładzie",
     "known": {}
+  },
+  {
+    "id": "44e5a52f16fc8fac",
+    "source": "Komunikaty z tej sesji",
+    "known": {
+      "ru": "Передачи этой сессии",
+      "en": "Session transmissions",
+      "pl": "Komunikaty z tej sesji",
+      "es": "Mensajes de esta sesión",
+      "fr": "Messages de cette session",
+      "de": "Funksprüche dieser Sitzung",
+      "it": "Messaggi di questa sessione"
+    }
   },
   {
     "id": "44eb79c67b69adfe",
@@ -12999,6 +13051,19 @@
     }
   },
   {
+    "id": "6ed9696a9c0b34cc",
+    "source": "Dodaj tekst do sesji",
+    "known": {
+      "ru": "Добавить текст в сессию",
+      "en": "Add text to this session",
+      "pl": "Dodaj tekst do sesji",
+      "es": "Añadir texto a esta sesión",
+      "fr": "Ajouter le texte à cette session",
+      "de": "Text zur Sitzung hinzufügen",
+      "it": "Aggiungi il testo alla sessione"
+    }
+  },
+  {
     "id": "6efbd185592ee69c",
     "source": "'{radioTerm0}' to morski zwrot z COLREG/SMCP oznaczający statek nieodpowiadający za swoje ruchy.",
     "known": {
@@ -13061,6 +13126,19 @@
     "id": "6f62c4c96f3adf2f",
     "source": "DSC Log",
     "known": {}
+  },
+  {
+    "id": "6f7db48546c991d5",
+    "source": "Kanał 70 służy do DSC. Aby użyć PTT, wybierz kanał do rozmów.",
+    "known": {
+      "ru": "Канал 70 предназначен для DSC. Для PTT выбери голосовой канал.",
+      "en": "Channel 70 is for DSC. Select a voice channel to use PTT.",
+      "pl": "Kanał 70 służy do DSC. Aby użyć PTT, wybierz kanał do rozmów.",
+      "es": "El canal 70 es para DSC. Elige un canal de voz para usar PTT.",
+      "fr": "Le canal 70 est réservé à la DSC. Choisis un canal vocal pour utiliser PTT.",
+      "de": "Kanal 70 ist für DSC. Wähle einen Sprechfunkkanal für PTT.",
+      "it": "Il canale 70 è riservato al DSC. Scegli un canale vocale per usare PTT."
+    }
   },
   {
     "id": "6f8635d246b50ed1",
@@ -13541,6 +13619,19 @@
       "pl": "Cała baza",
       "ru": "Вся база",
       "en": "Full bank"
+    }
+  },
+  {
+    "id": "74b3a979cd0705cf",
+    "source": "Słucham po angielsku",
+    "known": {
+      "ru": "Слушаю речь на английском",
+      "en": "Listening in English",
+      "pl": "Słucham po angielsku",
+      "es": "Escuchando en inglés",
+      "fr": "Écoute en anglais",
+      "de": "Englische Sprache wird erkannt",
+      "it": "Ascolto in inglese"
     }
   },
   {
@@ -14366,6 +14457,19 @@
     }
   },
   {
+    "id": "7ccb10f6c6d1bd81",
+    "source": "Ćwicz komunikaty",
+    "known": {
+      "ru": "Практика передачи",
+      "en": "Transmission practice",
+      "pl": "Ćwicz komunikaty",
+      "es": "Practica transmisiones",
+      "fr": "S'entraîner à transmettre",
+      "de": "Funksprüche üben",
+      "it": "Esercitati a trasmettere"
+    }
+  },
+  {
     "id": "7ce195eea14f30bd",
     "source": "W dzienniku radiowym odnotowuje się pozycję jednostki przynajmniej raz dziennie.",
     "known": {
@@ -14469,6 +14573,19 @@
     "id": "7d9144771de0089d",
     "source": "Teoria SRC: 2 przedmioty po 5 pytań (10 łącznie), zaliczenie każdego osobno na min. 60%",
     "known": {}
+  },
+  {
+    "id": "7d92ceb34ae53b1a",
+    "source": "Tekst roboczy",
+    "known": {
+      "ru": "Промежуточный текст",
+      "en": "Live draft",
+      "pl": "Tekst roboczy",
+      "es": "Borrador en directo",
+      "fr": "Texte provisoire",
+      "de": "Vorläufiger Text",
+      "it": "Testo provvisorio"
+    }
   },
   {
     "id": "7db71face0d9831a",
@@ -15323,6 +15440,19 @@
     "id": "848f618cd0e39a28",
     "source": "DSC и MMSI",
     "known": {}
+  },
+  {
+    "id": "848f9fefdc57c3a7",
+    "source": "Włącz radio, aby ćwiczyć z PTT.",
+    "known": {
+      "ru": "Включи рацию для практики с PTT.",
+      "en": "Turn on the radio to practise with PTT.",
+      "pl": "Włącz radio, aby ćwiczyć z PTT.",
+      "es": "Enciende la radio para practicar con PTT.",
+      "fr": "Allume la radio pour t'entraîner avec PTT.",
+      "de": "Schalte das Funkgerät für die PTT-Übung ein.",
+      "it": "Accendi la radio per esercitarti con PTT."
+    }
   },
   {
     "id": "84b0bbcc2683d7b1",
@@ -20725,6 +20855,19 @@
     }
   },
   {
+    "id": "b3045d23dad90adb",
+    "source": "Tutaj pojawią się twoje słowa.",
+    "known": {
+      "ru": "Здесь появятся твои слова.",
+      "en": "Your words will appear here.",
+      "pl": "Tutaj pojawią się twoje słowa.",
+      "es": "Tus palabras aparecerán aquí.",
+      "fr": "Tes paroles apparaîtront ici.",
+      "de": "Hier erscheinen deine Worte.",
+      "it": "Le tue parole appariranno qui."
+    }
+  },
+  {
     "id": "b3088ff2c312b10c",
     "source": "Przeczytaj frazę głośno i zakończ odpowiednim proword.",
     "known": {
@@ -22129,6 +22272,19 @@
     "known": {}
   },
   {
+    "id": "be92f96f1ab56ee3",
+    "source": "Przytrzymaj PTT, aby zacząć",
+    "known": {
+      "ru": "Держи PTT, чтобы начать",
+      "en": "Hold PTT to begin",
+      "pl": "Przytrzymaj PTT, aby zacząć",
+      "es": "Mantén PTT para empezar",
+      "fr": "Maintiens PTT pour commencer",
+      "de": "Halte PTT zum Starten",
+      "it": "Tieni premuto PTT per iniziare"
+    }
+  },
+  {
     "id": "bea02673ef19ec6f",
     "source": "„ZCZC UB66” w nagłówku komunikatu odebranego ze stacji NAVTEX oznacza że:",
     "known": {
@@ -23101,7 +23257,11 @@
     "known": {
       "pl": "Rozpoznano na urządzeniu",
       "ru": "Распознано на устройстве",
-      "en": "Recognized on device"
+      "en": "Recognized on device",
+      "es": "Reconocido en este dispositivo",
+      "fr": "Reconnu sur cet appareil",
+      "de": "Auf diesem Gerät erkannt",
+      "it": "Riconosciuto sul dispositivo"
     }
   },
   {
@@ -23506,6 +23666,19 @@
     }
   },
   {
+    "id": "cab0ac40890d6715",
+    "source": "Kończę rozpoznawanie...",
+    "known": {
+      "ru": "Завершаю распознавание...",
+      "en": "Finishing recognition...",
+      "pl": "Kończę rozpoznawanie...",
+      "es": "Finalizando el reconocimiento...",
+      "fr": "Fin de la reconnaissance...",
+      "de": "Spracherkennung wird abgeschlossen...",
+      "it": "Completamento del riconoscimento..."
+    }
+  },
+  {
     "id": "cab78e9109b02c2c",
     "source": "fifty four degrees",
     "known": {}
@@ -23582,6 +23755,19 @@
     "known": {
       "pl": "Zapytaj: czy życie lub jednostka są w poważnym i bezpośrednim zagrożeniu?",
       "ru": "Спроси: есть серьёзная непосредственная угроза жизни или судну?"
+    }
+  },
+  {
+    "id": "cb48e6465e8259a0",
+    "source": "Nagrywanie anulowano. Nie dodano komunikatu.",
+    "known": {
+      "ru": "Запись отменена. Передача не добавлена.",
+      "en": "Recording cancelled. No transmission added.",
+      "pl": "Nagrywanie anulowano. Nie dodano komunikatu.",
+      "es": "Grabación cancelada. No se añadió ningún mensaje.",
+      "fr": "Enregistrement annulé. Aucun message ajouté.",
+      "de": "Aufnahme abgebrochen. Kein Funkspruch hinzugefügt.",
+      "it": "Registrazione annullata. Nessun messaggio aggiunto."
     }
   },
   {
@@ -23818,6 +24004,19 @@
       "fr": "Mode de veille (DW / SCAN)",
       "de": "Wachmodus (DW / SCAN)",
       "it": "Modalità di ascolto (DW / SCAN)"
+    }
+  },
+  {
+    "id": "cdcd1f5b888da0e4",
+    "source": "Odmówiono dostępu do mikrofonu. Wpisz komunikat.",
+    "known": {
+      "ru": "Доступ к микрофону запрещён. Введи передачу текстом.",
+      "en": "Microphone permission was denied. Type your transmission.",
+      "pl": "Odmówiono dostępu do mikrofonu. Wpisz komunikat.",
+      "es": "Se denegó el acceso al micrófono. Escribe el mensaje.",
+      "fr": "L'accès au microphone a été refusé. Saisis ton message.",
+      "de": "Mikrofonzugriff wurde verweigert. Tippe den Funkspruch.",
+      "it": "Accesso al microfono negato. Scrivi il messaggio."
     }
   },
   {
@@ -25174,6 +25373,19 @@
     }
   },
   {
+    "id": "d9c9a5d6ff408881",
+    "source": "Przygotowuję mikrofon...",
+    "known": {
+      "ru": "Подготавливаю микрофон...",
+      "en": "Preparing the microphone...",
+      "pl": "Przygotowuję mikrofon...",
+      "es": "Preparando el micrófono...",
+      "fr": "Préparation du microphone...",
+      "de": "Mikrofon wird vorbereitet...",
+      "it": "Preparazione del microfono..."
+    }
+  },
+  {
     "id": "d9e33aa4469c4b19",
     "source": "meldunek (wejście/wyjście/kurs/zamiar)",
     "known": {
@@ -25224,6 +25436,19 @@
     "id": "da3a8ad0df929100",
     "source": "К курсу SRC",
     "known": {}
+  },
+  {
+    "id": "da4fd60a3f2f1130",
+    "source": "Ostatni komunikat",
+    "known": {
+      "ru": "Последняя передача",
+      "en": "Latest transmission",
+      "pl": "Ostatni komunikat",
+      "es": "Último mensaje",
+      "fr": "Dernier message",
+      "de": "Letzter Funkspruch",
+      "it": "Ultimo messaggio"
+    }
   },
   {
     "id": "da50e7df8e7cbc2a",
@@ -26388,6 +26613,19 @@
     }
   },
   {
+    "id": "e3e9431b1af0bac8",
+    "source": "Nie wykryto mowy. Spróbuj ponownie lub wpisz tekst.",
+    "known": {
+      "ru": "Речь не обнаружена. Попробуй ещё раз или введи текст.",
+      "en": "No speech detected. Try again or type.",
+      "pl": "Nie wykryto mowy. Spróbuj ponownie lub wpisz tekst.",
+      "es": "No se detectó voz. Inténtalo de nuevo o escribe.",
+      "fr": "Aucune parole détectée. Réessaie ou saisis le texte.",
+      "de": "Keine Sprache erkannt. Versuche es erneut oder tippe den Text.",
+      "it": "Nessuna voce rilevata. Riprova o scrivi il testo."
+    }
+  },
+  {
     "id": "e40a2f59e7e3450c",
     "source": "GPS powinien automatycznie dostarczać pozycję i czas. Bez GPS dane trzeba aktualizować ręcznie.",
     "known": {
@@ -26933,6 +27171,19 @@
     }
   },
   {
+    "id": "e7d7086a22cd7f31",
+    "source": "Włącz radio, przytrzymaj PTT i mów po angielsku. Kanał 70 nie służy do rozmów.",
+    "known": {
+      "ru": "Включи рацию, держи PTT и говори по-английски. На канале 70 голос не передают.",
+      "en": "Turn on the radio, hold PTT and speak in English. Channel 70 does not carry voice.",
+      "pl": "Włącz radio, przytrzymaj PTT i mów po angielsku. Kanał 70 nie służy do rozmów.",
+      "es": "Enciende la radio, mantén PTT y habla en inglés. El canal 70 no admite voz.",
+      "fr": "Allume la radio, maintiens PTT et parle en anglais. Le canal 70 ne transmet pas la voix.",
+      "de": "Schalte das Funkgerät ein, halte PTT und sprich Englisch. Kanal 70 ist kein Sprechfunkkanal.",
+      "it": "Accendi la radio, tieni premuto PTT e parla in inglese. Il canale 70 non trasmette la voce."
+    }
+  },
+  {
     "id": "e7de0f8b6d548a90",
     "source": "Oktoeight",
     "known": {}
@@ -27429,7 +27680,11 @@
     "known": {
       "pl": "Treść komunikatu po angielsku",
       "ru": "Текст передачи по-английски",
-      "en": "Transmission text in English"
+      "en": "Transmission text in English",
+      "es": "Texto del mensaje en inglés",
+      "fr": "Texte du message en anglais",
+      "de": "Funkspruch auf Englisch",
+      "it": "Testo del messaggio in inglese"
     }
   },
   {
@@ -28735,6 +28990,19 @@
     "known": {}
   },
   {
+    "id": "f6f19683dbfdbd5a",
+    "source": "Wyczyść sesję",
+    "known": {
+      "ru": "Очистить сессию",
+      "en": "Clear session",
+      "pl": "Wyczyść sesję",
+      "es": "Borrar sesión",
+      "fr": "Effacer la session",
+      "de": "Sitzung leeren",
+      "it": "Svuota la sessione"
+    }
+  },
+  {
     "id": "f6f806872d00e180",
     "source": "MSI przychodzi automatycznie",
     "known": {
@@ -29020,6 +29288,19 @@
     "source": "Fraza SMCP brzmi \"{radioTerm0}\"; \"{radioTerm3}\" zamiast \"{radioTerm2}\" i \"{radioTerm1}\" są błędne.",
     "known": {
       "pl": "Fraza SMCP brzmi \"{radioTerm0}\"; \"{radioTerm3}\" zamiast \"{radioTerm2}\" i \"{radioTerm1}\" są błędne."
+    }
+  },
+  {
+    "id": "f97af3ca7e0bb649",
+    "source": "Tylko w tej sesji: do 8 komunikatów po 1000 znaków. PTT kończy nagrywanie po 45 sekundach. Tekst nie jest zapisywany na urządzeniu ani wysyłany na serwer.",
+    "known": {
+      "ru": "Только в этой сессии: до 8 передач по 1000 символов. Удержание ограничено 45 секундами. Текст не сохраняется на устройстве и не отправляется на сервер.",
+      "en": "This session only: up to 8 transmissions of 1000 characters each. A hold ends after 45 seconds. Text is not saved on the device or sent to a server.",
+      "pl": "Tylko w tej sesji: do 8 komunikatów po 1000 znaków. PTT kończy nagrywanie po 45 sekundach. Tekst nie jest zapisywany na urządzeniu ani wysyłany na serwer.",
+      "es": "Solo esta sesión: hasta 8 mensajes de 1000 caracteres. PTT se detiene a los 45 segundos. El texto no se guarda en el dispositivo ni se envía a un servidor.",
+      "fr": "Pour cette session : 8 messages de 1000 caractères maximum. PTT s'arrête après 45 secondes. Le texte n'est ni enregistré sur l'appareil ni envoyé à un serveur.",
+      "de": "Nur für diese Sitzung: bis zu 8 Funksprüche mit je 1000 Zeichen. PTT endet nach 45 Sekunden. Der Text wird weder auf dem Gerät gespeichert noch an einen Server gesendet.",
+      "it": "Solo per questa sessione: fino a 8 messaggi di 1000 caratteri. PTT si ferma dopo 45 secondi. Il testo non viene salvato sul dispositivo né inviato a un server."
     }
   },
   {

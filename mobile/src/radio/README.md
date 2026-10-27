@@ -21,6 +21,15 @@ iOS lists supported locales without proving that a language model is downloaded.
 
 ## SDK54 constraints
 
+Free practice uses the same ASR adapter through `FreeSpeechPractice.tsx`, with
+provisional text and final rows only after both native end and actual PTT
+release. Its separate session limit is8rows of1000characters and a45second
+hold. Clear/navigation/background/reset cancel pending work; a late result
+cannot restore cleared text. Text and audio are not persisted or sent over the
+network. The canonical local journal receives only closed `radio.speech`
+lifecycle/outcome fields. Typing remains available without a model or permission
+and grants no assessment or lesson credit.
+
 - `expo-speech`14.0.8 accepts JS volume but its upstream native code omits it. `plugins/with-local-radio-speech.js` adds the Swift utterance and Android TTS volume assignments. Android voice enumeration excludes voices requiring a network connection.
 - `expo-speech-recognition`3.1.3, the upstream SDK54 package, conditionally assigns the on-device request flag. The plugin makes that assignment unconditional, so unsupported local recognition fails instead of falling back to a server.
 - Every patch validates the exact package version and source anchors before writing; repeated prebuilds are idempotent. Review and update these assertions when upgrading either package. Fresh native prebuild and a new binary are mandatory.

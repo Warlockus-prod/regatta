@@ -23,4 +23,27 @@ Owner-approved P07 in the [completion program](../2026-10-26/completion-program.
 
 ## Current state
 
-Plan and source inspection complete. Implementation and all new acceptance gates remain pending. Current free practice has hardware actions and a guide, but no mounted voice panel for free PTT; existing on-device recognition only serves the graded activity component.
+The mounted free-practice panel now shares the existing on-device recognition
+hook and the actual hardware PTT. Draft and end/release outcomes are explicit;
+typing uses a separate label and grants no score. Pointer cancellation while
+held discards the request. A pointerleave/blur after genuine release preserves
+the final native result still arriving. Clear always cancels pending work;
+power/channel changes, background and unmount cannot submit a stale draft.
+
+The first complete web run found a stale generated catalog inventory, and the
+first production budget was red at6.51MiB. Neither failure was accepted. All
+seven reviewed adaptations now enter the existing catalog builder, which also
+checks a generated minimal source-label map. A following production build is
+within the unchanged6.5MiB limit; no language or acceptance assertion was
+removed. Actual catalog tests resolve every new label in all seven languages.
+
+The current offline package includes the panel. Manual browser observation
+confirms Polish/Russian session-only typed entry, Clear and course return at
+390x740; the radio remains above its independently scrolling dock. Full cloud,
+exact installed and physical-microphone acceptance remain pending. Synthetic
+bridge cases explicitly test actual React lifecycle and diagnostic/privacy
+contracts, not the physical microphone or OS model.
+
+No69 upload/Apple write has occurred. Delivered68 and the frozenf3 observation
+binary are unchanged. Main P04 weak-wind fleet recovery stays open; Ads/eSail
+remain background extras.

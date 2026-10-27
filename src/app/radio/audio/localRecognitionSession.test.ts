@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { recognitionTransition, releaseRecognition, type RecognitionSession } from "./localRecognitionSession";
+import { readRecognitionEvent, recognitionTransition, releaseRecognition, type RecognitionSession } from "./localRecognitionSession";
 const session = (): RecognitionSession => ({ id: "current", text: "", released: false, ended: false, started: false });
 
 describe("on-device recognition lifecycle", () => {
@@ -27,4 +27,34 @@ describe("on-device recognition lifecycle", () => {
     expect(recognitionTransition(current, { id: "current", status: "error", code: "cancelled" })).toMatchObject({ session: null, error: false });
     expect(recognitionTransition({ ...current, released: true }, { id: "current", status: "end" }).transcript).toBeUndefined();
   });
+  it.each([
+    ["cancelled", "cancelled", false], ["no-speech", "silent", false],
+    ["model-unavailable", "unavailable", true], ["permission-denied", "denied", true], ["private native error", "error", true],
+  ])("classifies %s without grading or retaining native error text", (code, outcome, error) => {
+    const next = recognitionTransition(session(), { id: "current", status: "error", code: code as string });
+    expect(next).toEqual({ session: null, phase: "idle", outcome, error });
+    expect(JSON.stringify(next)).not.toContain("private native error");
+  });
+  it("reports silence when the actual end clears an earlier draft", () => {
+    const state = { ...session(), text: "INTERIM ONLY", released: true };
+    expect(recognitionTransition(state, { id: "current", status: "end", transcript: "" }))
+      .toEqual({ session: null, phase: "idle", transcript: undefined, outcome: "silent" });
+  });
+  it("does not reopen a released session on a duplicate start or replace an ended transcript", () => {
+    const started = { ...session(), started: true, released: true };
+    expect(recognitionTransition(started, { id: "current", status: "started" })).toEqual({ session: started });
+    const ended = { ...session(), started: true, ended: true, text: "RADIO CHECK OVER" };
+    expect(recognitionTransition(ended, { id: "current", status: "result", transcript: "LATE" })).toEqual({ session: ended });
+    expect(releaseRecognition(ended)).toMatchObject({ transcript: "RADIO CHECK OVER", outcome: "recognized", session: null });
+  });
+  it("reads a closed event with bounded native text while discarding extra raw fields", () => {
+    expect(readRecognitionEvent({ id: "current", status: "result", transcript: "RADIO CHECK", raw: "private" }))
+      .toEqual({ id: "current", status: "result", transcript: "RADIO CHECK" });
+    expect(readRecognitionEvent({ id: "probe", status: "availability", available: false })?.available).toBe(false);
+  });
+  it.each([
+    null, [], { id: "bad/path", status: "end" }, { id: "x", status: "unknown" },
+    { id: "x", status: "availability" }, { id: "x", status: "end", transcript: {} },
+    { id: "x", status: "result", transcript: "x".repeat(8001) }, { id: "x", status: "error", code: {} },
+  ])("ignores malformed or oversized bridge event %#", value => expect(readRecognitionEvent(value)).toBeNull());
 });

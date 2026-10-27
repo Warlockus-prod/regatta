@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "0b007511ad9d",
-  "sha256": "b7caf1dc81e09dd908e929698f9e7075b6b70fadee5a377e5725605880803766",
-  "bytes": 6589012,
+  "version": "01ec8c7005c5",
+  "sha256": "4c43f89a504dc25f054fe2a3bec1d1fa81941597042529a3edec539fd2b73594",
+  "bytes": 6589279,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1805,8 +1805,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 26539,
-      "sha256": "60e128977379d27fbcda2db2dfb57095528d38d6ac66f405b869a0635236ed23"
+      "bytes": 27135,
+      "sha256": "3bc9014abfbdaf4b3a74b4d9c4161d705087b30fa4173335ed8d8ac10a5aeb4a"
     },
     {
       "path": "src/lib/fallback-coach.ts",

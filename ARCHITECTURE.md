@@ -281,6 +281,15 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 Radio pages, theory, lessons, all question presentation and practice use seven public catalogs in `public/radio-locales/`. Native embeds the same catalogs. Official English protocol utterances and the exact English language-exercise answer options remain unchanged. Original Polish UKE wording is available on request. See `docs/radio-i18n.md`.
 
 - `src/app/radio/LocalTranscriptEntry.tsx` - English transmission entry: native on-device PTT and separately labelled typed checking, with model-unavailable fallback.
+- `src/app/radio/FreeSpeechPractice.tsx` - Free-practice dock: provisional on-device draft, eight session-only rows, typed fallback,45second hold, Clear and actual PTT release/cancel ownership.
+- `src/app/radio/FreeSpeechPractice.test.tsx` - Actual rendered dock/handle regressions for off/DSC gating, no model, hold limit, genuine release versus cancellation, Clear and seven-language labels.
+- `src/data/radio/free-speech-copy.ts` - Seven explicit interface adaptations for free radio speech practice; English radio transmissions stay separate.
+- `src/data/radio/free-speech-labels.ts` - Generated minimal source-label map; the existing radio catalogs carry all seven reviewed adaptations without shipping their full matrix in route chunks.
+- `src/data/radio/free-speech-copy.test.ts` - Resolves every real generated label through the actual aliases/catalog in each of seven languages and checks exact reviewed text.
+- `src/app/radio/audio/freeSpeechSession.ts` - Pure immutable eight-row/1000character in-memory transmission boundary, with no grading or persistence.
+- `src/app/radio/audio/freeSpeechSession.test.ts` - Bounded Unicode/session history and immutable empty-input regressions.
+- `src/app/radio/audio/speech-diagnostics.ts` - Closed speech lifecycle/outcome journal adapter; copies no transcript, audio or raw native errors.
+- `src/app/radio/audio/speech-diagnostics.test.ts` - Actual canonical journal validation, private-field rejection and fail-open logging regressions.
 - `src/app/radio/OriginalPolish.tsx` - Optional exact Polish UKE wording disclosure, outside localization reads.
 - `src/app/radio/audio/localRecognitionSession.test.ts` - ASR regressions: segmented final results, accumulated end, PTT release and stale/cancelled sessions.
 - `src/app/radio/audio/localRecognitionSession.ts` - Pure local ASR session transitions; submit only after end plus release.

@@ -3,6 +3,133 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { POSITIONS } from '../src/app/radio/pozycja/drillData';
 import { DIALOGUES } from '../src/app/radio/rozmowa/dialogues';
+import { FREE_SPEECH_COPY } from '../src/data/radio/free-speech-copy';
+import { CHANNELS, CH16_INDEX } from '../src/app/radio/symulator/radioModel';
+
+test('free radio PTT shows a provisional draft, preserves release and rejects cancelled or stale results', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const network: string[] = [];
+  page.on('request', request => { if (/\/(?:api|radio-locales|radio-audio)\//.test(request.url())) network.push(request.url()); });
+  await page.addInitScript(() => {
+    type Command = { type: string; action?: string; id?: string; events?: unknown[] };
+    const host = window as Window & { __REGATTA_APP_LANG__?: string; __REGATTA_NATIVE_ASR__?: boolean;
+      ReactNativeWebView?: { postMessage(value: string): void }; __speechTest?: { commands: Command[]; emit(status: string, extra?: Record<string, unknown>): void } };
+    host.__REGATTA_APP_LANG__ = 'en'; host.__REGATTA_NATIVE_ASR__ = true;
+    let id = '';
+    const commands: Command[] = [];
+    const emit = (status: string, extra = {}) => window.dispatchEvent(new CustomEvent('regatta:radio-asr', { detail: { id, status, ...extra } }));
+    host.__speechTest = { commands, emit };
+    host.ReactNativeWebView = { postMessage(value) {
+      const command = JSON.parse(value) as Command; commands.push(command);
+      if (command.type !== 'radio-asr') return;
+      if (command.action === 'availability') window.dispatchEvent(new CustomEvent('regatta:radio-asr', { detail: { id: command.id, status: 'availability', available: true } }));
+      if (command.action === 'start') { id = command.id!; emit('started'); emit('result', { transcript: 'SYNTHETIC RADIO DRAFT', isFinal: false }); }
+      // Tests deliver end/error explicitly after the actual release or cancel.
+    } };
+    localStorage.setItem('sternik.radio.onboard.v1', '1');
+  });
+  await page.route('**/__radio-speech-bundle', route => route.fulfill({ contentType: 'text/html', body: readFileSync(resolve('mobile/assets/radio-offline.html'), 'utf8') }));
+  await page.goto('/__radio-speech-bundle');
+  await page.context().setOffline(true);
+  const panel = page.getByTestId('free-speech-practice'), ptt = page.getByTestId('ptt');
+  await expect(panel).toBeVisible();
+  const state = () => page.evaluate(() => (window as Window & { __speechTest?: { commands: { type: string; action?: string; events?: unknown[] }[] } }).__speechTest!.commands);
+  await ptt.click();
+  expect((await state()).filter(c => c.type === 'radio-asr' && c.action === 'start')).toHaveLength(0);
+  const dial = await page.getByTestId('dial-center').boundingBox(); expect(dial).not.toBeNull();
+  await page.mouse.move(dial!.x + dial!.width / 2, dial!.y + dial!.height / 2); await page.mouse.down();
+  await expect(page.getByTestId('lcd')).toContainText('16'); await page.mouse.up();
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.ready.en);
+  const hold = async () => {
+    const box = await ptt.boundingBox(); expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2); await page.mouse.down();
+    await expect(ptt).toHaveAttribute('aria-pressed', 'true');
+  };
+  const emit = (status: string, extra: Record<string, unknown> = {}) => page.evaluate(({ status, extra }) => {
+    (window as Window & { __speechTest?: { emit(status: string, extra: Record<string, unknown>): void } }).__speechTest!.emit(status, extra);
+  }, { status, extra });
+  await hold();
+  await expect(page.getByTestId('free-speech-preview')).toHaveText('SYNTHETIC RADIO DRAFT');
+  await expect(page.getByTestId('free-speech-history')).toContainText('(0/8)');
+  await expect(page.getByTestId('free-speech-input')).toBeDisabled();
+  await page.mouse.up(); await page.mouse.move(1, 1);
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.working.en);
+  await emit('end', { transcript: 'SYNTHETIC FINAL TRANSMISSION' });
+  await expect(page.getByTestId('free-speech-preview')).toHaveText('SYNTHETIC FINAL TRANSMISSION');
+  await expect(page.getByTestId('free-speech-history')).toContainText('(1/8)');
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.recognized.en);
+
+  await hold(); await ptt.dispatchEvent('pointercancel'); await page.mouse.up();
+  await emit('end', { transcript: 'SYNTHETIC CANCELLED WORDS' });
+  await expect(page.getByTestId('free-speech-history')).toContainText('(1/8)');
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.cancelled.en);
+  await hold(); await page.mouse.up();
+  await page.getByTestId('free-speech-clear').click();
+  await emit('end', { transcript: 'SYNTHETIC STALE WORDS' });
+  await expect(page.getByTestId('free-speech-history')).toContainText('(0/8)');
+  await expect(page.getByTestId('free-speech-preview')).toHaveText(FREE_SPEECH_COPY.empty.en);
+
+  await hold(); await page.mouse.up(); await emit('end', { transcript: '' });
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.silent.en);
+  await expect(page.getByTestId('free-speech-history')).toContainText('(0/8)');
+  await hold(); await emit('error', { code: 'permission-denied' }); await page.mouse.up();
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.denied.en);
+
+  const input = page.getByTestId('free-speech-input');
+  await expect(input).toBeEnabled(); await expect(input).toHaveAttribute('maxlength', '1000');
+  for (let i = 0; i < 9; i++) { await input.fill(`SYNTHETIC TYPED ${i}`); await page.getByTestId('free-speech-submit').click(); }
+  await page.getByTestId('free-speech-history').click();
+  await expect(panel.locator('li')).toHaveCount(8); await expect(panel).not.toContainText('SYNTHETIC TYPED 0');
+  await expect(panel.locator('li').first()).toContainText('SYNTHETIC TYPED 8');
+  await page.getByTestId('free-speech-clear').click();
+  await expect(panel.locator('li')).toHaveCount(0);
+
+  // Use real channel buttons to reach DSC-only CH70. No product state injection.
+  for (let i = CH16_INDEX; i < CHANNELS.findIndex(channel => channel.num === '70'); i++) await page.getByTestId('key-up').click();
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.txInhibit.en);
+  const requests = (await state()).filter(c => c.type === 'radio-asr' && c.action === 'start').length;
+  await ptt.click(); expect((await state()).filter(c => c.type === 'radio-asr' && c.action === 'start')).toHaveLength(requests);
+  await page.getByTestId('radio-exit-app').click(); // Flush the real diagnostics bridge.
+  const privateBytes = JSON.stringify(await page.evaluate(() => ({
+    stored: { ...localStorage }, messages: (window as Window & { __speechTest?: { commands: unknown[] } }).__speechTest!.commands,
+  })));
+  expect(privateBytes).not.toContain('SYNTHETIC');
+  const diagnostics = (await state()).flatMap(command => command.type === 'diagnostic-events' ? command.events ?? [] : []) as { type: string; action: string; status?: string }[];
+  expect(diagnostics).toEqual(expect.arrayContaining([
+    expect.objectContaining({ type: 'radio.speech', action: 'result', status: 'recognized' }),
+    expect.objectContaining({ type: 'radio.speech', action: 'cancel', status: 'cancelled' }),
+    expect.objectContaining({ type: 'radio.speech', action: 'result', status: 'denied' }),
+    expect.objectContaining({ type: 'radio.speech', action: 'result', status: 'entered' }),
+  ]));
+  expect(network).toEqual([]);
+});
+
+for (const lang of ['pl', 'ru', 'en'] as const) test(`free radio typing stays offline and below the pinned faceplate in ${lang}`, async ({ page }) => {
+  await page.addInitScript(lang => {
+    (window as Window & { __REGATTA_APP_LANG__?: string }).__REGATTA_APP_LANG__ = lang;
+    localStorage.setItem('sternik.radio.onboard.v1', '1');
+  }, lang);
+  await page.route('**/__radio-typing-bundle', route => route.fulfill({ contentType: 'text/html', body: readFileSync(resolve('mobile/assets/radio-offline.html'), 'utf8') }));
+  await page.goto('/__radio-typing-bundle');
+  await page.context().setOffline(true);
+  for (const size of [{ width: 390, height: 740 }, { width: 1280, height: 800 }]) {
+    await page.setViewportSize(size);
+    const panel = page.getByTestId('free-speech-practice'), dock = page.getByTestId('radio-dock'), lcd = page.getByTestId('lcd');
+    await expect(panel.getByRole('heading', { name: FREE_SPEECH_COPY.title[lang], exact: true })).toBeVisible();
+    await expect(page.getByTestId('free-speech-input')).toHaveAccessibleName(FREE_SPEECH_COPY.typedLabel[lang]);
+    const a = await lcd.boundingBox(), b = await dock.boundingBox(); expect(a).not.toBeNull(); expect(b).not.toBeNull();
+    expect(a!.y + a!.height <= b!.y + 1 || a!.x + a!.width <= b!.x + 1).toBe(true);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth); expect(overflow).toBeLessThanOrEqual(1);
+    await page.getByTestId('free-speech-input').fill('SYNTHETIC OFFLINE TYPING');
+    await page.getByTestId('free-speech-submit').click();
+    await expect(page.getByTestId('free-speech-preview')).toHaveText('SYNTHETIC OFFLINE TYPING');
+    await expect(panel).toContainText(FREE_SPEECH_COPY.entered[lang]);
+    const target = await page.getByTestId('free-speech-clear').boundingBox(); expect(target!.height).toBeGreaterThanOrEqual(44);
+    await page.getByTestId('free-speech-clear').click();
+    await expect(page.getByTestId('free-speech-history')).toContainText('(0/8)');
+  }
+});
 
 // ============================================================================
 // Offline course (public/sw.js). The service worker used to precache the 14

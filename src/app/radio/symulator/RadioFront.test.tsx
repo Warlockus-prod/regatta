@@ -32,7 +32,7 @@ beforeEach(() => { vi.useFakeTimers(); vi.stubGlobal("React", React); vi.mocked(
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 type ButtonHandlers = React.ButtonHTMLAttributes<HTMLButtonElement>;
-function panelControls(model: RadioModel, realistic = false, compact = false) {
+function panelControls(model: RadioModel, realistic = false, compact = false, onPttCancel?: () => void) {
   const buttons = capture.buttons = new Map<string, ButtonHandlers>();
   // The test-only JSX wrapper delegates every element to React unchanged and
   // captures actual rendered button callbacks. Hooks/refs and reducers are real.
@@ -40,7 +40,7 @@ function panelControls(model: RadioModel, realistic = false, compact = false) {
   const dispatch = vi.fn((event: RadioEvent) => { state = radioReducer(state, event); });
   renderToStaticMarkup(<RadioFront s={state} model={model} realistic={realistic} compact={compact}
     dispatch={dispatch} holdPct={0} onDistressDown={() => {}} onDistressUp={() => {}}
-    onPttDown={() => dispatch({ type: "ptt-down" })} onPttUp={() => dispatch({ type: "ptt-up" })} clock="12:00" nextTxSec={0} />);
+    onPttDown={() => dispatch({ type: "ptt-down" })} onPttUp={() => dispatch({ type: "ptt-up" })} onPttCancel={onPttCancel} clock="12:00" nextTxSec={0} />);
   return { dispatch, state: () => state, button: (id: string) => {
     const button = buttons.get(id);
     if (!button) throw new Error(`Missing rendered control ${id}`);
@@ -50,6 +50,21 @@ function panelControls(model: RadioModel, realistic = false, compact = false) {
 const touch = (clientX = 50, clientY = 50) => ({ pointerType: "touch", pointerId: 1, isPrimary: true,
   clientX, clientY, currentTarget: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 100, bottom: 100 }) },
 } as unknown as React.PointerEvent<HTMLButtonElement>);
+
+it("keeps a cancelled free PTT separate from a genuine release on both faceplates", () => {
+  for (const model of ["M330", "M323"] as const) {
+    const cancelled = vi.fn();
+    const panel: ReturnType<typeof panelControls> = panelControls(model, false, true, () => { cancelled(); panel.dispatch({ type: "ptt-up" }); });
+    const ptt = panel.button("ptt");
+    for (const event of ["onPointerCancel", "onPointerLeave", "onBlur"] as const) {
+      ptt.onPointerDown!(touch()); expect(panel.state().ptt).toBe(true);
+      (ptt[event] as () => void)(); expect(panel.state().ptt).toBe(false);
+    }
+    expect(cancelled).toHaveBeenCalledTimes(3);
+    ptt.onPointerDown!(touch()); ptt.onPointerUp!(touch());
+    expect(panel.state().ptt).toBe(false); expect(cancelled).toHaveBeenCalledTimes(3);
+  }
+});
 
 it("cancels a captured touch released outside16/C without requiring pointerleave", () => {
   const journal = createDiagnosticJournal({ now: () => 0 });

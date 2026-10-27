@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- P07 free-radio speech practice is implemented in source with session-only bounded text, actual on-device bridge lifecycle outcomes and an explicit typed fallback. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the source/browser/native gates. A synthetic bridge is not a physical microphone check. TestFlight68 stays delivered; no69 upload is implied. P04 fleet recovery remains open and Ads/eSail stay background extras.
+
 - Exactf3 loader observation passes official31-check/121-file install proof and actual Pro asset/decode/model/frame callbacks,2.811s to the submitted frame and native Race-hub Back. `docs/audits/2026-10-27/checks/scene-loader-nativef3.json` owns this qualified scope; no repaired cause, full native acceptance or69delivery is claimed. P04 weak-wind fleet recovery remains open; continue the independent main P07 radio speech-practice work without treating Ads/eSail as completion.
 
 - Official8e Simulator observation produced an actual race frame21.7s after countdown and a running clock. Its31package checks and121installed-file matches are recorded separately from the held f4 failure. One successful observation does not establish a repaired cause; repeat cold startup and use the actual asset/decode callbacks in the following checkpoint. Keep69 unpublished until its exact installed gates pass.

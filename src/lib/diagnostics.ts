@@ -46,6 +46,7 @@ type PreferenceValues = {
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
 export type DiagnosticInput = Common & (
+  | { type: "radio.speech"; action: "availability" | "request" | "started" | "release" | "result" | "cancel" | "clear"; input: "voice" | "typed"; status?: "recognized" | "entered" | "silent" | "cancelled" | "unavailable" | "denied" | "error"; available?: boolean }
   | { type: "ads.preview"; action: "open" | "scene" | "camera" | "reset" | "orbit" | "show" | "hide" | "clear"; scene?: AdsScene; camera?: AdsCamera; fov?: AdsFov; placement?: AdsPlacement }
   | { type: "radio.command"; action: Member<typeof RADIO_DIAGNOSTIC_ACTIONS>; model?: "M330" | "M323"; screenFrom?: RadioScreen; screenTo?: RadioScreen; direction?: 1 | -1; index?: number; volume?: number; squelch?: number; channel?: number; power?: boolean }
   | { type: "radio.gesture"; action: "start" | "rotate" | "tap" | "hold" | "cancel" | "ignored"; control: "dial" | "16c" | "ptt" | "distress" | "aqua"; steps?: number }
@@ -108,6 +109,7 @@ const preferenceChecks: Record<keyof PreferenceValues, Check> = {
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };
 const attempt = numeric(0, 100000, true);
 const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Record<string, Check> }> = {
+  "radio.speech": { required: ["action", "input"], fields: { action: enumeration(["availability", "request", "started", "release", "result", "cancel", "clear"]), input: enumeration(["voice", "typed"]), status: enumeration(["recognized", "entered", "silent", "cancelled", "unavailable", "denied", "error"]), available: boolean } },
   "ads.preview": { required: ["action"], fields: { action: enumeration(["open", "scene", "camera", "reset", "orbit", "show", "hide", "clear"]), scene: enumeration(ADS_SCENES), camera: enumeration(ADS_CAMERAS), fov: enumeration(ADS_FOVS), placement: enumeration(ADS_PLACEMENTS) } },
   "radio.command": { required: ["action"], fields: { action: enumeration(RADIO_DIAGNOSTIC_ACTIONS), model: enumeration(["M330", "M323"]), screenFrom: enumeration(RADIO_DIAGNOSTIC_SCREENS), screenTo: enumeration(RADIO_DIAGNOSTIC_SCREENS), direction: enumeration([-1, 1]), index: numeric(0, 3, true), volume: numeric(0, 20, true), squelch: numeric(0, 10, true), channel: numeric(1, 88, true), power: boolean } },
   "radio.gesture": { required: ["action", "control"], fields: { action: enumeration(["start", "rotate", "tap", "hold", "cancel", "ignored"]), control: enumeration(["dial", "16c", "ptt", "distress", "aqua"]), steps: numeric(-1000, 1000, true) } },

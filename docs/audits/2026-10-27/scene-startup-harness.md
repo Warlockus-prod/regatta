@@ -43,3 +43,9 @@ The second official8e cold process launch uses Pro. Countdown126343ms, renderer1
 The following observer wraps each actual GLTF loader only once and retains its request, parse input, decoder selection, cache, progress callback and original error identity. It adds only closed asset/decode begin/ready/error events. A pending callback cannot become ready through observation. Seven focused tests and the complete1679web/589native suites pass, with root/native types, lint, map/dash, server/socket and installed-package freshness. Production remains110chunks/6.48MiB under the existing6.5MiB budget. [Source proof](checks/scene-loader-source.json) lists exact inputs and private log hashes. No UI copy changed, no new network request was added, and no physical result emission or69delivery is claimed.
 
 Exactf3 now has an official31-check/121-file install with all four existing storage keys preserved. Actual Pro callbacks report asset begin135413ms, decode begin136108/ready136111ms, asset ready136113ms, model ready137081ms and submitted frame137084ms,2.811s after countdown. The screenshot shows the yacht and0:03.6 clock. Menu and Back return to the native Race hub. [Installed callback proof](checks/scene-loader-nativef3.json) keeps the exact scope: observation is accepted; the previous cause, retained26.5/full release acceptance and Apple delivery are not claimed.
+
+[Exactf3 cloud proof](checks/scene-loader-browserf3.json) verifies the artifact
+digest and all78cases on their first attempt, with no flaky/skipped/unexpected
+case. Image publication and production deployment jobs were skipped. This
+proof belongs to thef3 observer source and does not accept following radio
+speech changes or establish a cause fix for the historicalf4 startup failure.

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Add free radio transmission practice beside the pinned radio: provisional on-device English recognition, a clearly labelled offline typed fallback and eight session-only transmissions. Cancel/Clear discard pending text; actual outcomes enter the bounded diagnostic journal without words or audio. Source, installed microphone and delivery acceptance remain separate.
+
 - Verify actual yacht asset/decode callbacks and native Back in exactf3 Simulator observation. Keep the earlier startup cause and full release acceptance open; no69 upload is claimed.
 
 - Distinguish actual yacht asset reading from GLTF decoding in the bounded startup journal. Preserve loader callbacks and the real first-frame gate. Official8e has one successful installed race startup; the earlier f4 failure remains unexplained and69 is not delivered.
