@@ -40,8 +40,9 @@ The [input-bound proof](checks/physical-response-source.json) keeps all source
 hashes and full54research rows. Eleven response contracts and38fleet tests
 pass, including the unchanged18full five-boat zero-contact journeys and the
 two actual short weak easy-early/hard-ordinary cases. Full source passes1783web
-cases in173files and589native cases in79suites. Exact-commit cloud acceptance
-and future installed physical acceptance remain separate.
+cases in173files and589native cases in79suites. Its exact [cloud UI proof](checks/physical-response-browser8ccd.json)
+has82first-attempt cases; that does not make the following fleet RED result
+green or establish installed physical acceptance.
 
 The final54current-ID/difficulty sweep finishes53whole fleets, with45strict
 clean cases and zero mark-contact cases. Nine moving hard early starts have
@@ -111,6 +112,13 @@ cases retain hull encounters;75cases meet the separate strict clean criterion.
 The original18five-boat zero-contact journeys also pass unchanged. These are
 specified autonomous conditions, not all seeds, arbitrary opposite/stopped/
 missed-gate starts, human Pro, guidance or actual installed physical racing.
+
+Exacte414 now passes both push/PR CI and its downloaded, digest-verified
+[82first-attempt browser gate](checks/physical-bot-stability-browser-e414.json).
+There are no flaky, skipped, unexpected or report-error cases. Image
+publication, VPS deployment and production E2E stay skipped on this non-main
+ref. These are preserved-UI journeys; they do not call the unwired physical
+fleet or replace its remaining control/judging/recording/installed gates.
 
 ## Current next gates
 

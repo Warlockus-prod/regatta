@@ -1,0 +1,29 @@
+{
+  "source": "8ccd9b0b94681c1f801ea6b4cc1846e9ee3ab785",
+  "run": 40476450027,
+  "artifact": 12720559889,
+  "artifactBytes": 1227126,
+  "artifactSha256": "3d79698a71339c5eb3724462960b8955da49d209b864ff13ac23770bf7967307",
+  "checkedAt": "2026-10-27T09:45:47.239025+00:00",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "attempts": {
+    "totalTests": 82,
+    "oneAttemptEach": true
+  },
+  "reportErrors": 0,
+  "jobs": {
+    "Build, checks + pre-deploy E2E": "success",
+    "Build immutable deployment images": "skipped",
+    "Playwright E2E on prod": "skipped",
+    "Deploy to VPS": "skipped"
+  },
+  "publication": "Image publication, VPS deploy and production E2E jobs skipped on non-main ref.",
+  "scope": "Existing UI gate for exact8ccd. Physical API is unwired; the preserved53/54 autonomous fleet result remains RED. Later stable bot navigation is excluded."
+}

@@ -1,6 +1,6 @@
 # Free radio speech practice
 
-Owner-approved P07 in the [completion program](../2026-10-26/completion-program.md). This is a main product task. Ads/eSail remain background extras; P04 weak-wind fleet recovery stays open independently.
+Owner-approved P07 in the [completion program](../2026-10-26/completion-program.md). This is a main product task. Ads/eSail remain background extras; P04 physical activation stays open independently.
 
 ## Intended behavior
 
@@ -47,7 +47,7 @@ bridge cases explicitly test actual React lifecycle and diagnostic/privacy
 contracts, not the physical microphone or OS model.
 
 No69 upload/Apple write has occurred. Delivered68 and the frozenf3 observation
-binary are unchanged. Main P04 weak-wind fleet recovery stays open; Ads/eSail
+binary are unchanged. Main P04 physical activation stays open; Ads/eSail
 remain background extras.
 
 ## Checkpoint916 evidence
@@ -158,3 +158,23 @@ visible; final window is full Hub, portrait/Fit and Capture Keyboard OFF. The
 pending human text-entry request is superseded by these actual observations.
 This does not prove a real PTT hold/microphone/model result, installed source89
 monotonic reset or full69acceptance. No Apple writes occurred.
+
+## Following retained89 typed entry and Exit
+
+The [retained89 proof](checks/radio-typed-native89.json) rehashes all121files
+after actual PL Training -> free radio -> typed Add -> Exit -> Training on
+iOS26.5. A nonempty history row and1/8session count are visible, and the closed
+journal records typed entered/accepted. Keyboard forwarding produced different
+synthetic characters from the requested test string, so exact-string typing
+is not asserted. Screenshots and raw journal stay private.
+
+The actual Reset exercise settings button was not exercised. Fine scrolling
+and Tab navigation were unreliable through Device Hub; neither Clear nor Exit
+is substituted for Reset. Powered DIAL, actual PTT/model recognition and full
+native69acceptance remain open. Both preserved devices were left at native
+Training, with full Hub/Fit and Capture Keyboard OFF. No device was erased,
+package replaced or Apple state changed.
+
+Exacte414 separately passes82first-attempt [preserved-UI browser cases](checks/physical-bot-stability-browser-e414.json)
+and push/PR CI. Its radio HTML remains identical to89, but this does not turn
+an older exact native package observation into a current full release gate.

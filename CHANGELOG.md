@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Verify exact e414 push/PR CI and82first-attempt browser cases. Retained native89 also confirms typed radio Add and Exit; actual Reset and microphone recognition remain open. No69 delivery is claimed.
+
 - Keep physical bots clear of missed rounding gates and stop rearward turns from alternating while steerage is weak. All90specified autonomous fleets now finish, with no mark contact;15moving early hard fleets retain hull encounters. Human guidance and physical activation remain separate gates.
 - Move dated completion checkpoints out of the agent entry point into a linked history, keeping the current plan and delivery status easy to find.
 

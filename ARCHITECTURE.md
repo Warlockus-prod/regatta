@@ -1745,7 +1745,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `src/lib/race-physical-response.ts` - physical-only atomic circular hull/mark/water constraint, initial recovery excluded from travel, one common impact clock, bounded stops/closing loss and immutable actual segments; no live caller outside the unwired fleet.
 - `src/lib/race-physical-response.test.ts` -11contracts for tunnelling/later/tangent/escape/coupled recovery, conservative wall constraints, actual contact/gate truth, finished exclusion and atomic rejection.
-- `docs/audits/2026-10-27/physical-response-harness.md` - ADR-0013 development checkpoint and explicit RED early-hard recovery deadline; not physical activation or delivery acceptance.
+- `docs/audits/2026-10-27/physical-response-harness.md` - ADR-0013 development checkpoint, preserved8ccd RED deadline and following90specified full-fleet finishes; not physical activation or delivery acceptance.
 - `docs/audits/2026-10-27/checks/physical-response-source.json` - input-bound1783web/589native source checks and all54research rows, retaining53full finishes and actual contact counter semantics.
 
 - `docs/audits/2026-10-27/checks/physical-luff-browser-d580.json` - exactd58082first-attempt downloaded/digest-verified UI gate, publication/deploy skipped, following response/physical activation excluded.
@@ -1753,3 +1753,6 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/physical-bot-stability-source.json` - exact-input109targeted/1789web/589native local gate and90autonomous fleet rows, with qualified retained hull contacts and no physical activation.
 - `docs/audits/2026-10-27/completion-checkpoint-history.md` - verbatim dated checkpoint archive moved from AGENTS afterfa42626; preserves earlier scope/failures without presenting them as current state.
+- `docs/audits/2026-10-27/checks/physical-response-browser8ccd.json` - exact8ccd82first-attempt UI gate, separate from its retained RED autonomous-fleet result.
+- `docs/audits/2026-10-27/checks/physical-bot-stability-browser-e414.json` - exacte41482first-attempt digest-verified UI report and successful push/PR CI; the physical API remains unwired, publication/deploy skipped.
+- `docs/audits/2026-10-27/checks/radio-typed-native89.json` - retained26.5/121matching installed files, actual nonempty typed Add and native Exit, with exact-string/tool qualification and native Reset/microphone still open.

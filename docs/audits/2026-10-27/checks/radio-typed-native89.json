@@ -1,0 +1,55 @@
+{
+  "source": "89ced947ec6bca2580089362211c0ad17e763b8f",
+  "checkedAt": "2026-10-27T09:45:47.239025+00:00",
+  "installedHashCheck": {
+    "checkedAt": "2026-10-27T09:39:21.320523+00:00",
+    "source": "89ced947ec6bca2580089362211c0ad17e763b8f",
+    "files": 121,
+    "allMatch": true
+  },
+  "runtime": "Retained iOS26.5 Simulator, PL UI",
+  "observed": [
+    "Actual native Training entry into free radio practice",
+    "Nonempty typed entry added to session, visible1/8 count and history row",
+    "Actual Exit returns to native Training and bottom navigation"
+  ],
+  "canonicalSpeechOutcomes": [
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "clear",
+      "input": "typed",
+      "outcome": "noop",
+      "reason": "unchanged"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "clear",
+      "input": "typed",
+      "outcome": "noop",
+      "reason": "unchanged"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "result",
+      "input": "typed",
+      "outcome": "accepted",
+      "status": "entered"
+    }
+  ],
+  "privateImageSha256": {
+    "radio89-before-reset26.png": "2dec1d496492851e4d81ed6fee84d9aa684a4ced6f64b233a65dbeb27163d310",
+    "radio89-typed-exit26.png": "01896d6156425d5e31872e2c84a16a63d5e87062c6e6bdc1f5ecf1e09b410a0a"
+  },
+  "uiToolQualification": "Capture Keyboard produced different synthetic characters from the requested test string. Typed-entered outcome and nonempty row were observed; exact-string typing is not asserted. Fine scrolling and Tab navigation were unreliable, so the actual Reset exercise settings button was not exercised. Both devices were left at native Training, with full Hub/Fit and Capture Keyboard OFF.",
+  "notAccepted": [
+    "Actual native89 Reset exercise settings and stale-result disposal",
+    "Powered DIAL or real PTT hold on this device",
+    "Microphone/on-device recognition or cause of unavailable recognition",
+    "Current e414 native package acceptance or69 delivery"
+  ],
+  "physicalMicrophoneAccepted": false,
+  "appleWrites": 0
+}
