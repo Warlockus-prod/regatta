@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Vector3 } from "three";
 import { ADS_CAMERAS, ADS_FOVS } from "../../lib/ads-preview";
 import { ADS_CAMERA_MAX_DISTANCE, adsCameraPose, rotateAdsCamera } from "./camera";
-import { adsCopy } from "./copy";
+import { adsCopy } from "../../lib/ads-copy";
 
 describe("Ads camera inspection", () => {
   it.each(ADS_CAMERAS)("fits finite %s poses at portrait/wide aspects and each declared lens", view => {

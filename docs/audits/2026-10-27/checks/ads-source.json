@@ -127,5 +127,20 @@
     "nativeTypes": true,
     "nativeChangedScreens": 7,
     "productionBuild": true
+  },
+  "nativeExportCorrection": {
+    "failedCandidate": "bd9ee5b39d9ef4b8750d2e67baad0fcf2d86f476",
+    "error": "Metro cannot resolve feature-folder copy outside watch roots",
+    "correction": "Shared pure copy moved to existing src/lib boundary",
+    "sourceWebCases": 1640,
+    "sourceNativeCases": 589,
+    "nativeSuites": 79,
+    "nativeRunInBand": true,
+    "nativeTimeoutMs": 5000,
+    "rootBuild": true,
+    "types": true,
+    "nativeLintWarnings": 0,
+    "offlineHTMLUnchanged": true,
+    "actualNativeExport": "pending corrected freeze"
   }
 }

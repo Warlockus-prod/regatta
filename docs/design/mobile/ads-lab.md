@@ -69,3 +69,13 @@ The new60s browser case retains its25s scene deadline and still needs the exact
 source cloud run. Installed native Settings/Back/gesture and Apple delivery
 remain pending. Provider-specific callbacks are a later task by owner choice.
 No new TestFlight delivery or real SDK signal is claimed.
+
+## Native export correction
+
+The first69 candidatebd9 failed actual Release Simulator packaging: Metro
+could not resolve the new feature-folder copy import outside its explicit
+watch roots. Types and Jest did not establish native export readiness. Pure
+seven-language copy now lives at `src/lib/ads-copy.ts`, inside the existing
+shared library watch boundary. No whole-Next-tree watch expansion, translation
+duplication or SDK change is introduced. The failed source/log is preserved;
+exact native/browser gates must repeat for the corrected source.

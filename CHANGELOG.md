@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Keep Ads translations in the existing shared pure-library boundary so Metro can bundle native Settings and the Ads route. The first69 source candidate stopped during Simulator export and was never uploaded.
+
 - Prepare1.7.0(69) after an independent read-only Apple check confirmed maximum68 and no69. Ads remains a local inspection place; installed, exact browser and delivery gates are pending.
 
 - Keep frozen legacy trajectory checks portable across Mac/Linux: only heel/leeway allow12-decimal precision after observed5e-15 runtime differences. All remaining force-state fields and trim stay exact; motion comparisons retain their existing precision. The frozen fixture and production engine are unchanged.

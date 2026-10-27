@@ -1,4 +1,4 @@
-import { adsCopy } from "../../src/features/ads-lab/copy";
+import { adsCopy } from "../../src/lib/ads-copy";
 import { useI18n } from "../src/i18n/context";
 import { SimWebView } from "../src/simulator/SimWebView";
 

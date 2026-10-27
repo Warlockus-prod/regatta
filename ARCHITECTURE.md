@@ -1684,7 +1684,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `src/features/ads-lab/AdsCameraRig.tsx` - shared scoped OrbitControls binding, camera presets and actual directional button movement.
 - `src/features/ads-lab/camera.ts` - pure camera fitting and horizontal/vertical rotation geometry.
 - `src/features/ads-lab/camera.test.ts` - declared lens/viewport fitting, directional geometry and seven-language copy coverage.
-- `src/features/ads-lab/copy.ts` - seven-language lab instructions/statuses; owner-requested Ads name and fixed test-card IDs remain technical labels.
+- `src/lib/ads-copy.ts` - seven-language lab instructions/statuses; owner-requested Ads name and fixed test-card IDs remain technical labels.
 - `src/features/ads-lab/TestPlacements.tsx` - three local front-facing test cards with explicit texture disposal; no ad network/SDK.
 - `docs/design/mobile/ads-lab.md` - requested scope, actual evidence and SDK/release limits.
 

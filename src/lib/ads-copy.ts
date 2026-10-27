@@ -1,4 +1,4 @@
-import { words } from "../../lib/product/catalog";
+import { words } from "./product/catalog";
 
 export const adsCopy = {
   title: words("Ads", "Ads", "Ads", "Ads", "Ads", "Ads", "Ads"),

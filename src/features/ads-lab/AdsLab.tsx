@@ -9,7 +9,7 @@ import { RegattaScene } from "../simulator-3d/RegattaScene";
 import { NEUTRAL_YACHT } from "../simulator-3d/types";
 import { AdsCameraRig } from "./AdsCameraRig";
 import { TestPlacements } from "./TestPlacements";
-import { adsCopy } from "./copy";
+import { adsCopy } from "../../lib/ads-copy";
 import type { AdsCameraCommand, AdsCameraDirection } from "./camera";
 import styles from "./AdsLab.module.css";
 

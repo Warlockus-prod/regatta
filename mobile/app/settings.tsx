@@ -39,7 +39,7 @@ import {
 } from '../src/persistence/units';
 import { useControlPrefs } from '../src/persistence/controls';
 import { clearNativeRegattaData } from '../src/persistence/clear-native-data';
-import { adsCopy } from '../../src/features/ads-lab/copy';
+import { adsCopy } from '../../src/lib/ads-copy';
 import { recordNativeDiagnostic } from '../src/diagnostics/journal';
 
 const SUPPORT_EMAIL = 'support@gtframe.io';
