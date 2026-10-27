@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "1fcbb1fd76c2",
-  "sha256": "8efbe0844892c76bf9528b522ef1225857a24b593df4a9bb0a7e7bd957a9fd93",
-  "bytes": 6587524,
+  "version": "fadcded59889",
+  "sha256": "5cf01c06ef4643102391181e361fb6dac96942c87b4fbdf058db991592aec9e7",
+  "bytes": 6588493,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -709,6 +709,7 @@
     "src/features/simulator-3d/physics/targets.ts",
     "src/features/simulator-3d/physics/useSailingSim.ts",
     "src/features/simulator-3d/sails/geometry.ts",
+    "src/features/simulator-3d/scene-diagnostics.ts",
     "src/features/simulator-3d/types.ts",
     "src/features/simulator-3d/ui/WindDial.tsx",
     "src/features/simulator-3d/ui/WindReadout.tsx",
@@ -1143,8 +1144,8 @@
     },
     {
       "path": "src/features/race-scene/RaceScene.tsx",
-      "bytes": 14724,
-      "sha256": "430c5dc2f234457c1ea47042daad1e699ab636da0903460b51a573093917897f"
+      "bytes": 14874,
+      "sha256": "f9c0a3cc6b1d1670e7baa9ff63c0006c47c02012e0ab113e6e1df101185533c1"
     },
     {
       "path": "src/features/race-scene/SailingEnvironment.tsx",
@@ -1188,8 +1189,8 @@
     },
     {
       "path": "src/features/race-scene/renderer.ts",
-      "bytes": 923,
-      "sha256": "d67ff1e74b04a01a42afb79f9b13895e19aa6af5d7f63693407a04f0a9af4437"
+      "bytes": 1433,
+      "sha256": "edb342776b183c5bd6ab7c9753fd8bf233f25126c6b50feefa7f67bc1e2469a2"
     },
     {
       "path": "src/features/race-scene/shore.ts",
@@ -1353,8 +1354,8 @@
     },
     {
       "path": "src/features/simulator-3d/SceneStartup.tsx",
-      "bytes": 2230,
-      "sha256": "a8e2d912fa49c5f4b8dc15ecfa4056b211bc8647792fb6ae6ae6a4b45461e2b1"
+      "bytes": 2733,
+      "sha256": "f96b0d1b56ec215818e43669c880b17a7f3fef9c1fd16c6aaf5777cc245bf09d"
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.module.css",
@@ -1435,6 +1436,11 @@
       "path": "src/features/simulator-3d/sails/geometry.ts",
       "bytes": 5458,
       "sha256": "3932a539438cdc851d5c5553cb723bbde97fff1d5c6a147fa97f14083000f34d"
+    },
+    {
+      "path": "src/features/simulator-3d/scene-diagnostics.ts",
+      "bytes": 1213,
+      "sha256": "733276ad59c9405e726cc1b3001e7399d18015e4f8a781c9938d3d6eebea72d1"
     },
     {
       "path": "src/features/simulator-3d/types.ts",
@@ -1793,8 +1799,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 26292,
-      "sha256": "e6faeebb963639fc7ea2b7f52c326f8d58c176a09757cce54d48d86640e1a444"
+      "bytes": 26499,
+      "sha256": "94f75793763b006dcaa11fd77e223ac4fed2db34ffa3c0c6ad79cd68f6826778"
     },
     {
       "path": "src/lib/fallback-coach.ts",

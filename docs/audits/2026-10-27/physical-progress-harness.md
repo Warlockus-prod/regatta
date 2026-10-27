@@ -34,3 +34,7 @@ The eight exact research files, base commit and SHA256manifest are preserved out
 2. Keep the failing full-fleet cases and original course limits. Add path/event observations to distinguish late progress from repeated gate misses or contact stalls.
 3. Accept every profile/condition/early-start journey before integrating hardware contacts, judge/guidance/recorder and new result emission.
 4. Re-run legacy numerical/server, complete source/browser and exact installed gates, then freeze a separate release checkpoint. TestFlight 68 remains the independently delivered baseline; 69 is a separate prepared candidate until its delivery gates actually finish.
+
+## Exact cloud follow-up
+
+[Cloud proof](checks/physical-progress-browser.json): safe non-main run40433627140 on6fcf passes all78browser cases with one attempt each and no flaky/skipped/unexpected outcomes. Artifact12703334346 matches SHA25642f2e3bf189f190b93c1289580f94139f84fc45583702db92ce44dbe22dacc4f. Publication, deployment and production jobs were skipped. This accepts that source checkpoint and prior browser bundle. The later scene-stage probe and fresh native69 startup are separate gates.

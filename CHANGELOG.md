@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Hold candidate69 after its fresh installed race failed to produce a first3Dframe. Add bounded scene/renderer/model/frame observations to locate the delay; preserve the actual first-frame gate and existing renderer/physics policy. This observation checkpoint does not claim a startup fix or delivery.
+
 - Add an unwired physical progression boundary with canonical metric gates, ordered rounding and collision-independent finish credit. Preserve the failed fleet research separately; physical races remain disabled until actual fleet, guidance, recorder and installed acceptance pass.
 
 - Закреплен основной порядок завершения продукта: Ads и исследование eSail учитываются отдельно и не закрывают готовность гонок, радио и обучения.

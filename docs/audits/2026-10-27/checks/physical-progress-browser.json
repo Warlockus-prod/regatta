@@ -1,0 +1,17 @@
+{
+  "run": "40433627140",
+  "source": "6fcf0d557f599c6378446b4803d03a0f3c2ce21c",
+  "artifact": 12703334346,
+  "sha256": "42f2e3bf189f190b93c1289580f94139f84fc45583702db92ce44dbe22dacc4f",
+  "stats": {
+    "total": 78,
+    "expected": 78,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "publication": "skipped",
+  "scope": "Exact6fcf pure physical progress checkpoint and prior bundled runtime. Does not accept the later scene startup probe, physical fleet activation or native69 delivery."
+}

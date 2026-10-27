@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "source": "f4a681d0ef95cd72a4a5ad1ed7acfd9de2b50c6a",
+  "status": "HELD_AT_NATIVE_G2",
+  "ourUploadPerformed": false,
+  "archive": {
+    "passed": 36,
+    "failed": 0
+  },
+  "ipa": {
+    "passed": 38,
+    "failed": 0,
+    "bytes": 30570648,
+    "sha256": "d0c608ee8914adbad3f746baeeacc42f9a21c26c5d6ce6e97ea72a2bbd70dd1b"
+  },
+  "ci": {
+    "run": 40427977588,
+    "cases": 78,
+    "attemptsPerCase": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "publication": "skipped"
+  },
+  "fresh27": {
+    "device": "F2F73F07-9104-42EB-B86B-E6DA2325CADF",
+    "filesMatching": 121,
+    "Home": true,
+    "nativeRaceHub": true,
+    "gameMenuBriefing": true,
+    "firstGameFrame": false,
+    "clockAdvanced": false,
+    "landscapeResolvedLoading": false,
+    "pauseResponded": true,
+    "exitToGameMenu": true,
+    "BackToNativeRaceHub": true,
+    "rootCause": "unknown"
+  },
+  "observedSceneReadyEventsBeforePause": 0,
+  "ordinaryUIResponded": true,
+  "rootCause": "unknown",
+  "preservedDirectoryBasename": "native-release69-f4-never-uploaded",
+  "rawLogsKeptPrivate": true
+}

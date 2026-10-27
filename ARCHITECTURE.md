@@ -1664,8 +1664,15 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 ## P04 physical motion boundary
 
+- `src/features/simulator-3d/scene-diagnostics.ts` - finite actual startup-stage observations and binary viewport state, with safe installed-route mapping and fail-open logging.
+- `src/features/simulator-3d/scene-diagnostics.test.ts` - actual canonical batch acceptance, no URL/query/dimensions, logging failures and rejected unknown stage/viewport fields.
+- `src/features/race-scene/renderer.test.ts` - unresolved initialization, actual constructor/init errors, preserved backend policy and viewport classification.
+- `docs/audits/2026-10-27/scene-startup-harness.md` - native69 fresh startup gate failure, private preserved candidate and ordered observation/repair gate.
+- `docs/audits/2026-10-27/checks/scene-probe-source.json` - exact observation-source inputs,1672web/589native gates, preserved failed size report and restored budget; installed diagnosis/repair still pending.
+- `docs/audits/2026-10-27/checks/scene-startup69-held.json` - exact held source/IPA, qualified older checks, responsive UI and unproven cause.
 - `src/lib/race-physical-progress.ts` - canonical immutable metric gates and ordered progression from propelled endpoints; currently unwired, rejects invalid contexts/states before mutation.
 - `src/lib/race-physical-progress.test.ts` - all profiles, gate order/direction/extensions, countdown, collision/recovery independence, finish idempotence and invalid-state atomicity.
+- `docs/audits/2026-10-27/checks/physical-progress-browser.json` - exact6fcf safe non-main cloud gate, verified artifact digest and78first-attempt browser cases; publication/deploy skipped.
 - `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
 - `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
 - `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
