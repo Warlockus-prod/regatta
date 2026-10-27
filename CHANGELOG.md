@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prepare actual physical hull/mark contact observations before separation. Align bot predictions with water limits and their last steering commands; fit start recovery circles around the real line hardware. Eighteen five-boat journeys pass without observed envelope contact. This source remains unwired pending hardware response, judging, guidance, recording and installed gates.
+
 - Wait for a complete responsive radio faceplate before checking its unchanged screen bounds in browser acceptance. Preserve the exact89 report with one flaky case and its qualified native entry/Exit proof; they do not establish full delivery readiness.
 
 - Reset free radio practice into a fresh private session even when the clock repeats. Clear prior transmissions and pending recognition, then return the task dock to its beginning. Following exact acceptance remains separate from frozen916.

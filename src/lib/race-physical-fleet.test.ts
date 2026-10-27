@@ -74,6 +74,7 @@ describe("explicit physical fleet transaction", () => {
     const result = stepPhysicalRaceFleet({ ...f, entries: f.entries.map(entry => ({ ...entry, input: stopped })) })!;
     expect(result.boats[0]).toEqual(done); expect(result.motions.has("done")).toBe(false);
     expect(result.boats[1].pos.y).toBeLessThan(1050);
+    expect(result.contacts).toEqual([expect.objectContaining({ kind: "hull", boatId: "a", otherBoatId: "b", firstHitFraction: 0 })]);
     expect(result.motions.get("a")!.to).toEqual(a.pos);
     expect(result.boats[1].started).toBeUndefined(); expect(result.progress.every(p => p.event === null)).toBe(true);
   });
@@ -102,20 +103,26 @@ function sail(profile: PhysicalRaceProfile, strength: number, early: boolean) {
     heading: i % 2 ? 315 : 45, speed: early ? 4 : 0 }));
   let navigation: ReadonlyMap<string, PhysicalBotState> | undefined;
   const events = new Map(boats.map(b => [b.id, [] as string[]]));
+  const contacts = new Set<string>();
   for (let step = 1; step <= definition.maxRaceSeconds * 30 && boats.some(b => b.lapDone < 2); step++) {
     const raceTime = step / 30, wind = windAt(raceTime, 3);
     const next = stepPhysicalRaceFleet({ ...frame(boats, profile), navigation, course, context, raceTime,
       windDir: wind.dir, gust: wind.gust, windStrengthMul: strength });
     if (!next) throw new Error("A valid physical fleet frame was rejected");
+    for (const hit of next.contacts) contacts.add(hit.kind === "hull" ? `${hit.boatId}:${hit.otherBoatId}` : `${hit.boatId}:mark${hit.markIndex}`);
     for (const p of next.progress) if (p.event) events.get(p.boatId)!.push(p.event);
     boats = next.boats; navigation = next.navigation;
   }
-  return { boats, events, definition };
+  return { boats, events, contacts, definition };
 }
 for (const profile of ["short", "medium", "long"] as const) for (const strength of [.65, 1, 1.3]) for (const early of [false, true]) {
-  it(`${profile}: five actual boats finish every ordered gate in wind x${strength}, early=${early}`, () => {
+  it(`${profile}: five actual boats finish every ordered gate in wind x${strength}, early=${early}`, async () => {
+    // Let the worker deliver its report between CPU-bound journeys. Keeping
+    // the whole file in microtasks can starve Vitest's60s RPC acknowledgement.
+    await new Promise<void>(done => setImmediate(done));
     const result = sail(profile, strength, early);
     expect(result.boats).toHaveLength(5);
+    expect([...result.contacts]).toEqual([]);
     for (const b of result.boats) {
       expect(b.lapDone, b.id).toBe(2);
       expect(b.finishTime).toBeLessThan(result.definition.maxRaceSeconds);

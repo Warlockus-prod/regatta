@@ -1,5 +1,5 @@
 import { readRaceContext, type PhysicalRaceContext } from "./race-context";
-import { physicalCourseDefinition } from "./race-courses";
+import { physicalCourseWaterBounds } from "./race-courses";
 import { stepRaceBoatForces, type InputState, type RaceBoat, type RaceStepOptions, type Vec2 } from "./race-physics";
 import { advanceSailingHeading, sailingDisplacement, type SailingSteering } from "./sailing-kinematics";
 
@@ -58,11 +58,10 @@ export function stepPhysicalBoat(
     || opts.speedMul !== undefined && !finite(opts.speedMul)
     || opts.windStrengthMul !== undefined && (!finite(opts.windStrengthMul) || opts.windStrengthMul < 0)) return null;
 
-  const course = physicalCourseDefinition(read.context.profile);
   const scale = read.context.metresPerUnit;
-  const margin = (course.hardware.boatDiameterMetres / 2 + course.hardware.clearanceBufferMetres) / scale;
-  const boundX = (x: number) => Math.max(margin, Math.min(course.bounds.widthMetres / scale - margin, x));
-  const boundY = (y: number) => Math.max(margin, Math.min(course.bounds.heightMetres / scale - margin, y));
+  const water = physicalCourseWaterBounds(read.context.profile);
+  const boundX = (x: number) => Math.max(water.minX, Math.min(water.maxX, x));
+  const boundY = (y: number) => Math.max(water.minY, Math.min(water.maxY, y));
   const from = Object.freeze({ x: boundX(boat.pos.x), y: boundY(boat.pos.y) });
   boat.heading = advanceSailingHeading(boat.heading, boat.speed, input.steering, dt);
   const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts);

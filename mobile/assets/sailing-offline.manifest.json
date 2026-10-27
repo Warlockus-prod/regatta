@@ -1850,8 +1850,8 @@
     },
     {
       "path": "src/lib/race-courses.ts",
-      "bytes": 5844,
-      "sha256": "a47c87fc741b1c9e2f71b5c3f23e494e2b3e43035ffdd7efa5e46fb42c059fa8"
+      "bytes": 6298,
+      "sha256": "6e10514a01af5a379692d676b317c12fb8b25a90877b40e07d7c2987fffb2614"
     },
     {
       "path": "src/lib/race-guidance.ts",

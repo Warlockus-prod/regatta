@@ -1,4 +1,4 @@
-import { physicalCourseDefinition } from "./race-courses";
+import { physicalCourseDefinition, physicalCourseWaterBounds } from "./race-courses";
 import type { PhysicalRaceContext, PhysicalRaceProfile } from "./race-context";
 import { physicalRaceStage, type PhysicalRaceStage } from "./race-physical-progress";
 import { angleDiff, bearing, calcTWA, deg2rad, distance, normalizeAngle, rad2deg, type RaceBoat, type RaceCourse, type RaceRoutePath, type Vec2 } from "./race-physics";
@@ -54,7 +54,8 @@ export function planPhysicalBot(boat: RaceBoat, course: RaceCourse, windDir: num
     featherGain: .4, featherMax: 24, featherBand: 7.2 / m,
     band: { top: d.rounding.centreDropMetres / 2 / m, slope: .25, max: d.rounding.radiusMetres / m },
     startBand: 24 / m, loopBand: 18 / m,
-    dip: { drop: 18 / m, minR: 42 / m, maxR: 60 / m, slack: 15 / m },
+    dip: { drop: 18 / m, minR: (d.rounding.radiusMetres + d.hardware.boatDiameterMetres / 2) / m,
+      maxR: d.rounding.radiusMetres * 2 / m, slack: 15 / m },
     finishLoop: { drop: 30 / m, radius: 48 / m }, finishLanes: 7, finishLaneMargin: 15 / m };
   const radiusPerKnot = KNOT_METRES_PER_SECOND / m / deg2rad(HELM_TURN_RATE_DEG_PER_S);
   st.lap = boat.lapDone;
@@ -84,9 +85,18 @@ export function planPhysicalBot(boat: RaceBoat, course: RaceCourse, windDir: num
         const r = v > 0 ? Math.max(A.dip.minR, Math.min(A.dip.maxR, radiusPerKnot * Math.max(v, 3))) : A.dip.maxR;
         st.dip = { ccw, r, x: p.x + (ccw ? -1 : 1) * r * Math.abs(Math.cos(deg2rad(boat.heading))) };
       }
+      const recoveryRadius = Math.max(A.dip.minR, Math.min(A.dip.maxR, st.dip.r));
+      if (recoveryRadius !== st.dip.r) st.dip = { ...st.dip, r: recoveryRadius };
       const { ccw, r } = st.dip, side = ccw ? -1 : 1;
       const w = Math.sqrt(Math.max(0, r * r - A.dip.drop * A.dip.drop));
-      const x = Math.max(cx + side * w - A.dip.slack, Math.min(cx + side * w + A.dip.slack, st.dip.x));
+      const desiredX = Math.max(cx + side * w - A.dip.slack, Math.min(cx + side * w + A.dip.slack, st.dip.x));
+      // A recovery circle must clear both fixed line endpoints. The previous
+      //42m minimum could not fit between them with this hull/committee size.
+      const left = course.marks[1], right = course.marks[2];
+      const clearance = (radius: number) => Math.sqrt(Math.max(0,
+        (r + radius + (d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres) / m) ** 2 - A.dip.drop ** 2));
+      const minX = left.pos.x + clearance(left.radius), maxX = right.pos.x - clearance(right.radius);
+      const x = Math.max(minX, Math.min(maxX, desiredX));
       fix = onCircle(p, { x, y: ly + A.dip.drop }, r, ccw);
       if (below) { band = A.loopBand; forceTack = ccw ? -1 : 1; }
     }
@@ -146,13 +156,16 @@ export function planPhysicalBot(boat: RaceBoat, course: RaceCourse, windDir: num
 }
 
 const horizon = 12, sample = .5;
-export function physicalBotTrajectory(boat: RaceBoat, target: number | SailingSteering, m: number) {
-  let heading = boat.heading, x = boat.pos.x * m, y = boat.pos.y * m;
+export function physicalBotTrajectory(boat: RaceBoat, target: number | SailingSteering, m: number,
+  water?: ReturnType<typeof physicalCourseWaterBounds>) {
+  const boundX = (x: number) => water ? Math.max(water.minX * m, Math.min(water.maxX * m, x)) : x;
+  const boundY = (y: number) => water ? Math.max(water.minY * m, Math.min(water.maxY * m, y)) : y;
+  let heading = boat.heading, x = boundX(boat.pos.x * m), y = boundY(boat.pos.y * m);
   const path: { x: number; y: number }[] = [];
   for (let t = sample; t <= horizon; t += sample) {
     heading = advanceSailingHeading(heading, boat.speed, typeof target === "number" ? { mode: "helm", rudder: physicalBotRudder(heading, target), lowSpeedAssist: true } : target, sample);
     const move = sailingDisplacement(heading, boat.physics?.leeway ?? 0, boat.speed, sample);
-    x += move.east; y -= move.north; path.push({ x, y });
+    x = boundX(x + move.east); y = boundY(y - move.north); path.push({ x, y });
   }
   return path;
 }
@@ -162,23 +175,29 @@ export function physicalBotTrajectory(boat: RaceBoat, target: number | SailingSt
  * guarantee about future human input, future acceleration or RRS liability. */
 export function avoidPhysicalBotHeading(boat: RaceBoat,
   perception: readonly { id: string; path: readonly Vec2[] }[], plannedHeading: number,
-  windDir: number, context: PhysicalRaceContext, memory: PhysicalBotState): number {
+  windDir: number, context: PhysicalRaceContext, course: RaceCourse, memory: PhysicalBotState): number {
   const stage = physicalRaceStage(boat), now = memory.tick / PHYSICAL_FLEET_HZ;
   if (memory.predictive && memory.predictive.until > now && memory.predictive.stage === stage) return memory.predictive.heading;
   const d = physicalCourseDefinition(context.profile), m = context.metresPerUnit;
+  const water = physicalCourseWaterBounds(context.profile);
   const safe = d.hardware.boatDiameterMetres + d.hardware.clearanceBufferMetres;
   const neighbours = perception.filter(other => other.id !== boat.id).map(other => other.path);
-  if (!neighbours.length) { delete memory.predictive; return plannedHeading; }
+  const hardware = course.marks.map(mark => ({ x: mark.pos.x * m, y: mark.pos.y * m,
+    radius: mark.radius * m + d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres }));
+  // Rounding/feathering deliberately carries momentum through the wind. A
+  // small avoidance correction must not force that planned turn onto a tack.
+  const crossingWind = Math.abs(calcTWA(plannedHeading, windDir)) < 45;
   const candidates = [plannedHeading, ...(memory.predictive ? [memory.predictive.heading] : []),
-    ...[20, -20, 40, -40, 60, -60, 90, -90, 135, -135, 180].map(delta => normalizeAngle(plannedHeading + delta))]
-    .filter((heading, i, all) => all.indexOf(heading) === i && (i === 0 || Math.abs(calcTWA(heading, windDir)) >= 45));
+    ...[5, -5, 10, -10, 20, -20, 40, -40, 60, -60, 90, -90, 135, -135, 180].map(delta => normalizeAngle(plannedHeading + delta))]
+    .filter((heading, i, all) => all.indexOf(heading) === i && (i === 0 || crossingWind || Math.abs(calcTWA(heading, windDir)) >= 45));
   const scored = candidates.map(heading => {
-    const path = physicalBotTrajectory(boat, heading, m);
+    const path = physicalBotTrajectory(boat, heading, m, water);
     let clearance = Infinity;
-    for (const other of neighbours) for (let i = 0; i < path.length; i++) clearance = Math.min(clearance, Math.hypot(path[i].x - other[i].x, path[i].y - other[i].y));
+    for (const other of neighbours) for (let i = 0; i < path.length; i++) clearance = Math.min(clearance, Math.hypot(path[i].x - other[i].x, path[i].y - other[i].y) - safe);
+    for (const mark of hardware) for (const point of path) clearance = Math.min(clearance, Math.hypot(point.x - mark.x, point.y - mark.y) - mark.radius);
     return { heading, clearance, deviation: Math.abs(angleDiff(plannedHeading, heading)) };
   });
-  const clear = scored.filter(row => row.clearance >= safe);
+  const clear = scored.filter(row => row.clearance >= 0);
   const best = clear.length ? clear.sort((a, b) => a.deviation - b.deviation)[0]
     : scored.sort((a, b) => b.clearance - a.clearance || a.deviation - b.deviation)[0];
   memory.predictive = { heading: best.heading, until: now + sample, stage };

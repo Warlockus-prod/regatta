@@ -1,8 +1,10 @@
 import { readRaceContext, type PhysicalRaceContext } from "./race-context";
-import { advancePhysicalRaceProgress, physicalRaceGates, type PhysicalRaceStage } from "./race-physical-progress";
+import { advancePhysicalRaceProgress, physicalRaceGates, physicalRaceStage, type PhysicalRaceStage } from "./race-physical-progress";
 import { isPhysicalRaceBoat, isPhysicalRaceInput, stepPhysicalBoat, type PhysicalRaceInput, type PhysicalRaceMotion } from "./race-physical-motion";
 import { avoidPhysicalBotHeading, physicalBotRudder, physicalBotTrajectory, planPhysicalBot, PHYSICAL_FLEET_HZ, type PhysicalBotState } from "./race-physical-bot";
 import { resolveCollisions, type RaceBoat, type RaceCourse } from "./race-physics";
+import { observePhysicalRaceContacts, type PhysicalRaceContact } from "./race-physical-contact";
+import { physicalCourseWaterBounds } from "./race-courses";
 
 export interface PhysicalFleetEntry {
   readonly boat: RaceBoat;
@@ -25,6 +27,7 @@ export interface PhysicalFleetStep {
   readonly boats: RaceBoat[];
   readonly navigation: ReadonlyMap<string, PhysicalBotState>;
   readonly motions: ReadonlyMap<string, PhysicalRaceMotion>;
+  readonly contacts: readonly PhysicalRaceContact[];
   readonly progress: readonly { boatId: string; stage: PhysicalRaceStage;
     event: "start" | "round-east" | "round-north" | "mark" | "finish" | null }[];
 }
@@ -79,6 +82,7 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     || frame.dt !== 1 / PHYSICAL_FLEET_HZ || !finite(frame.raceTime) || frame.raceTime < 0
     || typeof frame.racing !== "boolean" || !finite(frame.windDir) || !finite(frame.gust) || frame.gust < 0
     || !finite(frame.windStrengthMul) || frame.windStrengthMul < 0) return null;
+  const context = read.context;
   const boats: RaceBoat[] = [], motions = new Map<string, PhysicalRaceMotion>(), navigation = new Map<string, PhysicalBotState>();
   const ids = new Set<string>();
   const entries: PhysicalFleetFrame["entries"] = frame.entries;
@@ -108,8 +112,13 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
   const perception = boats.flatMap((boat, i) => {
     if (boat.lapDone === 2) return [];
     const input = entries[i].input;
-    const target = input === "bot" ? navigation.get(boat.id)!.plannedHeading! : input.steering;
-    return [{ id: boat.id, path: physicalBotTrajectory(boat, target, read.context.metresPerUnit) }];
+    const memory = navigation.get(boat.id);
+    // Observe the last actual avoidance command, not a nominal route that
+    // the other boat is currently steering away from. New decisions remain
+    // simultaneous; an unknown future reaction is never treated as certain.
+    const target = input === "bot" ? memory!.predictive?.stage === physicalRaceStage(boat)
+      ? memory!.predictive.heading : memory!.plannedHeading! : input.steering;
+    return [{ id: boat.id, path: physicalBotTrajectory(boat, target, context.metresPerUnit, physicalCourseWaterBounds(context.profile)) }];
   });
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i], boat = boats[i];
@@ -117,7 +126,7 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     let input: PhysicalRaceInput;
     if (entry.input === "bot") {
       const state = navigation.get(boat.id)!;
-      const heading = avoidPhysicalBotHeading(boat, perception, state.plannedHeading!, frame.windDir, read.context, state);
+      const heading = avoidPhysicalBotHeading(boat, perception, state.plannedHeading!, frame.windDir, read.context, frame.course, state);
       input = { steering: { mode: "helm", rudder: physicalBotRudder(boat.heading, heading), lowSpeedAssist: true }, autoTrim: true };
     } else input = entry.input;
     const motion = stepPhysicalBoat(boat, frame.dt, frame.windDir, frame.gust, input, read.context,
@@ -125,6 +134,8 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     if (!motion || !isPhysicalRaceBoat(boat)) return null;
     motions.set(boat.id, motion);
   }
+  const contacts = observePhysicalRaceContacts({ boats, motions, context: read.context, course: frame.course });
+  if (!contacts) return null;
   resolveCollisions(boats, frame.dt);
   const progress: PhysicalFleetStep["progress"][number][] = [];
   for (const boat of boats) {
@@ -133,5 +144,5 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     if (!result || !isPhysicalRaceBoat(boat)) return null;
     progress.push({ boatId: boat.id, ...result });
   }
-  return { boats, navigation, motions, progress };
+  return { boats, navigation, motions, contacts, progress };
 }

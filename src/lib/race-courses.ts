@@ -42,6 +42,13 @@ export function physicalCourseDefinition(profile: PhysicalRaceProfile): Physical
   return definitions[profile];
 }
 
+/** Hull-centre water limits shared by actual movement and reachable prediction. */
+export function physicalCourseWaterBounds(profile: PhysicalRaceProfile) {
+  const d = physicalCourseDefinition(profile), m = d.context.metresPerUnit;
+  const margin = (d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres) / m;
+  return { minX: margin, minY: margin, maxX: d.bounds.widthMetres / m - margin, maxY: d.bounds.heightMetres / m - margin };
+}
+
 /** Fresh legacy-coordinate geometry, with the existing canonical engine mark
  * labels. The consumer supplies its current seven-language display labels. */
 export function makePhysicalRaceCourse(profile: PhysicalRaceProfile): RaceCourse {
