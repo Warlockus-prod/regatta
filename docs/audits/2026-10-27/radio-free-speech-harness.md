@@ -86,7 +86,18 @@ clicks the real Reset exercise settings button and emits the old native end.
 The expected state is empty history/preview, powered-off radio and dock top;
 the real DIAL hold then powers the new session for the remaining checks.
 
-Source/packages/build, exact cloud and installed acceptance must repeat.
+Exact89ced94 [source proof](checks/radio-reset-source.json) passes1760web
+cases in171files with two workers,589native cases in79suites, root/native
+types/lint,9release tools, all three packages/content twins, catalog, generated
+server, real sockets and production build. The unchanged6815744byte cap holds
+at6814872bytes. The initial overlapping local run had three test timeouts and
+one worker RPC timeout; it is retained and not accepted. No assertion or test
+timeout was relaxed, and contention as the sole cause is not proven.
+
+Manual actual English typing/reset returns to0/8, empty preview and dock top
+at390x740. Temporary browser sizing is restored. Exact cloud run40450421511
+and a newly frozen installed candidate remain pending.
+
 This correction is not included in frozen916 or its82case proof. Its lack of
 physical microphone acceptance and the pending manual native hold remain
 explicit. TestFlight68 is still the delivered binary.

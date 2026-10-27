@@ -1685,6 +1685,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/scene-loader-source.json` - exact asset/decode observer inputs,1679web/589native checks, unchanged bundle budget and regenerated installed packages; actual callbacks are not accepted until native observation.
 - `docs/audits/2026-10-27/checks/scene-loader-nativef3.json` - official exactf3 package/install proof, actual GLTF asset/decode callbacks, submitted frame and native Back; qualified observation only, no repaired-cause or delivery claim.
 - `docs/audits/2026-10-27/radio-free-speech-harness.md` - ordered main P07 scope for visible bounded free PTT, typed fallback, private session rows and actual lifecycle diagnostics; source/browser/native/delivery gates remain separate.
+- `docs/audits/2026-10-27/checks/radio-reset-source.json` - exact89ced94 reset source/log hashes,1760web/589native gate, retained initial local timeout failures and explicit pending browser/native acceptance.
 - `docs/audits/2026-10-27/checks/scene-probe-browser8e.json` - exact8e safe non-main cloud gate with78first-attempt cases and verified artifact digest; source scope is separate from subsequent loader observations.
 - `docs/audits/2026-10-27/checks/scene-startup69-held.json` - exact held source/IPA, qualified older checks, responsive UI and unproven cause.
 - `src/lib/race-physical-progress.ts` - canonical immutable metric gates and ordered progression from propelled endpoints; currently unwired, rejects invalid contexts/states before mutation.
