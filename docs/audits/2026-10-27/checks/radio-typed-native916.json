@@ -1,0 +1,94 @@
+{
+  "source": "916a9ea69bc06bfcbb0f7848691b7a9936cf0b83",
+  "checkedAt": "2026-10-27T08:50:32.991103+00:00",
+  "runtime": "iOS27Simulator, retained frozen916 install, PL UI",
+  "installedFiles": 121,
+  "allInstalledHashesStillMatch": true,
+  "observed": [
+    "Actual powered CH16 from earlier human DIAL hold",
+    "PTT interaction produces explicit recognition-unavailable outcome",
+    "Typed practice updates preview and clears the input after Add",
+    "Clear removes preview and restores empty input",
+    "Exit returns to native Training with its bottom navigation"
+  ],
+  "speechOutcomes": [
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "availability",
+      "input": "voice",
+      "outcome": "failed",
+      "available": false,
+      "reason": "timeout"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "availability",
+      "input": "voice",
+      "outcome": "accepted",
+      "available": false
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "result",
+      "input": "voice",
+      "outcome": "failed",
+      "status": "unavailable"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "clear",
+      "input": "typed",
+      "outcome": "noop",
+      "reason": "unchanged"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "result",
+      "input": "typed",
+      "outcome": "accepted",
+      "status": "entered"
+    },
+    {
+      "type": "radio.speech",
+      "surface": "radio",
+      "action": "clear",
+      "input": "typed",
+      "outcome": "accepted"
+    }
+  ],
+  "storage": [
+    {
+      "phase": "typed",
+      "sameKeySet": true,
+      "keys": 6,
+      "changedKeys": 1,
+      "onlyDiagnosticKeyChanged": true
+    },
+    {
+      "phase": "clear",
+      "sameKeySet": true,
+      "keys": 6,
+      "changedKeys": 1,
+      "onlyDiagnosticKeyChanged": true
+    }
+  ],
+  "privateImageSha256": {
+    "radio916-typed27.png": "64f7501e697e28002b4c9d160e31b00fbbb1b533b7c5336de62782088140abb6",
+    "radio916-cleared27.png": "47767f602644d4be0e2a0ce22cd83da35ec12c3f949885f8ecd7423707770777",
+    "radio916-exit27.png": "4f0e9d9c2ec0ec024063b8cf347e2c45fc31acb6f80731a2878d52b134507258"
+  },
+  "uiToolQualification": "Compact Device Hub window restored coordinate interaction; keyboard focus exposed the text field. Window returned to full Hub/portrait/Fit with Capture Keyboard OFF.",
+  "notAccepted": [
+    "No native microphone/on-device recognition result or recognition-model cause established",
+    "A timed Mac PTT call does not prove real finger-hold lifecycle",
+    "Monotonic reset source89 was not installed here",
+    "No full native69 acceptance, Apple upload or delivery"
+  ],
+  "physicalMicrophoneAccepted": false,
+  "appleWrites": 0
+}

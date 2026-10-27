@@ -7,11 +7,13 @@
 
 ## Current completion work
 
+- Exactd580 UI browser gate passes82first-attempt cases from a digest-verified artifact; `docs/audits/2026-10-27/checks/physical-luff-browser-d580.json` excludes following8ccdresponse and physical activation. Current8ccd source passes its unit/source gate but retains the stated expanded early-hard deadline. Keep the PR draft and emission OFF.
+
 - ADR-0013 adds a coupled circular travel constraint inside the still-unwired physical fleet. `docs/audits/2026-10-27/physical-response-harness.md` records1783web/589native and11response contracts, while the actual-ID54sweep retains a RED short/weak/early/hard bot deadline at53full finishes. Progress now uses actual impact-truncated travel after recovery; cancelled intended encounters are not contacts. Keep physical emission OFF and resolve that recovery before activation. Do not reuse d580pre-response54/54as proof for this checkpoint.
 
 - P04 close-hauled avoidance no longer depends on floating point rounding at45degrees. `docs/audits/2026-10-27/checks/physical-game-luff.json` binds the final54actual-ID/difficulty sweep: all fleets finish,45strict clean, zero mark-contact frames; nine hard moving-early starts still have hull contacts. The92targeted/1772web/589native source gate leaves forces, server and installed HTML bytes unchanged. Rejected tolerance-only regressions are retained; coupled response/judging/recording and actual physical activation remain open.
 
-- Human DIAL hold on frozen916 is now confirmed: actual CH16 power-on and localized native recognition-unavailable state on27, with121installed hashes still matching916. `docs/audits/2026-10-27/checks/radio-powered-native916.json` records API availability, not its underlying cause. Mac coordinate actions fail despite AX Raise; actual PTT/typing is pending a separate manual request. Source89reset/095 physical acceptance and69delivery are not inferred.
+- Frozen916 PL native radio now confirms typed Add, Clear and Exit after the earlier human DIAL power-on, with121installed files still exact. `docs/audits/2026-10-27/checks/radio-typed-native916.json` records an actual PTT unavailable outcome, not microphone recognition or a model cause. All six storage keys remain; typed/Clear change only the diagnostic hash. The manual typing request is superseded. Native89reset and69delivery remain unaccepted.
 
 - Following actual-game identities/difficulty research on095 has54autonomous cases:53finish the whole fleet,39meet the strict clean criterion and15observe contacts. Short/weak/ordinary/hard leaves ai3 unfinished at480s. `docs/audits/2026-10-27/checks/physical-game-fleet95.json` preserves scope and bounded-sample limits. This does not undo the narrower18baseline proof or establish activation; start/recovery/difficulty, hardware response and judging remain open.
 

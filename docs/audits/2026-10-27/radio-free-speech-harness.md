@@ -139,3 +139,22 @@ Mac coordinate actions now fail even after rebinding/AX Raise while screenshots
 and native AX remain readable. No PTT click was delivered by those attempts.
 A separate manual PTT/typing request is pending. This does not certify actual
 microphone recognition, following89reset, native095 or delivery69.
+
+
+## Following installed916 typed practice and unavailable PTT
+
+The [following native proof](checks/radio-typed-native916.json) rehashes all121
+installed files to exact frozen916 after the owner's earlier DIAL power-on.
+PL typing, actual Add, cleared input/updated preview, actual Clear and native
+Exit to Training are observed. Canonical events record typed entered/accepted,
+clear/accepted and PTT unavailable/failed, without transmission words.
+
+The same six storage keys remain before/after typed Add and Clear; only the
+diagnostic key's hash changes in each interval. Raw journals/storage and
+screenshots remain private. The screen capture hashes are in the proof.
+
+Compact Device Hub restored coordinate actions. Keyboard focus made the field
+visible; final window is full Hub, portrait/Fit and Capture Keyboard OFF. The
+pending human text-entry request is superseded by these actual observations.
+This does not prove a real PTT hold/microphone/model result, installed source89
+monotonic reset or full69acceptance. No Apple writes occurred.

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Verify PL typed radio practice, Clear and Exit in the exact installed916 package; PTT reports unavailable and real microphone recognition stays open. Confirm the earlier d580UI checkpoint with82first-attempt cloud cases, separately from later physical response work.
+
 - Prepare actual impact-truncated hull/mark/water travel in the unwired physical fleet. Recovery cannot earn a start or rounding gate. Dedicated response tests pass, but one expanded moving-early hard fleet still misses its deadline; physical activation and delivery remain held.
 
 - Make physical bot avoidance consistent at the close-hauled numeric boundary, including temporary luffs around an obstruction. All54autonomous difficulty/course/wind/start cases now finish; nine moving early hard starts still have hull contacts. This preparation remains unwired pending response, judging, recording and installed gates.

@@ -1,0 +1,23 @@
+{
+  "source": "d580c2fc2a41a70b94c8d2889a976c31fb7ce976",
+  "run": 40473948517,
+  "artifact": 12720566613,
+  "artifactBytes": 1234821,
+  "artifactSha256": "0ca91dc6183c8aef84c305b657629fa2497cf046d9b4e93a1d307800dae24819",
+  "checkedAt": "2026-10-27T08:54:44.006154+00:00",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "attempts": {
+    "totalTests": 82,
+    "oneAttemptEach": true
+  },
+  "reportErrors": 0,
+  "publication": "Image publication, VPS deploy and production E2E jobs skipped on non-main ref.",
+  "scope": "Preserved existing UI and installed package contracts. Physical API is unwired; this browser report is not playable physical-race acceptance. Later8ccdresponse is excluded."
+}

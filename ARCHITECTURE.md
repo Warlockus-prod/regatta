@@ -1747,3 +1747,6 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `src/lib/race-physical-response.test.ts` -11contracts for tunnelling/later/tangent/escape/coupled recovery, conservative wall constraints, actual contact/gate truth, finished exclusion and atomic rejection.
 - `docs/audits/2026-10-27/physical-response-harness.md` - ADR-0013 development checkpoint and explicit RED early-hard recovery deadline; not physical activation or delivery acceptance.
 - `docs/audits/2026-10-27/checks/physical-response-source.json` - input-bound1783web/589native source checks and all54research rows, retaining53full finishes and actual contact counter semantics.
+
+- `docs/audits/2026-10-27/checks/physical-luff-browser-d580.json` - exactd58082first-attempt downloaded/digest-verified UI gate, publication/deploy skipped, following response/physical activation excluded.
+- `docs/audits/2026-10-27/checks/radio-typed-native916.json` -121exact installed hashes, PL typed Add/Clear/Exit and actual unavailable PTT, only diagnostic storage changes, qualified real-hold/microphone/native89reset limits.

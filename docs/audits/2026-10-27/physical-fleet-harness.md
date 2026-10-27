@@ -237,3 +237,10 @@ Coupled hardware/hull response and conservative optional judging follow next.
 Human Pro/advice, other seeds and installed physical racing remain unaccepted.
 Exact-commit cloud acceptance follows the source commit. Physical emission
 stays OFF and TestFlight68 remains the delivered binary.
+
+
+Exactd580 [cloud browser proof](checks/physical-luff-browser-d580.json),
+run40473948517, passes82expected first-attempt journeys with0flaky/skipped/
+unexpected cases and0report errors from a downloaded/digest-verified artifact.
+Publication/deploy/production jobs were skipped. These cases exercise the
+preserved UI, not the unwired physical API or the following8ccdresponse.
