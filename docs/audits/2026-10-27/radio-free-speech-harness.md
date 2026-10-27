@@ -39,11 +39,35 @@ removed. Actual catalog tests resolve every new label in all seven languages.
 
 The current offline package includes the panel. Manual browser observation
 confirms Polish/Russian session-only typed entry, Clear and course return at
-390x740; the radio remains above its independently scrolling dock. Full cloud,
-exact installed and physical-microphone acceptance remain pending. Synthetic
+390x740; the radio remains above its independently scrolling dock. Exact cloud
+acceptance now passes82first-attempt cases with no flaky, skipped or unexpected
+result. Exact installed and physical-microphone acceptance remain partial or
+pending. Synthetic
 bridge cases explicitly test actual React lifecycle and diagnostic/privacy
 contracts, not the physical microphone or OS model.
 
 No69 upload/Apple write has occurred. Delivered68 and the frozenf3 observation
 binary are unchanged. Main P04 weak-wind fleet recovery stays open; Ads/eSail
 remain background extras.
+
+## Checkpoint916 evidence
+
+- [Source](checks/radio-free-source.json):1721web tests/169files,
+  589native tests/79suites, types/lint/packages/map/dash, unchanged server and
+  real sockets. Production is6814832bytes below the unchanged6815744byte cap.
+  Future runtime additions require real size work; the remaining912bytes are
+  not a reason to relax the cap.
+- [Cloud](checks/radio-free-browser916.json): exact916a9ea,
+  run40444566093/artifact12707858543,82/82with one attempt each. Production
+  publication/deployment remain skipped.
+- [Installed partial](checks/radio-free-native916.json): official Simulator
+  build31checks,121installed files match, all four prior storage keys preserved
+  before launch. Actual native Training -> radio, mounted PL panel,
+  independently scrolling dock, Exit -> Training and repeat entry are observed.
+  Mac automation emitted short taps rather than a real DIAL hold; its closed
+  journal records power-off rejection. Keyboard forwarding did not activate
+  DIAL. A manual hold request is pending. Native typing/PTT/model cancellation
+  and a physical microphone are not accepted from this evidence.
+
+The source rollback before P07 is2eee0ac. Runtime source916a9ea and its
+frozen121-file Simulator package are preserved independently of later work.

@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Exact P07 source916a9ea passes1721web/589native unit cases and82first-attempt cloud browser journeys. Its official Simulator package passes31checks and121installed-file matches, preserving all four prior storage keys. Native radio entry/Exit/reentry are observed; Mac automation emitted taps instead of DIAL hold, so native typing/PTT and physical microphone remain unaccepted. Source, cloud and partial native proofs are linked from `docs/audits/2026-10-27/radio-free-speech-harness.md`. No69 delivery/Apple write is claimed; independent P04 engine work continues while a manual hold request is pending.
+
 - P07 free-radio speech practice is implemented in source with session-only bounded text, actual on-device bridge lifecycle outcomes and an explicit typed fallback. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the source/browser/native gates. A synthetic bridge is not a physical microphone check. TestFlight68 stays delivered; no69 upload is implied. P04 fleet recovery remains open and Ads/eSail stay background extras.
 
 - Exactf3 loader observation passes official31-check/121-file install proof and actual Pro asset/decode/model/frame callbacks,2.811s to the submitted frame and native Race-hub Back. `docs/audits/2026-10-27/checks/scene-loader-nativef3.json` owns this qualified scope; no repaired cause, full native acceptance or69delivery is claimed. P04 weak-wind fleet recovery remains open; continue the independent main P07 radio speech-practice work without treating Ads/eSail as completion.

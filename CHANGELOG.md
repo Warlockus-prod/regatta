@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Verify the free-radio source with1721web/589native tests and82first-attempt browser cases. Preserve its exact31-check/121-file Simulator package and prior data. Installed entry/Exit work; native PTT/microphone acceptance and69delivery remain open.
+
 - Add free radio transmission practice beside the pinned radio: provisional on-device English recognition, a clearly labelled offline typed fallback and eight session-only transmissions. Cancel/Clear discard pending text; actual outcomes enter the bounded diagnostic journal without words or audio. Source, installed microphone and delivery acceptance remain separate.
 
 - Verify actual yacht asset/decode callbacks and native Back in exactf3 Simulator observation. Keep the earlier startup cause and full release acceptance open; no69 upload is claimed.
