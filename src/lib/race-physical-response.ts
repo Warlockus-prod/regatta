@@ -14,9 +14,29 @@ interface ResponseFrame {
 }
 interface Body { id: string; pos: Vec2; velocity: Vec2; from: Vec2; damping: number }
 interface Impact { t: number; a: Body; b?: Body; markIndex?: number; wall?: true; closing: number }
+export interface PhysicalRaceImpactBody {
+  /** Same course origin/axes as race-world-v1: east x, south y, in metres. */
+  readonly centreMetres: Readonly<Vec2>;
+  /** Instantaneous linear-step velocity before this encounter stops travel. */
+  readonly velocityMetresPerSecond: Readonly<Vec2>;
+}
+/** Actual common-clock encounter before either body's remaining travel stops.
+ * Initial overlap has no known impact velocity and stays in initialContacts.
+ * These circular kinematics alone never establish rule liability. */
+export type PhysicalRaceImpact = Readonly<{
+  firstHitFraction: number;
+  closingMetresPerSecond: number;
+  boatId: string;
+  boat: PhysicalRaceImpactBody;
+} & (
+  | { kind: "hull"; otherBoatId: string; otherBoat: PhysicalRaceImpactBody }
+  | { kind: "mark"; markIndex: number }
+)>;
 export interface PhysicalRaceResponse {
   readonly motions: ReadonlyMap<string, PhysicalRaceMotion>;
   readonly contacts: readonly PhysicalRaceContact[];
+  readonly initialContacts: readonly PhysicalRaceContact[];
+  readonly impacts: readonly PhysicalRaceImpact[];
   readonly speedMultipliers: ReadonlyMap<string, number>;
 }
 const tolerance = 1e-7;
@@ -62,7 +82,13 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
     if (!contacts.has(key)) contacts.set(key, Object.freeze(contact));
   };
   const stationary = new Map(bodies.map(b => [b.id, { from: b.from, to: b.from }]));
-  for (const contact of observePhysicalRaceContacts({ ...frame, motions: stationary })!) remember(contact);
+  const initialContacts = observePhysicalRaceContacts({ ...frame, motions: stationary })!;
+  for (const contact of initialContacts) remember(contact);
+  const impacts: PhysicalRaceImpact[] = [];
+  const snapshot = (body: Body): PhysicalRaceImpactBody => Object.freeze({
+    centreMetres: Object.freeze({ x: body.pos.x * m, y: body.pos.y * m }),
+    velocityMetresPerSecond: Object.freeze({ x: body.velocity.x * m / frame.dt, y: body.velocity.y * m / frame.dt }),
+  });
   const clamp = (p: Vec2) => {
     p.x = Math.max(water.minX, Math.min(water.maxX, p.x));
     p.y = Math.max(water.minY, Math.min(water.maxY, p.y));
@@ -124,6 +150,14 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
     for (const hit of simultaneous) {
       if (hit.b) remember({ kind: "hull", boatId: hit.a.id, otherBoatId: hit.b.id, firstHitFraction: elapsed, minimumClearanceMetres: 0 });
       else if (hit.markIndex !== undefined) remember({ kind: "mark", boatId: hit.a.id, markIndex: hit.markIndex, firstHitFraction: elapsed, minimumClearanceMetres: 0 });
+      // Read all simultaneous velocities before stopping any body. A later
+      // encounter sees an already stopped hull, never its cancelled proposal.
+      if (!hit.wall) {
+        const evidence = { boatId: hit.a.id, boat: snapshot(hit.a), firstHitFraction: elapsed,
+          closingMetresPerSecond: hit.closing * m / frame.dt };
+        if (hit.b) impacts.push(Object.freeze({ ...evidence, kind: "hull", otherBoatId: hit.b.id, otherBoat: snapshot(hit.b) }));
+        else if (hit.markIndex !== undefined) impacts.push(Object.freeze({ ...evidence, kind: "mark", markIndex: hit.markIndex }));
+      }
       // Preserve ADR-0004's closing-only, time-based contact loss. Separating
       // boats keep speed; wall constraints alone do not add a bump penalty.
       if (!hit.wall && hit.closing > tolerance) {
@@ -148,5 +182,6 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
     motions.set(body.id, Object.freeze({ from: Object.freeze({ ...body.from }), to: Object.freeze({ ...body.pos }) }));
     speedMultipliers.set(body.id, body.damping);
   }
-  return { motions, contacts: Object.freeze([...contacts.values()]), speedMultipliers };
+  return { motions, contacts: Object.freeze([...contacts.values()]), initialContacts,
+    impacts: Object.freeze(impacts), speedMultipliers };
 }

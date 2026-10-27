@@ -129,3 +129,54 @@ cancelled paths or a legacy8unit CPA. Then independent human guidance/ribbon,
 recording/finish-window lifecycle, remaining consumer/mode/course gates and
 exact installed offline ordinary/Pro acceptance follow. The full completion
 program and69delivery remain open. Rollback remains exactfa42626/8ccd9b0.
+
+## Following source: actual impact evidence for the judge
+
+The response and public fleet result now expose separate initialContacts and
+impacts. Initial touching/overlap can be observed without an established
+impact speed. Actual hull/mark encounters retain their common tick fraction,
+owned immutable metric centres/linear velocities and normal closing speed.
+Axes retain race-world-v1's origin, east x and south y; they are not geographic
+coordinates. No transcript, telemetry, recording or rule event is added.
+
+Every simultaneous encounter reads velocities before any body is stopped.
+A later hull encounter sees the earlier stopped body's zero velocity. A
+cancelled proposed encounter is absent. Wall-only constraints are excluded;
+an actual grazing hull encounter retains zero closing speed. An initial overlap
+followed by real closing remains two separate facts. Averaging the truncated
+travel endpoints would understate impact speed and is explicitly tested.
+
+Fourteen response contracts and a shared-force fleet collision exercise these
+facts alongside the preserved full-journey gates. This does not yet assign
+fault, implement RRS history/mark-room, enable penalties or establish human
+Pro/advice/native acceptance. Those remain the next required product gates.
+
+The [input-bound source proof](checks/physical-impact-evidence-source.json)
+records113targeted/1793web cases,589native cases and9release-tool cases, with
+types/lint, offline packages/content twins, real sockets, production build,
+unchanged budget and map/dash. All112budgeted chunks total6814872bytes under
+the unchanged6815744cap; the104JavaScript subset is6675906bytes. All three
+installed HTML files and force/navigation inputs remain identical. The prior
+90fleet research remains bound to exacte414; it was not repeated here.
+
+### Following judge contract, not implemented
+
+Primary reference checked2026-10-27: World Sailing's [corrected RRS2025-2028](https://www.sailing.org/wp-content/uploads/2026/04/2025-2028-RRS-with-Changes-and-Corrections.pdf),
+including20April2026corrections, and its [Version2change document](https://www.sailing.org/wp-content/uploads/2024/12/Changes-and-Corrections-Version-2.pdf).
+The original2025PDF remains historical. No physical rule evaluator is certified
+by this source-data checkpoint.
+
+Implementation implications from Definitions Racing/Start/Finish and rules
+13-16,18,31,43: the judge needs preparatory/start/finish-clear phases and turn/
+room history. The current fleet `racing` flag controls progression; false in
+countdown cannot mean that all educational obligations are absent. Finished
+lap2boats currently leave physical simulation immediately, so post-finish
+clearance/mark events require the separate finish-window lifecycle.
+
+Metric CPA must use real seconds, never the legacy8unit velocity. Impact
+closing does not establish fault. An unknown initial overlap, forced mark
+touch or uncertain room needs an explicit uncertain/exonerated outcome.
+Actual tangent mark touch must remain distinct from a severity threshold for
+closing hull collisions. Any training seconds must stay identified as game
+scoring, not the official turns procedure. These are design gates inferred
+from the cited rules and current code, not implemented judging behavior.

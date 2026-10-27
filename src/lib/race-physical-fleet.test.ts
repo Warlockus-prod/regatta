@@ -84,9 +84,26 @@ describe("explicit physical fleet transaction", () => {
     expect(result.boats[0]).toEqual(done); expect(result.motions.has("done")).toBe(false);
     expect(result.boats[1].pos.y).toBeLessThan(1050);
     expect(result.contacts).toEqual([expect.objectContaining({ kind: "hull", boatId: "a", otherBoatId: "b", firstHitFraction: 0 })]);
+    expect(result.initialContacts).toEqual(result.contacts); expect(result.impacts).toEqual([]);
     expect(result.motions.get("a")!.from).toEqual(result.motions.get("a")!.to);
     expect(result.motions.get("a")!.from).not.toEqual(a.pos);
     expect(result.boats[1].started).toBeUndefined(); expect(result.progress.every(p => p.event === null)).toBe(true);
+  });
+
+  it("returns real metric impact evidence from the shared-force fleet path", () => {
+    const a = { ...boat("a"), pos: { x: 400, y: 700 }, heading: 90, speed: 4 };
+    const b = { ...boat("b"), pos: { x: 422.05, y: 700 }, heading: 270, speed: 4 };
+    const input = { steering: { mode: "helm", rudder: 0, lowSpeedAssist: true }, autoTrim: true } as const;
+    const f = frame([a, b]), before = structuredClone(f);
+    const result = stepPhysicalRaceFleet({ ...f, entries: f.entries.map(entry => ({ ...entry, input })) })!;
+    expect(f).toEqual(before); expect(result.initialContacts).toEqual([]);
+    expect(result.impacts).toHaveLength(1);
+    const hit = result.impacts[0];
+    expect(hit.kind).toBe("hull"); expect(hit.boatId).toBe("a");
+    expect(hit.firstHitFraction).toBeGreaterThan(0); expect(hit.firstHitFraction).toBeLessThan(1);
+    expect(hit.closingMetresPerSecond).toBeGreaterThan(3); expect(hit.closingMetresPerSecond).toBeLessThan(5);
+    expect(Object.isFrozen(hit.boat.velocityMetresPerSecond)).toBe(true);
+    expect(result.contacts).toHaveLength(1); expect(result.progress.every(p => p.event === null)).toBe(true);
   });
 
   it("advances navigation during countdown while the official race clock and gate credit stay at zero", () => {

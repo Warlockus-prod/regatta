@@ -1743,8 +1743,8 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-game-luff.json` - exact-input54autonomous game-ID/difficulty sweep after stable luff candidate selection:54finish,45strict clean, zero mark frames and nine moving early hard hull-contact cases, with full counters.
 - `docs/audits/2026-10-27/checks/physical-luff-source.json` -1772web/589native and92targeted source acceptance; unchanged forces/server/offline HTML and qualified following cloud/native gates.
 
-- `src/lib/race-physical-response.ts` - physical-only atomic circular hull/mark/water constraint, initial recovery excluded from travel, one common impact clock, bounded stops/closing loss and immutable actual segments; no live caller outside the unwired fleet.
-- `src/lib/race-physical-response.test.ts` -11contracts for tunnelling/later/tangent/escape/coupled recovery, conservative wall constraints, actual contact/gate truth, finished exclusion and atomic rejection.
+- `src/lib/race-physical-response.ts` - physical-only atomic circular hull/mark/water constraint, initial recovery excluded from travel, one common impact clock, bounded stops/closing loss and immutable actual segments. Separate initialContacts and owned metric impact centres/velocities/closing evidence feed the following judge; no live caller outside the unwired fleet.
+- `src/lib/race-physical-response.test.ts` -14contracts for tunnelling/later/tangent/escape/coupled recovery, actual common-clock metric impact evidence, conservative wall constraints, actual contact/gate truth, finished exclusion and atomic rejection.
 - `docs/audits/2026-10-27/physical-response-harness.md` - ADR-0013 development checkpoint, preserved8ccd RED deadline and following90specified full-fleet finishes; not physical activation or delivery acceptance.
 - `docs/audits/2026-10-27/checks/physical-response-source.json` - input-bound1783web/589native source checks and all54research rows, retaining53full finishes and actual contact counter semantics.
 
@@ -1756,3 +1756,4 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-response-browser8ccd.json` - exact8ccd82first-attempt UI gate, separate from its retained RED autonomous-fleet result.
 - `docs/audits/2026-10-27/checks/physical-bot-stability-browser-e414.json` - exacte41482first-attempt digest-verified UI report and successful push/PR CI; the physical API remains unwired, publication/deploy skipped.
 - `docs/audits/2026-10-27/checks/radio-typed-native89.json` - retained26.5/121matching installed files, actual nonempty typed Add and native Exit, with exact-string/tool qualification and native Reset/microphone still open.
+- `docs/audits/2026-10-27/checks/physical-impact-evidence-source.json` - input-bound113targeted/1793web/589native local gate for actual metric impact data, identical installed HTML and unchanged force/navigation inputs; no new90-case or physical-judge/native acceptance claim.

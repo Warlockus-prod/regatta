@@ -41,7 +41,7 @@
 | P01 | Исправить Skia crash первого drill; убрать живую погоду из старого native trainer | exact422b проверен | два runtime: урок -> drill -> ветер -> возврат, повторный вход, cold relaunch;72browser first-pass | доставлен66: independent Self/8notes GET15:26UTC; физический iPhone отдельно |
 | P02 | Единый первый урок и двухвидовые иллюстрации | общий первый урок,3Dпрактика и один Scheme/Picture pilot проверены |77browser first-pass, retained26.5/clean27, PL/RU/EN и exact package equivalence; [harness](learning-visuals-harness.md) | checkpoint доставлен67, independent Self/8notes18:53UTC; остальные иллюстрации открыты |
 | P03 | Закрыть надежность PB/результатов до новой физики | exactf7: отдельные ACK/receipt/retry, clear guards и replay route ownership | реальные finishes/History/Personal/Replay/Coach/Back/cold на26.5/27; exact-f7 fresh27; forced failures только tests | доставлен68: independent Self23:23:36.856UTC/8notes23:23:11.300UTC; physical emission OFF |
-| P04 | Согласовать единицы движения и управление общей лодки | metric fleet, coupled actual travel и stable bot turns; emission OFF |109targeted,1789web/589native;90/90specified autonomous fleets,0mark cases; [response harness](../2026-10-27/physical-response-harness.md) | произвольные recoveries, human advice/Pro, judge, recorder/lifecycle и native activation остаются открыты |
+| P04 | Согласовать единицы движения и управление общей лодки | metric fleet, coupled actual travel, stable bot turns и metric impact evidence; emission OFF |113targeted,1793web/589native; прежний exacte414:90/90specified fleets; [response harness](../2026-10-27/physical-response-harness.md) | произвольные recoveries, human advice/Pro, judge, recorder/finish-clear и native activation остаются открыты |
 | P05 | Трассы разной длины, затем маршруты вокруг острова | план | каждый маршрут проходим, не пересекает сушу; старые классы сохранены | послеP04 |
 | P06 | Общие пресеты свободно/гонка/обучение, автотрим/ручной; независимые помощь и судья | частично в65 | полный Simple/Pro заезд и учебное объяснение, сохраненные настройки | послеP04/P05 |
 | P07 | Радио: видимое распознавание в свободной практике | bounded session, shared on-device PTT, typed fallback;89ced94 исправляет identity/reset | [harness](../2026-10-27/radio-free-speech-harness.md):e414browser82; exact916 PL native Add/Clear/Exit, retained89 Add/Exit | actual microphone/model, native89reset и полная69приемка остаются открыты |
@@ -178,3 +178,17 @@ Exacte414 также прошел push/PR CI и82из82браузерных сц
 выход в Training,121файл по-прежнему совпадает с замороженным пакетом.
 Точный введенный текст не утверждается из-за передачи клавиш инструментом.
 Reset, реальный PTT/микрофон и приемка полного69остаются открыты.
+
+## P04: данные для следующего судьи
+
+Следующий локальный слой различает исходный контакт и фактический удар в
+пределах30Hzшага. Он сохраняет метрические координаты и скорости до остановки,
+включая одновременные удары и последующее столкновение с остановленной лодкой.
+Это еще не решение о виновнике или штрафе. [Response harness](../2026-10-27/physical-response-harness.md)
+содержит проверяемые контракты и первоисточники правил.
+
+Перед включением судьи нужно отдельно определить подготовительную фазу и
+освобождение финиша. Текущий флаг progression/racing и немедленное исключение
+lap2лодки не заменяют эти состояния. Подсказки, штрафы и запись остаются
+следующими обязательными пунктами. Матрица90заездов принадлежит exacte414;
+новый слой данных проверяется отдельно и не объявляет повтор этой матрицы.

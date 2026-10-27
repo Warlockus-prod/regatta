@@ -21,6 +21,28 @@ describe("coupled physical travel constraints", () => {
     expect(r.speedMultipliers.get("b0")).toBeLessThan(1); expect(f).toEqual(before);
   });
 
+  it("owns actual metric impact velocities instead of averaging truncated travel", () => {
+    const supplied = { from: { x: 350, y: 700 }, to: { x: 450, y: 700 } };
+    const f = frame([supplied, motion(450, 700, 350, 700)]);
+    const r = constrainPhysicalRaceTravel(f)!, m = f.context.metresPerUnit;
+    expect(r.initialContacts).toEqual([]); expect(r.impacts).toHaveLength(1);
+    const hit = r.impacts[0];
+    expect(hit.kind).toBe("hull"); if (hit.kind !== "hull") throw new Error("Expected actual hull impact");
+    expect(hit.firstHitFraction).toBeCloseTo(.39, 12);
+    expect(hit.closingMetresPerSecond).toBeCloseTo(200 * m / f.dt, 10);
+    expect(hit.boat.centreMetres).toEqual({ x: 389 * m, y: 700 * m });
+    expect(hit.otherBoat.centreMetres).toEqual({ x: 411 * m, y: 700 * m });
+    expect(hit.boat.velocityMetresPerSecond).toEqual({ x: 100 * m / f.dt, y: 0 });
+    expect(hit.otherBoat.velocityMetresPerSecond).toEqual({ x: -100 * m / f.dt, y: 0 });
+    expect(hit.closingMetresPerSecond).toBeGreaterThan(2 * (r.motions.get("b0")!.to.x - 350) * m / f.dt);
+    for (const value of [r.impacts, hit, hit.boat, hit.otherBoat, hit.boat.centreMetres,
+      hit.boat.velocityMetresPerSecond, hit.otherBoat.centreMetres, hit.otherBoat.velocityMetresPerSecond]) expect(Object.isFrozen(value)).toBe(true);
+    const reversed = constrainPhysicalRaceTravel({ ...f, boats: [...f.boats].reverse(), motions: new Map([...f.motions].reverse()) })!;
+    expect(reversed.impacts).toEqual(r.impacts);
+    supplied.from.x = 1;
+    expect(hit.boat.centreMetres.x).toBe(389 * m);
+  });
+
   it("continues an unrelated boat and finds a later encounter with a stopped hull on the same clock", () => {
     const f = frame([motion(350, 700, 450, 700), motion(400, 700), motion(300, 700, 420, 700), motion(600, 600, 610, 600)]);
     const r = constrainPhysicalRaceTravel(f)!;
@@ -30,15 +52,48 @@ describe("coupled physical travel constraints", () => {
     expect(r.contacts[1].firstHitFraction).toBeCloseTo(56 / 120, 10);
     expect(r.motions.get("b2")!.to.x).toBeCloseTo(356, 10);
     expect(r.motions.get("b3")).toEqual(f.motions.get("b3"));
+    expect(r.impacts).toHaveLength(2);
+    const [first, later] = r.impacts, scale = f.context.metresPerUnit / f.dt;
+    expect(first.closingMetresPerSecond).toBeCloseTo(100 * scale, 10);
+    expect(later.closingMetresPerSecond).toBeCloseTo(120 * scale, 10);
+    expect(later.boatId).toBe("b0"); expect(later.boat.velocityMetresPerSecond).toEqual({ x: 0, y: 0 });
+    expect(later.kind).toBe("hull");
+    if (later.kind === "hull") expect(later.otherBoat.velocityMetresPerSecond).toEqual({ x: 120 * scale, y: 0 });
+  });
+
+  it("captures simultaneous closing velocities before stopping any involved hull", () => {
+    const f = frame([motion(350, 700, 450, 700), motion(400, 700), motion(450, 700, 350, 700)]);
+    const r = constrainPhysicalRaceTravel(f)!, scale = f.context.metresPerUnit / f.dt;
+    expect(r.impacts).toHaveLength(2);
+    expect(r.impacts.map(hit => hit.firstHitFraction)).toEqual([.28, .28]);
+    for (const hit of r.impacts) expect(hit.closingMetresPerSecond).toBeCloseTo(100 * scale, 10);
+    const hit = r.impacts[1];
+    expect(hit.kind).toBe("hull"); if (hit.kind !== "hull") throw new Error("Expected actual hull impact");
+    expect(hit.boatId).toBe("b1"); expect(hit.boat.velocityMetresPerSecond.x).toBe(0);
+    expect(hit.otherBoat.velocityMetresPerSecond.x).toBe(-100 * scale);
+  });
+
+  it("separates unknown initial overlap from a subsequent actual closing impact", () => {
+    const f = frame([motion(400, 700, 410, 700), motion(410, 700, 400, 700)]);
+    const r = constrainPhysicalRaceTravel(f)!;
+    expect(r.initialContacts).toEqual([expect.objectContaining({ kind: "hull", firstHitFraction: 0,
+      minimumClearanceMetres: -12 * f.context.metresPerUnit })]);
+    expect(r.impacts).toHaveLength(1);
+    expect(r.impacts[0].firstHitFraction).toBeGreaterThanOrEqual(0);
+    expect(r.impacts[0].firstHitFraction).toBeLessThan(1e-7);
+    expect(r.impacts[0].closingMetresPerSecond).toBeCloseTo(20 * f.context.metresPerUnit / f.dt, 10);
+    expect(r.contacts).toHaveLength(1);
   });
 
   it("keeps a grazing trajectory and a separating touch free of repeated slowing", () => {
     const f = frame([motion(350, 700, 450, 700), motion(400, 722)]), r = constrainPhysicalRaceTravel(f)!;
     expect(r.motions.get("b0")).toEqual(f.motions.get("b0"));
     expect(r.contacts).toEqual([expect.objectContaining({ firstHitFraction: .5, minimumClearanceMetres: 0 })]);
+    expect(r.impacts).toEqual([expect.objectContaining({ kind: "hull", firstHitFraction: .5, closingMetresPerSecond: 0 })]);
     expect([...r.speedMultipliers.values()]).toEqual([1, 1]);
     const escape = frame([motion(400, 700, 390, 700), motion(422, 700, 432, 700)]);
     const escaped = constrainPhysicalRaceTravel(escape)!;
+    expect(escaped.initialContacts).toHaveLength(1); expect(escaped.impacts).toEqual([]);
     expect([...escaped.motions.values()]).toEqual([...escape.motions.values()]);
     expect([...escaped.speedMultipliers.values()]).toEqual([1, 1]);
     const resting = constrainPhysicalRaceTravel(frame([motion(400, 700, 400 + 1e-8, 700), motion(422, 700)]))!;
@@ -53,6 +108,9 @@ describe("coupled physical travel constraints", () => {
       const r = constrainPhysicalRaceTravel(f)!;
       expect(r.motions.get("b0")!.to.x).toBeCloseTo(mark.pos.x - 11 - mark.radius, 9);
       expect(r.contacts).toEqual([expect.objectContaining({ kind: "mark", markIndex })]);
+      expect(r.initialContacts).toEqual([]);
+      expect(r.impacts).toEqual([expect.objectContaining({ kind: "mark", markIndex,
+        closingMetresPerSecond: 60 * f.context.metresPerUnit / f.dt })]);
     }
   });
 
@@ -60,12 +118,15 @@ describe("coupled physical travel constraints", () => {
     const f = frame([motion(330, 700, 450, 700), motion(400, 700), motion(450, 700)]);
     const r = constrainPhysicalRaceTravel(f)!;
     expect(r.contacts).toEqual([expect.objectContaining({ kind: "hull", boatId: "b0", otherBoatId: "b1" })]);
+    expect(r.impacts).toEqual([expect.objectContaining({ kind: "hull", boatId: "b0", otherBoatId: "b1" })]);
   });
 
   it("recovers initial hull/mark overlap without including the push in travelled credit", () => {
     const f = frame(Array.from({ length: 5 }, () => motion(400, 850))), before = structuredClone(f);
     const r = constrainPhysicalRaceTravel(f)!;
     expect(r).not.toBeNull(); expect(r.contacts).toHaveLength(15);
+    expect(r.initialContacts).toHaveLength(15); expect(r.impacts).toEqual([]);
+    expect(Object.isFrozen(r.initialContacts)).toBe(true);
     for (const [id, travelled] of r.motions) {
       expect(travelled.from).toEqual(travelled.to); expect(travelled.from).not.toEqual(f.motions.get(id)!.from);
     }
@@ -90,6 +151,7 @@ describe("coupled physical travel constraints", () => {
     const r = constrainPhysicalRaceTravel(f)!;
     expect(r.motions.get("b0")).toEqual(motion(water.minX, 700));
     expect(r.contacts).toEqual([]); expect(r.speedMultipliers.get("b0")).toBe(1);
+    expect(r.impacts).toEqual([]);
   });
 
   it("cannot award a start behind committee hardware or from initial recovery", () => {
@@ -107,6 +169,7 @@ describe("coupled physical travel constraints", () => {
     f.boats[1].lapDone = 2; f.motions.delete("b1");
     const r = constrainPhysicalRaceTravel(f)!;
     expect(r.motions.size).toBe(1); expect(r.motions.get("b0")).toEqual(f.motions.get("b0")); expect(r.contacts).toEqual([]);
+    expect(r.initialContacts).toEqual([]); expect(r.impacts).toEqual([]);
   });
 
   it("rejects malformed or foreign input atomically", () => {

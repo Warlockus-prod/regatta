@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Preserve actual metric impact velocities for the following optional race judge. Separate initial overlap from travelled encounters, including later contact with a stopped hull; no fault or penalty is inferred yet. The physical fleet remains unwired.
+
 - Verify exact e414 push/PR CI and82first-attempt browser cases. Retained native89 also confirms typed radio Add and Exit; actual Reset and microphone recognition remain open. No69 delivery is claimed.
 
 - Keep physical bots clear of missed rounding gates and stop rearward turns from alternating while steerage is weak. All90specified autonomous fleets now finish, with no mark contact;15moving early hard fleets retain hull encounters. Human guidance and physical activation remain separate gates.

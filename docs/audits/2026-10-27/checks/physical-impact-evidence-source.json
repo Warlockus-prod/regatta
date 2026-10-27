@@ -1,0 +1,92 @@
+{
+  "sourceBase": "fff2a0000bdfd44729dd651bde48c5ab130733ca",
+  "binding": "Final local changed source hashes; exact following commit cloud and installed acceptance remain separate. Earlier90-case fleet research belongs to exacte414 and was not rerun for these return-only evidence fields.",
+  "checkedAt": "2026-10-27T09:55:27.511256+00:00",
+  "changedSourceInputs": {
+    "src/lib/race-physical-response.ts": "be65c6f9ecdf8e7fb0442e599108e30320c45d5a3cfb4ad8bfe10b8cceec6225",
+    "src/lib/race-physical-response.test.ts": "0756a22619d03df7d1aad0d5edb0cd7c45334755654f25f414624b5015730020",
+    "src/lib/race-physical-fleet.ts": "941a15bc3de2f63e465feb219d6ddcfc5e9b8b24dd17d1b4808c9567f2f89702",
+    "src/lib/race-physical-fleet.test.ts": "64d3f08186b1ae634cdc79777dc0b6a385929b86ae0ecb7126ea52538b9806b5"
+  },
+  "unchangedMotionNavigationForceInputs": {
+    "src/app/game/config.ts": "981d70f75f02303a8239a5042d7ad7a5637ec097a8fff999b052f678623d9fa2",
+    "src/lib/race-context.ts": "27a924d1c5912e070c5eb1531b51ce68b527364b074653d1b9769411fbeaaac7",
+    "src/lib/race-courses.ts": "6e10514a01af5a379692d676b317c12fb8b25a90877b40e07d7c2987fffb2614",
+    "src/lib/sailing-physics/wind.ts": "f4b4a13e512a03d41b91b4e89351635f7028b9f43bd36874096c60643dfe85d5",
+    "src/lib/sailing-physics/aero.ts": "650110a475d05ef6c9f9d3c7d5ae4217b2c81bc1270058bd33f5ecd200985966",
+    "src/lib/sailing-physics/mainsail-shape.ts": "498f3d595800209fadc4a83311620d285feadcb3e5a55a30866a5aee952f2910",
+    "src/lib/sailing-physics/forces.ts": "f6f22f72d028a145cbf749693f2c87c5a5f8ceea95190865868faf03519a85e7",
+    "src/lib/sailing-physics/balance.ts": "03c96a77d1bec90e345827428857b19f1a74d566bbe011dd35e6e9629d9d099e",
+    "src/lib/sailing-physics/sail-plan.ts": "2bd1d5a95f3cfbfcb0961611c6231ef674b2c91949f0c5fb11ae8962d6543cfc",
+    "src/lib/sailing-physics/simulate.ts": "5fdcb9d115570d70b9635100575e486fa9a10050e510fc893dee26e00174824e",
+    "src/lib/sailing-physics/boat.ts": "6e3d9a72057b379c3fd8f54fd41fd25227b52a2464e314c83d0ac41a70389399",
+    "src/lib/sailing-physics/polar.ts": "629f3a5391ebe942341a6aa9e42eb47d4d1e273d082c2cbc31f28d40c3540e01",
+    "src/lib/race-physics.ts": "dd4244dcab9508e4462b436ff635c2c9c1de3c300c6649824ce111a3d34ad7e3",
+    "src/lib/race-physical-progress.ts": "f7d467c5443fc6daa29b3d4eb2657216d309a33f56403ce314f4c7e1cdcd296b",
+    "src/lib/sailing-kinematics.ts": "ca3585111eb2dd8c982702d7d6adb89a83b82c8389ce84491f40f04ef63788cd",
+    "src/lib/race-physical-motion.ts": "38746c350b7fa1677ebf36b9d58c996fb6a319bbd34f48758f1a24f049b1e6f6",
+    "src/lib/race-physical-bot.ts": "38e63f0a8d8ebdaec211d7f4cab01cb01b03aea36995fc7af6e24fc3dc22be57",
+    "src/lib/race-physical-contact.ts": "32cdd71ea33d00cd27e0938b0db3e0cb8597dbc93990da2c4db8c93d981974de"
+  },
+  "offlineHtmlSha256": {
+    "mobile/assets/radio-offline.html": "9d73e91c083d5e0c2fe8db63c2a48d6619e066dd55ae41e2e35c33c56607178f",
+    "mobile/assets/sailing-offline.html": "4c43f89a504dc25f054fe2a3bec1d1fa81941597042529a3edec539fd2b73594",
+    "mobile/assets/sternik-offline.html": "ff6847fc3a840bc78b32c7baef075e5f0b85100588e72a6ace8ecf7aea540047"
+  },
+  "targeted": {
+    "tests": 113,
+    "files": 5,
+    "includedInFinalFullWebRun": true,
+    "responseContracts": 14,
+    "fleetContracts": 44
+  },
+  "web": {
+    "tests": 1793,
+    "files": 173
+  },
+  "native": {
+    "tests": 589,
+    "suites": 79
+  },
+  "releaseTools": 9,
+  "staticJavascript": {
+    "files": 104,
+    "bytes": 6675906
+  },
+  "allBudgetedStaticChunks": {
+    "files": 112,
+    "bytes": 6814872,
+    "limitBytes": 6815744
+  },
+  "checks": [
+    "Root/native types and scoped web/full native lint",
+    "Three offline freshness checks and content twins",
+    "Generated legacy server and actual socket lifecycle",
+    "Production build and unchanged budget",
+    "Project map, ASCII hyphen typography and whitespace"
+  ],
+  "logSha256": {
+    "physical-impact-evidence-web-final.log": "e4e84d0074909d780cba6b3271a21ef4861a9b61e6b12b7cefd81eb219951cfb",
+    "physical-impact-evidence-native-tests.log": "c76a50aa4c04a4aa0911dc8656929787012e8413e9fbbe0fcdeb069fcab8e7a5",
+    "physical-impact-evidence-native-check.log": "9ea610747b5b26b6ce6ab6fa7c340961eab3298d71059a1f7359f77f41fef76d",
+    "physical-impact-evidence-build.log": "d278ee81851129ba95c5e94893da489d148bfbdbbfb7f1810d092154a0f20673",
+    "physical-impact-evidence-budget.log": "fd69654cc2c2be537865df4a2d96456e4ceac1e4804bc9920c0209c68c732b80",
+    "physical-impact-evidence-sockets.log": "8c484ab277254b83bab2af1119f2ee4efdfd05f80247fba114a48151f1c7eb39",
+    "physical-impact-evidence-types-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "observedContracts": [
+    "Owned frozen metre centres and metres-per-second linear velocities at actual common-clock contact",
+    "Pre-stop velocity for all simultaneous encounters; stopped hull velocity on a later encounter",
+    "Initial overlap separated from later closing, without invented initial impact speed",
+    "Actual tangent closing zero; no cancelled proposed encounter, wall-only event or finished hull impact",
+    "Shared-force fleet collision returns actual metric evidence; existing full-course journeys unchanged"
+  ],
+  "initialTestCorrection": "One new simultaneous-speed assertion compared algebraically equivalent floating products by exact equality and failed at1799.9999999999995versus1800. It now checks10decimal places; contact fractions, geometry, existing thresholds and behavior are unchanged.",
+  "notAccepted": [
+    "No physical RRS liability, penalty or educational judge integration",
+    "No new90-case resweep, arbitrary-start or human Pro/advice acceptance",
+    "No recorder/finish-window/live physical activation/installed release acceptance"
+  ],
+  "physicalEmissionEnabled": false,
+  "appleWrites": 0
+}

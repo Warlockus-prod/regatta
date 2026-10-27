@@ -717,6 +717,14 @@ straight segment. A future sliding or impulse model needs a piecewise travelled
 path before progression/recording can consume it. Intended paths through a
 cancelled future encounter are not contacts or completed travel.
 
+Keep initial contacts separate from actual within-step impacts. Export owned,
+immutable metric centres/linear velocities at the common impact fraction,
+before any simultaneous body is stopped, plus actual normal closing speed.
+A later impact observes the earlier stopped hull's zero velocity. Initial
+overlap alone has no established impact speed, and truncated endpoint averages
+cannot reconstruct that speed. Wall constraints are not hull/mark encounters.
+This transient evidence adds no fault decision, penalty, journal or recording.
+
 ### Verification
 
 Initial overlap, coupled water/committee recovery, no tunnelling, simultaneous

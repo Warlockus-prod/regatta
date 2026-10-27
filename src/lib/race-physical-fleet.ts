@@ -4,7 +4,7 @@ import { isPhysicalRaceBoat, isPhysicalRaceInput, stepPhysicalBoat, type Physica
 import { avoidPhysicalBotHeading, physicalBotRudder, physicalBotTrajectory, planPhysicalBot, PHYSICAL_FLEET_HZ, type PhysicalBotState } from "./race-physical-bot";
 import type { RaceBoat, RaceCourse } from "./race-physics";
 import type { PhysicalRaceContact } from "./race-physical-contact";
-import { constrainPhysicalRaceTravel } from "./race-physical-response";
+import { constrainPhysicalRaceTravel, type PhysicalRaceImpact } from "./race-physical-response";
 import { physicalCourseWaterBounds } from "./race-courses";
 
 export interface PhysicalFleetEntry {
@@ -29,6 +29,8 @@ export interface PhysicalFleetStep {
   readonly navigation: ReadonlyMap<string, PhysicalBotState>;
   readonly motions: ReadonlyMap<string, PhysicalRaceMotion>;
   readonly contacts: readonly PhysicalRaceContact[];
+  readonly initialContacts: readonly PhysicalRaceContact[];
+  readonly impacts: readonly PhysicalRaceImpact[];
   readonly progress: readonly { boatId: string; stage: PhysicalRaceStage;
     event: "start" | "round-east" | "round-north" | "mark" | "finish" | null }[];
 }
@@ -154,5 +156,6 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     if (!result || !isPhysicalRaceBoat(boat)) return null;
     progress.push({ boatId: boat.id, ...result });
   }
-  return { boats, navigation, motions: response.motions, contacts: response.contacts, progress };
+  return { boats, navigation, motions: response.motions, contacts: response.contacts,
+    initialContacts: response.initialContacts, impacts: response.impacts, progress };
 }
