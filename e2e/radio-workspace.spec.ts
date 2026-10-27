@@ -29,12 +29,16 @@ async function skipTour(page: Page) {
 }
 
 async function radioWholeInView(page: Page, viewport: { height: number }) {
-  for (const id of ["lcd", "ptt", "distress-cover", "dial-center"]) {
-    const box = await page.getByTestId(id).boundingBox();
-    expect(box, id).not.toBeNull();
-    expect(box!.y, id).toBeGreaterThanOrEqual(0);
-    expect(box!.y + box!.height, id).toBeLessThanOrEqual(viewport.height + 1);
-  }
+  // The dock can mount before the responsive faceplate finishes switching.
+  // Sample the whole real faceplate within the existing10s assertion budget.
+  await expect(async () => {
+    for (const id of ["lcd", "ptt", "distress-cover", "dial-center"]) {
+      const box = await page.getByTestId(id).boundingBox();
+      expect(box, id).not.toBeNull();
+      expect(box!.y, id).toBeGreaterThanOrEqual(0);
+      expect(box!.y + box!.height, id).toBeLessThanOrEqual(viewport.height + 1);
+    }
+  }).toPass({ timeout: 10_000 });
 }
 
 async function scrollEverything(page: Page) {

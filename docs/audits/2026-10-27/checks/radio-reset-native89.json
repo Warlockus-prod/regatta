@@ -1,0 +1,26 @@
+{
+  "source": "89ced947ec6bca2580089362211c0ad17e763b8f",
+  "checkedAt": "2026-10-27T04:48:19.788196+00:00",
+  "simulatorChecks": 31,
+  "allSimulatorChecksPass": true,
+  "runtime": "26.5",
+  "installedFiles": 121,
+  "allInstalledFilesMatch": true,
+  "priorStorageKeys": 16,
+  "allStoragePreservedBeforeLaunch": true,
+  "actualUI": [
+    "retained native Home",
+    "Training",
+    "actual radio entry",
+    "new PL speech panel below the pinned radio",
+    "Exit to native Training"
+  ],
+  "entryImageSha256": "5da1e7e3b9dcc3c520943cd1913372543fadf225db5724887563e6228367eb7e",
+  "frozen916Fresh27Untouched": true,
+  "nativeTypedResetAccepted": false,
+  "nativePttAccepted": false,
+  "actualMicrophoneAccepted": false,
+  "archiveExport": false,
+  "delivery": false,
+  "scope": "Exact89 package and qualified retained26.5 entry/Exit only. WK accessibility subtree unavailable through Mac tool. No native typing/reset, DIAL hold/PTT/model or physical microphone claim. Frozen916 fresh27/manual-hold request stays unchanged."
+}

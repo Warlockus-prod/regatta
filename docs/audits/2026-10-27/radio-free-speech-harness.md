@@ -95,8 +95,29 @@ one worker RPC timeout; it is retained and not accepted. No assertion or test
 timeout was relaxed, and contention as the sole cause is not proven.
 
 Manual actual English typing/reset returns to0/8, empty preview and dock top
-at390x740. Temporary browser sizing is restored. Exact cloud run40450421511
-and a newly frozen installed candidate remain pending.
+at390x740. Temporary browser sizing is restored.
+
+Exact [cloud89](checks/radio-reset-browser89.json), run40450421511 and downloaded
+artifact12710204023, has81first-attempt cases and one flaky case. All four
+free-speech journeys, including fixed-Date Reset/stale result, pass first
+attempt. The controls-lesson667px case sampled a null LCD bounding box after
+its dock appeared,493ms into the case; retry passed. No out-of-bounds result
+was observed. Missing explicit faceplate readiness is a test-contract gap;
+the report alone does not establish the transient null's exact cause.
+
+The following test-only correction retries all original geometry assertions
+within the existing10s assertion budget and unchanged30s case. Coordinates,
+1px bounds, scrolling and required controls are preserved. Exact next cloud
+acceptance is still mandatory; a green job with a flaky report is not full
+first-attempt acceptance.
+
+Exact [installed89](checks/radio-reset-native89.json) passes31package checks
+and121installed-file hashes on retained26.5. All16prior storage keys remain
+byte-identical before launch. Native Home -> Training -> actual PL radio
+panel -> Exit -> native Training is observed. Its WebKit accessibility subtree
+is unavailable through the Mac tool. Native typed reset, DIAL/PTT/model and
+physical microphone are not accepted. Fresh27 retains frozen916 unchanged and
+its manual hold request. The frozen89 package is preserved separately.
 
 This correction is not included in frozen916 or its82case proof. Its lack of
 physical microphone acceptance and the pending manual native hold remain

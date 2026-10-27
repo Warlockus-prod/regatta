@@ -79,3 +79,30 @@ The live legacy force/server source and all installed-package bytes remain
 exactly unchanged from916. Its82case browser proof remains evidence for those
 assets, not a claimed new current-source browser run or activation of this API.
 Hardware, recording and installed physical racing still follow in order.
+
+## Following hardware observations remain red
+
+A following uncommitted swept-circle observer tests actual immutable propelled
+segments before response. It observes hull pairs and all three canonical mark
+envelopes, including the larger committee envelope. It neither invents RRS
+responsibility nor changes motion or emits a diagnostic stream.
+
+The first strengthened18journey matrix detects mark-envelope intersections in
+17journeys. The preceding completed source gate did not measure mark contact
+and cannot claim those courses are ready for hardware. A separate observer
+fixture initially crossed a real buoy unintentionally; moving that pure
+cross-at-different-times fixture away from hardware preserves its intended
+contract.
+
+The subsequent draft adds static hardware to bot prediction, shared actual
+water bounds and fine heading candidates, preserving intended turns through
+the wind. Three private weak-wind probes then show5/5short ordinary,4/5short
+early by480seconds and5/5long ordinary, with no observed envelope/contact
+response in those probes. The short early failure remains red. No deadline,
+hull, capture gate or zero-contact assertion is relaxed.
+
+The recoverable local draft is stash80a67308f9882054b3b43de44a961eb4b3207192;
+original failed logs and distinct private observer/proposal files are preserved
+outside Git. It is separated temporarily to record the radio test-only
+readiness checkpoint. Restore and finish it before claiming a following
+physical source gate. Nothing in this draft reaches the live game or69binary.

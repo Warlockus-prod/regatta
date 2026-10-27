@@ -7,7 +7,7 @@
 
 ## Current completion work
 
-- Following P07 source89ced94 resets use a monotonic generation and return the independent dock to its top. Its1760web/589native source gate passes; the initial three local timeout failures are retained separately. The actual PTT journey adds fixed-Date reset and stale-result assertions. `docs/audits/2026-10-27/radio-free-speech-harness.md` separates this pending browser/native candidate from frozen916 proof. No69 delivery is implied.
+- P07 source89ced94 passes its fixed-Date reset/three typing journeys first attempt, but its full cloud report has81first-attempt +1flaky immediate LCD geometry sample. The next test-only correction retains every bound and the existing10s assertion/30s case budgets. Its exact cloud gate must repeat. Official89 Simulator passes31checks/121installed-file matches and preserves16prior keys on retained26.5; actual entry/Exit pass, typing/PTT/model/microphone remain unaccepted. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the qualified proofs. No69 delivery is implied.
 
 - The following P04 draft has an explicit physical fleet transaction and separate metric bot/traffic memory. It uses a30Hz integer clock during countdown, shared helm/forces and pre-separation gate credit;39targeted cases pass, including18profile/wind/early-start fleets. `docs/audits/2026-10-27/physical-fleet-harness.md` owns the remaining source and activation gates. The first public port retains its17/18failure; the old post-separation overlap counter cannot claim zero contacts. No live physical emission, hardware/judge/recorder completion or new delivery is implied.
 
