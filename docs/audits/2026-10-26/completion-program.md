@@ -41,7 +41,7 @@
 | P01 | Исправить Skia crash первого drill; убрать живую погоду из старого native trainer | exact422b проверен | два runtime: урок -> drill -> ветер -> возврат, повторный вход, cold relaunch;72browser first-pass | доставлен66: independent Self/8notes GET15:26UTC; физический iPhone отдельно |
 | P02 | Единый первый урок и двухвидовые иллюстрации | общий первый урок,3Dпрактика и один Scheme/Picture pilot проверены |77browser first-pass, retained26.5/clean27, PL/RU/EN и exact package equivalence; [harness](learning-visuals-harness.md) | checkpoint доставлен67, independent Self/8notes18:53UTC; остальные иллюстрации открыты |
 | P03 | Закрыть надежность PB/результатов до новой физики | exactf7: отдельные ACK/receipt/retry, clear guards и replay route ownership | реальные finishes/History/Personal/Replay/Coach/Back/cold на26.5/27; exact-f7 fresh27; forced failures только tests | доставлен68: independent Self23:23:36.856UTC/8notes23:23:11.300UTC; physical emission OFF |
-| P04 | Согласовать единицы движения и управление общей лодки | metric fleet/bot API, actual hull/mark observations, hardware-clear recovery; emission OFF |89целевых проверок,18заездов по5лодок без наблюдаемых envelope contacts,1769web/589native; [fleet harness](../2026-10-27/physical-fleet-harness.md) | actual-ID54:53полных финиша/39чистых; один deadline и касания открыты, далее hardware response/judge/guidance/recorder/UI/native |
+| P04 | Согласовать единицы движения и управление общей лодки | metric fleet и coupled actual travel, emission OFF |1783web/589native,18контрольных заездов; [response harness](../2026-10-27/physical-response-harness.md) | после реакции на удары actual-ID54:53полных/45чистых, early-hard deadline RED; далее judge/guidance/recorder/UI/native |
 | P05 | Трассы разной длины, затем маршруты вокруг острова | план | каждый маршрут проходим, не пересекает сушу; старые классы сохранены | послеP04 |
 | P06 | Общие пресеты свободно/гонка/обучение, автотрим/ручной; независимые помощь и судья | частично в65 | полный Simple/Pro заезд и учебное объяснение, сохраненные настройки | послеP04/P05 |
 | P07 | Радио: видимое распознавание в свободной практике | bounded session, shared on-device PTT, typed fallback;89ced94 исправляет identity/reset и начало панели | [harness](../2026-10-27/radio-free-speech-harness.md):36имеет82first-attempt browser с fixed-Date reset;89имеет1760web/589native и qualified native entry/Exit | native PTT/model и физический микрофон не приняты, не доставлен |
@@ -144,3 +144,14 @@ Exactf7/tag68 доставлен в Self: independent GET2026-10-26T23:23:36.856
 1772web/589native и прежние18полных контрольных заездов проходят. Физическая
 выдача результатов выключена; следующий обязательный пункт: реальная реакция
 на препятствия с зачетом только фактически пройденного пути.
+
+
+## P04: реальный пройденный путь после столкновения
+
+ADR-0013 и [проверка реакции](../2026-10-27/physical-response-harness.md)
+отделяют начальное раздвигание от движения. Зачет получает только фактически
+пройденный отрезок до удара.11специальных тестов и прежние18контрольных гонок
+проходят. Расширенная матрица после реакции:53/54полных финиша,45без контактов;
+один short/weak/early/hard остается красным из-за позднего правильного обхода
+западных ворот. Лимит480секунд и порядок ворот не меняются. Это рабочая точка
+для отката, не разрешение на включение нового режима или поставку69.

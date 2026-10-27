@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- ADR-0013 adds a coupled circular travel constraint inside the still-unwired physical fleet. `docs/audits/2026-10-27/physical-response-harness.md` records1783web/589native and11response contracts, while the actual-ID54sweep retains a RED short/weak/early/hard bot deadline at53full finishes. Progress now uses actual impact-truncated travel after recovery; cancelled intended encounters are not contacts. Keep physical emission OFF and resolve that recovery before activation. Do not reuse d580pre-response54/54as proof for this checkpoint.
+
 - P04 close-hauled avoidance no longer depends on floating point rounding at45degrees. `docs/audits/2026-10-27/checks/physical-game-luff.json` binds the final54actual-ID/difficulty sweep: all fleets finish,45strict clean, zero mark-contact frames; nine hard moving-early starts still have hull contacts. The92targeted/1772web/589native source gate leaves forces, server and installed HTML bytes unchanged. Rejected tolerance-only regressions are retained; coupled response/judging/recording and actual physical activation remain open.
 
 - Human DIAL hold on frozen916 is now confirmed: actual CH16 power-on and localized native recognition-unavailable state on27, with121installed hashes still matching916. `docs/audits/2026-10-27/checks/radio-powered-native916.json` records API availability, not its underlying cause. Mac coordinate actions fail despite AX Raise; actual PTT/typing is pending a separate manual request. Source89reset/095 physical acceptance and69delivery are not inferred.

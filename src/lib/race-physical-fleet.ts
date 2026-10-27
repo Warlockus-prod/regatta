@@ -2,8 +2,9 @@ import { readRaceContext, type PhysicalRaceContext } from "./race-context";
 import { advancePhysicalRaceProgress, physicalRaceGates, physicalRaceStage, type PhysicalRaceStage } from "./race-physical-progress";
 import { isPhysicalRaceBoat, isPhysicalRaceInput, stepPhysicalBoat, type PhysicalRaceInput, type PhysicalRaceMotion } from "./race-physical-motion";
 import { avoidPhysicalBotHeading, physicalBotRudder, physicalBotTrajectory, planPhysicalBot, PHYSICAL_FLEET_HZ, type PhysicalBotState } from "./race-physical-bot";
-import { resolveCollisions, type RaceBoat, type RaceCourse } from "./race-physics";
-import { observePhysicalRaceContacts, type PhysicalRaceContact } from "./race-physical-contact";
+import type { RaceBoat, RaceCourse } from "./race-physics";
+import type { PhysicalRaceContact } from "./race-physical-contact";
+import { constrainPhysicalRaceTravel } from "./race-physical-response";
 import { physicalCourseWaterBounds } from "./race-courses";
 
 export interface PhysicalFleetEntry {
@@ -68,9 +69,10 @@ function copyBoat(boat: RaceBoat): RaceBoat | null {
 
 /** Explicit, unwired physical fleet transaction. Validate every driver and
  * navigation state before working on copies. Plan from one perception frame;
- * use the shared force/helm laws and grade propelled motion before separation.
- * No hardware response, judging, recorder, user steering or result emission is
- * enabled here. One call is exactly one 30 Hz engine tick. Its integer clock
+ * use the shared force/helm laws and grade only impact-constrained travel.
+ * Recovery precedes travel and cannot award gates. Judging, recorder, live
+ * user steering and result emission remain unwired. One call is exactly one
+ *30Hz engine tick. Its integer clock
  * also advances during countdown independently of the official race clock;
  * a paused engine does not call this function. */
 export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetStep | null {
@@ -134,15 +136,22 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     if (!motion || !isPhysicalRaceBoat(boat)) return null;
     motions.set(boat.id, motion);
   }
-  const contacts = observePhysicalRaceContacts({ boats, motions, context: read.context, course: frame.course });
-  if (!contacts) return null;
-  resolveCollisions(boats, frame.dt);
+  const response = constrainPhysicalRaceTravel({ boats, motions, context: read.context, course: frame.course, dt: frame.dt });
+  if (!response) return null;
+  for (const boat of boats) {
+    const travelled = response.motions.get(boat.id);
+    if (!travelled) continue;
+    boat.pos = { ...travelled.to };
+    const damping = response.speedMultipliers.get(boat.id)!;
+    boat.speed *= damping;
+    if (boat.physics) boat.physics.boatSpeed *= damping;
+  }
   const progress: PhysicalFleetStep["progress"][number][] = [];
   for (const boat of boats) {
-    const motion = motions.get(boat.id) ?? { from: boat.pos, to: boat.pos };
+    const motion = response.motions.get(boat.id) ?? { from: boat.pos, to: boat.pos };
     const result = advancePhysicalRaceProgress(boat, motion, read.context, frame.course, frame.raceTime, frame.racing);
     if (!result || !isPhysicalRaceBoat(boat)) return null;
     progress.push({ boatId: boat.id, ...result });
   }
-  return { boats, navigation, motions, contacts, progress };
+  return { boats, navigation, motions: response.motions, contacts: response.contacts, progress };
 }

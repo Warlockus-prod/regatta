@@ -76,7 +76,8 @@ describe("explicit physical fleet transaction", () => {
     expect(result.boats[0]).toEqual(done); expect(result.motions.has("done")).toBe(false);
     expect(result.boats[1].pos.y).toBeLessThan(1050);
     expect(result.contacts).toEqual([expect.objectContaining({ kind: "hull", boatId: "a", otherBoatId: "b", firstHitFraction: 0 })]);
-    expect(result.motions.get("a")!.to).toEqual(a.pos);
+    expect(result.motions.get("a")!.from).toEqual(result.motions.get("a")!.to);
+    expect(result.motions.get("a")!.from).not.toEqual(a.pos);
     expect(result.boats[1].started).toBeUndefined(); expect(result.progress.every(p => p.event === null)).toBe(true);
   });
 

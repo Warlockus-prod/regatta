@@ -1698,7 +1698,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
 - `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, integer-tick memory, reachable-turn traffic/hardware prediction, shared water bounds and endpoint-clear recovery circles; legacy autopilot and human steering stay separate.
 - `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction and metre-per-knot invariants.
-- `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception of last actual bot commands, unchanged shared forces/helm, pre-response contacts and propelled-only progress before separation.
+- `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception of last actual bot commands, unchanged shared forces/helm, coupled impact-truncated travel and recovery-free progress; live emission stays OFF.
 - `src/lib/race-physical-contact.ts` - bounded immutable hull/mark swept-circle observations from actual propelled segments, canonical hardware and explicit physical context; no response, penalty, diagnostic stream or persistence.
 - `src/lib/race-physical-contact.test.ts` - simultaneous versus different-time path crossings, tangency/initial overlap, larger committee hardware, finished exclusion, bounds/ownership and malformed-frame rejection.
 - `src/lib/race-physical-fleet.test.ts` - real five-boat18profile/wind/early-start journeys plus atomic rejection, memory ownership, fixed-clock/countdown, human input and collision-credit contracts.
@@ -1742,3 +1742,8 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/physical-game-luff.json` - exact-input54autonomous game-ID/difficulty sweep after stable luff candidate selection:54finish,45strict clean, zero mark frames and nine moving early hard hull-contact cases, with full counters.
 - `docs/audits/2026-10-27/checks/physical-luff-source.json` -1772web/589native and92targeted source acceptance; unchanged forces/server/offline HTML and qualified following cloud/native gates.
+
+- `src/lib/race-physical-response.ts` - physical-only atomic circular hull/mark/water constraint, initial recovery excluded from travel, one common impact clock, bounded stops/closing loss and immutable actual segments; no live caller outside the unwired fleet.
+- `src/lib/race-physical-response.test.ts` -11contracts for tunnelling/later/tangent/escape/coupled recovery, conservative wall constraints, actual contact/gate truth, finished exclusion and atomic rejection.
+- `docs/audits/2026-10-27/physical-response-harness.md` - ADR-0013 development checkpoint and explicit RED early-hard recovery deadline; not physical activation or delivery acceptance.
+- `docs/audits/2026-10-27/checks/physical-response-source.json` - input-bound1783web/589native source checks and all54research rows, retaining53full finishes and actual contact counter semantics.

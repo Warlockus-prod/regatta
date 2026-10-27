@@ -684,3 +684,50 @@ The owner accepted the independent audit, requested clearer realistic learning i
 ### Verification
 
 Follow `docs/audits/2026-10-26/completion-program.md`. First close the real Lesson1 -> drill -> control -> return path on the exact installed release. For learning visuals verify technical meaning, PL/RU/EN labels, accessibility, offline assets and unchanged assessment. For speech verify real recording lifecycle, cancellation, absent models and separation of transcript from diagnostics. Physical race activation remains governed by ADR-0011 and its consumer gates.
+
+
+## ADR-0013 - Actual circular travel constraints for physical fleets
+
+Date:2026-10-27. Status: accepted for implementation in the unwired physical
+engine. Full activation remains blocked by the completion harness.
+
+### Decision
+
+Keep the existing canonical hull/mark envelopes and shared force/helm laws.
+Recover existing overlap within coupled hull, fixed hardware and water
+constraints before travel, with deterministic ID order and a finite projection
+budget. The recovery displacement cannot award a start, rounding or finish.
+A nonconverging or malformed frame returns null without changing its caller.
+
+Run all proposed linear segments on one normalized30Hz tick. Advance to each
+actual swept impact, then stop the involved bodies for the rest of that tick.
+Other boats continue and can encounter a newly stopped hull. Tangential and
+separating travel remains free. This is a conservative circular contact model,
+not a claim of rigid-body yaw, tangential friction or damage simulation.
+
+Preserve ADR-0004's time-based closing-only bump loss, with the same1kn full
+share and1.67decay coefficient. Apply it only to actual closing encounters;
+resting, separating and wall-only constraints do not add repeated slowing.
+No golden sailing-physics constant or legacy/server function changes.
+
+Progress and following recording use the returned recovered-from to actual
+impact-truncated endpoint. The current conservative response never bends that
+travel into a different direction within a tick, so this remains one actual
+straight segment. A future sliding or impulse model needs a piecewise travelled
+path before progression/recording can consume it. Intended paths through a
+cancelled future encounter are not contacts or completed travel.
+
+### Verification
+
+Initial overlap, coupled water/committee recovery, no tunnelling, simultaneous
+and later impacts, tangency and escape, unchanged free travel/finished boats,
+actual closing loss, deterministic ordering, bounded rejection and no recovery
+or obstruction gate credit. Keep the18zero-contact baseline, current game-ID/
+difficulty sweep and full unit/source/browser/native gates separate. A failed
+expanded bot deadline remains open; it cannot authorize emission or delivery.
+
+### References
+
+`src/lib/race-physical-response.ts`, `src/lib/race-physical-response.test.ts`,
+`docs/audits/2026-10-27/physical-response-harness.md`,
+`docs/audits/2026-10-26/completion-program.md`.
