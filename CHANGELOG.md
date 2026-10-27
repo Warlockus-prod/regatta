@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Check native radio recognition for the requested English dialect instead of the phone's default-language capability. Older binaries without the new locale probe keep typed fallback until a native rebuild; actual microphone acceptance remains separate.
+
 - Preserve actual metric impact velocities for the following optional race judge. Separate initial overlap from travelled encounters, including later contact with a stopped hull; no fault or penalty is inferred yet. The physical fleet remains unwired.
 
 - Verify exact e414 push/PR CI and82first-attempt browser cases. Retained native89 also confirms typed radio Add and Exit; actual Reset and microphone recognition remain open. No69 delivery is claimed.

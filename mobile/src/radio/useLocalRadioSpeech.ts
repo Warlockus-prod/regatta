@@ -3,10 +3,9 @@ import { AppState, Platform } from "react-native";
 import { requireOptionalNativeModule } from "expo-modules-core";
 import { useFocusEffect } from "expo-router";
 import * as Speech from "expo-speech";
-import type { ExpoSpeechRecognitionModuleType } from "expo-speech-recognition/build/ExpoSpeechRecognitionModule.types";
-import { createLocalRadioSpeech, radioSpeechEventScript } from "./local-speech";
+import { createLocalRadioSpeech, radioSpeechEventScript, type LocalRadioRecognition } from "./local-speech";
 
-const recognition = requireOptionalNativeModule<ExpoSpeechRecognitionModuleType>("ExpoSpeechRecognition");
+const recognition = requireOptionalNativeModule<LocalRadioRecognition>("ExpoSpeechRecognition");
 export const LOCAL_RADIO_SPEECH_SCRIPT = `window.__REGATTA_NATIVE_SPEECH__=true;window.__REGATTA_NATIVE_ASR__=${Boolean(recognition)};true;`;
 
 /** The native module is scoped to the local SRC page and never owns network calls. */

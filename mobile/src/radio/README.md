@@ -19,6 +19,14 @@ ASR always passes `requiresOnDeviceRecognition:true` and `recordingOptions.persi
 
 iOS lists supported locales without proving that a language model is downloaded. Therefore availability means device capability; only the native `started` event signals recording. A later model error remains a local failure. Releasing PTT while permission hydration is pending cannot start recording afterwards. Cancelled transcripts cannot grade another activity.
 
+The iOS probe checks each matching requested-language locale, preferring the
+exact dialect. It never substitutes the phone's default-language capability.
+`regattaOnDeviceRecognitionAvailable(locale)` is added by the checked prebuild
+plugin and creates a recognizer for that supported locale, checking both
+availability and local support. An older binary without this method stays on
+typed fallback. Android keeps its capability and installed-locale checks.
+This change requires a new native binary, not just regenerated WebView HTML.
+
 ## SDK54 constraints
 
 Free practice uses the same ASR adapter through `FreeSpeechPractice.tsx`, with
@@ -32,9 +40,15 @@ and grants no assessment or lesson credit.
 
 - `expo-speech`14.0.8 accepts JS volume but its upstream native code omits it. `plugins/with-local-radio-speech.js` adds the Swift utterance and Android TTS volume assignments. Android voice enumeration excludes voices requiring a network connection.
 - `expo-speech-recognition`3.1.3, the upstream SDK54 package, conditionally assigns the on-device request flag. The plugin makes that assignment unconditional, so unsupported local recognition fails instead of falling back to a server.
+- Its iOS no-argument availability/local-support functions use the phone's default language. The plugin adds a selected-locale probe without changing those upstream functions. Both recognition source anchors are validated before either file is written.
 - Every patch validates the exact package version and source anchors before writing; repeated prebuilds are idempotent. Review and update these assertions when upgrading either package. Fresh native prebuild and a new binary are mandatory.
 - Permission descriptions use the existing seven `mobile/locales/*.json` files. The microphone purpose describes SRC practice only. Installed Sternik oral practice checks typed answers and does not request a microphone.
 
 Primary references: [Expo Speech](https://docs.expo.dev/versions/latest/sdk/speech/), [speech recognition package](https://github.com/jamsch/expo-speech-recognition). Actual SDK54 signatures and native behavior were also checked in the installed14.0.8/3.1.3 sources.
+
+Apple distinguishes the [default-language initializer](https://developer.apple.com/documentation/speech/sfspeechrecognizer/init%28%29)
+from the [selected-locale initializer](https://developer.apple.com/documentation/speech/sfspeechrecognizer/init%28locale%3A%29).
+An initialized recognizer alone does not establish recording or successful
+on-device recognition.
 
 Run `npm run typecheck` and the `local-radio-speech`, `local-radio-speech-plugin`, `app-config`, `webview-analytics-consent` Jest suites before rebuilding. A simulator without a speech model must expose the typed fallback; do not claim that a mock test verifies a physical microphone or voice pack.

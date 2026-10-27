@@ -2,7 +2,7 @@ import { createLocalRadioSpeech, radioSpeechEventScript } from "../src/radio/loc
 import type { ExpoSpeechRecognitionModuleType } from "expo-speech-recognition/build/ExpoSpeechRecognitionModule.types";
 
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
-function setup() {
+function setup(platform = "ios") {
   const handlers: Record<string, (value?: unknown) => void> = {};
   const speech = {
     speak: jest.fn(), stop: jest.fn().mockResolvedValue(undefined),
@@ -11,13 +11,14 @@ function setup() {
   const recognition = {
     addListener: jest.fn((name: string, callback: (value: unknown) => void) => { handlers[name] = callback; return { remove: jest.fn() }; }),
     isRecognitionAvailable: jest.fn(() => true), supportsOnDeviceRecognition: jest.fn(() => true),
+    regattaOnDeviceRecognitionAvailable: jest.fn((_locale: string) => true),
     getSupportedLocales: jest.fn().mockResolvedValue({ locales: ["en-GB"], installedLocales: ["en-GB"] }),
     getMicrophonePermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
     requestMicrophonePermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
     start: jest.fn(), stop: jest.fn(), abort: jest.fn(),
   };
   const send = jest.fn();
-  const bridge = createLocalRadioSpeech({ speech, recognition: recognition as unknown as ExpoSpeechRecognitionModuleType, platform: "ios", send });
+  const bridge = createLocalRadioSpeech({ speech, recognition: recognition as unknown as ExpoSpeechRecognitionModuleType, platform, send });
   return { speech, recognition, send, bridge, handlers };
 }
 beforeEach(() => jest.useFakeTimers());
@@ -51,7 +52,7 @@ it("does not fall back to another language or start muted speech and rejects ove
 
 it("checks local recognition without prompting and refuses missing on-device models", async () => {
   const { bridge, recognition, send } = setup();
-  recognition.supportsOnDeviceRecognition.mockReturnValue(false);
+  recognition.regattaOnDeviceRecognitionAvailable.mockReturnValue(false);
   bridge.handle(JSON.stringify({ type: "radio-asr", id: "availability-1", action: "availability", lang: "en" }));
   await flush();
   expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ available: false, code: "model-unavailable" }));
@@ -59,6 +60,76 @@ it("checks local recognition without prompting and refuses missing on-device mod
   await flush();
   expect(recognition.requestMicrophonePermissionsAsync).not.toHaveBeenCalled();
   expect(recognition.start).not.toHaveBeenCalled();
+  bridge.dispose();
+});
+
+it("checks requested English independently of an unavailable default phone language", async () => {
+  const { bridge, recognition, send } = setup();
+  recognition.isRecognitionAvailable.mockReturnValue(false); recognition.supportsOnDeviceRecognition.mockReturnValue(false);
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "english-probe", action: "availability", lang: "en" }));
+  await flush();
+  expect(recognition.regattaOnDeviceRecognitionAvailable).toHaveBeenCalledWith("en-GB");
+  expect(recognition.isRecognitionAvailable).not.toHaveBeenCalled(); expect(recognition.supportsOnDeviceRecognition).not.toHaveBeenCalled();
+  expect(recognition.getMicrophonePermissionsAsync).not.toHaveBeenCalled();
+  expect(recognition.requestMicrophonePermissionsAsync).not.toHaveBeenCalled(); expect(recognition.start).not.toHaveBeenCalled();
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ available: true, locale: "en-GB" }));
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "english-start", action: "start", lang: "en" }));
+  await flush();
+  expect(recognition.start).toHaveBeenCalledWith(expect.objectContaining({ lang: "en-GB", requiresOnDeviceRecognition: true }));
+  bridge.dispose();
+});
+
+it("tries another supported English dialect without accepting a different language", async () => {
+  const { bridge, recognition, send } = setup();
+  recognition.getSupportedLocales.mockResolvedValue({ locales: ["pl-PL", "en_US", "en-GB"], installedLocales: [] });
+  recognition.regattaOnDeviceRecognitionAvailable.mockImplementation(locale => locale === "en-US");
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "dialect", action: "availability", lang: "en" }));
+  await flush();
+  expect(recognition.regattaOnDeviceRecognitionAvailable.mock.calls).toEqual([["en-GB"], ["en-US"]]);
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ available: true, locale: "en-US" }));
+  bridge.dispose();
+});
+
+it("fails closed on an older iOS native binary without the locale probe", async () => {
+  const { bridge, recognition, send } = setup();
+  Object.defineProperty(recognition, "regattaOnDeviceRecognitionAvailable", { value: undefined });
+  for (const action of ["availability", "start"]) bridge.handle(JSON.stringify({ type: "radio-asr", id: `old-${action}`, action, lang: "en" }));
+  await flush();
+  expect(recognition.getSupportedLocales).not.toHaveBeenCalled(); expect(recognition.start).not.toHaveBeenCalled();
+  expect(recognition.requestMicrophonePermissionsAsync).not.toHaveBeenCalled();
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ id: "old-availability", available: false }));
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ id: "old-start", code: "model-unavailable" }));
+  bridge.dispose();
+});
+
+it("preserves Android capability and installed-language gates", async () => {
+  const { bridge, recognition, send } = setup("android");
+  recognition.supportsOnDeviceRecognition.mockReturnValue(false);
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "android-no-capability", action: "availability", lang: "en" }));
+  await flush();
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ available: false }));
+  recognition.supportsOnDeviceRecognition.mockReturnValue(true);
+  recognition.getSupportedLocales.mockResolvedValue({ locales: ["en-GB", "pl-PL"], installedLocales: ["pl-PL"] });
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "android-no-model", action: "start", lang: "en" }));
+  await flush();
+  expect(recognition.regattaOnDeviceRecognitionAvailable).not.toHaveBeenCalled(); expect(recognition.start).not.toHaveBeenCalled();
+  recognition.getSupportedLocales.mockResolvedValue({ locales: ["en-GB", "pl-PL"], installedLocales: ["en_US"] });
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "android-installed", action: "start", lang: "en" }));
+  await flush();
+  expect(recognition.start).toHaveBeenCalledWith(expect.objectContaining({ lang: "en-US", requiresOnDeviceRecognition: true }));
+  bridge.dispose();
+});
+
+it("keeps typing fallback when the selected-locale native probe throws without asking permission", async () => {
+  const { bridge, recognition, send } = setup();
+  recognition.regattaOnDeviceRecognitionAvailable.mockImplementation(() => { throw new Error("synthetic unavailable probe"); });
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "probe-failed", action: "availability", lang: "en" }));
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "start-failed", action: "start", lang: "en" }));
+  await flush();
+  expect(recognition.getMicrophonePermissionsAsync).not.toHaveBeenCalled(); expect(recognition.start).not.toHaveBeenCalled();
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ id: "probe-failed", available: false, code: "model-unavailable" }));
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ id: "start-failed", code: "model-unavailable" }));
+  expect(JSON.stringify(send.mock.calls)).not.toContain("synthetic unavailable probe");
   bridge.dispose();
 });
 

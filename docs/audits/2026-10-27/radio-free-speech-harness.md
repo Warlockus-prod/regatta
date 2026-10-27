@@ -178,3 +178,36 @@ package replaced or Apple state changed.
 Exacte414 separately passes82first-attempt [preserved-UI browser cases](checks/physical-bot-stability-browser-e414.json)
 and push/PR CI. Its radio HTML remains identical to89, but this does not turn
 an older exact native package observation into a current full release gate.
+
+## Following source: selected recognition locale
+
+Installed SDK3.1.3's no-argument iOS capability methods construct
+`SFSpeechRecognizer()` for the phone's default language. Our radio requests
+English separately. The previous adapter used those default-language methods
+before selecting a matching English locale, so a negative unrelated capability
+could reject supported English, or a positive one could misdescribe it.
+This source defect is confirmed; its role in frozen916Simulator unavailability
+is not established. Apple documents the difference between the
+[default initializer](https://developer.apple.com/documentation/speech/sfspeechrecognizer/init%28%29)
+and [selected-locale initializer](https://developer.apple.com/documentation/speech/sfspeechrecognizer/init%28locale%3A%29).
+
+The version/anchor-checked plugin now adds a synchronous selected-locale native
+probe. The adapter prefers the requested dialect, then another supported
+dialect of the same language with actual available/local capability. A missing
+probe in an older binary fails closed to typing. Android retains its installed
+locale and capability gates. No availability check requests permission, and
+actual start still requires on-device recognition with no audio persistence.
+
+Tests cover default-language false/English true, selected-local false,
+same-language dialect fallback, missing/throwing probe, Android installed-only
+behavior and no permission/start during probes. Plugin tests exercise repeated
+prebuilds, a changed SDK version and a changed second anchor without partially
+writing the first source. Native source parsing is separate from the pending
+full Xcode compile, installed callback/microphone and delivery gates. All older
+916/89packages and proofs remain preserved, without this new native method.
+
+The [locale source proof](checks/radio-locale-source.json) records1793web cases,
+596native cases and15focused post-SDK-patch cases, plus9release tools,
+types/lint, offline freshness/content twins, generated server/sockets,
+production build/budget and Swift source parsing. Full Xcode/native compile,
+actual installed probe and microphone gates remain separate and pending.

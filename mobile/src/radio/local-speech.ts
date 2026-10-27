@@ -1,7 +1,10 @@
 import type * as Speech from "expo-speech";
 import type { ExpoSpeechRecognitionModuleType } from "expo-speech-recognition/build/ExpoSpeechRecognitionModule.types";
 
-type Recognition = ExpoSpeechRecognitionModuleType;
+export type LocalRadioRecognition = ExpoSpeechRecognitionModuleType & {
+  /** Added by the checked SDK54 prebuild plugin. Absent in older binaries. */
+  regattaOnDeviceRecognitionAvailable?: (locale: string) => boolean;
+};
 type SpeechEngine = Pick<typeof Speech, "speak" | "stop" | "getAvailableVoicesAsync">;
 type Detail = Record<string, string | boolean | number | undefined>;
 const locales: Record<string, string> = { en: "en-GB", ru: "ru-RU", pl: "pl-PL", es: "es-ES", fr: "fr-FR", de: "de-DE", it: "it-IT" };
@@ -13,7 +16,7 @@ const sameLanguage = (a: string, b: string) => a.replaceAll("_", "-").toLowerCas
 /** Only bounded local activity messages reach system speech. No HTTP or audio files. */
 export function createLocalRadioSpeech({ speech, recognition, platform, send }: {
   speech: SpeechEngine;
-  recognition: Recognition | null;
+  recognition: LocalRadioRecognition | null;
   platform: "ios" | "android" | string;
   send: (event: "regatta:radio-speech" | "regatta:radio-asr", detail: Detail) => void;
 }) {
@@ -43,13 +46,22 @@ export function createLocalRadioSpeech({ speech, recognition, platform, send }: 
     }
   }
   async function availability(lang: string) {
-    if (abortTimedOut || !recognition || !recognition.isRecognitionAvailable() || !recognition.supportsOnDeviceRecognition()) return null;
+    if (abortTimedOut || !recognition) return null;
+    // The SDK's iOS no-argument checks create a recognizer for the phone's
+    // default locale. They cannot decide whether requested English works.
+    if (platform === "ios" ? typeof recognition.regattaOnDeviceRecognitionAvailable !== "function"
+      : !recognition.isRecognitionAvailable() || !recognition.supportsOnDeviceRecognition()) return null;
     const supported = await recognition.getSupportedLocales({});
     // iOS reports supported, not downloaded locales. Only a native start event
     // confirms readiness; a missing model must fail locally, never use a server.
     const candidates = platform === "android" ? supported.installedLocales : supported.locales;
-    return candidates.find(value => sameLanguage(value, lang))?.replaceAll("_", "-")
-      ?? candidates.find(value => value.split(/[-_]/)[0].toLowerCase() === lang.split("-")[0].toLowerCase())?.replaceAll("_", "-") ?? null;
+    const matching = [...candidates.filter(value => sameLanguage(value, lang)),
+      ...candidates.filter(value => !sameLanguage(value, lang) && value.split(/[-_]/)[0].toLowerCase() === lang.split("-")[0].toLowerCase())];
+    for (const value of matching) {
+      const locale = value.replaceAll("_", "-");
+      if (platform !== "ios" || recognition.regattaOnDeviceRecognitionAvailable!(locale) === true) return locale;
+    }
+    return null;
   }
   function stopAsr() {
     const current = listening;
