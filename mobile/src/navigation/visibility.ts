@@ -1,5 +1,6 @@
 // Keep controls clear during activities. Reference and course pages retain tabs.
 export function showsMainNavigation(path: string): boolean {
+  if (path === "/ads") return false;
   if (path === "/simulators") return true;
   return !(/^\/simulator/.test(path) || /^\/(?:game|race-3d)(?:\/|$)/.test(path) || /^\/multiplayer(?:\/race(?:\/|$)|$)/.test(path) || /^\/replay(?:\/|$)/.test(path) || /\/(symulator|egzamin|exam)(?:\/|$)/.test(path));
 }
@@ -7,6 +8,7 @@ export function showsMainNavigation(path: string): boolean {
 /** The native frame must match the installed instrument content it surrounds. */
 export function usesDarkNavigation(path: string): boolean {
   const clean = path.split(/[?#]/)[0];
+  if (clean === "/ads") return true;
   return /^\/(?:kursy\/(?:radio|motorowodny)|anatomy(?:-offline)?|diagnostics|game|multiplayer|replay|simulator(?:-basics|-v1|-v3|2)?)(?:\/|$)/.test(clean);
 }
 

@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "90f911079ae8",
+  "version": "a63e46adf7f2",
   "lang": "pl",
-  "sha256": "c2244b9934e1108a3c45c69fec6a594a96687cdad6c7ef4c7ba1815fc5d1748f",
-  "bytes": 2580743,
+  "sha256": "db066ec59234ead29e85bae5552e034acc66d55c90909d7e353ec52182d01d1b",
+  "bytes": 2581085,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -53,6 +53,7 @@
     "src/app/sternik/ustny/oralPrompts.ts",
     "src/app/sternik/ustny/page.tsx",
     "src/data/sternik.ts",
+    "src/lib/ads-preview.ts",
     "src/lib/diagnostics-bridge.ts",
     "src/lib/diagnostics-web.ts",
     "src/lib/diagnostics.ts",
@@ -280,6 +281,11 @@
       "sha256": "3ea47032c641735330ea25092bb7f923daebf5d062c1033c2c02f11a255194b0"
     },
     {
+      "path": "src/lib/ads-preview.ts",
+      "bytes": 2241,
+      "sha256": "ea6dbc73e8c9cbea4d2777bc83036b5f0ae187920f3f4d0998f180c725d8256f"
+    },
+    {
       "path": "src/lib/diagnostics-bridge.ts",
       "bytes": 1782,
       "sha256": "7e8d0e434104ace903df97783e512347b009b81f7c42474a4d138441fbc33ce0"
@@ -291,8 +297,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 25659,
-      "sha256": "876ba4fc942f961529af705743273ec7dde5726bd5034f20046f3a0c129faadf"
+      "bytes": 26292,
+      "sha256": "e6faeebb963639fc7ea2b7f52c326f8d58c176a09757cce54d48d86640e1a444"
     },
     {
       "path": "src/lib/race-visual-prefs.ts",

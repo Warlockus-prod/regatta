@@ -4,6 +4,20 @@ Authoritative "how the mobile app is built and where every screen/element lives"
 reference. Current mobile learning slice: 2026-10-15, `codex/learning-modules`.
 Actual distribution state belongs to `BUILDS.md`.
 
+## Ads inspection prototype
+
+- `mobile/app/ads.tsx` - local Settings recovery and installed sailing package at `/ads`, without a tier switcher or ad SDK.
+- `mobile/app/settings.tsx` - owner-requested named Ads entry and actual navigation request diagnostic.
+- `mobile/__tests__/ads-entry.test.tsx` - bundled route, native frame/hidden tabs and Settings recovery contract.
+- `mobile/__tests__/screens/settings.test.tsx` - actual Ads entry press reaches its route.
+
+`mobile/scripts/offline-sailing/entry.tsx` dispatches Ads only to the local lab;
+the embed/manifest route contracts include it. Shared scene/camera/preview code
+is mapped in the root architecture. The40-action preview journal is session
+memory; general diagnostics remain bounded and native-authoritative. No SDK,
+ad request, impression measurement or website Ads route is introduced. See
+`ads-lab.md` for the pending provider and exact acceptance limits.
+
 ## 0. READ FIRST - where the code lives
 
 | App | Lives in | Release branch | Ships via | URL / target |

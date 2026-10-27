@@ -133,7 +133,7 @@ const sourcePaths = [...new Set([...inputs.filter(path => !path.includes(":") &&
 const sourceFiles = sourcePaths.map(path => { const bytes = readFileSync(join(root, path)); return { path, bytes: bytes.length, sha256: digest(bytes) }; });
 const manifest = JSON.stringify({
   schema: 1, entry: "sailing-offline.html", version, sha256: digest(html), bytes: Buffer.byteLength(html),
-  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy"],
+  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads"],
   model: { sha256: digest(model), bytes: model.length, embeddedSha256: digest(runtimeModel), embeddedBytes: runtimeModel.length },
   inputs, sourceFiles, embeddedAssets,
 }, null, 2) + "\n";

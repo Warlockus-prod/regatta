@@ -1674,3 +1674,23 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/physical-motion-observations.json` - three synthetic metre/heading measurements, explicitly not installed acceptance.
 - `docs/audits/2026-10-27/checks/physical-motion-source.json` - production input hashes, source gates and qualified native timing retry.
+
+## Ads inspection lab, native prototype
+
+- `src/lib/ads-preview.ts` - fixed scene/camera/lens/placement vocabulary and immutable40-action session preview journal; no SDK signal ingestion.
+- `src/lib/ads-preview.test.ts` - bounded/private-free preview journal and diagnostic rejection of unknown IDs/SDK payloads.
+- `src/features/ads-lab/AdsLab.tsx` - camera/venue/placement inspection dock and explicit unconfigured SDK status.
+- `src/features/ads-lab/AdsLab.module.css` - reserved scene and scrollable44px controls, desktop sidebar/mobile lower dock.
+- `src/features/ads-lab/AdsCameraRig.tsx` - shared scoped OrbitControls binding, camera presets and actual directional button movement.
+- `src/features/ads-lab/camera.ts` - pure camera fitting and horizontal/vertical rotation geometry.
+- `src/features/ads-lab/camera.test.ts` - declared lens/viewport fitting, directional geometry and seven-language copy coverage.
+- `src/features/ads-lab/copy.ts` - seven-language lab instructions/statuses; owner-requested Ads name and fixed test-card IDs remain technical labels.
+- `src/features/ads-lab/TestPlacements.tsx` - three local front-facing test cards with explicit texture disposal; no ad network/SDK.
+- `docs/design/mobile/ads-lab.md` - requested scope, actual evidence and SDK/release limits.
+
+`RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. Actual ad serving is absent.
+
+`e2e/offline.spec.ts` adds an actual bundled Ads first-frame/control/geometry/placement-journal case with the existing25s scene and60s case limits; it checks no external/API request. This source test still requires its next exact cloud run. `SceneBoundary`/`SceneStartup` optional callbacks keep Ads directional controls disabled until a real frame and after an actual scene failure; normal trainer callers retain their existing behavior.
+
+- `docs/audits/2026-10-27/checks/physical-motion-browser.json` - exact3f portable77-case report with one attempt each; physical activation remains off.
+- `docs/audits/2026-10-27/checks/ads-source.json` - source gates and qualified actual browser geometry/controls, with original screenshot hashes; native acceptance remains separate.

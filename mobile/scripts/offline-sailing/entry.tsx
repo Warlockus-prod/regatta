@@ -10,6 +10,7 @@ import SimulatorBasics from "../../../src/app/simulator/page";
 import AnatomyPage from "../../../src/app/anatomy/page";
 import { OfflineSailingI18n } from "./i18n";
 import { readSailingEmbed, sailingSearch } from "./embed";
+import AdsLab from "../../../src/features/ads-lab/AdsLab";
 
 function OfflineSailingApp() {
   const [embed, setEmbed] = useState(readSailingEmbed);
@@ -28,7 +29,7 @@ function OfflineSailingApp() {
     return () => window.removeEventListener("regatta-embed", update);
   }, []);
   const search = sailingSearch(embed.query);
-  return <OfflineSailingI18n>{embed.path === "/game" ? <GameClient /> : embed.path === "/simulator-v3"
+  return <OfflineSailingI18n>{embed.path === "/ads" ? <AdsLab /> : embed.path === "/game" ? <GameClient /> : embed.path === "/simulator-v3"
     ? <SimulatorV3Page initialSearch={search.toString()} /> : embed.path === "/simulator" ? <SimulatorBasics />
     : embed.path === "/anatomy" ? <AnatomyPage /> : <SimulatorV2 />}</OfflineSailingI18n>;
 }

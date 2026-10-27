@@ -1,4 +1,5 @@
 import { WIND_DISPLAYS, type WindDisplay } from "./race-visual-prefs";
+import { ADS_CAMERAS, ADS_FOVS, ADS_PLACEMENTS, ADS_SCENES, type AdsCamera, type AdsFov, type AdsPlacement, type AdsScene } from "./ads-preview";
 
 /** Local diagnostics only. This module has no platform, storage or clock globals. */
 export const DIAGNOSTIC_STORAGE_KEY = "regatta.diagnostics.v1";
@@ -13,12 +14,12 @@ const MAX_COUNTER = Number.MAX_SAFE_INTEGER;
 const MAX_ELAPSED = DIAGNOSTIC_TTL_MS;
 const COALESCE_MS = 250;
 
-export const DIAGNOSTIC_SURFACES = ["app", "radio", "race", "multiplayer", "replay", "basics", "trainer", "boat", "anatomy", "sternik", "learn", "menu", "diagnostics"] as const;
+export const DIAGNOSTIC_SURFACES = ["app", "radio", "race", "multiplayer", "replay", "basics", "trainer", "boat", "anatomy", "sternik", "learn", "menu", "diagnostics", "ads"] as const;
 export const DIAGNOSTIC_OUTCOMES = ["accepted", "noop", "rejected", "failed"] as const;
 export const DIAGNOSTIC_REASONS = ["unchanged", "limit", "disabled", "invalid-input", "invalid-message", "unsupported", "power-off", "tx-inhibit", "inspect", "cancelled", "pointer-cancel", "lost-capture", "blur", "hidden", "unmount", "secondary-pointer", "wrong-key", "duplicate", "stale-attempt", "timeout", "storage-invalid", "storage-read", "storage-write", "storage-unavailable", "webview-load", "webview-process", "scene-load", "asset-load", "not-ready", "not-found", "connection", "permission", "model-unavailable", "unknown"] as const;
 export const RADIO_DIAGNOSTIC_ACTIONS = ["dial-hold", "dial-push", "dial-rotate", "key-16c", "key-16c-hold", "soft", "soft-page", "up", "down", "ent", "clr", "menu", "distress-down", "distress-up", "distress-held", "distress-txdone", "cancel-txdone", "auto-retx", "coast-ack", "otherdsc-ack", "scan-tick", "dw-tick", "alarm-off", "aqua-down", "aqua-up", "ptt-down", "ptt-up"] as const;
 export const RADIO_DIAGNOSTIC_SCREENS = ["off", "standby", "volume", "squelch", "channel-select", "backlight", "menu", "m323-dsc-calls", "gps-info", "radio-info", "dsc-log", "stub-view", "config", "dsc-settings", "position-input", "individual-id-list", "individual-id-add-mmsi", "individual-id-add-name", "individual-id-delete", "distress-compose", "distress-nature", "distress-hold", "distress-tx", "distress-wait", "distress-ack", "distress-ack-done", "cancel-confirm", "cancel-tx", "cancel-voice", "cancel-done", "otherdsc-compose", "otherdsc-field", "otherdsc-sent", "otherdsc-ack", "rx-distress-alert", "rx-individual-call"] as const;
-export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "unknown"] as const;
+export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "ads", "unknown"] as const;
 const SOURCES = ["pointer", "keyboard", "arrow", "slider", "system", "native", "assistive"] as const;
 const CAMERAS = ["orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
 type Member<T extends readonly string[]> = T[number];
@@ -45,6 +46,7 @@ type PreferenceValues = {
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
 export type DiagnosticInput = Common & (
+  | { type: "ads.preview"; action: "open" | "scene" | "camera" | "reset" | "orbit" | "show" | "hide" | "clear"; scene?: AdsScene; camera?: AdsCamera; fov?: AdsFov; placement?: AdsPlacement }
   | { type: "radio.command"; action: Member<typeof RADIO_DIAGNOSTIC_ACTIONS>; model?: "M330" | "M323"; screenFrom?: RadioScreen; screenTo?: RadioScreen; direction?: 1 | -1; index?: number; volume?: number; squelch?: number; channel?: number; power?: boolean }
   | { type: "radio.gesture"; action: "start" | "rotate" | "tap" | "hold" | "cancel" | "ignored"; control: "dial" | "16c" | "ptt" | "distress" | "aqua"; steps?: number }
   | { type: "radio.startup"; action: "begin" | "storage-read" | "bootstrap" | "load" | "ready" | "retry" | "error" | "process-terminated"; supportCode?: "SRC-S01" | "SRC-S02" | "SRC-S03" | "SRC-B01" | "SRC-W01" | "SRC-W02" | "SRC-W03"; attempt?: number; wkDomain?: "WKErrorDomain" | "WebKitErrorDomain" | "NSURLErrorDomain" | "NSCocoaErrorDomain" | "other"; wkCode?: number }
@@ -106,6 +108,7 @@ const preferenceChecks: Record<keyof PreferenceValues, Check> = {
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };
 const attempt = numeric(0, 100000, true);
 const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Record<string, Check> }> = {
+  "ads.preview": { required: ["action"], fields: { action: enumeration(["open", "scene", "camera", "reset", "orbit", "show", "hide", "clear"]), scene: enumeration(ADS_SCENES), camera: enumeration(ADS_CAMERAS), fov: enumeration(ADS_FOVS), placement: enumeration(ADS_PLACEMENTS) } },
   "radio.command": { required: ["action"], fields: { action: enumeration(RADIO_DIAGNOSTIC_ACTIONS), model: enumeration(["M330", "M323"]), screenFrom: enumeration(RADIO_DIAGNOSTIC_SCREENS), screenTo: enumeration(RADIO_DIAGNOSTIC_SCREENS), direction: enumeration([-1, 1]), index: numeric(0, 3, true), volume: numeric(0, 20, true), squelch: numeric(0, 10, true), channel: numeric(1, 88, true), power: boolean } },
   "radio.gesture": { required: ["action", "control"], fields: { action: enumeration(["start", "rotate", "tap", "hold", "cancel", "ignored"]), control: enumeration(["dial", "16c", "ptt", "distress", "aqua"]), steps: numeric(-1000, 1000, true) } },
   "radio.startup": { required: ["action"], fields: { action: enumeration(["begin", "storage-read", "bootstrap", "load", "ready", "retry", "error", "process-terminated"]), supportCode: enumeration(["SRC-S01", "SRC-S02", "SRC-S03", "SRC-B01", "SRC-W01", "SRC-W02", "SRC-W03"]), attempt, wkDomain: enumeration(["WKErrorDomain", "WebKitErrorDomain", "NSURLErrorDomain", "NSCocoaErrorDomain", "other"]), wkCode: numeric(-100000, 100000, true) } },

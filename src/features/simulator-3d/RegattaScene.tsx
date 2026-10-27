@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, memo, type MutableRefObject } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, memo, type MutableRefObject, type ReactNode } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { Yacht } from './Yacht';
 import { WindFlow } from "./ocean/WindFlow";
@@ -49,10 +49,19 @@ export const RegattaScene = memo(function RegattaScene({
   errorLabel,
   retryLabel,
   venue,
+  children,
+  cameraRig,
+  onReady,
+  onError,
 }: {
   stateRef: MutableRefObject<YachtState>;
   /** The same venue geometry as the race, centred on the trainer's start. */
   venue?: Venue;
+  /** Optional inspection-lab content; regular training keeps its own camera. */
+  children?: ReactNode;
+  cameraRig?: ReactNode;
+  onReady?: () => void;
+  onError?: () => void;
   view?: CameraView;
   revision?: number;
   showFlow?: boolean;
@@ -71,8 +80,8 @@ export const RegattaScene = memo(function RegattaScene({
   const cameraPose = useCallback((aspect: number) => fitYachtCamera(view, stateRef.current, aspect), [stateRef, view]);
   const chartOrigin = useMemo(() => trainerChartOrigin(RACE_AREA, METRES_PER_UNIT), []);
   return (
-    <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={errorLabel} retryLabel={retryLabel}>
-    <SceneStartup label={loadingLabel}>{ready =>
+    <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={errorLabel} retryLabel={retryLabel} onError={onError}>
+    <SceneStartup label={loadingLabel} onReady={onReady}>{ready =>
     <Canvas
       fallback={<span>{sceneLabel}</span>}
       dpr={[1, maxDpr]}
@@ -83,17 +92,18 @@ export const RegattaScene = memo(function RegattaScene({
 
       <Suspense fallback={null}>
         <Yacht stateRef={stateRef} light={maxDpr <= 1} />
+        {children}
         <FirstSceneFrame onReady={ready} />
       </Suspense>
 
       {showFlow && <WindFlow stateRef={stateRef} />}
 
-      <SailingCameraRig
+      {cameraRig ?? <SailingCameraRig
         poseForAspect={cameraPose}
         revision={revision}
         minDistance={view === "mainsheet" ? 2.5 : 9}
         maxDistance={120}
-      />
+      />}
       <ContextHealth />
     </Canvas>
     }</SceneStartup>

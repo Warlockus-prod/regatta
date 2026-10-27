@@ -4,6 +4,7 @@ type Destination = Extract<DiagnosticInput, { type: "navigation" }>["to"];
 export function diagnosticDestination(path: string): NonNullable<Destination> {
   const clean = path.split(/[?#]/, 1)[0].replace(/\/$/, "") || "/";
   if (clean === "/") return "home";
+  if (clean === "/ads") return "ads";
   if (/^\/(?:kursy\/radio|radio)(?:\/|$)/.test(clean)) return /\/(?:symulator|obsluga|rozmowa)(?:\/|$)/.test(clean) ? "radio-practice" : "radio";
   if (/^\/sternik(?:\/|$)/.test(clean)) return "motor";
   if (/^\/kursy\/motorowodny(?:\/|$)/.test(clean)) return "motor";
@@ -23,5 +24,5 @@ export function diagnosticDestination(path: string): NonNullable<Destination> {
 export function diagnosticSurface(path: string): DiagnosticSurface {
   const destination = diagnosticDestination(path);
   return ({ solo: "race", "radio-practice": "radio", radio: "radio", motor: "sternik", course: "learn", practice: "trainer" } as Partial<Record<NonNullable<Destination>, DiagnosticSurface>>)[destination]
-    ?? (["multiplayer", "replay", "basics", "trainer", "boat", "anatomy", "learn", "menu", "diagnostics"].includes(destination) ? destination as DiagnosticSurface : "app");
+    ?? (["multiplayer", "replay", "basics", "trainer", "boat", "anatomy", "learn", "menu", "diagnostics", "ads"].includes(destination) ? destination as DiagnosticSurface : "app");
 }

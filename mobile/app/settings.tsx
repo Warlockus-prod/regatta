@@ -39,6 +39,8 @@ import {
 } from '../src/persistence/units';
 import { useControlPrefs } from '../src/persistence/controls';
 import { clearNativeRegattaData } from '../src/persistence/clear-native-data';
+import { adsCopy } from '../../src/features/ads-lab/copy';
+import { recordNativeDiagnostic } from '../src/diagnostics/journal';
 
 const SUPPORT_EMAIL = 'support@gtframe.io';
 
@@ -283,6 +285,11 @@ export default function Settings() {
         <UnitsSection />
 
         <TrainersSection />
+
+        <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
+          <Text variant="subtitle">Ads</Text>
+          <Text variant="caption">{adsCopy.settingsHint[lang]}</Text>
+        </Card>
 
         <Card onPress={() => router.push("/diagnostics")} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel={diagnosticText(diagnosticCopy.title, lang)}>
           <Text variant="subtitle">{diagnosticText(diagnosticCopy.title, lang)}</Text>

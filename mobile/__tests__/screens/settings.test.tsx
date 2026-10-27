@@ -4,10 +4,11 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockPush,
     back: jest.fn(),
     replace: jest.fn(),
   }),
@@ -50,6 +51,7 @@ import {
 } from '../../src/persistence/analytics-consent';
 
 beforeEach(async () => {
+  mockPush.mockReset();
   await AsyncStorage.clear();
 });
 
@@ -58,6 +60,12 @@ afterEach(() => {
 });
 
 describe('Settings screen', () => {
+  it('opens the owner-requested Ads inspection lab from its named Settings entry', async () => {
+    const view = renderWithProviders(<Settings />);
+    const button = await waitFor(() => view.getByRole('button', { name: 'Ads' }));
+    fireEvent.press(button);
+    expect(mockPush).toHaveBeenCalledWith('/ads');
+  });
   it('renders all 7 enabled languages', async () => {
     const view = renderWithProviders(<Settings />);
     // Native names from LANGUAGE_CATALOG. Native and EN-name diverge for

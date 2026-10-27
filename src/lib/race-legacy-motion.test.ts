@@ -21,6 +21,13 @@ describe("unchanged pre-physical legacy trajectories", () => {
     expect(boat.pos.y).toBeCloseTo(row.expected.pos.y, 12);
     expect(boat.trimClock).toBe(row.expected.trimClock);
     expect(boat.trim).toEqual(row.expected.trim);
-    expect(boat.physics).toEqual(row.expected.physics);
+    // Mac and Linux disagree in the last few bits of heel/leeway here
+    // (observed maximum about5e-15). Keep all other fields exact and these
+    // two numeric fields within the existing12-decimal trajectory precision.
+    const { heel, leeway, ...physics } = boat.physics!;
+    const { heel: expectedHeel, leeway: expectedLeeway, ...expectedPhysics } = row.expected.physics;
+    expect(physics).toEqual(expectedPhysics);
+    expect(heel).toBeCloseTo(expectedHeel, 12);
+    expect(leeway).toBeCloseTo(expectedLeeway, 12);
   });
 });

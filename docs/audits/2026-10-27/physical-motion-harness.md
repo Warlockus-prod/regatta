@@ -77,7 +77,8 @@ site publication is claimed. Rollback runtime remains delivered68.
 
 The owner requested an Ads tab in Settings with freely inspectable camera
 scenes and test placements. No advertising SDK exists in the current codebase.
-SDK/provider clarification is pending. It is a separate work item; simulated
+The owner explicitly deferred SDK/provider setup and requested the place only.
+It is a separate work item; simulated
 placement events must not be represented as actual SDK signals. Physics and
 the release68 source remain isolated from that UI work.
 
@@ -94,3 +95,22 @@ source measurements, not a judgement of installed handling feel.
 input hashes, all gate totals and the failed concurrent native run without
 relabeling it green. A fresh cloud browser/native check still follows before
 any candidate can be shipped. Frozen68 remains the delivered runtime.
+
+## First cloud portability finding
+
+Run40421105351 on exactd7 stopped in three frozen-trajectory cases before the
+browser gate. Linux reports heel/leeway differences from the Mac-captured
+fixture of about5e-15 (for example8.552946026875903vs8.552946026875908).
+All other shown force fields agree. The fixture is unchanged. Only those two
+fields now use12-decimal numerical precision, like the existing trajectory
+comparisons; remaining force fields and trim keep exact equality. No engine,
+rate, movement, timeout or browser assertion changes. A corrected exact-source
+cloud run must pass before declaring this gate green.
+
+## Portable cloud follow-up
+
+Safe non-main run40422279681 on3f29b42 passed all77browser cases with one
+attempt each, no flaky/skipped/unexpected outcomes. The downloaded report
+artifact12697968440 matches its declared SHA256. Publication and deployment
+jobs were skipped. This qualifies the existing browser suite, not live physical
+activation or the following Ads case.

@@ -23,6 +23,46 @@ import { DIALOGUES } from '../src/app/radio/rozmowa/dialogues';
 
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS = '1';
 
+test('the installed Ads preview uses real3D controls and local placements without SDK claims', async ({ page, baseURL }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 740 });
+  const unexpected: string[] = [];
+  const origin = new URL(baseURL!).origin;
+  page.on('request', request => {
+    if (!/^https?:/.test(request.url())) return;
+    const url = new URL(request.url());
+    if (url.origin !== origin || url.pathname.startsWith('/api/')) unexpected.push(url.origin + url.pathname);
+  });
+  await page.route('**/__ads-native-bundle**', route => route.fulfill({ contentType: 'text/html', body: readFileSync(resolve('mobile/assets/sailing-offline.html'), 'utf8') }));
+  await page.goto('/__ads-native-bundle?screen=ads&lang=en');
+  await expect(page.locator('[data-scene-startup="ready"]')).toBeVisible({ timeout: 25_000 });
+  const dock = page.getByRole('complementary', { name: 'Ads', exact: true });
+  const scene = page.getByRole('region', { name: 'Cameras and test ad placements', exact: true });
+  const a = await scene.boundingBox(), b = await dock.boundingBox();
+  expect(a).not.toBeNull(); expect(b).not.toBeNull();
+  expect(a!.height).toBeGreaterThanOrEqual(220);
+  expect(a!.y + a!.height).toBeLessThanOrEqual(b!.y + 1);
+  const buttons = await dock.getByRole('button').evaluateAll(elements => elements.map(el => {
+    const rect = el.getBoundingClientRect(); return { width: rect.width, height: rect.height, overflow: el.scrollWidth - el.clientWidth };
+  }));
+  expect(buttons.length).toBeGreaterThan(10);
+  for (const button of buttons) { expect(button.width).toBeGreaterThanOrEqual(44); expect(button.height).toBeGreaterThanOrEqual(44); expect(button.overflow).toBeLessThanOrEqual(1); }
+  await dock.getByRole('button', { name: 'Look left', exact: true }).click();
+  await expect(dock.getByRole('list')).toContainText(/orbit\s*·\s*accepted/);
+  await dock.getByRole('button', { name: 'From the deck', exact: true }).click();
+  await expect(dock.getByRole('button', { name: 'From the deck', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  const bow = dock.getByRole('button', { name: 'Bow board', exact: true });
+  await bow.click(); await expect(bow).toHaveAttribute('aria-pressed', 'false');
+  await expect(dock.getByRole('list')).toContainText(/hide.*bow-board/);
+  await bow.click(); await expect(bow).toHaveAttribute('aria-pressed', 'true');
+  await dock.getByRole('button', { name: 'Open water', exact: true }).click();
+  await expect(dock.getByRole('button', { name: 'Open water', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await dock.getByRole('button', { name: 'Clear journal', exact: true }).click();
+  await expect(dock.getByRole('list')).toHaveText('No actions yet');
+  await expect(dock.getByText('SDK not connected', { exact: true })).toBeVisible();
+  expect(unexpected).toEqual([]);
+});
+
 test.use({ locale: 'pl-PL' });
 
 async function seedPolish(context: BrowserContext, baseURL: string) {
