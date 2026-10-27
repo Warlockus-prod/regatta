@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-27T01:35:51.523780+00:00",
+  "scope": "P04 pure physical progression and explicit owner priority; no fleet activation, binary delivery or site publication.",
+  "baseSource": "f4a681d0ef95cd72a4a5ad1ed7acfd9de2b50c6a",
+  "inputSHA256": {
+    "src/lib/race-physical-progress.ts": "f7d467c5443fc6daa29b3d4eb2657216d309a33f56403ce314f4c7e1cdcd296b",
+    "src/lib/race-physical-progress.test.ts": "994b766e0784e5d725ba2f11d29686daa1a4c9dbf3414aea41b2380e33f4dc59",
+    "src/lib/race-context.ts": "27a924d1c5912e070c5eb1531b51ce68b527364b074653d1b9769411fbeaaac7",
+    "src/lib/race-courses.ts": "a47c87fc741b1c9e2f71b5c3f23e494e2b3e43035ffdd7efa5e46fb42c059fa8",
+    "src/lib/race-physics.ts": "dd4244dcab9508e4462b436ff635c2c9c1de3c300c6649824ce111a3d34ad7e3",
+    "src/lib/race-physical-motion.ts": "507b366847df6178ed812068cf697d27de138cbbff375de8e82bdd1a89f24be6",
+    "src/lib/race-legacy-motion.fixture.json": "12e022418e25637bffc204d6bc5f0228b1d04d86deaccb07ae6f07bdf3813b8f",
+    "ws-server/race-physics.js": "ffd1ae50bdf92f4edbb174d696ec746032228cf64c72c7ab1ce85d03baa60c45",
+    "mobile/assets/sailing-offline.html": "8efbe0844892c76bf9528b522ef1225857a24b593df4a9bb0a7e7bd957a9fd93"
+  },
+  "targeted": {
+    "progress": 18,
+    "existingMotion": 41,
+    "serverDrift": 9,
+    "passed": 68
+  },
+  "web": {
+    "passed": 1658,
+    "files": 162,
+    "failed": 0,
+    "workers": 1,
+    "assertionsAndTimeoutsUnchanged": true,
+    "previousConcurrentAttempt": {
+      "passed": 1649,
+      "failedTimeouts": 9,
+      "files": 162,
+      "workerRpcTimeouts": 2,
+      "soleCauseProven": false,
+      "preservedLog": "physical-progress-web-all.log"
+    }
+  },
+  "rootTypes": true,
+  "changedSourceLint": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "productionBuild": true,
+  "staticBudget": {
+    "MiBDisplay": 6.48,
+    "unchangedLimitMiB": 6.5,
+    "files": 110
+  },
+  "allThreeOfflinePackagesFresh": true,
+  "contentTwinsFresh": true,
+  "generatedServerFresh": true,
+  "realWebSocketLifecycle": true,
+  "mapAndDash": true,
+  "physicalEmissionEnabled": false,
+  "installedPhysicalRaceAccepted": false,
+  "testflightReleaseCreated": false,
+  "sitePublished": false,
+  "rejectedResearch": {
+    "accepted": false,
+    "preservedDirectoryBasename": "physical-fleet-research-2026-10-27",
+    "baseSource": "f4a681d0ef95cd72a4a5ad1ed7acfd9de2b50c6a",
+    "files": [
+      {
+        "path": "src/lib/race-physical-avoidance.ts",
+        "savedAs": "race-physical-avoidance.ts",
+        "sha256": "b4a4304d208c3cddf4d067d871d699c74e2255c1531ecb1b5279ab91cf8dec29"
+      },
+      {
+        "path": "src/lib/race-physical-contacts.ts",
+        "savedAs": "race-physical-contacts.ts",
+        "sha256": "99fff74f4ee957e79c39d235315568f860246c08acab15abf7843e875af00ced"
+      },
+      {
+        "path": "src/lib/race-physical-fleet.ts",
+        "savedAs": "race-physical-fleet.ts",
+        "sha256": "621f3c8fd817e34bd2e15322b56f10c5af1a59e3868c7e858b53d6f44df6f362"
+      },
+      {
+        "path": "src/lib/race-physical-fleet.test.ts",
+        "savedAs": "race-physical-fleet.test.ts",
+        "sha256": "64e94f516f26276c0fb448c6f4b02d01d5d11ae77f239031128039be8dba37af"
+      },
+      {
+        "path": "src/lib/race-physical-motion.ts",
+        "savedAs": "race-physical-motion.ts",
+        "sha256": "518e4cee3e0b12c7db89483fb3d0247cc78da6b44b9265899f9d5d8cb758142b"
+      },
+      {
+        "path": "src/lib/race-physics.ts",
+        "savedAs": "race-physics.ts",
+        "sha256": "c9131f342613c175bf4116767878c640458b0fa4c0252315daf6ffd68cc78d76"
+      },
+      {
+        "path": "src/lib/race-physical-progress.ts",
+        "savedAs": "race-physical-progress.ts",
+        "sha256": "d888944c5740f6c1e1fb88af6d400a8cf818f957484804ae12aca948a3c08198"
+      },
+      {
+        "path": "src/lib/race-physical-progress.test.ts",
+        "savedAs": "race-physical-progress.test.ts",
+        "sha256": "980e9a2cd0c224e6bc9feafee9ecec427e66773591f7d14462aab2d2a9c21dd5"
+      }
+    ],
+    "candidateLivePlannerAndMotionRestoredToBase": true,
+    "failedLogsPreserved": true,
+    "latestFourCaseAttempt": {
+      "passed": 1,
+      "failed": 3,
+      "failedConditions": [
+        "short normal",
+        "short wind x0.65",
+        "short wind x1.3"
+      ],
+      "passedCondition": "short early starters"
+    },
+    "laterPrivateProposalsRemainUnaccepted": true
+  }
+}

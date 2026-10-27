@@ -1664,6 +1664,10 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 ## P04 physical motion boundary
 
+- `src/lib/race-physical-progress.ts` - canonical immutable metric gates and ordered progression from propelled endpoints; currently unwired, rejects invalid contexts/states before mutation.
+- `src/lib/race-physical-progress.test.ts` - all profiles, gate order/direction/extensions, countdown, collision/recovery independence, finish idempotence and invalid-state atomicity.
+- `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
+- `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
 - `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
 - `src/lib/race-physical-motion.test.ts` - actual integrated metre travel, helm/course assist, low-speed choice, force/trim/handicap parity, rejected-input atomicity and collision-independent endpoint tests.
 - `src/lib/race-legacy-motion.fixture.json` - twelve pre-extraction legacy/responsive trajectories captured from frozen68 sourcef7, not generated from the new implementation.

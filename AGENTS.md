@@ -7,6 +7,10 @@
 
 ## Current completion work
 
+- P04 pure ordered progression now has one canonical metric gate descriptor in `src/lib/race-physical-progress.ts`. Fleet research did not pass and is preserved privately, not integrated. The live planner/motion remain at frozen69 behavior, physical emission OFF. See `docs/audits/2026-10-27/physical-progress-harness.md` before following engine work.
+
+- Owner clarified27October that Ads and eSail are background extras. The ordered P00-P12 completion program remains the primary objective; background previews/research cannot satisfy the physical race, radio, learning or final acceptance gates. See the priority section in `docs/audits/2026-10-26/completion-program.md`.
+
 - Owner's separate Ads inspection task is prepared in `codex/ads-lab`. `docs/design/mobile/ads-lab.md` owns its scope: native Settings -> bundled camera/placement preview, shared yacht/sea and a finite local action journal. No advertising SDK/provider is configured; preview operations are not SDK loading/impression callbacks. Keep actual ad requests OFF until the provider is selected and SDK/privacy/native gates are implemented.
 - P04 begins with `src/lib/race-physical-motion.ts`: an explicit, currently unwired physical-context adapter uses shared trainer heading/metres and the existing race force/trim boundary. Frozen f7 legacy trajectories and the generated server remain numerically checked. `docs/audits/2026-10-27/physical-motion-harness.md` owns its limits and following gates. Physical emission remains OFF; this API is not a playable physical race or a new TestFlight release.
 - Owner-approved follow-up: `docs/audits/2026-10-26/completion-program.md` is the ordered harness. Priorities include reliable offline learning, shared boat/controls, configurable courses/help/judging, reviewed Scheme/Picture learning visuals, visible bounded radio speech practice, actual outcome diagnostics, PL/RU/EN first, and recoverable cleanup. SwiftUI is a staged shell migration proposal, not permission to duplicate the force model.

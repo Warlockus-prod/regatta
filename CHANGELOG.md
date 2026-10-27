@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Add an unwired physical progression boundary with canonical metric gates, ordered rounding and collision-independent finish credit. Preserve the failed fleet research separately; physical races remain disabled until actual fleet, guidance, recorder and installed acceptance pass.
+
+- Закреплен основной порядок завершения продукта: Ads и исследование eSail учитываются отдельно и не закрывают готовность гонок, радио и обучения.
+
 - Keep Ads translations in the existing shared pure-library boundary so Metro can bundle native Settings and the Ads route. The first69 source candidate stopped during Simulator export and was never uploaded.
 
 - Prepare1.7.0(69) after an independent read-only Apple check confirmed maximum68 and no69. Ads remains a local inspection place; installed, exact browser and delivery gates are pending.
