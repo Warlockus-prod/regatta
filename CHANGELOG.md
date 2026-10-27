@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Повторно сверены все 65 требований и 15 находок независимого аудита с поставкой 69. Сохранены 8 свежих web-снимков: вращение 3D работает, светлая тема принудительно меняется в тренажере, новая физика еще не подключена. Жалоба на оформление снова открыта; полный остаток и порядок работ: [итоговая сверка](docs/audits/2026-10-27/completion-reconciliation.md). Этот проход не меняет приложение или релиз.
+
 - Delivered1.7.0(69) to exact TestFlight Self from2ea498b: bounded free radio practice, requested-locale native ASR, independent native outcome logs, versioned support export and local Ads preview.1793web/602native and82first-attempt browser cases pass; generated18/archive36/IPA38, Apple VALID and independent Self/8notes GETs11:12UTC. Owner performs manual radio/Reset/PTT/microphone acceptance in TestFlight. Physical emission, website and public submission remain OFF.
 
 - Add independent native radio recognition outcome logs and a copied support report with app version/build. Exclude speech, audio, request IDs and interim samples. The owner will perform manual radio acceptance in TestFlight69; the Simulator interaction gate is explicitly deferred for this beta.

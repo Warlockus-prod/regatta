@@ -55,4 +55,6 @@ Target WCAG AA contrast and keyboard operation. Never communicate priority or co
 
 ## Evidence boundary
 
+The owner's 2026-10-27 feedback reopens theme consistency: light learning and dark instruments do not by themselves establish a coherent journey. The [current reconciliation](docs/audits/2026-10-27/completion-reconciliation.md) retains all 65 requirement IDs and distinguishes delivered69, source-only preparation and unfinished product paths. The selected first concept remains the visual reference, while the exact day/night presentation is a following scoped design decision.
+
 The 2026-10-25 source corrections address the follow-up audit of TestFlight build60: direct radio practice entry, orbit controls, consistent activity navigation, reserved control areas and the website foundation flow. Unit tests and a source/build check do not close device acceptance. Current implementation, visual evidence and release gates belong to [the harness](docs/audits/2026-10-24/implementation-harness.md); the frozen [25 October recheck](docs/audits/2026-10-25/plan-recheck.md) records the earlier baseline.

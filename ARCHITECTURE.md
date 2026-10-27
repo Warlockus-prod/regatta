@@ -1523,6 +1523,9 @@ history. This boundary is not a new result class or physical writer.
   no raw native journal or personal data.
 - `docs/audits/2026-10-26/independent-product-screens/` - exact accepted PNGs
   captured in this audit, linked in journey order; no generated concept images.
+- `docs/audits/2026-10-27/completion-reconciliation.md` - owner-facing reconciliation of all65requirements, F01-F15 and delivered69, with reopened cross-surface theme consistency and proposed ordered checkpoints. Source-only physical preparation is not presented as live racing.
+- `docs/audits/2026-10-27/checks/completion-reconciliation.json` - audited refs, eight fresh local web JPEG hashes, theme/canvas/orbit observations and explicit limits; no installed-native acceptance or private journals.
+- `docs/audits/2026-10-27/completion-review-screens/` - eight unedited, inspected screenshots of Light Home/Practice, forced-dark Trainer, Pro briefing/running/Pause/Orbit and OFF radio free entry.
 - `docs/audits/2026-10-26/completion-program.md` - owner-approved P00-P12
   completion harness, current P01 native crash/offline-weather contract, ghost
   versus live multiplayer semantics and a staged SwiftUI shell proposal.

@@ -21,6 +21,8 @@ Web content width: 1080px; compact catalogs remain readable on large displays. M
 
 ## Working instruments
 
+Reopened by owner feedback, 2026-10-27: the current light shell / dark trainer transition is not accepted as visually coherent. The paper/dark policy below describes the existing runtime, not completion of this requirement. Native has no global Light/Dark/Auto control; embedded views currently force dark. The [completion reconciliation](docs/audits/2026-10-27/completion-reconciliation.md) proposes one cross-surface presentation contract, separate scene lighting, and a measured scene/control allocation. Keep Source Sans 3 and the selected first reference. This audit does not change runtime themes or approve an unreviewed global recolor.
+
 The owner selected the first Ocean Cockpit reference in [the 24 October proposal](docs/audits/2026-10-24/design-proposal.md). Use a dark-ocean instrument shell, clear readings and restrained action color. This does not mandate a dark background for every long-form learning page. Native paper learning uses lightColors; instrument subtrees use DarkSurface/darkColors from mobile/src/design-system. Web pages use the equivalent CSS tokens and retain light-theme support.
 
 The boat or radio occupies a protected rectangle. Main controls use reserved space below it in portrait and beside it when landscape space allows. Auxiliary task, hint, settings, situation and log panels must reduce the scene allocation or remain in that reserved region. A drawer must not cover the object. Keep the current task and primary controls ahead of long explanations; account for status bars, safe areas, keyboard and text scaling.
