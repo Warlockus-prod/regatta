@@ -28,6 +28,8 @@ The draft exposed two concrete legacy-planner assumptions: low-speed tack change
 
 The eight exact research files, base commit and SHA256manifest are preserved outside Git in the task's private evidence directory `physical-fleet-research-2026-10-27`. Failed logs remain beside it. Unused avoidance/contact implementations have been removed from the candidate after hash verification. Current live planner/motion source is restored byte-for-byte to the frozen 69 baseline, keeping this accepted checkpoint independent of the failed experiments. This cleanup does not remove saved user races or other worktrees.
 
+Further isolated27October trials remain unaccepted. Closing-speed-aware following yielded5/5normal and5/5strong short finishes but2/5weak; a static ID-priority trial worsened those journeys and is rejected. Preserving steerage while easing still yields only2/5weak; holding an escape until hull clearance yields3/5weak. No case deadline, fleet size, gate or force constant changed. The original eight-file manifest is unchanged, and all later proposals/logs remain private. These interacting counterexamples support the explicit metric path/recovery redesign below, not another unverified parameter change in the live planner. Independent main radio work can proceed while this engine gate remains open.
+
 ## Next ordered engine gate
 
 1. Design an explicit metric bot path/recovery contract from the same ordered gates and shared helm law. Treat traffic avoidance as bot input, separate from teaching adjudication.
