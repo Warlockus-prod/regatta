@@ -22,7 +22,7 @@ function validTrim(value: unknown, complete: boolean): boolean {
     && (value.jibSide === undefined && !complete || value.jibSide === -1 || value.jibSide === 1)
     && (value.mainHoisted === undefined || typeof value.mainHoisted === "boolean");
 }
-function validBoat(boat: RaceBoat): boolean {
+export function isPhysicalRaceBoat(boat: RaceBoat): boolean {
   return object(boat) && object(boat.pos) && finite(boat.pos.x) && finite(boat.pos.y)
     && finite(boat.heading) && finite(boat.speed) && boat.speed >= 0
     && (boat.physics === undefined || object(boat.physics)
@@ -30,7 +30,7 @@ function validBoat(boat: RaceBoat): boolean {
     && (boat.trim === undefined || validTrim(boat.trim, true))
     && (boat.trimClock === undefined || finite(boat.trimClock) && boat.trimClock >= 0);
 }
-function validInput(input: PhysicalRaceInput): boolean {
+export function isPhysicalRaceInput(input: PhysicalRaceInput): boolean {
   if (!object(input) || !object(input.steering)
     || input.autoTrim !== undefined && typeof input.autoTrim !== "boolean"
     || input.trim !== undefined && !validTrim(input.trim, false)) return false;
@@ -54,7 +54,7 @@ export function stepPhysicalBoat(
   const read = readRaceContext(context);
   if (!read.ok || read.context.model !== "physical-cruiser-v1"
     || !finite(dt) || dt <= 0 || !finite(windDir) || !finite(gust) || gust < 0
-    || !validBoat(boat) || !validInput(input) || !object(opts)
+    || !isPhysicalRaceBoat(boat) || !isPhysicalRaceInput(input) || !object(opts)
     || opts.speedMul !== undefined && !finite(opts.speedMul)
     || opts.windStrengthMul !== undefined && (!finite(opts.windStrengthMul) || opts.windStrengthMul < 0)) return null;
 

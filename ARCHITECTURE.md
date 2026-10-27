@@ -1692,6 +1692,10 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
 - `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
 - `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
+- `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, versioned integer-tick memory and reachable-turn traffic prediction; legacy autopilot and human steering stay separate.
+- `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction and metre-per-knot invariants.
+- `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception, unchanged shared forces/helm and propelled-only progress before collision separation.
+- `src/lib/race-physical-fleet.test.ts` - real five-boat18profile/wind/early-start journeys plus atomic rejection, memory ownership, fixed-clock/countdown, human input and collision-credit contracts.
 - `src/lib/race-physical-motion.test.ts` - actual integrated metre travel, helm/course assist, low-speed choice, force/trim/handicap parity, rejected-input atomicity and collision-independent endpoint tests.
 - `src/lib/race-legacy-motion.fixture.json` - twelve pre-extraction legacy/responsive trajectories captured from frozen68 sourcef7, not generated from the new implementation.
 - `src/lib/race-legacy-motion.test.ts` - preserves those independent legacy trajectories after extracting the shared force/trim boundary.

@@ -71,3 +71,11 @@ remain background extras.
 
 The source rollback before P07 is2eee0ac. Runtime source916a9ea and its
 frozen121-file Simulator package are preserved independently of later work.
+
+## Following reset recheck
+
+Before a new delivery, replace the free-panel remount identity based on
+`Date.now()` with a monotonic session generation. Two resets in one millisecond
+must not preserve rows or a pending utterance. Add an actual fixed-Date browser
+reset/stale-result case and refresh the native package. This is a following
+source correction; it is not included in frozen916 or its82case proof.
