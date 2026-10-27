@@ -9,6 +9,8 @@ import { CHANNELS, CH16_INDEX } from '../src/app/radio/symulator/radioModel';
 test('free radio PTT shows a provisional draft, preserves release and rejects cancelled or stale results', async ({ page }) => {
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 390, height: 844 });
+  // Date repeats across real reset clicks; session ownership cannot use time.
+  await page.clock.setFixedTime(new Date('2026-10-27T12:00:00Z'));
   const network: string[] = [];
   page.on('request', request => { if (/\/(?:api|radio-locales|radio-audio)\//.test(request.url())) network.push(request.url()); });
   await page.addInitScript(() => {
@@ -37,10 +39,13 @@ test('free radio PTT shows a provisional draft, preserves release and rejects ca
   const state = () => page.evaluate(() => (window as Window & { __speechTest?: { commands: { type: string; action?: string; events?: unknown[] }[] } }).__speechTest!.commands);
   await ptt.click();
   expect((await state()).filter(c => c.type === 'radio-asr' && c.action === 'start')).toHaveLength(0);
-  const dial = await page.getByTestId('dial-center').boundingBox(); expect(dial).not.toBeNull();
-  await page.mouse.move(dial!.x + dial!.width / 2, dial!.y + dial!.height / 2); await page.mouse.down();
-  await expect(page.getByTestId('lcd')).toContainText('16'); await page.mouse.up();
-  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.ready.en);
+  const powerOn = async () => {
+    const dial = await page.getByTestId('dial-center').boundingBox(); expect(dial).not.toBeNull();
+    await page.mouse.move(dial!.x + dial!.width / 2, dial!.y + dial!.height / 2); await page.mouse.down();
+    await expect(page.getByTestId('lcd')).toContainText('16'); await page.mouse.up();
+    await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.ready.en);
+  };
+  await powerOn();
   const hold = async () => {
     const box = await ptt.boundingBox(); expect(box).not.toBeNull();
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2); await page.mouse.down();
@@ -60,9 +65,19 @@ test('free radio PTT shows a provisional draft, preserves release and rejects ca
   await expect(page.getByTestId('free-speech-history')).toContainText('(1/8)');
   await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.recognized.en);
 
+  await hold(); await page.mouse.up();
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.working.en);
+  await page.getByRole('button', { name: 'Reset exercise settings', exact: true }).click();
+  await emit('end', { transcript: 'SYNTHETIC PRE-RESET WORDS' });
+  await expect(page.getByTestId('free-speech-history')).toContainText('(0/8)');
+  await expect(page.getByTestId('free-speech-preview')).toHaveText(FREE_SPEECH_COPY.empty.en);
+  await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.powerOff.en);
+  await expect.poll(() => page.getByTestId('radio-dock').evaluate(el => el.scrollTop)).toBe(0);
+  await powerOn();
+
   await hold(); await ptt.dispatchEvent('pointercancel'); await page.mouse.up();
   await emit('end', { transcript: 'SYNTHETIC CANCELLED WORDS' });
-  await expect(page.getByTestId('free-speech-history')).toContainText('(1/8)');
+  await expect(page.getByTestId('free-speech-history')).toContainText('(0/8)');
   await expect(page.getByTestId('free-speech-status')).toHaveText(FREE_SPEECH_COPY.cancelled.en);
   await hold(); await page.mouse.up();
   await page.getByTestId('free-speech-clear').click();

@@ -72,10 +72,21 @@ remain background extras.
 The source rollback before P07 is2eee0ac. Runtime source916a9ea and its
 frozen121-file Simulator package are preserved independently of later work.
 
-## Following reset recheck
+## Following reset correction
 
-Before a new delivery, replace the free-panel remount identity based on
-`Date.now()` with a monotonic session generation. Two resets in one millisecond
-must not preserve rows or a pending utterance. Add an actual fixed-Date browser
-reset/stale-result case and refresh the native package. This is a following
-source correction; it is not included in frozen916 or its82case proof.
+The following source uses a monotonic practice generation, incremented on
+every scenario start/reset. It replaces the free panel's `Date.now()` identity
+and returns the independently scrolling dock to its top, even when the reset
+retains the same step and mode. Wall-clock time continues to measure elapsed
+exercise time only.
+
+The actual PTT browser journey now fixes Date without pausing timers. It first
+retains a recognized transmission, then releases another pending utterance,
+clicks the real Reset exercise settings button and emits the old native end.
+The expected state is empty history/preview, powered-off radio and dock top;
+the real DIAL hold then powers the new session for the remaining checks.
+
+Source/packages/build, exact cloud and installed acceptance must repeat.
+This correction is not included in frozen916 or its82case proof. Its lack of
+physical microphone acceptance and the pending manual native hold remain
+explicit. TestFlight68 is still the delivered binary.

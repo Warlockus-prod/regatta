@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Reset free radio practice into a fresh private session even when the clock repeats. Clear prior transmissions and pending recognition, then return the task dock to its beginning. Following exact acceptance remains separate from frozen916.
+
 - Prepare an unwired physical fleet transaction with shared trainer helm/metres, separate bot memory and reachable-turn traffic advice. Five-boat course/wind/early-start tests retain the original limits. Physical result emission and the live game remain unchanged pending the remaining engine/recorder/installed gates.
 
 - Verify the free-radio source with1721web/589native tests and82first-attempt browser cases. Preserve its exact31-check/121-file Simulator package and prior data. Installed entry/Exit work; native PTT/microphone acceptance and69delivery remain open.

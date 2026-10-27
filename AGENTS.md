@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Following P07 resets now use a monotonic session generation instead of the wall clock and return the independent dock to its top. The existing actual PTT journey adds fixed-Date reset and stale-result assertions. `docs/audits/2026-10-27/radio-free-speech-harness.md` separates this pending candidate from frozen916 proof; exact source/browser/native gates must repeat before delivery.
+
 - The following P04 draft has an explicit physical fleet transaction and separate metric bot/traffic memory. It uses a30Hz integer clock during countdown, shared helm/forces and pre-separation gate credit;39targeted cases pass, including18profile/wind/early-start fleets. `docs/audits/2026-10-27/physical-fleet-harness.md` owns the remaining source and activation gates. The first public port retains its17/18failure; the old post-separation overlap counter cannot claim zero contacts. No live physical emission, hardware/judge/recorder completion or new delivery is implied.
 
 - Exact P07 source916a9ea passes1721web/589native unit cases and82first-attempt cloud browser journeys. Its official Simulator package passes31checks and121installed-file matches, preserving all four prior storage keys. Native radio entry/Exit/reentry are observed; Mac automation emitted taps instead of DIAL hold, so native typing/PTT and physical microphone remain unaccepted. Source, cloud and partial native proofs are linked from `docs/audits/2026-10-27/radio-free-speech-harness.md`. No69 delivery/Apple write is claimed; independent P04 engine work continues while a manual hold request is pending.

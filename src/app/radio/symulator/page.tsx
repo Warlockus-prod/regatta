@@ -130,6 +130,7 @@ function RadioSimulator() {
   const weakedRef = useRef<Set<string>>(new Set());
   const [mistakes, setMistakes] = useState<{ id: string; text: Bi }[]>([]);
   const [pageLog, setPageLog] = useState<LogRow[]>([]);
+  const [practiceSession, setPracticeSession] = useState(0);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
   const [voiceResult, setVoiceResult] = useState<VoiceResult | null>(null);
@@ -502,6 +503,8 @@ function RadioSimulator() {
     setStepIdx(0);
     setMistakes([]);
     setPageLog(sc.init ? rsRef.current.deviceLog.map((d) => ({ t: d.t, text: d.text, kind: d.kind as LogRow['kind'] })) : []);
+    // Reset owns a fresh private speech session even if the wall clock repeats.
+    setPracticeSession(n => n + 1);
     setStartedAt(Date.now());
     setFinishedAt(null);
     setVoiceResult(null);
@@ -685,7 +688,7 @@ function RadioSimulator() {
   const debriefShown = finishedAt !== null;
   useEffect(() => {
     dockRef.current?.scrollTo({ top: 0 });
-  }, [stepIdx, debriefShown, inspect, inspectKey]);
+  }, [stepIdx, debriefShown, inspect, inspectKey, practiceSession]);
 
   // ==========================================================================
   return (
@@ -948,7 +951,7 @@ function RadioSimulator() {
               {/* finished -> debrief; else current step */}
               {freePractice ? (
                 <div className="space-y-4" data-testid="free-practice-guide">
-                  <FreeSpeechPractice key={`${startedAt}-${model}`} ref={freePttRef} power={rs.power} voiceChannel={!channel(rs).noVoice}
+                  <FreeSpeechPractice key={`${practiceSession}-${model}`} ref={freePttRef} power={rs.power} voiceChannel={!channel(rs).noVoice}
                     onReleasePtt={() => dispatch({ type: "ptt-up" })} />
                   <Link href={RADIO_GUIDED_HREF} data-testid="free-guided-lessons" className="flex min-h-[44px] items-center justify-center rounded-xl px-3 font-semibold" style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}>
                     {tl({ ru: "Научиться работать с рацией", en: "Learn the radio controls", pl: "Naucz się obsługi radia", es: "Aprende a manejar la radio", fr: "Apprendre les commandes radio", de: "Funkgerät bedienen lernen", it: "Impara i comandi della radio" })}

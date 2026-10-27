@@ -282,6 +282,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 
 - `src/app/radio/LocalTranscriptEntry.tsx` - English transmission entry: native on-device PTT and separately labelled typed checking, with model-unavailable fallback.
 - `src/app/radio/FreeSpeechPractice.tsx` - Free-practice dock: provisional on-device draft, eight session-only rows, typed fallback,45second hold, Clear and actual PTT release/cancel ownership.
+- Free radio session ownership: `src/app/radio/symulator/page.tsx` increments a generation on every scenario start/reset. That generation plus the model remounts private speech state and returns the independent dock to its top; wall-clock timestamps are only elapsed-time data. The actual PTT journey in `e2e/offline.spec.ts` fixes Date while resetting and rejects old native results.
 - `src/app/radio/FreeSpeechPractice.test.tsx` - Actual rendered dock/handle regressions for off/DSC gating, no model, hold limit, genuine release versus cancellation, Clear and seven-language labels.
 - `src/data/radio/free-speech-copy.ts` - Seven explicit interface adaptations for free radio speech practice; English radio transmissions stay separate.
 - `src/data/radio/free-speech-labels.ts` - Generated minimal source-label map; the existing radio catalogs carry all seven reviewed adaptations without shipping their full matrix in route chunks.
