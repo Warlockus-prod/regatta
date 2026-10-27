@@ -4,6 +4,7 @@ import { requireOptionalNativeModule } from "expo-modules-core";
 import { useFocusEffect } from "expo-router";
 import * as Speech from "expo-speech";
 import { createLocalRadioSpeech, radioSpeechEventScript, type LocalRadioRecognition } from "./local-speech";
+import { recordNativeDiagnostic } from "../diagnostics/journal";
 
 const recognition = requireOptionalNativeModule<LocalRadioRecognition>("ExpoSpeechRecognition");
 export const LOCAL_RADIO_SPEECH_SCRIPT = `window.__REGATTA_NATIVE_SPEECH__=true;window.__REGATTA_NATIVE_ASR__=${Boolean(recognition)};true;`;
@@ -17,6 +18,7 @@ export function useLocalRadioSpeech(inject: (script: string) => void, enabled: b
   useEffect(() => {
     if (!enabled) return undefined;
     const current = createLocalRadioSpeech({ speech: Speech, recognition, platform: Platform.OS,
+      record: recordNativeDiagnostic,
       send: (event, detail) => injectRef.current(radioSpeechEventScript(event, detail)),
     });
     bridge.current = current;

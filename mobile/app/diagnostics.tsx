@@ -1,9 +1,11 @@
 import { Stack } from "expo-router";
 import * as Clipboard from "expo-clipboard";
+import * as Application from "expo-application";
 import { useState, useSyncExternalStore } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { diagnosticCopy as copy, diagnosticOutcomeCopy, diagnosticText } from "../../src/lib/diagnostic-copy";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
+import { diagnosticSupportExport } from "../src/diagnostics/export";
 import { useI18n } from "../src/i18n/context";
 import { Screen, Text } from "../src/design-system/components";
 import { DarkSurface, darkStackOptions } from "../src/design-system/surface";
@@ -23,7 +25,7 @@ export default function Diagnostics() {
       <View style={styles.actions}>
         {action(text("all"), () => setFailedOnly(false), !failedOnly)}
         {action(text("failures"), () => setFailedOnly(true), failedOnly)}
-        {action(text("copy"), () => { void (async () => { try { const copied = await Clipboard.setStringAsync(JSON.stringify(nativeDiagnostics.snapshot(), null, 2)); setStatus(copied ? "copied" : "copyFailed"); } catch { setStatus("copyFailed"); } })(); })}
+        {action(text("copy"), () => { void (async () => { try { const copied = await Clipboard.setStringAsync(diagnosticSupportExport(nativeDiagnostics.snapshot(), { version: Application.nativeApplicationVersion, build: Application.nativeBuildVersion, platform: Platform.OS })); setStatus(copied ? "copied" : "copyFailed"); } catch { setStatus("copyFailed"); } })(); })}
         {action(text("clear"), () => { setStatus(null); void nativeDiagnostics.clear(); })}
       </View>
       {status && <Text accessibilityLiveRegion="polite">{text(status)}</Text>}

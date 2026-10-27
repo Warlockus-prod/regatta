@@ -17,9 +17,9 @@ function setup(platform = "ios") {
     requestMicrophonePermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
     start: jest.fn(), stop: jest.fn(), abort: jest.fn(),
   };
-  const send = jest.fn();
-  const bridge = createLocalRadioSpeech({ speech, recognition: recognition as unknown as ExpoSpeechRecognitionModuleType, platform, send });
-  return { speech, recognition, send, bridge, handlers };
+  const send = jest.fn(), record = jest.fn();
+  const bridge = createLocalRadioSpeech({ speech, recognition: recognition as unknown as ExpoSpeechRecognitionModuleType, platform, send, record });
+  return { speech, recognition, send, record, bridge, handlers };
 }
 beforeEach(() => jest.useFakeTimers());
 afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
@@ -188,4 +188,42 @@ it("serializes bridge events without executable interpolation", () => {
   const Event = function(this: { type: string; detail: object }, type: string, options: { detail: object }) { this.type = type; this.detail = options.detail; };
   new Function("window", "CustomEvent", script)({ dispatchEvent }, Event);
   expect(dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ detail: { id: "safe", transcript: '\"; throw new Error("injected"); //' } }));
+});
+
+it("records actual native recognition boundaries without words, IDs or interim samples", async () => {
+  const { bridge, recognition, handlers, record } = setup();
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "PRIVATE-ID", action: "start", lang: "en" }));
+  await flush(); handlers.start();
+  for (let i = 0; i < 20; i++) handlers.result({ results: [{ transcript: "PRIVATE SPEECH" }], isFinal: false });
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "PRIVATE-ID", action: "stop" }));
+  handlers.end();
+  expect(recognition.stop).toHaveBeenCalled();
+  expect(record.mock.calls.map(([event]) => [event.action, event.status])).toEqual([
+    ["request", undefined], ["started", undefined], ["release", undefined], ["result", "recognized"],
+  ]);
+  expect(record.mock.calls.every(([event]) => event.source === "native")).toBe(true);
+  expect(JSON.stringify(record.mock.calls)).not.toContain("PRIVATE"); bridge.dispose();
+});
+
+it("distinguishes an actual microphone permission prompt and denial from unavailable capability", async () => {
+  const { bridge, recognition, record } = setup();
+  recognition.getMicrophonePermissionsAsync.mockResolvedValue({ granted: false, canAskAgain: true } as never);
+  recognition.requestMicrophonePermissionsAsync.mockResolvedValue({ granted: false } as never);
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "denied", action: "start", lang: "en" })); await flush();
+  expect(record).toHaveBeenCalledWith(expect.objectContaining({ action: "request", reason: "permission", outcome: "accepted" }));
+  expect(record).toHaveBeenLastCalledWith(expect.objectContaining({ action: "result", status: "denied", reason: "permission", outcome: "failed" }));
+  recognition.regattaOnDeviceRecognitionAvailable.mockReturnValue(false);
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "unavailable", action: "start", lang: "en" })); await flush();
+  expect(record).toHaveBeenLastCalledWith(expect.objectContaining({ status: "unavailable", reason: "model-unavailable" }));
+  expect(recognition.requestMicrophonePermissionsAsync).toHaveBeenCalledTimes(1); bridge.dispose();
+});
+
+it("keeps recognition running when diagnostic recording fails and never logs raw native errors", async () => {
+  const { bridge, record, handlers, send } = setup();
+  record.mockImplementation(() => { throw Error("PRIVATE LOGGER"); });
+  bridge.handle(JSON.stringify({ type: "radio-asr", id: "working", action: "start", lang: "en" })); await flush(); handlers.start();
+  expect(send).toHaveBeenCalledWith("regatta:radio-asr", expect.objectContaining({ status: "started" }));
+  record.mockReset(); handlers.error({ error: "PRIVATE SDK ERROR" });
+  expect(record).toHaveBeenLastCalledWith(expect.objectContaining({ status: "error", reason: "unknown", outcome: "failed" }));
+  expect(JSON.stringify(record.mock.calls)).not.toContain("PRIVATE"); bridge.dispose();
 });

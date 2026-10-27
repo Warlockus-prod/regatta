@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Add independent native radio recognition outcome logs and a copied support report with app version/build. Exclude speech, audio, request IDs and interim samples. The owner will perform manual radio acceptance in TestFlight69; the Simulator interaction gate is explicitly deferred for this beta.
+
 - Verify the radio locale fix in an exact native Release Simulator package:31package checks, compiled native/JS probe,121matching installed files and all16prior storage keys preserved. Actual installed radio callbacks/Reset/microphone remain open after Device Hub stopped responding; no69 delivery.
 
 - Check native radio recognition for the requested English dialect instead of the phone's default-language capability. Older binaries without the new locale probe keep typed fallback until a native rebuild; actual microphone acceptance remains separate.
