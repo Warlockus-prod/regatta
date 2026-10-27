@@ -9,6 +9,7 @@ import { sampleWave } from './ocean/waves';
 import type { YachtState } from './types';
 import { FORESTAY_AXIS, sailPoint, createSailGeometry, updateSailGeometry, createSailSeams, updateSailSeams, type SailShape } from './sails/geometry';
 import { createTrimRig } from "../sailing-lab/scene/trim-rig";
+import { observeYachtLoader } from "./yacht-loader-observer";
 
 // ============================================================================
 // Yacht - drives a per-instance clone of the GLB from a shared rig-state ref.
@@ -77,7 +78,7 @@ function upgradeSailMaterial(mesh: THREE.Mesh | null, weave: THREE.DataTexture) 
 }
 
 export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<YachtState>; light?: boolean }) {
-  const { scene } = useGLTF(YACHT_MODEL_URL);
+  const { scene } = useGLTF(YACHT_MODEL_URL, true, true, observeYachtLoader);
   const root = useRef<THREE.Group>(null);
   const yawRoot = useRef<THREE.Group>(null);
   const heelLerp = useRef(0);

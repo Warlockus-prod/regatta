@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Distinguish actual yacht asset reading from GLTF decoding in the bounded startup journal. Preserve loader callbacks and the real first-frame gate. Official8e has one successful installed race startup; the earlier f4 failure remains unexplained and69 is not delivered.
+
 - Hold candidate69 after its fresh installed race failed to produce a first3Dframe. Add bounded scene/renderer/model/frame observations to locate the delay; preserve the actual first-frame gate and existing renderer/physics policy. This observation checkpoint does not claim a startup fix or delivery.
 
 - Add an unwired physical progression boundary with canonical metric gates, ordered rounding and collision-independent finish credit. Preserve the failed fleet research separately; physical races remain disabled until actual fleet, guidance, recorder and installed acceptance pass.

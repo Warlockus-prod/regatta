@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "fadcded59889",
-  "sha256": "5cf01c06ef4643102391181e361fb6dac96942c87b4fbdf058db991592aec9e7",
-  "bytes": 6588493,
+  "version": "0b007511ad9d",
+  "sha256": "b7caf1dc81e09dd908e929698f9e7075b6b70fadee5a377e5725605880803766",
+  "bytes": 6589012,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -714,6 +714,7 @@
     "src/features/simulator-3d/ui/WindDial.tsx",
     "src/features/simulator-3d/ui/WindReadout.tsx",
     "src/features/simulator-3d/useSailCoachLabels.ts",
+    "src/features/simulator-3d/yacht-loader-observer.ts",
     "src/features/simulator-v3/SimulatorV3.module.css",
     "src/features/simulator-v3/SimulatorV3Page.tsx",
     "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -1374,8 +1375,8 @@
     },
     {
       "path": "src/features/simulator-3d/Yacht.tsx",
-      "bytes": 13447,
-      "sha256": "0c5eefa3e4dad597ef6ac8c4dd019674af2811acb0a4d47f32f9a14b446f9107"
+      "bytes": 13541,
+      "sha256": "deef0f3c37942132e962d3407f4fcb5f70db9f5acc5b2cc36a92387804382bd5"
     },
     {
       "path": "src/features/simulator-3d/audio/useSailAudio.ts",
@@ -1461,6 +1462,11 @@
       "path": "src/features/simulator-3d/useSailCoachLabels.ts",
       "bytes": 5204,
       "sha256": "aab7bc7c9b3c31f2dac452aae7a939d449d58186ca77c541ec6f5a390e0ec501"
+    },
+    {
+      "path": "src/features/simulator-3d/yacht-loader-observer.ts",
+      "bytes": 1415,
+      "sha256": "190aa03501d4bddaae32110761a7e935fb922b789a1cb699260b63b8f8f4113c"
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3.module.css",
@@ -1799,8 +1805,8 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 26499,
-      "sha256": "94f75793763b006dcaa11fd77e223ac4fed2db34ffa3c0c6ad79cd68f6826778"
+      "bytes": 26539,
+      "sha256": "60e128977379d27fbcda2db2dfb57095528d38d6ac66f405b869a0635236ed23"
     },
     {
       "path": "src/lib/fallback-coach.ts",

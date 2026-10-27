@@ -16,6 +16,8 @@ describe("bounded actual scene stages", () => {
     recordSceneLifecycle("model", "ready");
     recordSceneLifecycle("frame", "begin");
     recordSceneLifecycle("frame", "waiting");
+    recordSceneLifecycle("asset", "begin");
+    recordSceneLifecycle("decode", "ready");
     const events = record.mock.calls.map(([event]) => event);
     expect(parseDiagnosticBatch({ version: 1, events })?.events).toEqual(events);
     expect(events.every(event => event.surface === "race")).toBe(true);

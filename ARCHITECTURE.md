@@ -1666,9 +1666,14 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `src/features/simulator-3d/scene-diagnostics.ts` - finite actual startup-stage observations and binary viewport state, with safe installed-route mapping and fail-open logging.
 - `src/features/simulator-3d/scene-diagnostics.test.ts` - actual canonical batch acceptance, no URL/query/dimensions, logging failures and rejected unknown stage/viewport fields.
+- `src/features/simulator-3d/yacht-loader-observer.ts` - observes actual shared GLTF asset/decode callbacks once per loader while preserving requests, progress, errors, cache and decoder selection.
+- `src/features/simulator-3d/yacht-loader-observer.test.ts` - pending/completed stages, exact callback identity, original error propagation and no stacked wrappers or private model paths in observations.
 - `src/features/race-scene/renderer.test.ts` - unresolved initialization, actual constructor/init errors, preserved backend policy and viewport classification.
 - `docs/audits/2026-10-27/scene-startup-harness.md` - native69 fresh startup gate failure, private preserved candidate and ordered observation/repair gate.
 - `docs/audits/2026-10-27/checks/scene-probe-source.json` - exact observation-source inputs,1672web/589native gates, preserved failed size report and restored budget; installed diagnosis/repair still pending.
+- `docs/audits/2026-10-27/checks/scene-probe-native8e.json` - official31-check/121-file package evidence, actual Simple/Pro cold startup stages, clock/Back/orbit/trim observations; prior failure cause and full native acceptance remain open.
+- `docs/audits/2026-10-27/checks/scene-loader-source.json` - exact asset/decode observer inputs,1679web/589native checks, unchanged bundle budget and regenerated installed packages; actual callbacks are not accepted until native observation.
+- `docs/audits/2026-10-27/checks/scene-probe-browser8e.json` - exact8e safe non-main cloud gate with78first-attempt cases and verified artifact digest; source scope is separate from subsequent loader observations.
 - `docs/audits/2026-10-27/checks/scene-startup69-held.json` - exact held source/IPA, qualified older checks, responsive UI and unproven cause.
 - `src/lib/race-physical-progress.ts` - canonical immutable metric gates and ordered progression from propelled endpoints; currently unwired, rejects invalid contexts/states before mutation.
 - `src/lib/race-physical-progress.test.ts` - all profiles, gate order/direction/extensions, countdown, collision/recovery independence, finish idempotence and invalid-state atomicity.

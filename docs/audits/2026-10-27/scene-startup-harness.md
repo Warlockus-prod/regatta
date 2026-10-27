@@ -25,3 +25,19 @@ The observation boundary passes34targeted cases, including unresolved renderer i
 The first production bundle measured6.56MiB and failed the unchanged6.5MiB gate. The scene observer now calls the existing web diagnostic adapter inside its own fail-open boundary, avoiding the broader controls wrapper. A fresh production build returns to110chunks/6.48MiB. The failed budget report is retained privately. Regenerated sailing HTML isfadcded59889, with234inputs; radio214133a4993f and Sternik467fd35f3b5d. The final source checks bind to this narrow import before the next Simulator freeze.
 
 [Final source proof](checks/scene-probe-source.json) binds the narrow-import input hashes to the repeated1672web/589native checks and restored size gate. Native stage observation, demonstrated-cause repair and delivery remain pending.
+
+## Official8e installed observation
+
+The official Xcode Simulator build8e passed31package checks. Its frozen121files exactly match the installation on the fresh27device, preserving all three existing storage keys byte-for-byte. This is separate from an earlier local JS payload probe on the unchanged f4 native host. That probe reached a native embedded timeout while the Device Hub image and accessibility state also diverged; it is not official8e acceptance. Rotating the device restored the actual Home image. Do not attribute that display-tool symptom to a solved application cause.
+
+In the official8e first-race path, countdown is session4 elapsed109500ms, renderer begin119043/ready119044ms, model ready130628ms, frame begin130630/ready131216ms, actual race scene-ready131217ms and start134676ms. Thus a real frame arrived21.716s after countdown; no scene-error or frame-waiting was recorded in this attempt. A later screenshot shows the yacht, moving sea, speed5.5kn and clock2:14.6. Pause then changes to Resume at2:48.2. The first observation at loading occurred before these actual events arrived.
+
+This successful run does not prove why the old f4 attempt stayed loading. The source only adds observations; it does not contain a demonstrated-cause startup fix. Repeat cold runs and retained-runtime paths. The next narrow observation distinguishes the loader's actual asset request and GLTF parse callbacks, without changing URLs, decoder settings, cache, progress/errors, renderer or clock. Keep delivery closed until the current exact source passes its own native gates.
+
+The second official8e cold process launch uses Pro. Countdown126343ms, renderer127200/127202ms, model128809ms, actual frame128811ms and race start132238ms:2.468s to the real frame. The UI clock advances0:03.1 ->0:46.1. A real pointer orbit changes the camera, and a real jib-wheel gesture changes53% ->37%, with one accepted control diagnostic. This tests startup/orbit/one trim input; it does not claim a finished Pro race or a physical-course fleet.
+
+[Qualified native8e observations](checks/scene-probe-native8e.json) retain exact stages, package/storage proof and screenshot hashes. [Cloud8e proof](checks/scene-probe-browser8e.json) records78first-attempt cases and the verified artifact digest. Both refer only to8e; neither accepts a later source automatically.
+
+## Narrow asset/decode source checkpoint
+
+The following observer wraps each actual GLTF loader only once and retains its request, parse input, decoder selection, cache, progress callback and original error identity. It adds only closed asset/decode begin/ready/error events. A pending callback cannot become ready through observation. Seven focused tests and the complete1679web/589native suites pass, with root/native types, lint, map/dash, server/socket and installed-package freshness. Production remains110chunks/6.48MiB under the existing6.5MiB budget. [Source proof](checks/scene-loader-source.json) lists exact inputs and private log hashes. No UI copy changed, no new network request was added, and no physical result emission or69delivery is claimed.

@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Official8e Simulator observation produced an actual race frame21.7s after countdown and a running clock. Its31package checks and121installed-file matches are recorded separately from the held f4 failure. One successful observation does not establish a repaired cause; repeat cold startup and use the actual asset/decode callbacks in the following checkpoint. Keep69 unpublished until its exact installed gates pass.
+
 - The temporary physical-fleet worktree is archived after exact6fcf was integrated into NEXT and passed78first-attempt cloud browser cases. Its eight failed research files and manifest remain private/recoverable; the accepted pure progress API remains in the repository. Continue current scene startup work in NEXT, not the archived checkout.
 
 - Candidate69 f4 is held at native G2: its fresh27 ordinary race remains at loading/countdown3 with no submitted frame, while Pause/Menu/Back and responsive layout work. Archive36/IPA38 and qualified Ads evidence do not override this failure. Source/artifacts are preserved as never-uploaded. `docs/audits/2026-10-27/scene-startup-harness.md` owns the current investigation; root cause is unknown,68 remains delivered.

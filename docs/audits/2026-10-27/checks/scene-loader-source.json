@@ -1,0 +1,58 @@
+{
+  "baseline": "8e7b460ea6fa794ed1cc21dc3e3e657b132f119e",
+  "scope": "Following narrow shared yacht loader observation source, not installed or delivered acceptance",
+  "inputs": {
+    "src/lib/diagnostics.ts": "60e128977379d27fbcda2db2dfb57095528d38d6ac66f405b869a0635236ed23",
+    "src/features/simulator-3d/scene-diagnostics.test.ts": "14306676f78bfdf1c03efc5fef31f376aed297a42a6816347ba9743611e08a27",
+    "src/features/simulator-3d/Yacht.tsx": "deef0f3c37942132e962d3407f4fcb5f70db9f5acc5b2cc36a92387804382bd5",
+    "src/features/simulator-3d/yacht-loader-observer.ts": "190aa03501d4bddaae32110761a7e935fb922b789a1cb699260b63b8f8f4113c",
+    "src/features/simulator-3d/yacht-loader-observer.test.ts": "6da786af93be43359ec55fd19fbf532650dd6abe6a982570fde30e205d557ac6",
+    "mobile/assets/radio-offline.html": "7c92ee720556873c0ec586b757cbaae17aadeb2acc7c6ddb88e3263eaa4fc9ea",
+    "mobile/assets/sailing-offline.html": "b7caf1dc81e09dd908e929698f9e7075b6b70fadee5a377e5725605880803766",
+    "mobile/assets/sternik-offline.html": "df3c41d09cf3d3b12c5eedb5f833ac696d5bdcbb49afdeefc437ff14354aee83",
+    "mobile/assets/sailing-offline.manifest.json": "a87d06778423a95241da98dcf1935ebb1e4afc9ec15d48bdff5d7c485e36b8f5",
+    "mobile/assets/sternik-offline.manifest.json": "3aebda3198ccde8ef1dbff3a34cb4c52ebedd35c5adbab558cd1e93173553096"
+  },
+  "checks": {
+    "web": {
+      "tests": 1679,
+      "files": 165,
+      "allPassed": true,
+      "workers": 1
+    },
+    "native": {
+      "tests": 589,
+      "suites": 79,
+      "allPassed": true,
+      "runInBand": true
+    },
+    "rootTypes": true,
+    "nativeTypes": true,
+    "changedSourceLint": true,
+    "map": true,
+    "dash": true,
+    "productionBuild": true,
+    "bundleMiB": 6.48,
+    "bundleLimitMiB": 6.5,
+    "bundleChunks": 110,
+    "allThreeOfflinePackagesFresh": true,
+    "contentTwins": true,
+    "releaseToolTests": 9,
+    "generatedServerFresh": true,
+    "realWebSocketLifecycle": true
+  },
+  "logs": {
+    "loader-web-tests.log": "4f68cabec507d97eef9172e903ff8e87fecd589b7ecc4adcf6f96082120779c7",
+    "loader-native-tests.log": "3479caf365102d634b5a8f044370569a01a0c7bedbaa0e7a5eb72d5625aa4146",
+    "loader-next-build.log": "28f2ba99fb250a2da265d19b8abfad7f728fb68d4b703d6105866cfd457fd3e1",
+    "loader-source-gates.log": "471c4efec08ad81c1f9bd957e877387c0253975742dfd279c4e5c6dbf89d3b01",
+    "loader-mobile-gates.log": "98282f7e161cf3fcc863ef4daba262cbc8fce05247a456cd7392f02ca9cc2982",
+    "loader-native-types.log": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589"
+  },
+  "knownFailedAttempt": "First type check rejected an inaccurately typed test error fixture. Corrected to the actual ErrorEvent callback type; production loader API unchanged.",
+  "installedProbeAccepted": false,
+  "rootCauseConfirmed": false,
+  "startupFixConfirmed": false,
+  "delivery": false,
+  "physicalEmission": false
+}

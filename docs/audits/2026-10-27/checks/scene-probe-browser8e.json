@@ -1,0 +1,17 @@
+{
+  "run": "40437001006",
+  "source": "8e7b460ea6fa794ed1cc21dc3e3e657b132f119e",
+  "artifact": 12704996514,
+  "sha256": "5510cd8faf4a8e88a8e494547d1bc0f523dbc52c375587e7c34abe59dec332d5",
+  "stats": {
+    "total": 78,
+    "expected": 78,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "publication": "skipped",
+  "scope": "Exact8e stage observation source, not following asset/decode observation source, a startup cause fix, physical fleet activation or Apple delivery."
+}
