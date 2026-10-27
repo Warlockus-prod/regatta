@@ -211,3 +211,26 @@ The [locale source proof](checks/radio-locale-source.json) records1793web cases,
 types/lint, offline freshness/content twins, generated server/sockets,
 production build/budget and Swift source parsing. Full Xcode/native compile,
 actual installed probe and microphone gates remain separate and pending.
+
+### Exactb9native compile/install follow-up
+
+The following [b9native proof](checks/radio-locale-native-b9.json) closes the
+previous pending compile/package gate only. Fresh prebuild and exact Release
+Simulator build succeed, with actual compilation of the changed recognition
+Swift module. The selected-locale method appears in both the native binary and
+Hermes bundle. All31existing package checks pass; the independent frozen
+121-file package matches its installed retained26.5copy. All16prior storage
+keys remain byte-identical before launch. The preceding89/916frozen packages
+and fresh27frozen916install are preserved.
+
+The CLI launch succeeded, but actual visible app/radio entry and selected-locale
+callback were not established. Device Hub AX read and rebind each timed out
+and reset the UI tool; general inventory remained readable. Lock state and
+cause are unknown. No other UI automation was substituted. Actual new-probe
+response, Reset, PTT/microphone and full69release gates remain open. No archive,
+export, Apple upload or delivery is claimed.
+
+Exactb9also passes [push/PR CI](checks/radio-locale-ci-b9.json), including mobile
+checks and Foundation browser flow. The full predeploy run40486191385 waits
+behind the preceding1145run40484572999, whose browser step is running. No82case
+result for either current candidate is inferred from the older exacte414proof.

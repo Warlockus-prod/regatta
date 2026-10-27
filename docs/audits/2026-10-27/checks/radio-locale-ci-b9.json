@@ -1,0 +1,31 @@
+{
+  "source": "b9fdd8507641608ba33705c9e5d277e7a86a35bc",
+  "checkedAt": "2026-10-27T10:12:58.178713+00:00",
+  "ci": [
+    {
+      "event": "push",
+      "run": 40486191616,
+      "head": "b9fdd8507641608ba33705c9e5d277e7a86a35bc",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": {
+        "Typecheck + Lint + Typography": "success",
+        "Mobile (twins + lint + typecheck + tests)": "success",
+        "Foundation browser flow": "success"
+      }
+    },
+    {
+      "event": "pull_request",
+      "run": 40486197439,
+      "head": "b9fdd8507641608ba33705c9e5d277e7a86a35bc",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": {
+        "Typecheck + Lint + Typography": "success",
+        "Mobile (twins + lint + typecheck + tests)": "success",
+        "Foundation browser flow": "success"
+      }
+    }
+  ],
+  "scope": "Push/PR source and Foundation browser jobs passed. Full predeploy run40486191385 is pending behind the older1145run; no82-case result, publication, installed recognition or delivery is claimed from these CI summaries."
+}

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Verify the radio locale fix in an exact native Release Simulator package:31package checks, compiled native/JS probe,121matching installed files and all16prior storage keys preserved. Actual installed radio callbacks/Reset/microphone remain open after Device Hub stopped responding; no69 delivery.
+
 - Check native radio recognition for the requested English dialect instead of the phone's default-language capability. Older binaries without the new locale probe keep typed fallback until a native rebuild; actual microphone acceptance remains separate.
 
 - Preserve actual metric impact velocities for the following optional race judge. Separate initial overlap from travelled encounters, including later contact with a stopped hull; no fault or penalty is inferred yet. The physical fleet remains unwired.
