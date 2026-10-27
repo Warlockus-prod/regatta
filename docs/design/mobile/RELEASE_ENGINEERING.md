@@ -1,6 +1,6 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Operational snapshot verified2026-10-27 (Apple UTC2026-10-26): public App Store1.6.4(48), TestFlight1.7.0(68), exact Self. Immutable sourcef7e7ed2/tag68; independent GET23:23:36.856UTC confirms VALID/IN_BETA_TESTING,8notes match23:23:11.300UTC. P03 ships independent native PB/History durability and corrected shared replay Back, accepted real finishes/cold on26.5/27 plus exact-f7 fresh27 startup. Physical emission/full program remain open. See `testflight68-2026-10-27.md`; archive/upload alone never establish delivery.
+Operational snapshot verified2026-10-27: public App Store1.6.4(48), TestFlight1.7.0(69), exact Self. Immutable source2ea498b/tag69; independent GET11:12:04.727UTC confirms VALID/IN_BETA_TESTING,8notes match11:12:07.755UTC. Radio free practice/requested-locale native ASR and independent support logs ship with owner-led manual phone acceptance.1793web/602native,82first-attempt browser cases and exact generated/archive/IPA checks pass. Physical emission/full program/public submission remain open. See `testflight69-2026-10-27.md`; upload alone never establishes delivery.
 
 Historical release submission verified 2026-09-17: website `972df53`, native source
 `b5580aa`, app 1.6.2 (43). Build 43 is VALID, attached to TestFlight Self and

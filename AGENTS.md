@@ -7,14 +7,15 @@
 
 ## Current completion work
 
+- Delivered1.7.0(69) is immutable source2ea498b/tagtestflight-1.7.0-69. Independent Apple GET11:12:04.727UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match11:12:07.755UTC, writes0. `docs/design/mobile/testflight69-2026-10-27.md` owns delivery and `docs/audits/2026-10-27/acceptance69.md` the qualified delta to the65-ID baseline. Manual radio/Reset/PTT/microphone acceptance remains with the owner in TestFlight. Physical emission OFF; no website/public submission.
 - `docs/audits/2026-10-26/completion-program.md` owns the ordered P00-P12 work. App completion is primary; Ads/eSail remain background extras. Source checks, installed acceptance, TestFlight and website publication are separate states.
 - Owner instruction2026-10-27 transfers manual radio interaction/Reset/PTT/microphone acceptance from Simulator to the owner's live TestFlight test. Do not block this beta on Device Hub or mark those checks passed. `docs/audits/2026-10-27/release69-owner-beta.md` owns the exception and unchanged build/Apple gates. Native recognition gets independent content-free lifecycle logs; copied support reports include version/build and a canonical `journal`.
-- Delivered1.7.0(68) stays immutable at sourcef7e7ed2/tagtestflight-1.7.0-68, with independent Self VALID/IN_BETA_TESTING and eight-note proof. `docs/design/mobile/testflight68-2026-10-27.md` and `docs/audits/2026-10-26/acceptance68.md` own delivery/current65IDs. No69upload is claimed.
+- Rollback1.7.0(68) stays immutable at sourcef7e7ed2/tagtestflight-1.7.0-68, with independent Self VALID/IN_BETA_TESTING and eight-note proof. `docs/design/mobile/testflight68-2026-10-27.md` and `docs/audits/2026-10-26/acceptance68.md` own that delivery and its65-ID baseline.
 - Current P04 local source adds owned metric impact evidence to the copied30Hz fleet, actual circular response and recovery-free progress. `docs/audits/2026-10-27/physical-response-harness.md` and `docs/audits/2026-10-27/checks/physical-impact-evidence-source.json` bind113targeted/1793web/589native checks. The preceding exacte414proof retains90specified full-fleet finishes, zero mark-contact cases and15moving early hard hull-contact cases; it is not a new90-case run. The API is unwired and emission OFF; human advice/Pro, arbitrary recoveries, actual judging, recording/finish-clear phases, consumer and installed gates remain mandatory.
 - Exacte414 passes push/PR CI and82first-attempt predeploy browser cases; `docs/audits/2026-10-27/checks/physical-bot-stability-browser-e414.json` owns the digest-verified report. This preserved-UI gate does not play the unwired physical fleet or authorize delivery.
 - P07 source89has monotonic private-session reset. Frozen916 PL native confirms typed Add/Clear/Exit and unavailable PTT; retained89 confirms nonempty typed Add and Exit, with121matching installed files each. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the qualified scope. Native89reset and actual microphone/model recognition remain unaccepted; the old manual typing request is superseded.
 - P07b9fdd85 fixes the iOS default-phone-locale capability gate with a checked selected-locale probe.1793web/596native and the exact Release Simulator compile pass;31package checks,121installed hashes and16preserved prior keys pass on retained26.5. Device Hub reads then timed out, so actual new-probe UI response/Reset/microphone remain open. Older binaries fail closed to typing; frozen89/916 are preserved. `docs/audits/2026-10-27/checks/radio-locale-native-b9.json` owns the qualified install proof.
-- Candidate69f4 remains a never-uploaded startup failure. Later installed8e/f3observations produced real frames and asset/decode/model callbacks, not a proven repaired cause or complete release acceptance. `docs/audits/2026-10-27/scene-startup-harness.md` owns the exact cold-start/install gates before another delivery.
+- Candidate69f4 remains a never-uploaded startup failure. Later installed8e/f3observations produced real frames and asset/decode/model callbacks, not a proven repaired cause or complete release acceptance. `docs/audits/2026-10-27/scene-startup-harness.md` preserves those cold-start limits. Current69 is an owner-authorized beta with explicitly qualified installed acceptance, not a claim that the old cause or full native matrix is resolved.
 - P01local-wind/Skia, limited P02first-lesson/Picture pilot and P03durable PB/replay are delivered66/67/68 checkpoints, not full-program closure. Remaining actual outcome logging is tracked by `docs/audits/2026-10-26/diagnostics-followup.md`; defining event schemas never proves integration coverage.
 - Work in NEXT on codex/app-next-physical. Keep SITE5df0ee5, frozen APP64 and the protected dirty root separate; do not mutate or archive them.50inactive contained local heads have52verified recovery refs;18uncontained/active/remote branches stay preserved. `docs/audits/2026-10-26/checks/local-branch-archive.json` owns the cleanup manifest.
 - Settings Ads is only a local camera/placement preview. No SDK/provider is configured and ad requests stay OFF. `docs/design/mobile/ads-lab.md` owns this scope. eSail observations do not close any main-program gate.
@@ -31,9 +32,9 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight1.7.0(68), группа Self: sourcef7e7ed2,
-  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-26 23:23UTC;
-  `docs/design/mobile/testflight68-2026-10-27.md`. Публичная1.6.4(48)
+  TestFlight1.7.0(69), группа Self: source2ea498b,
+  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-27 11:12UTC;
+  `docs/design/mobile/testflight69-2026-10-27.md`. Публичная1.6.4(48)
   остается отдельно от TestFlight.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.

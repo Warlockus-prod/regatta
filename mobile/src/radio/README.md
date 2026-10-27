@@ -61,7 +61,7 @@ WebView's later release/result establishes session submission separately.
 Logger failure cannot prevent recognition. Capability failures remain a coarse
 model/service bucket, not proof of a downloaded model's absence.
 
-After a short test, open Menu -> Diagnostics -> Copy journal and paste the
+After a short test, open Menu -> Settings -> Diagnostics -> Copy journal and paste the
 copy for support. The copy is a versioned `regatta-diagnostics` envelope with
 app version/build/platform and the unchanged canonical journal in `journal`.
 Copy includes all journal events even when the screen filters failures. It
@@ -69,3 +69,6 @@ does not send anything automatically. The200entry/64KiB/48h persistence bounds
 and dropped counter remain; copy before a long later test evicts the event.
 
 Run `npm run typecheck` and the `local-radio-speech`, `local-radio-speech-plugin`, `app-config`, `webview-analytics-consent` Jest suites before rebuilding. A simulator without a speech model must expose the typed fallback; do not claim that a mock test verifies a physical microphone or voice pack.
+
+App context identifies the exporting build. Historical journal sessions may
+come from earlier builds; do not assign the exporting version to every row.

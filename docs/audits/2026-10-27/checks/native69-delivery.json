@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-27T11:12:53.322158+00:00",
+  "sourceCommit": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+  "tag": "testflight-1.7.0-69",
+  "version": "1.7.0",
+  "build": "69",
+  "scope": "P07 bounded free radio practice, selected-locale native recognition, independent native outcome logs and versioned clipboard support export; local Ads preview. Owner-led manual radio acceptance remains pending.",
+  "apple": {
+    "buildId": "67a05e1a-1d61-44d3-b199-2b5731009ef0",
+    "deliveryId": "67a05e1a-1d61-44d3-b199-2b5731009ef0",
+    "selfCheckedAt": "2026-10-27T11:12:04.727Z",
+    "notesCheckedAt": "2026-10-27T11:12:07.755Z",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "exactSelfMember": true,
+    "independentGETWrites": 0,
+    "all8NotesMatchDeliveredMetadata": true,
+    "notesGETStatus": "PLANNED",
+    "notesGETMeaning": "GET-only comparison: eight locale actions unchanged, SHA256 matches.",
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 812,
+        "bytes": 812,
+        "sha256": "f014d67b956a90eac0d12d3e422d7bc3d4df374179c781b22bfaf3e5ee7337b6",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 812,
+        "bytes": 812,
+        "sha256": "f014d67b956a90eac0d12d3e422d7bc3d4df374179c781b22bfaf3e5ee7337b6",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 803,
+        "bytes": 1445,
+        "sha256": "ca1ab503c69c073ccc06dc56d95e5fd793789d286e9830d04ab2521d3fe2a4eb",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 833,
+        "bytes": 865,
+        "sha256": "287d3fe4d120d139a12a19ce6ee671001b73729185758563da046b480e5e637e",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 891,
+        "bytes": 912,
+        "sha256": "6f1b8ae1f44b2c09b41c3e627d6755f31592e33ca653f9d80e8991e6bf42ab4d",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 936,
+        "bytes": 956,
+        "sha256": "4256f3f3bb21f0ec9d369ebf7abec04a51749b9e0c90dfe87d324f66fd8a4838",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 874,
+        "bytes": 890,
+        "sha256": "e7d315bf8fc17bde6505beeb691a23b3b81f7a7961f32a8655ce88c7bc021140",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 872,
+        "bytes": 874,
+        "sha256": "859ca34bce456faebc33441085b93008f8d710de5ce42e69eb3ea70333bea53a",
+        "action": "unchanged"
+      }
+    ],
+    "validationExit": 0,
+    "uploadExit": 0,
+    "importExit": 0,
+    "notesApplyWrites": 8,
+    "selfApplyWrites": 1
+  },
+  "artifactChecks": {
+    "generated": {
+      "passed": true,
+      "checks": 18,
+      "checkedAt": "2026-10-27T10:42:29.775127+00:00",
+      "sha256": "60dd0b37ecda6947a2cbe37cf49eb565d63b0836b16770c6915f63a602fab900"
+    },
+    "archive": {
+      "passed": true,
+      "checks": 36,
+      "checkedAt": "2026-10-27T10:48:17.718316+00:00",
+      "sha256": "980547ea575b3ec1b23f03fc5528fb054507afc9b16809a21c2a9513fe98481f"
+    },
+    "ipa": {
+      "passed": true,
+      "checks": 38,
+      "checkedAt": "2026-10-27T10:49:16.087425+00:00",
+      "sha256": "9a4e9ccf1d4f0b1686613083d32bc822e09651b210a52b96a4c8e63e609b9a10"
+    }
+  },
+  "ipa": {
+    "bytes": 30585664,
+    "sha256": "2e4024301110d983bcb5ad7090d348cd11c784d4159e04e49e774f412fc1b764"
+  },
+  "nativeSDK": {
+    "xcodeBuild": "27A9275",
+    "sdkBuild": "24A94232",
+    "selectedLocaleMethodInNativeAndHermes": true,
+    "supportExportMarker": true
+  },
+  "tests": {
+    "web": 1793,
+    "native": 602,
+    "nativeSuites": 80,
+    "releaseTools": 9
+  },
+  "browserProof": "release69-browser.json",
+  "manualAcceptance": {
+    "ownerInstruction": "2026-10-27: release to TestFlight; owner will test radio live and send local journal.",
+    "radioEntryControlsResetPTTMicrophone": "Transferred from Simulator to owner TestFlight walkthrough; not passed.",
+    "exactCurrentSimulatorInstalledUI": false,
+    "previousLocalePackage": "Exactb9 retained26.5 preserves16prior keys and121matching files; it does not establish current2ea installed acceptance."
+  },
+  "supportExport": {
+    "format": "regatta-diagnostics",
+    "formatVersion": 1,
+    "journalField": "journal",
+    "context": "Exporting app version/build/platform; historical sessions may be from older builds.",
+    "privacy": "No speech/audio/IDs/raw errors; no automatic upload.",
+    "limit": "200entries/64KiB/48h persistence, omitted counter retained."
+  },
+  "betaNotes": {
+    "sha256": "eece708ac2d59ea9ead52d335abfbe92d830baf3d8fc54825ae40504efffc22f",
+    "correction": "Metadata-only native navigation path corrected to Menu > Settings > Diagnostics after runtime source freeze; native artifact is unchanged. Repository notes synchronized in delivery documentation."
+  },
+  "rollbackTag": "testflight-1.7.0-68",
+  "physicalRaceEmissionEnabled": false,
+  "websitePublished": false,
+  "publicAppReviewSubmitted": false,
+  "limits": [
+    "Current manual radio/Reset/PTT/microphone acceptance is owner-deferred, not certified by unit tests or package checks.",
+    "Physical fleet/judge/guidance/recording and the wider completion program remain open.",
+    "Initial build-status invocation failed on local arguments; delivery-ID query then confirms VALID. Both logs are preserved."
+  ]
+}

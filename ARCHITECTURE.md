@@ -1765,3 +1765,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/release69-owner-beta.md` - owner's explicit TestFlight manual-radio acceptance transfer, retained exact-source/archive/IPA/Apple gates and bounded support-journal scope; not public App Review or physical activation.
 - `mobile/releases/testflight-1.7.0-69.json` - eight adapted Apple beta-note locales for the owner's radio walkthrough and local support export, separate from public App Store1.7.0 notes.
 - `docs/audits/2026-10-27/checks/release69-source.json` - input-bound1793web/602native and source/budget checks for the owner's TestFlight checkpoint, explicitly deferred manual radio gate and pending exact archive/Apple delivery.
+- `docs/design/mobile/testflight69-2026-10-27.md` - exact2ea TestFlight69 delivery, source/package/Apple gates, owner-deferred manual radio acceptance and actual support-copy route.
+- `docs/audits/2026-10-27/checks/native69-delivery.json` - immutable runtime source, IPA/native/Hermes digests, generated18/archive36/IPA38, Apple import VALID and independent exact Self/eight-note reads. No current69Simulator UI/microphone acceptance is asserted.
+- `docs/audits/2026-10-27/checks/release69-browser.json` - exact2ea82first-attempt downloaded/digest-verified predeploy report; publication/deploy skipped, unwired physical API excluded.
+- `docs/audits/2026-10-27/acceptance69.md` - qualified69delta over the immutable65-ID acceptance68 matrix, preserving all unresolved work and owner-led radio checks.

@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-27T11:01:27.799626+00:00",
+  "source": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+  "run": 40490426074,
+  "artifact": 12728969564,
+  "artifactBytes": 1235780,
+  "artifactSha256": "1aeabf458ddd4d4e07a9e9a91996eb74eb174dffb50f956d7733cd3407380abb",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "reportErrors": 0,
+  "jobs": {
+    "Build, checks + pre-deploy E2E": "success",
+    "Build immutable deployment images": "skipped",
+    "Deploy to VPS": "skipped",
+    "Playwright E2E on prod": "skipped"
+  },
+  "scope": "Exact preserved browser UI/offline gate. Native radio manual acceptance is owner-deferred, physical API remains unwired, no website/public publication."
+}

@@ -42,7 +42,7 @@ A native recognized end is not lesson/assessment completion or proof that a
 WebView accepted the row. Interim results, words, audio, IDs and raw errors are
 excluded; logger failure cannot prevent recognition.
 
-Menu -> Diagnostics -> Copy journal produces a `regatta-diagnostics` support
+Menu -> Settings -> Diagnostics -> Copy journal produces a `regatta-diagnostics` support
 envelope with formatVersion1, app version/build/platform and canonical journal.
 Storage stays200entries/64KiB/48h, with omitted count; no automatic upload.
 After a short test the owner can paste that copy for analysis. TestFlight
@@ -50,10 +50,12 @@ feedback/crash reports alone do not contain this local journal.
 
 ## Current state
 
-Implementation/source/archive/delivery evidence follows this instruction in
-separate checkpoints. Delivered68 remains the baseline until an independent
-Apple GET actually confirms69. Manual radio/PTT/Reset/microphone acceptance
-remains pending with the owner after delivery.
+Delivered69 is exact runtime source2ea498b/tagtestflight-1.7.0-69. Independent
+Apple GET11:12:04.727UTC confirms Self VALID/IN_BETA_TESTING and a separate
+11:12:07.755UTC GET confirms all eight notes, writes0. [Delivery proof](checks/native69-delivery.json)
+and [release report](../../design/mobile/testflight69-2026-10-27.md) own the
+exact source, IPA and gate results.68 remains the rollback. Manual radio/PTT/
+Reset/microphone acceptance remains pending with the owner after delivery.
 
 The [source proof](checks/release69-source.json) binds1793web/602native cases,
 the unchanged budget/packages and native outcome/export privacy tests. The
