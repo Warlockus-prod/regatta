@@ -1696,8 +1696,8 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
 - `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
 - `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
-- `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, integer-tick memory, reachable-turn traffic/hardware prediction, shared water bounds and endpoint-clear recovery circles; legacy autopilot and human steering stay separate.
-- `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction and metre-per-knot invariants.
+- `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, integer-tick memory, reachable-turn traffic/hardware prediction, canonical gate entry, weak-authority turn-side memory, shared water bounds and endpoint-clear recovery; legacy autopilot and human steering stay separate.
+- `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction, metre-per-knot and stable weak/full-authority turn behavior.
 - `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception of last actual bot commands, unchanged shared forces/helm, coupled impact-truncated travel and recovery-free progress; live emission stays OFF.
 - `src/lib/race-physical-contact.ts` - bounded immutable hull/mark swept-circle observations from actual propelled segments, canonical hardware and explicit physical context; no response, penalty, diagnostic stream or persistence.
 - `src/lib/race-physical-contact.test.ts` - simultaneous versus different-time path crossings, tangency/initial overlap, larger committee hardware, finished exclusion, bounds/ownership and malformed-frame rejection.
@@ -1750,3 +1750,6 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/physical-luff-browser-d580.json` - exactd58082first-attempt downloaded/digest-verified UI gate, publication/deploy skipped, following response/physical activation excluded.
 - `docs/audits/2026-10-27/checks/radio-typed-native916.json` -121exact installed hashes, PL typed Add/Clear/Exit and actual unavailable PTT, only diagnostic storage changes, qualified real-hold/microphone/native89reset limits.
+
+- `docs/audits/2026-10-27/checks/physical-bot-stability-source.json` - exact-input109targeted/1789web/589native local gate and90autonomous fleet rows, with qualified retained hull contacts and no physical activation.
+- `docs/audits/2026-10-27/completion-checkpoint-history.md` - verbatim dated checkpoint archive moved from AGENTS afterfa42626; preserves earlier scope/failures without presenting them as current state.

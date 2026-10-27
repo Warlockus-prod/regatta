@@ -1,7 +1,7 @@
 import { physicalCourseDefinition, physicalCourseWaterBounds } from "./race-courses";
 import type { PhysicalRaceContext, PhysicalRaceProfile } from "./race-context";
-import { physicalRaceStage, type PhysicalRaceStage } from "./race-physical-progress";
-import { angleDiff, bearing, calcTWA, deg2rad, distance, normalizeAngle, rad2deg, type RaceBoat, type RaceCourse, type RaceRoutePath, type Vec2 } from "./race-physics";
+import { physicalRaceGates, physicalRaceStage, type PhysicalRaceStage } from "./race-physical-progress";
+import { angleDiff, bearing, calcTWA, deg2rad, distance, normalizeAngle, rad2deg, segmentCrossed, type RaceBoat, type RaceCourse, type RaceRoutePath, type Vec2 } from "./race-physics";
 import { advanceSailingHeading, sailingDisplacement, HELM_TURN_RATE_DEG_PER_S, KNOT_METRES_PER_SECOND, type SailingSteering } from "./sailing-kinematics";
 
 /** Ephemeral, versioned physical bot state. The fleet boundary owns copies;
@@ -10,6 +10,7 @@ export const PHYSICAL_FLEET_HZ = 30;
 export interface PhysicalBotState {
   version: 1; profile: PhysicalRaceProfile; tick: number; lap: number;
   tack?: 1 | -1; shed?: boolean; down?: boolean;
+  turnSide?: 1 | -1;
   dip?: { ccw: boolean; x: number; r: number };
   finishLoop?: { ccw: boolean };
   plannedHeading?: number;
@@ -184,6 +185,21 @@ export function avoidPhysicalBotHeading(boat: RaceBoat,
   const neighbours = perception.filter(other => other.id !== boat.id).map(other => other.path);
   const hardware = course.marks.map(mark => ({ x: mark.pos.x * m, y: mark.pos.y * m,
     radius: mark.radius * m + d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres }));
+  const gates = physicalRaceGates(context, course)!;
+  const gate = stage === "round-east" ? gates.rounding[0] : stage === "round-north" ? gates.rounding[1]
+    : stage === "round-west" ? gates.rounding[2] : null;
+  const missesGate = (path: readonly Vec2[]) => {
+    if (!gate) return false;
+    const a = { x: gate.a.x * m, y: gate.a.y * m }, b = { x: gate.b.x * m, y: gate.b.y * m };
+    let previous = { x: boat.pos.x * m, y: boat.pos.y * m };
+    for (const point of path) {
+      const crossesLine = stage === "round-north" ? previous.x >= a.x && point.x < a.x
+        : stage === "round-east" ? previous.y >= a.y && point.y < a.y : previous.y <= a.y && point.y > a.y;
+      if (crossesLine && !segmentCrossed(previous, point, a, b)) return true;
+      previous = point;
+    }
+    return false;
+  };
   // Temporary luffing is also an avoidance action. Keep the same candidate
   // set on both sides of the close-hauled boundary; floating point rounding
   // must not decide whether a boat may slow while clearing an obstruction.
@@ -195,11 +211,28 @@ export function avoidPhysicalBotHeading(boat: RaceBoat,
     let clearance = Infinity;
     for (const other of neighbours) for (let i = 0; i < path.length; i++) clearance = Math.min(clearance, Math.hypot(path[i].x - other[i].x, path[i].y - other[i].y) - safe);
     for (const mark of hardware) for (const point of path) clearance = Math.min(clearance, Math.hypot(point.x - mark.x, point.y - mark.y) - mark.radius);
-    return { heading, clearance, deviation: Math.abs(angleDiff(plannedHeading, heading)) };
+    return { heading, clearance, missesGate: missesGate(path), deviation: Math.abs(angleDiff(plannedHeading, heading)) };
   });
   const clear = scored.filter(row => row.clearance >= 0);
-  const best = clear.length ? clear.sort((a, b) => a.deviation - b.deviation)[0]
+  // Among clear turns, avoid crossing the next rounding line outside its
+  // registered gate. This is route advice, never hypothetical progress credit.
+  const eligible = clear.some(row => !row.missesGate) ? clear.filter(row => !row.missesGate) : clear;
+  const plannedDelta = angleDiff(boat.heading, plannedHeading);
+  // Keep a chosen turn side below the shared helm's full speed authority
+  // while the route target is behind the boat.
+  // Otherwise safe rearward targets straddling180degrees can alternate the
+  // shortest turn every half-second and leave a slow boat facing the wind.
+  // Safety and the actual next gate retain priority over this hysteresis.
+  const reducedAuthority = advanceSailingHeading(0, boat.speed,
+    { mode: "helm", rudder: 1, lowSpeedAssist: true }, 1) < HELM_TURN_RATE_DEG_PER_S;
+  if (!reducedAuthority || Math.abs(plannedDelta) <= 90) memory.turnSide = undefined;
+  const consistent = eligible.filter(row => memory.turnSide === undefined
+    || Math.sign(angleDiff(boat.heading, row.heading)) === memory.turnSide);
+  const stable = consistent.length ? consistent : eligible;
+  const best = stable.length ? stable.sort((a, b) => a.deviation - b.deviation)[0]
     : scored.sort((a, b) => b.clearance - a.clearance || a.deviation - b.deviation)[0];
+  const turn = Math.sign(angleDiff(boat.heading, best.heading));
+  memory.turnSide = reducedAuthority && Math.abs(plannedDelta) > 90 && turn !== 0 ? turn as 1 | -1 : undefined;
   memory.predictive = { heading: best.heading, until: now + sample, stage };
   return best.heading;
 }

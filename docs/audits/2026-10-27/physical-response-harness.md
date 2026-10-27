@@ -1,6 +1,7 @@
 # P04: coupled physical travel response
 
-This is an unwired development checkpoint under ADR-0013. It does not close
+This is an unwired development checkpoint under ADR-0013. The current local
+source gate is the following stable-navigation section below. It does not close
 P04 or permit physical emission, PR merge or TestFlight69delivery.
 
 ## Implemented boundary
@@ -33,7 +34,7 @@ Recovery pushes and an intended route through committee hardware cannot award
 gates. This is a conservative circular stop for the remainder of one30Hz tick,
 not a claim of detailed hull impulses, sliding, yaw or damage.
 
-## Verification and remaining RED gate
+## Preceding8ccd verification and RED gate (preserved)
 
 The [input-bound proof](checks/physical-response-source.json) keeps all source
 hashes and full54research rows. Eleven response contracts and38fleet tests
@@ -57,10 +58,66 @@ contract: returned poses equal constrained travelled endpoints. Its zero value
 does not establish absence of contact or recovery. Actual contact counters and
 initial-overlap events remain authoritative; detailed samples cap at20frames.
 
-## Next ordered work
+## Next ordered work after8ccd (historical)
 
 Keep emission OFF. Resolve the expanded early-hard bot recovery case with the
 same deadlines, then feed actual motion/contact truth into conservative
 optional educational judging, independent guidance and recording/lifecycle.
 Live control/course wiring and installed offline ordinary/Pro acceptance still
 follow. Source development is not delivery. Rollback is exactd580c2f.
+
+
+## Current local source: stable gate entry and weak-steerage turns
+
+The [final input-bound source proof](checks/physical-bot-stability-source.json)
+passes109targeted contracts,1789web cases in173files,589native cases in79suites
+and9release-tool cases. Types/lint, three offline packages/content twins,
+legacy generated server/real sockets, build/unchanged budget and map/dash are
+checked separately from cloud and installed acceptance. All installed HTML,
+shared force/helm source and legacy/server code stay unchanged.
+
+Among predicted clear headings, bots now prefer a turn that does not cross the
+next rounding line outside its canonical finite gate. The gates come from the
+same descriptor as actual progression. Prediction never awards a gate or
+changes human input; uncertain future traffic/acceleration remains uncertain.
+The first rounding-aware draft finishes the54seed3fleets, including the former
+8ccdshort/weak/early/hard miss. Additional short seeds1/7then expose a separate
+weak-steerage recovery failure: two of five do not finish seed1early-hard.
+Applying the gate preference to start/finish too did not change that failure
+and was not retained.
+
+A real trace shows player heading hovering near5degrees for about60seconds
+while safe rearward targets alternate across180degrees. Half-second shortest
+turn decisions kept reversing the rudder; actual hull contacts occurred only
+in the first20seconds. A chosen turn side is now retained while the route target
+is behind the boat and the existing shared helm has reduced speed authority.
+Safety and proper gate entry retain priority. Full shared authority or a
+frontward route target releases this ephemeral memory. No extra turn rate,
+speed clamp, position move, trim help or countdown change is introduced.
+Memory is closed/validated, copied by the fleet and never persisted as legacy
+boat.autopilot or user steering.
+
+An initial all-speed hysteresis draft finishes90fleets but adds398mark-contact
+frames in short/strong/early/hard. That rejected draft and its manifest are
+preserved privately. The corrected scope derives reduced authority directly
+from the unchanged shared helm helper, without another speed threshold.
+Regression tests verify actual turn direction at weak/full authority, owned
+valid state, rejected invalid direction and the full former seed1deadline case.
+
+Final fixed-source research finishes90/90fleets:54all-profile seed3cases plus
+36short cases at seeds1/7. All stay within the original480/1200/2400second
+limits. There are zero mark-contact cases. Fifteen moving hard early-start
+cases retain hull encounters;75cases meet the separate strict clean criterion.
+The original18five-boat zero-contact journeys also pass unchanged. These are
+specified autonomous conditions, not all seeds, arbitrary opposite/stopped/
+missed-gate starts, human Pro, guidance or actual installed physical racing.
+
+## Current next gates
+
+Keep emission OFF. Actual circular response and these bounded autonomous
+navigation gates are locally checked. Conservative optional educational
+judging must consume real encountered contact/closing truth, not hypothetical
+cancelled paths or a legacy8unit CPA. Then independent human guidance/ribbon,
+recording/finish-window lifecycle, remaining consumer/mode/course gates and
+exact installed offline ordinary/Pro acceptance follow. The full completion
+program and69delivery remain open. Rollback remains exactfa42626/8ccd9b0.

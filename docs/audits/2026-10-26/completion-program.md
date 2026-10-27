@@ -41,7 +41,7 @@
 | P01 | Исправить Skia crash первого drill; убрать живую погоду из старого native trainer | exact422b проверен | два runtime: урок -> drill -> ветер -> возврат, повторный вход, cold relaunch;72browser first-pass | доставлен66: independent Self/8notes GET15:26UTC; физический iPhone отдельно |
 | P02 | Единый первый урок и двухвидовые иллюстрации | общий первый урок,3Dпрактика и один Scheme/Picture pilot проверены |77browser first-pass, retained26.5/clean27, PL/RU/EN и exact package equivalence; [harness](learning-visuals-harness.md) | checkpoint доставлен67, independent Self/8notes18:53UTC; остальные иллюстрации открыты |
 | P03 | Закрыть надежность PB/результатов до новой физики | exactf7: отдельные ACK/receipt/retry, clear guards и replay route ownership | реальные finishes/History/Personal/Replay/Coach/Back/cold на26.5/27; exact-f7 fresh27; forced failures только tests | доставлен68: independent Self23:23:36.856UTC/8notes23:23:11.300UTC; physical emission OFF |
-| P04 | Согласовать единицы движения и управление общей лодки | metric fleet и coupled actual travel, emission OFF |1783web/589native,18контрольных заездов; [response harness](../2026-10-27/physical-response-harness.md) | после реакции на удары actual-ID54:53полных/45чистых, early-hard deadline RED; далее judge/guidance/recorder/UI/native |
+| P04 | Согласовать единицы движения и управление общей лодки | metric fleet, coupled actual travel и stable bot turns; emission OFF |109targeted,1789web/589native;90/90specified autonomous fleets,0mark cases; [response harness](../2026-10-27/physical-response-harness.md) | произвольные recoveries, human advice/Pro, judge, recorder/lifecycle и native activation остаются открыты |
 | P05 | Трассы разной длины, затем маршруты вокруг острова | план | каждый маршрут проходим, не пересекает сушу; старые классы сохранены | послеP04 |
 | P06 | Общие пресеты свободно/гонка/обучение, автотрим/ручной; независимые помощь и судья | частично в65 | полный Simple/Pro заезд и учебное объяснение, сохраненные настройки | послеP04/P05 |
 | P07 | Радио: видимое распознавание в свободной практике | bounded session, shared on-device PTT, typed fallback;89ced94 исправляет identity/reset | [harness](../2026-10-27/radio-free-speech-harness.md):36browser82; exact916 PL native typed Add/Clear/Exit и unavailable PTT | actual microphone/model, native89reset и полная69приемка остаются открыты |
@@ -134,7 +134,7 @@ Exactf7/tag68 доставлен в Self: independent GET2026-10-26T23:23:36.856
 реальных взаимодействий: нажатия инструмента пока не дали надежного отклика.
 
 
-## P04: стабильный выбор курса у границы45градусов
+## P04: предыдущийd580срез выбора курса у границы45градусов
 
 [Проверка](../2026-10-27/physical-fleet-harness.md) теперь сохраняет и отклоненный
 вариант сравнения, и окончательный прогон54сценариев с игровыми ID и уровнями
@@ -146,7 +146,7 @@ Exactf7/tag68 доставлен в Self: independent GET2026-10-26T23:23:36.856
 на препятствия с зачетом только фактически пройденного пути.
 
 
-## P04: реальный пройденный путь после столкновения
+## P04: предыдущий8ccdсрез пути после столкновения
 
 ADR-0013 и [проверка реакции](../2026-10-27/physical-response-harness.md)
 отделяют начальное раздвигание от движения. Зачет получает только фактически
@@ -155,3 +155,16 @@ ADR-0013 и [проверка реакции](../2026-10-27/physical-response-ha
 один short/weak/early/hard остается красным из-за позднего правильного обхода
 западных ворот. Лимит480секунд и порядок ворот не меняются. Это рабочая точка
 для отката, не разрешение на включение нового режима или поставку69.
+
+
+## P04: устойчивое возвращение и вход в ворота
+
+Окончательный локальный [контрольный срез](../2026-10-27/physical-response-harness.md)
+сохраняет ранние красные результаты. Боты учитывают фактические ворота при
+выборе безопасного курса и удерживают сторону поворота к задней цели только
+при слабой управляемости общего руля. Все90указанных автономных сценариев
+завершились:54по трем дистанциям с seed3,36коротких с seed1/7. Касаний знаков0,
+в15движущихся ранних стартах сложного режима остаются контакты корпусов.
+109целевых,1789web и589native проверок проходят. Это не приемка произвольных
+стартов, ручного Pro, советчика, судьи или установленной физической гонки.
+Физическая выдача результатов выключена,69не опубликован.

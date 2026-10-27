@@ -29,6 +29,7 @@ describe("explicit physical fleet transaction", () => {
   it.each([
     { ...state(), version: 2 }, { ...state(), profile: "long" }, { ...state(), lap: 1 },
     { ...state(), tick: NaN }, { ...state(), tick: .5 }, { ...state(), dip: { ccw: true, x: 400, r: 0 } },
+    { ...state(), turnSide: 0 },
     { ...state(), predictive: { heading: 90, until: 2, stage: "start" } },
     { ...state(), raw: "not a navigation field" },
   ])("rejects malformed or foreign navigation %# before changing any boat", memory => {
@@ -48,6 +49,13 @@ describe("explicit physical fleet transaction", () => {
     ];
     for (const invalidFrame of invalid) expect(stepPhysicalRaceFleet(invalidFrame as PhysicalFleetFrame)).toBeNull();
     expect(input).toEqual(before);
+  });
+
+  it.each([-1, 1] as const)("accepts and owns turn-side memory %s without changing the caller", turnSide => {
+    const original = { ...frame([{ ...boat(), heading: 180, speed: 2 }]), navigation: new Map([["p", { ...state(), turnSide }]]) };
+    const before = structuredClone(original), result = stepPhysicalRaceFleet(original);
+    expect(result).not.toBeNull(); expect(original).toEqual(before);
+    expect(result!.navigation.get("p")).not.toBe(original.navigation.get("p"));
   });
 
   it.each([0, .05, .1, NaN])("rejects a non30Hz frame duration %s without moving the caller", dt => {
@@ -135,10 +143,10 @@ for (const profile of ["short", "medium", "long"] as const) for (const strength 
   }, 60_000);
 }
 
-for (const difficulty of ["easy", "hard"] as const) {
-  it(`finishes the actual short weak-wind ${difficulty} fleet with its current IDs, headings and handicaps`, async () => {
+for (const [difficulty, early, seed] of [["easy", true, 3], ["hard", false, 3], ["hard", true, 3], ["hard", true, 1]] as const) {
+  it(`finishes the actual short weak-wind ${difficulty} fleet, early=${early}, seed=${seed}, with its current IDs, headings and handicaps`, async () => {
     await new Promise<void>(done => setImmediate(done));
-    const cfg = DIFFICULTY_CONFIG[difficulty], early = difficulty === "easy";
+    const cfg = DIFFICULTY_CONFIG[difficulty];
     const profile = "short", course = makePhysicalRaceCourse(profile), context = physicalRaceContext(profile);
     const deadline = physicalCourseDefinition(profile).maxRaceSeconds;
     let boats = physicalFleetSpawns(cfg.opponents + 1).map((pos, i) => ({ ...boat(i === 0 ? "player" : `ai${i - 1}`),
@@ -146,7 +154,7 @@ for (const difficulty of ["easy", "hard"] as const) {
     let navigation: ReadonlyMap<string, PhysicalBotState> | undefined;
     const events = new Map(boats.map(b => [b.id, [] as string[]]));
     for (let tick = 1; tick <= deadline * 30 && boats.some(b => b.lapDone < 2); tick++) {
-      const raceTime = tick / 30, wind = windAt(raceTime, 3);
+      const raceTime = tick / 30, wind = windAt(raceTime, seed);
       const result = stepPhysicalRaceFleet({ ...frame(boats), navigation, course, context, raceTime,
         windDir: wind.dir, gust: wind.gust, windStrengthMul: .65,
         entries: boats.map((boat, i) => ({ boat, input: "bot", speedMul: i === 0 ? 1 : cfg.aiSpeedMul * [.97, 1, 1.03][(i - 1) % 3] })) })!;

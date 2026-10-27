@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { avoidPhysicalBotHeading, physicalBotTrajectory, planPhysicalBot, type PhysicalBotState } from "./race-physical-bot";
+import { avoidPhysicalBotHeading, physicalBotRudder, physicalBotTrajectory, planPhysicalBot, type PhysicalBotState } from "./race-physical-bot";
 import { makePhysicalRaceCourse, physicalCourseDefinition, physicalCourseWaterBounds, physicalFleetSpawns } from "./race-courses";
 import { physicalRaceContext } from "./race-context";
 import type { RaceBoat } from "./race-physics";
@@ -71,4 +71,17 @@ it("keeps a temporary obstruction-clearing luff consistent across the close-haul
       - mark.radius * context.metresPerUnit - d.hardware.boatDiameterMetres / 2 - d.hardware.clearanceBufferMetres;
     expect(gap).toBeGreaterThanOrEqual(0);
   }
+});
+
+it("keeps a rearward turn stable with weak steerage and releases it at full shared helm authority", () => {
+  const context = physicalRaceContext("short"), course = makePhysicalRaceCourse("short");
+  const choose = (speed: number) => {
+    const b = { ...boat(), pos: { x: 400, y: 700 }, heading: 180, speed };
+    const memory: PhysicalBotState = { version: 1, profile: "short", tick: 1, lap: 0, turnSide: 1 };
+    const target = avoidPhysicalBotHeading(b, [], 45, context, course, memory);
+    return { turn: physicalBotRudder(b.heading, target), memory };
+  };
+  expect(choose(2).turn).toBeGreaterThan(0);
+  const full = choose(4);
+  expect(full.turn).toBeLessThan(0); expect(full.memory.turnSide).toBeUndefined();
 });

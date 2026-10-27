@@ -34,7 +34,7 @@ export interface PhysicalFleetStep {
 }
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
-const stateKeys = new Set(["version", "profile", "tick", "lap", "tack", "shed", "down", "dip", "finishLoop", "plannedHeading", "predictive"]);
+const stateKeys = new Set(["version", "profile", "tick", "lap", "tack", "shed", "down", "turnSide", "dip", "finishLoop", "plannedHeading", "predictive"]);
 const stages: readonly PhysicalRaceStage[] = ["start", "round-east", "round-north", "round-west", "finish", "complete"];
 function copyState(value: PhysicalBotState | undefined, context: PhysicalRaceContext, lap: number): PhysicalBotState | null {
   if (value === undefined) return { version: 1, profile: context.profile, tick: 0, lap };
@@ -42,6 +42,7 @@ function copyState(value: PhysicalBotState | undefined, context: PhysicalRaceCon
     || value.version !== 1 || value.profile !== context.profile || !Number.isSafeInteger(value.tick) || value.tick < 0
     || ![0, 1, 2].includes(value.lap) || value.lap > lap
     || value.tack !== undefined && value.tack !== -1 && value.tack !== 1
+    || value.turnSide !== undefined && value.turnSide !== -1 && value.turnSide !== 1
     || [value.shed, value.down].some(v => v !== undefined && typeof v !== "boolean")
     || value.plannedHeading !== undefined && !finite(value.plannedHeading)
     || value.dip !== undefined && (!object(value.dip) || typeof value.dip.ccw !== "boolean"
