@@ -140,3 +140,56 @@ The three HTML package bytes stay identical to89; only the sailing manifest's
 source hashes change. The API has no live caller. Exact following-source cloud40453750860
 and physical installed acceptance remain separate. Nothing reaches the live
 game or69binary; physical emission remains OFF.
+
+## Ordered activation gates after this checkpoint
+
+1. Run canonical spawns with the actual player/ai identities, inward initial
+   headings,2/3/4opponents and all three current game handicaps. Keep fleet
+   deadline/contact results separate from the autonomous all-speed-one matrix.
+   This is not human Pro or advisory-driver acceptance.
+2. Integrate fixed hardware response and coupled hull/water constraints.
+   Progress/recording must use actual travelled segments truncated by impacts;
+   recovery or separation pushes must never award gates. A free intended path
+   through an obstacle is not evidence of completed travel. Verify initial
+   overlap, grazing/escape, tunnelling, coupled contact and finished exclusion.
+   Preserve shared force constants; any force-law change requires its ADR.
+3. Feed model-aware actual motion/contact observations to optional educational
+   judging. Physical CPA uses metres/real seconds, with no legacy8unit velocity
+   fallback. Verify legal start versus recall, wrong-side/ordered rounding,
+   conservative responsibility, deduplication and optional time penalties.
+4. Add independent read-only physical guidance and its shared water ribbon.
+   Verify actual human helm/course assist,30Hz/10Hz advice and1s/3s held entry,
+   all profiles/winds and missed-gate/stopped/opposite-heading recoveries.
+   Advice must not steer, trim or award progress silently.
+5. Wire physical pose/speed, start/finish timeout, recording and finish-window
+   lifecycle into one explicit solo mode/course setup. Keep all historical
+   records readable and score classes separate. Enable new emission only after
+   every consumer/engine gate, not merely after source schemas exist.
+6. Freeze refreshed packages and repeat actual offline installed ordinary/Pro,
+   wheels/sheets, orbit, map/wind, pause/Back/reentry, durable saves and retained/
+   clean data on the exact native candidate before archive and Apple delivery.
+
+These are the existing owner-approved P04-P06/P12 gates made concrete, not a
+second master plan. The completion program remains the entry point. Partial gate results do not establish69delivery or physical activation.
+
+## Actual game identities and difficulty research
+
+A following [54case research proof](checks/physical-game-fleet95.json) retains
+source095 and canonical spawns, with current player/ai IDs, legacy inward
+initial headings,2/3/4opponents and the actual easy/medium/hard speed shares.
+Each fleet uses a deterministic0.97/1/1.03spread, wind seed3 and the same three
+profiles/wind strengths and ordinary/early starts. All entries, including the
+player ID, are autonomous. This does not test human Pro, advice or native UI.
+
+53cases finish the whole fleet. Short/weak/ordinary/hard leaves ai3 at lap1
+by480seconds.39cases meet the separate strict clean research criterion;
+15observe contacts. All three profiles share some start-area contact patterns.
+The bounded detailed sample retains the first20contact frames, so it cannot
+exclude later kinds or count every contact; the separation-response counter
+covers the whole run. Input hashes remain exact after the sweep.
+
+The initial18same-speed baseline assertions remain unchanged. These expanded
+observations are not suppressed, reclassified as a full pass or used to claim
+that every possible game encounter must be collision-free. Resolve actual
+start/recovery/difficulty behavior and implement response/judging before
+activation. The older same-speed source gate remains only its stated scope.

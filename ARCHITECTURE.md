@@ -1734,3 +1734,5 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/radio-readiness-browser36.json` - exact downloaded/digest-checked82first-attempt radio/browser journeys after bounded faceplate readiness, separate from native microphone and physical095 acceptance.
 - `docs/audits/2026-10-27/checks/physical-contact-source.json` - exact095 source/log hashes,1769web/589native and89targeted checks,18contact-free circle-model fleets, preserved failed experiments and still-disabled physical emission.
+
+- `docs/audits/2026-10-27/checks/physical-game-fleet95.json` - separate54case autonomous game-ID/handicap research:53full finishes,39strict clean,15contact observations and one short weak deadline miss; no human Pro or activation acceptance.
