@@ -5,6 +5,7 @@ import { stepPhysicalRaceFleet, type PhysicalFleetFrame } from "./race-physical-
 import { stepPhysicalBoat, type PhysicalRaceInput } from "./race-physical-motion";
 import { PHYSICAL_FLEET_HZ, type PhysicalBotState } from "./race-physical-bot";
 import { windAt, type RaceBoat } from "./race-physics";
+import { DIFFICULTY_CONFIG } from "@/app/game/config";
 
 const boat = (id = "p"): RaceBoat => ({ id, name: id, color: "white", pos: { x: 400, y: 1080 }, heading: 45, speed: 0, lapDone: 0 });
 function frame(boats = [boat()], profile: PhysicalRaceProfile = "short"): PhysicalFleetFrame {
@@ -129,6 +130,33 @@ for (const profile of ["short", "medium", "long"] as const) for (const strength 
       expect(b.finishTime).toBeGreaterThan(result.definition.legMetres * 2 / (8 * .514444));
       expect(result.events.get(b.id)).toEqual(["start", "round-east", "round-north", "mark", "finish"]);
       expect(b.autopilot).toBeUndefined();
+    }
+  }, 60_000);
+}
+
+for (const difficulty of ["easy", "hard"] as const) {
+  it(`finishes the actual short weak-wind ${difficulty} fleet with its current IDs, headings and handicaps`, async () => {
+    await new Promise<void>(done => setImmediate(done));
+    const cfg = DIFFICULTY_CONFIG[difficulty], early = difficulty === "easy";
+    const profile = "short", course = makePhysicalRaceCourse(profile), context = physicalRaceContext(profile);
+    const deadline = physicalCourseDefinition(profile).maxRaceSeconds;
+    let boats = physicalFleetSpawns(cfg.opponents + 1).map((pos, i) => ({ ...boat(i === 0 ? "player" : `ai${i - 1}`),
+      pos: { ...pos, y: pos.y - (early ? 60 : 0) }, heading: i === 0 || pos.x <= 400 ? 45 : 315, speed: early ? 4 : 0 }));
+    let navigation: ReadonlyMap<string, PhysicalBotState> | undefined;
+    const events = new Map(boats.map(b => [b.id, [] as string[]]));
+    for (let tick = 1; tick <= deadline * 30 && boats.some(b => b.lapDone < 2); tick++) {
+      const raceTime = tick / 30, wind = windAt(raceTime, 3);
+      const result = stepPhysicalRaceFleet({ ...frame(boats), navigation, course, context, raceTime,
+        windDir: wind.dir, gust: wind.gust, windStrengthMul: .65,
+        entries: boats.map((boat, i) => ({ boat, input: "bot", speedMul: i === 0 ? 1 : cfg.aiSpeedMul * [.97, 1, 1.03][(i - 1) % 3] })) })!;
+      expect(result).not.toBeNull();
+      for (const p of result.progress) if (p.event) events.get(p.boatId)!.push(p.event);
+      boats = result.boats; navigation = result.navigation;
+    }
+    for (const b of boats) {
+      expect(b.lapDone, b.id).toBe(2);
+      expect(b.finishTime).toBeLessThan(deadline);
+      expect(events.get(b.id)).toEqual(["start", "round-east", "round-north", "mark", "finish"]);
     }
   }, 60_000);
 }

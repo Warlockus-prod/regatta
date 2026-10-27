@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { physicalBotTrajectory, planPhysicalBot, type PhysicalBotState } from "./race-physical-bot";
+import { avoidPhysicalBotHeading, physicalBotTrajectory, planPhysicalBot, type PhysicalBotState } from "./race-physical-bot";
 import { makePhysicalRaceCourse, physicalCourseDefinition, physicalCourseWaterBounds, physicalFleetSpawns } from "./race-courses";
 import { physicalRaceContext } from "./race-context";
 import type { RaceBoat } from "./race-physics";
@@ -53,5 +53,22 @@ it("fits the whole recovery circle between both start endpoints in every profile
         expect(gap).toBeGreaterThanOrEqual(d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres - 1e-9);
       }
     }
+  }
+});
+
+it("keeps a temporary obstruction-clearing luff consistent across the close-hauled numeric boundary", () => {
+  const b = { ...boat(), pos: { x: 270, y: 1080 }, heading: 90 };
+  const context = physicalRaceContext("short"), course = makePhysicalRaceCourse("short");
+  const choose = (heading: number) => avoidPhysicalBotHeading(b, [], heading, context, course,
+    { version: 1, profile: "short", tick: 1, lap: 0 });
+  const chosen = choose(45);
+  expect(chosen).toBeLessThan(45);
+  for (const delta of [-1e-11, 1e-11]) expect(choose(45 + delta)).toBeCloseTo(chosen, 8);
+  const path = physicalBotTrajectory(b, chosen, context.metresPerUnit);
+  const d = physicalCourseDefinition("short");
+  for (const mark of course.marks) for (const point of path) {
+    const gap = Math.hypot(point.x - mark.pos.x * context.metresPerUnit, point.y - mark.pos.y * context.metresPerUnit)
+      - mark.radius * context.metresPerUnit - d.hardware.boatDiameterMetres / 2 - d.hardware.clearanceBufferMetres;
+    expect(gap).toBeGreaterThanOrEqual(0);
   }
 });

@@ -1739,3 +1739,6 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 
 - `docs/audits/2026-10-27/checks/physical-contact-browser95.json` - exact095 source passes82first-attempt preserved-UI journeys; physical API remains unwired and expanded54case/installed gates stay separate.
 - `docs/audits/2026-10-27/checks/radio-powered-native916.json` - human power-on, actual native unavailable recognition state and121retained916 hashes, with coordinate PTT/typing still unaccepted.
+
+- `docs/audits/2026-10-27/checks/physical-game-luff.json` - exact-input54autonomous game-ID/difficulty sweep after stable luff candidate selection:54finish,45strict clean, zero mark frames and nine moving early hard hull-contact cases, with full counters.
+- `docs/audits/2026-10-27/checks/physical-luff-source.json` -1772web/589native and92targeted source acceptance; unchanged forces/server/offline HTML and qualified following cloud/native gates.

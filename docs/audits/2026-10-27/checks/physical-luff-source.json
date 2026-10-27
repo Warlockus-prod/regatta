@@ -1,0 +1,50 @@
+{
+  "sourceBase": "b43758caff2cfa196a7b85da902bc0c143a5882d",
+  "checkedAt": "2026-10-27T08:28:53.049643+00:00",
+  "binding": "Input-bound local source gate; following exact commit cloud/native gates remain separate.",
+  "inputs": {
+    "src/lib/race-physical-bot.ts": "3e99746451661aa55e828c68f528cb842407cf30b9926c5ba5b0a6da847e4b63",
+    "src/lib/race-physical-bot.test.ts": "480b88c95f8ab75c09cbe3c764944bc10d36b633aefb5997c45cd9a99d84a6f6",
+    "src/lib/race-physical-fleet.ts": "d6c504fde1b4832a2fcc2787234ceb69a7a4f145416d57165ad32f289b4e066e",
+    "src/lib/race-physical-fleet.test.ts": "bc25bcf2f090f74f599c5d94801bd757843dcd40c8a4ceacf30238d69324db92"
+  },
+  "targeted": {
+    "files": 4,
+    "tests": 92
+  },
+  "web": {
+    "files": 172,
+    "tests": 1772,
+    "errors": 0
+  },
+  "native": {
+    "suites": 79,
+    "tests": 589
+  },
+  "releaseTools": 9,
+  "checks": [
+    "Root/native types",
+    "Changed web lint and full native lint",
+    "Three offline package freshness checks",
+    "Shared mobile content twins",
+    "Generated race server unchanged",
+    "Real socket lifecycle",
+    "Production build",
+    "Unchanged bundle budget",
+    "Project map",
+    "ASCII hyphen typography",
+    "Diff whitespace"
+  ],
+  "browser": "Exact095 previous UI proof is82first-attempt; following exact commit browser acceptance pending.",
+  "nativeAcceptance": "Radio916 observation is separate. This physical API has no installed caller.",
+  "packages": {
+    "mobile/assets/radio-offline.html": "9d73e91c083d5e0c2fe8db63c2a48d6619e066dd55ae41e2e35c33c56607178f",
+    "mobile/assets/sailing-offline.html": "4c43f89a504dc25f054fe2a3bec1d1fa81941597042529a3edec539fd2b73594",
+    "mobile/assets/sternik-offline.html": "ff6847fc3a840bc78b32c7baef075e5f0b85100588e72a6ace8ecf7aea540047"
+  },
+  "staticJavascript": {
+    "files": 104,
+    "bytes": 6675906
+  },
+  "physicalEmissionEnabled": false
+}

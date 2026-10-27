@@ -126,7 +126,7 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     let input: PhysicalRaceInput;
     if (entry.input === "bot") {
       const state = navigation.get(boat.id)!;
-      const heading = avoidPhysicalBotHeading(boat, perception, state.plannedHeading!, frame.windDir, read.context, frame.course, state);
+      const heading = avoidPhysicalBotHeading(boat, perception, state.plannedHeading!, read.context, frame.course, state);
       input = { steering: { mode: "helm", rudder: physicalBotRudder(boat.heading, heading), lowSpeedAssist: true }, autoTrim: true };
     } else input = entry.input;
     const motion = stepPhysicalBoat(boat, frame.dt, frame.windDir, frame.gust, input, read.context,

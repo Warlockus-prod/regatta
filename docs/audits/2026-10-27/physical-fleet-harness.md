@@ -195,3 +195,45 @@ observations are not suppressed, reclassified as a full pass or used to claim
 that every possible game encounter must be collision-free. Resolve actual
 start/recovery/difficulty behavior and implement response/judging before
 activation. The older same-speed source gate remains only its stated scope.
+
+
+## Stable close-hauled avoidance boundary
+
+A computed wind+/-45degree target may normalize to44.99999999999994. Source095
+used that rounded value to allow or forbid luffing avoidance candidates. The
+same obstruction at exactly45selected85degrees; a1e-11degree change selected
+40degrees. This numerical branch is not a stable steering policy.
+
+The first tolerance-only proposal forbade those temporary luffs. Its new
+focused hard case finished, but the unchanged18baseline lost weak short early
+and the expanded54matrix still finished only53, with35strict clean and actual
+mark contacts. That proposal and its failed evidence are preserved privately,
+not accepted. A temporary luff is a valid avoidance action; treating every
+head-to-wind target as a route failure was an incorrect initial interpretation.
+
+The corrected bounded candidate set permits the same temporary avoidance
+luffs on both sides of45degrees. Route intent still has highest preference
+among candidates whose predicted paths clear the envelopes. Prediction remains
+present-speed advice, not a new force/turn model or a guarantee of future input.
+
+The [input-bound local source gate](checks/physical-luff-source.json) passes
+92targeted cases,1772web cases in172files and589native cases in79suites.
+A regression checks consistent actual obstruction clearance at45+/-1e-11;
+two integrated short/weak cases retain actual easy early and hard ordinary
+identities/headings/handicaps. The original18zero-contact full journeys remain
+unchanged and pass. Force laws, generated server and all three installed HTML
+package bytes remain unchanged.
+
+The [final54case sweep](checks/physical-game-luff.json) finishes every fleet
+within the original480/1200/2400second limits;45cases meet the separate strict
+clean criterion. Full counters find zero mark-contact frames. Nine hard,
+already-moving early starts still have hull contacts,429/435/415frames per
+wind strength, with the same start-area pattern across profiles. Those cases
+are not called collision-free or accepted as judging/response proof. Detailed
+pose samples cap at20; numeric counters cover the whole journey.
+
+This closes the stated autonomous ID/difficulty deadline check for seed3.
+Coupled hardware/hull response and conservative optional judging follow next.
+Human Pro/advice, other seeds and installed physical racing remain unaccepted.
+Exact-commit cloud acceptance follows the source commit. Physical emission
+stays OFF and TestFlight68 remains the delivered binary.

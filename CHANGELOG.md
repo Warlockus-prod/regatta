@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Make physical bot avoidance consistent at the close-hauled numeric boundary, including temporary luffs around an obstruction. All54autonomous difficulty/course/wind/start cases now finish; nine moving early hard starts still have hull contacts. This preparation remains unwired pending response, judging, recording and installed gates.
+
 - Prepare actual physical hull/mark contact observations before separation. Align bot predictions with water limits and their last steering commands; fit start recovery circles around the real line hardware. Eighteen five-boat journeys pass without observed envelope contact. This source remains unwired pending hardware response, judging, guidance, recording and installed gates.
 
 - Wait for a complete responsive radio faceplate before checking its unchanged screen bounds in browser acceptance. Preserve the exact89 report with one flaky case and its qualified native entry/Exit proof; they do not establish full delivery readiness.

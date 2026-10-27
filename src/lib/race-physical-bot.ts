@@ -175,7 +175,7 @@ export function physicalBotTrajectory(boat: RaceBoat, target: number | SailingSt
  * guarantee about future human input, future acceleration or RRS liability. */
 export function avoidPhysicalBotHeading(boat: RaceBoat,
   perception: readonly { id: string; path: readonly Vec2[] }[], plannedHeading: number,
-  windDir: number, context: PhysicalRaceContext, course: RaceCourse, memory: PhysicalBotState): number {
+  context: PhysicalRaceContext, course: RaceCourse, memory: PhysicalBotState): number {
   const stage = physicalRaceStage(boat), now = memory.tick / PHYSICAL_FLEET_HZ;
   if (memory.predictive && memory.predictive.until > now && memory.predictive.stage === stage) return memory.predictive.heading;
   const d = physicalCourseDefinition(context.profile), m = context.metresPerUnit;
@@ -184,12 +184,12 @@ export function avoidPhysicalBotHeading(boat: RaceBoat,
   const neighbours = perception.filter(other => other.id !== boat.id).map(other => other.path);
   const hardware = course.marks.map(mark => ({ x: mark.pos.x * m, y: mark.pos.y * m,
     radius: mark.radius * m + d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres }));
-  // Rounding/feathering deliberately carries momentum through the wind. A
-  // small avoidance correction must not force that planned turn onto a tack.
-  const crossingWind = Math.abs(calcTWA(plannedHeading, windDir)) < 45;
+  // Temporary luffing is also an avoidance action. Keep the same candidate
+  // set on both sides of the close-hauled boundary; floating point rounding
+  // must not decide whether a boat may slow while clearing an obstruction.
   const candidates = [plannedHeading, ...(memory.predictive ? [memory.predictive.heading] : []),
     ...[5, -5, 10, -10, 20, -20, 40, -40, 60, -60, 90, -90, 135, -135, 180].map(delta => normalizeAngle(plannedHeading + delta))]
-    .filter((heading, i, all) => all.indexOf(heading) === i && (i === 0 || crossingWind || Math.abs(calcTWA(heading, windDir)) >= 45));
+    .filter((heading, i, all) => all.indexOf(heading) === i);
   const scored = candidates.map(heading => {
     const path = physicalBotTrajectory(boat, heading, m, water);
     let clearance = Infinity;
