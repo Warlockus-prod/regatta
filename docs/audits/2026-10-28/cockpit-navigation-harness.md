@@ -330,3 +330,37 @@ buildnxugNMA4jmTyt34ewz_yq:111chunks/6790321bytes, прежнийcap6815744,
 `8c9697a0cb35fff41b024ccad730a1b9c67f8d4c4b1ec267396f4293f26961d6`.
 Это не новый успешныйcloud/native. Новый private native-release70-back-followup
 содержит только подготовленные helper/fixtures, не выбранный source/G2.
+
+Следующий точный source зафиксирован и pushed:
+`acf0415d3687a4d50b5b14bdc4c9dc654970d820`. Новый private source record и
+source-freeze созданы отдельно; prebuild и generated22 проходят. Release
+Simulator и exact non-main40741168924 еще выполняются. Push/PR CI также
+проверяют этотSHA.99private fixtures сохраняют прежние94и усиливают полный
+source freeze guard для archive/Apple: e2e/DESIGN/новые исходники не могут
+остаться dirty. Ни одного старого D8package/G2proof новый pipeline не принимает.
+Новый archive/export/upload/Apple writes отсутствуют.
+
+Последующее состояние18:08UTC: root намеренно остановил native compileacf
+черезSIGINT до изменения исходника; terminal75. Это controlled stop ради
+пятой известной Foundation footer-правки, не timeout и не ошибка компилятора.
+Пятой правке нужен новый source checkpoint; старыйacf не имеет compiled package.
+`compile-controlled-stop.json` сохраняет точный источник, причину и отсутствие
+source mutations до остановки. Пятая правка/StackRouter targeted10/10 сохранены
+в рабочем дереве. Новый private native-release70-outline-followup подготовлен
+с99fixtures, без выбранного source, package илиG2proof.
+
+Следующая проверка18:21:09-18:21:35UTC: полный native-набор с пятой правкой
+проходит614/614,82/82suites,25.749s; types и штатный lint exit0. SHAобоих
+footer-файлов до/после совпадают. Приватные логи/сводный
+`native-source-checks-20261028T182108Z.json` находятся в outline-followup.
+Это проверка working-tree source, не новый frozen или установленный пакет.
+
+Read-only GET18:17:50UTC все еще показываетacf40741168924 IN_PROGRESS;
+push40741090514/PR40741103322 завершилисьSUCCESS. Любой последующийacf
+cloud-результат относится только кacf и не принимает новую пятую правку.
+Заключительный owner-report добавляет пять fresh production-web кадров изacf,
+не новую installed приемку. Полный общий аудит и поставка70 остаются открытыми.
+
+Финальный GET этой сверки18:23:08UTC по-прежнемуIN_PROGRESS, conclusionnull.
+Остановлен только локальный watcher18:23:13UTC; удаленный run не отменен,
+writes0. Ни артефакт, ни новыйcloudPASS не приняты.

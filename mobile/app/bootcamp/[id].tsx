@@ -373,7 +373,7 @@ function LessonContent({ id }: { id: string }) {
           {practice}
           {nextLesson && <View style={styles.cta}><Button variant="secondary" onPress={() => router.push(`/bootcamp/${nextLesson.id}`)}>{foundationCopy.next[lang]}</Button></View>}
         </>}
-        <View style={styles.cta}><Button variant="ghost" onPress={() => router.navigate("/bootcamp")}>{foundationCopy.outline[lang]}</Button></View>
+        <View style={styles.cta}><Button variant="ghost" onPress={() => router.dismissTo("/bootcamp")}>{foundationCopy.outline[lang]}</Button></View>
       </ScrollView>
     </Screen>
   );

@@ -567,7 +567,7 @@
     "metric fleet unwired; no playable newphysicalcourses orghost",
     "canonical generated THREE.TSL shader-comment trailingwhitespace kept, generator freshness required"
   ],
-  "updatedAtUTC": "2026-10-28T16:46:40.176676+00:00",
+  "updatedAtUTC": "2026-10-28T18:23:45.438404+00:00",
   "productionChunks": {
     "fileCount": 111,
     "totalBytes": 6790155,
@@ -645,7 +645,7 @@
     "exception": "docs/audits/2026-10-27/release69-owner-beta.md",
     "doesNotWaiveOtherGates": true
   },
-  "activeCheckpoint": "contextual-lesson-return-followup-uncommitted-D8-held",
+  "activeCheckpoint": "contextual-return-fifth-footer-source614-native-package-pending",
   "retainedFirst94Proof": {
     "name": "cockpit-navigation-first94-held.json",
     "sha256": "cd21bab2ae16d660474fd00ea464a680950b37240b7f81948a49d0453260cf1f",
@@ -1136,8 +1136,8 @@
       "bytes": 13760
     }
   ],
-  "sourceCommitRole": "top sourceCommit/baseCommit retain previous checkpoint history; currentFollowup is frozen d8dbca3 with clean production source",
-  "currentSourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+  "sourceCommitRole": "top sourceCommit/baseCommit retain historical checkpoints; current HEAD acf plus uncommitted native footer is not frozen; source checks do not prove a compiled package",
+  "currentSourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
   "currentFollowup": {
     "recordedAtUTC": "2026-10-28T16:35:53.226645+00:00",
     "baseFrozenCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
@@ -1360,7 +1360,7 @@
     },
     "lastReconciledAtUTC": "2026-10-28T17:29:44.620535+00:00"
   },
-  "currentProductionMetadataScope": "currentFollowup; top productionBuildId/offlineVersions retain frozen25baff1 history",
+  "currentProductionMetadataScope": "contextualReturnSourceFollowup; currentFollowup retains frozenD8 history",
   "ownerReportNativeFollowup": {
     "checkedAt": "2026-10-28T17:04:53.934427+00:00",
     "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
@@ -1440,7 +1440,7 @@
     "testflight70Uploaded": false,
     "radioManual": "owner-deferred live TestFlight",
     "modeObservation": "Initial immediate native AX lagged; cold Pro and reverse Simple return matched. Persistent sync failure not established.",
-    "ownerReportSha256": "c890a26ae31d5d18913da5310ad79c47b35d7295381bb063cac65209bcc047de",
+    "ownerReportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9",
     "afterColdOldKeysUnchanged": 6,
     "allThreeNativeWheelInputsVerified": false,
     "localObservedManualInput": "jib53%->45% only; all3controls visible",
@@ -1503,19 +1503,20 @@
     "g2Passed": false,
     "allThreeProWheelInputsVerified": false,
     "testflight70Uploaded": false,
-    "ownerReportSha256": "c890a26ae31d5d18913da5310ad79c47b35d7295381bb063cac65209bcc047de"
+    "ownerReportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9"
   },
   "currentOwnerReportScope": {
-    "recordedAtUTC": "2026-10-28T17:46:17.892878+00:00",
+    "recordedAtUTC": "2026-10-28T18:20:42.830200+00:00",
     "requirements": 65,
     "findings": 15,
     "testflightFeedbackThemes": 11,
     "nativeScreenshots": 13,
-    "reportSha256": "c890a26ae31d5d18913da5310ad79c47b35d7295381bb063cac65209bcc047de",
+    "reportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9",
     "historicalProof": "checks/completion-status.json is the unchanged12:19 snapshot, not the current report hash",
     "runtimeEditsDuringThisReconciliation": false,
     "deliveryChanged": false,
-    "g2Passed": false
+    "g2Passed": false,
+    "freshFinalWebScreenshots": 5
   },
   "nativeBackLoopHold": {
     "recordedAtUTC": "2026-10-28T17:46:17.892878+00:00",
@@ -1587,7 +1588,7 @@
   "contextualReturnSourceFollowup": {
     "recordedAtUTC": "2026-10-28T17:56:00.472398+00:00",
     "baseCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
-    "sourceFrozen": false,
+    "sourceFrozen": true,
     "nativePackageBuilt": false,
     "nativeAccepted": false,
     "webTests": 1827,
@@ -1729,6 +1730,174 @@
       "cases": 94,
       "allFirstAttempt": true,
       "cloudAccepted": false
+    },
+    "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+    "sourceFreeze": {
+      "name": "source-freeze70.json",
+      "bytes": 531,
+      "sha256": "658bda9465abc964f447e6906de360432d8fbf5197bc331206a8be5f3978516e"
+    },
+    "generatedProject": {
+      "name": "generated-verification70.json",
+      "bytes": 5415,
+      "sha256": "1a658ccbda2962c69225fceeedfd84e082ed965327ff48977f428571c6168763"
+    },
+    "generatedChecks": 22,
+    "nativeCompile": {
+      "session": 33017,
+      "status": "controlled_stop",
+      "exitCode": 75,
+      "atUTC": "2026-10-28T18:08:09.723552+00:00",
+      "sourceMutationBeforeStop": false,
+      "reason": "Fifth Foundation footer correction before next source freeze",
+      "compiledPackageExists": false,
+      "record": {
+        "name": "compile-controlled-stop.json",
+        "bytes": 392,
+        "sha256": "40a81a52d2695fb3e7aa8d63037989a90ed4cf335271e745c9ded0f9116a4840"
+      }
+    },
+    "cloudRuns": {
+      "predeploy": 40741168924,
+      "pushCI": 40741090514,
+      "prCI": 40741103322,
+      "status": "in_progress",
+      "accepted": false,
+      "lastReadAtUTC": "2026-10-28T18:23:08.454066+00:00",
+      "pushCIStatus": "success",
+      "prCIStatus": "success",
+      "conclusion": null,
+      "localWatcherStoppedAtUTC": "2026-10-28T18:23:13+00:00",
+      "remoteRunChanged": false,
+      "remoteWrites": 0,
+      "finalReadOnlyEvidence": [
+        {
+          "name": "run-last-snapshot.json",
+          "bytes": 14768,
+          "sha256": "a14a5b8e8c7489170a921743523c09b874cb2347be9042428cf77d82d19e29b9"
+        },
+        {
+          "name": "jobs-last-snapshot.json",
+          "bytes": 6668,
+          "sha256": "13e8d8554462faf6b95227864289b3a5e54fda3d276213c2ca68384ec4f1e4ba"
+        },
+        {
+          "name": "last-snapshot-summary.json",
+          "bytes": 496,
+          "sha256": "b09314acf2519006e9cbd0dd67de66dcab3b07d80bd1c13ec129949c46d6b924"
+        },
+        {
+          "name": "local-watch-stop.json",
+          "bytes": 208,
+          "sha256": "84b74861774377117f538335325eaf394d838c335347d77ffb57c04b639dc372"
+        }
+      ]
     }
-  }
+  },
+  "finalOwnerReadout": {
+    "checkedAtUTC": "2026-10-28T18:20:42.830200+00:00",
+    "requirements": 65,
+    "sameIdsAndOrderAs68": true,
+    "findings": 15,
+    "testflightFeedbackThemes": 11,
+    "sourceRuntimeChangedDuringThisReadout": false,
+    "fiveFreshWebScreens": [
+      {
+        "path": "docs/audits/2026-10-28/review-screens/10-final-home.png",
+        "bytes": 85584,
+        "sha256": "256eb6eb2d720525b22ef74cd503435639a01aa70b23e6bb3d206bd85fc7e0be",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:15:31.504777+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/11-final-trainer.png",
+        "bytes": 90381,
+        "sha256": "377d5bf965045f32916d816a9e78be9da979b21bbeff874ca1f47bf9ce3ae4d7",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:15:50.824391+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/12-final-radio.png",
+        "bytes": 63530,
+        "sha256": "25ddaa05651cded07e24a0458bd346f69cf79ffcb02d73ef48f71f79dda6822c",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:16:17.248224+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/13-final-briefing.png",
+        "bytes": 47281,
+        "sha256": "be13723c47c298154c1aede33f90434f7655f6d972b3311b37526fb1eccd3cdc",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:16:42.939125+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/14-final-pro.png",
+        "bytes": 90734,
+        "sha256": "73843a03fecd46532583f7303e095d0baf6d8d4bbea61c60b2e4da546551d41e",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:17:00.605950+00:00"
+      }
+    ],
+    "buildId": "nxugNMA4jmTyt34ewz_yq",
+    "browserViewport": [
+      1280,
+      720
+    ],
+    "language": "ru",
+    "theme": "light",
+    "newNativeAcceptance": false,
+    "deliveredBuild": 69,
+    "testflight70Uploaded": false,
+    "fifthFooter": {
+      "committed": false,
+      "targetedTests": 10,
+      "fullSuiteAccepted": true,
+      "installedAccepted": false,
+      "nativeTests": 614,
+      "nativeSuites": 82,
+      "nativeTypesPassed": true,
+      "nativeLintPassed": true,
+      "nativeSourceOnly": true,
+      "checkedAtUTC": "2026-10-28T18:21:35+00:00",
+      "proof": {
+        "name": "native-source-checks-20261028T182108Z.json",
+        "bytes": 4976,
+        "sha256": "395f755947790687da50c8f75f88289fcdff4fcda30f0ae80b8ae89844b58fdd"
+      }
+    },
+    "offlineExceptionsVerifiedInSource": [
+      "Gallery photo/thumbnail/full media and YouTube/Linking",
+      "Spots/weather",
+      "Ask assistant"
+    ],
+    "liveLanguageObservation": {
+      "priority": "P2",
+      "finding": "IT-to-RU client switch retained Italian skip-link through navigation; ordinary reload rendered Russian",
+      "allLanguagesTested": false,
+      "privateEvidence": [
+        {
+          "name": "ru-after-client-language-change.ax.txt",
+          "bytes": 3289,
+          "sha256": "36b67c93c5dca44204dd1085ae36069f5e26ebf1f7ac6734b42a1cf03b20905f"
+        },
+        {
+          "name": "ru-after-reload.ax.txt",
+          "bytes": 3380,
+          "sha256": "7b4a436d60e2e0037260c86861169d0bcc43dfe47fbf2970ecf8ed10d455b123"
+        }
+      ]
+    },
+    "releaseStatus": "open"
+  },
+  "currentWorkingSourceFrozen": false
 }
