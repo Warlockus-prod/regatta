@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Повторный полный отчет сохраняет все65требований и F01-F15, отделяет поставку69 от новых исходников и фиксирует свежий дефект брифинга/Back. В исходнике выровнены дневная оболочка и локальные тренажеры, web сохраняет выбранную тему; в компактном тренажере больше места лодке, второстепенные действия в «Ещё». Эти изменения еще не поставлены и требуют установленной приемки. [Состояние и этапы](docs/audits/2026-10-28/completion-status.md).
+
 - Повторно сверены все 65 требований и 15 находок независимого аудита с поставкой 69. Сохранены 8 свежих web-снимков: вращение 3D работает, светлая тема принудительно меняется в тренажере, новая физика еще не подключена. Жалоба на оформление снова открыта; полный остаток и порядок работ: [итоговая сверка](docs/audits/2026-10-27/completion-reconciliation.md). Этот проход не меняет приложение или релиз.
 
 - Delivered1.7.0(69) to exact TestFlight Self from2ea498b: bounded free radio practice, requested-locale native ASR, independent native outcome logs, versioned support export and local Ads preview.1793web/602native and82first-attempt browser cases pass; generated18/archive36/IPA38, Apple VALID and independent Self/8notes GETs11:12UTC. Owner performs manual radio/Reset/PTT/microphone acceptance in TestFlight. Physical emission, website and public submission remain OFF.

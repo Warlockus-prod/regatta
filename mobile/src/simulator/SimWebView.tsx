@@ -12,8 +12,9 @@ import {
 import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
 import { Screen, Text } from '../design-system/components';
 import { useI18n } from '../i18n/context';
-import { darkColors as colors } from '../design-system/tokens';
-import { DarkSurface, darkStackOptions } from '../design-system/surface';
+import { colors } from '../design-system/tokens';
+import { AppSurface, appStackOptions } from '../design-system/surface';
+import { APP_EMBED_THEME_SCRIPT } from '../design-system/embedded-theme';
 import { isFoundationLesson } from '../bootcamp/lesson-position';
 import { findSailLesson } from "../../../src/data/sailing-lab/course";
 import { guideCopy } from "../../../src/data/sailing-lab/lesson-guide";
@@ -70,9 +71,8 @@ const SET_FLAGS = SEEN_FLAGS.map((k) => `localStorage.setItem('${k}', '1');`).jo
 // Runs before hydration. Also repeated in AFTER_LOAD because
 // injectedJavaScriptBeforeContentLoaded is not guaranteed to re-run on
 // in-page navigations.
-// The app is light, but every page here is an instrument or 3D view drawn
-// on the dark body forced below: ask the site for its dark theme too.
-const BEFORE_LOAD = `try { ${SET_FLAGS} localStorage.setItem('regatta_theme', 'dark'); } catch (e) {} true;`;
+// The native host supplies presentation without changing the website preference.
+const BEFORE_LOAD = APP_EMBED_THEME_SCRIPT + `try { ${SET_FLAGS} } catch (e) {} true;`;
 
 // Runs after every load: re-assert flags, hide site chrome, signal ready.
 const AFTER_LOAD = `
@@ -81,8 +81,7 @@ const AFTER_LOAD = `
     var css = [
       'nav[data-product-navigation] { display: none !important; }',
       'a[href*="apps.apple.com"] { display: none !important; }',
-      'section:has(a[href*="apps.apple.com"]) { display: none !important; }',
-      'body { background: #0a1628 !important; }'
+      'section:has(a[href*="apps.apple.com"]) { display: none !important; }'
     ].join('\\n');
     var s = document.createElement('style');
     s.setAttribute('data-embed', '1');
@@ -255,8 +254,8 @@ export function SimWebView({
   };
 
   return (
-    <DarkSurface><Screen noTopInset={!fullScreen}>
-      <Stack.Screen options={{ ...darkStackOptions, title, headerShown: !fullScreen || loading || failed, headerBackVisible: false,
+    <AppSurface><Screen noTopInset={!fullScreen}>
+      <Stack.Screen options={{ ...appStackOptions, title, headerShown: !fullScreen || loading || failed, headerBackVisible: false,
         headerLeft: () => returnLesson
           ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
           : isFoundationLesson(query?.fromLesson)
@@ -303,7 +302,7 @@ export function SimWebView({
         scrollEnabled={scrollEnabled}
         bounces={false}
         injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + raceScript + languageScript + controlsScript + storageScript + offlineBridgeScript + BEFORE_LOAD}
-        injectedJavaScript={languageScript + controlsScript + AFTER_LOAD}
+        injectedJavaScript={APP_EMBED_THEME_SCRIPT + languageScript + controlsScript + AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
           if (offlineSource) return req.navigationType !== "click" && (req.url.startsWith("file://") || req.url === "about:blank" || Boolean(developmentOrigin && req.url === bundledUri));
           // A link tap must not navigate the embed away from the simulator.
@@ -434,7 +433,7 @@ export function SimWebView({
           </View>
         </View>
       )}
-    </Screen></DarkSurface>
+    </Screen></AppSurface>
   );
 }
 

@@ -70,7 +70,7 @@ const css = cssResult.css.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _q
   return `url("data:${type};base64,${bytes.toString("base64")}")`;
 });
 const version = digest(js + css).slice(0, 12);
-const html = ["<!doctype html>", '<html lang="pl" data-theme="dark"><head><meta charset="utf-8">',
+const html = ["<!doctype html>", '<html lang="pl" data-theme="light"><head><meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
   '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; img-src data: blob:; font-src data:; connect-src \'none\'; media-src \'none\'; worker-src \'none\'; base-uri \'none\'; form-action \'none\'">',
   `<meta name="regatta-sternik-offline-version" content="${version}"><title>Sternik motorowodny offline</title>`,

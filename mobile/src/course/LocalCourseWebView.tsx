@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { Screen, Text } from "../design-system/components";
-import { darkColors as colors } from "../design-system/tokens";
-import { DarkSurface, darkStackOptions } from "../design-system/surface";
+import { colors } from "../design-system/tokens";
+import { AppSurface, appStackOptions } from "../design-system/surface";
+import { APP_EMBED_THEME_SCRIPT } from "../design-system/embedded-theme";
 import { hideMainNavigation } from "../navigation/visibility";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
 import { parseExamFinished, type ExamFinishedProps } from "../analytics/web-bridge";
@@ -166,9 +167,9 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     setRevision(value => value + 1);
   };
 
-  return <DarkSurface><Screen>
+  return <AppSurface><Screen>
     <Stack.Screen options={{
-      ...darkStackOptions,
+      ...appStackOptions,
       title,
       headerBackButtonMenuEnabled: false,
       headerBackVisible: false,
@@ -183,7 +184,8 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
       source={{ html: loaded.html, baseUrl }} style={styles.web} originWhitelist={["*"]}
       javaScriptEnabled domStorageEnabled bounces={false} mediaCapturePermissionGrantType="deny"
       allowFileAccess={false} allowFileAccessFromFileURLs={false} allowUniversalAccessFromFileURLs={false}
-      injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + storage.bootstrap(loaded.entries, href)}
+      injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + APP_EMBED_THEME_SCRIPT + storage.bootstrap(loaded.entries, href)}
+      injectedJavaScript={APP_EMBED_THEME_SCRIPT}
       onMessage={onMessage} startInLoadingState={false}
       onShouldStartLoadWithRequest={request => {
         if (request.url === "about:blank") return true;
@@ -202,7 +204,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     />}
     {loading && !failed && <View style={styles.overlay} pointerEvents="none"><ActivityIndicator color={colors.accentCyan} /><Text style={styles.text}>Otwieram kurs zapisany na urządzeniu...</Text></View>}
     {failed && <View style={styles.overlay}><Text style={styles.text}>Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie wymaga internetu. Zachowane dane nie zostały usunięte.</Text>{failureCode && <Text style={styles.text}>Kod: {failureCode}</Text>}<Pressable accessibilityRole="button" onPress={retry} style={styles.button}><Text style={styles.buttonText}>Ponów</Text></Pressable></View>}
-  </Screen></DarkSurface>;
+  </Screen></AppSurface>;
 }
 
 const styles = StyleSheet.create({

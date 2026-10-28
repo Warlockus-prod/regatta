@@ -1,54 +1,43 @@
-// ============================================================================
-// Theme resolution shared by ThemeToggle, ThemeManager and the no-flash
-// inline script in app/layout.tsx.
-//
-// Modes: 'auto' (follow OS) | 'light' | 'dark', stored in localStorage.
-// Immersive, canvas-heavy surfaces (game, simulators, multiplayer) are
-// art-directed dark and stay dark regardless of the chosen theme - their
-// rendering uses hardcoded colors that are not theme-aware, so a light shell
-// around a dark canvas would look broken. We pin those routes to dark here,
-// in the Shared lane, without touching any simulator/game code.
-// ============================================================================
-
+// Theme preference applies to every surface, including trainers and races.
+// A native host may provide a resolved theme before the page starts; this
+// changes presentation only and never rewrites the browser's saved choice.
 export type ThemeMode = 'auto' | 'light' | 'dark';
+export type ResolvedTheme = 'light' | 'dark';
 
 export const THEME_KEY = 'regatta_theme';
+export const EMBED_THEME_EVENT = 'regatta-theme-change';
+export const BROWSER_THEME_COLORS = { light: '#f7f5f0', dark: '#0a1628' } as const;
 
-export const IMMERSIVE_PREFIXES = [
-  '/game',
-  '/multiplayer',
-  '/simulator',
-  '/simulator2',
-  '/simulator-v3',
-];
-
-export function isImmersive(pathname: string): boolean {
-  return IMMERSIVE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-}
-
-// The iOS app embeds pages via WebView with ?embed=1 and is dark-only. The
-// no-flash inline script in layout.tsx already pins dark on embed; mirror that
-// here so the post-hydration theme manager does not reset an embedded course
-// page to light under a light OS preference (part of the embed contract that
-// e2e/smoke.spec.ts guards).
+/** Used for navigation chrome, never to force a theme. */
 export function isEmbed(): boolean {
   return typeof window !== 'undefined' && /[?&]embed=1/.test(window.location.search);
 }
 
+export function resolveTheme(mode: unknown, darkSystem: boolean, embedded?: unknown): ResolvedTheme {
+  if (embedded === 'light' || embedded === 'dark') return embedded;
+  if (mode === 'light' || mode === 'dark') return mode;
+  return darkSystem ? 'dark' : 'light';
+}
+
 export function systemDark(): boolean {
   return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
-export function effectiveTheme(mode: ThemeMode, pathname: string): 'dark' | 'light' {
-  if (isImmersive(pathname) || isEmbed()) return 'dark';
-  if (mode === 'dark') return 'dark';
-  if (mode === 'light') return 'light';
-  return systemDark() ? 'dark' : 'light';
+export function effectiveTheme(mode: ThemeMode): ResolvedTheme {
+  const embedded = typeof window === 'undefined' ? undefined
+    : (window as Window & { __REGATTA_EMBED_THEME__?: unknown }).__REGATTA_EMBED_THEME__;
+  return resolveTheme(mode, systemDark(), embedded);
 }
 
-export function applyTheme(mode: ThemeMode, pathname: string): void {
-  document.documentElement.dataset.theme = effectiveTheme(mode, pathname);
+export function applyTheme(mode: ThemeMode): void {
+  const theme = effectiveTheme(mode);
+  document.documentElement.dataset.theme = theme;
+  for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+    meta.setAttribute('content', BROWSER_THEME_COLORS[theme]);
+    meta.removeAttribute('media');
+  }
 }
 
 export function readMode(): ThemeMode {
@@ -56,7 +45,12 @@ export function readMode(): ThemeMode {
     const v = localStorage.getItem(THEME_KEY);
     if (v === 'light' || v === 'dark' || v === 'auto') return v;
   } catch {
-    /* localStorage unavailable - fall through to default */
+    /* localStorage unavailable - use the system preference. */
   }
   return 'auto';
 }
+
+// Runs before first paint. Its parity with the hydrated resolver is tested
+// with real script execution, including storage denial and an explicit host
+// override. Keep the host signal independent of localStorage availability.
+export const THEME_BOOTSTRAP_SCRIPT = `(function(){var n=window.__REGATTA_EMBED_THEME__,t='auto';try{t=localStorage.getItem('regatta_theme')||'auto';}catch(e){}var s=typeof matchMedia==='function'&&matchMedia('(prefers-color-scheme: dark)').matches,c=n==='light'||n==='dark'?n:t==='light'||t==='dark'?t:s?'dark':'light';document.documentElement.dataset.theme=c;document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.setAttribute('content',c==='light'?'${BROWSER_THEME_COLORS.light}':'${BROWSER_THEME_COLORS.dark}');m.removeAttribute('media');});})();`;

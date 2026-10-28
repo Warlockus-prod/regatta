@@ -5,13 +5,6 @@ export function showsMainNavigation(path: string): boolean {
   return !(/^\/simulator/.test(path) || /^\/(?:game|race-3d)(?:\/|$)/.test(path) || /^\/multiplayer(?:\/race(?:\/|$)|$)/.test(path) || /^\/replay(?:\/|$)/.test(path) || /\/(symulator|egzamin|exam)(?:\/|$)/.test(path));
 }
 
-/** The native frame must match the installed instrument content it surrounds. */
-export function usesDarkNavigation(path: string): boolean {
-  const clean = path.split(/[?#]/)[0];
-  if (clean === "/ads") return true;
-  return /^\/(?:kursy\/(?:radio|motorowodny)|anatomy(?:-offline)?|diagnostics|game|multiplayer|replay|simulator(?:-basics|-v1|-v3|2)?)(?:\/|$)/.test(clean);
-}
-
 // A screen whose page runs its own full-screen activity inside a WebView (the
 // radio work screen in the SRC course) asks for the tab bar to go while it
 // lasts. Counted, so overlapping requests cannot show the bar too early.

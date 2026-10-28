@@ -417,28 +417,52 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
   });
 
-  test('embed mode hides global chrome but keeps the course subnav (mobile course contract)', async ({ page }) => {
-    // The iOS app ships SRC in seven languages and sternik in Polish as embeds of
-    // /radio and /sternik at ?embed=1 (mobile/src/course/SectionWebView.tsx).
-    // The embed strips the global site chrome (sticky nav, footer nav, feedback
-    // widget) and pins the dark theme, while keeping the in-section subnav so
-    // the learner can move around the course. A web change that breaks this
-    // silently breaks an App Store feature - so guard it in CI.
-    for (const { path, subnav } of [
+  test('embed mode hides global chrome but keeps the course subnav and inherited appearance', async ({ page }) => {
+    // Light is an explicit user preference even on a dark OS. A bare embed
+    // must preserve it; the native host can supply a resolved override without
+    // replacing that preference or reloading the current course document.
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.addInitScript(() => localStorage.setItem('regatta_theme', 'light'));
+    const courses = [
       { path: '/radio', subnav: 'Рация' },
       { path: '/sternik', subnav: 'Sternik' },
-    ]) {
-      // Sanity / positive control: without embed the global sticky nav renders.
+    ];
+    const expectAppearance = async (theme: 'light' | 'dark') => {
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      const metas = page.locator('meta[name="theme-color"]');
+      const color = theme === 'light' ? '#f7f5f0' : '#0a1628';
+      await expect(metas.first()).toHaveAttribute('content', color);
+      await expect.poll(() => metas.evaluateAll(nodes => nodes.every(node =>
+        node.getAttribute('content') === (document.documentElement.dataset.theme === 'light' ? '#f7f5f0' : '#0a1628')
+        && !node.hasAttribute('media')))).toBe(true);
+      expect(await page.evaluate(() => localStorage.getItem('regatta_theme'))).toBe('light');
+    };
+    for (const { path, subnav } of courses) {
       await page.goto(path);
       await expect(page.locator('nav[data-product-navigation]')).toHaveCount(1);
+      await expectAppearance('light');
 
-      // With embed the global chrome is gone, the section subnav stays, theme is dark.
       await page.goto(`${path}?embed=1`);
       await expect(page.getByRole('navigation', { name: subnav })).toBeVisible({ timeout: 20_000 });
       await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
-      await expect
-        .poll(() => page.evaluate(() => document.documentElement.dataset.theme))
-        .toBe('dark');
+      await expectAppearance('light');
+    }
+    await page.addInitScript(() => {
+      (window as Window & { __REGATTA_EMBED_THEME__?: unknown }).__REGATTA_EMBED_THEME__ = 'dark';
+    });
+    for (const { path, subnav } of courses) {
+      await page.goto(`${path}?embed=1`);
+      await expect(page.getByRole('navigation', { name: subnav })).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
+      await expectAppearance('dark');
+      const origin = await page.evaluate(() => performance.timeOrigin);
+      await page.evaluate(() => {
+        (window as Window & { __REGATTA_EMBED_THEME__?: unknown }).__REGATTA_EMBED_THEME__ = 'light';
+        window.dispatchEvent(new Event('regatta-theme-change'));
+      });
+      await expectAppearance('light');
+      expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
+      await expect(page.getByRole('navigation', { name: subnav })).toBeVisible();
     }
   });
 });

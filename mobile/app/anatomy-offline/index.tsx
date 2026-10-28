@@ -29,8 +29,8 @@ import { Screen } from '../../src/design-system/components/Screen';
 import { Text } from '../../src/design-system/components/Text';
 import { anatomyParts, type AnatomyPart } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { darkColors as colors, motion, radii, spacing } from '../../src/design-system/tokens';
-import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
+import { colors, darkColors as sceneColors, motion, radii, spacing } from '../../src/design-system/tokens';
+import { AppSurface, appStackOptions } from '../../src/design-system/surface';
 import { HOTSPOTS } from '../../src/anatomy/hotspots';
 import { YACHT_PATHS, YACHT_VIEWBOX } from '../../src/anatomy/yacht-svg';
 
@@ -161,7 +161,7 @@ function Anatomy() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ ...darkStackOptions, title: headerTitle }} />
+      <Stack.Screen options={{ ...appStackOptions, title: headerTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.intro}>
           <Text variant="caption">{intro}</Text>
@@ -333,7 +333,7 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
             <SvgPath
               key={path.id}
               d={path.d}
-              stroke={isWater ? colors.borderCyanSoft : colors.textSecondary}
+              stroke={isWater ? sceneColors.borderCyanSoft : sceneColors.textSecondary}
               strokeWidth={isWater ? 1 : 1.5}
               strokeOpacity={isWater ? 0.6 : 1}
               fill={isSail ? 'rgba(232, 244, 248, 0.06)' : isFoil ? 'rgba(0, 212, 255, 0.05)' : 'none'}
@@ -368,7 +368,7 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
                       cx={18}
                       cy={18}
                       r={pulseRadius}
-                      fill={colors.accentCyan}
+                      fill={sceneColors.accentCyan}
                       fillOpacity={pulseOpacity}
                     />
                   ) : null}
@@ -376,8 +376,8 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
                     cx={18}
                     cy={18}
                     r={active ? 11 : 8}
-                    fill={active ? colors.accentCyan : 'transparent'}
-                    stroke={colors.accentCyan}
+                    fill={active ? sceneColors.accentCyan : 'transparent'}
+                    stroke={sceneColors.accentCyan}
                     strokeWidth={active ? 2 : 1.5}
                     strokeOpacity={active ? 1 : 0.85}
                   />
@@ -385,7 +385,7 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
                     cx={18}
                     cy={18}
                     r={active ? 5 : 3}
-                    fill={active ? colors.bgPrimary : colors.accentCyan}
+                    fill={active ? sceneColors.bgPrimary : sceneColors.accentCyan}
                   />
                 </Svg>
               </View>
@@ -853,7 +853,7 @@ const posterGalleryStyles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
     justifyContent: 'center',
-    backgroundColor: 'rgba(10, 22, 40, 0.86)',
+    backgroundColor: colors.bgCard,
   },
   cardTitle: {
     color: colors.textPrimary,
@@ -888,7 +888,7 @@ const posterLightboxStyles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.md,
     borderRadius: radii.lg,
-    backgroundColor: 'rgba(15, 32, 53, 0.92)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
   },
@@ -1025,7 +1025,7 @@ const sheetStyles = StyleSheet.create({
   },
 });
 
-/** Instrument screen: dark ocean palette, see design-system/surface. */
+/** Activity chrome follows the same day surface as its History entry. */
 export default function AnatomyRoute() {
-  return <DarkSurface><Anatomy /></DarkSurface>;
+  return <AppSurface><Anatomy /></AppSurface>;
 }

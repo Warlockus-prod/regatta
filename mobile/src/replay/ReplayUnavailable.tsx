@@ -2,7 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 import { useI18n } from "../i18n/context";
 import { EmptyState, Screen } from "../design-system/components";
-import { DarkSurface, darkStackOptions } from "../design-system/surface";
+import { AppSurface, appStackOptions } from "../design-system/surface";
 import { spacing } from "../design-system/tokens";
 
 export function ReplayUnavailable({ reason }: { reason: "unsupported" | "corrupt" }) {
@@ -33,14 +33,14 @@ export function ReplayUnavailable({ reason }: { reason: "unsupported" | "corrupt
     it: "Non è stato possibile leggere i dati della regata salvata. La cronologia non è stata modificata.",
   });
   const back = tl({ ru: "Назад", en: "Back", pl: "Wróć", es: "Volver", fr: "Retour", de: "Zurück", it: "Indietro" });
-  return <DarkSurface><Screen>
-    <Stack.Screen options={{ ...darkStackOptions, title, headerShown: true }} />
+  return <AppSurface><Screen>
+    <Stack.Screen options={{ ...appStackOptions, title, headerShown: true }} />
     <ScrollView contentContainerStyle={styles.scroll}>
       <EmptyState icon="warning" title={title} subtitle={subtitle} cta={{ label: back,
         onPress: () => { if (router.canGoBack()) router.back(); else router.replace("/history"); },
       }} />
     </ScrollView>
-  </Screen></DarkSurface>;
+  </Screen></AppSurface>;
 }
 
 const styles = StyleSheet.create({

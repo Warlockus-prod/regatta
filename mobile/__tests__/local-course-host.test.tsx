@@ -16,6 +16,7 @@ jest.mock("react-native-webview", () => {
 });
 
 import { LocalCourseWebView } from "../src/course/LocalCourseWebView";
+import { APP_EMBED_THEME_SCRIPT } from "../src/design-system/embedded-theme";
 import { loadLocalCourseHtml } from "../src/course/local-course-asset";
 import { ANALYTICS_CONSENT_KEY, WEB_NO_ANALYTICS_SCRIPT, useAnalyticsConsent } from "../src/persistence/analytics-consent";
 import { parseSternikEntries, persistSternikEntries, readSternikEntries, sternikBootstrap, sternikHref, sternikStorageEvent, STERNIK_MESSAGE_LIMIT, STERNIK_STORAGE_KEY } from "../src/persistence/sternik-storage";
@@ -57,6 +58,8 @@ it("loads packaged HTML with the legacy origin, consent and PL bootstrap, and ro
   expect(web.props.source).toEqual({ html: "<html>bundled-only</html>", baseUrl: props.baseUrl });
   expect(web.props.injectedJavaScriptBeforeContentLoaded.startsWith(WEB_NO_ANALYTICS_SCRIPT)).toBe(true);
   expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain('__REGATTA_APP_LANG__="pl"');
+  expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain(APP_EMBED_THEME_SCRIPT);
+  expect(web.props.injectedJavaScript).toBe(APP_EMBED_THEME_SCRIPT);
   expect(web.props.mediaCapturePermissionGrantType).toBe("deny");
   expect(view.getByTestId("course-screen").props.noBottomInset).not.toBe(true);
   expect(view.getByTestId("course-screen").props.noTopInset).not.toBe(true);

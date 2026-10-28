@@ -110,30 +110,30 @@
    explicit light treatments further down. */
 [data-theme="light"] {
   color-scheme: light;
-  --bg-primary: #f4f8fc;
-  --bg-secondary: #e9f1f8;
+  --bg-primary: #f7f5f0;
+  --bg-secondary: #efebe3;
   --bg-card: #ffffff;
-  --bg-card-hover: #eef5fb;
-  --accent-cyan: #0072a3;
-  --accent-cyan-dim: #005f88;
-  --accent-teal: #00a78e;
+  --bg-card-hover: #f3f0ea;
+  --accent-cyan: #006ea6;
+  --accent-cyan-dim: #005a88;
+  --accent-teal: #006d70;
   --accent-ink: #ffffff;
   --hl-amber: #8a6100;
-  --text-primary: #0c2233;
-  --text-secondary: #45606f;
-  --text-muted: #57707f;
-  --danger: #d92d2d;
-  --success: #0b6b3a;
+  --text-primary: #123247;
+  --text-secondary: #526675;
+  --text-muted: #5f7280;
+  --danger: #b3261e;
+  --success: #006d70;
   --warning: #8a6100;
-  --wind-color: #0072a3;
+  --wind-color: #006ea6;
   --sail-color: #1a2d4d;
   --water-light: #cfe6f5;
   --water-dark: #aacbe6;
   --nav-bg: rgba(255, 255, 255, 0.85);
   --hover-bg: rgba(12, 34, 51, 0.05);
   --border-subtle: rgba(12, 34, 51, 0.12);
-  --cat-cyan: #0072a3;
-  --cat-green: #0b6b3a;
+  --cat-cyan: #006ea6;
+  --cat-green: #006d70;
   --cat-amber: #8a6100;
   /* teal, blue and orange are text colours on the chips (sternik, glossary,
      courses, cheat sheet): darkened to reach 4.5:1 on the light tints. Teal
@@ -196,13 +196,13 @@ html {
    The page background gradient and the card/glass surfaces use literal
    colors (not just vars), so they need explicit light variants. */
 [data-theme="light"] .ocean-bg {
-  background: var(--bg-primary) linear-gradient(180deg, #ffffff 0%, #eef5fb 55%, #e2eef8 100%) no-repeat;
+  background: var(--bg-primary);
   background-attachment: fixed;
   background-size: 100% 100%;
 }
 @supports (-webkit-touch-callout: none) {
   [data-theme="light"] .ocean-bg::before {
-    background: linear-gradient(180deg, #ffffff 0%, #eef5fb 55%, #e2eef8 100%);
+    background: var(--bg-primary);
   }
 }
 [data-theme="light"] .card {

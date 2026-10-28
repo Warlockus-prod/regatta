@@ -13,6 +13,8 @@ describe("embedded SRC Radio course", () => {
   const html = readFileSync(ASSET_PATH, "utf8");
 
   it("is a self-contained local document", () => {
+    expect(html).toContain('<html lang="pl" data-theme="light">');
+    expect(html).toContain('<meta name="color-scheme" content="light">');
     expect(html).toContain('<meta name="regatta-offline-version"');
     expect(html).toContain('<div id="root"></div>');
     expect(html).toContain("<script>");

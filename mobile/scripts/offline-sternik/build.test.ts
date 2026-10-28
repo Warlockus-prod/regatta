@@ -9,6 +9,7 @@ const manifest = JSON.parse(read("mobile/assets/sternik-offline.manifest.json").
 const html = read("mobile/assets/sternik-offline.html");
 
 test("the packaged Polish course is fresh, within budget and has no online-only runtime dependency", () => {
+  expect(html.toString()).toContain('<html lang="pl" data-theme="light">');
   expect(manifest.lang).toBe("pl"); expect(manifest.schema).toBe(1);
   expect(manifest.sha256).toBe(sha(html));
   expect(manifest.bytes).toBe(html.length);

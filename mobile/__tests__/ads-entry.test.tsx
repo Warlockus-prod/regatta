@@ -6,14 +6,14 @@ jest.mock("../src/simulator/SimWebView", () => {
 });
 import { render } from "@testing-library/react-native";
 import Ads from "../app/ads";
-import { showsMainNavigation, usesDarkNavigation } from "../src/navigation/visibility";
+import { showsMainNavigation } from "../src/navigation/visibility";
 import { sailingNativeDestination } from "../src/navigation/sailing-entry";
 
 it("opens a bundled Ads lab with a Settings recovery path and reserved controls", () => {
   const host = render(<Ads />).getByTestId("local-ads");
   expect(host.props).toMatchObject({ path: "/ads", title: "Ads", offlineSource: 123, fallbackRoute: "/settings", fallbackLabel: "Return to Settings" });
   expect(host.props.tier).toBeUndefined();
-  expect(showsMainNavigation("/ads")).toBe(false); expect(usesDarkNavigation("/ads")).toBe(true);
-  expect(showsMainNavigation("/settings")).toBe(true); expect(usesDarkNavigation("/settings")).toBe(false);
+  expect(showsMainNavigation("/ads")).toBe(false);
+  expect(showsMainNavigation("/settings")).toBe(true);
   expect(sailingNativeDestination("/ads")).toBe("/ads");
 });

@@ -11,8 +11,7 @@ import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { AppNavigation } from '../src/navigation/AppNavigation';
-import { colors, darkColors } from '../src/design-system/tokens';
-import { usesDarkNavigation } from '../src/navigation/visibility';
+import { colors } from '../src/design-system/tokens';
 import { isFoundationLesson } from '../src/bootcamp/lesson-position';
 import { ReturnToLesson } from '../src/bootcamp/ReturnToLesson';
 import { AppFontContext, SOURCE_SANS_FONTS } from '../src/design-system/fonts';
@@ -62,7 +61,7 @@ export default function RootLayout() {
                       // Chevron only: with large text iOS clipped the back title ("лавн").
                       headerBackButtonDisplayMode: 'minimal',
                       headerTintColor: colors.accentCyan,
-                      headerTitleStyle: { color: usesDarkNavigation(`/${route.name}`) ? darkColors.textPrimary : colors.textPrimary, fontFamily: fontsLoaded ? 'SourceSans3Bold' : undefined, fontWeight: fontsLoaded ? 'normal' : '700' },
+                      headerTitleStyle: { color: colors.textPrimary, fontFamily: fontsLoaded ? 'SourceSans3Bold' : undefined, fontWeight: fontsLoaded ? 'normal' : '700' },
                       animation: 'slide_from_right',
                       // Scene-based apps (iOS 27) ignore the UIApplication status bar
                       // API, so each screen sets its style through react-native-screens

@@ -1327,7 +1327,7 @@ export default function GamePage() {
         <button
           onClick={beginCountdown}
           className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-          style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
         >
           {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1', { es: 'Listo - salida en 3·2·1', fr: 'Prêt - départ dans 3·2·1', de: 'Bereit - Start in 3·2·1', it: 'Pronto - partenza tra 3·2·1' })}
         </button>
@@ -1516,7 +1516,7 @@ export default function GamePage() {
                       <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Błędy', { es: 'Errores', fr: 'Erreurs', de: 'Fehler', it: 'Errori' })}</div>
                       <div className="space-y-2">
                         {coaching.mistakes.map((m, i) => (
-                          <div key={i} className="text-xs p-2 rounded" style={{ background: 'rgba(10, 22, 40, 0.5)' }}>
+                          <div key={i} className="text-xs p-2 rounded" style={{ background: 'var(--bg-secondary)' }}>
                             <div className="flex items-start gap-2 mb-1">
                               <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
                                 background: m.severity === 'major' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(255, 170, 0, 0.2)',
@@ -1586,7 +1586,7 @@ export default function GamePage() {
                     onClick={() => saveResult(nicknameInput)}
                     disabled={nicknameInput.trim().length < 2}
                     className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40"
-                    style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+                    style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
                   >
                     {tp('Сохранить', 'Save', 'Zapisz',
                       { es: 'Guardar', fr: 'Enregistrer', de: 'Speichern', it: 'Salva' })}
@@ -1753,7 +1753,7 @@ function ShareBlock({
           <button
             onClick={onShare}
             className="px-3 py-1.5 rounded text-xs font-semibold"
-            style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
           >
             {copied
               ? tp('✓ Скопировано', '✓ Copied', '✓ Skopiowano',

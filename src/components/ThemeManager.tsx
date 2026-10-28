@@ -2,23 +2,27 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { applyTheme, readMode } from '@/lib/theme';
+import { applyTheme, EMBED_THEME_EVENT, readMode } from '@/lib/theme';
 
-// Re-applies the theme on every route change so immersive routes (game /
-// simulators) flip to dark and content routes return to the chosen mode.
-// Also re-resolves when the OS theme changes while in 'auto'. Renders nothing.
+// Keep one preference through content, trainers and races. A native host
+// supplies a resolved override before load and can update it with an event
+// without remounting the scene or losing the current lesson/race state.
 export default function ThemeManager() {
   const pathname = usePathname();
 
   useEffect(() => {
-    applyTheme(readMode(), pathname);
-  }, [pathname]);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => applyTheme(readMode(), pathname);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    const mq = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)') : undefined;
+    const onChange = () => applyTheme(readMode());
+    onChange();
+    mq?.addEventListener('change', onChange);
+    window.addEventListener('storage', onChange);
+    window.addEventListener(EMBED_THEME_EVENT, onChange);
+    return () => {
+      mq?.removeEventListener('change', onChange);
+      window.removeEventListener('storage', onChange);
+      window.removeEventListener(EMBED_THEME_EVENT, onChange);
+    };
   }, [pathname]);
 
   return null;

@@ -10,6 +10,7 @@ const html = read("mobile/assets/sailing-offline.html");
 const manifest = JSON.parse(read("mobile/assets/sailing-offline.manifest.json").toString());
 
 test("all offline surfaces share original sources and retain an HTTP-free runtime", () => {
+  expect(html.toString()).toContain('<html lang="en" data-theme="light">');
   expect(manifest.routes).toEqual(SAILING_ROUTES);
   expect(manifest.inputs).toContain("src/features/ads-lab/AdsLab.tsx");
   expect(manifest.sha256).toBe(sha(html)); expect(manifest.bytes).toBe(html.length);

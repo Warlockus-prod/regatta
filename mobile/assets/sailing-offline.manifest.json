@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "01ec8c7005c5",
-  "sha256": "4c43f89a504dc25f054fe2a3bec1d1fa81941597042529a3edec539fd2b73594",
-  "bytes": 6589279,
+  "version": "e70083e42a6e",
+  "sha256": "ea545ccb3bdb2a5b8c4c748be3bf7b14a99c0571bdb1fd40c08049724cb1b737",
+  "bytes": 6590386,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -825,8 +825,8 @@
   "sourceFiles": [
     {
       "path": "mobile/scripts/build-sailing-offline.mjs",
-      "bytes": 11256,
-      "sha256": "db18f4d956c740bcedfaf3c7a452fe0e8c8f4d4a52aa93a3e995c5c6ee31c5bb"
+      "bytes": 11257,
+      "sha256": "8e5bd64de11779fd601bab4a9428d98c06c36109fdefc14aa6c1a847a985787f"
     },
     {
       "path": "mobile/scripts/offline-sailing/embed.ts",
@@ -855,8 +855,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 118383,
-      "sha256": "814e461150c084cc2872bd86401f34f745aa77967841647198d91de55cf44c38"
+      "bytes": 118411,
+      "sha256": "ac0f49fd877b0bf117312fc9b92e12aa0b4fa3f08c84525dde2afab064ea49be"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -865,8 +865,8 @@
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 7339,
-      "sha256": "c241e407402458808e27591542875b3f938ce873da7f1af8f0647de32944495d"
+      "bytes": 7480,
+      "sha256": "4a39a2c6f1afd81f596befda2bb566801d86f5c3461c4a6b5ec0f673030637cc"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
@@ -900,8 +900,8 @@
     },
     {
       "path": "src/app/globals.css",
-      "bytes": 16157,
-      "sha256": "83699ead64e106c29ce55584e68a82b5211efa4ecb257a5606af1f94ad8f7673"
+      "bytes": 16039,
+      "sha256": "e07959258ecc94b4653969170f7e37f673dbb31d6802d74f570109f56d283731"
     },
     {
       "path": "src/app/simulator/page.tsx",
@@ -1470,13 +1470,13 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3.module.css",
-      "bytes": 1129,
-      "sha256": "981f2857adceec5fa8a28db395c835eb5f1d05b2b0ecc6052ef74ee711e82fcd"
+      "bytes": 1590,
+      "sha256": "b1d008b2b9a97902092857d4fba6461144d32557ad35c4afce0a217d6615c83e"
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 48743,
-      "sha256": "23eef71926ee96b1adbcc0e07317969e36fe3bffbca6f6fb5717277be8ec3126"
+      "bytes": 48929,
+      "sha256": "096e5b2e4ba62ab1881b30a5da1c7587c65321d99443c2f402b0ae6991dc33e2"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -1695,8 +1695,8 @@
     },
     {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
-      "bytes": 13793,
-      "sha256": "5ffe066d685a2959e3b5645e638f58405e60f96606436dc21233e675e7ff0621"
+      "bytes": 14472,
+      "sha256": "371f5b23a36eb85d2ed32714e11a2dbf7954ebaa174b2631e00cc8634ce0d203"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
@@ -1995,8 +1995,8 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "bytes": 2363,
-      "sha256": "62415dbdbf85f0d3ba461fc68e775152b265bcc22f130a6e5c901a3ce635353b"
+      "bytes": 2816,
+      "sha256": "3798983d7ffa697ce560011e25385d597d5288545d15f3da66ebf7a4b196beb1"
     }
   ],
   "embeddedAssets": [

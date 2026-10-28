@@ -556,76 +556,11 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const taskTab: DockTab | undefined = ui.mainTrim
     ? { id: 'task', label: taskLabel, cards: [{ id: 'task', title: taskLabel, node: podsMain }] }
     : undefined;
-  const dockTabs: DockTab[] = [
-    {
-      id: 'sails',
-      label: controlLabels.tabs.sails,
-      cards: [
-        { id: 'main', title: tp('Грот: гика-шкот и риф', 'Main: mainsheet and reef', 'Grot: szot grota i ref', { es: 'Mayor: escota de mayor y rizo', fr: 'Grand-voile : écoute de grand-voile et ris', de: 'Groß: Großschot und Reff', it: 'Randa: scotta della randa e terzaroli' }), node: podsMain },
-        { id: 'jib', title: tp('Стаксель: стаксель-шкот и раскрытие', 'Jib: jib sheet and furling', 'Fok: szot foka i rozwinięcie', { es: 'Foque: escota de foque y desenrollado', fr: 'Foc : écoute de foc et déroulement', de: 'Fock: Fockschot und Ausrollen', it: 'Fiocco: scotta del fiocco e svolgimento' }), node: <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} comfortable /> },
-      ],
-    },
-    {
-      id: 'helm',
-      label: controlLabels.tabs.helm,
-      cards: [
-        ...(helmMapping === 'rudder' ? [{
-          id: 'rudder',
-          title: controlLabels.rudder,
-          node: rudderCard,
-        }] : []),
-        { id: 'course', title: tp('Курс к ветру и галс', 'Angle to wind and tack', 'Kurs względem wiatru i hals', { es: 'Ángulo al viento y amura', fr: 'Angle au vent et amure', de: 'Kurs zum Wind und Bug', it: 'Angolo al vento e mure' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="course" comfortable /> },
-        { id: 'compass', title: tp('Компас', 'Compass', 'Kompas', { es: 'Brújula', fr: 'Compas', de: 'Kompass', it: 'Bussola' }), node: <HelmPod sim={sim} tp={tp} /> },
-      ],
-    },
-    {
-      id: 'wind',
-      label: controlLabels.tabs.wind,
-      cards: [
-        { id: 'wind', title: tp('Ветер: сила и порывы', 'Wind: strength and gusts', 'Wiatr: siła i podmuchy', { es: 'Viento: fuerza y rachas', fr: 'Vent : force et rafales', de: 'Wind: Stärke und Böen', it: 'Vento: forza e raffiche' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="wind" comfortable /> },
-      ],
-    },
-    {
-      id: 'more',
-      label: controlLabels.tabs.more,
-      cards: [
-        ...(taskTab ? [] : [{
-          id: 'tasks',
-          title: tp('Упражнения и сценарии', 'Drills and scenarios', 'Ćwiczenia i scenariusze', { es: 'Ejercicios y escenarios', fr: 'Exercices et scénarios', de: 'Übungen und Szenarien', it: 'Esercizi e scenari' }),
-          node: (
-            <div className="space-y-2">
-              {modePanel}
-              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} />}
-              {mode === 'scenario' && <ScenarioPicker activeId={activeScenarioId} onPick={pickScenario} lang={lang} tp={tp} />}
-            </div>
-          ),
-        }]),
-        { id: 'session', title: sessionLabel, node: sessionPanel },
-        ...(!embed ? [{ id: 'glossary', title: tp('Термины', 'Terms', 'Terminy', { es: 'Términos', fr: 'Termes', de: 'Begriffe', it: 'Termini' }), node: <GlossaryFooter tp={tp} /> }] : []),
-      ],
-    },
-  ];
-
-  return (
+  // On compact screens these auxiliary links live in More, leaving one
+  // scene toolbar and the selected task/controls in the available height.
+  const utilityToolbar = (
     <div
-      className={`page-enter flex flex-col ${
-        !isDesktop
-          ? trainerScreenClass(embed)
-          : embed
-          ? 'h-[100dvh] overflow-hidden'
-          : 'min-h-[calc(100vh-var(--site-nav-h,56px))]'
-      }`}
-      style={{ background: 'var(--bg-primary)' }}
-    >
-      <FoundationReturn bar initialSearch={initialSearch} />
-      <LessonReturn lang={lang} initialSearch={initialSearch} />
-      {/* Top bar with V3 badge + two-tier switcher (Basics / Trainer / 3D).
-          Cross-links and Share are hidden under ?embed=1 - the iOS app
-          embeds this page chromelessly and provides its own navigation.
-          On an embedded phone the bar would hold only "?", so the button
-          floats over the scene instead and the boat gets the height. */}
-      {(isDesktop || !embed) && <div
-        className="sticky top-0 z-30 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b shrink-0"
+        className={isDesktop ? "sticky top-0 z-30 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b shrink-0" : styles.utilityLinks}
         style={{
           background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)',
           borderColor: 'rgba(0, 212, 255, 0.16)',
@@ -662,7 +597,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           {isDesktop && <button onClick={openCheckpoint} className="min-h-11 rounded-md border border-[var(--border-subtle)] px-3 text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]">
             {tp("Сессия", "Session", "Sesja", { es: "Sesión", fr: "Session", de: "Sitzung", it: "Sessione" })}
           </button>}
-          <button
+          {isDesktop && <button
             onClick={() => setForceTour((n) => n + 1)}
             aria-label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', {
               es: 'Mostrar la guía',
@@ -678,12 +613,12 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             }}
           >
             ?
-          </button>
+          </button>}
           {!embed && (
             <>
               {!ui.mainTrim && <button
                 onClick={onShare}
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition"
+                className="min-h-11 text-[13px] font-semibold px-3 py-1 rounded-md border transition"
                 style={{
                   borderColor:
                     shareState === 'copied'
@@ -766,7 +701,77 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             </>
           )}
         </div>
-      </div>}
+      </div>
+  );
+
+  const dockTabs: DockTab[] = [
+    {
+      id: 'sails',
+      label: controlLabels.tabs.sails,
+      cards: [
+        { id: 'main', title: tp('Грот: гика-шкот и риф', 'Main: mainsheet and reef', 'Grot: szot grota i ref', { es: 'Mayor: escota de mayor y rizo', fr: 'Grand-voile : écoute de grand-voile et ris', de: 'Groß: Großschot und Reff', it: 'Randa: scotta della randa e terzaroli' }), node: podsMain },
+        { id: 'jib', title: tp('Стаксель: стаксель-шкот и раскрытие', 'Jib: jib sheet and furling', 'Fok: szot foka i rozwinięcie', { es: 'Foque: escota de foque y desenrollado', fr: 'Foc : écoute de foc et déroulement', de: 'Fock: Fockschot und Ausrollen', it: 'Fiocco: scotta del fiocco e svolgimento' }), node: <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} comfortable /> },
+      ],
+    },
+    {
+      id: 'helm',
+      label: controlLabels.tabs.helm,
+      cards: [
+        ...(helmMapping === 'rudder' ? [{
+          id: 'rudder',
+          title: controlLabels.rudder,
+          node: rudderCard,
+        }] : []),
+        { id: 'course', title: tp('Курс к ветру и галс', 'Angle to wind and tack', 'Kurs względem wiatru i hals', { es: 'Ángulo al viento y amura', fr: 'Angle au vent et amure', de: 'Kurs zum Wind und Bug', it: 'Angolo al vento e mure' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="course" comfortable /> },
+        { id: 'compass', title: tp('Компас', 'Compass', 'Kompas', { es: 'Brújula', fr: 'Compas', de: 'Kompass', it: 'Bussola' }), node: <HelmPod sim={sim} tp={tp} /> },
+      ],
+    },
+    {
+      id: 'wind',
+      label: controlLabels.tabs.wind,
+      cards: [
+        { id: 'wind', title: tp('Ветер: сила и порывы', 'Wind: strength and gusts', 'Wiatr: siła i podmuchy', { es: 'Viento: fuerza y rachas', fr: 'Vent : force et rafales', de: 'Wind: Stärke und Böen', it: 'Vento: forza e raffiche' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="wind" comfortable /> },
+      ],
+    },
+    {
+      id: 'more',
+      label: controlLabels.tabs.more,
+      cards: [
+        ...(taskTab ? [] : [{
+          id: 'tasks',
+          title: tp('Упражнения и сценарии', 'Drills and scenarios', 'Ćwiczenia i scenariusze', { es: 'Ejercicios y escenarios', fr: 'Exercices et scénarios', de: 'Übungen und Szenarien', it: 'Esercizi e scenari' }),
+          node: (
+            <div className="space-y-2">
+              {modePanel}
+              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} />}
+              {mode === 'scenario' && <ScenarioPicker activeId={activeScenarioId} onPick={pickScenario} lang={lang} tp={tp} />}
+            </div>
+          ),
+        }]),
+        { id: 'session', title: sessionLabel, node: sessionPanel },
+        ...(!embed && !isDesktop ? [{ id: 'utilities', title: controlLabels.tabs.more, node: utilityToolbar }] : []),
+        ...(!embed ? [{ id: 'glossary', title: tp('Термины', 'Terms', 'Terminy', { es: 'Términos', fr: 'Termes', de: 'Begriffe', it: 'Termini' }), node: <GlossaryFooter tp={tp} /> }] : []),
+      ],
+    },
+  ];
+
+  return (
+    <div
+      className={`page-enter flex flex-col ${
+        !isDesktop
+          ? trainerScreenClass(embed)
+          : embed
+          ? 'h-[100dvh] overflow-hidden'
+          : 'min-h-[calc(100vh-var(--site-nav-h,56px))]'
+      }`}
+      style={{ background: 'var(--bg-primary)' }}
+    >
+      <FoundationReturn bar initialSearch={initialSearch} />
+      <LessonReturn lang={lang} initialSearch={initialSearch} />
+      {/* Desktop keeps its utility toolbar. Compact screens keep the tour in
+          SceneBar and the web-only Share/course/tier links in More. Embedded
+          activities retain native navigation and do not duplicate those links. */}
+      {isDesktop && utilityToolbar}
 
       {!embed && isDesktop && !ui.mainTrim && <p className="px-5 pt-3 pb-1 text-sm text-[var(--text-secondary)] max-w-[75ch]">
         {tp("Выбери курс к ветру, настрой два шкота и сравни скорость. Для задания открой «Упражнения», для объяснений нажми «?».", "Choose a wind angle, trim both sails and compare speed. Open Drills for a task or ? for a guide.", "Wybierz kurs względem wiatru, ustaw oba szoty i porównaj prędkość. Zadanie znajdziesz w \"Ćwiczeniach\", objaśnienia pod \"?\".", { es: "Elige un rumbo respecto al viento, ajusta las dos escotas y compara la velocidad. Para una tarea abre \"Ejercicios\"; para las explicaciones, pulsa \"?\".", fr: "Choisis une allure, règle les deux écoutes et compare la vitesse. Pour une tâche, ouvre \"Exercices\" ; pour les explications, appuie sur \"?\".", de: "Wähle einen Kurs zum Wind, trimme beide Schoten und vergleiche die Fahrt. Aufgaben findest du unter \"Übungen\", Erklärungen unter \"?\".", it: "Scegli l'andatura, regola le due scotte e confronta la velocità. Per un compito apri \"Esercizi\", per le spiegazioni premi \"?\"." })}
@@ -873,12 +878,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                   controls="trainer-views"
                   onToggle={() => setViewsOpen((v) => !v)}
                 />
-                {embed && (
-                  <BarIconButton
+                <BarIconButton
                     label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', { es: 'Mostrar la guía', fr: 'Afficher le guide', de: 'Tour anzeigen', it: 'Mostra il tour' })}
                     onClick={() => setForceTour((n) => n + 1)}
                   >?</BarIconButton>
-                )}
               </>}
             />
           }

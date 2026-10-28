@@ -120,7 +120,7 @@ const css = compiledCss.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quo
 const layoutCss = "html,body,#root{height:100%;margin:0;overflow:hidden}body{font-family:var(--font-source-sans)}html[data-sailing-document=true]{overflow:auto}html[data-sailing-document=true] body,html[data-sailing-document=true] #root{height:auto;min-height:100%;overflow:visible}html[data-sailing-document=true] body{overflow-x:hidden}";
 const version = digest(js + css + layoutCss).slice(0, 12);
 const html = [
-  "<!doctype html>", '<html lang="en" data-theme="dark"><head><meta charset="utf-8">',
+  "<!doctype html>", '<html lang="en" data-theme="light"><head><meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
   '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' \'wasm-unsafe-eval\'; style-src \'unsafe-inline\'; img-src data: blob:; connect-src data: blob:; worker-src blob:; media-src data: blob:; font-src data:; base-uri \'none\'; form-action \'none\'">',
   `<meta name="regatta-sailing-offline-version" content="${version}">`,

@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { SimWebView } from "../../src/simulator/SimWebView";
 import { Button, Screen, Text } from "../../src/design-system/components";
-import { DarkSurface, darkStackOptions } from "../../src/design-system/surface";
-import { darkColors } from "../../src/design-system/tokens";
+import { AppSurface, appStackOptions } from "../../src/design-system/surface";
+import { colors } from "../../src/design-system/tokens";
 import { useI18n } from "../../src/i18n/context";
 import { raceEntryQuery, raceNativeDestination } from "../../src/navigation/race-entry";
 import { loadRaceById } from "../../src/persistence/race-history";
@@ -138,24 +138,24 @@ export default function SharedRaceHost({ savedReplayId }: { savedReplayId?: stri
   }, [lang, query.daily, query.fromLesson, replayId, router, persistStorage, analytics, storageEpoch, acceptBestStore]);
 
   const title = tp("Гонка", "Race", "Wyścig", { es: "Regata", fr: "Course", de: "Rennen", it: "Regata" });
-  if (!storage.ready || !replayReady) return <DarkSurface><Screen>
-    <Stack.Screen options={{ ...darkStackOptions, headerShown: true, title, headerBackVisible: false,
+  if (!storage.ready || !replayReady) return <AppSurface><Screen>
+    <Stack.Screen options={{ ...appStackOptions, headerShown: true, title, headerBackVisible: false,
       headerLeft: () => query.fromLesson
-        ? <ReturnToLesson id={query.fromLesson} tintColor={darkColors.accentCyan} />
-        : <ActivityBack fallback="/race" tintColor={darkColors.accentCyan} />,
+        ? <ReturnToLesson id={query.fromLesson} tintColor={colors.accentCyan} />
+        : <ActivityBack fallback="/race" tintColor={colors.accentCyan} />,
     }} />
     {storage.failed ? <>
       <Text>{tp("Не удалось прочитать данные гонок. Повтори попытку: сохраненная история не удалена.", "Could not read race data. Try again; your saved history has not been deleted.", "Nie udało się odczytać danych regat. Spróbuj ponownie; zapisana historia nie została usunięta.", { es: "No se pudieron leer los datos. Reintenta; tu historial no se ha borrado.", fr: "Impossible de lire les données. Réessaie ; ton historique n'a pas été supprimé.", de: "Renndaten konnten nicht gelesen werden. Erneut versuchen; dein Verlauf wurde nicht gelöscht.", it: "Impossibile leggere i dati. Riprova; la cronologia non è stata eliminata." })}</Text>
       <Button onPress={storage.retry}>{tp("Повторить", "Retry", "Ponów", { es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" })}</Button>
-    </> : <ActivityIndicator color={darkColors.accentCyan} />}
-  </Screen></DarkSurface>;
-  if (replayId && !replay) return <DarkSurface><Screen>
-    <Stack.Screen options={{ ...darkStackOptions, title, headerBackVisible: false,
-      headerLeft: () => <ActivityBack fallback="/history" tintColor={darkColors.accentCyan} />,
+    </> : <ActivityIndicator color={colors.accentCyan} />}
+  </Screen></AppSurface>;
+  if (replayId && !replay) return <AppSurface><Screen>
+    <Stack.Screen options={{ ...appStackOptions, title, headerBackVisible: false,
+      headerLeft: () => <ActivityBack fallback="/history" tintColor={colors.accentCyan} />,
     }} />
     <Text>{tp("Повтор не найден на устройстве.", "Replay not found on this device.", "Nie znaleziono powtórki na tym urządzeniu.", { es: "No se encontró la repetición en este dispositivo.", fr: "La rediffusion est introuvable sur cet appareil.", de: "Wiederholung auf diesem Gerät nicht gefunden.", it: "Replay non trovato su questo dispositivo." })}</Text>
     <Button onPress={() => router.replace("/history")}>{tp("История гонок", "Race history", "Historia regat", { es: "Historial de regatas", fr: "Historique des courses", de: "Rennverlauf", it: "Cronologia regate" })}</Button>
-  </Screen></DarkSurface>;
+  </Screen></AppSurface>;
 
   return <SimWebView key={`${replayId ?? "race"}-${storageEpoch}`} path="/game" title={title} query={query} fullScreen
     offlineSource={OFFLINE_SOURCE} localStorage={storage.entries} raceReplay={replay}

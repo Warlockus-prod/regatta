@@ -4,9 +4,9 @@
  * Two palettes with identical keys:
  * - `lightColors` is the v3 "paper" look (warm paper, ink text, one blue
  *   action colour, teal for confirmation). It is the app default: `colors`.
- * - `darkColors` is the dark-ocean palette of builds up to 1.6.3. Instrument
- *   screens (native simulators, race, replay, offline anatomy) keep it and
- *   wrap their content in `<DarkSurface>` so the shared components switch too.
+ * - `darkColors` retains the ocean scene and technical-illustration palette.
+ *   Activity controls, safe areas and loading frames follow the app day
+ *   surface; scene lighting and instrument hardware remain independent.
  *
  * Key names predate v3: `accentCyan` is "the action colour" (blue on paper,
  * cyan on dark ocean), `accentTeal` is confirmation. Keep using the names by
@@ -94,7 +94,7 @@ export const lightColors: ThemeColors = {
   onPhoto: '#ffffff',
 };
 
-/** The app palette. Instrument screens import `darkColors` instead. */
+/** Current app day palette, including activity chrome and loading frames. */
 export const colors = lightColors;
 
 /** Animation durations, ms. Centralized so motion stays consistent. */

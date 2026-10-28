@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "d021571b606e",
+  "version": "cdef6534874d",
   "lang": "pl",
-  "sha256": "ff6847fc3a840bc78b32c7baef075e5f0b85100588e72a6ace8ecf7aea540047",
-  "bytes": 2581452,
+  "sha256": "4d25b92180c516bb51e369b7969c518a73c4629a1b97b91ee1a1db7907471115",
+  "bytes": 2581335,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -117,8 +117,8 @@
     },
     {
       "path": "mobile/scripts/build-sternik-offline.mjs",
-      "bytes": 7988,
-      "sha256": "2b4f587c2dde6558ec9077186d4a98a8c9af044968332afac585390b293f834e"
+      "bytes": 7989,
+      "sha256": "7b01e7a6601787c347b492d010f5380dd494b2aa0a58000e401c88b85f5d203a"
     },
     {
       "path": "mobile/scripts/offline-radio/next-dynamic.tsx",
@@ -172,8 +172,8 @@
     },
     {
       "path": "src/app/globals.css",
-      "bytes": 16157,
-      "sha256": "83699ead64e106c29ce55584e68a82b5211efa4ecb257a5606af1f94ad8f7673"
+      "bytes": 16039,
+      "sha256": "e07959258ecc94b4653969170f7e37f673dbb31d6802d74f570109f56d283731"
     },
     {
       "path": "src/app/radio/rozmowa/dialogueGrading.ts",

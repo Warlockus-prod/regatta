@@ -1,10 +1,5 @@
-import { showsMainNavigation, usesDarkNavigation } from "../src/navigation/visibility";
+import { showsMainNavigation } from "../src/navigation/visibility";
 import { sectionForPath } from "../../src/lib/product/catalog";
-
-test("the native frame follows instrument surfaces and returns to paper at the hub", () => {
-  for (const path of ["/kursy/radio", "/kursy/radio?practice=free", "/kursy/motorowodny", "/anatomy", "/game", "/multiplayer"]) expect(usesDarkNavigation(path)).toBe(true);
-  for (const path of ["/simulators", "/menu", "/learn", "/settings", "/kursy/radio-other"]) expect(usesDarkNavigation(path)).toBe(false);
-});
 
 test("an activity releases screen space and returning to its hub restores navigation", () => {
   expect(showsMainNavigation("/simulators")).toBe(true);

@@ -7,7 +7,8 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { darkColors as colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import { bySurface, useSurface } from '../surface';
 import { Text } from './Text';
 
 export type SliderOrientation = 'horizontal' | 'vertical';
@@ -59,6 +60,9 @@ export function Slider({
   formatValue = defaultFormat,
   accessibilityLabel,
 }: SliderProps) {
+  const surface = useSurface();
+  const stylesV = verticalStyles[surface];
+  const stylesH = horizontalStyles[surface];
   const trackLengthRef = useRef(0);
   const lastStepRef = useRef<number>(Math.round(value / step));
 
@@ -192,7 +196,7 @@ export function Slider({
 
 const KNOB = 18;
 
-const stylesV = StyleSheet.create({
+const verticalStyles = bySurface((colors) => StyleSheet.create({
   wrap: {
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -224,7 +228,7 @@ const stylesV = StyleSheet.create({
     right: 9,
     top: 0,
     bottom: 0,
-    backgroundColor: 'rgba(232, 244, 248, 0.12)',
+    backgroundColor: colors.borderCyanSoft,
     borderRadius: radii.pill,
   },
   fill: {
@@ -251,9 +255,9 @@ const stylesV = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 4,
   },
-});
+}));
 
-const stylesH = StyleSheet.create({
+const horizontalStyles = bySurface((colors) => StyleSheet.create({
   wrap: {
     gap: spacing.xs,
   },
@@ -285,7 +289,7 @@ const stylesH = StyleSheet.create({
     bottom: 9,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(232, 244, 248, 0.12)',
+    backgroundColor: colors.borderCyanSoft,
     borderRadius: radii.pill,
   },
   fill: {
@@ -312,4 +316,4 @@ const stylesH = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 4,
   },
-});
+}));

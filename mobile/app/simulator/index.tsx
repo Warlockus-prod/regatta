@@ -64,8 +64,8 @@ import { useControlPrefs } from '../../src/persistence/controls';
 import { WheelDeck } from '../../src/simulator/WheelDeck';
 import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
 import { useLandscapeWhileFocused } from '../../src/simulator/orientation';
-import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
-import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
+import { colors, darkColors as sceneColors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { AppSurface, appStackOptions } from '../../src/design-system/surface';
 
 const COMPASS_R = 48;
 const SNAP_DEG = 15;
@@ -1148,7 +1148,7 @@ function Simulator() {
 
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ ...darkStackOptions, title }} />
+      <Stack.Screen options={{ ...appStackOptions, title }} />
       <View testID="native-trainer-workspace" onLayout={measureWorkspace}
         style={[styles.workspace, landscape && styles.workspaceLandscape, { paddingLeft: insets.left, paddingRight: insets.right }]}>
       <View testID="native-trainer-scene-column" style={[styles.pinned, { width: sceneColumnWidth }]}>
@@ -1213,7 +1213,7 @@ function Simulator() {
                 {windMapMode === 'gust' ? (
                   <Path
                     path={windEffectPath}
-                    color={colors.success}
+                    color={sceneColors.success}
                     style="fill"
                     opacity={0.14}
                   />
@@ -1221,7 +1221,7 @@ function Simulator() {
                 {windMapMode === 'shift' ? (
                   <Path
                     path={windEffectPath}
-                    color={colors.warning}
+                    color={sceneColors.warning}
                     style="stroke"
                     strokeWidth={2}
                     strokeCap="round"
@@ -1230,7 +1230,7 @@ function Simulator() {
                 ) : null}
                 <Path
                   path={windArrowsPath}
-                  color={colors.windColor}
+                  color={sceneColors.windColor}
                   style="stroke"
                   strokeWidth={1}
                   strokeCap="round"
@@ -1259,10 +1259,10 @@ function Simulator() {
                           r={m.radius}
                           color={
                             m.cleared
-                              ? colors.success
+                              ? sceneColors.success
                               : m.active
-                              ? colors.accentCyan
-                              : colors.warning
+                              ? sceneColors.accentCyan
+                              : sceneColors.warning
                           }
                         />
                       </Group>
@@ -1308,13 +1308,13 @@ function Simulator() {
                     a red fault. Unified with the luff/no-go-ring caution color. */}
                 <Path
                   path={noGoPath}
-                  color={colors.warning}
+                  color={sceneColors.warning}
                   style="fill"
                   opacity={0.12}
                 />
                 <Path
                   path={noGoPath}
-                  color={colors.warning}
+                  color={sceneColors.warning}
                   style="stroke"
                   strokeWidth={1}
                   opacity={0.34}
@@ -1322,7 +1322,7 @@ function Simulator() {
 
                 <Path
                   path={apparentArrowPath}
-                  color={colors.windColor}
+                  color={sceneColors.windColor}
                   style="stroke"
                   strokeWidth={2.4}
                   strokeCap="round"
@@ -1351,7 +1351,7 @@ function Simulator() {
                     point-too-high trade-off is visible at a glance. */}
                 <Path
                   path={sideVectorPath}
-                  color={colors.warning}
+                  color={sceneColors.warning}
                   style="stroke"
                   strokeWidth={3}
                   strokeCap="round"
@@ -1359,7 +1359,7 @@ function Simulator() {
                 />
                 <Path
                   path={driveVectorPath}
-                  color={colors.success}
+                  color={sceneColors.success}
                   style="stroke"
                   strokeWidth={3.4}
                   strokeCap="round"
@@ -1729,18 +1729,18 @@ function Simulator() {
                     cx={0}
                     cy={0}
                     r={COMPASS_R}
-                    color={colors.windColor}
+                    color={sceneColors.windColor}
                     style="stroke"
                     strokeWidth={1.2}
                     opacity={0.6}
                   />
                   {/* Bow-heading marker: whichever sector it falls in is the
                       current point of sail. */}
-                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={colors.textPrimary} />
+                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={sceneColors.textPrimary} />
                   <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
                     <Path
                       path={compassArrowPath}
-                      color={colors.windColor}
+                      color={sceneColors.windColor}
                       style="stroke"
                       strokeWidth={2.5}
                       strokeCap="round"
@@ -2322,14 +2322,14 @@ function SideProfileScene({
               y1={38}
               x2={x + drift + 20}
               y2={84}
-              stroke={colors.windColor}
+              stroke={sceneColors.windColor}
               strokeWidth={2}
               strokeLinecap="round"
             />
           );
         })}
       </G>
-      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+      <SvgText x={14} y={28} fill={sceneColors.textSecondary} fontSize={10} fontWeight="800">
         {windText.toUpperCase()}
       </SvgText>
       <G>
@@ -2387,9 +2387,9 @@ function SideProfileScene({
           />
         ) : null}
       </G>
-      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={colors.success} strokeWidth={3} strokeLinecap="round" />
-      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={colors.success} />
-      <SvgText x={cx + 8} y={waterY - 94} fill={colors.success} fontSize={10} fontWeight="800">
+      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={sceneColors.success} strokeWidth={3} strokeLinecap="round" />
+      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={sceneColors.success} />
+      <SvgText x={cx + 8} y={waterY - 94} fill={sceneColors.success} fontSize={10} fontWeight="800">
         {labels.drive.toUpperCase()}
       </SvgText>
       {Math.abs(leewayDeg) > 1 ? (
@@ -2399,7 +2399,7 @@ function SideProfileScene({
             y1={waterY + 56}
             x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * 70}
             y2={waterY + 56 + Math.cos((leewayDeg * Math.PI) / 180) * 36}
-            stroke={colors.warning}
+            stroke={sceneColors.warning}
             strokeWidth={2}
             strokeLinecap="round"
           />
@@ -2415,7 +2415,7 @@ function SideProfileScene({
           <SvgText
             x={cx + 12}
             y={waterY + 88}
-            fill={colors.warning}
+            fill={sceneColors.warning}
             fontSize={10}
             fontWeight="800"
           >
@@ -2423,10 +2423,10 @@ function SideProfileScene({
           </SvgText>
         </G>
       ) : null}
-      <SvgText x={14} y={height - 44} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 44} fill={sceneColors.textPrimary} fontSize={11} fontWeight="800">
         {`TWA ${Math.abs(twaDeg)}°  ${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
       </SvgText>
-      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? sceneColors.warning : sceneColors.textSecondary} fontSize={11} fontWeight="800">
         {`${heelText.toUpperCase()}  ${reefText.toUpperCase()}  ${twistText.toUpperCase()}`}
       </SvgText>
     </Svg>
@@ -2523,14 +2523,14 @@ function RearScene({
               y1={34}
               x2={x + nudge + sailSide * 22}
               y2={82}
-              stroke={colors.windColor}
+              stroke={sceneColors.windColor}
               strokeWidth={2}
               strokeLinecap="round"
             />
           );
         })}
       </G>
-      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+      <SvgText x={14} y={28} fill={sceneColors.textSecondary} fontSize={10} fontWeight="800">
         {windText.toUpperCase()}
       </SvgText>
       <G transform={`translate(${cx} ${baseY}) rotate(${heel * 0.7})`}>
@@ -2572,13 +2572,13 @@ function RearScene({
         y1={baseY + 66}
         x2={cx + sailSide * sideArrowLen}
         y2={baseY + 66}
-        stroke={colors.warning}
+        stroke={sceneColors.warning}
         strokeWidth={3}
         strokeLinecap="round"
       />
       <Polygon
         points={`${cx + sailSide * (sideArrowLen + 8)},${baseY + 66} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 59} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 73}`}
-        fill={colors.warning}
+        fill={sceneColors.warning}
       />
       {Math.abs(leewayDeg) > 1 ? (
         <G>
@@ -2587,7 +2587,7 @@ function RearScene({
             y1={baseY + 92}
             x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * (38 + Math.abs(leewayDeg) * 3)}
             y2={baseY + 92}
-            stroke={colors.danger}
+            stroke={sceneColors.danger}
             strokeWidth={2}
             strokeLinecap="round"
             opacity={0.85}
@@ -2603,7 +2603,7 @@ function RearScene({
           <SvgText
             x={cx + (leewayDeg >= 0 ? 22 : -78)}
             y={baseY + 108}
-            fill={colors.danger}
+            fill={sceneColors.danger}
             fontSize={9}
             fontWeight="800"
           >
@@ -2611,10 +2611,10 @@ function RearScene({
           </SvgText>
         </G>
       ) : null}
-      <SvgText x={14} y={height - 45} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 45} fill={sceneColors.textPrimary} fontSize={11} fontWeight="800">
         {`${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°  ${labels.heel.toUpperCase()} ${heelDeg}°`}
       </SvgText>
-      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? sceneColors.warning : sceneColors.textSecondary} fontSize={11} fontWeight="800">
         {`${labels.sideForce.toUpperCase()}  TRIM ${trimScore}`}
       </SvgText>
       <SvgCircle cx={width - 24} cy={height - 28} r={8} fill={trimColor} />
@@ -2650,7 +2650,7 @@ function SailBadge({
         {
           opacity,
           borderColor: bg,
-          backgroundColor: 'rgba(10, 22, 40, 0.78)',
+          backgroundColor: colors.bgCard,
         },
       ]}
     >
@@ -2691,8 +2691,8 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: 'rgba(0, 212, 255, 0.36)',
+    backgroundColor: colors.surfaceCyanFaint,
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
@@ -2716,14 +2716,14 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     minHeight: 44,
     borderRadius: radii.sm,
-    borderColor: 'rgba(232, 244, 248, 0.20)',
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   resetPressed: {
     backgroundColor: colors.bgCard,
-    borderColor: 'rgba(232, 244, 248, 0.40)',
+    borderColor: colors.borderCyanStrong,
   },
   resetText: {
     color: colors.textSecondary,
@@ -2736,12 +2736,12 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(0, 212, 255, 0.45)',
-    backgroundColor: 'rgba(4, 22, 30, 0.55)',
+    borderColor: colors.borderCyanStrong,
+    backgroundColor: colors.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  steerBtnActive: { backgroundColor: 'rgba(0, 212, 255, 0.28)', transform: [{ scale: 0.95 }] },
+  steerBtnActive: { backgroundColor: colors.surfaceCyanSoft, transform: [{ scale: 0.95 }] },
   steerBtnText: {
     color: colors.accentCyan,
     fontSize: 30,
@@ -2753,7 +2753,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSecondary,
     borderRadius: radii.lg,
     overflow: 'hidden',
-    borderColor: 'rgba(0, 212, 255, 0.16)',
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     alignSelf: 'center',
     position: 'relative',
@@ -2764,7 +2764,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
     borderRadius: radii.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.90)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     alignItems: 'flex-end',
@@ -2792,7 +2792,7 @@ const styles = StyleSheet.create({
   },
   cockpitPill: {
     color: colors.textPrimary,
-    backgroundColor: 'rgba(8, 18, 32, 0.9)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -2814,7 +2814,7 @@ const styles = StyleSheet.create({
   },
   sceneReadoutPos: {
     color: colors.accentCyan,
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
+    backgroundColor: colors.surfaceCyanFaint,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -2827,8 +2827,8 @@ const styles = StyleSheet.create({
   },
   sceneReadoutText: {
     color: colors.textSecondary,
-    backgroundColor: 'rgba(15, 32, 53, 0.78)',
-    borderColor: 'rgba(232, 244, 248, 0.10)',
+    backgroundColor: colors.bgCard,
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
     overflow: 'hidden',
@@ -2843,8 +2843,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: radii.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.72)',
-    borderColor: 'rgba(232, 244, 248, 0.10)',
+    backgroundColor: colors.bgCard,
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
   },
   mapLegendRow: {
@@ -2872,7 +2872,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexBasis: 0,
     minWidth: 0,
-    backgroundColor: 'rgba(21, 37, 64, 0.72)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -2896,7 +2896,7 @@ const styles = StyleSheet.create({
   },
   trimPanel: {
     marginTop: spacing.md,
-    backgroundColor: 'rgba(21, 37, 64, 0.70)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
@@ -2925,7 +2925,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    backgroundColor: 'rgba(0, 212, 255, 0.04)',
+    backgroundColor: colors.surfaceCyanFaint,
   },
   autoButtonActive: {
     backgroundColor: colors.surfaceCyanSoft,
@@ -2953,7 +2953,7 @@ const styles = StyleSheet.create({
   modeBar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: 'rgba(15, 32, 53, 0.78)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.pill,
@@ -2999,15 +2999,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
     borderRadius: radii.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewChipActive: {
-    backgroundColor: 'rgba(232, 244, 248, 0.10)',
-    borderColor: 'rgba(232, 244, 248, 0.32)',
+    backgroundColor: colors.borderCyanFaint,
+    borderColor: colors.borderCyanStrong,
   },
   viewChipPressed: {
     opacity: 0.78,
@@ -3034,14 +3034,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(15, 32, 53, 0.46)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   windModeChipActive: {
-    backgroundColor: 'rgba(0, 229, 255, 0.10)',
+    backgroundColor: colors.surfaceCyanFaint,
     borderColor: colors.borderCyanSoft,
   },
   windModeChipPressed: {
@@ -3057,7 +3057,7 @@ const styles = StyleSheet.create({
     color: colors.windColor,
   },
   missionHud: {
-    backgroundColor: 'rgba(21, 37, 64, 0.74)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
@@ -3110,7 +3110,7 @@ const styles = StyleSheet.create({
   drillBarTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(232, 244, 248, 0.10)',
+    backgroundColor: colors.borderCyanFaint,
     overflow: 'hidden',
   },
   drillBarFill: {
@@ -3119,7 +3119,7 @@ const styles = StyleSheet.create({
   },
   pickerRow: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
@@ -3144,7 +3144,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
-    backgroundColor: 'rgba(10, 22, 40, 0.62)',
+    backgroundColor: colors.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -3185,7 +3185,7 @@ const styles = StyleSheet.create({
   },
   resultPanel: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.96)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanStrong,
     borderWidth: 1,
     borderRadius: radii.lg,
@@ -3213,7 +3213,7 @@ const styles = StyleSheet.create({
   },
   resultStat: {
     flex: 1,
-    backgroundColor: 'rgba(10, 22, 40, 0.66)',
+    backgroundColor: colors.bgSecondary,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
@@ -3268,7 +3268,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(10, 22, 40, 0.74)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
@@ -3293,7 +3293,7 @@ const styles = StyleSheet.create({
   },
 });
 
-/** Instrument screen: dark ocean palette, see design-system/surface. */
+/** Activity chrome follows the same day surface as its History entry. */
 export default function SimulatorRoute() {
-  return <DarkSurface><Simulator /></DarkSurface>;
+  return <AppSurface><Simulator /></AppSurface>;
 }

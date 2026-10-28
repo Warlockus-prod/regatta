@@ -208,11 +208,20 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
   Back is chevron-only on every screen, the Home photo title grows at most 1.4x, and
   from a font scale of 1.6 the decorative thumbnails (Home card and paths, course path
   icon tiles) are not drawn so titles get the full width.
-- **Surfaces** (`surface.tsx`): instrument screens (native simulators, race, replay,
-  offline anatomy, every `SimWebView` page) wrap their content in `<DarkSurface>` and
-  import `darkColors as colors`; `Text`, `Button`, `Card`, `ListRow`, `Screen`,
-  `EmptyState`, `WindNowCard` follow the surface via `bySurface()`. `darkStackOptions`
-  gives those screens a dark header and light status bar icons.
+- **Surfaces** (`surface.tsx`): current source uses `AppSurface`/`appStackOptions`
+  for day activity chrome, including simulator/race/replay, diagnostics, offline
+  anatomy and embedded course hosts. This matches the fixed-light native shell;
+  global native Dark/Auto is not yet available. Explicit scene/diagram/hardware
+  colors stay independent. `DarkSurface` remains available for deliberate dark
+  subtrees; shared Icon/Slider/WheelDeck read the surface palette.
+- **Embedded theme** (`mobile/src/design-system/embedded-theme.ts`): before-load
+  and after-load host injection sets a closed light/dark override and emits a
+  theme event without writing web preferences or course/race data. Sailing,
+  radio and Sternik HTML default to light. Analytics guards stay first.
+- Theme contracts: `mobile/__tests__/app-surface.test.tsx` checks headers/status
+  and surface-aware controls; `mobile/__tests__/embedded-theme.test.ts` executes
+  the actual host script before/after the document root without storage access.
+  Installed visual acceptance of this source remains separate from delivered69.
 - **Status bar:** the app is scene-based (`plugins/with-uiscene.js`), and iOS ignores the
   UIApplication status bar API there, so `UIViewControllerBasedStatusBarAppearance` is on
   and each screen sets `statusBarStyle` through its stack options (root default `dark`;
@@ -315,12 +324,12 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
 4. For a release: bump version + buildNumber, archive, upload, confirm the build shows
    in TestFlight (`mobile/scripts/asc-state.mjs` / App Store Connect).
 
-## 2026-10-25 native correction flow
+## 2026-10-25 native correction flow, updated source28October
 
 - `mobile/src/navigation/ActivityBack.tsx` provides a labelled44px exit with a contextual hub when no native history exists. `mobile/src/navigation/sailing-entry.ts` accepts only installed trainer/lesson routes and bounded query parameters.
-- `mobile/src/simulator/SimWebView.tsx` shows the dark native header while loading or failed, owns a validated return to the lesson, and permits scrolling in reserved content panels. Canvas and wheels own their own pointer gestures.
+- `mobile/src/simulator/SimWebView.tsx` now shows the day AppSurface header while loading or failed, owns a validated return to the lesson, and permits scrolling in reserved content panels. Canvas and wheels own their own pointer gestures.
 - `mobile/src/course/OfflineRadioCourse.tsx` boots explicit free practice or course intent. Shared route/exit contract: `src/lib/radio-navigation.ts`. Practice first item goes directly to the radio; Learn continues the course with view=course.
-- `mobile/app/multiplayer/index.tsx` is the actual combined lobby/race surface; its native frame is dark and the five main tabs do not consume cockpit space.
+- `mobile/app/multiplayer/index.tsx` is the actual combined lobby/race surface; its native frame follows AppSurface and the five main tabs do not consume cockpit space.
 - `mobile/app/simulator/index.tsx` retains the simplified recovery trainer with overlays moved to a reserved scrollable dock. Wheels do not acquire a second rudder; core physics is unchanged.
 - Pure foundation sources are canonical in `src/data/bootcamp-quiz.ts`, `src/data/foundation-guide.ts` and `src/lib/learning/foundation-drawings.ts`. The old mobile modules re-export them; mobile-only practice routes remain native.
 - Focused contracts: `mobile/__tests__/activity-back.test.tsx`, `mobile/__tests__/sailing-navigation.test.ts`, `mobile/__tests__/radio-course-host.test.tsx`. Installed UI evidence remains separate in `docs/audits/2026-10-25/corrections.md`.

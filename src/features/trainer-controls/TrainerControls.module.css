@@ -13,7 +13,7 @@
 .screenEmbed { height: 100dvh; min-height: 0; }
 
 .workspace { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-/* The scene takes all spare height; the docks are capped (sliders 46%, wheels 56%),
+/* The scene takes all spare height; both control modes keep a capped dock,
    so the boat keeps most of the screen without a hard minimum that could push the
    page into scrolling under the site navigation. */
 .sceneColumn { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
@@ -41,15 +41,22 @@
 .dock[data-layout="column"] { height: 100%; border-top: 0; }
 /* Wheels: the dock is exactly as tall as the wheels, the boat gets the rest
    (no empty band under the helm). */
-.dock[data-mode="wheels"] { height: auto; max-height: 56%; }
-.dock[data-mode="wheels"] .deckArea { flex: 0 0 auto; height: 236px; }
+.dock[data-mode="wheels"] { height: auto; max-height: 46%; }
+.dock[data-mode="wheels"] .deckArea { flex: 0 0 auto; height: clamp(168px, 25dvh, 212px); min-height: 168px; }
 
 /* Auxiliary panels borrow the existing dock footprint. The controls stay in
    the flow, so opening a panel never resizes or covers the boat. */
 .controlArea { position: relative; flex: 0 0 auto; height: clamp(232px, 46%, 400px); min-height: 0; display: flex; flex-direction: column; }
 .controlArea > .dock { height: 100%; max-height: none; flex: 1 1 auto; }
-.controlArea:has(> .dock[data-mode="wheels"]) { height: auto; max-height: 56%; }
+.controlArea:has(> .dock[data-mode="wheels"]) { height: auto; max-height: 46%; }
 .controlArea > .dock[data-mode="wheels"] { height: auto; flex: 0 1 auto; }
+/* The website keeps its primary navigation above this workspace. Give that
+   compact portrait an explicit scene share; embedded native screens have
+   no product navigation and retain the roomier control cap. */
+@media (orientation: portrait) {
+  .screen:not(.screenEmbed) .controlArea,
+  .screen:not(.screenEmbed) .controlArea:has(> .dock[data-mode="wheels"]) { max-height: 40%; }
+}
 .controlArea[data-panel-open="true"] > .dock { visibility: hidden; pointer-events: none; }
 .reservedPanelHost { position: absolute; inset: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); }
 .reservedPanelHost[hidden] { display: none; }
@@ -197,9 +204,13 @@
   flex-direction: column;
   gap: 10px;
 }
-.panelWheels { overflow: hidden; padding-top: 4px; padding-bottom: 6px; }
+.panelWheels { overflow-y: auto; padding-top: 4px; padding-bottom: 6px; }
 .card { min-width: 0; }
 .dock[data-layout="bottom"] .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); align-content: start; }
+/* Keep the actual deck at its measured height. Utilities can then scroll
+   beneath it without stretching the wheel row or taking scene space. */
+.dock[data-layout="bottom"] .panelWheels { display: flex; }
+.panelWheels > .deck { flex: 0 0 auto; height: auto; }
 
 /* Wheels */
 .deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }

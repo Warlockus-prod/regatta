@@ -1,5 +1,6 @@
 import { ActivityIndicator } from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import { APP_EMBED_THEME_SCRIPT } from "../src/design-system/embedded-theme";
 import { SimWebView } from "../src/simulator/SimWebView";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_CHANNEL, TRAINER_STORAGE_KEY } from "../../src/features/sailing-lab/runtime/storage-protocol";
@@ -141,6 +142,9 @@ it("loads the local source without an online fallback or network-error advice", 
   const web = view.getByTestId("webview");
   expect(web.props.source).toEqual(local);
   expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain('window.__REGATTA_LANGUAGE__ = "en"');
+  expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain(APP_EMBED_THEME_SCRIPT);
+  expect(web.props.injectedJavaScript).toContain(APP_EMBED_THEME_SCRIPT);
+  expect(web.props.injectedJavaScript).not.toContain("background: #0a1628 !important");
   expect(web.props.onShouldStartLoadWithRequest({ url: "https://weektoregatta.com/simulator2", navigationType: "other" })).toBe(false);
   expect(web.props.onShouldStartLoadWithRequest({ url: local.uri, navigationType: "other" })).toBe(true);
   fireEvent(web, "message", { nativeEvent: { data: "scene-error" } });

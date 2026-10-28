@@ -152,9 +152,13 @@ URL и удаление со страницы не принимаются).
 
 ### 3.7 Тема
 
-`src/lib/theme.ts` - единственное место, где решается light/dark; его читают
+`src/lib/theme.ts` - общий web resolver для light/dark; его читают
 `src/components/ThemeManager.tsx`, `src/components/ThemeToggle.tsx` и
-inline-скрипт без мигания в `src/app/layout.tsx`.
+inline-скрипт без мигания в `src/app/layout.tsx`. Текущий исходник наследует
+выбранную web-тему и в тренажерах/embed. Валидный native override задает только
+поверхность, без изменения сохраненной web-настройки или освещения3D. Native
+`mobile/src/design-system/embedded-theme.ts` передает дневной AppSurface до
+загрузки и повторно после нее; глобальные native Dark/Auto пока не реализованы.
 
 ### 3.8 Управление тренажерами
 
@@ -216,7 +220,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 ### 4.3 Тренажеры, гонка, реплей, статистика
 
-- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - цвет полосы браузера под всегда темные тренажеры (`themeColor`).
+- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - описания тренажеров; viewport наследует корневую тему без fixed-dark переопределения.
 - `src/app/simulator/page.tsx` - Основы (внутреннее имя V1), canvas, прод-поверхность; на телефоне холст закреплен, управление в общем доке (раскладка изменена с согласия владельца 2026-10-19, логика холста прежняя).
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
@@ -701,6 +705,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/ws-limits.test.ts` - контракт `ws-server/limits.js`: последний хоп XFF и потолки комнат.
 - `src/lib/storage.ts` - версионированный localStorage в пространстве `regatta.`.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
+- `src/lib/theme.test.ts` - saved/system/native theme resolution и фактическое исполнение prepaint bootstrap, включая theme-color.
+- `src/components/ThemeManager.test.tsx` - route/system/storage/native events, живое применение и очистка listeners без reload.
 - `src/lib/sounds.ts` - процедурные звуки на WebAudio, уважают общий mute.
 - `src/lib/race-physics.ts` - гонка `/game`, мультиплеера и мобильного AI: шаг лодки через движок, ворота огибания (`updateLap`), подсказка игроку (`raceWaypoint`) автопилот ботов (`raceAutopilotTurn`: петли по дистанции, сброс скорости перед знаком, повторный круг при промахе; `DECISIONS.md` ADR-0003) и столкновения (`resolveCollisions`: расталкивают всегда, скорость гасят только при сближении, финишировавшие не участвуют; ADR-0004); сложность ботов через `speedMul` в `stepBoat` (ADR-0007). Остатки аркадной модели (`speedFactorFromTWA`, `MAX_SPEED`) - долг Phase 3.
 - `src/lib/race-physics.drift.test.ts` - паритет `ws-server/race-physics.js` и `src/lib/race-physics.ts`: константы, ветер, шаг лодки, курс и огибание знаков совпадают.
@@ -1523,6 +1529,9 @@ history. This boundary is not a new result class or physical writer.
   no raw native journal or personal data.
 - `docs/audits/2026-10-26/independent-product-screens/` - exact accepted PNGs
   captured in this audit, linked in journey order; no generated concept images.
+- `docs/audits/2026-10-28/completion-status.md` - current owner-facing full status: all65IDs, F01-F15, delivered69 versus theme/layout source, nine fresh web states, T04 briefing defect and ordered completion gates.
+- `docs/audits/2026-10-28/checks/completion-status.json` - bounded source/screen hashes, check results, exact environment, inherited delivery refs and explicit untested native limits.
+- `docs/audits/2026-10-28/review-screens/` - nine unedited inspected current production-web JPEGs; screenshot07 preserves the actual product clipping, not an artificial crop.
 - `docs/audits/2026-10-27/completion-reconciliation.md` - owner-facing reconciliation of all65requirements, F01-F15 and delivered69, with reopened cross-surface theme consistency and proposed ordered checkpoints. Source-only physical preparation is not presented as live racing.
 - `docs/audits/2026-10-27/checks/completion-reconciliation.json` - audited refs, eight fresh local web JPEG hashes, theme/canvas/orbit observations and explicit limits; no installed-native acceptance or private journals.
 - `docs/audits/2026-10-27/completion-review-screens/` - eight unedited, inspected screenshots of Light Home/Practice, forced-dark Trainer, Pro briefing/running/Pause/Orbit and OFF radio free entry.

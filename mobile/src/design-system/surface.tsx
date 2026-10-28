@@ -1,16 +1,27 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { darkColors, lightColors, type ThemeColors } from './tokens';
 
-/**
- * Which palette the shared components draw with. The app is on paper
- * ('light'); instrument screens (native simulators, race, replay, offline
- * anatomy, web simulators) wrap their content in <DarkSurface> so Text,
- * Button, Card, ListRow and Screen switch to the dark-ocean palette with
- * them. Screen-local styles on those screens import `darkColors` directly.
- */
+/** The current native app uses one day surface for navigation and activity
+ * controls. DarkSurface remains an explicit local rendering option, never a
+ * route-based override of the app shell. Scene materials are independent. */
 export type Surface = 'light' | 'dark';
 
-const SurfaceContext = createContext<Surface>('light');
+export const appSurface: Surface = 'light';
+const SurfaceContext = createContext<Surface>(appSurface);
+
+/** Reset activity chrome to the current app surface, including under a scene. */
+export function AppSurface({ children }: { children: ReactNode }) {
+  return <SurfaceContext.Provider value={appSurface}>{children}</SurfaceContext.Provider>;
+}
+
+/** Native frames and WebView chrome share this day contract before content loads. */
+export const appStackOptions = {
+  headerBackButtonDisplayMode: 'minimal' as const,
+  headerStyle: { backgroundColor: lightColors.bgPrimary },
+  headerTintColor: lightColors.accentCyan,
+  contentStyle: { backgroundColor: lightColors.bgPrimary },
+  statusBarStyle: 'dark' as const,
+};
 
 export function DarkSurface({ children }: { children: ReactNode }) {
   return <SurfaceContext.Provider value="dark">{children}</SurfaceContext.Provider>;

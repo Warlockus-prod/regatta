@@ -124,3 +124,72 @@ test("wheel mode: wheels and Diagnostics occupy the dock without an empty band",
   expect(utilityBox.y + utilityBox.height).toBeLessThanOrEqual(PHONE.height);
   expect(deck.y + deck.height).toBeLessThanOrEqual(PHONE.height);
 });
+
+// Reproduce the owner's compact web audit, rather than checking only an
+// embedded tall phone. Auxiliary navigation must not consume another row
+// above the scene; every destination remains in the reserved More panel.
+test("compact web Trainer gives the scene room and keeps utilities in More", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 569, height: 750 });
+  await page.addInitScript(() => {
+    localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
+    localStorage.setItem("regatta_theme", "light");
+  });
+  await page.goto("/simulator-v3?lang=en");
+  const deadline = Date.now() + 25_000;
+  const remaining = () => Math.max(1, deadline - Date.now());
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  const scene = page.getByTestId("trainer-scene");
+  const initial = (await scene.boundingBox())!;
+  // The audited runtime provided only160px at these exact dimensions.
+  expect(initial.height).toBeGreaterThanOrEqual(240);
+  const bar = (await page.getByTestId("scene-bar").boundingBox())!;
+  expect(bar.y + bar.height).toBeLessThanOrEqual(initial.y + 1);
+  await expect(page.getByRole("button", { name: "Show tour", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Share", exact: true })).toHaveCount(0);
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  const panel = page.getByRole("tabpanel");
+  const lessons = panel.getByRole("link", { name: "Lessons", exact: true });
+  await lessons.scrollIntoViewIfNeeded();
+  await expect(lessons).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Share", exact: true })).toBeVisible();
+  const linkBox = (await lessons.boundingBox())!;
+  expect(linkBox.height).toBeGreaterThanOrEqual(44);
+  const after = (await scene.boundingBox())!;
+  expect(after.height).toBeGreaterThanOrEqual(240);
+  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  expect(dock.y).toBeGreaterThanOrEqual(after.y + after.height - 1);
+});
+
+test("short portrait Trainer keeps wheel controls and Diagnostics reachable below the boat", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.addInitScript(() => {
+    localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
+  });
+  await page.goto("/simulator-v3?embed=1&lang=en");
+  const deadline = Date.now() + 25_000;
+  const remaining = () => Math.max(1, deadline - Date.now());
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  const scene = (await page.getByTestId("trainer-scene").boundingBox())!;
+  expect(scene.height).toBeGreaterThanOrEqual(150);
+  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
+  for (const name of ["Helm", "Mainsheet", "Jib sheet"]) {
+    const wheel = page.getByRole("slider", { name, exact: true });
+    await wheel.scrollIntoViewIfNeeded();
+    const box = (await wheel.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
+    expect(box.y + box.height).toBeLessThanOrEqual(568);
+  }
+  const diagnostics = page.getByTestId("control-dock").locator("details > summary");
+  await diagnostics.scrollIntoViewIfNeeded();
+  await expect(diagnostics).toHaveText("Diagnostics");
+  const target = (await diagnostics.boundingBox())!;
+  expect(target.height).toBeGreaterThanOrEqual(44);
+  expect(target.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
+  expect(target.y + target.height).toBeLessThanOrEqual(568);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
+});

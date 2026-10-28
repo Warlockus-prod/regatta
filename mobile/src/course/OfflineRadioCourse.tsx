@@ -14,8 +14,9 @@ import {
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { Screen, Text } from "../design-system/components";
 import { hideMainNavigation } from "../navigation/visibility";
-import { darkColors as colors } from "../design-system/tokens";
-import { DarkSurface, darkStackOptions } from "../design-system/surface";
+import { colors } from "../design-system/tokens";
+import { AppSurface, appStackOptions } from "../design-system/surface";
+import { APP_EMBED_THEME_SCRIPT } from "../design-system/embedded-theme";
 import { destinations } from "../../../src/lib/product/catalog";
 import { parseRadioRoute, RADIO_FREE_HREF, radioLeaveCopy, radioNavigationScript } from "../../../src/lib/radio-navigation";
 import { useI18n } from "../i18n/context";
@@ -44,7 +45,7 @@ interface ProgressMessage {
 }
 
 export function OfflineRadioCourse({ initialHref = RADIO_FREE_HREF }: { initialHref?: string }) {
-  return <DarkSurface><RadioCourseContent initialHref={parseRadioRoute(initialHref) ? initialHref : RADIO_FREE_HREF} /></DarkSurface>;
+  return <AppSurface><RadioCourseContent initialHref={parseRadioRoute(initialHref) ? initialHref : RADIO_FREE_HREF} /></AppSurface>;
 }
 
 function RadioCourseContent({ initialHref }: { initialHref: string }) {
@@ -96,7 +97,7 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
   const internalNavigation = internalBack && !loading && !failed;
   const showHeader = loading || failed || !workspaceOpen;
   const back = () => internalNavigation ? webRef.current?.injectJavaScript(radioNavigationScript("back")) : exitToApp();
-  const headerOptions = { ...darkStackOptions, title: destinations.find(item => item.id === "radio")!.title[lang], headerShown: showHeader, headerBackVisible: false, headerBackButtonMenuEnabled: false, gestureEnabled: false,
+  const headerOptions = { ...appStackOptions, title: destinations.find(item => item.id === "radio")!.title[lang], headerShown: showHeader, headerBackVisible: false, headerBackButtonMenuEnabled: false, gestureEnabled: false,
     headerLeft: () => <Pressable accessibilityRole="button" accessibilityLabel={internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("В приложение", "Back to app", "Do aplikacji", { es: "Volver a la app", fr: "Retour à l'app", de: "Zur App", it: "Torna all'app" })} onPress={back} style={styles.headerBack}><Text style={styles.headerBackText}>‹ {internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("Выйти", "Exit", "Wyjdź", { es: "Salir", fr: "Quitter", de: "Beenden", it: "Esci" })}</Text></Pressable>,
   };
   const bootstrap = (value: RadioEntries | null) => radioBootstrap(value, lang) + `window.__REGATTA_RADIO_ENTRY__=${JSON.stringify(initialHref)};true;`;
@@ -245,8 +246,9 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
         bounces={false}
         mediaCapturePermissionGrantType="grant"
         injectedJavaScriptBeforeContentLoaded={
-          webAnalyticsGuardScript(analyticsOn) + LOCAL_RADIO_SPEECH_SCRIPT + restore
+          webAnalyticsGuardScript(analyticsOn) + APP_EMBED_THEME_SCRIPT + LOCAL_RADIO_SPEECH_SCRIPT + restore
         }
+        injectedJavaScript={APP_EMBED_THEME_SCRIPT}
         onMessage={onMessage}
         onLoadStart={() => { if (startup.webViewStarted(attemptId)) recordNativeDiagnostic({ type: "radio.startup", surface: "radio", action: "load", outcome: "accepted", attempt: attemptId }); }}
         onShouldStartLoadWithRequest={(request) => {
