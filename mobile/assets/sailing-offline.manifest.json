@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "32ee4c0fea92",
-  "sha256": "a2ee7a757c52f21f097e6c2163d094874f7da312039cb2533765bd801570a69f",
-  "bytes": 6580023,
+  "version": "662cb2493d8d",
+  "sha256": "c9d9675cd7c72dfb4621386f0c6704f5a4fca4d7356f7921c9d838a714e3bdc4",
+  "bytes": 6580190,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -856,8 +856,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 119142,
-      "sha256": "a66886dcf53316883e3c9348a9d2728efb4d2223e99c4ef6c05496685094a64c"
+      "bytes": 119668,
+      "sha256": "97baa7a30a1aa13f47b61f396d7591e43f802ade39456ec51e811dc7e80fdaae"
     },
     {
       "path": "src/app/game/GameMenu.tsx",

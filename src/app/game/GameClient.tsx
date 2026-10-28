@@ -1891,8 +1891,16 @@ function CoursePreview() {
     { es: '-- en ceñida (bordos)', fr: '-- au près (bords)', de: '-- gegen den Wind (Kreuzschläge)', it: '-- di bolina (bordi)' });
   const legendDownwind = tp('-- попутно к финишу', '-- downwind to finish', '-- z wiatrem do mety',
     { es: '-- a favor del viento a la llegada', fr: '-- au portant jusqu\'à l\'arrivée', de: '-- mit dem Wind zum Ziel', it: '-- vento in poppa all\'arrivo' });
+  // Keep whole words in the annotation band beside the mark. Long translated
+  // labels use another line instead of depending on the platform system font.
+  const topMarkLines = labelTopMark.split(' ').reduce<string[]>((lines, word) => {
+    const last = lines.length - 1;
+    if (last >= 0 && `${lines[last]} ${word}`.length <= 14) lines[last] += ` ${word}`;
+    else lines.push(word);
+    return lines;
+  }, []);
   return (
-    <svg viewBox="0 0 220 274" className="w-full max-w-[242px] mx-auto block">
+    <svg viewBox="0 0 220 274" className="w-full max-w-[242px] mx-auto block" fontFamily="var(--font-geist-sans, sans-serif)">
       {/* water */}
       <defs>
         <linearGradient id="cpWater" x1="0" x2="0" y1="0" y2="1">
@@ -1906,16 +1914,18 @@ function CoursePreview() {
       <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
         <line x1="100" y1="10" x2="100" y2="40" />
         <polygon points="96,38 100,48 104,38" />
-        <text x="108" y="28" fill="#00d4ff" stroke="none" fontSize="11" fontFamily="system-ui">{labelWind}</text>
+        <text x="108" y="28" fill="#00d4ff" stroke="none" fontSize="11">{labelWind}</text>
       </g>
       {/* windward mark */}
       <circle cx="100" cy="60" r="7" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
-      <text x="112" y="64" fill="#ffaa00" fontSize="10" fontFamily="system-ui">{labelTopMark}</text>
+      <text x="112" y="64" fill="#ffaa00" fontSize="10" aria-label={labelTopMark}>
+        {topMarkLines.map((line, index) => <tspan key={index} x="112" dy={index === 0 ? 0 : 12}>{index ? ` ${line}` : line}</tspan>)}
+      </text>
       {/* start/finish line */}
       <line x1="60" y1="220" x2="140" y2="220" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4 3" />
       <circle cx="60" cy="220" r="4" fill="#ffaa00" />
       <circle cx="140" cy="220" r="4" fill="#ffaa00" />
-      <text x="85" y="240" fill="#ffaa00" fontSize="10" fontFamily="system-ui" textAnchor="middle">{labelStartFinish}</text>
+      <text x="85" y="240" fill="#ffaa00" fontSize="10" textAnchor="middle">{labelStartFinish}</text>
       {/* route */}
       <polyline
         fill="none"
@@ -1933,7 +1943,7 @@ function CoursePreview() {
       {/* boat start */}
       <circle cx="100" cy="220" r="3" fill="#00d4ff" />
       {/* legend */}
-      <g fontSize="10" fontFamily="system-ui">
+      <g fontSize="10">
         <text x="10" y="250" fill="#00d4ff">{legendUpwind}</text>
         <text x="10" y="260" fill="#44ff88">{legendDownwind}</text>
       </g>

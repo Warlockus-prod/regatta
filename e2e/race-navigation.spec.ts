@@ -118,8 +118,8 @@ async function mapGeometry(map: Locator) {
   });
 }
 
-async function primaryWheelGeometry(cockpit: Locator) {
-  return cockpit.evaluate(root => {
+async function primaryWheelGeometry(cockpit: Locator, autopilotName?: string) {
+  return cockpit.evaluate((root, autopilotName) => {
     const panel = root.querySelector("aside")?.lastElementChild;
     if (!(panel instanceof HTMLElement)) throw new Error("Primary control panel is not ready");
     const box = (element: Element) => {
@@ -141,11 +141,24 @@ async function primaryWheelGeometry(cockpit: Locator) {
         wheelInsidePanel: contains(client, wheelBox), captionInsidePanel: contains(client, captionBox),
         wheelInsideViewport: contains(viewport, wheelBox), captionInsideViewport: contains(viewport, captionBox) };
     });
-    return { scrollTop: panel.scrollTop, count: wheels.length, wheels,
+    let pilot = null;
+    if (autopilotName !== undefined) {
+      const matches = Array.from(root.querySelectorAll("aside nav button")).filter(element => element.textContent?.trim() === autopilotName);
+      if (matches.length !== 1) throw new Error("Heading hold action is not unique");
+      const element = matches[0];
+      const rect = element.getBoundingClientRect();
+      const nav = element.closest("nav");
+      const dock = element.closest("aside")!.getBoundingClientRect();
+      pilot = { width: rect.width, height: rect.height, actions: nav?.children.length,
+        inReservedActions: nav !== null && rect.left >= dock.left - 1 && rect.right <= dock.right + 1,
+        insideViewport: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth + 1 && rect.bottom <= innerHeight + 1,
+        pressed: element.getAttribute("aria-pressed") };
+    }
+    return { scrollTop: panel.scrollTop, count: wheels.length, wheels, pilot,
       allVisibleTogether: wheels.length > 0 && wheels.every(wheel => wheel.wheel.width >= 44 && wheel.wheel.height >= 44
         && wheel.captionText.length > 0 && wheel.wheelInsidePanel && wheel.captionInsidePanel
         && wheel.wheelInsideViewport && wheel.captionInsideViewport) };
-  });
+  }, autopilotName);
 }
 
 /** Private CI evidence contains geometry and fixed classifications only. Never
@@ -211,16 +224,30 @@ function cockpitEvidence(page: Page, testInfo: TestInfo, name: string) {
   const epoch = Date.now();
   const steps: { name: string; atMs: number; durationMs: number; viewport: ReturnType<Page["viewportSize"]>; status: "running" | "passed" | "failed" }[] = [];
   const snapshots: unknown[] = [];
-  const observe = async (stage: string) => {
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    const observation = await Promise.race([
-      cockpitProbe(page).then(geometry => ({ status: "captured" as const, geometry })).catch(() => ({ status: "unavailable" as const })),
-      new Promise<{ status: "probe-timeout" }>(resolve => { timeout = setTimeout(() => resolve({ status: "probe-timeout" }), 500); }),
-    ]);
-    if (timeout) clearTimeout(timeout);
+  let inFlight: Promise<{ status: "captured"; geometry: Awaited<ReturnType<typeof cockpitProbe>> } | { status: "unavailable" }> | undefined;
+  const remember = (stage: string, observation: object) => {
     // A small ring keeps the last failure context even after all viewports.
     if (snapshots.length === 24) snapshots.shift();
     snapshots.push({ stage, atMs: Date.now() - epoch, ...observation });
+  };
+  const observe = async (stage: string) => {
+    // A timed-out observation can still be waiting on the renderer. Do not
+    // queue another read or present its eventual result as a fresh stage.
+    if (inFlight) {
+      remember(stage, { status: "probe-skipped-inflight" });
+      return;
+    }
+    const pending = cockpitProbe(page).then(geometry => ({ status: "captured" as const, geometry }))
+      .catch(() => ({ status: "unavailable" as const }));
+    inFlight = pending;
+    void pending.then(() => { if (inFlight === pending) inFlight = undefined; });
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const observation = await Promise.race([
+      pending,
+      new Promise<{ status: "probe-timeout" }>(resolve => { timeout = setTimeout(() => resolve({ status: "probe-timeout" }), 500); }),
+    ]);
+    if (timeout) clearTimeout(timeout);
+    remember(stage, observation);
   };
   return {
     observe,
@@ -521,10 +548,27 @@ for (const mode of ["simple", "pro"] as const) {
       const { cockpit, scene, helm, startup } = entry;
       await evidence.observe(`${label}:begin`);
       await step("scene-ready", () => expect(startup).toHaveAttribute("data-scene-startup", "ready"));
-      const water = (await scene.boundingBox())!;
+      const mini = cockpit.getByTestId("race-mini-map-button");
+      const wind = cockpit.getByTestId("race-corner-wind");
+      await expect(mini).toBeVisible();
+      await expect(wind).toBeVisible();
+      // These measurements share one unchanged DOM state. Keep input and
+      // visibility assertions outside the read-only geometry snapshot.
+      const layout = await cockpit.evaluate(root => {
+        const box = (selector: string) => {
+          const element = root.querySelector(selector);
+          if (!element) throw new Error("Cockpit geometry is not ready");
+          const { x, y, width, height } = element.getBoundingClientRect();
+          if (width <= 0 || height <= 0) throw new Error("Cockpit geometry has no visible area");
+          return { x, y, width, height };
+        };
+        return { water: box('[data-testid="race-3d"]'), dock: box("aside"),
+          instruments: [box('[data-testid="race-mini-map-button"]'), box('[data-testid="race-corner-wind"]')] };
+      });
+      const water = layout.water;
       expect(water.height).toBeGreaterThanOrEqual(minimumSceneHeight);
       const dock = cockpit.locator("aside");
-      const dockBox = (await dock.boundingBox())!;
+      const dockBox = layout.dock;
       const viewport = page.viewportSize()!;
       if (viewport.width < viewport.height) {
         expect(dockBox.y).toBeGreaterThanOrEqual(water.y + water.height - 1);
@@ -532,12 +576,7 @@ for (const mode of ["simple", "pro"] as const) {
         expect(dockBox.x).toBeGreaterThanOrEqual(water.x + water.width - 1);
       }
       expect(dockBox.y + dockBox.height).toBeLessThanOrEqual(viewport.height + 1);
-      const mini = cockpit.getByTestId("race-mini-map-button");
-      const wind = cockpit.getByTestId("race-corner-wind");
-      await expect(mini).toBeVisible();
-      await expect(wind).toBeVisible();
-      for (const instrument of [mini, wind]) {
-        const box = (await instrument.boundingBox())!;
+      for (const box of layout.instruments) {
         expect(box.x).toBeGreaterThanOrEqual(water.x - 1);
         expect(box.y).toBeGreaterThanOrEqual(water.y - 1);
         expect(box.x + box.width).toBeLessThanOrEqual(water.x + water.width + 1);
@@ -559,23 +598,22 @@ for (const mode of ["simple", "pro"] as const) {
       // wheel and its separate caption box before focus can scroll a control
       // into view; individually scrolling to each wheel hid this regression.
       await evidence.observe(`${label}:before-primary-check`);
-      await step("primary-visible", () => expect.poll(() => primaryWheelGeometry(cockpit)).toMatchObject({
+      let validatedPrimary: Awaited<ReturnType<typeof primaryWheelGeometry>> | undefined;
+      await step("primary-visible", () => expect.poll(async () => {
+        validatedPrimary = await primaryWheelGeometry(cockpit, "Держать курс");
+        return validatedPrimary;
+      }).toMatchObject({
         scrollTop: 0, count: names.length, allVisibleTogether: true,
       }));
-      const primary = await primaryWheelGeometry(cockpit);
+      if (!validatedPrimary) throw new Error("Validated primary geometry is unavailable");
+      const primary = validatedPrimary;
       const autopilot = cockpit.getByRole("button", { name: "Держать курс", exact: true });
-      const pilot = await autopilot.evaluate(element => {
-        const box = element.getBoundingClientRect();
-        const nav = element.closest("nav");
-        const dock = element.closest("aside")!.getBoundingClientRect();
-        return { width: box.width, height: box.height, actions: nav?.children.length,
-          inReservedActions: nav !== null && box.left >= dock.left - 1 && box.right <= dock.right + 1,
-          insideViewport: box.left >= 0 && box.top >= 0 && box.right <= innerWidth + 1 && box.bottom <= innerHeight + 1 };
-      });
+      const pilot = primary.pilot;
+      if (!pilot) throw new Error("Heading hold geometry is unavailable");
       expect(pilot).toMatchObject({ actions: 5, inReservedActions: true, insideViewport: true });
       expect(pilot.width).toBeGreaterThanOrEqual(44);
       expect(pilot.height).toBeGreaterThanOrEqual(44);
-      const heldHeading = await autopilot.getAttribute("aria-pressed");
+      const heldHeading = pilot.pressed;
       expect(["true", "false"]).toContain(heldHeading);
       await step("heading-hold-on", () => autopilot.click());
       await expect(autopilot).toHaveAttribute("aria-pressed", heldHeading === "true" ? "false" : "true");
@@ -584,10 +622,16 @@ for (const mode of ["simple", "pro"] as const) {
       const inputs = [];
       for (const [index, name] of names.entries()) {
         const input = cockpit.getByRole("slider", { name, exact: true });
-        const box = (await input.boundingBox())!;
+        // Read a fresh baseline for this wheel after all preceding actions.
+        const baseline = await input.evaluate(element => {
+          const { x, y, width, height } = element.getBoundingClientRect();
+          if (width <= 0 || height <= 0) throw new Error("Wheel geometry has no visible area");
+          return { box: { x, y, width, height }, value: element.getAttribute("aria-valuenow") };
+        });
+        const box = baseline.box;
         expect(box.width).toBeGreaterThanOrEqual(44);
         expect(box.height).toBeGreaterThanOrEqual(44);
-        const before = await input.getAttribute("aria-valuenow");
+        const before = baseline.value;
         await step(`wheel-${index}-input`, () => input.press(name === "Руль" ? "ArrowRight" : "ArrowDown"));
         await expect(input).not.toHaveAttribute("aria-valuenow", before ?? "");
         const visible = await input.evaluate(element => {
@@ -640,8 +684,13 @@ for (const mode of ["simple", "pro"] as const) {
       await evidence.observe(`${label}:before-helm-return`);
       await step("helm-return", () => cockpit.getByRole("button", { name: "Руль", exact: true }).click());
       await step("helm-restored", () => expect(helm).toBeVisible());
-      expect((await scene.boundingBox())!.height).toBeCloseTo(water.height, 0);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+      const restored = await scene.evaluate(element => {
+        const { width, height } = element.getBoundingClientRect();
+        if (width <= 0 || height <= 0) throw new Error("Restored scene has no visible area");
+        return { height, documentFits: document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight + 1 };
+      });
+      expect(restored.height).toBeCloseTo(water.height, 0);
+      expect(restored.documentFits).toBe(true);
       samples.push({ label, viewport, scene: water, dock: dockBox, notice: advice, primary, autopilot: pilot, inputs, diagnostics: utility });
     };
 

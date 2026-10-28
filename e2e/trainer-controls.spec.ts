@@ -12,8 +12,8 @@ const ROUTES = [
   { path: "/simulator2?embed=1&lang=en", scene: "canvas", firstFrame: true },
 ];
 
-async function primaryCaptions(page: Page) {
-  return page.getByTestId("wheel-deck").evaluate(deck => {
+async function primaryCaptions(page: Page, includeLayout = false) {
+  return page.getByTestId("wheel-deck").evaluate((deck, includeLayout) => {
     const panel = deck.closest('[role="tabpanel"]')!;
     const bounds = panel.getBoundingClientRect();
     const inside = (r: DOMRect) => r.width > 0 && r.height > 0
@@ -26,9 +26,27 @@ async function primaryCaptions(page: Page) {
         captionBounds: { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
         insidePanel: inside(r), wheelInsidePanel: inside(wheel.getBoundingClientRect()) };
     });
-    return { scrollTop: panel.scrollTop, count: wheels.length, wheels,
+    const layout = includeLayout ? (() => {
+      const box = (element: Element | null) => {
+        if (!element) throw new Error("Trainer geometry is not ready");
+        const { x, y, width, height } = element.getBoundingClientRect();
+        if (width <= 0 || height <= 0) throw new Error("Trainer geometry has no visible area");
+        return { x, y, width, height };
+      };
+      const readouts = document.querySelector('[data-testid="trainer-readouts"]')!;
+      const bounds = readouts.getBoundingClientRect();
+      const metrics = readouts.firstElementChild!.getBoundingClientRect();
+      return { scene: box(document.querySelector('[data-testid="trainer-scene"]')!),
+        dock: box(document.querySelector('[data-testid="control-dock"]')!),
+        wheels: Array.from(deck.querySelectorAll('[role="slider"]')).map(wheel => ({ name: wheel.getAttribute("aria-label"), box: box(wheel) })),
+        readouts: { scrollTop: readouts.scrollTop, content: readouts.scrollHeight, height: readouts.clientHeight,
+          metricsInside: metrics.width > 0 && metrics.height > 0 && metrics.left >= Math.max(0, bounds.left) - 1
+            && metrics.top >= Math.max(0, bounds.top) - 1 && metrics.right <= Math.min(innerWidth, bounds.right) + 1
+            && metrics.bottom <= Math.min(innerHeight, bounds.bottom) + 1 } };
+    })() : null;
+    return { scrollTop: panel.scrollTop, count: wheels.length, wheels, layout,
       allVisibleTogether: wheels.length === 3 && wheels.every(wheel => wheel.insidePanel && wheel.wheelInsidePanel) };
-  });
+  }, includeLayout);
 }
 
 async function sceneInView(page: Page, selector: string) {
@@ -71,13 +89,11 @@ test("wheel mode: the helm and both sheets are keyboard sliders on the Trainer",
   await expect(page.getByRole("slider", { name: "Mainsheet", exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Jib sheet", exact: true })).toBeVisible();
   const before = Number(await helm.getAttribute("aria-valuenow"));
-  await helm.focus();
   await helm.press("ArrowLeft");
   // One step is 5 degrees of course; on starboard tack bow to port bears away.
   await expect(helm).not.toHaveAttribute("aria-valuenow", String(before));
   const main = page.getByRole("slider", { name: "Mainsheet", exact: true });
   const eased = Number(await main.getAttribute("aria-valuenow"));
-  await main.focus();
   await main.press("ArrowDown");
   await expect(main).toHaveAttribute("aria-valuenow", String(Math.round(eased - 5)));
 });
@@ -170,13 +186,22 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   const remaining = () => Math.max(1, deadline - Date.now());
   await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
   const scene = page.getByTestId("trainer-scene");
-  const initial = (await scene.boundingBox())!;
+  const initialLayout = await scene.evaluate(element => {
+    const box = (target: Element | null) => {
+      if (!target) throw new Error("Initial Trainer geometry is not ready");
+      const { x, y, width, height } = target.getBoundingClientRect();
+      if (width <= 0 || height <= 0) throw new Error("Initial Trainer geometry has no visible area");
+      return { x, y, width, height };
+    };
+    return { scene: box(element), bar: box(document.querySelector('[data-testid="scene-bar"]')!) };
+  });
+  const initial = initialLayout.scene;
   // The audited runtime provided only160px at these exact dimensions.
   expect(initial.height).toBeGreaterThanOrEqual(240);
   // A visible wheel alone does not prove its name, value and steering meaning
   // fit. Inspect the whole set before focus or scroll can conceal clipping.
   await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
-  const bar = (await page.getByTestId("scene-bar").boundingBox())!;
+  const bar = initialLayout.bar;
   expect(bar.y + bar.height).toBeLessThanOrEqual(initial.y + 1);
   await expect(page.getByRole("button", { name: "Show tour", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Share", exact: true })).toHaveCount(0);
@@ -184,9 +209,15 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   // previously left only122px for controls and cut every lower caption.
   await page.setViewportSize({ width: 844, height: 390 });
   await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready");
-  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
-  const landscape = (await scene.boundingBox())!;
-  const sideDock = (await page.getByTestId("control-dock").boundingBox())!;
+  let validatedLandscape: Awaited<ReturnType<typeof primaryCaptions>> | undefined;
+  await expect.poll(async () => {
+    validatedLandscape = await primaryCaptions(page, true);
+    return validatedLandscape;
+  }).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true, layout: { readouts: { scrollTop: 0 } } });
+  if (!validatedLandscape?.layout) throw new Error("Validated landscape geometry is unavailable");
+  const landscapeLayout = validatedLandscape.layout;
+  const landscape = landscapeLayout.scene;
+  const sideDock = landscapeLayout.dock;
   expect(landscape.height).toBeGreaterThanOrEqual(150);
   expect(landscape.y).toBeGreaterThanOrEqual(0);
   expect(landscape.y + landscape.height).toBeLessThanOrEqual(390);
@@ -194,20 +225,14 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   for (const name of ["Helm", "Mainsheet", "Jib sheet"]) {
     const wheel = page.getByRole("slider", { name, exact: true });
     await expect(wheel).toHaveAccessibleName(name);
-    const box = (await wheel.boundingBox())!;
+    const box = landscapeLayout.wheels.find(wheel => wheel.name === name)?.box;
+    if (!box) throw new Error("Named wheel geometry is unavailable");
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
   const readouts = page.getByTestId("trainer-readouts");
-  await expect.poll(() => readouts.evaluate(element => element.scrollTop)).toBe(0);
-  const readings = await readouts.evaluate(element => {
-    const bounds = element.getBoundingClientRect();
-    const metrics = element.firstElementChild!.getBoundingClientRect();
-    return { content: element.scrollHeight, height: element.clientHeight,
-      metricsInside: metrics.width > 0 && metrics.height > 0 && metrics.left >= Math.max(0, bounds.left) - 1
-        && metrics.top >= Math.max(0, bounds.top) - 1 && metrics.right <= Math.min(innerWidth, bounds.right) + 1
-        && metrics.bottom <= Math.min(innerHeight, bounds.bottom) + 1 };
-  });
+  const readings = landscapeLayout.readouts;
+  expect(readings.scrollTop).toBe(0);
   expect(readings.metricsInside).toBe(true);
   if (readings.content > readings.height + 1) {
     await readouts.focus();
@@ -230,11 +255,21 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   await lessons.scrollIntoViewIfNeeded();
   await expect(lessons).toBeVisible();
   await expect(panel.getByRole("button", { name: "Share", exact: true })).toBeVisible();
-  const linkBox = (await lessons.boundingBox())!;
+  const moreLayout = await lessons.evaluate(element => {
+    const box = (target: Element | null) => {
+      if (!target) throw new Error("More panel geometry is not ready");
+      const { x, y, width, height } = target.getBoundingClientRect();
+      if (width <= 0 || height <= 0) throw new Error("More panel geometry has no visible area");
+      return { x, y, width, height };
+    };
+    return { link: box(element), scene: box(document.querySelector('[data-testid="trainer-scene"]')!),
+      dock: box(document.querySelector('[data-testid="control-dock"]')!) };
+  });
+  const linkBox = moreLayout.link;
   expect(linkBox.height).toBeGreaterThanOrEqual(44);
-  const after = (await scene.boundingBox())!;
+  const after = moreLayout.scene;
   expect(after.height).toBeGreaterThanOrEqual(240);
-  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  const dock = moreLayout.dock;
   expect(dock.y).toBeGreaterThanOrEqual(after.y + after.height - 1);
 });
 

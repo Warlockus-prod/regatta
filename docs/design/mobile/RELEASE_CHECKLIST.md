@@ -91,6 +91,17 @@ Never submit a build no one has looked at.
   Simulator app, create progress, install the candidate over it (no uninstall)
   and check Home, the course path and that every stored progress key is still
   there (build 45: see `BUILDS.md`).
+- Before any Simulator storage read, launch or UI walkthrough, verify that
+  BOTH `simctl get_app_container EXACT_UUID BUNDLE app` and `data` return
+  existing paths under that same requested device UUID. Resolve symlinks and
+  reject traversal or any original/other-device path. Repeat after install,
+  clone or restore. A CoreSimulator clone can retain absolute App/Bundle/Data
+  URLs pointing to its source; comparing that source before install to the
+  clone after install is invalid upgrade evidence. Stop on an ownership
+  mismatch and use a newly created direct QA device. Never act on the source
+  container to make the check pass. Keep the mismatch and actual returned
+  identity in private evidence; hash-only snapshots without path provenance
+  do not prove device identity.
 - Capture screenshots for the record.
 - **Release build on the newest iOS.** Build the Release configuration with the
   SAME Xcode that archives the store binary and install it fresh on a newly

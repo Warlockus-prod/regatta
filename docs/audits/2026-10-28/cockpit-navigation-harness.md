@@ -131,7 +131,7 @@ TestFlight69/source2ea498b остается неизменным. Candidate1.7.0
 - [x]608native/82suites, обе types, native lint и web lint0errors/15baseline
   warnings, socket lifecycle и content sync проходят. Триoffline пакета
   пересобраны: radio636b981087ba/sailing32ee4c0fea92/sternikcdef6534874d.
-- [ ] Exact source freeze, Release Simulator compile и package inventory.
+- [x] Exact source25baff1 freeze, Release Simulator compile,43/43package и121frozen files. Это не полныйG2.
 - [ ] Новый clean27, public48->candidate clone и short/landscape/large text.
 - [ ] Отдельные metadata/archive/Apple/Self gates до доставки70.
 
@@ -147,3 +147,92 @@ travel/guidance/recorder/result/server/native gates. Metric fleet по-преж�
 не подключен, emission OFF. Затем P05/P06 трассы/режимы/честный judge,
 P02/P07полный учебный цикл, P08outcomes, P09ghost, P11SITE и P12phone/public.
 Графика не объявляется достигшей concept. Общее завершение65требований не заявлено.
+
+## Native70: первый установленный проход, первоначальная оценка
+
+28октября, exact25baff1. Source-only generated22 и compiled Simulator43 проходят,
+в том числе настоящий named color launch asset. Все121файлов замороженной
+копии совпадают в установленном PL27 иRU26 пакетах.
+
+PL27: все5старых ключей сохранены до запуска и после первогоHome. Root
+наблюдал1/8, продолжение урока2, сохраненные3/3первого урока, настоящий3Dкадр
+с дневными панелями, рабочийMore и nativeBack в тот же3шаг урока. Sternik
+открылся локально с дневной оболочкой, Back вернулMenu. ColdHome сохраняет1/8;
+последним курсом стал Sternik после намеренного посещения. После маршрутов
+9ключей: ничего не пропало,4из5старых побайтно прежние; viewed-key изменился.
+Не заявляем неизменность всех старых значений после пользовательских действий.
+
+RU26: перед install6ключей точно совпали с созданным UI48baseline, сразу после
+install до явного launch остался только прежнийfirstLaunch. Потеряны5ключей,
+включая язык иquiz/progress. Поздний Home показываетPLиStart first lesson.
+Root ошибочно выполнил launch после неуспешного comparison из-за shell newline;
+снимок отказа до этого launch сохранен отдельно. Системный журнал относит
+потерю к installation window до первого наблюдаемого app process, но причина
+пока не доказана. Полные rawлоги, data snapshot и изображения приватны.
+
+**G2 RED,70не отправлен.** Успешный27не заменяет отказ26. Создан отдельный
+чистыйSE3/iOS26.5 для прямого48->70 без clone; пока установлен и сверены106
+файлов48, progress/reproduction еще не выполнены. Исходники runtime не меняем
+до доказанной причины. Clean27, short/landscape/large text, Radio entry/Back
+и остальные delivery gates остаются следующими. РучнойPTT/Reset/mic по-прежнему
+проверяет владелец вTestFlight, это не причина текущего удержания.
+
+## Уточнение принадлежности контейнеров и следующий gate
+
+Первоначальное сравнение RU26 выше оказалось недействительным. Живой
+`get_app_container` для нового контрольного клона вернул путь source-original,
+а его FrontBoard cache содержит исходные абсолютные App/Bundle/Data URLs.
+До установки читались шесть ключей оригинала, после установки один ключ
+собственного seed-контейнера клона. Все шесть прежних значений остаются
+в оригинале с теми же bytes/SHA. Это не доказанная потеря данных приложением.
+Первичные raw-отчеты сохраняются вместе с этой квалификацией.
+
+Root не проверил владельца пути перед UI. Через alias исходный QA получил
+тестовый прогресс; прежнее утверждение о неизменных данных оригиналов
+нельзя сохранять. Замороженные пакеты и ветки не изменены. Состояние
+original26 сохранено отдельно приватно, автоматического восстановления
+или удаления не выполняли. Для preinstall PL27 ownership также не записан,
+поэтому его installed UI остается наблюдением, а upgrade требует прямого
+нового устройства. Старые независимые source/Apple доказательства этим
+не переопределяются.
+
+Private guard до чтения проверяет App+Data UUID и исходный/resolved путь,
+отвергает чужое устройство, traversal и symlink; 19 fixture cases проходят.
+Старые снимки задним числом не подтверждаются. Дальше используем прямые
+новые устройства и проверяем ownership перед любым launch/UI и после install.
+
+Прямое новое SE3/iOS26.5:106 файлов48, настоящий RU quiz3/3 и cold Home1/8,
+шесть ключей неизменны после cold48 и после install70; все121файл70совпали.
+Оба recorded data paths принадлежат этому устройству. Первый Home70 сохраняет
+RU/1из8/урок2; все шесть старых ключей прежние, добавлен diagnostics. Это
+положительная отдельная проверка, не исправление старого clone-отчета.
+
+Облачный exact25baff1 predeploy40715540679 завершился failure; отдельный
+reader разбирает actual report. Локальный94/94 не заменяет этот отказ.
+**ПолныйG2 и выпуск70 остаются открытыми**: direct27, clean27, short/landscape/
+large text, radio entry/Back, cloud source и Apple gates еще требуются.
+
+## Follow-up после облачного25baff1 отказа
+
+Длинный SVG label переносится по целым словам, использует локальный Source
+Sans3 и сохраняет все35locale values/5text nodes/размеры шрифта. Независимые
+DOM reads объединены без сокращения assertions, inputs, viewports и deadlines;
+новые snapshots отвергают missing/zero-size. Перед каждым wheel input baseline
+свежий.500ms observational probes теперь single-flight: skipped-inflight
+не выдается за новый captured frame. Два лишних focus перед locator.press
+удалены, explicit keyboard notice/readouts проверки сохранены.
+
+Production8NseqWISCbLglpTGyjrZw проходит:111chunks,6790321bytes, прежний
+cap6815744, запас25423. Media/fonts вне этого chunks-бюджета считаются отдельно.
+1827web/608native/82suites, обеtypes, lint0errors/15webbaseline warnings, sockets,
+content sync и generation checks проходят. Sailing HTML662cb2493d8d.
+Четыре прежних проблемных cases проходят локально4/4, затем новый полный
+94/94с первой попытки, без skipped/flaky/unexpected. Все8файлов и deadlines
+сохранены. Это не успешный новый cloud или installed package.
+
+Новый private native-release70-day-followup сохраняет43/22/44/46контракты
+и94fixture cases инструментов, отдельно от94реальных browser cases. Старые
+25baff1пакет/логи/source-record неизменны. Следующие source-record/G2/build
+создаются только для нового фактического commit. В новом прямом27QA через UI
+подготовлены EN/quiz3of3/cold Home1of8 и6ключей с проверенным владельцем обоих
+контейнеров; candidate там еще не установлен.

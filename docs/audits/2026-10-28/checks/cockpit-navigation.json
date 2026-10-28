@@ -122,25 +122,26 @@
     },
     "combinedProductionBrowser": {
       "status": "passed",
-      "name": "caption-wind-full94.json",
-      "sha256": "7306679717b5b5a6ec6cbfd6e396b567066615a44c1ea8f05860838d71666b23",
-      "exitCode": 0,
-      "expectedCases": 94,
-      "files": 8,
-      "workers": 1,
-      "target": "http://localhost:3331",
+      "name": "caption-wrap-batch-full94.json",
+      "sha256": "e2f5362fe0881297fc7332887fb0f8a4600b33817bdaa777f5141a1dd7c3f71f",
+      "bytes": 1111279,
       "stats": {
-        "startTime": "2026-10-28T14:55:35.614Z",
-        "duration": 638474.012,
+        "startTime": "2026-10-28T16:29:36.578Z",
+        "duration": 622515.613,
         "expected": 94,
         "skipped": 0,
         "unexpected": 0,
         "flaky": 0
       },
       "topLevelErrors": 0,
-      "acceptsCandidateForReleaseByItself": false,
+      "files": 8,
+      "workers": 1,
+      "exitCode": 0,
+      "firstAttempt": true,
+      "sourceFrozenAtCapture": false,
       "deadlineIncreased": false,
-      "assertionsRemoved": false
+      "assertionsRemoved": false,
+      "acceptsCandidateForReleaseByItself": false
     },
     "i18n": {
       "baselineFindings": 12,
@@ -311,7 +312,29 @@
         }
       ]
     },
-    "readonlyGeneratedChecksHistorical": true
+    "readonlyGeneratedChecksHistorical": true,
+    "retained25baff1CombinedProductionBrowser": {
+      "status": "passed",
+      "name": "caption-wind-full94.json",
+      "sha256": "7306679717b5b5a6ec6cbfd6e396b567066615a44c1ea8f05860838d71666b23",
+      "exitCode": 0,
+      "expectedCases": 94,
+      "files": 8,
+      "workers": 1,
+      "target": "http://localhost:3331",
+      "stats": {
+        "startTime": "2026-10-28T14:55:35.614Z",
+        "duration": 638474.012,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "acceptsCandidateForReleaseByItself": false,
+      "deadlineIncreased": false,
+      "assertionsRemoved": false
+    }
   },
   "applePreflight": {
     "readAtUTC": "2026-10-28T12:41:43.898Z",
@@ -330,16 +353,18 @@
     "runtime26": "26.5 23F77",
     "xcode": "27.1 27A9275",
     "sdk": "27.1 24A94232",
-    "originalQAPreserved": true,
+    "originalQAPreserved": false,
     "ownerRadioManualAcceptance": "pending TestFlight",
     "expectedPackageChecks": 43,
-    "packageChecksNotYetRun": true
+    "packageChecksNotYetRun": false,
+    "originalFrozenPackagesPreserved": true,
+    "originalQADataQualification": "cloned old48 alias placed test progress in source QA data; source QA data not claimed unchanged"
   },
   "sourceFiles": [
     {
       "path": "e2e/race-navigation.spec.ts",
-      "sha256": "c1e457f4ebd8d02e70e2bb0ac019d0125231ef107fede7ebea55448db29a5b5b",
-      "bytes": 51506
+      "sha256": "edc5afbba173c7d618c5152160bac61fdc5347f6c8a97c96ba17868bdd99f99e",
+      "bytes": 54198
     },
     {
       "path": "e2e/smoke.spec.ts",
@@ -348,8 +373,8 @@
     },
     {
       "path": "e2e/trainer-controls.spec.ts",
-      "sha256": "d8cf8e9c2c843c6ce4efb2d50fae4854788c516a81e8e6e8aa45c336c3dceb8d",
-      "bytes": 15748
+      "sha256": "fdeb8917fd177ded17f880f84f76506e5e1a52c9a55c80efc7298d0210735aca",
+      "bytes": 17938
     },
     {
       "path": "mobile/__tests__/app-surface.test.tsx",
@@ -363,18 +388,18 @@
     },
     {
       "path": "mobile/assets/sailing-offline.html",
-      "sha256": "a2ee7a757c52f21f097e6c2163d094874f7da312039cb2533765bd801570a69f",
-      "bytes": 6580023
+      "sha256": "c9d9675cd7c72dfb4621386f0c6704f5a4fca4d7356f7921c9d838a714e3bdc4",
+      "bytes": 6580190
     },
     {
       "path": "mobile/assets/sailing-offline.manifest.json",
-      "sha256": "b494bd8381975682166de20ce6f679dfdb74c978cd4b50820e70d344994f5611",
+      "sha256": "20ee043cc132e680a89ddcbc08376a57c3a55c0935b21a09f1abb2468ebbf4ef",
       "bytes": 87657
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "sha256": "a66886dcf53316883e3c9348a9d2728efb4d2223e99c4ef6c05496685094a64c",
-      "bytes": 119142
+      "sha256": "97baa7a30a1aa13f47b61f396d7591e43f802ade39456ec51e811dc7e80fdaae",
+      "bytes": 119668
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -542,7 +567,7 @@
     "metric fleet unwired; no playable newphysicalcourses orghost",
     "canonical generated THREE.TSL shader-comment trailingwhitespace kept, generator freshness required"
   ],
-  "updatedAtUTC": "2026-10-28T15:21:09.583410+00:00",
+  "updatedAtUTC": "2026-10-28T16:40:53.831890+00:00",
   "productionChunks": {
     "fileCount": 111,
     "totalBytes": 6790155,
@@ -609,7 +634,8 @@
   },
   "releaseHeld": true,
   "releaseHoldReasons": [
-    "exact native70 compile/package/install/upgrade/visual gates not run"
+    "new exact source freeze, cloud rerun and native compiled/installed gates pending",
+    "25baff1 cloud90/94 remains rejected history; cloned upgrade comparisons are invalid unless ownership proven"
   ],
   "ownerManualRadio": {
     "status": "pending owner TestFlight walkthrough",
@@ -617,7 +643,7 @@
     "exception": "docs/audits/2026-10-27/release69-owner-beta.md",
     "doesNotWaiveOtherGates": true
   },
-  "activeCheckpoint": "caption-wind-followup",
+  "activeCheckpoint": "caption-wrap-batch-followup-unfrozen",
   "retainedFirst94Proof": {
     "name": "cockpit-navigation-first94-held.json",
     "sha256": "cd21bab2ae16d660474fd00ea464a680950b37240b7f81948a49d0453260cf1f",
@@ -625,26 +651,26 @@
   },
   "lastCompleteProductionBrowser": {
     "status": "passed",
-    "name": "caption-wind-full94.json",
-    "sha256": "7306679717b5b5a6ec6cbfd6e396b567066615a44c1ea8f05860838d71666b23",
-    "exitCode": 0,
-    "expectedCases": 94,
-    "files": 8,
-    "workers": 1,
-    "target": "http://localhost:3331",
+    "name": "caption-wrap-batch-full94.json",
+    "sha256": "e2f5362fe0881297fc7332887fb0f8a4600b33817bdaa777f5141a1dd7c3f71f",
+    "bytes": 1111279,
     "stats": {
-      "startTime": "2026-10-28T14:55:35.614Z",
-      "duration": 638474.012,
+      "startTime": "2026-10-28T16:29:36.578Z",
+      "duration": 622515.613,
       "expected": 94,
       "skipped": 0,
       "unexpected": 0,
       "flaky": 0
     },
     "topLevelErrors": 0,
-    "acceptsCandidateForReleaseByItself": false,
+    "files": 8,
+    "workers": 1,
+    "exitCode": 0,
+    "firstAttempt": true,
+    "sourceFrozenAtCapture": false,
     "deadlineIncreased": false,
     "assertionsRemoved": false,
-    "bytes": 1109470
+    "acceptsCandidateForReleaseByItself": false
   },
   "captionWindFollowup": {
     "atUTC": "2026-10-28T15:03:02.911362+00:00",
@@ -684,7 +710,7 @@
       "day splash source and explicit compiled-color verifier",
       "bow-up true TWA with separate absolute TWD and unchanged apparent airflow"
     ],
-    "currentSourceFrozen": false,
+    "currentSourceFrozen": true,
     "candidateInstalled": false,
     "ownerRadioAccepted": false,
     "nativeSimulatorVerifierUnit": {
@@ -835,5 +861,438 @@
     "shortProTWD": "4 degrees",
     "primaryCaptionsVisible": true,
     "installedNative": false
-  }
+  },
+  "sourceCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+  "sourceFreezeRecord": {
+    "name": "source-freeze70.json",
+    "sha256": "60412797f72b8aece454ac98597c61caea15ccb2d914b964f27d45160ad9c619"
+  },
+  "exactCloudCI": {
+    "readAtUTC": "2026-10-28T15:29:42.128669+00:00",
+    "runs": [
+      {
+        "id": "40715210570",
+        "headSha": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+        "event": "push",
+        "conclusion": "success",
+        "sha256": "e29551e10f3de68eb1c0c8710daf47a4f934c08ab9af54616121dfbab40bfeea",
+        "path": "ci-40715210570-readonly.json"
+      },
+      {
+        "id": "40715222392",
+        "headSha": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+        "event": "pull_request",
+        "conclusion": "success",
+        "sha256": "c5416f1cf23fb0cfcb143a943bd424c16df55d3cfad6319e8371e0eefcf217e7",
+        "path": "ci-40715222392-readonly.json"
+      }
+    ],
+    "fullPredeploy94StillPending": false,
+    "predeploy": {
+      "runId": "40715540679",
+      "conclusion": "failure",
+      "actualReportVerification": "pending independent reader",
+      "publicationAndDeploy": "skipped on non-main",
+      "expected": 90,
+      "unexpected": 4,
+      "flaky": 0,
+      "skipped": 0,
+      "attempts": 102,
+      "artifactDigest": "298a66e56d8ce671236cbe3b54eb716000fff9d0b159bc7f8ac769d4ad181901",
+      "artifactDigestVerified": true,
+      "auditProof": {
+        "name": "audit-proof.json",
+        "sha256": "1a7e993dfa03b92b709a9609ff72c6ba97b28c568e7c575b5413ee8912f95191",
+        "bytes": 3685
+      },
+      "currentFollowupAccepted": false
+    }
+  },
+  "nativeProgress": {
+    "generatedProject": {
+      "passed": true,
+      "checks": 22,
+      "name": "generated-verification70.json",
+      "sha256": "801bbb755f5f712ad7589beb5a5e7fedda2faad66ee62721d8707015eb352df4"
+    },
+    "simulatorCompileSession": 89078,
+    "compiledPackageVerified": true,
+    "installedAccepted": false,
+    "simulatorPackage": {
+      "passed": true,
+      "passCount": 43,
+      "checkCount": 43,
+      "name": "simulator-verification70.json",
+      "sha256": "24679c9b6b2594d37e2f2aa54b5f874a84760a1e1ae2a43d2ed6045122ef0039",
+      "sourceCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+      "fileCount": 121,
+      "compiledSplashColorVerified": true
+    },
+    "simulatorCompileExitCode": 0,
+    "upgrade27Qualified": {
+      "installedFilesMatch": 121,
+      "oldKeysPreservedBeforeLaunch": 5,
+      "oldKeysPreservedAfterFirstHome": 5,
+      "actualHome": "1/8, continue lesson2, pl",
+      "actualQuiz": "3/3",
+      "actualPractice": "real3D/dayChrome/More/return to same lesson practice step",
+      "actualSternik": "day local course and working native Back",
+      "coldHome": "Foundation1/8, last course Sternik after intentional visit",
+      "postRoutesKeys": 9,
+      "postRoutesOldKeysUnchanged": 4,
+      "postRoutesOldViewedKeyChanged": 1,
+      "postRoutesOldKeysMissing": 0,
+      "fullG2Accepted": false,
+      "preinstallContainerOwnershipNotRecorded": true,
+      "upgradePreservationAcceptance": "requires fresh direct27 evidence; installed UI observations remain separately valid"
+    },
+    "upgrade26Failed": {
+      "name": "failed-g2-upgrade26.json",
+      "sha256": "45e95f4b830067dca8b6300218c573c0945e7cecb73f39c29b28d8df4faa184f",
+      "runtime": "iOS26.5",
+      "beforeInstallKeys": 6,
+      "afterInstallBeforeExplicitLaunchKeys": 1,
+      "missingOldKeys": 5,
+      "actualHome": "pl/start first lesson instead of saved ru/1of8",
+      "cause": "unresolved installation/container/clone investigation",
+      "reproduction": "fresh SE3 direct48 upgrade being prepared; not passed",
+      "eraseOrUninstall": false,
+      "comparisonInvalidDeviceOwnership": true,
+      "actualApplicationDataLossProven": false,
+      "currentClassification": "preinstall source-original vs postinstall clone-own container; invalid cross-device comparison"
+    },
+    "g2Passed": false,
+    "ownershipCorrection": {
+      "name": "clone-path-misattribution70.json",
+      "sha256": "17836ffb23c629162dc5df4a9e9e09829224c73cc9222c468f6f3f83e88fefd0",
+      "confirmedLiveReturnedPathUnderOriginal": true,
+      "frontBoardCacheAppAndDataURLsUnderOriginal": true,
+      "originalSixKeysStillPresent": true,
+      "originalQADataReceivedTestProgress": true,
+      "runtimeOrFrozenPackagesChanged": false,
+      "beforeNextUIRequireBothAppAndDataOwnership": true,
+      "newGuardFixtureChecks": 19
+    },
+    "directFreshSE26": {
+      "deviceCloned": false,
+      "oldPublic48Files": 106,
+      "candidate70FilesMatch": 121,
+      "beforeKeys": 6,
+      "afterInstallBeforeLaunchKeys": 6,
+      "afterFirstHomeKeys": 7,
+      "allSixOldKeysByteAndSHAMatch": true,
+      "recordedBeforeAfterDataPathsOwnedByRequestedDevice": true,
+      "actualRootHome": "ru,1/8,nextlesson2",
+      "fullG2Accepted": false
+    },
+    "ownershipLiveReject": {
+      "name": "ownership-control26-live-rejected.json",
+      "appRejected": true,
+      "dataRejected": true,
+      "storageRead": false,
+      "expectedFailure": true
+    },
+    "directOwned27Old48Baseline": {
+      "name": "direct48-owned27-baseline-private.json",
+      "candidateInstalled": false,
+      "actualUI": "en,3of3,cold1of8,nextlesson2",
+      "bothContainersOwned": true,
+      "oldKeysPreservedAfterCold": 6
+    }
+  },
+  "retained25baff1SourceFiles": [
+    {
+      "path": "e2e/race-navigation.spec.ts",
+      "sha256": "c1e457f4ebd8d02e70e2bb0ac019d0125231ef107fede7ebea55448db29a5b5b",
+      "bytes": 51506
+    },
+    {
+      "path": "e2e/smoke.spec.ts",
+      "sha256": "96913fd9267594a211d29cd563ddbbcfa958c0a7b2e18668ceeea74ca667068f",
+      "bytes": 34292
+    },
+    {
+      "path": "e2e/trainer-controls.spec.ts",
+      "sha256": "d8cf8e9c2c843c6ce4efb2d50fae4854788c516a81e8e6e8aa45c336c3dceb8d",
+      "bytes": 15748
+    },
+    {
+      "path": "mobile/__tests__/app-surface.test.tsx",
+      "sha256": "2d98078a79e0b51b118c07eed8be70677e0a67606846c0c4157d460bcc2963b8",
+      "bytes": 3741
+    },
+    {
+      "path": "mobile/app.json",
+      "sha256": "ee8e83e701015eaa84b3259237e13fad55c7eda01ec71f878c5e9ed68b6f820b",
+      "bytes": 6195
+    },
+    {
+      "path": "mobile/assets/sailing-offline.html",
+      "sha256": "a2ee7a757c52f21f097e6c2163d094874f7da312039cb2533765bd801570a69f",
+      "bytes": 6580023
+    },
+    {
+      "path": "mobile/assets/sailing-offline.manifest.json",
+      "sha256": "b494bd8381975682166de20ce6f679dfdb74c978cd4b50820e70d344994f5611",
+      "bytes": 87657
+    },
+    {
+      "path": "src/app/game/GameClient.tsx",
+      "sha256": "a66886dcf53316883e3c9348a9d2728efb4d2223e99c4ef6c05496685094a64c",
+      "bytes": 119142
+    },
+    {
+      "path": "src/app/game/GameMenu.tsx",
+      "sha256": "b883bce32e0ca84956eac95d5cbec34eef2482adf969db281fe87c1bcb87d0e7",
+      "bytes": 23234
+    },
+    {
+      "path": "src/app/game/RaceCockpit.module.css",
+      "sha256": "959d96316c8dd0abe1532a84beef152f9eab91bac747a86cfd9bf2187d30a211",
+      "bytes": 7990
+    },
+    {
+      "path": "src/app/game/RaceCockpit.tsx",
+      "sha256": "1abf3e7cb7e6a58fb5bf67ed5f48cc4b7543f09bc325aa99bf29da0181b53813",
+      "bytes": 12263
+    },
+    {
+      "path": "src/app/multiplayer/MultiplayerCockpit.tsx",
+      "sha256": "acd63528b9e3c25b290113d0104e2fbfdeb1310263051ef1894c8bcfa20541ed",
+      "bytes": 11074
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-copy.ts",
+      "sha256": "ef1422e87c22c9b6db8262e8c797a586767481d1ad2dab15570a19c527033c78",
+      "bytes": 11621
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-entry-copy.ts",
+      "sha256": "3f46a1d4e3219c5fc1b8df4bfcdc2fc4897b275b67ec35f884d01fbf40c3f1fe",
+      "bytes": 2497
+    },
+    {
+      "path": "src/data/sailing-lab/lesson-guide.ts",
+      "sha256": "a86890b33444f2546fc165e5a4b3550505b6463b6d704dec62265257e1e6bae2",
+      "bytes": 10929
+    },
+    {
+      "path": "src/data/sailing-lab/practice-copy.ts",
+      "sha256": "7da8cfb9c25a152573deae11452c271ac2beabbdf0be706d88df9ca5d67e25bb",
+      "bytes": 1714
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.module.css",
+      "sha256": "d706b30b845f99c57345f2338935b3d6a60bc6896cfc5b3d533a6b618fb54723",
+      "bytes": 1834
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.test.tsx",
+      "sha256": "9dae7f665a46947e805d033578dabe4a42fd4589d188cc6b17b6a12a0892e775",
+      "bytes": 6956
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.tsx",
+      "sha256": "02cb5a675319d4f8bf8a6f26d307e312cf44b068638e98ee36748f060dd56b9e",
+      "bytes": 4196
+    },
+    {
+      "path": "src/features/race-hud/navigation-copy.ts",
+      "sha256": "573c7d48a41c30eb57d8d140f6405e21e745301bbd8c7b43e3a6d1044a843044",
+      "bytes": 6485
+    },
+    {
+      "path": "src/features/sailing-lab/ui/LessonReturn.tsx",
+      "sha256": "a89f733706667f4be0937478c9b746efcde861ec7e9bd69c787af47f8f6468c3",
+      "bytes": 1040
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SailingCourse.tsx",
+      "sha256": "fe0c0ebbc5753e3ac2566e0dc75e201fd0fb60cc4341be13db10468af31f540f",
+      "bytes": 14053
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SavePractice.tsx",
+      "sha256": "0dd4ec1649d4adad5474613b4c946d38d9d54a70ed40654a9f4841a285de8b98",
+      "bytes": 1316
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerControls.module.css",
+      "sha256": "b922b4c9a355d741a0909fb44bf9f8fb3f455c78972c5fb129b06ffb3c968d92",
+      "bytes": 14995
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
+      "sha256": "d01e974350a198005a679ce05d8d4aa17dfd2b6fb9d59c0806888940da6f020b",
+      "bytes": 2506
+    },
+    {
+      "path": "src/features/trainer-controls/WheelDeck.tsx",
+      "sha256": "be1edf9e2327444cb359685041338d1260141c7ec81dcbf41d301a5bd1703b94",
+      "bytes": 13760
+    }
+  ],
+  "sourceCommitRole": "last frozen25baff1 only; current follow-up has uncommitted production changes",
+  "currentSourceCommit": null,
+  "currentFollowup": {
+    "recordedAtUTC": "2026-10-28T16:35:53.226645+00:00",
+    "baseFrozenCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+    "sourceFrozen": false,
+    "nativePackageVerifiedForThisFollowup": false,
+    "productionBuildId": "8NseqWISCbLglpTGyjrZw",
+    "productionChunks": {
+      "directory": ".next/static/chunks",
+      "recursiveAllRegularFilesIncludesCSS": true,
+      "fileCount": 111,
+      "totalBytes": 6790321,
+      "capBytes": 6815744,
+      "headroomBytes": 25423
+    },
+    "sailingOfflineVersion": "662cb2493d8d",
+    "changes": [
+      "word-wrapped mark label with exact localized text/size and bundled font",
+      "independent DOM reads batched without input/assertion/deadline reduction",
+      "single-flight content-free observational probes",
+      "mandatory actual/resolved App+Data ownership before Simulator read/launch/UI"
+    ],
+    "build": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-build.log",
+        "sha256": "ca0483651afd9e14f753c477793434fbc3a6f60039597cb9b67d6fd880e2d4e3",
+        "bytes": 2149
+      }
+    },
+    "web-unit": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-web-unit.log",
+        "sha256": "ef1599bcfaf97d32eb90b31417d19506e2167a622c43e9928a8fef94c229af43",
+        "bytes": 17650
+      }
+    },
+    "native-unit": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-native-unit.log",
+        "sha256": "621af34dc1e4c66d65e8bd03cd61ff1f1415862fa6191bb5d45f578952024ab1",
+        "bytes": 10375
+      }
+    },
+    "web-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-web-types.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "native-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-native-types.log",
+        "sha256": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+        "bytes": 42
+      }
+    },
+    "web-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-web-lint.log",
+        "sha256": "5d192113edf7e73432906b654a30be8887a13f7fd8e29105b46e3d55fa63a3cc",
+        "bytes": 3160
+      }
+    },
+    "native-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-native-lint.log",
+        "sha256": "fe6501c28c86b4ec1dc11a5e13ae456330adc62af2b5ac46f4b2c2ceaa636b94",
+        "bytes": 103
+      }
+    },
+    "multiplayer": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-multiplayer.log",
+        "sha256": "ad4d1d240696205ddb4ce3fce1d92d0c60930eb499b010acffdf48dd2d85fe27",
+        "bytes": 454
+      }
+    },
+    "budget": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-budget.log",
+        "sha256": "da0c9a1ced99b1a4f5c1928832d4655509f67496232843f68cb27ff03a506eb9",
+        "bytes": 330
+      }
+    },
+    "i18n": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-i18n.log",
+        "sha256": "97cd126bc9f16c80355c677350657ab5e86e004003d3fd00a8bce5e5d4a1211b",
+        "bytes": 181
+      }
+    },
+    "webUnitCount": 1827,
+    "nativeUnitCount": 608,
+    "nativeSuiteCount": 82,
+    "webLintBaselineWarnings": 15,
+    "i18nBaselineFindings": 12,
+    "newMissingOrEmptyLabels": 0,
+    "targetedBrowser": {
+      "name": "caption-wrap-batch-target4b.json",
+      "sha256": "8d5ef0ec31cdfd88c7a6f017d8110444c0d68d08682ad862a9ca93c0bd15cdcd",
+      "bytes": 182361,
+      "stats": {
+        "startTime": "2026-10-28T16:25:46.375Z",
+        "duration": 194509.876,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "exitCode": 0
+    },
+    "initialInvocationError": {
+      "name": "caption-wrap-batch-target4.log",
+      "sha256": "95ba9571d03805b4ca070d39bc6a106a8905a88f1c45352d510978208478fba7",
+      "bytes": 174,
+      "classification": "anchored title filter matched no full test titles;0productcases;corrected discovery confirms4cases",
+      "exitCode": 1,
+      "productFailure": false
+    },
+    "combinedBrowser": {
+      "status": "passed",
+      "name": "caption-wrap-batch-full94.json",
+      "sha256": "e2f5362fe0881297fc7332887fb0f8a4600b33817bdaa777f5141a1dd7c3f71f",
+      "bytes": 1111279,
+      "stats": {
+        "startTime": "2026-10-28T16:29:36.578Z",
+        "duration": 622515.613,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "files": 8,
+      "workers": 1,
+      "exitCode": 0,
+      "firstAttempt": true,
+      "sourceFrozenAtCapture": false,
+      "deadlineIncreased": false,
+      "assertionsRemoved": false,
+      "acceptsCandidateForReleaseByItself": false
+    },
+    "allStaticAssetsOutsideBudgetDefinition": {
+      "directory": ".next/static",
+      "fileCount": 115,
+      "totalBytes": 6816942,
+      "note": "includes media/fonts outside the established chunks budget; not compared against that cap"
+    }
+  },
+  "currentProductionMetadataScope": "currentFollowup; top productionBuildId/offlineVersions retain frozen25baff1 history"
 }

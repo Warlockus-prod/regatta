@@ -7,6 +7,10 @@
 
 ## Current completion work
 
+- Current unfrozen P10 follow-up to 25baff1 wraps long briefing mark labels with the bundled Source Sans 3 and batches only independent e2e reads; all inputs/assertions/viewports/deadlines remain. New production build,1827web/608native/types/lints/socket checks and4targeted browser cases pass. New full94 passes first-attempt with zero skipped/flaky/unexpected; new exact source freeze/native package/CI/delivery remains following. Previous25baff1 local94 and native43 remain frozen observations, not acceptance of this changed source.
+
+- Current native70 gate: exact source 25baff1 compiles Release, 43/43 package and 121 installed files match. PL27 confirms day/3D/More/lesson return/Sternik Back. Apparent RU26 clone loss was an invalid cross-device comparison: live simctl and copied FrontBoard URLs pointed at source-original data before installation. Those six keys remain in original QA, which received test progress through the alias; do not claim original QA data unchanged. Fresh direct SE26 preserves all six old keys and RU/1of8, but full G2 remains open and fresh direct27 is required. Ownership guard now precedes any container read/launch/UI. Exact cloud predeploy 40715540679 failed; report diagnosis is pending. No archive/upload or new delivery. See `docs/audits/2026-10-28/cockpit-navigation-harness.md`.
+
 - Current P10 continuation: `docs/audits/2026-10-28/cockpit-navigation-harness.md` owns candidate70. First94red and following9/10red are preserved. Shared50px caption reserve, intrinsic race dock, adaptive trainer/help/readouts and day splash source are corrected; bow-relative true TWA retains separate TWD and apparent air arrows. Latest5targeted and full94first-attempt pass,1827web/608native/types/lints/socket checks pass.70is held for exact native/package/upgrade/visual gates, not delivered. Static headroom25589bytes;69stays immutable.
 
 - Current owner report: `docs/audits/2026-10-28/completion-status.md` reconciles all65IDs, F01-F15 and every feedback theme, with five fresh inspected follow-up screens. New theme/layout source is separate from immutable delivered69. T04 briefing Back/focus and race scene196->250px are corrected in source; full native modes, launch splash coherence and installed acceptance remain open. Repeated race setup and different helm/rig semantics remain explicit debts. Metric fleet stays unwired/emission OFF. The27October reconciliation remains the prior runtime baseline.
@@ -259,6 +263,13 @@ npm run check:map            # карта проекта актуальна
   `ARCHITECTURE.md` раздел 6 и `docs/OPS.md`.
 
 ### Релиз мобильного приложения (обязательный гейт)
+
+Перед чтением storage, launch или UI Simulator сверять оба App/Data пути с
+точным UUID запрошенного устройства, включая resolved path. Повторять после
+install/clone/restore. Stale absolute URL клона на оригинал блокирует проверку;
+использовать новое прямое QA, не работать с оригиналом по ошибочному alias.
+Снимок без provenance пути не доказывает принадлежность данных устройству.
+
 
 Перед ЛЮБОЙ отправкой в App Store пройти гейт из
 `docs/design/mobile/RELEASE_CHECKLIST.md`. Ни один пункт не может быть красным.
