@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from "react";
-import { readRaceSearch } from "@/lib/race-native";
+import { readRaceSearch } from "@/lib/race-native-env";
 import type { RaceCamera } from "./pose";
 
 // Solo uses the shared 3D scene for every entry. Legacy view keys stay readable,

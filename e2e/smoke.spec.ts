@@ -417,28 +417,52 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
   });
 
-  test('embed mode hides global chrome but keeps the course subnav (mobile course contract)', async ({ page }) => {
-    // The iOS app ships SRC in seven languages and sternik in Polish as embeds of
-    // /radio and /sternik at ?embed=1 (mobile/src/course/SectionWebView.tsx).
-    // The embed strips the global site chrome (sticky nav, footer nav, feedback
-    // widget) and pins the dark theme, while keeping the in-section subnav so
-    // the learner can move around the course. A web change that breaks this
-    // silently breaks an App Store feature - so guard it in CI.
-    for (const { path, subnav } of [
+  test('embed mode hides global chrome but keeps the course subnav and inherited appearance', async ({ page }) => {
+    // Light is an explicit user preference even on a dark OS. A bare embed
+    // must preserve it; the native host can supply a resolved override without
+    // replacing that preference or reloading the current course document.
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.addInitScript(() => localStorage.setItem('regatta_theme', 'light'));
+    const courses = [
       { path: '/radio', subnav: 'Рация' },
       { path: '/sternik', subnav: 'Sternik' },
-    ]) {
-      // Sanity / positive control: without embed the global sticky nav renders.
+    ];
+    const expectAppearance = async (theme: 'light' | 'dark') => {
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      const metas = page.locator('meta[name="theme-color"]');
+      const color = theme === 'light' ? '#f7f5f0' : '#0a1628';
+      await expect(metas.first()).toHaveAttribute('content', color);
+      await expect.poll(() => metas.evaluateAll(nodes => nodes.every(node =>
+        node.getAttribute('content') === (document.documentElement.dataset.theme === 'light' ? '#f7f5f0' : '#0a1628')
+        && !node.hasAttribute('media')))).toBe(true);
+      expect(await page.evaluate(() => localStorage.getItem('regatta_theme'))).toBe('light');
+    };
+    for (const { path, subnav } of courses) {
       await page.goto(path);
       await expect(page.locator('nav[data-product-navigation]')).toHaveCount(1);
+      await expectAppearance('light');
 
-      // With embed the global chrome is gone, the section subnav stays, theme is dark.
       await page.goto(`${path}?embed=1`);
       await expect(page.getByRole('navigation', { name: subnav })).toBeVisible({ timeout: 20_000 });
       await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
-      await expect
-        .poll(() => page.evaluate(() => document.documentElement.dataset.theme))
-        .toBe('dark');
+      await expectAppearance('light');
+    }
+    await page.addInitScript(() => {
+      (window as Window & { __REGATTA_EMBED_THEME__?: unknown }).__REGATTA_EMBED_THEME__ = 'dark';
+    });
+    for (const { path, subnav } of courses) {
+      await page.goto(`${path}?embed=1`);
+      await expect(page.getByRole('navigation', { name: subnav })).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
+      await expectAppearance('dark');
+      const origin = await page.evaluate(() => performance.timeOrigin);
+      await page.evaluate(() => {
+        (window as Window & { __REGATTA_EMBED_THEME__?: unknown }).__REGATTA_EMBED_THEME__ = 'light';
+        window.dispatchEvent(new Event('regatta-theme-change'));
+      });
+      await expectAppearance('light');
+      expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
+      await expect(page.getByRole('navigation', { name: subnav })).toBeVisible();
     }
   });
 });
@@ -490,4 +514,98 @@ test("3D wind instrument stays visible when animated airflow is hidden", async (
   await expect(page.getByRole("img", { name: "relative to bow", exact: true })).toBeVisible();
   await airflow.click();
   await expect(airflow).toHaveAttribute("aria-pressed", "true");
+});
+
+async function expectBriefingStart(page: import('@playwright/test').Page) {
+  const title = page.getByRole('heading', { name: 'Брифинг', exact: true });
+  const back = page.getByRole('button', { name: '← Назад к выбору', exact: true });
+  const start = page.getByRole('button', { name: /Готов - старт/ });
+  await expect(title).toBeVisible();
+  await expect.poll(async () => {
+    const heading = await title.boundingBox();
+    const exit = await back.boundingBox();
+    const ready = await start.boundingBox();
+    const navigation = page.locator('nav[data-product-navigation]');
+    const nav = await navigation.count() ? await navigation.boundingBox() : null;
+    const viewport = page.viewportSize()!;
+    return Boolean(heading && exit && ready && heading.y >= (nav ? nav.y + nav.height : 0) - 1
+      && exit.y >= (nav ? nav.y + nav.height : 0) - 1 && exit.height >= 44 && exit.width >= 44
+      && ready.y + ready.height <= viewport.height + 1);
+  }).toBe(true);
+  const preview = page.locator('[data-race-phase="briefing"] svg').first();
+  const labelsFit = await preview.evaluate(svg => {
+    const frame = svg.getBoundingClientRect();
+    const labels = Array.from(svg.querySelectorAll('text'));
+    return labels.length === 5 && labels.every(label => {
+      const r = label.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.left >= frame.left - 1 && r.top >= frame.top - 1
+        && r.right <= frame.right + 1 && r.bottom <= frame.bottom + 1;
+    });
+  });
+  expect(labelsFit).toBe(true);
+  await expect(title).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  return { title, back };
+}
+
+async function expectReadableRaceLabel(label: import('@playwright/test').Locator) {
+  const ratio = await label.evaluate(element => {
+    const style = getComputedStyle(element);
+    const luminance = (color: string) => {
+      // These labels have opaque fills. Reject unsupported alpha/layers rather
+      // than treating a transparent background as a meaningful black surface.
+      const channels = color.startsWith('rgb') ? color.match(/[\d.]+/g)?.map(Number) : null;
+      if (!channels || channels.length < 3 || (channels[3] ?? 1) !== 1) throw new Error('Expected an opaque RGB race label');
+      const rgb = channels.slice(0, 3).map(value => {
+        const v = value / 255;
+        return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;
+      });
+      return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
+    };
+    const a = luminance(style.color), b = luminance(style.backgroundColor);
+    return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+  });
+  expect(ratio).toBeGreaterThanOrEqual(4.5);
+}
+
+test('race briefing keeps Back and heading below site navigation after a scrolled entry', async ({ page }) => {
+  await page.setViewportSize({ width: 569, height: 750 });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/game');
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('nav[data-product-navigation]')).toHaveCount(1);
+  await page.getByRole('radio', { name: 'Pro', exact: true }).check();
+  await expectReadableRaceLabel(page.getByRole('button', { name: /Начать первую гонку/ }));
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.getByRole('button', { name: /Начать первую гонку/ }).click();
+  const { title, back } = await expectBriefingStart(page);
+  await expectReadableRaceLabel(page.getByText('Лёгкий · средний ветер', { exact: true }));
+  // The heading is a programmatic landmark. Back is the preceding keyboard action.
+  await title.press('Shift+Tab');
+  await expect(back).toBeFocused();
+  await back.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeFocused();
+  await expect(page.getByRole('radio', { name: 'Pro', exact: true })).toBeChecked();
+  await page.getByRole('button', { name: /Начать первую гонку/ }).click();
+  await expectBriefingStart(page);
+});
+
+test('short embedded race resumes its actual saved Pro setup at the start of the briefing', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('/game?embed=1');
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole('radio', { name: 'Pro', exact: true }).check();
+  await page.getByRole('button', { name: /Начать первую гонку/ }).click();
+  await expectBriefingStart(page);
+  await page.reload();
+  const resume = page.getByRole('button', { name: 'Продолжить', exact: true });
+  await expect(resume).toBeVisible();
+  await page.locator('[data-race-phase="menu"]').evaluate(element => { element.scrollTop = element.scrollHeight; });
+  await resume.click();
+  const { back } = await expectBriefingStart(page);
+  await expect(page.getByRole('radio', { name: 'Pro', exact: true })).toBeChecked();
+  await back.click();
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeFocused();
+  expect(await page.locator('[data-race-phase="menu"]').evaluate(element => element.scrollTop)).toBe(0);
+  await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
 });

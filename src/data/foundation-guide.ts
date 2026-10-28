@@ -1,8 +1,12 @@
+import { windDirectionGuide } from "./foundation-wind";
 import { words, type Label } from "../lib/product/catalog";
 
 /** Shared teaching layer. Stable source lesson IDs and quiz evidence are unchanged. */
 export interface FoundationGuide {
   goal: Label;
+  situation?: Label;
+  explanation?: Label[];
+  descriptions?: [Label, Label, Label];
   mistake: Label;
   states: [Label, Label, Label];
   notes: [Label, Label, Label];
@@ -13,6 +17,7 @@ const before = words("До", "Before", "Przed", "Antes", "Avant", "Vorher", "Pri
 const after = words("После", "After", "Po", "Después", "Après", "Danach", "Dopo");
 const sequenceLimit = words("Показаны три направления лодки, не траектория. Палубные действия отрабатывают с инструктором.", "Three headings, not a sailing track. Learn the deck procedure with an instructor.", "Trzy kierunki jachtu, nie tor ruchu. Czynności na pokładzie ćwicz z instruktorem.", "Tres orientaciones, no una trayectoria. Practica las maniobras de cubierta con un instructor.", "Trois caps, pas une trajectoire. Apprends les gestes de pont avec un moniteur.", "Drei Kursrichtungen, keine Fahrspur. Die Abläufe an Deck mit einem Ausbilder üben.", "Tre orientamenti, non una traiettoria. Impara le manovre in coperta con un istruttore.");
 export const foundationGuides: Record<string, FoundationGuide> = {
+  "wind-direction": windDirectionGuide,
   "points-of-sail": {
     goal: words("Определять курс относительно ветра по его углу к носу.", "Identify a point of sail from the wind angle to the bow.", "Rozpoznawać kurs względem wiatru po kącie do dziobu.", "Identificar la andadura por el ángulo del viento respecto a la proa.", "Reconnaître une allure par l'angle du vent avec l'étrave.", "Den Kurs zum Wind am Winkel zum Bug erkennen.", "Riconoscere l'andatura dall'angolo del vento rispetto alla prua."),
     states: [words("Бейдевинд", "Close-hauled", "Bajdewind", "Ceñida", "Près", "Hoch am Wind", "Bolina"), words("Галфвинд", "Beam reach", "Półwiatr", "Través", "Travers", "Halber Wind", "Traverso"), words("Бакштаг", "Broad reach", "Baksztag", "Largo", "Grand largue", "Raumer Wind", "Lasco")],
@@ -99,11 +104,4 @@ export const foundationGuides: Record<string, FoundationGuide> = {
   },
 };
 
-export { foundationCopy } from "./foundation-copy";
-
-export const foundationModules = [
-  { id: "wind", lessons: ["wind-direction", "points-of-sail", "how-sail-works"], title: words("Ветер и движение", "Wind and motion", "Wiatr i ruch", "Viento y movimiento", "Vent et mouvement", "Wind und Bewegung", "Vento e movimento") },
-  { id: "turns", lessons: ["tacking", "jibing", "vmg-beating"], title: words("Повороты и путь к цели", "Turns and progress", "Zwroty i droga do celu", "Giros y avance", "Manœuvres et progression", "Manöver und Weg zum Ziel", "Manovre e avanzamento") },
-  { id: "race", lessons: ["simple-rules", "mini-race"], title: words("Первая регата", "First regatta", "Pierwsze regaty", "Primera regata", "Première régate", "Erste Regatta", "Prima regata") },
-];
-
+export { foundationCopy, foundationModules } from "./foundation-copy";

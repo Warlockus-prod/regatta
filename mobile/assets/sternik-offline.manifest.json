@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "e2c9653807c9",
+  "version": "cdef6534874d",
   "lang": "pl",
-  "sha256": "d6d6d2baedaba39d41cd10305fdddc94850bc307508780c4ae47532b8eb38e6e",
-  "bytes": 2580447,
+  "sha256": "4d25b92180c516bb51e369b7969c518a73c4629a1b97b91ee1a1db7907471115",
+  "bytes": 2581335,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -53,6 +53,7 @@
     "src/app/sternik/ustny/oralPrompts.ts",
     "src/app/sternik/ustny/page.tsx",
     "src/data/sternik.ts",
+    "src/lib/ads-preview.ts",
     "src/lib/diagnostics-bridge.ts",
     "src/lib/diagnostics-web.ts",
     "src/lib/diagnostics.ts",
@@ -116,8 +117,8 @@
     },
     {
       "path": "mobile/scripts/build-sternik-offline.mjs",
-      "bytes": 7988,
-      "sha256": "2b4f587c2dde6558ec9077186d4a98a8c9af044968332afac585390b293f834e"
+      "bytes": 7989,
+      "sha256": "7b01e7a6601787c347b492d010f5380dd494b2aa0a58000e401c88b85f5d203a"
     },
     {
       "path": "mobile/scripts/offline-radio/next-dynamic.tsx",
@@ -171,8 +172,8 @@
     },
     {
       "path": "src/app/globals.css",
-      "bytes": 16157,
-      "sha256": "83699ead64e106c29ce55584e68a82b5211efa4ecb257a5606af1f94ad8f7673"
+      "bytes": 16039,
+      "sha256": "e07959258ecc94b4653969170f7e37f673dbb31d6802d74f570109f56d283731"
     },
     {
       "path": "src/app/radio/rozmowa/dialogueGrading.ts",
@@ -280,6 +281,11 @@
       "sha256": "3ea47032c641735330ea25092bb7f923daebf5d062c1033c2c02f11a255194b0"
     },
     {
+      "path": "src/lib/ads-preview.ts",
+      "bytes": 2241,
+      "sha256": "ea6dbc73e8c9cbea4d2777bc83036b5f0ae187920f3f4d0998f180c725d8256f"
+    },
+    {
       "path": "src/lib/diagnostics-bridge.ts",
       "bytes": 1782,
       "sha256": "7e8d0e434104ace903df97783e512347b009b81f7c42474a4d138441fbc33ce0"
@@ -291,13 +297,13 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 25055,
-      "sha256": "4bf2b2ad6a948157aa9e40130319fc4bf811c7a0abadf1252fa67b6af0020aa8"
+      "bytes": 27135,
+      "sha256": "3bc9014abfbdaf4b3a74b4d9c4161d705087b30fa4173335ed8d8ac10a5aeb4a"
     },
     {
       "path": "src/lib/race-visual-prefs.ts",
-      "bytes": 1474,
-      "sha256": "a5e585b14779fcea3b3e8e3ffef19135da4b04f43998cffe096d517c3be42539"
+      "bytes": 1640,
+      "sha256": "be6cffb251ed361f7535d670ae654afa0f362de0173ccf47c2e034bea40820ba"
     },
     {
       "path": "src/lib/sternik-progress.ts",

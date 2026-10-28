@@ -1,0 +1,69 @@
+{
+  "sourceBase": "1145d3c5bfe32a3c103f853f0a4a5c05eb5698a0",
+  "checkedAt": "2026-10-27T10:05:05.283409+00:00",
+  "binding": "Local source hashes; following exact native compile/install and cloud remain separate. Frozen89/916 binaries lack the new method.",
+  "sourceInputs": {
+    "mobile/src/radio/local-speech.ts": "79a88102c15af8b14123818771108bf3fecd9be9ba0c1d73986622816cbcb646",
+    "mobile/src/radio/useLocalRadioSpeech.ts": "ddbfcb77d77d7a8c642b00c39d3d801291eae8625836a23344abc2e1c06f9bb6",
+    "mobile/plugins/with-local-radio-speech.js": "df9fa5238abea92d12bc6efa6425a288bea8b246d6e490955854d75c89f1d1c4",
+    "mobile/__tests__/local-radio-speech.test.ts": "5471e0bc97efa24c25ec11fd4892ed317c1c0cabdc321a6cb072c04f720f4307",
+    "mobile/__tests__/local-radio-speech-plugin.test.ts": "cd70d1a22e4de402a78ef50a264191adf59dd8573f22f3d3d6980a655e68ec69"
+  },
+  "web": {
+    "tests": 1793,
+    "files": 173
+  },
+  "native": {
+    "tests": 596,
+    "suites": 79
+  },
+  "focusedPostSdkPatch": {
+    "tests": 15,
+    "suites": 2
+  },
+  "releaseTools": 9,
+  "checks": [
+    "Root/native types and full native lint",
+    "Three offline freshness checks and content twins",
+    "Generated server and real socket lifecycle",
+    "Production build and unchanged6814872/6815744byte budget",
+    "Swift frontend parse of the actual patched recognition sources, not native typecheck/build",
+    "Map, ASCII hyphens and whitespace"
+  ],
+  "sdk": {
+    "recognitionVersion": "3.1.3",
+    "probe": "regattaOnDeviceRecognitionAvailable",
+    "patchedSourceSha256": {
+      "ExpoSpeechRecognitionModule.swift": "764f88863277781d67f77675f2eba1900e5ef8d04b60002d868f18123edbd9aa",
+      "ExpoSpeechRecognizer.swift": "d3eb2db5a1331da0a5cb0015a9dd4bb2d0364878001d019566bf058a36e6aa08"
+    },
+    "patchAtomicAcrossFiles": true,
+    "olderBinaryBehavior": "Missing native probe fails closed to typed fallback; native rebuild required."
+  },
+  "offlineHtmlSha256": {
+    "mobile/assets/radio-offline.html": "9d73e91c083d5e0c2fe8db63c2a48d6619e066dd55ae41e2e35c33c56607178f",
+    "mobile/assets/sailing-offline.html": "4c43f89a504dc25f054fe2a3bec1d1fa81941597042529a3edec539fd2b73594",
+    "mobile/assets/sternik-offline.html": "ff6847fc3a840bc78b32c7baef075e5f0b85100588e72a6ace8ecf7aea540047"
+  },
+  "logSha256": {
+    "radio-locale-native-tests.log": "81249c49e1d207f253cbdfe327948336d11242a26c45fce92f27fee40b8fb69a",
+    "radio-locale-web.log": "7f493126ac768af7313a88b344e87735d999c6b805657b1865cda50fc22a52d3",
+    "radio-locale-focused-postpatch.log": "d991ba9bdafe41c363dda85e3d3baf1d3830ecadf5fecf1b307201dfc46a0641",
+    "radio-locale-release-tools.log": "a875f4c078cbc9af6eebfaa3216c0d41c8a293c694a6a7b8bb8272758a53fb75",
+    "radio-locale-build.log": "666229e9e87375ad1c4e2d1c4c9986e30c9e0b84999dadb26e6028f8a357a4fb",
+    "radio-locale-budget.log": "fd69654cc2c2be537865df4a2d96456e4ceac1e4804bc9920c0209c68c732b80",
+    "radio-locale-sockets.log": "8c484ab277254b83bab2af1119f2ee4efdfd05f80247fba114a48151f1c7eb39",
+    "radio-locale-swift-parse.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "primaryReferences": [
+    "https://developer.apple.com/documentation/speech/sfspeechrecognizer/init%28%29",
+    "https://developer.apple.com/documentation/speech/sfspeechrecognizer/init%28locale%3A%29"
+  ],
+  "notAccepted": [
+    "No established causal explanation for frozen916Simulator unavailability",
+    "No current full Xcode/native package or installed locale-probe acceptance yet",
+    "No actual microphone/on-device recognition or native89Reset acceptance",
+    "No69Apple upload or delivery"
+  ],
+  "appleWrites": 0
+}

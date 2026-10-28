@@ -1,0 +1,379 @@
+{
+  "source": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+  "steps": 180,
+  "dt": 0.03333333333333333,
+  "rows": [
+    {
+      "heading": 45,
+      "steering": "legacy",
+      "autoTrim": true,
+      "expected": {
+        "heading": 51.60000000000082,
+        "speed": 4.236624167177768,
+        "pos": {
+          "x": 552.2178617615986,
+          "y": 503.4946200556412
+        },
+        "trimClock": 0.1,
+        "trim": {
+          "mainSheet": 0.8,
+          "jibSheet": 0.75,
+          "mainTwist": 0.35,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 51.60000000000082,
+          "boatSpeed": 4.984263726091491,
+          "heel": 17.441514233787952,
+          "leeway": 4.4593788365849605
+        }
+      }
+    },
+    {
+      "heading": 45,
+      "steering": "legacy",
+      "autoTrim": false,
+      "expected": {
+        "heading": 51.56536582440941,
+        "speed": 3.5083238787245086,
+        "pos": {
+          "x": 536.8276945742481,
+          "y": 509.4488722017859
+        },
+        "trimClock": 0.5,
+        "trim": {
+          "mainSheet": 0.7,
+          "jibSheet": 0.5,
+          "mainTwist": 0.3,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 51.56536582440941,
+          "boatSpeed": 4.127439857322951,
+          "heel": 8.552946026875903,
+          "leeway": 2.612536373602814
+        }
+      }
+    },
+    {
+      "heading": 45,
+      "steering": "responsive",
+      "autoTrim": true,
+      "expected": {
+        "heading": 56.99999999999932,
+        "speed": 4.369971883868555,
+        "pos": {
+          "x": 563.630265101995,
+          "y": 521.9265151249125
+        },
+        "trimClock": 0.1,
+        "trim": {
+          "mainSheet": 0.75,
+          "jibSheet": 0.675,
+          "mainTwist": 0.35,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 56.99999999999932,
+          "boatSpeed": 5.141143392786535,
+          "heel": 15.91665586709203,
+          "leeway": 3.7704489526231026
+        }
+      }
+    },
+    {
+      "heading": 45,
+      "steering": "responsive",
+      "autoTrim": false,
+      "expected": {
+        "heading": 56.980408020799246,
+        "speed": 3.764477943126847,
+        "pos": {
+          "x": 546.5311448099187,
+          "y": 528.2208832520663
+        },
+        "trimClock": 0.5,
+        "trim": {
+          "mainSheet": 0.7,
+          "jibSheet": 0.5,
+          "mainTwist": 0.3,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 56.980408020799246,
+          "boatSpeed": 4.428797580149232,
+          "heel": 11.76732851256063,
+          "leeway": 3.189602079844562
+        }
+      }
+    },
+    {
+      "heading": 90,
+      "steering": "legacy",
+      "autoTrim": true,
+      "expected": {
+        "heading": 96.60000000000082,
+        "speed": 4.669348721725699,
+        "pos": {
+          "x": 585.2653543381215,
+          "y": 632.8619765324346
+        },
+        "trimClock": 0.1,
+        "trim": {
+          "mainSheet": 0.4,
+          "jibSheet": 0.04999999999999999,
+          "mainTwist": 0.35,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 96.60000000000082,
+          "boatSpeed": 5.493351437324352,
+          "heel": 6.620090223897047,
+          "leeway": 1.2937125190177812
+        }
+      }
+    },
+    {
+      "heading": 90,
+      "steering": "legacy",
+      "autoTrim": false,
+      "expected": {
+        "heading": 96.9570676729985,
+        "speed": 2.4368562750400837,
+        "pos": {
+          "x": 527.2289455210572,
+          "y": 624.2154378197838
+        },
+        "trimClock": 0.5,
+        "trim": {
+          "mainSheet": 0.7,
+          "jibSheet": 0.5,
+          "mainTwist": 0.3,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 96.9570676729985,
+          "boatSpeed": 2.866889735341275,
+          "heel": 6.0315563663433025,
+          "leeway": 2.569367954472843
+        }
+      }
+    },
+    {
+      "heading": 90,
+      "steering": "responsive",
+      "autoTrim": true,
+      "expected": {
+        "heading": 101.99999999999932,
+        "speed": 4.158421399434795,
+        "pos": {
+          "x": 564.1813554573025,
+          "y": 651.4094876761617
+        },
+        "trimClock": 0.1,
+        "trim": {
+          "mainSheet": 0.325,
+          "jibSheet": 0,
+          "mainTwist": 0.35,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 101.99999999999932,
+          "boatSpeed": 4.892260469923289,
+          "heel": 4.388334519271209,
+          "leeway": 1.0663190042637583
+        }
+      }
+    },
+    {
+      "heading": 90,
+      "steering": "responsive",
+      "autoTrim": false,
+      "expected": {
+        "heading": 102.02455643504766,
+        "speed": 2.594538900912156,
+        "pos": {
+          "x": 527.00029673472,
+          "y": 641.4345265276722
+        },
+        "trimClock": 0.5,
+        "trim": {
+          "mainSheet": 0.7,
+          "jibSheet": 0.5,
+          "mainTwist": 0.3,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 102.02455643504766,
+          "boatSpeed": 3.052398706955478,
+          "heel": 6.291012320376217,
+          "leeway": 2.5080621342026457
+        }
+      }
+    },
+    {
+      "heading": 150,
+      "steering": "legacy",
+      "autoTrim": true,
+      "expected": {
+        "heading": 156.599999999994,
+        "speed": 3.323769794922039,
+        "pos": {
+          "x": 452.7382997700551,
+          "y": 744.0102047858658
+        },
+        "trimClock": 0.1,
+        "trim": {
+          "mainSheet": 0.425,
+          "jibSheet": 0.125,
+          "mainTwist": 0.35,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 156.599999999994,
+          "boatSpeed": 3.910317405790634,
+          "heel": 2.7951570147958558,
+          "leeway": 0.8848843341391819
+        }
+      }
+    },
+    {
+      "heading": 150,
+      "steering": "legacy",
+      "autoTrim": false,
+      "expected": {
+        "heading": 156.599999999994,
+        "speed": 3.1375772067288525,
+        "pos": {
+          "x": 450.93440048271964,
+          "y": 740.196599021289
+        },
+        "trimClock": 0.5,
+        "trim": {
+          "mainSheet": 0.7,
+          "jibSheet": 0.5,
+          "mainTwist": 0.3,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 156.599999999994,
+          "boatSpeed": 3.6912673020339444,
+          "heel": 3.9328274593870853,
+          "leeway": 1.2307048184919454
+        }
+      }
+    },
+    {
+      "heading": 150,
+      "steering": "responsive",
+      "autoTrim": true,
+      "expected": {
+        "heading": 161.9999999999959,
+        "speed": 3.293822959958371,
+        "pos": {
+          "x": 433.4751346836503,
+          "y": 747.6102975122285
+        },
+        "trimClock": 0.1,
+        "trim": {
+          "mainSheet": 0.35,
+          "jibSheet": 0,
+          "mainTwist": 0.35,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 161.9999999999959,
+          "boatSpeed": 3.8750858352451423,
+          "heel": 1.9556624569774987,
+          "leeway": 0.6306644856771526
+        }
+      }
+    },
+    {
+      "heading": 150,
+      "steering": "responsive",
+      "autoTrim": false,
+      "expected": {
+        "heading": 161.9999999999959,
+        "speed": 3.1562814247230326,
+        "pos": {
+          "x": 432.7593005276757,
+          "y": 744.935719474756
+        },
+        "trimClock": 0.5,
+        "trim": {
+          "mainSheet": 0.7,
+          "jibSheet": 0.5,
+          "mainTwist": 0.3,
+          "jibTwist": 0.4,
+          "reef": 0.2,
+          "jibFurl": 0.1,
+          "jibSide": 1
+        },
+        "physics": {
+          "trueWindDir": 8,
+          "trueWindSpeed": 14.041428443927245,
+          "heading": 161.9999999999959,
+          "boatSpeed": 3.7132722643800387,
+          "heel": 2.8371450381554997,
+          "leeway": 0.8415928369042704
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { colors } from '../tokens';
+import { useSurfaceColors } from '../surface';
 
 /**
  * Brand icon registry. Each name maps to one of the SVGs hand-drawn by
@@ -478,7 +478,8 @@ const FALLBACK_EMOJI: Record<string, string> = {
 };
 
 export function Icon({ name, size = 24, color, style }: IconProps) {
-  const tint = color ?? colors.textPrimary;
+  const palette = useSurfaceColors();
+  const tint = color ?? palette.textPrimary;
   const Renderer = REGISTRY[name as IconName];
 
   if (!Renderer) {

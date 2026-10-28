@@ -1,7 +1,6 @@
 import { controlSoundCopy } from "../../src/features/trainer-controls/sound-copy";
 import { Stack, useRouter } from 'expo-router';
 import { diagnosticCopy, diagnosticText } from '../../src/lib/diagnostic-copy';
-import { nativeDiagnostics } from '../src/diagnostics/journal';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import { useCallback, useMemo, useState } from 'react';
@@ -17,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ANALYTICS_CONSENT_KEY, useAnalyticsConsent } from '../src/persistence/analytics-consent';
+import { useAnalyticsConsent } from '../src/persistence/analytics-consent';
 import { useAnalyticsClient } from '../src/analytics/context';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
@@ -39,6 +38,9 @@ import {
   useUnits,
 } from '../src/persistence/units';
 import { useControlPrefs } from '../src/persistence/controls';
+import { clearNativeRegattaData } from '../src/persistence/clear-native-data';
+import { adsCopy } from '../../src/lib/ads-copy';
+import { recordNativeDiagnostic } from '../src/diagnostics/journal';
 
 const SUPPORT_EMAIL = 'support@gtframe.io';
 
@@ -283,6 +285,11 @@ export default function Settings() {
         <UnitsSection />
 
         <TrainersSection />
+
+        <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
+          <Text variant="subtitle">Ads</Text>
+          <Text variant="caption">{adsCopy.settingsHint[lang]}</Text>
+        </Card>
 
         <Card onPress={() => router.push("/diagnostics")} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel={diagnosticText(diagnosticCopy.title, lang)}>
           <Text variant="subtitle">{diagnosticText(diagnosticCopy.title, lang)}</Text>
@@ -1148,6 +1155,19 @@ function DataSection() {
       it: 'Tutti i dati locali dell\'app sono stati rimossi.',
     },
   );
+  const clearAllErrorTitle = tp('Очистка не подтверждена', 'Clear not confirmed', 'Usunięcie niepotwierdzone', {
+    es: 'Borrado sin confirmar', fr: 'Suppression non confirmée', de: 'Löschen nicht bestätigt', it: 'Eliminazione non confermata',
+  });
+  const clearAllErrorBody = tp(
+    'Не удалось подтвердить удаление всех данных. Перезапусти приложение и повтори попытку.',
+    'Could not confirm removal of all data. Restart the app and try again.',
+    'Nie udało się potwierdzić usunięcia wszystkich danych. Uruchom aplikację ponownie i spróbuj jeszcze raz.', {
+      es: 'No se pudo confirmar el borrado de todos los datos. Reinicia la app e inténtalo de nuevo.',
+      fr: "Impossible de confirmer la suppression de toutes les données. Redémarre l'app et réessaie.",
+      de: 'Das Löschen aller Daten konnte nicht bestätigt werden. App neu starten und erneut versuchen.',
+      it: "Impossibile confermare l'eliminazione di tutti i dati. Riavvia l'app e riprova.",
+    },
+  );
 
   const handleClearAll = () => {
     Alert.alert(clearAllStep1Title, clearAllStep1Body, [
@@ -1160,7 +1180,7 @@ function DataSection() {
             {
               text: deleteAllLabel,
               style: 'destructive',
-              onPress: () => { void wipeAllRegattaKeys(clearAllDoneTitle, clearAllDoneBody, okLabel); },
+              onPress: () => { void wipeAllRegattaKeys(clearAllDoneTitle, clearAllDoneBody, okLabel, clearAllErrorTitle, clearAllErrorBody); },
             },
           ]);
         },
@@ -1277,18 +1297,14 @@ async function wipeAllRegattaKeys(
   doneTitle: string,
   doneBody: string,
   okLabel: string,
+  errorTitle: string,
+  errorBody: string,
 ): Promise<void> {
-  nativeDiagnostics.suspendForGlobalClear();
   try {
-    const keys = await AsyncStorage.getAllKeys();
-    const ours = keys.filter(
-      (k) => typeof k === 'string' && k.startsWith('regatta.') && k !== ANALYTICS_CONSENT_KEY,
-    );
-    if (ours.length > 0) {
-      await AsyncStorage.multiRemove(ours);
-    }
+    await clearNativeRegattaData();
   } catch {
-    /* ignore - best effort */
+    Alert.alert(errorTitle, errorBody, [{ text: okLabel }]);
+    return;
   }
   Alert.alert(doneTitle, doneBody, [{ text: okLabel }]);
 }

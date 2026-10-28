@@ -39,6 +39,8 @@ describe("the visible radio operating guide copy", () => {
     // Check the generated inventory too: hand-adding locale entries cannot hide
     // an extractor which still drops JSX attributes or cells containing "=".
     expect(execFileSync(process.execPath, ["src/app/radio/localization/build-catalog.mjs", "--check"], { cwd: root, encoding: "utf8" })).toContain(`radio catalog: ${sources.length} resources`);
+    expect(sources.some(source => source.source === "16c")).toBe(false);
+    expect(aliases).not.toHaveProperty("16c");
   });
 
   it("keeps the existing standalone TOC resource alongside the new paired heading", () => {

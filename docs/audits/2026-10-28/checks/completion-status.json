@@ -1,0 +1,604 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-28T12:19:23.657273+00:00",
+  "report": "docs/audits/2026-10-28/completion-status.md",
+  "auditedBaseCommit": "d8a7365a1a27fc468ae40ee9eadf6a3ab5d10cbb",
+  "workspaceSourceChangedFromBase": true,
+  "sourceWasUncommittedAtCapture": true,
+  "runtimeEditsDuringThisAudit": false,
+  "deliveredRuntime": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+  "deliveredVersion": "1.7.0",
+  "deliveredBuild": "69",
+  "newThemeDelivered": false,
+  "installedThemeAcceptance": false,
+  "nativeGlobalLightDarkAutoAvailable": false,
+  "inheritedDeliveryProof": "docs/audits/2026-10-27/checks/native69-delivery.json",
+  "freshAppleReadInThisAudit": false,
+  "requirementIds": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08",
+    "G01",
+    "G02",
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "G07",
+    "G08",
+    "G09",
+    "G10",
+    "G11",
+    "G12",
+    "G13",
+    "G14",
+    "G15",
+    "U01",
+    "U02",
+    "U03",
+    "U04",
+    "U05",
+    "U06",
+    "U07",
+    "U08",
+    "U09",
+    "U10",
+    "U11",
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12",
+    "V01",
+    "V02",
+    "V03",
+    "V04",
+    "V05",
+    "E01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "D05",
+    "D06",
+    "D07",
+    "D08",
+    "D09"
+  ],
+  "baselineStatusColumnsRetained": true,
+  "findingIds": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
+    "F14",
+    "F15"
+  ],
+  "screenshots": [
+    {
+      "path": "docs/audits/2026-10-28/review-screens/01-home-day.jpg",
+      "sha256": "6e1895aac22f2466b7fc2dbf4d37ebe925dd68b9099a3cc44d7b667981a34897",
+      "bytes": 46005,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/02-practice-day.jpg",
+      "sha256": "df4eb8dc4d2f0a9fca346b5b15b801ed8057018ef698c2dd8cb4579ebf4c0624",
+      "bytes": 36197,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/03-trainer-day.jpg",
+      "sha256": "544093f8d0dbc0cf71235968fa6fd875ea3e4047b42e45d8c4f90e369658009c",
+      "bytes": 47481,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/04-trainer-more.jpg",
+      "sha256": "17fafd89e606cc8ed16238332227076e1e8af28b4a50908b65861c349234e52c",
+      "bytes": 48308,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/05-radio-free.jpg",
+      "sha256": "c41ed2aa90d32df69009c02e2a419ca0e6661f08144f9859f64f2439c8a9bd4a",
+      "bytes": 39515,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/06-radio-return.jpg",
+      "sha256": "086dd32f5dab1438b63e823fcabd4124929a339862d7446d0aa9946e53f11657",
+      "bytes": 43062,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/07-pro-briefing.jpg",
+      "sha256": "c503b99c2fe2b1a0a4f2f8d23f5b07fcc5cf31dbd27268fc11d619259216e3f5",
+      "bytes": 39295,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/08-race-pro.jpg",
+      "sha256": "4d1302612627312222a43c0713f7c39ac3674cac4b889127e895b6b78ccce31b",
+      "bytes": 46172,
+      "accepted": true
+    },
+    {
+      "path": "docs/audits/2026-10-28/review-screens/09-race-settings.jpg",
+      "sha256": "ed598b31730ec6564a81c05068ed29c6a6dc737a647069bf16861e5a9edb7598",
+      "bytes": 44997,
+      "accepted": true
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "e2e/smoke.spec.ts",
+      "sha256": "d0dad68ede615fd2d67643b2a9c9214eb897aac47a7c90f0cf0be17bf2ca5865",
+      "bytes": 28868
+    },
+    {
+      "path": "e2e/trainer-controls.spec.ts",
+      "sha256": "4d5ee393bfd66add86eb4fa4d375f993099d70cd3cde3ae877ef7d2aba9c20b3",
+      "bytes": 10844
+    },
+    {
+      "path": "mobile/__tests__/ads-entry.test.tsx",
+      "sha256": "1c129a85eadde257ecaa41929f801d5063505e66cdc15c3bcd06c7399164517b",
+      "bytes": 1111
+    },
+    {
+      "path": "mobile/__tests__/app-surface.test.tsx",
+      "sha256": "efbcb3e6ff7c6db298c536193d4be0e95739984957fef60930beeecca985fec8",
+      "bytes": 3241
+    },
+    {
+      "path": "mobile/__tests__/embedded-theme.test.ts",
+      "sha256": "c101d4b934c68bb032dcc4358078d1c63ced4257a24c6864443cb9f8058d91f5",
+      "bytes": 2232
+    },
+    {
+      "path": "mobile/__tests__/local-course-host.test.tsx",
+      "sha256": "d6ff0209cc5d23ad0806cfecca9ebdbe4edd414170baa796642c091eab6ab03a",
+      "bytes": 21203
+    },
+    {
+      "path": "mobile/__tests__/navigation.test.ts",
+      "sha256": "d29d607b0d2ffeec3bbe97f9692fbb9aaac6ec6d0eb9d362a410b9ab78ea3e21",
+      "bytes": 2492
+    },
+    {
+      "path": "mobile/__tests__/offline-radio-asset.test.ts",
+      "sha256": "2199743ac8ff28a10da79eecd3e88e71e49ee4ccdbdd58270d0dd2a7c85bb0ed",
+      "bytes": 4230
+    },
+    {
+      "path": "mobile/__tests__/radio-course-host.test.tsx",
+      "sha256": "0bade837777c0a2ea8317cbe46fd9536510f0c8b2573064a6425681e7ebabb1a",
+      "bytes": 17037
+    },
+    {
+      "path": "mobile/__tests__/sim-webview.test.tsx",
+      "sha256": "5fcf4ca63e75d99db8bed2ebaefef56c6eb1d0d44c06b4faa412b87aa2a85c0a",
+      "bytes": 15871
+    },
+    {
+      "path": "mobile/app/_layout.tsx",
+      "sha256": "0f96ee79a4655f54776f9ecdc8740526e5a9ac0c53cf083b8a0be35db3ecdf07",
+      "bytes": 5133
+    },
+    {
+      "path": "mobile/app/anatomy-offline/index.tsx",
+      "sha256": "03db374134ded6141d0fad2cedb272e9f05bc78ab5194576453ef3dced14f433",
+      "bytes": 30072
+    },
+    {
+      "path": "mobile/app/diagnostics.tsx",
+      "sha256": "d3e761af81e851f32356735d53fb735079704774961b54e0a9e284fd12f41317",
+      "bytes": 4014
+    },
+    {
+      "path": "mobile/app/replay/[id].tsx",
+      "sha256": "239dfbc2be0cf9bb82673cc8ae37264d9bdd29e91231084ed1ca4c697788c6cd",
+      "bytes": 31544
+    },
+    {
+      "path": "mobile/app/simulator-basics/index.tsx",
+      "sha256": "48cf664e3c52835df10b8ccc7bd24130094225c8b391dd9f08ee3ab271d90476",
+      "bytes": 18499
+    },
+    {
+      "path": "mobile/app/simulator/index.tsx",
+      "sha256": "6bb7c7278ae40801ffbbef8c34271d81ff30763d5c6deccec0865baddf918fa1",
+      "bytes": 111687
+    },
+    {
+      "path": "mobile/assets/radio-offline.html",
+      "sha256": "48e71cf2ed1136b9efd3b8607564ffc25de8e9dd6eec85654b205c8240671157",
+      "bytes": 6301989
+    },
+    {
+      "path": "mobile/assets/sailing-offline.html",
+      "sha256": "ea545ccb3bdb2a5b8c4c748be3bf7b14a99c0571bdb1fd40c08049724cb1b737",
+      "bytes": 6590386
+    },
+    {
+      "path": "mobile/assets/sailing-offline.manifest.json",
+      "sha256": "ddafeb21ae2c20cff4207c5a6aeeafde876d023d695d894865bb26805c240099",
+      "bytes": 87423
+    },
+    {
+      "path": "mobile/assets/sternik-offline.html",
+      "sha256": "4d25b92180c516bb51e369b7969c518a73c4629a1b97b91ee1a1db7907471115",
+      "bytes": 2581335
+    },
+    {
+      "path": "mobile/assets/sternik-offline.manifest.json",
+      "sha256": "da05ff29f6bf0270d5cc52059f57699e7713e533f141bd3235def7256022beb6",
+      "bytes": 12489
+    },
+    {
+      "path": "mobile/scripts/build-radio-offline.mjs",
+      "sha256": "e3750eb89656442db33f57cee16a631f2cae1ef9f66ec2c4ca19d69cd83b54d2",
+      "bytes": 5919
+    },
+    {
+      "path": "mobile/scripts/build-sailing-offline.mjs",
+      "sha256": "8e5bd64de11779fd601bab4a9428d98c06c36109fdefc14aa6c1a847a985787f",
+      "bytes": 11257
+    },
+    {
+      "path": "mobile/scripts/build-sternik-offline.mjs",
+      "sha256": "7b01e7a6601787c347b492d010f5380dd494b2aa0a58000e401c88b85f5d203a",
+      "bytes": 7989
+    },
+    {
+      "path": "mobile/scripts/offline-sailing/build.test.ts",
+      "sha256": "81d9aeb7870411652f7cc7ecfa5f565d80505ae65814634a59a6920d6894876e",
+      "bytes": 2658
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/build.test.ts",
+      "sha256": "66346b5fbd05897bd0191162f7bebf68856178d95c606eb25b60e479c63a4ed2",
+      "bytes": 2285
+    },
+    {
+      "path": "mobile/src/course/LocalCourseWebView.tsx",
+      "sha256": "3f8f870d66c41508f870c7789560ab8c23e3330716066382f467888a2d8fa347",
+      "bytes": 14012
+    },
+    {
+      "path": "mobile/src/course/OfflineRadioCourse.tsx",
+      "sha256": "1903bea6705c57071820a02e59c34e8e9424375e09980357f1c06d13a76afa4c",
+      "bytes": 22374
+    },
+    {
+      "path": "mobile/src/design-system/components/Icon.tsx",
+      "sha256": "aa975b139d8a2fe8e4605baa46ca43849efe4f67654f46663c73d39280ae13cc",
+      "bytes": 15210
+    },
+    {
+      "path": "mobile/src/design-system/components/Slider.tsx",
+      "sha256": "a4d8488555a5f23a5209ef14d1dd5f7d145bece1c044110b48fd332a8e9c3b45",
+      "bytes": 8766
+    },
+    {
+      "path": "mobile/src/design-system/embedded-theme.ts",
+      "sha256": "7711a3e34276bb28abf9c286132c7ef7ad0da216d3e3793368c7fd37c0df6706",
+      "bytes": 735
+    },
+    {
+      "path": "mobile/src/design-system/surface.tsx",
+      "sha256": "11ef819705be922e74caef7cb50dd9544462125c88e41ec8b77a0e27ba41242d",
+      "bytes": 2242
+    },
+    {
+      "path": "mobile/src/design-system/tokens.ts",
+      "sha256": "95f0805aa856d2dd75f1c3d4bb20651cc61b5d1cc5f80d5c77bf4aec1386f90e",
+      "bytes": 6488
+    },
+    {
+      "path": "mobile/src/game/SharedRaceHost.tsx",
+      "sha256": "23a6333be67ae998850a7106063dcabdb79bcb39783485386b9714c0919fb788",
+      "bytes": 11568
+    },
+    {
+      "path": "mobile/src/navigation/AppNavigation.tsx",
+      "sha256": "134b577454bce1f82f4cae4824745738fb5d7f70ec11525dec6cb9de48f27df2",
+      "bytes": 3963
+    },
+    {
+      "path": "mobile/src/navigation/visibility.ts",
+      "sha256": "e2663c49e9a913cfaa24b51ae3a77915c8f0ee8e3e7822f94067acc6c75a1ba0",
+      "bytes": 1320
+    },
+    {
+      "path": "mobile/src/replay/ReplayUnavailable.tsx",
+      "sha256": "25864bf1e160db19eba195980d8277f3f118fe47c0363e3bc5813e03c3fc6a4d",
+      "bytes": 3556
+    },
+    {
+      "path": "mobile/src/simulator/SimWebView.tsx",
+      "sha256": "f3d4d607f56e02c31a0ab7b6a68f7b47ce34ef42763d688ecf377037eb78c57e",
+      "bytes": 26207
+    },
+    {
+      "path": "mobile/src/simulator/WheelDeck.tsx",
+      "sha256": "ca468fb7d7e7d3c51b30a7b4a22e72ffc2856f8e618cde1867460f71a28c28a1",
+      "bytes": 15869
+    },
+    {
+      "path": "src/app/game/GameClient.tsx",
+      "sha256": "ac0f49fd877b0bf117312fc9b92e12aa0b4fa3f08c84525dde2afab064ea49be",
+      "bytes": 118411
+    },
+    {
+      "path": "src/app/game/RaceCockpit.module.css",
+      "sha256": "4a39a2c6f1afd81f596befda2bb566801d86f5c3461c4a6b5ec0f673030637cc",
+      "bytes": 7480
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "e07959258ecc94b4653969170f7e37f673dbb31d6802d74f570109f56d283731",
+      "bytes": 16039
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "sha256": "ec34d7535c1f8093ca6d70b485d818e3ecdea95604f9312b9c8e186597425b9e",
+      "bytes": 13159
+    },
+    {
+      "path": "src/app/simulator-v3/layout.tsx",
+      "sha256": "3a1ece29be6b6c5e6b116753a05bb3380c6cf18322aaaffa12be23c10378ac4b",
+      "bytes": 299
+    },
+    {
+      "path": "src/app/simulator/layout.tsx",
+      "sha256": "3a1ece29be6b6c5e6b116753a05bb3380c6cf18322aaaffa12be23c10378ac4b",
+      "bytes": 299
+    },
+    {
+      "path": "src/app/simulator2/layout.tsx",
+      "sha256": "3a1ece29be6b6c5e6b116753a05bb3380c6cf18322aaaffa12be23c10378ac4b",
+      "bytes": 299
+    },
+    {
+      "path": "src/components/ThemeManager.test.tsx",
+      "sha256": "31e7580f3ed96fb5f3075cb17dbe85114190405f1f658178b7b947b191fa9863",
+      "bytes": 2662
+    },
+    {
+      "path": "src/components/ThemeManager.tsx",
+      "sha256": "203ae3c566f567b99917814aeb07906dac4c6509057dd12f429c5c76ca37c5db",
+      "bytes": 1066
+    },
+    {
+      "path": "src/components/ThemeToggle.tsx",
+      "sha256": "bb4b695676b417fc51b54f65f0d88c3bc6e9b176e0e34f1d6fc75e71123f0ddd",
+      "bytes": 2950
+    },
+    {
+      "path": "src/features/simulator-v3/SimulatorV3.module.css",
+      "sha256": "b1d008b2b9a97902092857d4fba6461144d32557ad35c4afce0a217d6615c83e",
+      "bytes": 1590
+    },
+    {
+      "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
+      "sha256": "096e5b2e4ba62ab1881b30a5da1c7587c65321d99443c2f402b0ae6991dc33e2",
+      "bytes": 48929
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerControls.module.css",
+      "sha256": "371f5b23a36eb85d2ed32714e11a2dbf7954ebaa174b2631e00cc8634ce0d203",
+      "bytes": 14472
+    },
+    {
+      "path": "src/lib/theme.test.ts",
+      "sha256": "f7d44692468ef495a9fd293a44b097016a545babdc52f2dceca508db3d9f976d",
+      "bytes": 5182
+    },
+    {
+      "path": "src/lib/theme.ts",
+      "sha256": "3798983d7ffa697ce560011e25385d597d5288545d15f3da66ebf7a4b196beb1",
+      "bytes": 2816
+    }
+  ],
+  "sourceDigest": "6d58a164816f990772e5041e86a30f6c218a3ff52b7bc38be8e82b1db7d606c3",
+  "freshUI": {
+    "kind": "local clean production web",
+    "url": "http://127.0.0.1:3331",
+    "language": "ru",
+    "viewport": {
+      "width": 569,
+      "height": 750
+    },
+    "theme": "light",
+    "bodyBackground": "rgb(247, 245, 240)",
+    "trainerCanvas": {
+      "width": 569,
+      "height": 248.40625,
+      "x": 0,
+      "y": 146
+    },
+    "raceCanvas": {
+      "width": 569,
+      "height": 196.21875
+    },
+    "briefing": {
+      "observations": 2,
+      "windowScrollY": 101,
+      "headingY": 84.36138153076172,
+      "headingHeight": 36,
+      "stickyNavBottomApproximately": 101,
+      "backAboveVisibleArea": true
+    },
+    "radio": "free OFF entry and visible return to SRC; no mic/PTT/DIAL retest",
+    "race": "actual clock, Pro controls/map/wind, Pause/Settings/Menu; no finish",
+    "orbitGestureRetested": false
+  },
+  "checks": {
+    "webUnit": {
+      "passed": 1818,
+      "files": 175
+    },
+    "nativeUnit": {
+      "passed": 608,
+      "suites": 82
+    },
+    "finalAssetTests": {
+      "passed": 9,
+      "suites": 3
+    },
+    "offlineFreshness": {
+      "passed": true,
+      "radio": "636b981087ba",
+      "sailing": "e70083e42a6e",
+      "sternik": "cdef6534874d"
+    },
+    "cleanProductionBuild": {
+      "passed": true
+    },
+    "staticChunkBudget": {
+      "bytes": 6815661,
+      "capBytes": 6815744,
+      "headroomBytes": 83,
+      "files": 112,
+      "capChanged": false,
+      "notFirstLoadOrFPS": true
+    },
+    "webTypes": {
+      "passed": true
+    },
+    "webLint": {
+      "errors": 0,
+      "warnings": 15
+    },
+    "nativeTypesAndLint": {
+      "passed": true
+    },
+    "multiplayerLifecycle": {
+      "passed": true
+    },
+    "generatedServer": {
+      "passed": true
+    },
+    "trainerDevBrowser": {
+      "expected": 9,
+      "passed": 9,
+      "flaky": 0,
+      "skipped": 0,
+      "unexpected": 0,
+      "notNativeOrProduction": true
+    },
+    "combinedProductionBrowser": {
+      "expected": 84,
+      "files": 8,
+      "status": "passed",
+      "terminal": true,
+      "workers": 1,
+      "deadlineChanges": false,
+      "target": "http://localhost:3331",
+      "stats": {
+        "startTime": "2026-10-28T12:20:47.913Z",
+        "duration": 349164.103,
+        "expected": 84,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sha256": "a6a40794548daeb0286ffbd1d1f1ac9624085e04f27d7ce0519b7e5508d9d80a",
+      "bytes": 846133,
+      "firstAttempt": true
+    },
+    "initial127Browser": {
+      "stats": {
+        "startTime": "2026-10-28T12:13:01.093Z",
+        "duration": 353458.147,
+        "expected": 83,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "sha256": "b749c7f537afd2766e120471a937f2061c2504c9c77c1119c23efde2aa2d5559",
+      "bytes": 849281,
+      "cause": "request context did not retain Secure session cookie on HTTP127.0.0.1; unchanged nickname test passes on canonical localhost"
+    },
+    "localhostPlayerRegression": {
+      "stats": {
+        "startTime": "2026-10-28T12:20:04.967Z",
+        "duration": 885.318,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sha256": "d59fd380066237d33d1680e4836412645e1d30a792682d6b93d1e6bf1c8070da",
+      "bytes": 3004
+    },
+    "whitespace": {
+      "sourceExceptGeneratedSailing": "passed",
+      "generatedSailing": "one canonical upstream THREE.TSL shader-comment trailing space at line6634; generator bytes preserved; full diff --check is not clean",
+      "generatorFreshness": "passed"
+    }
+  },
+  "remoteRefsRead": [
+    "ff0b1654daaf6240f1b3f52ac55555afd44d66b6\trefs/heads/app",
+    "d8a7365a1a27fc468ae40ee9eadf6a3ab5d10cbb\trefs/heads/codex/app-next-physical",
+    "5df0ee593cf1a86fc6e4ae7d1e381773852199a4\trefs/heads/main"
+  ],
+  "localHeadCount": 32,
+  "archiveHistoricalProof": "docs/audits/2026-10-26/checks/local-branch-archive.json",
+  "uniqueBranchPatchesAllReviewed": false,
+  "physicalFleetWiredIntoLiveGame": false,
+  "physicalRaceEmissionEnabled": false,
+  "notChecked": [
+    "fresh installed native69 manual acceptance",
+    "physical iPhone",
+    "PTT/Reset/actual microphone/model",
+    "full cold offline phone journey",
+    "all lessons/languages/Back",
+    "all current human Simple/Pro/MP finishes",
+    "large text/VoiceOver/keyboard full matrix",
+    "phone startup/frame-time/thermal",
+    "new public AppStore or website publication",
+    "new TestFlight feedback/crash inbox download; this reconciliation uses conversation and preserved prior evidence"
+  ],
+  "review": {
+    "webAndDesign": "read-only complete; all65IDs/order/status columns and9images verified; saved JPEG03/07/08 independently inspected; web resolver wording clarified",
+    "nativeAndRadio": "read-only complete: all65IDs and F01-F15 retained, no false delivery/manual acceptance claim, practical owner journal path added"
+  },
+  "reportSha256": "7cb6254e0e24a773dd5867eba8aa8261818e49441c2bfc5f887c4ea7ccca44f5",
+  "documentValidation": {
+    "all65IdsRetained": true,
+    "all15FindingsRetained": true,
+    "allLinksExist": true,
+    "all9ScreensInspected": true,
+    "sourceAndScreenHashesVerified": true,
+    "map": true,
+    "asciiDash": true
+  }
+}

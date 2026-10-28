@@ -99,7 +99,7 @@ export function GameMenu({
     <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
       <FoundationReturn />
       <div className="mb-6">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
+        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
           {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
         </h1>
         <p className="text-base text-[var(--text-secondary)]">
@@ -269,7 +269,7 @@ export function GameMenu({
         onClick={openBriefing}
         disabled={ctaDisabled}
         className="w-full mb-4 min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+        style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
       >
         {ctaLabel} →
       </button>

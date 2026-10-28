@@ -48,7 +48,7 @@ export function WindPod(props: {
           it: 'Angolo TWA',
         })}
         value={`${ui.twa}°`}
-        min={30}
+        min={0}
         max={180}
         step={1}
         sliderValue={ui.twa}

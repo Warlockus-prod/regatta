@@ -1,0 +1,36 @@
+{
+  "source": "b9fdd8507641608ba33705c9e5d277e7a86a35bc",
+  "checkedAt": "2026-10-27T10:10:54.369278+00:00",
+  "runtime": "Retained iOS26.5 Simulator, no erase/uninstall",
+  "nativePackageChecks": {
+    "passed": 31,
+    "total": 31
+  },
+  "nativeBinarySha256": "53cd1b73d504df8ef9dd44a603f8ca8593738bb7f92d76a1b32e4fcb54787ed8",
+  "nativeHermesSha256": "a7fd03635cc64d9f411c71b97040ff59e8717afbe226d64072104850318948ae",
+  "selectedLocaleMethod": {
+    "compiledFromPatchedSwift": true,
+    "presentInNativeBinary": true,
+    "presentInHermes": true,
+    "actualInstalledCallbackObserved": false
+  },
+  "installedFiles": 121,
+  "allInstalledHashesMatch": true,
+  "priorStorageKeys": 16,
+  "allStoragePreservedBeforeLaunch": true,
+  "launch": "simctl launch succeeded; visible app entry is not established from that exit code",
+  "uiToolQualification": "Device Hub AX read and rebind each timed out and reset the UI tool. General inventory remained readable; lock state/cause is not established. No alternative UI automation was used.",
+  "privateProofSha256": {
+    "native69-locale-expanded-simulator-verification.json": "1257eea5ec557d122c928d8cc3ba42d6d3b79c938d784a44bc9e648ba95a8c19",
+    "native-release69-locale/simulator-build.log": "2e6d707f16c2658da480ec422c04da8a1b588f791438882483ba464fa85d25a8",
+    "native-release69-locale/frozen-package.json": "855ba5bad62d9c31ac22e02e44554572fa08f744727aabd2ab239d38f7dedb40",
+    "native-release69-locale/install-locale26.json": "b6bea916e283fa7afc5164db5dfbd271557cd08ad0dade403cf5b55cd0dd4ae8"
+  },
+  "preserved": "Frozen89 and916 packages, previous proofs and fresh27 frozen916 install remain unchanged. The retained26.5 app was updated to this exact candidate with prior data preserved.",
+  "notAccepted": [
+    "Actual installed selected-locale availability/start response",
+    "Actual Reset exercise settings, PTT hold, microphone or recognized speech",
+    "Full native69 release gates, archive/export/upload or TestFlight delivery"
+  ],
+  "appleWrites": 0
+}

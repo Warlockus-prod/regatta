@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveTrainerDeepLink } from './deep-link';
+import { resolveTrainerDeepLink, readTrainerSetupFromSearch, resolveWindObservationEntry } from './deep-link';
 import { DRILLS, SCENARIO_PRESETS } from './scenario-presets';
 
 // ---------------------------------------------------------------------------
@@ -56,5 +56,20 @@ describe('resolveTrainerDeepLink', () => {
     expect(resolveTrainerDeepLink(new URLSearchParams('drill=unknown'))).toBeNull();
     expect(resolveTrainerDeepLink(new URLSearchParams('scenario=unknown'))).toBeNull();
     expect(resolveTrainerDeepLink(new URLSearchParams('twa=90&tws=12'))).toBeNull();
+  });
+});
+
+
+describe("first wind observation entry", () => {
+  it("opens the whole boat only for the known lesson and preserves explicit instructional entries", () => {
+    expect(resolveWindObservationEntry(new URLSearchParams("fromLesson=wind-direction"))).toEqual({ boatView: "whole" });
+    for (const search of ["", "fromLesson=other", "fromLesson=wind-direction&drill=hold-trim", "fromLesson=wind-direction&scenario=overpowered", "fromLesson=wind-direction&assessment=twist", "fromLesson=wind-direction&study=mainsheet"]) {
+      expect(resolveWindObservationEntry(new URLSearchParams(search))).toBeNull();
+    }
+  });
+  it("accepts a head-to-wind setup and keeps invalid numeric input outside the supported angle range", () => {
+    expect(readTrainerSetupFromSearch("?twa=0&tws=12")).toEqual({ twa: 0, windSpeed: 12 });
+    expect(readTrainerSetupFromSearch("?twa=180")).toEqual({ twa: 180 });
+    for (const value of ["", " ", "-1", "181", "NaN", "Infinity", "private-angle"]) expect(readTrainerSetupFromSearch("?twa=" + value)).toBeNull();
   });
 });

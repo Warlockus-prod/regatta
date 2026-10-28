@@ -8,8 +8,8 @@ import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
 import { legacyPick } from '../../src/i18n/languages';
 import { Button, Screen, Text } from '../../src/design-system/components';
-import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
-import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
+import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { AppSurface, appStackOptions } from '../../src/design-system/surface';
 import {
   NO_GO_HALF_DEG,
   angleToWind,
@@ -225,7 +225,7 @@ function SimulatorBasicsScreen() {
   // ---- render --------------------------------------------------------------
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ ...darkStackOptions, title }} />
+      <Stack.Screen options={{ ...appStackOptions, title }} />
       <View style={styles.content}>
         <GestureDetector gesture={pan}>
           <View
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   },
 });
 
-/** Instrument screen: dark ocean palette, see design-system/surface. */
+/** Activity chrome follows the same day surface as its History entry. */
 export default function SimulatorBasicsScreenRoute() {
-  return <DarkSurface><SimulatorBasicsScreen /></DarkSurface>;
+  return <AppSurface><SimulatorBasicsScreen /></AppSurface>;
 }

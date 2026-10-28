@@ -174,22 +174,21 @@ export function raceTurnRate(speed: number, steering: RaceStepOptions["steering"
     : TURN_RATE * authority;
 }
 
-/** Advance one boat by dt seconds, with a given wind vector. */
-export function stepBoat(
+/** Shared force/trim integration after the caller has set the heading.
+ * Motion adapters own coordinates, steering and bounds. Legacy input and
+ * handicap behavior stay here so physical travel cannot fork the force model. */
+export function stepRaceBoatForces(
   boat: RaceBoat,
   dt: number,
   windDir: number,
   gust: number,
   input: InputState,
-  opts: RaceStepOptions = {},
-): void {
-  if (!Number.isFinite(dt) || dt <= 0) return;
+  opts: Pick<RaceStepOptions, "speedMul" | "windStrengthMul"> = {},
+): BoatState {
   // Bot difficulty (DECISIONS.md ADR-0007): the boat makes speedMul of the
   // speed the force model gives. The model is fed back its own speed, so the
   // handicap never compounds; a contact slow-down on boat.speed still carries.
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
-  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
   const params = getBoatParams();
   const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: windDir,
@@ -211,7 +210,24 @@ export function stepBoat(
   }
   boat.physics = tick(state, boat.trim, params, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
-  const rad = deg2rad(boat.heading + boat.physics.leeway);
+  return boat.physics;
+}
+
+/** Advance an existing legacy race by dt seconds. No-context client/server
+ * callers keep their original turn law, accelerated travel and world clamp. */
+export function stepBoat(
+  boat: RaceBoat,
+  dt: number,
+  windDir: number,
+  gust: number,
+  input: InputState,
+  opts: RaceStepOptions = {},
+): void {
+  if (!Number.isFinite(dt) || dt <= 0) return;
+  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
+  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
+  const physics = stepRaceBoatForces(boat, dt, windDir, gust, input, opts);
+  const rad = deg2rad(boat.heading + physics.leeway);
   boat.pos.x += Math.sin(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;
   boat.pos.y -= Math.cos(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;
 

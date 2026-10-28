@@ -1,11 +1,140 @@
 # CHANGELOG
 
-Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased`
+Что изменилось, простым языком. Новую строку в `## Unreleased`
 добавляют в том же коммите, что и само изменение, если оно видно пользователю
 или эксплуатации. Подробные разборы релизов лежат в `docs/design/*`, здесь
 только короткая запись и ссылка.
 
 ## Unreleased
+
+- Нижняя кнопка программы Foundation возвращает к существующему списку курса и удаляет пройденные экраны из стека: следующий Back ведет в обучение. Новый StackRouter regression сохраняет четыре непустые учебные записи;614native/typecheck/lint проходят. Установленная приемка нового пакета остается обязательной.
+
+- Вернулись к исходному независимому аудиту: краткая сводка и полный список сохраняют65требований,15находок и11тем TestFlight. Пять свежих web-экранов подтверждают дневную тему в локальной сборке; в69ее еще нет. Уточнены разные смыслы руля, сетевые Gallery/погода/Ask, остаток Back и точные границы D8/acf/пятой footer-правки. [Отчет и порядок](docs/audits/2026-10-28/completion-status.md).
+
+- После возврата из учебной практики следующий Back должен вести к программе курса, а не снова открывать тренажер. Исправлены четыре известных контекстных возврата; общий Back и запись прогресса сохранены. Ошибка воспроизведена на D8, приемка нового установленного пакета остается обязательной. [T05](docs/audits/2026-10-28/completion-status.md).
+
+- Измерение browser-сценариев гонки собирает ограниченные пассивные события вместо повторных layout probes между действиями. Все173assertions/53действия/размеры/сроки сохранены; два локальных пути проходят. Это не доказательство причины старого cloud timeout и не новая приемка70.
+
+- Итоговый аудит дополнен чистой установкой70: первый урок, настоящий3D, возврат, cold-resume и реакция руля Simple. Все65ID/F01-F15/11тем отзывов сохранены. Exact cloudD8красный92/94; причины задержек не объявлены установленными. Общая лодка, смысл руля, весь учебный цикл и поставка70остаются открытыми. [Полный отчет](docs/audits/2026-10-28/completion-status.md).
+
+- Полный отчет повторно сверен со всеми65требованиями,15находками и11отзывами TestFlight. Семь новых установленных кадров кандидата70 подтверждают дневной путь и Pro orbit/ручной шкот; полныйG2и доставка остаются открыты. Старый offline-документ28помечен историческим, чтобы не подменять нынешние локальные пакеты.
+
+- Длинная подпись знака в брифинге переносится по словам с локальным Source Sans 3, сохраняя переводы и размер текста. В проверочном цикле объединены независимые измерения без сокращения пользовательских действий; принадлежность App/Data путей Simulator проверяется до работы с данными и UI.
+
+- Предыдущий checkpoint70/source25baff1 проходит43package checks и первые дневные UI-пути. Кажущаяся потеря на RU26 оказалась сравнением разных устройств через stale clone path; ownership guard теперь обязателен. Прямой SE26 сохраняет прогресс, но exact25baff1cloud predeploy красный и полный G2 открыт. Новый TestFlight upload не выполнен. [P10](docs/audits/2026-10-28/cockpit-navigation-harness.md).
+
+- В кандидате70 прибор ветра показывает TWA относительно носа с указанием борта, отдельно сохраняет абсолютный TWD;3Dстрелки продолжают показывать вымпельный поток. Исправлены резерв трехстрочной подписи руля, длинные вкладки гонки и короткий landscape тренажера; фон запуска согласован с дневной оболочкой. Полные source/browser и новые installed gates учитываются отдельно в [P10](docs/audits/2026-10-28/cockpit-navigation-harness.md).
+
+- Через Apple GET прочитаны все11входящих текстов TestFlight, версии и даты отделены от текущей69. Радио60оказалось отказом входа в SRC до прибора; отзыв66уточнил потребность в ветре относительно носа. Сырые пользовательские данные остаются приватно. [Сверка](docs/audits/2026-10-28/testflight-feedback-review.md).
+
+- В исходнике исправлены скрытый Back/начало брифинга и прокрутка карты, гонке выделено больше места лодке. Убрано дублирование учебных подписей без изменения семи языков. Первый94gate выявил IT short обрезание, DE test-selector и незавершенный Simple возврат; после follow-up полный94gate проходит,70удержан до native-приемки. [P10](docs/audits/2026-10-28/cockpit-navigation-harness.md); поставка пока69.
+
+- Повторный полный отчет сохраняет все65требований/F01-F15 и пожелания владельца. Пять свежих экранов отделяют исправленные в source тему/Back/сцену от поставки69; открыты единое движение/снасти/руль, повторная подготовка гонки, весь учебный цикл и installed acceptance70. Уточнены устаревшие статусы пилота иллюстраций и Ads. [Состояние и этапы](docs/audits/2026-10-28/completion-status.md).
+
+- Повторно сверены все 65 требований и 15 находок независимого аудита с поставкой 69. Сохранены 8 свежих web-снимков: вращение 3D работает, светлая тема принудительно меняется в тренажере, новая физика еще не подключена. Жалоба на оформление снова открыта; полный остаток и порядок работ: [итоговая сверка](docs/audits/2026-10-27/completion-reconciliation.md). Этот проход не меняет приложение или релиз.
+
+- Delivered1.7.0(69) to exact TestFlight Self from2ea498b: bounded free radio practice, requested-locale native ASR, independent native outcome logs, versioned support export and local Ads preview.1793web/602native and82first-attempt browser cases pass; generated18/archive36/IPA38, Apple VALID and independent Self/8notes GETs11:12UTC. Owner performs manual radio/Reset/PTT/microphone acceptance in TestFlight. Physical emission, website and public submission remain OFF.
+
+- Add independent native radio recognition outcome logs and a copied support report with app version/build. Exclude speech, audio, request IDs and interim samples. The owner will perform manual radio acceptance in TestFlight69; the Simulator interaction gate is explicitly deferred for this beta.
+
+- Verify the radio locale fix in an exact native Release Simulator package:31package checks, compiled native/JS probe,121matching installed files and all16prior storage keys preserved. Actual installed radio callbacks/Reset/microphone remain open after Device Hub stopped responding; no69 delivery.
+
+- Check native radio recognition for the requested English dialect instead of the phone's default-language capability. Older binaries without the new locale probe keep typed fallback until a native rebuild; actual microphone acceptance remains separate.
+
+- Preserve actual metric impact velocities for the following optional race judge. Separate initial overlap from travelled encounters, including later contact with a stopped hull; no fault or penalty is inferred yet. The physical fleet remains unwired.
+
+- Verify exact e414 push/PR CI and82first-attempt browser cases. Retained native89 also confirms typed radio Add and Exit; actual Reset and microphone recognition remain open. No69 delivery is claimed.
+
+- Keep physical bots clear of missed rounding gates and stop rearward turns from alternating while steerage is weak. All90specified autonomous fleets now finish, with no mark contact;15moving early hard fleets retain hull encounters. Human guidance and physical activation remain separate gates.
+- Move dated completion checkpoints out of the agent entry point into a linked history, keeping the current plan and delivery status easy to find.
+
+- Verify PL typed radio practice, Clear and Exit in the exact installed916 package; PTT reports unavailable and real microphone recognition stays open. Confirm the earlier d580UI checkpoint with82first-attempt cloud cases, separately from later physical response work.
+
+- Prepare actual impact-truncated hull/mark/water travel in the unwired physical fleet. Recovery cannot earn a start or rounding gate. Dedicated response tests pass; physical activation still awaits judging, guidance, recording and installed gates.
+
+- Make physical bot avoidance consistent at the close-hauled numeric boundary, including temporary luffs around an obstruction. All54autonomous difficulty/course/wind/start cases now finish; nine moving early hard starts still have hull contacts. This preparation remains unwired pending response, judging, recording and installed gates.
+
+- Prepare actual physical hull/mark contact observations before separation. Align bot predictions with water limits and their last steering commands; fit start recovery circles around the real line hardware. Eighteen five-boat journeys pass without observed envelope contact. This source remains unwired pending hardware response, judging, guidance, recording and installed gates.
+
+- Wait for a complete responsive radio faceplate before checking its unchanged screen bounds in browser acceptance. Preserve the exact89 report with one flaky case and its qualified native entry/Exit proof; they do not establish full delivery readiness.
+
+- Reset free radio practice into a fresh private session even when the clock repeats. Clear prior transmissions and pending recognition, then return the task dock to its beginning. Following exact acceptance remains separate from frozen916.
+
+- Prepare an unwired physical fleet transaction with shared trainer helm/metres, separate bot memory and reachable-turn traffic advice. Five-boat course/wind/early-start tests retain the original limits. Physical result emission and the live game remain unchanged pending the remaining engine/recorder/installed gates.
+
+- Verify the free-radio source with1721web/589native tests and82first-attempt browser cases. Preserve its exact31-check/121-file Simulator package and prior data. Installed entry/Exit work; native PTT/microphone acceptance and69delivery remain open.
+
+- Add free radio transmission practice beside the pinned radio: provisional on-device English recognition, a clearly labelled offline typed fallback and eight session-only transmissions. Cancel/Clear discard pending text; actual outcomes enter the bounded diagnostic journal without words or audio. Source, installed microphone and delivery acceptance remain separate.
+
+- Verify actual yacht asset/decode callbacks and native Back in exactf3 Simulator observation. Keep the earlier startup cause and full release acceptance open; no69 upload is claimed.
+
+- Distinguish actual yacht asset reading from GLTF decoding in the bounded startup journal. Preserve loader callbacks and the real first-frame gate. Official8e has one successful installed race startup; the earlier f4 failure remains unexplained and69 is not delivered.
+
+- Hold candidate69 after its fresh installed race failed to produce a first3Dframe. Add bounded scene/renderer/model/frame observations to locate the delay; preserve the actual first-frame gate and existing renderer/physics policy. This observation checkpoint does not claim a startup fix or delivery.
+
+- Add an unwired physical progression boundary with canonical metric gates, ordered rounding and collision-independent finish credit. Preserve the failed fleet research separately; physical races remain disabled until actual fleet, guidance, recorder and installed acceptance pass.
+
+- Закреплен основной порядок завершения продукта: Ads и исследование eSail учитываются отдельно и не закрывают готовность гонок, радио и обучения.
+
+- Keep Ads translations in the existing shared pure-library boundary so Metro can bundle native Settings and the Ads route. The first69 source candidate stopped during Simulator export and was never uploaded.
+
+- Prepare1.7.0(69) after an independent read-only Apple check confirmed maximum68 and no69. Ads remains a local inspection place; installed, exact browser and delivery gates are pending.
+
+- Keep frozen legacy trajectory checks portable across Mac/Linux: only heel/leeway allow12-decimal precision after observed5e-15 runtime differences. All remaining force-state fields and trim stay exact; motion comparisons retain their existing precision. The frozen fixture and production engine are unchanged.
+
+- Add a native Settings entry named Ads for local camera and placement inspection using the same yacht/sea. The prototype provides four camera views, free orbit/zoom, directional buttons, lens choices, three test cards and a bounded preview journal. SDK/provider is still unconfigured, with no ad requests or impression claims; installed/release acceptance follows separately.
+- Prepare an explicit physical race motion boundary using the trainer's metre and heading helpers and the existing race force/trim integration. Preserve twelve frozen legacy trajectories and server defaults. This is currently an unwired API; physical races stay disabled until course/bot/guidance/progression/recorder/native consumer and installed gates pass.
+- Delivered1.7.0(68) to exact TestFlight Self: independent confirmed native PB/History, idempotent receipts and a corrected shared3D replay Back route. Actual26.5/27 finishes, cold results and exact-f7 fresh27 startup pass;77first-attempt browser cases and independent23:23UTC Self/8notes GETs. Physical races and the wider completion program remain open. [Release68](docs/design/mobile/testflight68-2026-10-27.md).
+
+- Keep a saved shared3D replay inside its own native route, so opening it cannot replace the original race parameters and Back cannot cycle between History and Replay. The first68 candidate was held at native G2; corrected f7 is delivered68.
+
+- Native race personal-best banners now wait for their own confirmed device write, separately from History. Same-row receipts make retries idempotent; stale replies, corrupt/read-failed stores and old WebKit row writes cannot claim a new record. Global clear invalidates old race work and reports an unconfirmed sweep on failure. Delivered68 passes qualified installed and delivery gates; physical races remain disabled.
+
+
+- Delivered1.7.0(67) to exact TestFlight Self: shared first-lesson3Dpractice plus one Scheme/Picture sail pilot with filled/luffing views, preserved force states and actual image-result diagnostics. Exact77c passes77first-attempt browser cases and qualified installed26.5/27 acceptance; independent18:53UTC Apple GET verifies VALID/IN_BETA_TESTING and8notes. Wider lessons, PB durability, physics/courses, radio transcript and public/device acceptance remain open. [Release67](docs/design/mobile/testflight67-2026-10-26.md).
+
+- Keep browser lesson acceptance within separate30s journeys for quiz/reload and ready3Dreturn, retaining the25s scene deadline and every prior assertion.
+
+- Keep picture retries and stale-load protection consistent across app and web while each platform retains its own React runtime.
+
+- Share the first Foundation lesson across app and web, with real3Dwind observation and return to the same lesson step. Add a Scheme/Picture pilot with filled/luffing mainsail views, readable callouts, preserved force diagrams and local image-result diagnostics. Picture selection does not pass a lesson; a failed image returns to the diagram. Native Image sizing keeps picture callouts aligned with the sail. Delivered in67 within the qualified P02 pilot scope.
+
+- Delivered1.7.0(66) to exact TestFlight Self: the first lesson's native practice no longer passes an unsupported accessibility action to Skia Canvas. Local wind remains; live-weather requests are removed from the native trainer. Installed26.5/27 checks and72first-attempt browser cases pass. Independent Apple GET confirms VALID/IN_BETA_TESTING and eight matching notes. [Scope and limits](docs/design/mobile/testflight66-2026-10-26.md).
+
+- Safely archive50inactive local branch heads with52verified recovery refs. Remote branches, active worktrees, unique work and user files remain preserved. The manifest records the two safe-delete refusals; full cleanup remains open.
+
+- Start the owner-approved completion program with an ordered harness and recoverable checkpoints. P01 is delivered in66; shared lessons, reviewed Scheme/Picture integration, physical courses, free radio transcription, ghost and full public acceptance remain following stages.
+
+- Recorded an independent product audit with fresh installed/web screens and a twice-reproduced first-lesson native simulator crash. The report separates strengths, remaining learning/game/UX gaps and proposed priorities; no product behavior or release changed.
+
+Следующие source checkpoints уже входят в APP65, где явно указано ниже;
+синхронизация SITE и оставшиеся физические/продуктовые gates остаются отдельно.
+
+- Cancel a radio16/C press released outside the button even when iOS retains pointer capture. Preserve the current channel, stop the pending hold and record one local cancellation. Real taps, completed holds and keyboard input retain their behavior. Native G2 found this before the first65 candidate was uploaded.
+
+- Prepare1.7.0(65) after confirming its number is unused, retaining64rollback. The first corner gate's diagnostic expectations now include the new field; geometry and cold persistence use independent journeys with unchanged assertions and budgets. Native/Apple acceptance is still required before delivery.
+
+- Keep a live mini-map and wind readout in the3Dscene corners during solo and multiplayer races, through every dock tab. Tap the mini-map for the full overview; its on/off choice is saved and logged locally. Wind readings stay visible, with the existing optional compass/air arrows. The same boat, controls and physical model are retained.
+
+- History and Personal records now name saved courses from validated metadata, preserve unknown entries and show registered finish time plus penalties. Previous score records retain their order; each registered class, mode, difficulty and wind has its own PB without a shared rank. All names and conditions have seven language adaptations. Physical races remain disabled pending durability and engine gates.
+
+- Restarting an interrupted race now restores its saved Pro or Simple mode and wind before the sails are initialized. Mission and Daily identity survive, explicit activity links keep their own setup, and incompatible saved data stays protected until a new Start. The mobile restart buttons have44px touch targets; the same prepublication gate adds a real saved-mode regression for70cases.
+
+- Replay and Coach now reject a saved race whose namespaced class contradicts its world data, using the existing translated explanation and Back action while preserving history. The same check serves the native projection; no fallback geometry or coaching request is created.
+
+- Delivered1.7.0(64) to exact Self with a complete fitted course map, four saved wind display choices and a real Settings gear. Upgrade26.5 and clean27 changed-screen checks, Apple VALID and independent eight-language notes/group checks passed. The website is published and healthy, with one remaining multiplayer production browser failure explicitly retained.
+
+- Prepared safe result-class consumers without enabling physical races: failed PB saves cannot announce a record, future setup intents survive implicit cleanup, historical SQLite rows stay unclassified, native preparation keeps explicit provenance and history clear reports its actual result. Real history/leaderboard UI and native PB durability still follow before physical activation.
+
+- The native Sternik exam journal now explains guarded Exit and Stay/system-dismiss outcomes once per prompt, preserving the exact exam exit behavior and Polish copy.
+
+- Prepared canonical comparison/result identities for physical courses, preserving old personal-best keys and keeping historical global results unclassified. New result emission remains disabled while storage and API consumers are integrated.
+
+- Reduced replay bundle duplication while keeping all seven languages and existing labels, leaving room for the following result-class work within the unchanged size limit.
+
+- Canceling a radio16/C touch no longer selects CH16 or fires a delayed hold. A bounded local cancel/noop entry explains the canceled input; actual tap, one-second hold, AQUA and PTT keep their behavior.
+
+- Prepared versioned physical race record readers without changing live racing: known tracks retain geometry and exact recorded trajectory, unknown future coordinates cannot fall back to pixel replay or remote coaching, and new result emission stays disabled until score classes and the engine are ready. Saved history stays intact, with a shared seven-language explanation and working Back for unsupported records.
 
 - Separated race Map/Fleet and wind/Helm browser journeys after the combined case reached its120s deadline with successful real geometry and a running clock. Both journeys keep25s startup,15s clock and120s total budgets, all assertions and five viewport samples. Evidence reuses each validated sample. The same prepublication files now contain69cases; runtime and deployment permissions stay unchanged.
 
@@ -201,6 +330,18 @@
   логбук и задачи дня, механика шеринга результатов.
 - Мультиплеер: лимит сообщений считается на соединение, а не суммарно по IP
   (нужен глобальный бакет), см. `STRESS-REPORT.md`.
+
+## 1.7.0 (iOS build 65) - TestFlight2026-10-26
+
+- Постоянные мини-карта справа и истинный ветер слева от3D сцены; нажатие
+  открывает полный обзор, видимость карты сохраняется после перезапуска.
+- Реальное native G2 обнаружило отпускание16/C снаружи; исправление сохраняет
+  канал и пишет одну локальную отмену. Tap/hold и вращение DIAL сохранены.
+- Exactb0e5868/tagtestflight-1.7.0-65 доступен в Self: независимые GET11:46:55UTC
+  подтвердили VALID/IN_BETA_TESTING и8совпадающих заметок. Upgrade26.5 и
+  clean27,72browser first-pass и package gates пройдены. Все65пунктов продукта,
+  физические трассы, native PB durability и итоговый сайт/MP gate не закрыты.
+  [Приемка65](docs/audits/2026-10-26/acceptance65.md).
 
 ## 1.6.4 (iOS build 48) - отправлена на ревью 2026-10-18
 

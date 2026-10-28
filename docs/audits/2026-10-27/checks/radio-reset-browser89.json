@@ -1,0 +1,30 @@
+{
+  "source": "89ced947ec6bca2580089362211c0ad17e763b8f",
+  "run": "40450421511",
+  "artifact": 12710204023,
+  "archiveSha256": "285371fd2406fac7c87432a4d62bd70a451201588474569bb01e78c92ca74bd7",
+  "stats": {
+    "total": 82,
+    "expected": 81,
+    "unexpected": 0,
+    "flaky": 1,
+    "skipped": 0,
+    "ok": false
+  },
+  "fullFirstAttemptAccepted": false,
+  "freeSpeechCases": {
+    "total": 4,
+    "oneAttemptEach": true,
+    "includesFixedDateReset": true
+  },
+  "flaky": {
+    "title": "the radio stays on screen while the panel scrolls: controls lessons, 667px",
+    "firstFailure": "lcd boundingBox returned null493ms into case, after dock became visible. Retry passed.",
+    "observedOutOfBounds": false,
+    "cause": "An immediate geometry sample lacked explicit responsive faceplate readiness. Root cause of the transient null is not established from this report alone."
+  },
+  "publication": "skipped",
+  "actualMicrophoneAccepted": false,
+  "delivery": false,
+  "following": "The next source retries the same geometry assertions within the existing10s assertion budget and unchanged30s case. Exact next cloud gate is required."
+}

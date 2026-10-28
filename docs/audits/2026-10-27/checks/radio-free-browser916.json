@@ -1,0 +1,19 @@
+{
+  "run": "40444566093",
+  "source": "916a9ea69bc06bfcbb0f7848691b7a9936cf0b83",
+  "artifact": 12707858543,
+  "sha256": "7478256acbb6c0944efddf692743321ddd8cd814a315517419e008df0c44e502",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "publication": "skipped",
+  "actualMicrophoneAccepted": false,
+  "delivery": false,
+  "scope": "Exact P07 source and all four new offline free-speech cases. Synthetic ASR tests actual React/PTT/bridge/diagnostic contracts and does not certify a physical microphone/model or installed device."
+}

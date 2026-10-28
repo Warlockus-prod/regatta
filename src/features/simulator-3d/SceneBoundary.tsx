@@ -16,10 +16,11 @@ export class SceneBoundary extends Component<{
   modelUrl: string;
   errorLabel: string;
   retryLabel: string;
+  onError?: () => void;
 }, { failed: boolean; attempt: number }> {
   state = { failed: false, attempt: 0 };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch() { reportScene("scene-error"); }
+  componentDidCatch() { reportScene("scene-error"); this.props.onError?.(); }
   render() {
     if (this.state.failed) return (
       <div role="alert" className="flex h-full min-h-48 flex-col items-center justify-center gap-4 bg-[var(--bg-primary)] p-6 text-center text-[var(--text-primary)]">

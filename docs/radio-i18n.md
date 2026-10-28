@@ -102,6 +102,19 @@ successful microphone check: only a started recording and a real returned
 transcript establish that the voice path worked. When unavailable, structured
 text practice and the complete course remain usable locally.
 
+Free practice additionally uses the explicit seven-language copy in
+`src/data/radio/free-speech-copy.ts`. The existing catalog builder registers
+all seven values and generates `src/data/radio/free-speech-labels.ts` for the
+explicit source-text reads through `rt`. The complete matrix stays outside
+web route chunks; native bundles the same catalogs. Builder check detects any
+stale labels/catalogs instead of depending on literal scanner guesses.
+`FreeSpeechPractice.tsx` keeps recognized English transmission text in the
+mounted session only, separately labels typed input and does not assess a
+procedure or pronunciation. Its draft, permission/model/silence/error status,
+eight-row limit and Clear labels are all adapted; Sternik stays Polish. The
+P07 source/browser/native evidence is recorded in
+`docs/audits/2026-10-27/radio-free-speech-harness.md`.
+
 Recognition results are delivered only after the user's release and the native
 end event. Cancellation, navigation and errors do not grade a partial or stale
 transcript. The receiver cancels local station speech when power, PTT, mute,

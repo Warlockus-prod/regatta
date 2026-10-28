@@ -15,7 +15,7 @@ import {
   type BestRecord,
 } from '@/lib/best-times';
 import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
-import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
+import { saveRaceSetup, loadRaceSetup, clearRaceSetup, type SavedRaceSetup } from '@/lib/race-resume';
 // Shared sailing engine; the WebSocket server imports a generated bundle.
 import {
   stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, makeStandardCourse,
@@ -38,13 +38,13 @@ import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
-import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
+import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, postNativePersonalBest, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { bindClockLifecycle } from "@/features/sailing-lab/runtime/clock-lifecycle";
 import { createRaceStartupGate } from "@/lib/race-startup";
-import { linkedRaceSetup } from "@/lib/race-setup";
+import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
@@ -53,6 +53,8 @@ import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-complet
 import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
+import { createPendingNativeBestCommands, nativeBestFailure, NATIVE_BEST_PENDING_LIMIT } from "@/lib/race-best-command";
+import { LEGACY_RACE_CONTEXT } from "@/lib/race-context";
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -246,8 +248,11 @@ export default function GamePage() {
   const raceIdRef = useRef("");
   const [nativeSave, setNativeSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const pendingNativeSaves = useRef(createPendingRaceSaves());
+  const pendingNativeBests = useRef(createPendingNativeBestCommands());
+  const [nativeBestSave, setNativeBestSave] = useState<{ status: "idle" | "saving" | "saved" | "error"; id: string; requestId: string; retryable: boolean }>({ status: "idle", id: "", requestId: "", retryable: false });
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
+  const setupRootRef = useRef<HTMLDivElement>(null);
   const startupGate = useRef(createRaceStartupGate());
   const simulationClockRef = useRef<ReturnType<typeof createFixedClock> | null>(null);
   const [sceneRaceId, setSceneRaceId] = useState("");
@@ -269,6 +274,38 @@ export default function GamePage() {
   // finish modal and a "Your best: 1:27" badge in the briefing.
   const [bestRecord, setBestRecord] = useState<BestRecord | null>(null);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  const acceptNativeBestReply = useCallback((raw: unknown) => {
+    const reply = pendingNativeBests.current.settle(raw);
+    if (!reply) return;
+    recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action: reply.status === "failed" ? "error" : "ack",
+      outcome: reply.status === "failed" ? "failed" : "accepted", ...(reply.status === "failed" ? { reason: reply.reason } : {}) });
+    if (reply.id !== raceIdRef.current) return;
+    setNativeBestSave({ status: reply.status === "failed" ? "error" : "saved", id: reply.id, requestId: reply.requestId, retryable: reply.status === "failed" });
+    if (reply.status !== "failed") { setBestRecord(reply.currentBest); setIsNewRecord(reply.newRecord); }
+    else setIsNewRecord(false);
+  }, []);
+  const requestNativeBest = useCallback((raceId: string, action: "request" | "retry" = "request") => {
+    const command = pendingNativeBests.current.request(raceId);
+    if (!command) return;
+    if (raceId === raceIdRef.current) setNativeBestSave({ status: "saving", id: raceId, requestId: command.requestId, retryable: false });
+    const sent = postNativePersonalBest(command);
+    recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action, outcome: sent ? "accepted" : "failed",
+      ...(sent ? {} : { reason: "storage-unavailable" }) });
+    if (!sent) acceptNativeBestReply(nativeBestFailure(command, "storage-unavailable"));
+  }, [acceptNativeBestReply]);
+  useEffect(() => {
+    const result = (event: Event) => acceptNativeBestReply((event as CustomEvent<unknown>).detail);
+    window.addEventListener("regatta:personal-best-result", result);
+    return () => window.removeEventListener("regatta:personal-best-result", result);
+  }, [acceptNativeBestReply]);
+  useEffect(() => {
+    if (nativeBestSave.status !== "saving") return;
+    const timer = window.setTimeout(() => {
+      const command = pendingNativeBests.current.waiting(nativeBestSave.id);
+      if (command?.requestId === nativeBestSave.requestId) acceptNativeBestReply(nativeBestFailure(command, "timeout"));
+    }, 15_000);
+    return () => window.clearTimeout(timer);
+  }, [nativeBestSave, acceptNativeBestReply]);
   const [playerTWA, setPlayerTWA] = useState(0);
   const [playerSpeed, setPlayerSpeed] = useState(0);
   const [windReading, setWindReading] = useState<RaceWindReading | null>(null);
@@ -360,9 +397,9 @@ export default function GamePage() {
   const { prefs: controlPrefs, update: updateControls } = useControlPrefs();
   const muted = !controlPrefs.sound;
 
-  // Wind strength multiplier: 0.6 (light) / 1.0 (medium) / 1.3 (heavy)
+  // Existing wind multiplier: 0.65 (light), 1.0 (medium), 1.3 (heavy).
   const [windStrength, setWindStrength] = useState<'light' | 'medium' | 'heavy'>('medium');
-  const windStrengthMul = windStrength === 'light' ? 0.65 : windStrength === 'heavy' ? 1.3 : 1.0;
+  const windStrengthMul = raceSetupWindMultiplier(windStrength);
   const windStrengthRef = useRef(windStrengthMul);
   useEffect(() => { windStrengthRef.current = windStrengthMul; }, [windStrengthMul]);
 
@@ -377,10 +414,11 @@ export default function GamePage() {
   // resuming mid-position. That's a deliberate trade: we lose the
   // physics state but we never crash on schema skew.
   const [resumeOffer, setResumeOffer] = useState<ReturnType<typeof loadRaceSetup>>(null);
+  const setupContextRef = useRef<SavedRaceSetup["raceContext"]>(undefined);
   useEffect(() => {
     const saved = loadRaceSetup();
     if (saved && (saved.phase === 'briefing' || saved.phase === 'countdown' || saved.phase === 'racing')) {
-      setResumeOffer(saved);
+      setResumeOffer(planRaceResume(saved, readRaceSearch(), racePrefsRef.current.mode));
     }
   }, []);
 
@@ -578,6 +616,7 @@ export default function GamePage() {
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
     setRuleNotice(null); setPenalty(0); setNativeSave("idle");
+    setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
     setElapsed(0);
     setCoaching(null); setCoachingSource("local");
@@ -599,6 +638,8 @@ export default function GamePage() {
   // Start race flow
   // -----------------------------------------------------------------------
   const openBriefing = useCallback(() => {
+    setupContextRef.current = undefined;
+    windStrengthRef.current = raceSetupWindMultiplier(windStrength);
     initRace(difficulty);
     // Look up the user's best for this (difficulty, wind) bucket so the
     // briefing can show a "Your best: 1:27" badge - small motivator without
@@ -612,25 +653,30 @@ export default function GamePage() {
       difficulty,
       windStrength,
       missionId: selectedMission?.id ?? null,
+      mode: racePrefs.mode,
+      dailyDay,
       phase: 'briefing',
-    });
+    }, { replaceUnsupported: true });
     setResumeOffer(null);
     setGameState('briefing');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode: racePrefs.mode });
-  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode]);
+  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode, dailyDay]);
 
   const beginCountdown = useCallback(() => {
     saveRaceSetup({
       difficulty,
       windStrength,
       missionId: selectedMission?.id ?? null,
+      mode: racePrefs.mode,
+      dailyDay,
+      raceContext: setupContextRef.current,
       phase: 'countdown',
     });
     setLockedMode(racePrefs.mode);
     setCountdown(3);
     setGameState('countdown');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "countdown", mode: racePrefs.mode });
-  }, [difficulty, windStrength, selectedMission, racePrefs.mode]);
+  }, [difficulty, windStrength, selectedMission, racePrefs.mode, dailyDay]);
 
   // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
 
@@ -649,6 +695,9 @@ export default function GamePage() {
         difficulty,
         windStrength,
         missionId: selectedMission?.id ?? null,
+        mode: racePrefsRef.current.mode,
+        dailyDay,
+        raceContext: setupContextRef.current,
         phase: 'racing',
       });
       setGameState('racing');
@@ -658,7 +707,7 @@ export default function GamePage() {
     playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady]);
+  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady, dailyDay]);
 
   // -----------------------------------------------------------------------
   // Keyboard input
@@ -891,7 +940,7 @@ export default function GamePage() {
         // Save / compare against personal-best for this (difficulty, wind)
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
-        if (player.finishTime != null) {
+        if (player.finishTime != null && !isNativeRace()) {
           const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
@@ -944,6 +993,18 @@ export default function GamePage() {
           const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
           setNativeSave(sent ? "saving" : "error");
           recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "request", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
+          // This live engine is legacy. This explicit PB authority does not
+          // backfill the separate historical snapshot's absent provenance.
+          const queued = pendingNativeBests.current.add({ schema: 1, id: snapshot.id,
+            comparison: { raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode, difficulty, windStrength },
+            rawFinishTimeSec: player.finishTime, penaltySeconds: snapshot.penaltySeconds ?? 0,
+            finishTimeSec: player.finishTime + (snapshot.penaltySeconds ?? 0), course: snapshot.course });
+          if (queued) requestNativeBest(snapshot.id);
+          else if (!pendingNativeBests.current.has(snapshot.id)) {
+            setNativeBestSave({ status: "error", id: snapshot.id, requestId: "", retryable: false });
+            recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action: "error", outcome: "failed",
+              reason: pendingNativeBests.current.size() >= NATIVE_BEST_PENDING_LIMIT ? "limit" : "invalid-input" });
+          }
         }
         setCoachingLoading(!isNativeRace());
         const completedRaceId = raceIdRef.current;
@@ -1003,7 +1064,7 @@ export default function GamePage() {
       if (simulationClockRef.current === clock) simulationClockRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, difficulty]);
+  }, [gameState, difficulty, requestNativeBest]);
   useEffect(() => {
     simulationClockRef.current?.synchronize(performance.now(), startupGate.current.active(pausedRef.current, document.hidden));
   }, [gameState, paused, sceneReady]);
@@ -1097,12 +1158,25 @@ export default function GamePage() {
   }, [gameState, difficulty, windStrength, racePrefs.mode]);
   const guidance = racePrefs.guidance ? routeGuidance : null;
 
+  // Setup phases own one internal scroll area below the same site header as
+  // the cockpit. Reset on phase entry, never on a physics/HUD update.
+  const viewportStyle = { height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' };
+  useEffect(() => {
+    const root = setupRootRef.current;
+    if (!root) return;
+    root.scrollTop = 0;
+    const content = root.querySelector<HTMLElement>('[data-race-scroll]');
+    if (content) content.scrollTop = 0;
+    window.scrollTo(0, 0);
+    root.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
+  }, [gameState]);
+
   // =====================================================================
   // MENU SCREEN
   // =====================================================================
   if (gameState === 'menu') {
     return (
-      <div className="h-dvh overflow-y-auto">
+      <div ref={setupRootRef} data-race-phase="menu" className="overflow-y-auto" style={viewportStyle}>
         {nativeRace && <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
           <Link href="/" className="inline-flex items-center min-h-11 py-2 text-sm text-[var(--accent-cyan)]">
             {readRaceSearch().has("fromLesson") ? tl({ ru: "Вернуться к уроку", en: "Back to lesson", pl: "Wróć do lekcji", es: "Volver a la lección", fr: "Retour à la leçon", de: "Zurück zur Lektion", it: "Torna alla lezione" }) : tl({ ru: "Вернуться к гонкам", en: "Back to races", pl: "Wróć do regat", es: "Volver a regatas", fr: "Retour aux courses", de: "Zurück zu den Rennen", it: "Torna alle regate" })}
@@ -1118,8 +1192,13 @@ export default function GamePage() {
             saved={resumeOffer}
             tp={tp}
             onResume={() => {
+              const mode = resumeOffer.mode ?? racePrefsRef.current.mode;
+              writeRacePrefs({ mode });
+              windStrengthRef.current = raceSetupWindMultiplier(resumeOffer.windStrength);
               setDifficulty(resumeOffer.difficulty);
               setWindStrength(resumeOffer.windStrength);
+              setDailyDay(resumeOffer.dailyDay ?? null);
+              setupContextRef.current = resumeOffer.raceContext;
               if (resumeOffer.missionId) {
                 const m = missions.find((x) => x.id === resumeOffer.missionId);
                 setSelectedMission(m ?? null);
@@ -1128,10 +1207,12 @@ export default function GamePage() {
               }
               setResumeOffer(null);
               initRace(resumeOffer.difficulty);
-              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, racePrefsRef.current.mode));
+              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, mode));
               setIsNewRecord(false);
-              saveRaceSetup({ difficulty: resumeOffer.difficulty, windStrength: resumeOffer.windStrength, missionId: resumeOffer.missionId, phase: "briefing" });
+              saveRaceSetup({ difficulty: resumeOffer.difficulty, windStrength: resumeOffer.windStrength, missionId: resumeOffer.missionId,
+                mode, dailyDay: resumeOffer.dailyDay, raceContext: resumeOffer.raceContext, phase: "briefing" });
               setGameState("briefing");
+              recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode });
             }}
             onDismiss={() => {
               clearRaceSetup();
@@ -1159,8 +1240,8 @@ export default function GamePage() {
   // =====================================================================
   if (gameState === 'briefing') {
     return (
-      <div className="page-enter h-dvh flex flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
+      <div ref={setupRootRef} data-race-phase="briefing" className="page-enter flex flex-col" style={viewportStyle}>
+        <div data-race-scroll className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={backToMenu}
@@ -1186,9 +1267,9 @@ export default function GamePage() {
               </div>
             )}
             <div className="text-xs px-2 py-1 rounded" style={{
-              background: `${DIFFICULTY_CONFIG[difficulty].color}22`,
-              color: DIFFICULTY_CONFIG[difficulty].color,
-              border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
             }}>
               {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl, { es: DIFFICULTY_CONFIG[difficulty].labelEs, fr: DIFFICULTY_CONFIG[difficulty].labelFr, de: DIFFICULTY_CONFIG[difficulty].labelDe, it: DIFFICULTY_CONFIG[difficulty].labelIt })} · {windStrength === 'light'
                 ? tp('слабый ветер', 'light wind', 'słaby wiatr', { es: 'viento flojo', fr: 'vent faible', de: 'leichter Wind', it: 'vento leggero' })
@@ -1199,7 +1280,7 @@ export default function GamePage() {
           </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-semibold mb-1">
+        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold mb-1">
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
         <div className="mb-5"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
@@ -1260,7 +1341,7 @@ export default function GamePage() {
         <button
           onClick={beginCountdown}
           className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-          style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
         >
           {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1', { es: 'Listo - salida en 3·2·1', fr: 'Prêt - départ dans 3·2·1', de: 'Bereit - Start in 3·2·1', it: 'Pronto - partenza tra 3·2·1' })}
         </button>
@@ -1273,7 +1354,7 @@ export default function GamePage() {
   // RACING / COUNTDOWN / FINISHED SCREENS (Canvas)
   // =====================================================================
   return (
-    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
+    <div className="relative w-full" style={viewportStyle}>
       {(gameState === "countdown" || gameState === "racing") && (
         <RaceCockpit prefs={playingPrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta} setCourse={setCourse} targetHeading={targetHeading}
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
@@ -1301,6 +1382,10 @@ export default function GamePage() {
         <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
           <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
+            {nativeRace && nativeBestSave.id === sceneRaceId && nativeBestSave.status !== "idle" && <div className="mb-4 text-sm" role="status" data-testid="native-personal-best-status">
+              {nativeBestSave.status === "saved" ? copy.personalBestChecked : nativeBestSave.status === "error" ? copy.personalBestError : copy.personalBestSaving}
+              {nativeBestSave.status === "error" && nativeBestSave.retryable && <button type="button" className="ml-2 underline" aria-label={copy.retryPersonalBest} onClick={() => requestNativeBest(nativeBestSave.id, "retry")}>{copy.retry}</button>}
+            </div>}
             <div className="text-center mb-5">
               <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK', { es: 'RESULTADO', fr: 'RÉSULTAT', de: 'ERGEBNIS', it: 'RISULTATO' })}</div>
               {playerFinished?.time !== undefined && playerFinished.time !== Infinity ? (
@@ -1314,8 +1399,8 @@ export default function GamePage() {
                   <div className="text-xl font-mono text-[var(--text-secondary)]">{formatTime(playerFinished.time)}</div>
                   {/* New-personal-best banner. Only shows after the player
                       finished AND beat their previous time on this
-                      difficulty + wind bucket. The lib has already saved
-                      the new value to localStorage by the time we render. */}
+                      difficulty + wind bucket. Native waits for its own
+                      durable PB ACK; web uses checked synchronous storage. */}
                   {isNewRecord && (
                     <div
                       className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold"
@@ -1445,7 +1530,7 @@ export default function GamePage() {
                       <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Błędy', { es: 'Errores', fr: 'Erreurs', de: 'Fehler', it: 'Errori' })}</div>
                       <div className="space-y-2">
                         {coaching.mistakes.map((m, i) => (
-                          <div key={i} className="text-xs p-2 rounded" style={{ background: 'rgba(10, 22, 40, 0.5)' }}>
+                          <div key={i} className="text-xs p-2 rounded" style={{ background: 'var(--bg-secondary)' }}>
                             <div className="flex items-start gap-2 mb-1">
                               <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
                                 background: m.severity === 'major' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(255, 170, 0, 0.2)',
@@ -1515,7 +1600,7 @@ export default function GamePage() {
                     onClick={() => saveResult(nicknameInput)}
                     disabled={nicknameInput.trim().length < 2}
                     className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40"
-                    style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+                    style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
                   >
                     {tp('Сохранить', 'Save', 'Zapisz',
                       { es: 'Guardar', fr: 'Enregistrer', de: 'Speichern', it: 'Salva' })}
@@ -1682,7 +1767,7 @@ function ShareBlock({
           <button
             onClick={onShare}
             className="px-3 py-1.5 rounded text-xs font-semibold"
-            style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
           >
             {copied
               ? tp('✓ Скопировано', '✓ Copied', '✓ Skopiowano',
@@ -1806,8 +1891,16 @@ function CoursePreview() {
     { es: '-- en ceñida (bordos)', fr: '-- au près (bords)', de: '-- gegen den Wind (Kreuzschläge)', it: '-- di bolina (bordi)' });
   const legendDownwind = tp('-- попутно к финишу', '-- downwind to finish', '-- z wiatrem do mety',
     { es: '-- a favor del viento a la llegada', fr: '-- au portant jusqu\'à l\'arrivée', de: '-- mit dem Wind zum Ziel', it: '-- vento in poppa all\'arrivo' });
+  // Keep whole words in the annotation band beside the mark. Long translated
+  // labels use another line instead of depending on the platform system font.
+  const topMarkLines = labelTopMark.split(' ').reduce<string[]>((lines, word) => {
+    const last = lines.length - 1;
+    if (last >= 0 && `${lines[last]} ${word}`.length <= 14) lines[last] += ` ${word}`;
+    else lines.push(word);
+    return lines;
+  }, []);
   return (
-    <svg viewBox="0 0 200 260" className="w-full max-w-[220px] mx-auto block">
+    <svg viewBox="0 0 220 274" className="w-full max-w-[242px] mx-auto block" fontFamily="var(--font-geist-sans, sans-serif)">
       {/* water */}
       <defs>
         <linearGradient id="cpWater" x1="0" x2="0" y1="0" y2="1">
@@ -1815,21 +1908,24 @@ function CoursePreview() {
           <stop offset="100%" stopColor="#0a1f3d" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width="200" height="260" rx="8" fill="url(#cpWater)" />
+      <rect x="0" y="0" width="220" height="274" rx="8" fill="url(#cpWater)" />
+      <g transform="translate(10 0)">
       {/* wind arrow */}
       <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
         <line x1="100" y1="10" x2="100" y2="40" />
         <polygon points="96,38 100,48 104,38" />
-        <text x="108" y="28" fill="#00d4ff" stroke="none" fontSize="11" fontFamily="system-ui">{labelWind}</text>
+        <text x="108" y="28" fill="#00d4ff" stroke="none" fontSize="11">{labelWind}</text>
       </g>
       {/* windward mark */}
       <circle cx="100" cy="60" r="7" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
-      <text x="112" y="64" fill="#ffaa00" fontSize="10" fontFamily="system-ui">{labelTopMark}</text>
+      <text x="112" y="64" fill="#ffaa00" fontSize="10" aria-label={labelTopMark}>
+        {topMarkLines.map((line, index) => <tspan key={index} x="112" dy={index === 0 ? 0 : 12}>{index ? ` ${line}` : line}</tspan>)}
+      </text>
       {/* start/finish line */}
       <line x1="60" y1="220" x2="140" y2="220" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4 3" />
       <circle cx="60" cy="220" r="4" fill="#ffaa00" />
       <circle cx="140" cy="220" r="4" fill="#ffaa00" />
-      <text x="85" y="240" fill="#ffaa00" fontSize="10" fontFamily="system-ui" textAnchor="middle">{labelStartFinish}</text>
+      <text x="85" y="240" fill="#ffaa00" fontSize="10" textAnchor="middle">{labelStartFinish}</text>
       {/* route */}
       <polyline
         fill="none"
@@ -1847,9 +1943,10 @@ function CoursePreview() {
       {/* boat start */}
       <circle cx="100" cy="220" r="3" fill="#00d4ff" />
       {/* legend */}
-      <g fontSize="9" fontFamily="system-ui">
+      <g fontSize="10">
         <text x="10" y="250" fill="#00d4ff">{legendUpwind}</text>
         <text x="10" y="260" fill="#44ff88">{legendDownwind}</text>
+      </g>
       </g>
     </svg>
   );
@@ -1924,7 +2021,7 @@ function ResumeOffer({
           <button
             type="button"
             onClick={onResume}
-            className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
+            className="min-h-11 text-xs px-4 py-1.5 rounded-md font-semibold transition"
             style={{
               background: 'var(--accent-cyan)',
               color: 'var(--accent-ink)',
@@ -1936,7 +2033,7 @@ function ResumeOffer({
           <button
             type="button"
             onClick={onDismiss}
-            className="text-xs px-3 py-1.5 rounded-md transition border"
+            className="min-h-11 text-xs px-4 py-1.5 rounded-md transition border"
             style={{
               borderColor: 'rgba(139, 167, 184, 0.3)',
               color: 'var(--text-secondary)',

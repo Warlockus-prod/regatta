@@ -5,11 +5,12 @@ import { raceTrim, makeStandardCourse } from "@/lib/race-physics";
 import { createRaceNavigationSnapshot, raceWindReading } from "@/features/race-hud/navigation-model";
 import { RaceOverviewMap } from "@/features/race-hud/RaceOverviewMap";
 import { RaceWindInstrument, RaceWindSettings } from "@/features/race-hud/RaceWindInstrument";
+import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
 import { recordWebDiagnostic } from "@/lib/diagnostics-web";
 
 // Keep hook slots across explicit rerenders to exercise the actual tab and
 // settings handlers, including several commands before the next React render.
-const hooks = vi.hoisted(() => ({ cursor: 0, slots: [] as unknown[], mode: "wheels" as "wheels" | "sliders" }));
+const hooks = vi.hoisted(() => ({ cursor: 0, slots: [] as unknown[], mode: "wheels" as "wheels" | "sliders", lang: "en" }));
 vi.mock("react", async original => ({
   ...await original<typeof import("react")>(),
   useState: (initial: unknown) => {
@@ -26,7 +27,7 @@ vi.mock("react", async original => ({
 vi.mock("@/components/FoundationReturn", () => ({ FoundationReturn: () => null, useFoundationReturnId: () => null }));
 vi.mock("@/features/trainer-controls/labels", () => ({ useControlLabels: () => ({ helm: "Helm", controlsTitle: "Controls", heading: "Heading", course: "Course", rudder: "Rudder", mainsheet: "Mainsheet", jibsheet: "Jibsheet" }) }));
 vi.mock("@/features/trainer-controls/prefs", () => ({ useControlPrefs: () => ({ prefs: { mode: hooks.mode, helmMapping: { boat: "course" } }, update: vi.fn() }), helmMappingFor: () => "course" }));
-vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (value: Record<string, string>) => value.en }) }));
+vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: hooks.lang, tl: (value: Record<string, string>) => value[hooks.lang] }) }));
 vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
 import { RaceCockpit } from "./RaceCockpit";
 import { MultiplayerCockpit } from "../multiplayer/MultiplayerCockpit";
@@ -51,7 +52,7 @@ const boat = { id: "p", pos: { x: 400, y: 1100 }, heading: 45, speed: 5, color: 
 const navigation = createRaceNavigationSnapshot({ course: makeStandardCourse(), boats: [boat], windFrom: 355 });
 const windReading = raceWindReading({ heading: 45, boatSpeedKn: 5, windFrom: 355, windKnots: 14 });
 function soloProps(): ComponentProps<typeof RaceCockpit> {
-  return { children: <div data-testid="actual-scene" />, prefs: { mode: "pro", guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass" }, updatePrefs: vi.fn(),
+  return { children: <div data-testid="actual-scene" />, prefs: { mode: "pro", guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true }, updatePrefs: vi.fn(),
     rudder: 0, setRudder: vi.fn(), courseDelta: vi.fn(), setCourse: vi.fn(), targetHeading: 45, trim: raceTrim({}), setTrim: vi.fn(),
     heading: 45, speed: 5, twa: 50, time: "0:10.0", rank: 1, rows: [{ ...boat, name: "Player" }],
     windReading, navigation, guidance: null, camera: "orbit", setCamera: vi.fn(), onResetCamera: vi.fn(),
@@ -61,27 +62,56 @@ function multiProps(): ComponentProps<typeof MultiplayerCockpit> {
   return { children: <div data-testid="actual-scene" />, frame: { boats: [{ ...boat, name: "Player" }], windDir: 355, windKnots: 14, time: 10, guidance: null },
     phase: "racing", countdown: 0, reconnecting: false, code: "ABCD", rudder: 0, course: 45, setRudder: vi.fn(), setCourse: vi.fn(), courseDelta: vi.fn(),
     camera: "orbit", setCamera: vi.fn(), onResetCamera: vi.fn(), onLeave: vi.fn(), guidanceOn: true, setGuidanceOn: vi.fn(),
-    windReading, navigation, windDisplay: "compass", setWindDisplay: vi.fn() };
+    windReading, navigation, windDisplay: "compass", setWindDisplay: vi.fn(), miniMap: true, setMiniMap: vi.fn() };
 }
-beforeEach(() => { hooks.cursor = 0; hooks.slots = []; hooks.mode = "wheels"; vi.mocked(recordWebDiagnostic).mockReset(); vi.stubGlobal("React", React); });
+beforeEach(() => { hooks.cursor = 0; hooks.slots = []; hooks.mode = "wheels"; hooks.lang = "en"; vi.mocked(recordWebDiagnostic).mockReset(); vi.stubGlobal("React", React); });
 afterEach(() => vi.unstubAllGlobals());
 
 describe("solo map and wind integration", () => {
+  it.each([
+    ["ru", "Открыть карту трассы", "Мини-карта в углу"],
+    ["en", "Open course map", "Mini-map in the corner"],
+    ["pl", "Otwórz mapę trasy", "Minimapa w rogu"],
+    ["es", "Abrir el mapa del recorrido", "Minimapa en la esquina"],
+    ["fr", "Ouvrir la carte du parcours", "Mini-carte dans le coin"],
+    ["de", "Kurskarte öffnen", "Minikarte in der Ecke"],
+    ["it", "Apri la mappa del percorso", "Minimappa nell'angolo"],
+  ])("keeps the %s corner action and saved visibility control connected to the actual cockpit", (lang, open, setting) => {
+    hooks.lang = lang;
+    const props = soloProps();
+    const render = () => { hooks.cursor = 0; return RaceCockpit(props); };
+    const initial = render();
+    const cornerNode = nodes(initial).find(node => node.type === RaceCornerInstruments)!;
+    const corner = RaceCornerInstruments(cornerNode.props as ComponentProps<typeof RaceCornerInstruments>);
+    const openButton = nodes(corner).find(node => node.type === "button")!;
+    expect(openButton.props["aria-label"]).toBe(open);
+    click(openButton);
+    const map = render();
+    expect(nodes(map).some(node => node.type === RaceOverviewMap)).toBe(true);
+    expect(nodes(map).find(node => node.type === RaceCornerInstruments)?.props.navigation).toBe(navigation);
+    const settingsButton = nodes(map).find(node => node.type === "button" && Children.toArray(node.props.children as ReactNode).some(child => isValidElement(child) && child.type !== "span"))!;
+    click(settingsButton);
+    const toggle = nodes(render()).find(node => node.props.label === setting)!;
+    expect(toggle).toBeDefined();
+    (toggle.props.onChange as (value: boolean) => void)(false);
+    expect(props.updatePrefs).toHaveBeenLastCalledWith({ miniMap: false });
+  });
   it("keeps the real map, detailed wind and fleet together outside the scene", () => {
     const props = soloProps();
     const render = () => { hooks.cursor = 0; return RaceCockpit(props); };
     const initial = render();
     expect(button(initial, "Helm").props["aria-pressed"]).toBe(true);
-    const compact = nodes(initial).find(node => node.type === RaceWindInstrument)!;
-    expect(compact.props).toMatchObject({ reading: windReading, compact: true, display: "compass" });
+    const compact = nodes(initial).find(node => node.type === RaceCornerInstruments)!;
+    expect(compact.props).toMatchObject({ wind: windReading, navigation, miniMap: true, windDisplay: "compass" });
     expect(nodes(initial).some(node => node.type === RaceOverviewMap)).toBe(false);
     click(button(initial, "Course map"));
     const map = render();
     expect(nodes(map).find(node => node.type === RaceOverviewMap)?.props.snapshot).toBe(navigation);
-    expect(nodes(map).filter(node => node.type === RaceWindInstrument)).toHaveLength(2);
+    expect(nodes(map).filter(node => node.type === RaceWindInstrument)).toHaveLength(1);
+    expect(nodes(map).find(node => node.type === RaceCornerInstruments)?.props.wind).toBe(windReading);
     expect(nodes(map).some(node => node.type === "ol")).toBe(true);
     expect(text(map)).toContain("Fleet");
-    expect(nodes(map).find(node => node.props["data-testid"] === "race-3d")?.props.children).toBe(props.children);
+    expect(nodes(map).find(node => node.props["data-testid"] === "race-3d")?.props.children).toContain(props.children);
   });
 
   it("records only real map enter/leave transitions, even before rerender and when diagnostics fail", () => {
@@ -122,7 +152,8 @@ describe("authoritative multiplayer map and wind integration", () => {
     click(button(initial, "Course map"));
     const map = render();
     expect(nodes(map).find(node => node.type === RaceOverviewMap)?.props.snapshot).toBe(navigation);
-    expect(nodes(map).filter(node => node.type === RaceWindInstrument)).toHaveLength(2);
+    expect(nodes(map).filter(node => node.type === RaceWindInstrument)).toHaveLength(1);
+    expect(nodes(map).find(node => node.type === RaceCornerInstruments)?.props.wind).toBe(windReading);
     expect(text(map)).toContain("Fleet");
     expect(nodes(map).some(node => node.type === "ol")).toBe(true);
     click(button(map, "Settings"));
@@ -141,7 +172,7 @@ describe("authoritative multiplayer map and wind integration", () => {
     const props = multiProps(); props.phase = "finished"; props.frame = null; props.navigation = null; props.windReading = null;
     props.results = <div data-testid="actual-results" />;
     hooks.cursor = 0; const tree = MultiplayerCockpit(props);
-    expect(nodes(tree).find(node => node.type === RaceWindInstrument)?.props.reading).toBeNull();
+    expect(nodes(tree).find(node => node.type === RaceCornerInstruments)?.props.wind).toBeNull();
     expect(nodes(tree).some(node => node.props["data-testid"] === "actual-results")).toBe(true);
     expect(nodes(tree).some(node => node.type === RaceOverviewMap)).toBe(false);
     expect(nodes(tree).some(node => node.type === "nav")).toBe(false);

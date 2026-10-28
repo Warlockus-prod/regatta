@@ -662,3 +662,80 @@ Trainer numerical parity, real metre/second and turn-radius checks, legacy bot/W
 ### References
 
 `docs/audits/2026-10-25/release62-harness.md`, `src/features/sailing-lab/runtime/session.ts`, `src/lib/race-physics.ts`, `src/lib/race-native.ts`, `src/lib/race-replay.ts`.
+
+## ADR-0012 - Paired learning visuals and bounded completion stages
+
+Date:2026-10-26. Status: accepted for the completion program; a complete Swift engine migration is not approved by this ADR.
+
+### Context
+
+The owner accepted the independent audit, requested clearer realistic learning illustrations alongside schemes, local training without live weather, a visible free-radio transcript, configurable courses/help/judging and recoverable repository cleanup. The installed65 lesson drill also exposed an unsupported native Skia accessibility setter.
+
+### Decision
+
+- Preserve reviewed schemes and add a named Scheme/Picture choice. Generated images illustrate recognizable shape; they never define rigging, force coefficients or passing truth. Arrows/labels use reviewed coordinates and localization outside the raster. An image view is not learning completion.
+- Prioritize full PL/RU/EN acceptance. Keep existing additional locales, stable IDs, saved answers and question truth. Full adaptation of other languages follows separately; Sternik remains Polish.
+- Local synthetic wind is the training default. Remove native trainer live-weather acquisition; multiplayer remains the network-dependent game mode.
+- Keep native accessibility actions on supported native Views, not on a Skia drawing surface without the corresponding setter. Preserve gesture input and accessible adjustment.
+- Treat live multiplayer, replay viewing and a following historical ghost challenge as different activities. A ghost never collides, claims right of way or changes the live player's physics. New comparisons require the same versioned course/model/conditions.
+- Visible radio recognition belongs in a finite session transcript. General diagnostics remain content-free, bounded and separate from recognition/answer text. No automatic upload or audio persistence is introduced.
+- Continue the ordered program with rollback commits and separate source, installed, TestFlight and website evidence. A native SwiftUI shell can later reuse the same offline3D/content and versioned bridge; another physics/rendering implementation needs its own measured justification and migration decision.
+
+### Verification
+
+Follow `docs/audits/2026-10-26/completion-program.md`. First close the real Lesson1 -> drill -> control -> return path on the exact installed release. For learning visuals verify technical meaning, PL/RU/EN labels, accessibility, offline assets and unchanged assessment. For speech verify real recording lifecycle, cancellation, absent models and separation of transcript from diagnostics. Physical race activation remains governed by ADR-0011 and its consumer gates.
+
+
+## ADR-0013 - Actual circular travel constraints for physical fleets
+
+Date:2026-10-27. Status: accepted for implementation in the unwired physical
+engine. Full activation remains blocked by the completion harness.
+
+### Decision
+
+Keep the existing canonical hull/mark envelopes and shared force/helm laws.
+Recover existing overlap within coupled hull, fixed hardware and water
+constraints before travel, with deterministic ID order and a finite projection
+budget. The recovery displacement cannot award a start, rounding or finish.
+A nonconverging or malformed frame returns null without changing its caller.
+
+Run all proposed linear segments on one normalized30Hz tick. Advance to each
+actual swept impact, then stop the involved bodies for the rest of that tick.
+Other boats continue and can encounter a newly stopped hull. Tangential and
+separating travel remains free. This is a conservative circular contact model,
+not a claim of rigid-body yaw, tangential friction or damage simulation.
+
+Preserve ADR-0004's time-based closing-only bump loss, with the same1kn full
+share and1.67decay coefficient. Apply it only to actual closing encounters;
+resting, separating and wall-only constraints do not add repeated slowing.
+No golden sailing-physics constant or legacy/server function changes.
+
+Progress and following recording use the returned recovered-from to actual
+impact-truncated endpoint. The current conservative response never bends that
+travel into a different direction within a tick, so this remains one actual
+straight segment. A future sliding or impulse model needs a piecewise travelled
+path before progression/recording can consume it. Intended paths through a
+cancelled future encounter are not contacts or completed travel.
+
+Keep initial contacts separate from actual within-step impacts. Export owned,
+immutable metric centres/linear velocities at the common impact fraction,
+before any simultaneous body is stopped, plus actual normal closing speed.
+A later impact observes the earlier stopped hull's zero velocity. Initial
+overlap alone has no established impact speed, and truncated endpoint averages
+cannot reconstruct that speed. Wall constraints are not hull/mark encounters.
+This transient evidence adds no fault decision, penalty, journal or recording.
+
+### Verification
+
+Initial overlap, coupled water/committee recovery, no tunnelling, simultaneous
+and later impacts, tangency and escape, unchanged free travel/finished boats,
+actual closing loss, deterministic ordering, bounded rejection and no recovery
+or obstruction gate credit. Keep the18zero-contact baseline, current game-ID/
+difficulty sweep and full unit/source/browser/native gates separate. A failed
+expanded bot deadline remains open; it cannot authorize emission or delivery.
+
+### References
+
+`src/lib/race-physical-response.ts`, `src/lib/race-physical-response.test.ts`,
+`docs/audits/2026-10-27/physical-response-harness.md`,
+`docs/audits/2026-10-26/completion-program.md`.

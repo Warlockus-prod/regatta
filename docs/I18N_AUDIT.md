@@ -1,5 +1,34 @@
 # i18n audit - 7-language status across the app
 
+2026-10-26 corner instruments: `src/features/race-hud/navigation-copy.ts`
+adds two resources/14explicit values for the mini-map visibility setting and
+Open course map action. The compact map and wind reuse the existing canonical
+labels and units. Actual cockpit handler tests switch through all7languages;
+the corner action opens the full map and each localized switch updates the
+same saved boolean. No protocol or Sternik wording changed.
+
+2026-10-26 saved-result list checkpoint: `src/lib/race-record-copy.ts` owns
+the native History/Leaderboard course names, Simple/Pro conditions, result time
+components and unavailable-record wording in all7languages. The historical
+course registry reuses the exact previous28title values from this resource.
+Actual native component tests switch through all7languages, including generic
+unknown titles and canonical conditions; no raw course ID becomes a label.
+Adjusted time means raw sailing time plus penalties within one comparison.
+Installed narrow-screen rendering remains a separate next-candidate G2 gate.
+
+2026-10-26 reader checkpoint: `mobile/src/replay/ReplayUnavailable.tsx` owns
+the shared saved-race notice for replay and Coach. Its five resources have35
+explicit RU/EN/PL/ES/FR/DE/IT values, including Back. Wording describes the
+saved race in either destination and states that history was preserved. Source
+coverage is reviewed; narrow installed rendering remains a native acceptance
+gate. Protocol phrases and the Polish-only Sternik course are unchanged.
+
+The following replay bundle checkpoint moves nine existing label resources to
+`src/app/game/replay-copy.ts`, shared by the full dictionary and replay-only
+hook. All63 locale values remain canonical in one place. Seven-language parity
+tests retain the full dictionary's43 fields and formatter results; this is a
+resource ownership change, with no new or rewritten user-facing copy.
+
 **Date:** 2026-04-24 (post-ES/FR/DE/IT rollout).
 **Stack:** `useI18n()` hook with three call-site helpers:
 - `tl({ ru, en, pl, es, fr, de, it })` - object-based, extensible; preferred for new code.

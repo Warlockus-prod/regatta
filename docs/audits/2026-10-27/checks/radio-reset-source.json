@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-27T04:34:09.655786+00:00",
+  "source": "89ced947ec6bca2580089362211c0ad17e763b8f",
+  "web": {
+    "files": 171,
+    "passed": 1760,
+    "workers": 2,
+    "initialRunAccepted": false,
+    "initialFailure": "3 test timeouts and 1 worker RPC timeout under overlapping local suites. No assertion or timeout changed; sole resource-contention cause is not proven."
+  },
+  "native": {
+    "suites": 79,
+    "passed": 589
+  },
+  "typesLintReleaseTools": "root/native types, changed web lint, full native lint and9release-tool tests pass",
+  "packages": "all three rebuilt/fresh; content twins current; catalog3782/7658 checked",
+  "server": "generated physics and real socket lifecycle pass",
+  "production": {
+    "files": 112,
+    "bytes": 6814872,
+    "limitBytes": 6815744,
+    "passed": true
+  },
+  "logs": {
+    "radio-reset-web.log": "a28b2fb45742540817455924aa58c2743372ea572b9c49f321c30b318440ce72",
+    "radio-reset-web-limited.log": "96c079ac01eb20a90a2532dcbe8f610eaf6e532f4d17667154b1510c8edafcc3",
+    "radio-reset-native.log": "82670513fe7c820c0799854a924e6f3a9f2f8a1e445b2fb51f8e899991715c50",
+    "radio-reset-types.log": "04a7dfdc47fd787fd0eeb4bf85b3c28960fe03a4d9b3a72463dd681b5f003dfc",
+    "radio-reset-packages.log": "631c81fb24ddfde45d95d45941c7f5b9d11bd2e44f5a15ff926d8b38d20c98d5",
+    "radio-reset-aux.log": "2d4f7ed18a48b28483cea13b41ad9662b2d137351272dafb6cb027e747d69975",
+    "radio-reset-build.log": "76d3655203ee2f7f6e4e61a9af1cc7e9c7b4fbbc280b1888fa58ad1e09cac2ed",
+    "radio-reset-budget.log": "fd69654cc2c2be537865df4a2d96456e4ceac1e4804bc9920c0209c68c732b80"
+  },
+  "inputs": {
+    "e2e/offline.spec.ts": "1ed620ce755fe4681d864cba512d67b4ae21e326b348078fcb52d835fe19c779",
+    "src/app/radio/symulator/page.tsx": "1e081e1d3de9c545116403cf094853c9fd75ae60d369c7c3af3fb8dc60599b65",
+    "mobile/assets/radio-offline.html": "9d73e91c083d5e0c2fe8db63c2a48d6619e066dd55ae41e2e35c33c56607178f"
+  },
+  "manualBrowser": "Actual English typed transmission, Reset ->0/8 and empty preview, dock top,390x740. Synthetic text only; no fixed-Date or physical microphone claim from manual view. Viewport restored.",
+  "browserGate": "pending exact cloud run",
+  "installedGate": "pending new exact candidate",
+  "actualMicrophoneAccepted": false,
+  "delivery": false,
+  "physicalEmission": false
+}

@@ -3,13 +3,13 @@ import { DEFAULT_RACE_ASSISTS, isWindDisplay, sanitizeRaceAssists, WIND_DISPLAYS
 
 describe("race visual preferences", () => {
   it("adds a compass to legacy assists without changing the four existing defaults", () => {
-    expect(DEFAULT_RACE_ASSISTS).toEqual({ guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass" });
-    expect(sanitizeRaceAssists({ guidance: false, rules: false, penalties: true })).toEqual({ guidance: false, trimHints: true, rules: false, penalties: true, windDisplay: "compass" });
+    expect(DEFAULT_RACE_ASSISTS).toEqual({ guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true });
+    expect(sanitizeRaceAssists({ guidance: false, rules: false, penalties: true })).toEqual({ guidance: false, trimHints: true, rules: false, penalties: true, windDisplay: "compass", miniMap: true });
   });
 
   it.each(WIND_DISPLAYS)("preserves the closed %s wind style and known boolean values only", windDisplay => {
-    const input = Object.freeze({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay, privatePayload: "PRIVATE", mode: "pro" });
-    expect(sanitizeRaceAssists(input)).toEqual({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay });
+    const input = Object.freeze({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay, miniMap: false, privatePayload: "PRIVATE", mode: "pro" });
+    expect(sanitizeRaceAssists(input)).toEqual({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay, miniMap: false });
     expect(isWindDisplay(windDisplay)).toBe(true);
     expect(input.privatePayload).toBe("PRIVATE");
   });
@@ -23,8 +23,10 @@ describe("race visual preferences", () => {
   });
 
   it("preserves normalized current values on invalid partial updates without leaking an invalid fallback enum", () => {
-    const previous: RaceAssists = { guidance: false, trimHints: false, rules: false, penalties: true, windDisplay: "both" };
+    const previous: RaceAssists = { guidance: false, trimHints: false, rules: false, penalties: true, windDisplay: "both", miniMap: false };
     expect(sanitizeRaceAssists({ windDisplay: "bad", rules: true }, previous)).toEqual({ ...previous, rules: true });
     expect(sanitizeRaceAssists({}, { ...previous, windDisplay: "PRIVATE" } as unknown as RaceAssists).windDisplay).toBe("compass");
+    expect(sanitizeRaceAssists({ miniMap: "true" }, previous).miniMap).toBe(false);
+    expect(sanitizeRaceAssists({ miniMap: "false" }).miniMap).toBe(true);
   });
 });

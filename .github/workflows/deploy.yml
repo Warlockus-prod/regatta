@@ -98,7 +98,7 @@ jobs:
           # Excludes the AI chat test (needs a live LLM key -
           # covered post-deploy on prod) and multiplayer.spec (needs the ws
           # server + prod nginx /ws upgrade, also covered post-deploy).
-          # The two independent map/wind journeys make 69 selected cases.
+          # Saved mode and two corner-instrument journeys join map/wind: 72 cases.
           npx playwright test e2e/smoke.spec.ts e2e/foundation.spec.ts e2e/sailing-learning.spec.ts e2e/replay.spec.ts e2e/race-navigation.spec.ts e2e/trainer-controls.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
           RESULT=$?
           set -e

@@ -2,9 +2,9 @@
  * Local leaderboard screen.
  *
  * Sprint 11: replaces the Phase-3 PlaceholderScreen with a real list
- * built from the on-device race history. The user's personal best per
- * course heads each course slot; "All" shows the overall PB across
- * every course, sorted highest score first.
+ * built from the on-device race history. Historical course PBs retain
+ * their score-first section. Registered comparisons have independent
+ * adjusted-time PBs; unavailable records remain visible without a rank.
  *
  * Filters live above the list as two pill rows:
  *   - course: All / Short / Medium / Long
@@ -31,9 +31,6 @@ import {
   Text,
 } from '../../src/design-system/components';
 import {
-  bestPerCourse,
-  filterByCourse,
-  filterByPeriod,
   relativeDate,
   scoreTier,
   type LeaderboardCourseFilter,
@@ -41,7 +38,10 @@ import {
   type ScoreTier,
 } from '../../src/leaderboard/local';
 import { useRaceHistory, type RaceRecord } from '../../src/persistence/race-history';
-import { findCourse } from '../../src/game/course';
+import { projectNativeRaceRecords, selectNativeRaceBests } from '../../src/leaderboard/race-records';
+import type { NativeRaceRecordProjection } from '../../src/persistence/race-record-presentation';
+import { raceRecordTitle, RACE_RECORD_COPY, raceRecordConditions, formatSavedRaceTime } from '../../../src/lib/race-record-copy';
+import { RaceRecordDetails } from '../../src/components/RaceRecordDetails';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 import type { Lang } from '../../src/i18n/languages';
 import {
@@ -70,6 +70,7 @@ export default function Leaderboard() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const history = useRaceHistory();
+  const projected = useMemo(() => projectNativeRaceRecords(history.races), [history.races]);
   const [courseFilter, setCourseFilter] = useState<LeaderboardCourseFilter>('all');
   const [periodFilter, setPeriodFilter] = useState<LeaderboardPeriodFilter>('all');
 
@@ -295,17 +296,14 @@ export default function Leaderboard() {
   const retryLabel = tp('Повторить', 'Retry', 'Ponów', { es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' });
   const anonLabel = tp('Аноним', 'Anon', 'Anonim', { es: 'Anónimo', fr: 'Anonyme', de: 'Anonym', it: 'Anonimo' });
 
-  const rows = useMemo(() => {
-    const filteredByCourse = filterByCourse(history.races, courseFilter);
-    const filteredByPeriod = filterByPeriod(filteredByCourse, periodFilter);
-    return bestPerCourse(filteredByPeriod);
-  }, [history.races, courseFilter, periodFilter]);
+  const groups = useMemo(() => selectNativeRaceBests(projected, courseFilter, periodFilter), [projected, courseFilter, periodFilter]);
+  const rowCount = groups.historical.length + groups.classified.length + groups.unavailable.length;
 
   const courseFilters: LeaderboardCourseFilter[] = ['all', 'short', 'medium', 'long'];
   const periodFilters: LeaderboardPeriodFilter[] = ['all', 'week', 'today'];
 
   const showEmptyAll = history.ready && history.races.length === 0;
-  const showEmptyFiltered = history.ready && history.races.length > 0 && rows.length === 0;
+  const showEmptyFiltered = history.ready && history.races.length > 0 && rowCount === 0;
   const filtersActive = courseFilter !== 'all' || periodFilter !== 'all';
 
   return (
@@ -385,18 +383,31 @@ export default function Leaderboard() {
               />
             ) : null}
 
-            {rows.map((race, idx) => (
+            {groups.historical.length > 0 ? <Text variant="subtitle">{RACE_RECORD_COPY.historicalHeading[lang]}</Text> : null}
+            {groups.historical.map(({ race, projection }, idx) => (
               <LeaderboardRow
                 key={race.id}
                 rank={idx + 1}
                 race={race}
-                tp={tp}
+                projection={projection}
                 lang={lang}
                 personalBestLabel={personalBestLabel}
                 timeLabel={timeLabel}
                 scoreLabel={scoreLabel}
                 onPress={() => router.push(`/replay/${encodeURIComponent(race.id)}`)}
               />
+            ))}
+            {groups.classified.length > 0 ? <Text variant="subtitle">{RACE_RECORD_COPY.classifiedHeading[lang]}</Text> : null}
+            {groups.classified.map(({ race, projection }) => (
+              <LeaderboardRow key={race.id} race={race} projection={projection} lang={lang}
+                personalBestLabel={personalBestLabel} timeLabel={timeLabel} scoreLabel={scoreLabel}
+                onPress={() => router.push(`/replay/${encodeURIComponent(race.id)}`)} />
+            ))}
+            {groups.unavailable.length > 0 ? <Text variant="subtitle">{RACE_RECORD_COPY.unavailableHeading[lang]}</Text> : null}
+            {groups.unavailable.map(({ race, projection }) => (
+              <LeaderboardRow key={race.id} race={race} projection={projection} lang={lang}
+                personalBestLabel={personalBestLabel} timeLabel={timeLabel} scoreLabel={scoreLabel}
+                onPress={() => router.push(`/replay/${encodeURIComponent(race.id)}`)} />
             ))}
           </>
         ) : (
@@ -466,9 +477,9 @@ export default function Leaderboard() {
 }
 
 interface LeaderboardRowProps {
-  rank: number;
+  rank?: number;
   race: RaceRecord;
-  tp: ReturnType<typeof useI18n>['tp'];
+  projection: NativeRaceRecordProjection;
   lang: Lang;
   personalBestLabel: string;
   timeLabel: string;
@@ -479,42 +490,45 @@ interface LeaderboardRowProps {
 function LeaderboardRow({
   rank,
   race,
-  tp,
+  projection,
   lang,
   personalBestLabel,
   timeLabel,
   scoreLabel,
   onPress,
 }: LeaderboardRowProps) {
-  const course = findCourse(race.courseId);
-  const courseTitle = course.title(tp);
+  const courseTitle = raceRecordTitle(projection.title, lang);
   const tier = scoreTier(race.score);
   const tierColor = SCORE_TIER_COLOR[tier];
   const date = relativeDate(race.finishedAt, lang);
+  const label = projection.kind === 'classified'
+    ? `${courseTitle}, ${raceRecordConditions(projection.comparison, lang)}, ${RACE_RECORD_COPY.adjusted[lang]} ${formatSavedRaceTime(projection.adjustedTimeSec)}`
+    : projection.kind === 'unavailable' ? courseTitle : `#${rank} ${courseTitle}, ${formatTime(race.timeSec)}, ${race.score}`;
 
   return (
     <Card
       onPress={onPress}
       style={styles.row}
-      accessibilityLabel={`#${rank} ${courseTitle}, ${formatTime(race.timeSec)}, ${race.score}`}
+      accessibilityLabel={label}
     >
       <View style={styles.rowHeader}>
-        <View style={styles.rankBlock}>
+        {rank !== undefined ? <View style={styles.rankBlock}>
           <Text style={styles.rank}>{`#${rank}`}</Text>
-        </View>
+        </View> : null}
         <View style={styles.titleBlock}>
-          <Text variant="subtitle" style={styles.courseTitle} numberOfLines={1}>
+          <Text variant="subtitle" style={styles.courseTitle}>
             {courseTitle}
           </Text>
           <Text variant="muted" style={styles.dateText}>
             {date}
           </Text>
         </View>
-        <View style={styles.pbPill}>
+        {projection.kind !== 'unavailable' ? <View style={styles.pbPill}>
           <Text style={styles.pbPillText}>{personalBestLabel.toUpperCase()}</Text>
-        </View>
+        </View> : null}
       </View>
-      <View style={styles.statsRow}>
+      <RaceRecordDetails projection={projection} lang={lang} />
+      {projection.kind !== 'classified' && projection.kind !== 'unavailable' ? <View style={styles.statsRow}>
         <View style={styles.statCell}>
           <Text style={styles.statLabel}>{timeLabel.toUpperCase()}</Text>
           <Text style={styles.statValue}>{formatTime(race.timeSec)}</Text>
@@ -523,7 +537,7 @@ function LeaderboardRow({
           <Text style={styles.statLabel}>{scoreLabel.toUpperCase()}</Text>
           <Text style={[styles.statValue, { color: tierColor }]}>{race.score}</Text>
         </View>
-      </View>
+      </View> : null}
     </Card>
   );
 }
@@ -638,6 +652,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radii.pill,

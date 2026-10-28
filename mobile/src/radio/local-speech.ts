@@ -1,7 +1,11 @@
 import type * as Speech from "expo-speech";
 import type { ExpoSpeechRecognitionModuleType } from "expo-speech-recognition/build/ExpoSpeechRecognitionModule.types";
+import type { DiagnosticInput } from "../../../src/lib/diagnostics";
 
-type Recognition = ExpoSpeechRecognitionModuleType;
+export type LocalRadioRecognition = ExpoSpeechRecognitionModuleType & {
+  /** Added by the checked SDK54 prebuild plugin. Absent in older binaries. */
+  regattaOnDeviceRecognitionAvailable?: (locale: string) => boolean;
+};
 type SpeechEngine = Pick<typeof Speech, "speak" | "stop" | "getAvailableVoicesAsync">;
 type Detail = Record<string, string | boolean | number | undefined>;
 const locales: Record<string, string> = { en: "en-GB", ru: "ru-RU", pl: "pl-PL", es: "es-ES", fr: "fr-FR", de: "de-DE", it: "it-IT" };
@@ -11,11 +15,12 @@ const finite = (value: unknown, min: number, max: number): value is number => ty
 const sameLanguage = (a: string, b: string) => a.replaceAll("_", "-").toLowerCase() === b.toLowerCase();
 
 /** Only bounded local activity messages reach system speech. No HTTP or audio files. */
-export function createLocalRadioSpeech({ speech, recognition, platform, send }: {
+export function createLocalRadioSpeech({ speech, recognition, platform, send, record }: {
   speech: SpeechEngine;
-  recognition: Recognition | null;
+  recognition: LocalRadioRecognition | null;
   platform: "ios" | "android" | string;
   send: (event: "regatta:radio-speech" | "regatta:radio-asr", detail: Detail) => void;
+  record?: (event: DiagnosticInput) => unknown;
 }) {
   let disposed = false;
   let generation = 0;
@@ -25,7 +30,25 @@ export function createLocalRadioSpeech({ speech, recognition, platform, send }: 
   let finishClosing: (() => void) | null = null;
   let abortTimedOut = false;
   const postSpeech = (id: string, status: string, code?: string) => { if (!disposed) send("regatta:radio-speech", { id, status, code }); };
-  const postAsr = (id: string, status: string, extra: Detail = {}) => { if (!disposed) send("regatta:radio-asr", { id, status, ...extra }); };
+  const logAsr = (event: Omit<Extract<DiagnosticInput, { type: "radio.speech" }>, "type" | "surface" | "input" | "source">) => {
+    try { record?.({ type: "radio.speech", surface: "radio", input: "voice", source: "native", ...event }); }
+    catch { /* Diagnostics cannot control recording or expose native errors. */ }
+  };
+  const postAsr = (id: string, status: string, extra: Detail = {}) => {
+    if (disposed) return;
+    if (status === "availability") logAsr({ action: "availability", available: extra.available === true, outcome: "accepted",
+      ...(extra.available === true ? {} : { reason: !recognition || platform === "ios" && !recognition.regattaOnDeviceRecognitionAvailable ? "unsupported" : "model-unavailable" }) });
+    else if (status === "started") logAsr({ action: "started", outcome: "accepted" });
+    else if (status === "end") logAsr({ action: "result", status: typeof extra.transcript === "string" && extra.transcript.trim() ? "recognized" : "silent",
+      outcome: typeof extra.transcript === "string" && extra.transcript.trim() ? "accepted" : "noop" });
+    else if (status === "error") {
+      const code = extra.code;
+      logAsr({ action: code === "cancelled" ? "cancel" : "result", outcome: code === "cancelled" || code === "no-speech" ? "noop" : "failed",
+        status: code === "cancelled" ? "cancelled" : code === "no-speech" ? "silent" : code === "permission-denied" ? "denied" : code === "model-unavailable" ? "unavailable" : "error",
+        reason: code === "permission-denied" ? "permission" : code === "model-unavailable" ? "model-unavailable" : code === "speech-timeout" ? "timeout" : code === "cancelled" ? "cancelled" : "unknown" });
+    }
+    send("regatta:radio-asr", { id, status, ...extra });
+  };
   function stopSpeech(code = "cancelled") {
     const old = spoken; spoken = null;
     if (old) { clearTimeout(old.timeout); postSpeech(old.id, "error", code); }
@@ -43,13 +66,22 @@ export function createLocalRadioSpeech({ speech, recognition, platform, send }: 
     }
   }
   async function availability(lang: string) {
-    if (abortTimedOut || !recognition || !recognition.isRecognitionAvailable() || !recognition.supportsOnDeviceRecognition()) return null;
+    if (abortTimedOut || !recognition) return null;
+    // The SDK's iOS no-argument checks create a recognizer for the phone's
+    // default locale. They cannot decide whether requested English works.
+    if (platform === "ios" ? typeof recognition.regattaOnDeviceRecognitionAvailable !== "function"
+      : !recognition.isRecognitionAvailable() || !recognition.supportsOnDeviceRecognition()) return null;
     const supported = await recognition.getSupportedLocales({});
     // iOS reports supported, not downloaded locales. Only a native start event
     // confirms readiness; a missing model must fail locally, never use a server.
     const candidates = platform === "android" ? supported.installedLocales : supported.locales;
-    return candidates.find(value => sameLanguage(value, lang))?.replaceAll("_", "-")
-      ?? candidates.find(value => value.split(/[-_]/)[0].toLowerCase() === lang.split("-")[0].toLowerCase())?.replaceAll("_", "-") ?? null;
+    const matching = [...candidates.filter(value => sameLanguage(value, lang)),
+      ...candidates.filter(value => !sameLanguage(value, lang) && value.split(/[-_]/)[0].toLowerCase() === lang.split("-")[0].toLowerCase())];
+    for (const value of matching) {
+      const locale = value.replaceAll("_", "-");
+      if (platform !== "ios" || recognition.regattaOnDeviceRecognitionAvailable!(locale) === true) return locale;
+    }
+    return null;
   }
   function stopAsr() {
     const current = listening;
@@ -130,6 +162,7 @@ export function createLocalRadioSpeech({ speech, recognition, platform, send }: 
       if (!locale || !recognition) { cancelAsr("model-unavailable"); return; }
       const current = await recognition.getMicrophonePermissionsAsync();
       if (disposed || listening?.ticket !== ticket) return;
+      if (!current.granted && current.canAskAgain) logAsr({ action: "request", outcome: "accepted", reason: "permission" });
       const permission = current.granted ? current : current.canAskAgain ? await recognition.requestMicrophonePermissionsAsync() : current;
       if (disposed || listening?.ticket !== ticket) return;
       if (!permission.granted) { cancelAsr("permission-denied"); return; }
@@ -158,12 +191,13 @@ export function createLocalRadioSpeech({ speech, recognition, platform, send }: 
       if (id === listening?.id) cancelAsr();
     } else if (data.action === "stop") {
       if (id === listening?.id) {
+        logAsr({ action: "release", outcome: "accepted" });
         stopAsr();
       }
     } else {
       const lang = language(data.lang);
       if (!lang || !["availability", "start"].includes(String(data.action))) { postAsr(id, "error", { code: "invalid-request" }); return true; }
-      if (data.action === "start") void start(id, lang);
+      if (data.action === "start") { logAsr({ action: "request", outcome: "accepted" }); void start(id, lang); }
       else void availability(lang).then(locale => postAsr(id, "availability", { available: Boolean(locale), locale: locale ?? undefined, code: locale ? "on-device-supported" : "model-unavailable" })).catch(() => postAsr(id, "availability", { available: false, code: "model-unavailable" }));
     }
     return true;

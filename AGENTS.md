@@ -7,46 +7,25 @@
 
 ## Current completion work
 
-- MAIN64 prepublication onb459ecc stopped before image publication:67passed and the combined Map/wind case exhausted120s despite passing map containment and showing an advancing clock. SITE now separates Map/Fleet/clock from wind styles/Helm/preferences, each with real25s startup,15s clock and120s total. All assertions/five geometry samples remain; the same eight-file loopback gate now selects69cases. No runtime or native source changes. Proof: `docs/audits/2026-10-25/checks/website64-prepublication-main.json`.
-
-- Candidate64 source1543 was never uploaded: native G2 found the initial map extended below its dock. Its archive/IPA/Simulator and proofs are preserved externally. The panel-relative SVG/caption correction has actual four-viewport browser evidence; freeze fresh assets/source and repeat exact native/delivery gates. See `docs/audits/2026-10-25/release64-harness.md`.
-
-- SITE integrates frozen Map-fit APPef180df after1543d825, retaining0198d63 and7d87bf3 trainer contracts. Prepublication now includes the existing trainer-controls suite alongside the real map/wind case; the combined68-case gate must pass before another publication. Website63's red production evidence stays historical and does not become green through this source merge.
-- Its first68-case run on3fefb602 passed67first-attempt plus1flaky drawer geometry sample while Loading yacht was visible. Both3D drawer cases now share their existing25s startup deadline with actual first-frame readiness before box reads;60s totals,1px bounds and drawer actions are unchanged. This local correction still needs the next combined gate and native Map-fit acceptance.
-
-- Website63 is published and healthy at b75c1e4, but its final production browser gate has2failures and1flaky case. `docs/audits/2026-10-25/checks/website63-production.json` separates the real multiplayer slider-name defect from the Diagnostics occupied-content and first-frame test contracts. The multiplayer assertion stays strict; its source correction belongs to the following64 candidate. Local test corrections do not prove a green production rerun.
-
-- Active64 map/wind/settings presentation follows `docs/audits/2026-10-25/release64-harness.md`. Preserve actual course/wind truth, native visual preferences, reserved boat space and diagnostic privacy. No new physics, live weather service or physical race emission belongs to this slice.
-
-- SITE prepublication after the delivery snapshot: all 60 browser cases passed first attempt on c8ae4ef, with actual scene-ready, clock progression and canonical Pro evidence. `docs/audits/2026-10-25/checks/website63-prepublication.json` owns this portable proof. It does not claim website publication or full 65-item closure; APP 64 implementation is excluded from this site candidate.
-
-- Delivered63 is immutable source88fdaac, tag testflight-1.7.0-63. Independent ASC GET21:53:34.798UTC confirms exact Self VALID/IN_BETA_TESTING and8notes match21:53:34.514UTC. Actual DIAL and bounded local diagnostics: `docs/design/mobile/testflight63-2026-10-25.md`. Current65row evidence: `docs/audits/2026-10-25/acceptance63.md`. Next owner-authorized64 adds live map, wind compass/3Darrow choices and an actual shared gear icon, without changing physics or enabling physical race emission. Dated candidate notes below remain history, not current delivery status.
-
-- Rapid native DIAL taps additionally cancel the local non-passive touchstart default, while pointer events remain the sole gesture owner and Inspect keeps its click. The verified00ea archive/simulator are preserved as another never-uploaded candidate; exact native acceptance must repeat.
-
-- Installed63 QA found an iOS selection callout over radio captions during a long hold. The hardware stage now suppresses selection/callouts/contextmenu; teaching text and diagnostics retain copy. Source6aaa110 archive/export is preserved as a superseded, never-uploaded candidate. Freeze/rebuild exact corrected source before delivery.
-
-- Candidate63 adds actual rotary DIAL input and bounded local diagnostics. `docs/audits/2026-10-25/diagnostics63.md` owns the integration/coverage limits. Native journals are authoritative in AsyncStorage; embedded web journals stay in memory so Clear all cannot revive WebKit history. Diagnostic batches are append-only, finite, private-content-free and never commands. Native/ASC acceptance still follows the release harness.
-
-- Active63 reopened for the owner's finger-rotated DIAL, visible moving index, mandatory web arrows and a bounded local diagnostic journal across radio/controls/embedded startup/navigation. The first1b92567 archive passed33checks but was not exported/uploaded; it is preserved externally as native-archive63-1b92567. Source/new native acceptance must freeze again before any delivery.
-- Active63 UI/SRC checkpoint: `docs/audits/2026-10-25/release63-harness.md`. Radio status gets a reserved compact row, real guide strings omitted by the scanner get all7 adaptations, guided Back copy matches its existing route, Foundation gutters and neutral Sternik information are aligned. This is not a delivered binary until exact native/ASC gates. Physical API foundationa01c31a is committed but new racing motion/emission remains disabled.
-
-- Following physical-course work starts with a pure API/kinematics checkpoint under `docs/audits/2026-10-25/physical-courses-next.md`. Its registry alone is not a playable physical race. Keep versioned metadata, PB/replay/native/server classes ahead of any new result emission; multiplayer/no-context engine defaults remain legacy. Delivered62 still refers only to sourcee3d70a1.
-
-- Delivered checkpoint62: urgent SRC startup compatibility for the retired language key saved by released48/49, preserving progress. `docs/audits/2026-10-25/release62-harness.md` includes bounded startup diagnostics plus the committed foreground clock/lifecycle and slider names. Physical short/medium/long courses (ADR-0011) move to a following checkpoint; no new physical result may be emitted before metadata/PB/global-class compatibility. Native61 remains immutable;62 is pinned at e3d70a1/tag testflight-1.7.0-62. Independent ASC GET17:09:17UTC confirms Self IN_BETA_TESTING and8notes. Current full65 matrix: `docs/audits/2026-10-25/acceptance62.md`; ordered following physical-course plan: `docs/audits/2026-10-25/physical-courses-next.md`; release proof: `docs/design/mobile/testflight62-2026-10-25.md`.
-
-- Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 from37c7079 was delivered to exact Self at2026-10-25 15:35:51UTC, VALID/IN_BETA_TESTING with8notes. `docs/audits/2026-10-25/acceptance61.md` records all65 current statuses. Website pre-deploy browser gate blocked publication; checkpoint62 repairs radio upgrades and includes the foreground low-FPS clock fix. Owner-approved physical short/long courses remain a separate following stage.
-
-- 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `docs/audits/2026-10-24/design-proposal.md`.
-- Website runtime62 is published as72b4f57 and healthy, but final production browser gate has3failures. `docs/audits/2026-10-25/checks/website62-runtime-gate.json` separates immutable image/runtime proof, bounded manual UI and failed test contracts. Correct the compact learning/replay expectations and measured MP test budget; do not count this as full acceptance.
-- App branch `codex/app-1.7.0-completion`, site branch `codex/site-1.7.0-sync`. Shared engine, content and scenes stay in one repository. Do not discard historical dirty root work.
-- New installations default to shared wheel controls; saved slider choices are preserved. The historical /design-v3 review entry returns404 in this release branch; reviewed source/assets and the protected root checkout remain preserved.
-- Free trim opens in 3D; instructional presets and explicit saved checkpoint views retain their own camera. Solo route advice keeps independent tack/recovery memory and never steers the boat or advances its gates.
-- One offline bundled 3D solo race replaces the flat native entry; simple auto-trim and manual Pro use the same trainer wheels. Multiplayer needs the network. Keep old saved race records readable.
-- Offline SRC speech uses device voices and strict on-device recognition through the checked SDK54 prebuild plugin; absent models expose typed practice. See `mobile/src/radio/README.md`.
-- Native Sternik theory, tests, exams and typed oral practice use the installed Polish package. SRC and Sternik snapshots become authoritative only after durable storage; preserve first-use WebKit migration and Clear all data semantics.
-- Basics and Anatomy are also bundle-first, with their simplified native recovery screens retained.
-- SRC adapts to seven languages, including explicit theory section headings. Its weak-spots panel and Reset are scoped to SRC and preserve saved Sternik oral mistakes. Sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
+- Current owner-report reconciliation keeps65IDs/F01-F15/all11feedback and adds five fresh acf production-web screens, explicit Gallery/weather/Ask network exceptions and a bounded IT->RU skip-link observation. Delivered69 has no new day theme; D8 is the last compiled/partially installed70, rejected on T05. The overall program remains open.
+- HEADacf0415d3687a4d50b5b14bdc4c9dc654970d820 passes generated22 after prebuild. Its Release Simulator compile was deliberately stopped18:08UTC/exit75 before a fifth Foundation footer correction, not a compiler failure or package PASS. That correction remains in the working tree;614native/82suites/types/lint passed18:21:35UTC. A new freeze/package/installed acceptance is required. Exact non-main predeploy40741168924 was IN_PROGRESS at18:23:08UTC; push/PR CI40741090514/40741103322 passed separately. No new package/G2/archive/upload/Apple acceptance exists. Keep old D8/acf artifacts separate from the prepared native-release70-outline-followup pipeline.
+- New P10/N05 followup changes four known contextual returns to dismissTo, preserving ordinary practice push and global ActivityBack. Exact D8 clean27 reproduces T05: sail lesson3 and Foundation lesson1 return to step3, but the next Back reopens Trainer. D8 fails this G2 path. New source passes613native/1827web/types/lints and94/94first-attempt local browser cases in620.659s; a new installed package/cloud are still required. The e2e observer uses bounded passive rings instead of per-stage layout probes, preserving173assertions/53actions/deadlines. This does not prove the cloud delay cause. New private outputs live in native-release70-back-followup; prior D8 evidence stays immutable.
+- Current P10 frozen source d8dbca3 passes1827web/608native/types/lints/sockets,4targeted and94/94first-attempt local browser cases, generated22 and compiled Release Simulator43. All121frozen/installed files match. Direct48->70 on a new owned iOS27 QA preserves all6old records before launch, EN/1of8 after launch and cold return. Day Trainer/Radio/Pro orbit/manual jib/map/Back are observed. Separate clean27 confirms first lesson/real3D/return/cold practice-resume and Simple helm response. Exact cloud40728700280 FAILED92/94: Simple/Pro journeys each time out120s on all3attempts; other92first-pass. Delay cause remains unproven. Full G2/delivery remain open; no70archive/upload/Apple writes. Chunks headroom25423bytes. `docs/audits/2026-10-28/cockpit-navigation-harness.md` owns evidence.
+- Owner report `docs/audits/2026-10-28/completion-status.md` preserves all65IDs/F01-F15 and all11TestFlight feedback themes. Ten exact native70 images and ten numbered installed steps separate observed improvements from delivered69 and full acceptance. Different motion/rig/default helm, moving enlarged-control positions, repeated setup, full teaching/outcome logs and phone gates remain open. Physical fleet is unwired/emission OFF. One immediate mode AX lag was not sustained in cold/reverse checks; do not call it proven data loss or a repaired bug.
+- Previous25baff1 is a frozen never-uploaded checkpoint: local94/native43 and directSE26 progress proof stay separate. Exact cloud40715540679 failed90/94 with an ES label clip and three journey timeouts; D8 wraps labels and batches independent reads with unchanged assertions/deadlines. Clone RU26 comparisons were invalid: copied FrontBoard/simctl paths referred to original QA data, where all6records remained. Test actions changed original QA through that alias; do not claim its data unchanged. Mandatory App+Data ownership checks precede reads/launch/UI and follow install; use new direct QA, not clones. Full G2 remains open.
+- Delivered1.7.0(69) is immutable source2ea498b/tagtestflight-1.7.0-69. Independent Apple GET11:12:04.727UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match11:12:07.755UTC, writes0. `docs/design/mobile/testflight69-2026-10-27.md` owns delivery and `docs/audits/2026-10-27/acceptance69.md` the qualified delta to the65-ID baseline. Manual radio/Reset/PTT/microphone acceptance remains with the owner in TestFlight. Physical emission OFF; no website/public submission.
+- `docs/audits/2026-10-26/completion-program.md` owns the ordered P00-P12 work. App completion is primary; Ads/eSail remain background extras. Source checks, installed acceptance, TestFlight and website publication are separate states.
+- Owner instruction2026-10-27 transfers manual radio interaction/Reset/PTT/microphone acceptance from Simulator to the owner's live TestFlight test. Do not block this beta on Device Hub or mark those checks passed. `docs/audits/2026-10-27/release69-owner-beta.md` owns the exception and unchanged build/Apple gates. Native recognition gets independent content-free lifecycle logs; copied support reports include version/build and a canonical `journal`.
+- Rollback1.7.0(68) stays immutable at sourcef7e7ed2/tagtestflight-1.7.0-68, with independent Self VALID/IN_BETA_TESTING and eight-note proof. `docs/design/mobile/testflight68-2026-10-27.md` and `docs/audits/2026-10-26/acceptance68.md` own that delivery and its65-ID baseline.
+- Current P04 local source adds owned metric impact evidence to the copied30Hz fleet, actual circular response and recovery-free progress. `docs/audits/2026-10-27/physical-response-harness.md` and `docs/audits/2026-10-27/checks/physical-impact-evidence-source.json` bind113targeted/1793web/589native checks. The preceding exacte414proof retains90specified full-fleet finishes, zero mark-contact cases and15moving early hard hull-contact cases; it is not a new90-case run. The API is unwired and emission OFF; human advice/Pro, arbitrary recoveries, actual judging, recording/finish-clear phases, consumer and installed gates remain mandatory.
+- Exacte414 passes push/PR CI and82first-attempt predeploy browser cases; `docs/audits/2026-10-27/checks/physical-bot-stability-browser-e414.json` owns the digest-verified report. This preserved-UI gate does not play the unwired physical fleet or authorize delivery.
+- P07 source89has monotonic private-session reset. Frozen916 PL native confirms typed Add/Clear/Exit and unavailable PTT; retained89 confirms nonempty typed Add and Exit, with121matching installed files each. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the qualified scope. Native89reset and actual microphone/model recognition remain unaccepted; the old manual typing request is superseded.
+- P07b9fdd85 fixes the iOS default-phone-locale capability gate with a checked selected-locale probe.1793web/596native and the exact Release Simulator compile pass;31package checks,121installed hashes and16preserved prior keys pass on retained26.5. Device Hub reads then timed out, so actual new-probe UI response/Reset/microphone remain open. Older binaries fail closed to typing; frozen89/916 are preserved. `docs/audits/2026-10-27/checks/radio-locale-native-b9.json` owns the qualified install proof.
+- Candidate69f4 remains a never-uploaded startup failure. Later installed8e/f3observations produced real frames and asset/decode/model callbacks, not a proven repaired cause or complete release acceptance. `docs/audits/2026-10-27/scene-startup-harness.md` preserves those cold-start limits. Current69 is an owner-authorized beta with explicitly qualified installed acceptance, not a claim that the old cause or full native matrix is resolved.
+- P01local-wind/Skia, limited P02first-lesson/Picture pilot and P03durable PB/replay are delivered66/67/68 checkpoints, not full-program closure. Remaining actual outcome logging is tracked by `docs/audits/2026-10-26/diagnostics-followup.md`; defining event schemas never proves integration coverage.
+- Work in NEXT on codex/app-next-physical. Keep SITE5df0ee5, frozen APP64 and the protected dirty root separate; do not mutate or archive them.50inactive contained local heads have52verified recovery refs;18uncontained/active/remote branches stay preserved. `docs/audits/2026-10-26/checks/local-branch-archive.json` owns the cleanup manifest.
+- Settings Ads is only a local camera/placement preview. No SDK/provider is configured and ad requests stay OFF. `docs/design/mobile/ads-lab.md` owns this scope. eSail observations do not close any main-program gate.
+- Older detailed checkpoint statements live in `docs/audits/2026-10-27/completion-checkpoint-history.md` and `docs/audits/2026-10-26/completion-history-before-program.md`. They remain historical and cannot promote an old source/browser/native observation into current delivery.
 
 ## Что это
 
@@ -59,8 +38,10 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(63), группа Self.
-  Source88fdaac, VALID/IN_BETA_TESTING,8notes проверены21:53:34UTC; `docs/design/mobile/testflight63-2026-10-25.md`.
+  TestFlight1.7.0(69), группа Self: source2ea498b,
+  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-27 11:12UTC;
+  `docs/design/mobile/testflight69-2026-10-27.md`. Публичная1.6.4(48)
+  остается отдельно от TestFlight.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
   Сборка 59 отклонена Apple при импорте, не распространялась. Описание
@@ -196,13 +177,13 @@ npm run dev -- --port 3007   # другой порт (нужно для ворк
 ```
 npx tsc --noEmit             # должно быть чисто
 npm run build                # прод-сборка Turbopack строже dev
-npm run test:physics         # 60 тестов, 7 файлов
+npm run test:physics         # общая физика и совместимость серверного движка
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 871 тест, 80 файлов
+npx vitest run               # все веб-юнит-тесты, текущие числа в harness
 npm run test:multiplayer     # живой ws-server: жизненный цикл сокетов
-npx playwright test          # 44 теста, 7 файлов (BASE_URL задает цель)
+npx playwright test          # все browser-сценарии (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
 ```
@@ -281,6 +262,13 @@ npm run check:map            # карта проекта актуальна
   `ARCHITECTURE.md` раздел 6 и `docs/OPS.md`.
 
 ### Релиз мобильного приложения (обязательный гейт)
+
+Перед чтением storage, launch или UI Simulator сверять оба App/Data пути с
+точным UUID запрошенного устройства, включая resolved path. Повторять после
+install/clone/restore. Stale absolute URL клона на оригинал блокирует проверку;
+использовать новое прямое QA, не работать с оригиналом по ошибочному alias.
+Снимок без provenance пути не доказывает принадлежность данных устройству.
+
 
 Перед ЛЮБОЙ отправкой в App Store пройти гейт из
 `docs/design/mobile/RELEASE_CHECKLIST.md`. Ни один пункт не может быть красным.

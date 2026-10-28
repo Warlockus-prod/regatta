@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-27T03:59:37.288189+00:00",
+  "source": "916a9ea69bc06bfcbb0f7848691b7a9936cf0b83",
+  "build": 69,
+  "device": "F2F73F07-9104-42EB-B86B-E6DA2325CADF",
+  "runtime": "iOS27 Simulator",
+  "packageChecks": "31/31",
+  "packageFiles": 121,
+  "allFilesMatch": true,
+  "preservedStorageKeysBeforeLaunch": 4,
+  "allStoragePreservedBeforeLaunch": true,
+  "observed": [
+    "Native Home opens",
+    "Training -> bundled radio opens",
+    "New Polish free-speech panel is mounted under the preserved radio",
+    "Task dock scrolls independently",
+    "Exit returns to native Training",
+    "Repeat entry opens the bundled radio again"
+  ],
+  "dialHoldAccepted": false,
+  "nativeTypedJourneyAccepted": false,
+  "nativeAsrJourneyAccepted": false,
+  "physicalMicrophoneAccepted": false,
+  "fullNativeAcceptance": false,
+  "delivery": false,
+  "appleWrites": 0,
+  "physicalEmission": false,
+  "qualification": "Mac input attempts were recorded as actual short taps with power-off rejection, not a long hold. Keyboard forwarding did not activate the dial. Do not claim a broken physical dial or a passing voice walkthrough from these attempts. A manual hold request is pending; independent primary engine work continues.",
+  "privateEvidence": {
+    "simulator916-verification.json": "4cbb716dd469a76d44e32bb78345df0ece4b2bcbf2ed2364f89ea8edcd171ed4",
+    "install-official916.json": "e5018a5222b4969959c0b6b00165ee3a7337ec1e74c16dbd4ee8fde026ba7b0d",
+    "radio916-entry27.jpg": "a36baa046e052fbd12495633361ba410ca3d443aa66a4c682752b371d19fa484",
+    "radio916-keyhold-journal-private.json": "9ebf185626108a78eddbc4f4af737b76a7253c84808a63154096f96e9fdd73c7"
+  }
+}

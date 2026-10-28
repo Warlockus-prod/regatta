@@ -16,6 +16,7 @@ jest.mock("react-native-webview", () => {
 });
 
 import { LocalCourseWebView } from "../src/course/LocalCourseWebView";
+import { APP_EMBED_THEME_SCRIPT } from "../src/design-system/embedded-theme";
 import { loadLocalCourseHtml } from "../src/course/local-course-asset";
 import { ANALYTICS_CONSENT_KEY, WEB_NO_ANALYTICS_SCRIPT, useAnalyticsConsent } from "../src/persistence/analytics-consent";
 import { parseSternikEntries, persistSternikEntries, readSternikEntries, sternikBootstrap, sternikHref, sternikStorageEvent, STERNIK_MESSAGE_LIMIT, STERNIK_STORAGE_KEY } from "../src/persistence/sternik-storage";
@@ -57,6 +58,8 @@ it("loads packaged HTML with the legacy origin, consent and PL bootstrap, and ro
   expect(web.props.source).toEqual({ html: "<html>bundled-only</html>", baseUrl: props.baseUrl });
   expect(web.props.injectedJavaScriptBeforeContentLoaded.startsWith(WEB_NO_ANALYTICS_SCRIPT)).toBe(true);
   expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain('__REGATTA_APP_LANG__="pl"');
+  expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain(APP_EMBED_THEME_SCRIPT);
+  expect(web.props.injectedJavaScript).toBe(APP_EMBED_THEME_SCRIPT);
   expect(web.props.mediaCapturePermissionGrantType).toBe("deny");
   expect(view.getByTestId("course-screen").props.noBottomInset).not.toBe(true);
   expect(view.getByTestId("course-screen").props.noTopInset).not.toBe(true);
@@ -138,20 +141,31 @@ it("prevents native-stack removal on Stay, continues the exact action once on Ex
   send(web, { type: "exam-dirty", dirty: true });
   expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
   expect(mainNavigationHiddenByScreen()).toBe(true);
-  const action: NavigationAction = { type: "POP", source: "course-route", target: "native-stack", payload: { count: 1 } };
+  const action: NavigationAction = { type: "POP", source: "course-route", target: "native-stack", payload: { count: 1, answer: "PRIVATE_EXAM_ANSWER" } };
   const attempt = () => act(() => mockUsePreventRemove.mock.calls.at(-1)![1]({ data: { action } }));
+  const exitEvents = () => nativeDiagnostics.snapshot().entries.map(entry => entry.event).filter(event => event.type === "navigation" && event.surface === "sternik");
+  const requested = { type: "navigation", surface: "sternik", action: "request", outcome: "accepted", source: "native", from: "motor" };
+  const cancelled = { type: "navigation", surface: "sternik", action: "cancelled", outcome: "noop", reason: "cancelled", source: "native", from: "motor" };
   attempt(); attempt();
   expect(alert).toHaveBeenCalledTimes(1);
   expect(mockNavigation.dispatch).not.toHaveBeenCalled();
-  act(() => alert.mock.calls.at(-1)![2]![0].onPress!());
+  expect(exitEvents()).toEqual([requested]);
+  const firstPrompt = alert.mock.calls.at(-1)!;
+  act(() => { firstPrompt[2]![0].onPress!(); firstPrompt[3]!.onDismiss!(); });
+  expect(exitEvents()).toEqual([requested, cancelled]);
   expect(view.getByTestId("local-course-webview")).toBe(web);
   expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
   expect(mainNavigationHiddenByScreen()).toBe(true);
   expect(mockNavigation.dispatch).not.toHaveBeenCalled();
   expect(await readSternikEntries()).toEqual(entries);
   attempt();
+  act(() => firstPrompt[3]!.onDismiss!());
+  attempt();
+  expect(alert).toHaveBeenCalledTimes(2);
+  const secondPrompt = alert.mock.calls.at(-1)!;
   const leave = alert.mock.calls.at(-1)![2]![1].onPress!;
-  act(() => { leave(); leave(); });
+  act(() => { leave(); leave(); secondPrompt[3]!.onDismiss!(); });
+  expect(exitEvents()).toEqual([requested, cancelled, requested]);
   expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
   expect(mockNavigation.dispatch.mock.calls[0][0]).toBe(action);
   expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(false);
@@ -161,7 +175,10 @@ it("prevents native-stack removal on Stay, continues the exact action once on Ex
   expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
   attempt();
   expect(alert).toHaveBeenCalledTimes(3);
-  act(() => alert.mock.calls.at(-1)![3]!.onDismiss!());
+  const thirdPrompt = alert.mock.calls.at(-1)!;
+  act(() => { thirdPrompt[3]!.onDismiss!(); thirdPrompt[3]!.onDismiss!(); thirdPrompt[2]![0].onPress!(); });
+  expect(exitEvents()).toEqual([requested, cancelled, requested, requested, cancelled]);
+  expect(JSON.stringify(nativeDiagnostics.snapshot())).not.toMatch(/PRIVATE_EXAM_ANSWER|course-route|native-stack/);
   expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
   expect(await readSternikEntries()).toEqual(entries);
   alert.mockRestore();
@@ -179,7 +196,10 @@ it("keeps a repeatable RN exam exit button after Stay and dismiss, without initi
   const button = view.getByRole("button", { name: "Wyjdź z egzaminu" });
   fireEvent.press(button); fireEvent.press(button);
   expect(alert).toHaveBeenCalledTimes(1);
-  act(() => alert.mock.calls.at(-1)![2]![0].onPress!());
+  const exitEvents = () => nativeDiagnostics.snapshot().entries.map(entry => entry.event).filter(event => event.type === "navigation" && event.surface === "sternik");
+  expect(exitEvents()).toEqual([{ type: "navigation", surface: "sternik", action: "request", outcome: "accepted", source: "native", from: "motor" }]);
+  act(() => { alert.mock.calls.at(-1)![2]![0].onPress!(); alert.mock.calls.at(-1)![3]!.onDismiss!(); });
+  expect(exitEvents().filter(event => event.type === "navigation" && event.action === "cancelled")).toHaveLength(1);
   expect(view.getByRole("button", { name: "Wyjdź z egzaminu" })).toBe(button);
   fireEvent.press(button);
   expect(alert).toHaveBeenCalledTimes(2);
@@ -200,6 +220,26 @@ it("keeps a repeatable RN exam exit button after Stay and dismiss, without initi
   expect(mockStackScreen).toHaveBeenLastCalledWith(expect.objectContaining({ options: expect.objectContaining({ headerBackVisible: false, gestureEnabled: undefined, headerLeft: expect.any(Function) }) }));
   expect(view.getByRole("button", { name: "Wróć" })).toBeTruthy();
   alert.mockRestore();
+});
+
+it("keeps the exam guard and confirmed exit working when diagnostic recording throws", async () => {
+  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+  const view = render(<LocalCourseWebView {...props} />);
+  const web = await waitFor(() => view.getByTestId("local-course-webview"));
+  send(web, { type: "sternik-offline-ready" });
+  send(web, { type: "exam-dirty", dirty: true });
+  const record = jest.spyOn(nativeDiagnostics, "record").mockImplementation(() => { throw new Error("diagnostic-unavailable"); });
+  try {
+    fireEvent.press(view.getByRole("button", { name: "Wyjdź z egzaminu" }));
+    expect(alert).toHaveBeenCalledTimes(1);
+    act(() => { alert.mock.calls.at(-1)![2]![0].onPress!(); alert.mock.calls.at(-1)![3]!.onDismiss!(); });
+    expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    fireEvent.press(view.getByRole("button", { name: "Wyjdź z egzaminu" }));
+    act(() => { alert.mock.calls.at(-1)![2]![1].onPress!(); alert.mock.calls.at(-1)![3]!.onDismiss!(); });
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(false);
+  } finally { record.mockRestore(); alert.mockRestore(); }
 });
 
 it("keeps unreadable native progress untouched and offers an offline retry", async () => {

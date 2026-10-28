@@ -18,7 +18,7 @@ Current work is governed by [the completion harness](../../audits/2026-10-24/imp
 
 Native SRC installs its seven-language course, original exam bank and local radio practice. Exact protocol phrases and English language-exercise options remain protected. Device TTS and strict on-device recognition use typed fallback if a model is unavailable. Native Sternik theory, test, exam and typed oral practice are installed in Polish only. Multiplayer needs a network; website-only voice/AI capabilities have their own availability and privacy rules.
 
-The active visual direction is the first Ocean Cockpit concept: dark instruments, readable values, a protected boat/radio rectangle and reserved bottom/side controls. Paper learning surfaces remain valid. Source Sans 3 is already locally bundled for web/native; the old Geist/system-only instruction is superseded. See root DESIGN.md for typography and semantic tokens.
+The active visual direction is the first Ocean Cockpit concept: readable values, a protected boat/radio rectangle and reserved bottom/side controls. The owner reopened theme coherence on27October: a light shell must not force an unrelated dark trainer. Current day-surface source, remaining native splash/mode/installed gates and the full feedback reconciliation live in `docs/audits/2026-10-28/completion-status.md`. Dark radio hardware/LCD is a separate object layer. Source Sans3 is locally bundled for web/native; the old Geist/system-only instruction is superseded. See root DESIGN.md for typography and semantic tokens.
 
 ## Verification status
 

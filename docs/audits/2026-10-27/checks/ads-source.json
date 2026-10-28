@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-27T00:10:34.228127+00:00",
+  "scope": "Owner-requested local Ads place only; SDK setup explicitly deferred.",
+  "sourceBase": "d7a4eb095c0b7ace8d4a9c46329d6128cd2fcd65",
+  "sourceGates": {
+    "webCases": 1640,
+    "webFiles": 161,
+    "nativeCases": 589,
+    "nativeSuites": 79,
+    "nativeRunInBand": true,
+    "nativeTimeoutMs": 5000,
+    "releaseToolCases": 9,
+    "rootTypes": true,
+    "nativeTypes": true,
+    "rootLintErrors": 0,
+    "rootExistingWarnings": 15,
+    "nativeLintWarnings": 0,
+    "freshOfflinePackages": 3,
+    "contentTwins": true,
+    "serverFresh": true,
+    "realWebSockets": true,
+    "productionBuild": true,
+    "staticChunksMiB": 6.48,
+    "unchangedLimitMiB": 6.5,
+    "staticFiles": 110
+  },
+  "browserManual": {
+    "offlineVersion": "1fcbb1fd76c2",
+    "offlineHTMLSHA256": "8efbe0844892c76bf9528b522ef1225857a24b593df4a9bb0a7e7bd957a9fd93",
+    "metrics": [
+      {
+        "language": "ru",
+        "viewport": {
+          "height": 740,
+          "width": 390
+        },
+        "buttons": 18,
+        "minimumHeight": 44,
+        "minimumWidth": 81.5,
+        "maximumOverflow": 0,
+        "sceneDoesNotOverlapDock": true
+      },
+      {
+        "language": "pl",
+        "viewport": {
+          "height": 640,
+          "width": 320
+        },
+        "buttons": 18,
+        "minimumHeight": 44,
+        "minimumWidth": 64,
+        "maximumOverflow": 0,
+        "sceneDoesNotOverlapDock": true
+      },
+      {
+        "language": "en",
+        "viewport": {
+          "height": 640,
+          "width": 320
+        },
+        "buttons": 18,
+        "minimumHeight": 44,
+        "minimumWidth": 64,
+        "maximumOverflow": 0,
+        "sceneDoesNotOverlapDock": true
+      }
+    ],
+    "observed": [
+      "Actual first3Dframe and controls enabled after readiness.",
+      "Wide/deck/stern/high camera views, left button and pointer drag change the actual scene.",
+      "High -> Up -> Up records one accepted movement and one noop at the camera limit.",
+      "Reset returns to deck; bow placement actually disappears/reappears with its journal events.",
+      "Open-water selection removes the shore; preview journal clears while the scene stays visible."
+    ],
+    "errorConsoleEntriesAtFinalReview": 0,
+    "scopeLimit": "Browser pointer/geometry proof; installed native Back/gesture and TestFlight are separate."
+  },
+  "sdkConfigured": false,
+  "adRequestsImplemented": false,
+  "physicalEmissionEnabled": false,
+  "newTestFlightDelivered": false,
+  "cloudAdsCase": "Pending exact source run; authored60s case with25s scene deadline.",
+  "screenshots": [
+    {
+      "name": "mobile-en-stern.png",
+      "sha256": "ee006884d5e956fc1c67cf6d7c8f7dcf2bada176e777afc928c8c9c920a8b538"
+    },
+    {
+      "name": "mobile-pl-35.png",
+      "sha256": "54f425138123b24e9b1c45199d50a14bb377aeb43af63036d040dfd73b400d25"
+    },
+    {
+      "name": "mobile-ru-bow-hidden.png",
+      "sha256": "373a3dc0dcc5d95b965dea7e84443165e59594d281bcef935492b1bf035ae1cb"
+    },
+    {
+      "name": "mobile-ru-clear-sdk.png",
+      "sha256": "001b1093a25f92eb2cb494ec17dfdccbcc13f83c34908c70b5f0b0cf89356108"
+    },
+    {
+      "name": "mobile-ru-deck.png",
+      "sha256": "0bcc2f4b5ca5ef8dd601e2d0267131348806dccaf3547eb671bd781a122b8f1b"
+    },
+    {
+      "name": "mobile-ru-free-orbit.png",
+      "sha256": "97a29da4b988485eefe2f930881ad48dbfd5511627bc76d736ff4e1fe74ee9ff"
+    },
+    {
+      "name": "mobile-ru-wide.png",
+      "sha256": "f4dcb2a070cdb56a7a74f47540c5db629e70b6f7bf74e8afeb9c4b41e0c0255d"
+    },
+    {
+      "name": "wide-ru-deck-final.png",
+      "sha256": "f67f9a4b3c80b6c6ce84abb89ca491ac6bdb6ec613d9562768155fb606468c12"
+    }
+  ],
+  "preparedBuild": "69",
+  "unusedBuildCheck": {
+    "checkedAt": "2026-10-27T00:13:02.214Z",
+    "maximum": 68,
+    "build69Matches": 0,
+    "writes": 0
+  },
+  "postVersionGates": {
+    "rootTypes": true,
+    "nativeTypes": true,
+    "nativeChangedScreens": 7,
+    "productionBuild": true
+  },
+  "nativeExportCorrection": {
+    "failedCandidate": "bd9ee5b39d9ef4b8750d2e67baad0fcf2d86f476",
+    "error": "Metro cannot resolve feature-folder copy outside watch roots",
+    "correction": "Shared pure copy moved to existing src/lib boundary",
+    "sourceWebCases": 1640,
+    "sourceNativeCases": 589,
+    "nativeSuites": 79,
+    "nativeRunInBand": true,
+    "nativeTimeoutMs": 5000,
+    "rootBuild": true,
+    "types": true,
+    "nativeLintWarnings": 0,
+    "offlineHTMLUnchanged": true,
+    "actualNativeExport": "pending corrected freeze"
+  }
+}

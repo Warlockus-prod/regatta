@@ -1,0 +1,50 @@
+{
+  "sourceBase": "3809c7c5fab351ccee511a105c792e3e4321484c",
+  "checkedAt": "2026-10-27T10:41:22.103458+00:00",
+  "sourceInputs": {
+    "mobile/src/diagnostics/export.ts": "baf70a871384153e48ff3ef9778467918a5666de1770bdc8e6a0a6ae400d60b7",
+    "mobile/app/diagnostics.tsx": "172d71767fab4cb51138df4cf8cc6897eab29cbcb9be4d00faed042415f68574",
+    "mobile/src/radio/local-speech.ts": "86a73433474aa1941f46d2aa28f4d747bb51d236b563db28db56dab7a85d8c35",
+    "mobile/src/radio/useLocalRadioSpeech.ts": "c7a13157a92490dc66a75de1045a4117c204f84a9a6eeb94b0f66f04b013edea",
+    "mobile/__tests__/diagnostic-export.test.ts": "5b6d1164fd3734edf1fdbca5ed49f69d4a11ca4fd37954bfb7d97e664bbddbde",
+    "mobile/__tests__/screens/diagnostics.test.tsx": "700bb10bf66eb16ce026b4c5673f52757f88e91c3dad84ced9baaecb3f9d4a0f",
+    "mobile/__tests__/local-radio-speech.test.ts": "61189a983ff7793cb7e60112c2025298162dd22bc7623a63c872daacac180de1",
+    "mobile/releases/testflight-1.7.0-69.json": "0cc6488235c5479c8b08df065232e1f99e01f480286a4f3894d4e660e12b2a92"
+  },
+  "web": {
+    "tests": 1793,
+    "files": 173
+  },
+  "native": {
+    "tests": 602,
+    "suites": 80
+  },
+  "releaseTools": 9,
+  "checks": [
+    "Root/native types, full native lint",
+    "Three installed packages fresh and content twins current",
+    "Generated server and actual socket lifecycle",
+    "Production build and unchanged6814872byte budget against6815744cap",
+    "Map, typography and whitespace"
+  ],
+  "i18n": {
+    "missingArity": 0,
+    "missingLanguageOverlays": 0,
+    "scannerFindings": 12,
+    "review": "Unchanged baseline12: Polish-only Sternik, two Hyeres place names, multiplication symbol and existing SimWebView TSX parsing false positive. No new UI labels; eight beta notes separately adapted."
+  },
+  "sourceLogSha256": {
+    "radio-owner-native-tests.log": "65640fb554dbfafbb78426e8e43c3e9a74e531100f275329dccd47153a10217c",
+    "radio-owner-web-tests.log": "4357c60c9f4c5a6e5cf40a5bbe21b2e919e98854fd6075b38c261ab19714e214",
+    "radio-owner-build.log": "6e464097705939e3ad57548c600ade2b18136a2f905b8daa0ca0d09720fef4c1",
+    "radio-owner-budget.log": "fd69654cc2c2be537865df4a2d96456e4ceac1e4804bc9920c0209c68c732b80",
+    "radio-owner-i18n-report.md": "f81ce634737b2a86b300840b60c5bfa215938276e211bbe81486ba789735034e",
+    "radio-owner-sockets.log": "8c484ab277254b83bab2af1119f2ee4efdfd05f80247fba114a48151f1c7eb39",
+    "radio-owner-release-tools.log": "ddf7a593ee9103e5c22ab6a12a37945b8fbec57ca3b08738c5aa5c1665c3446e"
+  },
+  "manualRadioGate": "Owner explicitly transfers radio controls/Reset/PTT/microphone manual acceptance to live TestFlight. Not passed in Simulator.",
+  "supportExport": "regatta-diagnostics formatVersion1; app version/build/platform plus canonical journal. Storage schema/limits unchanged. No speech/audio/request IDs/interim samples in logs.",
+  "physicalEmissionEnabled": false,
+  "appleWrites": 0,
+  "remaining": "Exact frozen native/archive/IPA and full browser/Apple delivery gates follow; source readiness is not delivery."
+}

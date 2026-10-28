@@ -12,6 +12,10 @@ import { mkdirSync } from 'fs';
 import { isIP } from 'net';
 import { UAParser } from 'ua-parser-js';
 import { truncateIp } from './net';
+import { ensureRaceResultClassSchema } from "./race-result-schema";
+import { readClassifiedRaceResult } from "./race-result-eligibility";
+import { raceContextForClassId, readRaceComparison, readRaceResultSelection, type RaceResultMode } from "./race-record-class";
+import type { RaceClassId, RaceContext } from "./race-context";
 
 const DB_DIR = process.env.REGATTA_DB_DIR || '/tmp';
 const DB_PATH = path.join(DB_DIR, 'regatta-stats.db');
@@ -25,15 +29,26 @@ function db(): Database.Database {
     mkdirSync(DB_DIR, { recursive: true });
   } catch { /* ignore */ }
 
-  _db = new Database(DB_PATH);
-  _db.pragma('journal_mode = WAL');
-  _db.pragma('synchronous = NORMAL');
+  const candidate = new Database(DB_PATH);
+  try {
+    initializeDatabase(candidate);
+    _db = candidate;
+    return candidate;
+  } catch (error) {
+    candidate.close();
+    throw error;
+  }
+}
+
+function initializeDatabase(database: Database.Database): void {
+  database.pragma('journal_mode = WAL');
+  database.pragma('synchronous = NORMAL');
   // Disk ceiling (audit F10), not set yet: the vps2 disk is shared with other
   // products. Once the owner picks a size, cap the file with
   // _db.pragma('max_page_count = <bytes / page_size>'). Inserts past the cap
   // throw, and every insert helper below already catches and drops the row.
 
-  _db.exec(`
+  database.exec(`
     CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       ts INTEGER NOT NULL,
@@ -167,7 +182,7 @@ function db(): Database.Database {
   // ADD COLUMN is a no-op on fresh DBs where the column already exists
   // (wrapped in try/catch because SQLite throws "duplicate column" otherwise).
   const safeAlter = (sql: string) => {
-    try { _db!.exec(sql); } catch { /* column exists, skip */ }
+    try { database.exec(sql); } catch { /* column exists, skip */ }
   };
   // events columns (2026-04-25: analytics expansion)
   safeAlter('ALTER TABLE events ADD COLUMN device_model TEXT');
@@ -187,7 +202,7 @@ function db(): Database.Database {
   safeAlter('ALTER TABLE sessions ADD COLUMN utm_medium TEXT');
   safeAlter('ALTER TABLE sessions ADD COLUMN utm_campaign TEXT');
 
-  return _db;
+  ensureRaceResultClassSchema(database);
 }
 
 /**
@@ -917,6 +932,8 @@ export interface RaceResultInsert {
 
 export function insertRaceResult(r: RaceResultInsert): number | null {
   try {
+    const selection = readRaceResultSelection(r);
+    if (!selection.ok || selection.value.kind !== "legacy-unclassified") return null;
     const d = db();
     const info = d.prepare(`
       INSERT INTO race_results (ts, sid, nickname, difficulty, wind_strength, mission_id,
@@ -931,6 +948,39 @@ export function insertRaceResult(r: RaceResultInsert): number | null {
   } catch {
     return null;
   }
+}
+
+export type ClassifiedRaceResultInsert = RaceResultInsert & {
+  raceContext: RaceContext;
+  mode: RaceResultMode;
+  course: unknown;
+  classId?: RaceClassId;
+  rawFinishTimeSec: number;
+  penaltySeconds: number;
+  dailyDay?: unknown;
+  daily?: unknown;
+};
+
+/** Separate from old-client writes: invalid or disabled metadata cannot fall
+ * back into the unclassified pool after a failed classified submission. */
+export function insertClassifiedRaceResult(r: ClassifiedRaceResultInsert): number | null {
+  try {
+    const read = readClassifiedRaceResult(r);
+    if (!read.ok) return null;
+    const result = read.value;
+    const info = db().prepare(`
+      INSERT INTO race_results (ts, sid, nickname, difficulty, wind_strength, mission_id,
+        finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score,
+        race_class_id, race_mode, race_context_json, raw_finish_time_sec, penalty_seconds)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      Date.now(), r.sid, r.nickname, result.difficulty, result.windStrength, null,
+      result.finishTimeSec, r.position ?? null, r.totalBoats ?? null, r.tacks ?? null,
+      r.noGoEntries ?? null, r.topSpeed ?? null, r.score ?? null,
+      result.classId, result.mode, JSON.stringify(result.raceContext), result.rawFinishTimeSec, result.penaltySeconds,
+    );
+    return info.lastInsertRowid as number;
+  } catch { return null; }
 }
 
 export interface LeaderboardRow {
@@ -962,7 +1012,7 @@ export function topByDifficulty(difficulty: string, wind: string, limit = 20): L
                  ORDER BY r.finish_time_sec ASC, r.ts DESC
                ) AS rn
         FROM race_results r
-        WHERE r.difficulty = ? AND r.wind_strength = ? AND r.mission_id IS NULL
+        WHERE r.difficulty = ? AND r.wind_strength = ? AND r.mission_id IS NULL AND r.race_class_id IS NULL
       )
       SELECT nickname, sid, difficulty, wind_strength, mission_id,
              finish_time_sec, score, ts
@@ -988,7 +1038,7 @@ export function topByMission(missionId: string, limit = 20): LeaderboardRow[] {
                  ORDER BY r.finish_time_sec ASC, r.ts DESC
                ) AS rn
         FROM race_results r
-        WHERE r.mission_id = ?
+        WHERE r.mission_id = ? AND r.race_class_id IS NULL
       )
       SELECT nickname, sid, difficulty, wind_strength, mission_id,
              finish_time_sec, score, ts
@@ -1000,6 +1050,46 @@ export function topByMission(missionId: string, limit = 20): LeaderboardRow[] {
   } catch {
     return [];
   }
+}
+
+export interface ClassifiedLeaderboardRow extends LeaderboardRow {
+  race_class_id: RaceClassId;
+  race_mode: RaceResultMode;
+  raw_finish_time_sec: number;
+  penalty_seconds: number;
+}
+
+/** A valid empty class is [], whereas initialization/query failure is null.
+ * Physical boards are readable while their producers remain disabled. */
+export function topByRaceClass(
+  classId: RaceClassId, mode: RaceResultMode, difficulty: string, wind: string, limit = 20,
+): ClassifiedLeaderboardRow[] | null {
+  const raceContext = raceContextForClassId(classId);
+  if (!raceContext || (mode !== "simple" && mode !== "pro") || !readRaceComparison({ raceContext, mode, difficulty, windStrength: wind }).ok
+    || !Number.isInteger(limit) || limit < 1 || limit > 1000) return null;
+  try {
+    return db().prepare(`
+      WITH ranked AS (
+        SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+               r.finish_time_sec, r.score, r.ts, r.race_class_id, r.race_mode,
+               r.raw_finish_time_sec, r.penalty_seconds,
+               ROW_NUMBER() OVER (
+                 PARTITION BY r.sid
+                 ORDER BY r.finish_time_sec ASC, r.ts DESC
+               ) AS rn
+        FROM race_results r
+        WHERE r.race_class_id = ? AND r.race_mode = ? AND r.difficulty = ?
+          AND r.wind_strength = ? AND r.mission_id IS NULL
+      )
+      SELECT nickname, sid, difficulty, wind_strength, mission_id,
+             finish_time_sec, score, ts, race_class_id, race_mode,
+             raw_finish_time_sec, penalty_seconds
+      FROM ranked
+      WHERE rn = 1
+      ORDER BY finish_time_sec ASC
+      LIMIT ?
+    `).all(classId, mode, difficulty, wind, limit) as ClassifiedLeaderboardRow[];
+  } catch { return null; }
 }
 
 // ============================================================================
@@ -1124,6 +1214,7 @@ export function getDailyLeaderboard(day: string, limit = 10): LeaderboardRow[] {
           AND r.difficulty = ?
           AND r.wind_strength = ?
           AND r.mission_id IS NULL
+          AND r.race_class_id IS NULL
       )
       SELECT nickname, sid, difficulty, wind_strength, mission_id,
              finish_time_sec, score, ts

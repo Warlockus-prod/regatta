@@ -1,0 +1,305 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T18:40:45.807810+00:00",
+  "version": "1.7.0",
+  "build": "67",
+  "sourceCommit": "77c52dd78230151dd1642d4c97b289c9dd8d3e85",
+  "acceptedRuntimeSource": "5e57569a44c13a1e36f0b1a9d4ae9f3402aaee9a",
+  "scope": "P02 shared first lesson and one illustrated sail-shape pilot; full product acceptance remains open.",
+  "packageEquivalence": {
+    "checkedAt": "2026-10-26T18:27:41.304752+00:00",
+    "acceptedRuntimeSource": "5e57569a44c13a1e36f0b1a9d4ae9f3402aaee9a",
+    "releaseSource": "77c52dd78230151dd1642d4c97b289c9dd8d3e85",
+    "previousFiles": 121,
+    "currentFiles": 121,
+    "mainJSBundleIdentical": true,
+    "changedPaths": [
+      "EXUpdates.bundle/app.manifest"
+    ],
+    "allFileContentsIdentical": false,
+    "manifestReview": {
+      "checkedAt": "2026-10-26T18:30:14.476957+00:00",
+      "manifestChangedKeys": [
+        "commitTime",
+        "id"
+      ],
+      "onlyBuildIdentityAndTime": true,
+      "previousBuildTimeUTC": "2026-10-26T17:47:16.606000+00:00",
+      "currentBuildTimeUTC": "2026-10-26T18:22:29.432000+00:00",
+      "allOtherManifestFieldsIdentical": true,
+      "expoUpdatesEnabled": false,
+      "hasRemoteUpdateURL": false
+    },
+    "unchangedExecutableAndTeachingPayload": true
+  },
+  "exactInstalledBeforeLaunch": {
+    "checkedAt": "2026-10-26T18:32:21.017150+00:00",
+    "sourceCommit": "77c52dd78230151dd1642d4c97b289c9dd8d3e85",
+    "rows": [
+      {
+        "runtime": "26",
+        "oldRows": 14,
+        "newRows": 14,
+        "allRowsUnchangedBeforeLaunch": true,
+        "exactInstalledPackageFiles": 121,
+        "expectedPackageFiles": 121,
+        "installedPackageMismatches": [],
+        "installedBuild": "67"
+      },
+      {
+        "runtime": "27",
+        "oldRows": 7,
+        "newRows": 7,
+        "allRowsUnchangedBeforeLaunch": true,
+        "exactInstalledPackageFiles": 121,
+        "expectedPackageFiles": 121,
+        "installedPackageMismatches": [],
+        "installedBuild": "67"
+      }
+    ]
+  },
+  "observations": {
+    "retained26.5": [
+      "Same retained public48-to66 data container; no uninstall or reset.",
+      "First-lesson ready3Dwind practice reaches head-to-wind and returns to the same ungraded Practice step.",
+      "Both native images and numbered leaders align; selected keel diagram state survives toggles and cold relaunch.",
+      "Installed radio free instrument opens from native Menu; arrows and Exit work. A timed CUA click was a tap, so no fresh power-hold pass is claimed.",
+      "Final release-source reinstall preserves all14rows before launch; both images, scheme state and Back checked again."
+    ],
+    "new27.0": [
+      "Dedicated clean QA Simulator initially receives the accepted runtime; existing devices are preserved.",
+      "First lesson opens the actual whole-yacht3Dscene; actual TWA0 and180, return, repeat entry and cold lesson continuation observed.",
+      "Both image states checked in PL/RU/EN, readable numeric labels, same retained keel scheme state; bottom actions reachable above native tabs.",
+      "Cold relaunch restores lesson3/diagram state2, with0of8graded; picture view remains transient.",
+      "Final release-source reinstall preserves all7rows before launch; actual EN images, Back and cold continuation checked again."
+    ]
+  },
+  "journals": [
+    {
+      "runtime": "26.5",
+      "reviewLanguages": "PL",
+      "canonicalJournal": true,
+      "entries": 200,
+      "journalBytes": 40662,
+      "persistedKeys": 14,
+      "eventCounts": {
+        "radio.startup": 15,
+        "navigation": 66,
+        "storage.operation": 38,
+        "radio.gesture": 13,
+        "radio.command": 13,
+        "embedded.lifecycle": 20,
+        "race.lifecycle": 12,
+        "control.change": 7,
+        "control.preferences": 6,
+        "learning.visual": 10
+      }
+    },
+    {
+      "runtime": "27.0",
+      "reviewLanguages": "PL/RU/EN",
+      "canonicalJournal": true,
+      "entries": 85,
+      "journalBytes": 17441,
+      "persistedKeys": 7,
+      "eventCounts": {
+        "embedded.lifecycle": 11,
+        "navigation": 36,
+        "storage.operation": 17,
+        "control.change": 4,
+        "learning.visual": 17
+      }
+    }
+  ],
+  "crashScan": {
+    "from": "2026-10-26T17:51:00Z",
+    "checkedAt": "2026-10-26T18:39:02.991302+00:00",
+    "newMatchingAppReports": 0,
+    "scope": "Local host and these two Simulator report directories; not physical phone or future TestFlight crashes"
+  },
+  "screenshots": [
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-first-practice.png",
+      "bytes": 204753,
+      "sha256": "732ebbcda74b57838fd973290d5208685b6ba4affc07a7367dab91d743d5de8f"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-wind-zero.png",
+      "bytes": 196328,
+      "sha256": "1934caccbee3ed25fa0493debb21a66e172d3bc433c3a5314e6f0d8dcdf7c2a3"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-wind-180.png",
+      "bytes": 195934,
+      "sha256": "45356e56088c241deffa6a048412f76be409a7835f5ade7d68aae26ed881fd61"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-practice-return.png",
+      "bytes": 206032,
+      "sha256": "73641b5ef4e93bbe8c0cb71e30e8dc553d33697292375ecd3a18769dfcb00873"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-practice-repeat.png",
+      "bytes": 205029,
+      "sha256": "2cb2eb4aa5e787df85dfd1c37ab1c324c9b89dc966e76f171af62f5c0f74bb57"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-cold-practice-resume.png",
+      "bytes": 207035,
+      "sha256": "ef3ff4c3e44ee97b0caf8c30795d16726c71f85a6cbb92cae809a6b0864fb47f"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-filled-pl.png",
+      "bytes": 229025,
+      "sha256": "1799e0dc481153479520aeea7c7698cbf11747c81d87facb8ed891e884c7bad9"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-luffing-pl.png",
+      "bytes": 237868,
+      "sha256": "a44cc7a4f227874d1e5a9f5d760ac28ad790a6126bc8dacec9a4c07c94171c92"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-filled-ru.png",
+      "bytes": 228192,
+      "sha256": "c9e002232c7255fac405a252b440529aa987107aa632e4828d81fdb271a0d4e8"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-luffing-ru.png",
+      "bytes": 239528,
+      "sha256": "7d60607cc5e8354c574a6cb1978bcf8ec5465d7cee4315878e39ce5124f9d6bd"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-filled-en.png",
+      "bytes": 227820,
+      "sha256": "3e38bba028413ff801547f0eb1aa971213d5c174f03784edec95610a646ce1e4"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-luffing-en.png",
+      "bytes": 239580,
+      "sha256": "2f4d41e58467f3147e053e3a9dd25e77c51d8714e4a492ea57739ab09b20967b"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-scheme-state-preserved.png",
+      "bytes": 181688,
+      "sha256": "3bfeea28bbc12f16d765a3597606c06eb33865439a4863664b022ed356e44a6f"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-bottom-actions-en.png",
+      "bytes": 197280,
+      "sha256": "7c2fda1593b22764138ac0f17302dae9196135ba7e9859eebd185cdebaee391b"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "clean27-cold-scheme-resume-en.png",
+      "bytes": 168432,
+      "sha256": "b3d2efa569a9b0151a5b0347b5d2564eda3da2e6469d6ccd21995f9abad31213"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-first-practice.png",
+      "bytes": 180152,
+      "sha256": "9d2f921d7d411c4f4c8c78c2e46a684c09f8aa15e98fa3363fafd2e41274d950"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-wind-zero.png",
+      "bytes": 167914,
+      "sha256": "fff872cf6f143a079db9205d92308a5313d005780336a4e7ef20b70c182ca3e4"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-practice-return.png",
+      "bytes": 209477,
+      "sha256": "74ffa904cabe3cc5a62ad0bf3a803be15c8014398a390167605e0984e676ad69"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-filled-pl.png",
+      "bytes": 237947,
+      "sha256": "96fe8a7b6a9f31dd4ba86d22967710b47129942f99d1dfff855b382cc834d956"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-luffing-pl.png",
+      "bytes": 246293,
+      "sha256": "38459e3cd39e31a2ab21757818378719ea45c77e3fa737ffd8169f5241ef741d"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-cold-scheme-resume.png",
+      "bytes": 170146,
+      "sha256": "fcefe96dd7cee264e7e1f15309776b81ab713539cab358080be25aefde045282"
+    },
+    {
+      "candidate": "accepted-runtime",
+      "file": "upgrade26-radio-free.png",
+      "bytes": 185795,
+      "sha256": "32100381bf7a5d419f73aa1a46dfb0577983024216d51db3004a1351a7f4ebcf"
+    },
+    {
+      "candidate": "release-source",
+      "file": "upgrade26-filled-final.png",
+      "bytes": 233752,
+      "sha256": "ab15f564cf39dc0eca15261703c4fa0ab66843ae6e42f9dc4aae40b139bf8955"
+    },
+    {
+      "candidate": "release-source",
+      "file": "upgrade26-luffing-final.png",
+      "bytes": 242593,
+      "sha256": "586b391d06928966ac401055663df31d94ab1c952b8c14224fe0fd6a613e8adb"
+    },
+    {
+      "candidate": "release-source",
+      "file": "upgrade26-scheme-keel-final.png",
+      "bytes": 186307,
+      "sha256": "a3f95d526432d2e91fee7ccc416f265acd307883f0cbad63d1f8910c231f8e2a"
+    },
+    {
+      "candidate": "release-source",
+      "file": "clean27-cold-home-final.png",
+      "bytes": 219993,
+      "sha256": "46ef502989a3200c80190eeed723ba2a2ec303ebe8c80373f7e5b5861c09581a"
+    },
+    {
+      "candidate": "release-source",
+      "file": "clean27-filled-final.png",
+      "bytes": 197768,
+      "sha256": "2395e0c24228bebee1b9ec23d62ffdc5e04c8c36ed2ec3f715b0b50d86092c8b"
+    },
+    {
+      "candidate": "release-source",
+      "file": "clean27-bottom-final.png",
+      "bytes": 198468,
+      "sha256": "6464c8414444d3f7db16c45b160be6d1c1cf262373d76b98584bb6891fc4a2b6"
+    },
+    {
+      "candidate": "release-source",
+      "file": "clean27-cold-scheme-final.png",
+      "bytes": 168528,
+      "sha256": "9253a2f049cd3cb99814f3cde99148075307fd9cde1ab193f97b784b661d3ec7"
+    }
+  ],
+  "limits": [
+    "Simulator counterpart is inspected; archive/IPA has separate exact-source and signed-package proofs.",
+    "Accepted runtime and release source differ only in tests/docs. All120executable/JS/asset files match; the121st Expo manifest differs only by local build UUID/time, with updates disabled.",
+    "Native image fault injection is covered by actual-component tests; real web failure injection remains a separate CI gate.",
+    "Physical iPhone, finger ergonomics, microphone, full network blackhole, thermal/FPS and all lesson illustration coverage remain open.",
+    "Head-to-wind TRIM100% is an existing clarity gap for P06, not a passing drive/trim skill.",
+    "Inherited26.5 water appeared bright during long-idle practice; broader3Dart/lighting remains unaccepted."
+  ],
+  "privateEvidenceRetainedOutsideGit": true
+}

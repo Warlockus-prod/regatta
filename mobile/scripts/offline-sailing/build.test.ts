@@ -9,8 +9,10 @@ const sha = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 const html = read("mobile/assets/sailing-offline.html");
 const manifest = JSON.parse(read("mobile/assets/sailing-offline.manifest.json").toString());
 
-test("all five offline surfaces share original sources and retain an HTTP-free runtime", () => {
+test("all offline surfaces share original sources and retain an HTTP-free runtime", () => {
+  expect(html.toString()).toContain('<html lang="en" data-theme="light">');
   expect(manifest.routes).toEqual(SAILING_ROUTES);
+  expect(manifest.inputs).toContain("src/features/ads-lab/AdsLab.tsx");
   expect(manifest.sha256).toBe(sha(html)); expect(manifest.bytes).toBe(html.length);
   expect(html.length).toBeLessThan(8 * 1024 * 1024);
   for (const path of ["src/app/simulator/page.tsx", "src/app/anatomy/page.tsx", "src/components/YachtViewer3D.tsx", "src/components/AnatomyPosters.tsx", "src/features/race-scene/RaceScene.tsx", "src/features/simulator-v3/SimulatorV3Page.tsx"])

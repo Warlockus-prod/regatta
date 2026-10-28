@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-27T17:26:18.630063+00:00",
+  "auditedSource": "1c63b79504f51de904944951085b8666bda6ef2e",
+  "deliveredRuntime": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+  "version": "1.7.0",
+  "build": "69",
+  "runtimeChanged": false,
+  "evidenceScope": "Fresh local production web UI and source/document reconciliation. Not a new installed native or full65 acceptance.",
+  "freshUI": {
+    "browser": "Codex in-app",
+    "origin": "http://127.0.0.1:3331",
+    "locale": "ru",
+    "viewport": {
+      "width": 569,
+      "height": 750
+    },
+    "selectedTheme": "light",
+    "trainerTheme": "dark",
+    "trainerCanvas": {
+      "width": 569,
+      "height": 160,
+      "x": 0,
+      "y": 207
+    },
+    "racePauseClockSeconds": 15.3,
+    "cameraDrag": {
+      "from": [
+        280,
+        300
+      ],
+      "to": [
+        405,
+        335
+      ]
+    },
+    "raceOrbitVisuallyChanged": true,
+    "radioState": "OFF",
+    "microphoneTested": false
+  },
+  "screenshots": [
+    {
+      "file": "completion-review-screens/02-home-light.jpg",
+      "bytes": 52304,
+      "sha256": "bae59ead89cdc5d28f64b057993b6cffe70520c1abf57d13611aed5bf9d3f658",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/03-practice-light.jpg",
+      "bytes": 37134,
+      "sha256": "dca405c08424fb401cb5a9b49e1d2df278a749730a52d06a8d35617416bab5c6",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/04-trim-dark.jpg",
+      "bytes": 49459,
+      "sha256": "097148f901c4d6ebadc9526726b34396af93e8cfa6bb24486b0c0e02bba258b7",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/05-pro-briefing.jpg",
+      "bytes": 32085,
+      "sha256": "4c4dee6a4934f67b3e73989d16a9b60bdf2297414d947ffb7db2b40ea55817cf",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/06-pro-race.jpg",
+      "bytes": 49763,
+      "sha256": "ce01267cf7677bd016108c75c654cd3aa240b25cca3d58b021c5fad82ba5e8de",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/07-race-paused.jpg",
+      "bytes": 46869,
+      "sha256": "eb8c8c0164943db70de043be336234299e0f385231e218a9c48dc50e976b61fc",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/08-race-orbit.jpg",
+      "bytes": 38167,
+      "sha256": "8444af18d693364640c0a1309bc022b74cd995036360340c02ab21e3a34a8632",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    },
+    {
+      "file": "completion-review-screens/09-radio-free.jpg",
+      "bytes": 39919,
+      "sha256": "0899c460114fb1c0e4393d7800bd0a19ac0ff1603b962a0cbd4b51646ca4ee99",
+      "mimeType": "image/jpeg",
+      "width": 569,
+      "height": 750
+    }
+  ],
+  "remoteRefs": {
+    "main": "5df0ee593cf1a86fc6e4ae7d1e381773852199a4",
+    "app": "ff0b1654daaf6240f1b3f52ac55555afd44d66b6",
+    "siteSync": "448894f6ce8de28f95abfc91b1cab13e9d3aa178"
+  },
+  "latestMainRun": {
+    "id": 40250393806,
+    "source": "5df0ee593cf1a86fc6e4ae7d1e381773852199a4",
+    "conclusion": "failure",
+    "build": "success",
+    "images": "success",
+    "deploy": "success",
+    "productionBrowser": "failure"
+  },
+  "inheritedBaseline": {
+    "file": "../2026-10-26/acceptance68.md",
+    "rows": 65,
+    "sourceLabels": {
+      "будущее": 2,
+      "готово": 51,
+      "частично": 12
+    },
+    "acceptanceLabels": {
+      "непроверено": 8,
+      "подтверждено": 8,
+      "частично": 49
+    },
+    "freshFullRerun": false
+  },
+  "reopened": [
+    "F12",
+    "V02"
+  ],
+  "newFindings": [
+    "T01 cross-surface forced-dark policy",
+    "T02 trainer scene allocation",
+    "T03 shared components do not establish shared presentation/controls"
+  ],
+  "physicalRaceEmissionEnabled": false,
+  "notChecked": [
+    "Current installed69native UI",
+    "Physical iPhone microphone/PTT/Reset",
+    "Full Simple/Pro finishes",
+    "All lessons/languages/Back",
+    "Network blackhole clean install",
+    "VoiceOver/Dynamic Type",
+    "Thermals/endurance/FPS"
+  ],
+  "report": "completion-reconciliation.md",
+  "review": {
+    "independentDocumentReview": "Pass:65IDs/order/labels,F01-F15 and owner requests retained; no unsupported closure found. No new device certification."
+  },
+  "documentValidation": {
+    "webTypes": "passed",
+    "productionBuild": "passed",
+    "projectMap": "passed",
+    "typography": "passed",
+    "whitespace": "passed",
+    "localLinksVerified": 32,
+    "requirementIDsVerified": 65,
+    "exactJPEGHashesVerified": 8,
+    "runtimeSuitesRepeated": false,
+    "reason": "Only audit/design documentation and evidence added; exact69 runtime gates remain historical release evidence."
+  }
+}

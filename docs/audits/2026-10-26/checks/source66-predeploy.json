@@ -1,0 +1,27 @@
+{
+  "sourceCommit": "422b628cd5fa7505e4ba0bd23890e0494c5ff563",
+  "runId": 40343255976,
+  "event": "workflow_dispatch",
+  "conclusion": "success",
+  "browserStats": {
+    "total": 72,
+    "expected": 72,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "durationMs": 761839.011,
+  "errors": 0,
+  "artifact": {
+    "id": 12662056431,
+    "bytes": 621453,
+    "sha256": "e4746610ff9f72b191be84604a0857c29883153b800c7178f9296cbd9a71d016"
+  },
+  "nonMainJobsSkipped": [
+    "Build immutable deployment images",
+    "Deploy to VPS",
+    "Playwright E2E on prod"
+  ],
+  "websitePublished": false
+}

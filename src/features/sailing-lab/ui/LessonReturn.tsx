@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { findSailLesson } from "../../../data/sailing-lab/course";
-import { guideCopy } from "../../../data/sailing-lab/lesson-guide";
+import { practiceCopy } from "../../../data/sailing-lab/practice-copy";
 import type { Language } from "../../../lib/product/catalog";
 
 export function LessonReturn({ lang, initialSearch }: { lang: Language; initialSearch?: string }) {
@@ -14,5 +14,5 @@ export function LessonReturn({ lang, initialSearch }: { lang: Language; initialS
     return () => clearTimeout(timer);
   }, [initialSearch]);
   if (!id) return null;
-  return <div className="px-5 py-3 border-b border-[var(--border-subtle)]"><a className="inline-flex min-h-11 items-center gap-3 text-sm text-[var(--accent-cyan)]" href={`/learn/sails/${id}`}>← {guideCopy.return[lang]}: {findSailLesson(id)!.title[lang]}</a></div>;
+  return <div className="px-5 py-3 border-b border-[var(--border-subtle)]"><a className="inline-flex min-h-11 items-center gap-3 text-sm text-[var(--accent-cyan)]" href={`/learn/sails/${id}`}>← {practiceCopy.return[lang]}: {findSailLesson(id)!.title[lang]}</a></div>;
 }

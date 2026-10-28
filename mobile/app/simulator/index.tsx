@@ -2,7 +2,6 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Animated,
   Pressable,
   ScrollView,
@@ -27,7 +26,6 @@ import { useI18n } from '../../src/i18n/context';
 import { pointsOfSail } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { Screen, Slider, SkiaYacht, Text } from '../../src/design-system/components';
-import { fetchWeatherNow, type WeatherNow } from '../../src/api/weather';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
 import {
@@ -66,59 +64,13 @@ import { useControlPrefs } from '../../src/persistence/controls';
 import { WheelDeck } from '../../src/simulator/WheelDeck';
 import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
 import { useLandscapeWhileFocused } from '../../src/simulator/orientation';
-import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
-import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
+import { colors, darkColors as sceneColors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { AppSurface, appStackOptions } from '../../src/design-system/surface';
 
 const COMPASS_R = 48;
 const SNAP_DEG = 15;
 const SNAP_RAD = (SNAP_DEG * Math.PI) / 180;
 const WIND_SPEED_PRESETS = [6, 10, 14, 20] as const;
-
-// The synthetic wind-speed control on this screen cycles the presets
-// above, so its effective range is 6..20 kt. Live wind only SETS the
-// existing wind speed, so we clamp a fetched value into that same band -
-// no physics or default behavior changes, just a starting value the user
-// can keep tweaking with the normal controls.
-const WIND_SPEED_MIN_KTS = WIND_SPEED_PRESETS[0];
-const WIND_SPEED_MAX_KTS = WIND_SPEED_PRESETS[WIND_SPEED_PRESETS.length - 1];
-
-/** Clamp a wind speed (knots) into the simulator's wind-speed range. */
-function clampWindSpeedKts(kts: number): number {
-  return Math.max(WIND_SPEED_MIN_KTS, Math.min(WIND_SPEED_MAX_KTS, kts));
-}
-
-// Preset venues only (no geolocation, no Location permission). Same list
-// as the home WindNowCard - well-known sailing spots. The user picks one
-// from the chip row; we never read device location.
-interface LiveSpot {
-  key: string;
-  /** Place name - identical in every locale. */
-  label: string;
-  lat: number;
-  lon: number;
-}
-const LIVE_SPOTS: readonly LiveSpot[] = [
-  { key: 'palma', label: 'Palma', lat: 39.57, lon: 2.65 },
-  { key: 'tarifa', label: 'Tarifa', lat: 36.01, lon: -5.6 },
-  { key: 'cowes', label: 'Cowes', lat: 50.76, lon: -1.3 },
-  { key: 'hyeres', label: 'Hyeres', lat: 43.07, lon: 6.15 },
-] as const;
-
-const LIVE_FALLBACK_ATTRIBUTION = 'Weather data by Open-Meteo.com (CC BY 4.0).';
-
-/** 8-point cardinal - mirrors WindNowCard's `toCardinal`. */
-const LIVE_CARDINALS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
-function liveCardinal(dirDeg: number): string {
-  const normalized = ((dirDeg % 360) + 360) % 360;
-  const index = Math.round(normalized / 45) % 8;
-  return LIVE_CARDINALS[index]!;
-}
-
-type LiveWindState =
-  | { status: 'idle' }
-  | { status: 'loading'; spotKey: string }
-  | { status: 'ok'; spotKey: string; data: WeatherNow }
-  | { status: 'error'; spotKey: string };
 
 type SimView = 'top' | 'side' | 'rear';
 type WindMapMode = 'steady' | 'shift' | 'gust';
@@ -1196,7 +1148,7 @@ function Simulator() {
 
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ ...darkStackOptions, title }} />
+      <Stack.Screen options={{ ...appStackOptions, title }} />
       <View testID="native-trainer-workspace" onLayout={measureWorkspace}
         style={[styles.workspace, landscape && styles.workspaceLandscape, { paddingLeft: insets.left, paddingRight: insets.right }]}>
       <View testID="native-trainer-scene-column" style={[styles.pinned, { width: sceneColumnWidth }]}>
@@ -1261,7 +1213,7 @@ function Simulator() {
                 {windMapMode === 'gust' ? (
                   <Path
                     path={windEffectPath}
-                    color={colors.success}
+                    color={sceneColors.success}
                     style="fill"
                     opacity={0.14}
                   />
@@ -1269,7 +1221,7 @@ function Simulator() {
                 {windMapMode === 'shift' ? (
                   <Path
                     path={windEffectPath}
-                    color={colors.warning}
+                    color={sceneColors.warning}
                     style="stroke"
                     strokeWidth={2}
                     strokeCap="round"
@@ -1278,7 +1230,7 @@ function Simulator() {
                 ) : null}
                 <Path
                   path={windArrowsPath}
-                  color={colors.windColor}
+                  color={sceneColors.windColor}
                   style="stroke"
                   strokeWidth={1}
                   strokeCap="round"
@@ -1307,10 +1259,10 @@ function Simulator() {
                           r={m.radius}
                           color={
                             m.cleared
-                              ? colors.success
+                              ? sceneColors.success
                               : m.active
-                              ? colors.accentCyan
-                              : colors.warning
+                              ? sceneColors.accentCyan
+                              : sceneColors.warning
                           }
                         />
                       </Group>
@@ -1356,13 +1308,13 @@ function Simulator() {
                     a red fault. Unified with the luff/no-go-ring caution color. */}
                 <Path
                   path={noGoPath}
-                  color={colors.warning}
+                  color={sceneColors.warning}
                   style="fill"
                   opacity={0.12}
                 />
                 <Path
                   path={noGoPath}
-                  color={colors.warning}
+                  color={sceneColors.warning}
                   style="stroke"
                   strokeWidth={1}
                   opacity={0.34}
@@ -1370,7 +1322,7 @@ function Simulator() {
 
                 <Path
                   path={apparentArrowPath}
-                  color={colors.windColor}
+                  color={sceneColors.windColor}
                   style="stroke"
                   strokeWidth={2.4}
                   strokeCap="round"
@@ -1399,7 +1351,7 @@ function Simulator() {
                     point-too-high trade-off is visible at a glance. */}
                 <Path
                   path={sideVectorPath}
-                  color={colors.warning}
+                  color={sceneColors.warning}
                   style="stroke"
                   strokeWidth={3}
                   strokeCap="round"
@@ -1407,7 +1359,7 @@ function Simulator() {
                 />
                 <Path
                   path={driveVectorPath}
-                  color={colors.success}
+                  color={sceneColors.success}
                   style="stroke"
                   strokeWidth={3.4}
                   strokeCap="round"
@@ -1740,7 +1692,7 @@ function Simulator() {
         <View testID="native-trainer-wind" style={styles.windPanel}>
           <View style={styles.windPanelRow}>
             <GestureDetector gesture={windDrag}>
-              <Canvas testID="native-trainer-compass" style={{ width: 132, height: 132 }} accessible
+              <View testID="native-trainer-compass" collapsable={false} style={{ width: 132, height: 132 }} accessible
                 accessibilityRole="adjustable" accessibilityLabel={windMapLabel}
                 accessibilityValue={{ min: 0, max: 359, now: twdDeg, text: `${twdDeg}°` }}
                 accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
@@ -1751,6 +1703,7 @@ function Simulator() {
                   windBaseRef.current = next;
                   sim.setWindDir(next);
                 }}>
+              <Canvas testID="native-trainer-compass-drawing" style={{ width: 132, height: 132 }}>
                 <Group
                   transform={[
                     { translateX: compassCx },
@@ -1776,18 +1729,18 @@ function Simulator() {
                     cx={0}
                     cy={0}
                     r={COMPASS_R}
-                    color={colors.windColor}
+                    color={sceneColors.windColor}
                     style="stroke"
                     strokeWidth={1.2}
                     opacity={0.6}
                   />
                   {/* Bow-heading marker: whichever sector it falls in is the
                       current point of sail. */}
-                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={colors.textPrimary} />
+                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={sceneColors.textPrimary} />
                   <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
                     <Path
                       path={compassArrowPath}
-                      color={colors.windColor}
+                      color={sceneColors.windColor}
                       style="stroke"
                       strokeWidth={2.5}
                       strokeCap="round"
@@ -1795,6 +1748,7 @@ function Simulator() {
                   </Group>
                 </Group>
               </Canvas>
+              </View>
             </GestureDetector>
           <Pressable
             style={styles.windSpeedButton}
@@ -1945,20 +1899,6 @@ function Simulator() {
             onPress={() => handlePickWindMode('gust')}
           />
         </View>
-
-        <LiveWindControl
-          onApply={(speedKts, dirRad) => {
-            // Live wind only SETS the existing wind. The synthetic
-            // wind-map mode stays whatever the user chose; we just feed a
-            // real starting value into the same setters the sliders use.
-            sim.setWindSpeed(speedKts);
-            sim.setWindDir(dirRad);
-            // Keep the steady/shift/gust base refs in sync so toggling
-            // wind-map modes does not snap back to the old synthetic value.
-            windBaseRef.current = dirRad;
-            windSpeedBaseRef.current = speedKts;
-          }}
-        />
 
         {mode === 'drill' ? (
           <View style={styles.pickerRow}>
@@ -2264,226 +2204,6 @@ function clampNum(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-/**
- * Opt-in "Live wind" control for the simulator.
- *
- * The synthetic wind controls (the steady / shift / gust wind-map mode and
- * the trim sliders) remain the default and stay fully usable - this is
- * purely additive. Tapping a preset spot fetches a single real wind
- * snapshot from the existing web `/api/weather` endpoint and SETS the
- * simulator's wind speed + direction via the callback. It never changes
- * physics or any default behavior, and on failure it does nothing harmful:
- * the wind is left exactly as it was and an inline retry is offered.
- *
- * No geolocation and no new permission/dependency: the venue is chosen
- * from a chip row (same preset list as the home WindNowCard).
- */
-function LiveWindControl({
-  onApply,
-}: {
-  /** Apply a fetched snapshot: speed already clamped to the sim range
-   *  (knots), direction converted to radians for `setWindDir`. */
-  onApply: (speedKts: number, dirRad: number) => void;
-}) {
-  const { tp } = useI18n();
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [state, setState] = useState<LiveWindState>({ status: 'idle' });
-  // Track the in-flight request's spot so a slow earlier response can't
-  // overwrite a newer tap (last-tap-wins) or apply to the wrong spot.
-  const requestKeyRef = useRef<string | null>(null);
-
-  const load = useCallback(
-    async (spot: LiveSpot) => {
-      requestKeyRef.current = spot.key;
-      setState({ status: 'loading', spotKey: spot.key });
-      const res = await fetchWeatherNow(spot.lat, spot.lon);
-      // Ignore a response the user has since superseded with another tap.
-      if (requestKeyRef.current !== spot.key) return;
-      if (res.ok && res.data) {
-        const speedKts = clampWindSpeedKts(Math.round(res.data.wind.speedKn));
-        const dirRad = (res.data.wind.dirDeg * Math.PI) / 180;
-        onApply(speedKts, dirRad);
-        setState({ status: 'ok', spotKey: spot.key, data: res.data });
-      } else {
-        // Failure path: leave the wind untouched, surface a retry CTA.
-        setState({ status: 'error', spotKey: spot.key });
-      }
-    },
-    [onApply],
-  );
-
-  const onSelect = useCallback(
-    (spot: LiveSpot) => {
-      Haptics.selectionAsync().catch(() => {});
-      setSelectedKey(spot.key);
-      void load(spot);
-    },
-    [load],
-  );
-
-  const selectedSpot =
-    LIVE_SPOTS.find((s) => s.key === selectedKey) ?? null;
-
-  const heading = tp('Живой ветер', 'Live wind', 'Wiatr na żywo', {
-    es: 'Viento en vivo',
-    fr: 'Vent en direct',
-    de: 'Live-Wind',
-    it: 'Vento live',
-  });
-  const subtitle = tp(
-    'По желанию: задать ветер по реальным данным.',
-    'Optional: set the wind from real data.',
-    'Opcjonalnie: ustaw wiatr według rzeczywistych danych.',
-    {
-      es: 'Opcional: ajusta el viento con datos reales.',
-      fr: 'Optionnel : règle le vent avec des données réelles.',
-      de: 'Optional: Wind aus echten Daten setzen.',
-      it: 'Opzionale: imposta il vento da dati reali.',
-    },
-  );
-  const fromWord = tp('с', 'from', 'z', {
-    es: 'del',
-    fr: 'de',
-    de: 'aus',
-    it: 'da',
-  });
-  const appliedWord = tp('задан', 'set', 'ustawiony', {
-    es: 'aplicado',
-    fr: 'appliqué',
-    de: 'gesetzt',
-    it: 'impostato',
-  });
-  const unitKn = tp('уз', 'kn', 'kn', {
-    es: 'kn',
-    fr: 'kn',
-    de: 'kn',
-    it: 'kn',
-  });
-  const loadingLabel = tp('Загрузка...', 'Loading...', 'Ładowanie...', {
-    es: 'Cargando...',
-    fr: 'Chargement...',
-    de: 'Laden...',
-    it: 'Caricamento...',
-  });
-  const errorLabel = tp(
-    'Не удалось загрузить ветер.',
-    'Could not load wind.',
-    'Nie udało się pobrać wiatru.',
-    {
-      es: 'No se pudo cargar el viento.',
-      fr: 'Impossible de charger le vent.',
-      de: 'Wind konnte nicht geladen werden.',
-      it: 'Impossibile caricare il vento.',
-    },
-  );
-  const retryLabel = tp('Повторить', 'Retry', 'Ponów', {
-    es: 'Reintentar',
-    fr: 'Réessayer',
-    de: 'Erneut versuchen',
-    it: 'Riprova',
-  });
-  const disclaimer = tp(
-    'Для тренировки, не для навигации.',
-    'For training, not for navigation.',
-    'Do treningu, nie do nawigacji.',
-    {
-      es: 'Para entrenar, no para navegar.',
-      fr: "Pour l'entraînement, pas pour la navigation.",
-      de: 'Zum Training, nicht zur Navigation.',
-      it: "Per l'allenamento, non per la navigazione.",
-    },
-  );
-
-  return (
-    <View style={styles.liveWind}>
-      <View style={styles.liveWindHeaderRow}>
-        <View style={styles.liveWindDot} />
-        <Text style={styles.liveWindTitle}>{heading.toUpperCase()}</Text>
-      </View>
-      <Text variant="caption" style={styles.liveWindSubtitle}>
-        {subtitle}
-      </Text>
-
-      <View style={styles.liveWindChips}>
-        {LIVE_SPOTS.map((spot) => {
-          const active = spot.key === selectedKey;
-          return (
-            <Pressable
-              key={spot.key}
-              onPress={() => onSelect(spot)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={({ pressed }) => [
-                styles.liveWindChip,
-                active && styles.liveWindChipActive,
-                pressed && !active && styles.liveWindChipPressed,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.liveWindChipText,
-                  active && styles.liveWindChipTextActive,
-                ]}
-                numberOfLines={1}
-              >
-                {spot.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {state.status === 'loading' ? (
-        <View style={styles.liveWindStatusRow}>
-          <ActivityIndicator color={colors.accentCyan} />
-          <Text variant="caption" style={styles.liveWindStatusText}>
-            {loadingLabel}
-          </Text>
-        </View>
-      ) : null}
-
-      {state.status === 'error' ? (
-        <View style={styles.liveWindStatusRow}>
-          <Text variant="caption" style={styles.liveWindError}>
-            {errorLabel}
-          </Text>
-          {selectedSpot ? (
-            <Pressable
-              onPress={() => onSelect(selectedSpot)}
-              accessibilityRole="button"
-              accessibilityLabel={retryLabel}
-              style={({ pressed }) => [
-                styles.liveWindRetry,
-                pressed && styles.liveWindRetryPressed,
-              ]}
-            >
-              <Text style={styles.liveWindRetryText}>{retryLabel}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-
-      {state.status === 'ok' && selectedSpot ? (
-        <Text style={styles.liveWindReadout}>
-          {`${selectedSpot.label}: ${fromWord} ${liveCardinal(
-            state.data.wind.dirDeg,
-          )} (${Math.round(state.data.wind.dirDeg)} deg), ${clampWindSpeedKts(
-            Math.round(state.data.wind.speedKn),
-          )} ${unitKn} ${appliedWord}`}
-        </Text>
-      ) : null}
-
-      <Text variant="muted" style={styles.liveWindFooter}>
-        {`${disclaimer} ${
-          state.status === 'ok'
-            ? state.data.attribution || LIVE_FALLBACK_ATTRIBUTION
-            : LIVE_FALLBACK_ATTRIBUTION
-        }`}
-      </Text>
-    </View>
-  );
-}
-
 function SideProfileScene({
   width,
   height,
@@ -2602,14 +2322,14 @@ function SideProfileScene({
               y1={38}
               x2={x + drift + 20}
               y2={84}
-              stroke={colors.windColor}
+              stroke={sceneColors.windColor}
               strokeWidth={2}
               strokeLinecap="round"
             />
           );
         })}
       </G>
-      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+      <SvgText x={14} y={28} fill={sceneColors.textSecondary} fontSize={10} fontWeight="800">
         {windText.toUpperCase()}
       </SvgText>
       <G>
@@ -2667,9 +2387,9 @@ function SideProfileScene({
           />
         ) : null}
       </G>
-      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={colors.success} strokeWidth={3} strokeLinecap="round" />
-      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={colors.success} />
-      <SvgText x={cx + 8} y={waterY - 94} fill={colors.success} fontSize={10} fontWeight="800">
+      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={sceneColors.success} strokeWidth={3} strokeLinecap="round" />
+      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={sceneColors.success} />
+      <SvgText x={cx + 8} y={waterY - 94} fill={sceneColors.success} fontSize={10} fontWeight="800">
         {labels.drive.toUpperCase()}
       </SvgText>
       {Math.abs(leewayDeg) > 1 ? (
@@ -2679,7 +2399,7 @@ function SideProfileScene({
             y1={waterY + 56}
             x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * 70}
             y2={waterY + 56 + Math.cos((leewayDeg * Math.PI) / 180) * 36}
-            stroke={colors.warning}
+            stroke={sceneColors.warning}
             strokeWidth={2}
             strokeLinecap="round"
           />
@@ -2695,7 +2415,7 @@ function SideProfileScene({
           <SvgText
             x={cx + 12}
             y={waterY + 88}
-            fill={colors.warning}
+            fill={sceneColors.warning}
             fontSize={10}
             fontWeight="800"
           >
@@ -2703,10 +2423,10 @@ function SideProfileScene({
           </SvgText>
         </G>
       ) : null}
-      <SvgText x={14} y={height - 44} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 44} fill={sceneColors.textPrimary} fontSize={11} fontWeight="800">
         {`TWA ${Math.abs(twaDeg)}°  ${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
       </SvgText>
-      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? sceneColors.warning : sceneColors.textSecondary} fontSize={11} fontWeight="800">
         {`${heelText.toUpperCase()}  ${reefText.toUpperCase()}  ${twistText.toUpperCase()}`}
       </SvgText>
     </Svg>
@@ -2803,14 +2523,14 @@ function RearScene({
               y1={34}
               x2={x + nudge + sailSide * 22}
               y2={82}
-              stroke={colors.windColor}
+              stroke={sceneColors.windColor}
               strokeWidth={2}
               strokeLinecap="round"
             />
           );
         })}
       </G>
-      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+      <SvgText x={14} y={28} fill={sceneColors.textSecondary} fontSize={10} fontWeight="800">
         {windText.toUpperCase()}
       </SvgText>
       <G transform={`translate(${cx} ${baseY}) rotate(${heel * 0.7})`}>
@@ -2852,13 +2572,13 @@ function RearScene({
         y1={baseY + 66}
         x2={cx + sailSide * sideArrowLen}
         y2={baseY + 66}
-        stroke={colors.warning}
+        stroke={sceneColors.warning}
         strokeWidth={3}
         strokeLinecap="round"
       />
       <Polygon
         points={`${cx + sailSide * (sideArrowLen + 8)},${baseY + 66} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 59} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 73}`}
-        fill={colors.warning}
+        fill={sceneColors.warning}
       />
       {Math.abs(leewayDeg) > 1 ? (
         <G>
@@ -2867,7 +2587,7 @@ function RearScene({
             y1={baseY + 92}
             x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * (38 + Math.abs(leewayDeg) * 3)}
             y2={baseY + 92}
-            stroke={colors.danger}
+            stroke={sceneColors.danger}
             strokeWidth={2}
             strokeLinecap="round"
             opacity={0.85}
@@ -2883,7 +2603,7 @@ function RearScene({
           <SvgText
             x={cx + (leewayDeg >= 0 ? 22 : -78)}
             y={baseY + 108}
-            fill={colors.danger}
+            fill={sceneColors.danger}
             fontSize={9}
             fontWeight="800"
           >
@@ -2891,10 +2611,10 @@ function RearScene({
           </SvgText>
         </G>
       ) : null}
-      <SvgText x={14} y={height - 45} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 45} fill={sceneColors.textPrimary} fontSize={11} fontWeight="800">
         {`${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°  ${labels.heel.toUpperCase()} ${heelDeg}°`}
       </SvgText>
-      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? sceneColors.warning : sceneColors.textSecondary} fontSize={11} fontWeight="800">
         {`${labels.sideForce.toUpperCase()}  TRIM ${trimScore}`}
       </SvgText>
       <SvgCircle cx={width - 24} cy={height - 28} r={8} fill={trimColor} />
@@ -2930,7 +2650,7 @@ function SailBadge({
         {
           opacity,
           borderColor: bg,
-          backgroundColor: 'rgba(10, 22, 40, 0.78)',
+          backgroundColor: colors.bgCard,
         },
       ]}
     >
@@ -2971,8 +2691,8 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: 'rgba(0, 212, 255, 0.36)',
+    backgroundColor: colors.surfaceCyanFaint,
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
@@ -2996,14 +2716,14 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     minHeight: 44,
     borderRadius: radii.sm,
-    borderColor: 'rgba(232, 244, 248, 0.20)',
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   resetPressed: {
     backgroundColor: colors.bgCard,
-    borderColor: 'rgba(232, 244, 248, 0.40)',
+    borderColor: colors.borderCyanStrong,
   },
   resetText: {
     color: colors.textSecondary,
@@ -3016,12 +2736,12 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(0, 212, 255, 0.45)',
-    backgroundColor: 'rgba(4, 22, 30, 0.55)',
+    borderColor: colors.borderCyanStrong,
+    backgroundColor: colors.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  steerBtnActive: { backgroundColor: 'rgba(0, 212, 255, 0.28)', transform: [{ scale: 0.95 }] },
+  steerBtnActive: { backgroundColor: colors.surfaceCyanSoft, transform: [{ scale: 0.95 }] },
   steerBtnText: {
     color: colors.accentCyan,
     fontSize: 30,
@@ -3033,7 +2753,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSecondary,
     borderRadius: radii.lg,
     overflow: 'hidden',
-    borderColor: 'rgba(0, 212, 255, 0.16)',
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     alignSelf: 'center',
     position: 'relative',
@@ -3044,7 +2764,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
     borderRadius: radii.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.90)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     alignItems: 'flex-end',
@@ -3072,7 +2792,7 @@ const styles = StyleSheet.create({
   },
   cockpitPill: {
     color: colors.textPrimary,
-    backgroundColor: 'rgba(8, 18, 32, 0.9)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -3094,7 +2814,7 @@ const styles = StyleSheet.create({
   },
   sceneReadoutPos: {
     color: colors.accentCyan,
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
+    backgroundColor: colors.surfaceCyanFaint,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -3107,8 +2827,8 @@ const styles = StyleSheet.create({
   },
   sceneReadoutText: {
     color: colors.textSecondary,
-    backgroundColor: 'rgba(15, 32, 53, 0.78)',
-    borderColor: 'rgba(232, 244, 248, 0.10)',
+    backgroundColor: colors.bgCard,
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
     overflow: 'hidden',
@@ -3123,8 +2843,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: radii.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.72)',
-    borderColor: 'rgba(232, 244, 248, 0.10)',
+    backgroundColor: colors.bgCard,
+    borderColor: colors.borderCyanSoft,
     borderWidth: 1,
   },
   mapLegendRow: {
@@ -3152,7 +2872,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexBasis: 0,
     minWidth: 0,
-    backgroundColor: 'rgba(21, 37, 64, 0.72)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -3176,7 +2896,7 @@ const styles = StyleSheet.create({
   },
   trimPanel: {
     marginTop: spacing.md,
-    backgroundColor: 'rgba(21, 37, 64, 0.70)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
@@ -3205,7 +2925,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    backgroundColor: 'rgba(0, 212, 255, 0.04)',
+    backgroundColor: colors.surfaceCyanFaint,
   },
   autoButtonActive: {
     backgroundColor: colors.surfaceCyanSoft,
@@ -3233,7 +2953,7 @@ const styles = StyleSheet.create({
   modeBar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: 'rgba(15, 32, 53, 0.78)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.pill,
@@ -3279,15 +2999,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
     borderRadius: radii.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewChipActive: {
-    backgroundColor: 'rgba(232, 244, 248, 0.10)',
-    borderColor: 'rgba(232, 244, 248, 0.32)',
+    backgroundColor: colors.borderCyanFaint,
+    borderColor: colors.borderCyanStrong,
   },
   viewChipPressed: {
     opacity: 0.78,
@@ -3314,14 +3034,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(15, 32, 53, 0.46)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   windModeChipActive: {
-    backgroundColor: 'rgba(0, 229, 255, 0.10)',
+    backgroundColor: colors.surfaceCyanFaint,
     borderColor: colors.borderCyanSoft,
   },
   windModeChipPressed: {
@@ -3336,114 +3056,8 @@ const styles = StyleSheet.create({
   windModeChipTextActive: {
     color: colors.windColor,
   },
-  liveWind: {
-    marginBottom: spacing.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.62)',
-    borderColor: colors.borderCyanFaint,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    padding: spacing.sm,
-    gap: spacing.xs,
-  },
-  liveWindHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-  },
-  liveWindDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.windColor,
-  },
-  liveWindTitle: {
-    color: colors.windColor,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  liveWindSubtitle: {
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  liveWindChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 2,
-  },
-  liveWindChip: {
-    minHeight: 44,
-    minWidth: 44,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: 'rgba(15, 32, 53, 0.46)',
-    borderColor: colors.borderCyanFaint,
-    borderWidth: 1,
-  },
-  liveWindChipActive: {
-    backgroundColor: 'rgba(0, 229, 255, 0.10)',
-    borderColor: colors.borderCyanSoft,
-  },
-  liveWindChipPressed: {
-    opacity: 0.78,
-  },
-  liveWindChipText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  liveWindChipTextActive: {
-    color: colors.windColor,
-  },
-  liveWindStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: 2,
-  },
-  liveWindStatusText: {
-    color: colors.textSecondary,
-  },
-  liveWindError: {
-    color: colors.warning,
-  },
-  liveWindRetry: {
-    minHeight: 44,
-    minWidth: 44,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 5,
-    borderRadius: radii.sm,
-    borderColor: colors.borderCyanSoft,
-    borderWidth: 1,
-    backgroundColor: colors.bgCard,
-  },
-  liveWindRetryPressed: {
-    backgroundColor: colors.bgCardHover,
-  },
-  liveWindRetryText: {
-    color: colors.accentCyan,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  liveWindReadout: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 2,
-    fontVariant: ['tabular-nums'],
-  },
-  liveWindFooter: {
-    color: colors.textMuted,
-    fontSize: 10,
-    lineHeight: 14,
-    marginTop: 2,
-  },
   missionHud: {
-    backgroundColor: 'rgba(21, 37, 64, 0.74)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
@@ -3496,7 +3110,7 @@ const styles = StyleSheet.create({
   drillBarTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(232, 244, 248, 0.10)',
+    backgroundColor: colors.borderCyanFaint,
     overflow: 'hidden',
   },
   drillBarFill: {
@@ -3505,7 +3119,7 @@ const styles = StyleSheet.create({
   },
   pickerRow: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
@@ -3530,7 +3144,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
-    backgroundColor: 'rgba(10, 22, 40, 0.62)',
+    backgroundColor: colors.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -3571,7 +3185,7 @@ const styles = StyleSheet.create({
   },
   resultPanel: {
     marginTop: spacing.sm,
-    backgroundColor: 'rgba(15, 32, 53, 0.96)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanStrong,
     borderWidth: 1,
     borderRadius: radii.lg,
@@ -3599,7 +3213,7 @@ const styles = StyleSheet.create({
   },
   resultStat: {
     flex: 1,
-    backgroundColor: 'rgba(10, 22, 40, 0.66)',
+    backgroundColor: colors.bgSecondary,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
@@ -3654,7 +3268,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(10, 22, 40, 0.74)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
@@ -3679,7 +3293,7 @@ const styles = StyleSheet.create({
   },
 });
 
-/** Instrument screen: dark ocean palette, see design-system/surface. */
+/** Activity chrome follows the same day surface as its History entry. */
 export default function SimulatorRoute() {
-  return <DarkSurface><Simulator /></DarkSurface>;
+  return <AppSurface><Simulator /></AppSurface>;
 }

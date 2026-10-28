@@ -26,6 +26,7 @@ import { SailingEnvironment } from "./SailingEnvironment";
 import { createSailingRenderer } from "./renderer";
 import { WindFlow } from "@/features/simulator-3d/ocean/WindFlow";
 import { raceWindReading } from "@/features/race-hud/navigation-model";
+import { recordSceneLifecycle } from "@/features/simulator-3d/scene-diagnostics";
 
 // ============================================================================
 // RaceScene - the race presentation using the shared sailing renderer.
@@ -216,6 +217,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   showWind?: boolean;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
+  useEffect(() => { recordSceneLifecycle("scene", "begin"); }, []);
   const readState = useCallback(() => {
     const player = playerOf(boatsRef.current);
     return player ? { travel: toWorld(player.pos), wind: { from: windDirRef.current, knots: player.physics?.trueWindSpeed ?? 12 } } : null;

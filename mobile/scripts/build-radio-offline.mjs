@@ -138,11 +138,11 @@ const version = createHash("sha256")
 
 const html = [
   "<!doctype html>",
-  '<html lang="pl" data-theme="dark">',
+  '<html lang="pl" data-theme="light">',
   "<head>",
   '<meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
-  '<meta name="color-scheme" content="dark">',
+  '<meta name="color-scheme" content="light">',
   `<meta name="regatta-offline-version" content="${version}">`,
   "<title>SRC Radio Offline</title>",
   `<style>${escapeInlineStyle(css)}</style>`,

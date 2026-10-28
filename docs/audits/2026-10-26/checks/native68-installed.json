@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T23:12:54.637507+00:00",
+  "sourceCommit": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+  "version": "1.7.0",
+  "build": "68",
+  "scope": "P03 native result/PB durability and corrected shared replay route ownership. Full completion remains open.",
+  "exactInstalledBeforeLaunch": {
+    "checkedAt": "2026-10-26T21:35:45.544374+00:00",
+    "sourceCommit": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+    "build": "68",
+    "frozenFiles": 121,
+    "devices": [
+      {
+        "runtime": "26",
+        "device": "D0DAA7B3-BDA0-4FD5-BF9E-37DC4FDC8DCE",
+        "installedFiles": 121,
+        "allFilesMatch": true,
+        "retainedStorageKeys": 14,
+        "allKeysIdenticalBeforeLaunch": true
+      },
+      {
+        "runtime": "27",
+        "device": "3547D24B-CB8D-4E8A-A21A-74FF35217FBF",
+        "installedFiles": 121,
+        "allFilesMatch": true,
+        "retainedStorageKeys": 8,
+        "allKeysIdenticalBeforeLaunch": true
+      }
+    ],
+    "launchAttempted": false
+  },
+  "devices": [
+    {
+      "runtime": "26.5",
+      "reviewLanguage": "PL",
+      "actualFinishedRace": true,
+      "resultTimeDisplay": "1:42.2",
+      "position": "1/3",
+      "score": 85,
+      "nativeHistoryRows": 1,
+      "nativePBBuckets": 1,
+      "sameRowReceiptMatchesCurrentHistory": true,
+      "independentHistoryAndPBRequestAckObserved": true,
+      "finishToHistoryToReplayToHistoryToOriginalFinish": true,
+      "replayHasActual3DFrame": true,
+      "replayClockProgressObserved": false,
+      "localCoachOpens": true,
+      "personalNonemptyAfterCold": true,
+      "historyAndPBBytesUnchangedAcrossCold": true,
+      "oldUnknownContextRowsRetained": true,
+      "journal": {
+        "canonical": true,
+        "entries": 200,
+        "bytes": 38970,
+        "bounded200And64KB": true
+      }
+    },
+    {
+      "runtime": "27.0",
+      "reviewLanguage": "EN",
+      "actualFinishedRace": true,
+      "resultTimeDisplay": "1:36.6",
+      "position": "1/3",
+      "score": 85,
+      "nativeHistoryRows": 2,
+      "nativePBBuckets": 1,
+      "sameRowReceiptMatchesCurrentHistory": true,
+      "independentHistoryAndPBRequestAckObserved": true,
+      "finishToHistoryToReplayToHistoryToOriginalFinish": true,
+      "replayHasActual3DFrame": true,
+      "replayClockProgressObserved": true,
+      "localCoachOpens": true,
+      "personalNonemptyAfterCold": true,
+      "historyAndPBBytesUnchangedAcrossCold": true,
+      "oldUnknownContextRowsRetained": true,
+      "journal": {
+        "canonical": true,
+        "entries": 200,
+        "bytes": 36659,
+        "bounded200And64KB": true
+      }
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "r2-26-local-coach.png",
+      "bytes": 169038,
+      "sha256": "2ca557febcc20baff8fd06ba44962aeaaa0962e3fd6acca800beefff04d05790"
+    },
+    {
+      "file": "r2-26-mark-rounded-finish-leg.png",
+      "bytes": 183315,
+      "sha256": "e126aba38b4eb8fbc09a4a038fa8611bcdc69f2c59cadfcb032d8e80ad6c852a"
+    },
+    {
+      "file": "r2-26-personal-after-cold.png",
+      "bytes": 154967,
+      "sha256": "ec72dc6475f5f29ec32162ee9b609285ea251ac9db9fc2e89965c6cb7ce6f237"
+    },
+    {
+      "file": "r2-26-real-finish-pb-confirmed.png",
+      "bytes": 155856,
+      "sha256": "a3fda244694f9541e6665186024e07aa8805b2af40a601550e92545c54e74557"
+    },
+    {
+      "file": "r2-26-replay-history-back-original-finish.png",
+      "bytes": 155970,
+      "sha256": "e3b7395b9efaad395f410cc28a68f08d3997c660a24ce32ce04497d29ad27245"
+    },
+    {
+      "file": "r2-27-history-two-results.png",
+      "bytes": 132166,
+      "sha256": "9d4d6bed3dc0115fc9dff8e8112e79e99c6a09b7819f6f1498cee04a43cd5ae4"
+    },
+    {
+      "file": "r2-27-local-coach.png",
+      "bytes": 151454,
+      "sha256": "38705004ad7427a48da5af1000196914fba3528f259c9f4b7dd2ba8c2018ddd9"
+    },
+    {
+      "file": "r2-27-mark-rounded-finish-leg.png",
+      "bytes": 176151,
+      "sha256": "e6b77a032b785109d55847297057bf2c7267610a87bea458c5a3ae640bf1c3db"
+    },
+    {
+      "file": "r2-27-new-replay-running.png",
+      "bytes": 176075,
+      "sha256": "7d0a2646d68815fe4604989b318c112bd5a2297094bce0cfaaac5c65661088c5"
+    },
+    {
+      "file": "r2-27-personal-new-result-after-cold.png",
+      "bytes": 140675,
+      "sha256": "b5b2b7240744933f18750f5d19187c0e46a47fb55d91152d4fb9fe3ce953ebd6"
+    },
+    {
+      "file": "r2-27-personal-preserved.png",
+      "bytes": 328259,
+      "sha256": "b28917420fce0507f8644db51678749d1abb1d71dbd931695b8b0c5b8f0fe3d6"
+    },
+    {
+      "file": "r2-27-real-finish-pb-confirmed.png",
+      "bytes": 141224,
+      "sha256": "b6ef6f20bb1d4990cd1892fd2504d93e6e1818cb7a16ea4a1c1b108ea3b17c3c"
+    },
+    {
+      "file": "r2-27-replay-history-back-hub.png",
+      "bytes": 377327,
+      "sha256": "3bb5a4e95d92cd5965bdd86e25f91a8ad97a6672dccab3dc88da2b0e461396dc"
+    },
+    {
+      "file": "r2-27-replay-history-back-original-finish.png",
+      "bytes": 140686,
+      "sha256": "2bb1837be60420d64aadf4387ab7a4d469b422a1979d7df028f79f7c55ce1f2c"
+    },
+    {
+      "file": "r2-27-replay-orbit.png",
+      "bytes": 16945,
+      "sha256": "f9db5d558d9a9b1881fb2f54e501e00f6dd1bdbe7a9b3b72229d2f42e075e551"
+    },
+    {
+      "file": "r2-27-replay-rotated.png",
+      "bytes": 15160,
+      "sha256": "edeb1103b6b05e92377c25006cd4224bb0bfdeaf0a40fa9e5d72ccc8ab27e608"
+    },
+    {
+      "file": "r2-fresh27-f7-back-native-hub.png",
+      "bytes": 214522,
+      "sha256": "b2bd0e5dcfd559f920f9db22757bfda5d9cd96549a9e382f7c14f51220042428"
+    },
+    {
+      "file": "r2-fresh27-f7-first-3d-clock.png",
+      "bytes": 183376,
+      "sha256": "b429bbd7a4a630a32cf68f74b3af907e1af494152d7e750401cffa192a92f15f"
+    },
+    {
+      "file": "r2-fresh27-f7-home.png",
+      "bytes": 230414,
+      "sha256": "7e688276c86d5924f2b8a5fc2e89fe3c605a7070ed0676766f1a3da8c45a4ecc"
+    }
+  ],
+  "actualFailureInjections": false,
+  "limits": [
+    "Disk/read/corrupt/delayed/stale/clear failure branches are actual component/storage tests, not installed forced failure injections.",
+    "Retained26.5 descends from public48 progress. Dedicated27 was initially clean on source0a; exactf7 update preserves prior rows and completes a fresh real race. No existing device was erased.",
+    "3D frame and replay progression observed; gesture reliability, physical phone, microphone, network blackhole and thermal/FPS remain separate.",
+    "Rounding-stage clarity and Coach no-go feedback remain following audit findings.",
+    "Physical race emission remains OFF; this current engine and PB comparison are explicitly legacy."
+  ],
+  "crashScan": {
+    "from": "2026-10-26T21:35:00Z",
+    "checkedAt": "2026-10-26T23:13:29.459097+00:00",
+    "newMatchingAppReports": 0,
+    "scope": "Host and exact two Simulator report directories only; physical phone and future TestFlight feedback excluded"
+  },
+  "additionalExactFresh27": {
+    "createdAt": "2026-10-26T23:16:30.025977+00:00",
+    "name": "Regatta68 f7 fresh27",
+    "device": "A28A8BA0-F829-4D23-9D7E-AFD96CA4E272",
+    "noDeviceErased": true,
+    "checkedAt": "2026-10-26T23:19:06.555124+00:00",
+    "sourceCommit": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+    "expectedFiles": 121,
+    "installedFiles": 121,
+    "allFilesMatch": true,
+    "freshInstallation": true,
+    "observations": [
+      "Exact f7 fresh install launches Polish Home without old storage.",
+      "Race hub -> local menu -> briefing -> countdown -> actual shared3D frame, time0:05.9, speed2.8kn and default wheel/rudder0.",
+      "Pause -> Menu -> Back returns to native Race hub. No finished result claimed on this third device."
+    ]
+  }
+}

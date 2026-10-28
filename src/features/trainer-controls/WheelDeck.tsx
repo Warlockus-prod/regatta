@@ -49,8 +49,8 @@ export interface SheetTarget {
 
 type Slot = "helm" | "main" | "jib";
 const HINT_KEY = "regatta.controls.wheelHint";
-/** Room under a wheel for its two-line caption. */
-const CAPTION_H = 40;
+/** Reserve all three helm lines, their gap and a little rounding space. */
+const CAPTION_H = 50;
 type Box = [cx: number, cy: number, d: number];
 
 export function WheelDeck(props: {
@@ -240,7 +240,7 @@ export function WheelDeck(props: {
   // panel): the two sheets in a row on top, the helm under them.
   const sheetRow = small + CAPTION_H + 10;
   const big = layout === "bottom"
-    ? Math.max(116, Math.min(176, h - CAPTION_H - 8, w - 2 * small - 40))
+    ? Math.max(96, Math.min(176, h - CAPTION_H - 8, w - 2 * small - 40))
     : Math.max(110, Math.min(184, h - (sheets ? sheetRow : 0) - CAPTION_H - 8, w - 40));
   const center: Box = layout === "bottom" || !sheets
     ? [w / 2, (h - CAPTION_H) / 2 + 2, big]
@@ -284,9 +284,13 @@ export function WheelDeck(props: {
     );
   };
 
+  const hint = showNote && !hideHint
+    ? <p className={styles.deckNote} data-testid="wheel-hint">{note ?? (sheets ? labels.wheelHint : labels.autoTrim)}</p>
+    : null;
   return (
+    <>
     <div className={styles.deck} data-layout={layout}>
-      {showNote && !hideHint && <p className={styles.deckNote}>{note ?? (sheets ? labels.wheelHint : labels.autoTrim)}</p>}
+      {layout === "column" && hint}
       <div ref={boxRef} className={styles.deckArea} data-testid="wheel-deck">
         {sheets && sheetWheel(leftK)}
         <Wheel
@@ -309,5 +313,7 @@ export function WheelDeck(props: {
         {sheets && sheetWheel(rightK)}
       </div>
     </div>
+    {layout === "bottom" && hint}
+    </>
   );
 }

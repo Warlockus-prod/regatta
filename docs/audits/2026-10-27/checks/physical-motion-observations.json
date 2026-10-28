@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T23:31:48.292Z",
+  "baseline": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+  "scope": "Synthetic source-only physical API numeric observations, not live/native race acceptance.",
+  "physicalEmissionEnabled": false,
+  "observations": [
+    {
+      "initialHeading": 45,
+      "simulationSeconds": 1,
+      "finalHeading": 67.00000000000045,
+      "finalSpeedKn": 4.178590636327696,
+      "physicalPathMetres": 2.1057288559327656,
+      "integratedKnotsToMetres": 2.1057288559327305,
+      "legacyPathMetres": 19.64742228206988,
+      "legacyDistanceRatio": 9.330461624588768
+    },
+    {
+      "initialHeading": 90,
+      "simulationSeconds": 1,
+      "finalHeading": 112.00000000000045,
+      "finalSpeedKn": 4.094364613162781,
+      "physicalPathMetres": 2.0985251732603745,
+      "integratedKnotsToMetres": 2.098525173260483,
+      "legacyPathMetres": 19.580208597340793,
+      "legacyDistanceRatio": 9.330461624589422
+    },
+    {
+      "initialHeading": 150,
+      "simulationSeconds": 1,
+      "finalHeading": 172.00000000000045,
+      "finalSpeedKn": 3.943019956588233,
+      "physicalPathMetres": 2.0427963587832783,
+      "integratedKnotsToMetres": 2.0427963587832068,
+      "legacyPathMetres": 19.060233032476468,
+      "legacyDistanceRatio": 9.330461624588485
+    }
+  ]
+}

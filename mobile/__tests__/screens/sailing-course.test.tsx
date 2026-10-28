@@ -1,22 +1,26 @@
 import { act, fireEvent, waitFor } from "@testing-library/react-native";
 import { useState } from "react";
+import { CommonActions, StackActions, StackRouter } from "@react-navigation/routers";
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 const mockPush = jest.fn();
-jest.mock("expo-router", () => ({ Stack: { Screen: () => null }, useRouter: () => ({ push: mockPush, replace: jest.fn(), navigate: jest.fn() }), useFocusEffect: (cb: () => void) => require("react").useEffect(cb, [cb]) }));
+const mockNavigate = jest.fn();
+const mockDismissTo = jest.fn();
+jest.mock("expo-router", () => ({ Stack: { Screen: () => null }, useRouter: () => ({ push: mockPush, replace: jest.fn(), navigate: mockNavigate, dismissTo: mockDismissTo }), useFocusEffect: (cb: () => void) => require("react").useEffect(cb, [cb]) }));
 jest.mock("expo-localization", () => ({ getLocales: () => [{ languageTag: "en-US" }] }));
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loadLessonPositions } from "../../src/sailing/lesson-position";
+import { loadLessonPositions, saveLessonPosition } from "../../src/sailing/lesson-position";
 import { LESSON_POSITION_KEY } from "../../../src/features/sailing-lab/lessons/lesson-position";
 import { PRACTICE_RESULTS_KEY } from "../../../src/features/sailing-lab/lessons/practice-results";
 import { SailingCourseScreen } from "../../src/sailing/SailingCourseScreen";
 import { renderWithProviders } from "../../src/test-utils";
 import { SAIL_PROGRESS_KEY } from "../../../src/features/sailing-lab/lessons/progress";
 import { AnalyticsClientContext } from "../../src/analytics/context";
+import { sailCourse } from "../../../src/data/sailing-lab/course";
 
 const REVIEW_KEY = "regatta.review.v1";
 
 afterEach(async () => { await act(async () => { await loadLessonPositions(); }); });
-beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); });
+beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); mockNavigate.mockReset(); mockDismissTo.mockReset(); });
 test("bundled vang lesson changes the diagram and enters the ungraded shape session", async () => {
   const view = renderWithProviders(<SailingCourseScreen lessonId="vang" />);
   await waitFor(() => expect(view.getByRole("button", { name: "Eased" })).toBeTruthy());
@@ -207,6 +211,39 @@ test("returns to practice after unmount and keeps the chosen diagram", async () 
   fireEvent.press(returned.getByRole("button", { name: "1. Understand" }));
   expect(returned.getByText(/Boom rise: 5°/)).toBeTruthy();
   expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
+});
+
+test("returning to the course removes lesson history instead of leaving it behind the outline", async () => {
+  const stack = StackRouter({ initialRouteName: "learn/index" });
+  const config = { routeNames: ["learn/index", "learn/sails/index", "learn/sails/[lesson]"], routeParamList: {}, routeGetIdList: {} };
+  let state = stack.getInitialState(config);
+  const dispatch = (action: Parameters<typeof stack.getStateForAction>[1]) => {
+    const next = stack.getStateForAction(state, action, config);
+    if (!next || next.stale !== false) throw new Error("Course stack action did not return a hydrated state");
+    state = next;
+  };
+  dispatch(StackActions.push("learn/sails/index"));
+  const originalOutlineKey = state.routes[state.index].key;
+  dispatch(StackActions.push("learn/sails/[lesson]", { lesson: "rig-basics" }));
+  dispatch(StackActions.push("learn/sails/[lesson]", { lesson: "mainsheet" }));
+  mockNavigate.mockImplementation(href => { expect(href).toBe("/learn/sails"); dispatch(CommonActions.navigate("learn/sails/index")); });
+  mockDismissTo.mockImplementation(href => { expect(href).toBe("/learn/sails"); dispatch(StackActions.popTo("learn/sails/index")); });
+  await saveLessonPosition("mainsheet", { step: "try", diagram: 1 });
+  await AsyncStorage.multiSet([
+    [SAIL_PROGRESS_KEY, JSON.stringify({ version: 1, checked: ["rig-basics"], current: "mainsheet" })],
+    [PRACTICE_RESULTS_KEY, JSON.stringify({ version: 1, completed: { mainsheet: 123 } })],
+  ]);
+  const keys = [LESSON_POSITION_KEY, SAIL_PROGRESS_KEY, PRACTICE_RESULTS_KEY];
+  const savedBefore = await AsyncStorage.multiGet(keys);
+  expect(savedBefore.every(([, value]) => value !== null)).toBe(true);
+  const view = renderWithProviders(<SailingCourseScreen lessonId="mainsheet" />);
+  await waitFor(() => expect(view.getByRole("button", { name: "Sail trim trainer" })).toBeTruthy());
+  fireEvent.press(view.getByRole("button", { name: sailCourse.back.en }));
+  expect(state.routes.map(route => route.name)).toEqual(["learn/index", "learn/sails/index"]);
+  expect(state.routes[state.index].key).toBe(originalOutlineKey);
+  dispatch(CommonActions.goBack());
+  expect(state.routes.map(route => route.name)).toEqual(["learn/index"]);
+  expect(await AsyncStorage.multiGet(keys)).toEqual(savedBefore);
 });
 
 test("shows simulator evidence without granting theory credit", async () => {

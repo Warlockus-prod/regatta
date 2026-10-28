@@ -20,7 +20,8 @@ jest.mock("react-native-webview", () => {
 });
 
 import { OfflineRadioCourse } from "../src/course/OfflineRadioCourse";
-import { darkColors } from "../src/design-system/tokens";
+import { colors } from "../src/design-system/tokens";
+import { APP_EMBED_THEME_SCRIPT } from "../src/design-system/embedded-theme";
 import { mainNavigationHiddenByScreen } from "../src/navigation/visibility";
 import { persistRadioEntries, readRadioEntries, RADIO_STORAGE_KEY } from "../src/persistence/radio-storage";
 import { RADIO_FREE_HREF, RADIO_GUIDED_HREF } from "../../src/app/radio/navigation";
@@ -37,16 +38,17 @@ let mockConsentReady = true;
 const send = (web: ReturnType<typeof render>["root"], data: object) => act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify(data) } }));
 beforeEach(() => { jest.clearAllMocks(); mockConsentReady = true; mockRouter.canGoBack.mockReturnValue(true); });
 
-it("opens the actual local radio route with a matching dark native surface and no website-mode escape", async () => {
+it("opens the actual local radio route with a matching day native surface and no website-mode escape", async () => {
   const view = render(<OfflineRadioCourse />);
   const web = await waitFor(() => view.getByTestId("src-webview"));
   expect(web.props.source).toBe(42);
   expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain(JSON.stringify(RADIO_FREE_HREF));
   expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain("local speech");
-  expect(web.props.injectedJavaScript).toBeUndefined();
+  expect(web.props.injectedJavaScript).toBe(APP_EMBED_THEME_SCRIPT);
+  expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain(APP_EMBED_THEME_SCRIPT);
   expect(view.getByRole("button", { name: "Back to app" })).toBeTruthy();
   send(web, { type: "radio-offline-ready" });
-  expect(mockScreen).toHaveBeenLastCalledWith(expect.objectContaining({ options: expect.objectContaining({ headerShown: false, contentStyle: { backgroundColor: darkColors.bgPrimary } }) }));
+  expect(mockScreen).toHaveBeenLastCalledWith(expect.objectContaining({ options: expect.objectContaining({ headerShown: false, contentStyle: { backgroundColor: colors.bgPrimary } }) }));
   send(web, { type: "radio-open-online", path: RADIO_GUIDED_HREF });
   expect(mockInject).toHaveBeenLastCalledWith(expect.stringContaining("regatta:radio-navigate"));
   expect(web.props.source).toBe(42);

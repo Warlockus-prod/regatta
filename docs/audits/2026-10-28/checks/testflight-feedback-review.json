@@ -1,0 +1,567 @@
+{
+  "schema": 2,
+  "recordedAtUTC": "2026-10-28T15:02:31.075749+00:00",
+  "readOnly": true,
+  "remoteWrites": 0,
+  "scope": "App TestFlight submitted screenshot-feedback texts; no claim of all device crash logs or the local app journal.",
+  "requestedBuilds": {
+    "64": {
+      "screenshotSubmissions": 0,
+      "crashSubmissions": 0,
+      "screenshotListComplete": true,
+      "crashListComplete": true
+    },
+    "68": {
+      "screenshotSubmissions": 0,
+      "crashSubmissions": 0,
+      "screenshotListComplete": true,
+      "crashListComplete": true
+    },
+    "69": {
+      "screenshotSubmissions": 0,
+      "crashSubmissions": 0,
+      "screenshotListComplete": true,
+      "crashListComplete": true
+    }
+  },
+  "requestedBuildGETCompletedAtUTC": "2026-10-28T14:20:11.960Z",
+  "appMetadataGETCompletedAtUTC": "2026-10-28T14:21:04.319Z",
+  "appMetadataComplete": true,
+  "legacyCommentGETCompletedAtUTC": "2026-10-28T14:27:54.963Z",
+  "commentReviewCompletedAtUTC": "2026-10-28T14:31:06.868668+00:00",
+  "appTotals": {
+    "screenshotSubmissions": 11,
+    "nonemptyComments": 10,
+    "emptyComments": 1,
+    "crashSubmissions": 0,
+    "imagesViewed": 11
+  },
+  "countsByBuild": {
+    "7": {
+      "screenshots": 2,
+      "crashes": 0
+    },
+    "49": {
+      "screenshots": 1,
+      "crashes": 0
+    },
+    "60": {
+      "screenshots": 7,
+      "crashes": 0
+    },
+    "66": {
+      "screenshots": 1,
+      "crashes": 0
+    }
+  },
+  "queryCorrection": {
+    "initialHTTP": 400,
+    "errorCode": "PARAMETER_ERROR.INVALID",
+    "sourceParameter": "filter[build]",
+    "causeObserved": "Compound CSV build filter rejected by API.",
+    "correctedForm": "Separate GET with one exact build filter.",
+    "correctedHTTP": 200,
+    "sameCredentials": true,
+    "permissionBypass": false,
+    "notAPIUnavailable": true
+  },
+  "privacy": {
+    "rawCommentsInRepository": false,
+    "testerIdentityOrEmailInRepository": false,
+    "rawResourceUUIDsInRepository": false,
+    "imageURLsOrMetadataInRepository": false,
+    "userScreenshotsInRepository": false,
+    "rawAudioOrSpeechRequested": false,
+    "privateArtifactHashesOnly": true
+  },
+  "deliveryBoundary": {
+    "deliveredBuild": "69",
+    "deliveredRuntime": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+    "deliveredDate": "2026-10-27",
+    "candidateBuild": "70",
+    "candidateDeliveredByThisReview": false,
+    "candidateInstalledAcceptanceClaimed": false,
+    "noFeedback69InCompletedInventory": true,
+    "noFeedback68InCompletedInventory": true,
+    "noFeedback64InCompletedInventory": true,
+    "changesAfter69AreSourceOnlyCandidate70": true
+  },
+  "fixedCategories": [
+    "back",
+    "camera-3d",
+    "historical-home-visual",
+    "language",
+    "layout-typography",
+    "learning-continuity",
+    "learning-curve-meaning",
+    "map-visibility",
+    "radio-entry",
+    "real-courses",
+    "theme-coherence",
+    "wind-readings",
+    "wind-relative"
+  ],
+  "items": [
+    {
+      "id": "TF01",
+      "build": "66",
+      "submittedAtUTC": "2026-10-26T16:35:20.532Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Индикатор ветра должен показывать, с какой стороны ветер приходит относительно носа лодки, как судовой прибор, а не только общий азимут.",
+      "categories": [
+        "wind-relative"
+      ],
+      "programIds": [
+        "P06",
+        "P10"
+      ],
+      "auditIds": [
+        "F08",
+        "F12"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Статичный кадр подтверждает наличие3D/карты/ветра в66, но не корректность относительного ветра при маневре или orbit.",
+      "imageObservation": "Работающая Pro-гонка с перспективной яхтой, угловыми картой и ветром, тремя колесами. Это не урок.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "4de577f37d6dd75e93569041862ec5932201f47eed07e5fc17976245b8a0f123"
+      ]
+    },
+    {
+      "id": "TF02",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T22:02:01.243Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Между экранами меняются светлое и темное оформление, нет согласованного визуального перехода.",
+      "categories": [
+        "theme-coherence"
+      ],
+      "programIds": [
+        "P10"
+      ],
+      "auditIds": [
+        "F12"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Снимок подтверждает исторический визуальный разрыв оболочки и embedded курса60; текущая дневная тема70 требует отдельной installed приемки.",
+      "imageObservation": "Раздел Sternik motorowodny: светлый native header и нижняя навигация окружают темный учебный контент.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "33058c73d5888113b3dd70ed94e6021af3c75f3c0db804ccb34871270c604115"
+      ]
+    },
+    {
+      "id": "TF03",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T21:57:42.826Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "При русском языке виден польский учебный текст; изображение уточняет, что это Sternik motorowodny.",
+      "categories": [
+        "language"
+      ],
+      "programIds": [
+        "P10"
+      ],
+      "auditIds": [
+        "F13"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "После уточнения владельца Sternik остаетсяPL-only. Этот кадр не является доказанным переводным багом SRC; исключение нужно явно обозначать, не переводить официальный курс вопреки решению.",
+      "imageObservation": "Открыт именно Sternik motorowodny: польский курс внутри оболочки с русскими названиями разделов.",
+      "imageContextDetermined": true,
+      "currentClassification": "agreed-polish-only-course-exception",
+      "imageArtifactSha256": [
+        "816c52f71fb158b38ec461f0d4b474feef792d7c80fd514b3164731316415191"
+      ]
+    },
+    {
+      "id": "TF04",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T21:57:25.923Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Радио не удается использовать. Вложение уточняет, что встроенный SRC-курс не открылся еще до появления самого прибора.",
+      "categories": [
+        "radio-entry"
+      ],
+      "programIds": [
+        "P07",
+        "P08",
+        "P12"
+      ],
+      "auditIds": [
+        "F07",
+        "F09",
+        "F11"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Это исторический radio entry/startup failure60, а не установленная ошибка ASR/микрофона/DIAL. Причина и исправление не определяются по изображению.",
+      "imageObservation": "Native SRC Radio показывает ошибку открытия встроенного курса и Retry. Самой рации, DIAL и PTT нет.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "80350a586993875fae98b9988922dc4060c09640b57b4fa620bb74474c94dc59"
+      ]
+    },
+    {
+      "id": "TF05",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T21:56:32.338Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Нужны правдоподобные маршруты в выбранных акваториях, включая гонки вокруг островов.",
+      "categories": [
+        "real-courses"
+      ],
+      "programIds": [
+        "P04",
+        "P05"
+      ],
+      "auditIds": [
+        "F02"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Это контекст запроса реальных островных маршрутов. Кадр выбора акватории не доказывает прохождение конкретной трассы.",
+      "imageObservation": "Показан native хаб гонки с выбором акватории и режима; выбран Гёджек.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "a1f2b5f16614adcf858451cc6071dab1b3bed04dd5b5649422a0d3f7d46c7a33"
+      ]
+    },
+    {
+      "id": "TF06",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T21:55:40.661Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Во время движения не хватает карты, которая раньше была доступна.",
+      "categories": [
+        "map-visibility"
+      ],
+      "programIds": [
+        "P06",
+        "P10"
+      ],
+      "auditIds": [
+        "F08",
+        "F12"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Изображение подтверждает отсутствие видимой карты в данном кадре60, не глобальное отсутствие функции во всех состояниях. В более поздней66 карта уже видна.",
+      "imageObservation": "Работающая гонка в виде сверху, открыта вкладка флота. Угловая мини-карта в этом состоянии не видна; числовойTWA уже есть.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "20d0779cdf5efa8a5c81854bb64e8931c36832f6827f66ec691e557e86304b05"
+      ]
+    },
+    {
+      "id": "TF07",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T21:55:15.286Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Не хватает направления ветра и угла движения к нему; пользователь также не находит переключение 2D/3D и свободное вращение мира в 3D, знакомое по тренажеру.",
+      "categories": [
+        "wind-readings",
+        "camera-3d"
+      ],
+      "programIds": [
+        "P06",
+        "P10"
+      ],
+      "auditIds": [
+        "F02",
+        "F08",
+        "F12"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Кадр не доказывает отсутствия3Dмодели или числового угла: они видны. Комментарий сохраняет проблему понятной ориентации/доступа к виду и orbit; жесты по статичному кадру не проверяются. Системное уведомление не приписывается вёрстке приложения.",
+      "imageObservation": "Виден Pro-заезд с объемной яхтой в отдаленном виде сверху, числовымTWA и тремя колесами; отдельных угловых карты/ветра в этом состоянии нет.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "1b3806695ffce2df08dc9963bbfe339794564f83ab0c9918989056906d407fcf"
+      ]
+    },
+    {
+      "id": "TF08",
+      "build": "60",
+      "submittedAtUTC": "2026-10-24T21:52:40.147Z",
+      "historicalClass": "beforeDelivered69",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Названия разделов слишком близко к краю экрана; нужны нормальные отступы и согласованная типографика.",
+      "categories": [
+        "layout-typography"
+      ],
+      "programIds": [
+        "P10"
+      ],
+      "auditIds": [
+        "F12",
+        "F13"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Контекст отступов и типографики60 теперь установлен; это не повторная проверка нового native70 или крупного текста.",
+      "imageObservation": "Native список Foundation на русском. Заголовки учебных модулей расположены заметно левее основных карточек, близко к краю.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "f425fcf43d14e8b65f403c44bf71a6cee744f6cb89a4452608ed0e32e463feaf"
+      ]
+    },
+    {
+      "id": "TF09",
+      "build": "49",
+      "submittedAtUTC": "2026-10-19T21:57:31.306Z",
+      "historicalClass": "legacy49or7",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "В уроке3 о работе паруса не работает Back, а урок воспринимается оторванным от учебного цикла.",
+      "categories": [
+        "back",
+        "learning-continuity"
+      ],
+      "programIds": [
+        "P02",
+        "P08"
+      ],
+      "auditIds": [
+        "F05",
+        "F09"
+      ],
+      "acceptanceIds": [
+        "N05"
+      ],
+      "imageViewed": true,
+      "currentBoundary": "Раздел теперь определен. Неудачный Back и разрыв учебного пути описаны комментарием; сам тап и его результат статичный кадр не проверяет. Не переносить этот баг49 на69/70 без воспроизведения.",
+      "imageObservation": "Исторический урок3 о работе паруса: виден Back, учебная схема и объяснение практики в тренажере.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "8beb79315ad2857dc71f30299329c40d937c2b73726d225165a9a2e52492de08"
+      ]
+    },
+    {
+      "id": "TF10",
+      "build": "7",
+      "submittedAtUTC": "2026-05-12T15:53:50.678Z",
+      "historicalClass": "legacy49or7",
+      "commentRead": true,
+      "commentEmpty": false,
+      "paraphrase": "Пользователю непонятна замкнутая кривая на учебной диаграмме курсов относительно ветра.",
+      "categories": [
+        "learning-curve-meaning"
+      ],
+      "programIds": [
+        "P02",
+        "P06"
+      ],
+      "auditIds": [
+        "F05",
+        "F08"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Речь идет о понятности учебной кривой, по виду полярной, а не о racing trail. Точная математическая интерпретация не выводится без источника/легенды; не объявлять новый баг69.",
+      "imageObservation": "Исторический раздел курсов относительно ветра: круговая учебная диаграмма с замкнутой циановой кривой и показаниями курса/скорости/ветра. Географической карты или следа гонки нет.",
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "76b7c42ea856922defc805c9cddd051c9028704bc92875013544d9d1591c9fcc"
+      ]
+    },
+    {
+      "id": "TF11",
+      "build": "7",
+      "submittedAtUTC": "2026-05-12T15:52:38.186Z",
+      "historicalClass": "legacy49or7",
+      "commentRead": true,
+      "commentEmpty": true,
+      "paraphrase": "Комментарий пустой. Изображение показывает старую польскую Home и частично срезанный wordmark; конкретная жалоба не сформулирована.",
+      "categories": [
+        "historical-home-visual"
+      ],
+      "programIds": [
+        "P10"
+      ],
+      "auditIds": [
+        "F12"
+      ],
+      "acceptanceIds": [],
+      "imageViewed": true,
+      "currentBoundary": "Контекст изображения установлен. Комментарий пустой, поэтому намерение отправителя неизвестно; обрезание является наблюдением аудита старого кадра7, не пересказом жалобы и не новым багом69.",
+      "imageObservation": "Историческая польская Home с карточками обучения. Верхняя часть крупного wordmark в кадре выглядит частично срезанной.",
+      "imageContextDetermined": true,
+      "intentKnown": false,
+      "imageArtifactSha256": [
+        "d653481823c0b0ed4ed89b102d552c37b6134d410aad82581c6d8f1dd742a8d1"
+      ]
+    }
+  ],
+  "privateArtifacts": [
+    {
+      "name": "filtered-inventory-sanitized.json",
+      "sha256": "e872bea9a707d1e9248247c5aed51a0fff86d2fb75d874e0ca5590aad0a1638e",
+      "bytes": 4425,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "app-metadata-inventory-sanitized.json",
+      "sha256": "6779f335a3393825fc55f899279a189c2c697195f7b7125bda481b9f0b1df242",
+      "bytes": 3464,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "recent-inventory-sanitized.json",
+      "sha256": "4948b69e77803b0fe778615c84a97cdbcb99e1202ba84dc59429949fb380fd2f",
+      "bytes": 9791,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "legacy49-comments-private.json",
+      "sha256": "927e7a2ac840fab9370d1f1226eda097693fe98f84f34e0ef31d1c31be98916c",
+      "bytes": 1401,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "legacy7-comments-private.json",
+      "sha256": "c6152d59665f42dae4e3fbbf4bf6c555529fefa74f94634d229cb15f25560680",
+      "bytes": 1838,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "query-errors-private.json",
+      "sha256": "50fe124447f87ce0b3b922a3a73b7884bc72a6a609bcb0fabaf1234f84b7da5a",
+      "bytes": 1922,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "comment-review-sanitized.json",
+      "sha256": "b03be02c5c2f74caf921e96637843de2e80302d5df770ca2b668bfc00293f343",
+      "bytes": 9863,
+      "location": "private audit workspace, not in Git",
+      "phase": "Initial11text/twoimage checkpoint retained; all-images-review-sanitized.json owns complete image coverage."
+    },
+    {
+      "name": "attachment-radio-build60.jpg",
+      "sha256": "80350a586993875fae98b9988922dc4060c09640b57b4fa620bb74474c94dc59",
+      "bytes": 145646,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-wind-build66.jpg",
+      "sha256": "4de577f37d6dd75e93569041862ec5932201f47eed07e5fc17976245b8a0f123",
+      "bytes": 322249,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "all-attachments-inventory-private.json",
+      "sha256": "47de4c46ebe63b9947780880286dfab55a169938124e30082d774018cf9a9052",
+      "bytes": 3661,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "all-attachments-download-private.json",
+      "sha256": "b2eb39045e4eb2d9cb4d974b9b6e34f26710d1d44dd45dcf848c7ea4eeb52c8f",
+      "bytes": 10275,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "all-images-review-sanitized.json",
+      "sha256": "11136cf5182f97e4d0e4498bb87fa0d1955f1fb267b9505a64f62765469d8432",
+      "bytes": 9344,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF02-build60-1.jpg",
+      "sha256": "33058c73d5888113b3dd70ed94e6021af3c75f3c0db804ccb34871270c604115",
+      "bytes": 305021,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF03-build60-1.jpg",
+      "sha256": "816c52f71fb158b38ec461f0d4b474feef792d7c80fd514b3164731316415191",
+      "bytes": 436969,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF05-build60-1.jpg",
+      "sha256": "a1f2b5f16614adcf858451cc6071dab1b3bed04dd5b5649422a0d3f7d46c7a33",
+      "bytes": 461627,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF06-build60-1.jpg",
+      "sha256": "20d0779cdf5efa8a5c81854bb64e8931c36832f6827f66ec691e557e86304b05",
+      "bytes": 234769,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF07-build60-1.jpg",
+      "sha256": "1b3806695ffce2df08dc9963bbfe339794564f83ab0c9918989056906d407fcf",
+      "bytes": 279579,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF08-build60-1.jpg",
+      "sha256": "f425fcf43d14e8b65f403c44bf71a6cee744f6cb89a4452608ed0e32e463feaf",
+      "bytes": 307150,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF09-build49-1.jpg",
+      "sha256": "8beb79315ad2857dc71f30299329c40d937c2b73726d225165a9a2e52492de08",
+      "bytes": 360814,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF10-build7-1.jpg",
+      "sha256": "76b7c42ea856922defc805c9cddd051c9028704bc92875013544d9d1591c9fcc",
+      "bytes": 286407,
+      "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "attachment-TF11-build7-1.jpg",
+      "sha256": "d653481823c0b0ed4ed89b102d552c37b6134d410aad82581c6d8f1dd742a8d1",
+      "bytes": 248236,
+      "location": "private audit workspace, not in Git"
+    }
+  ],
+  "limits": [
+    "All11submitted comment fields were read:10nonempty and1empty. All11attachments were viewed.",
+    "Radio60image establishes SRC entry/startup error before instrument display, not its technical cause orASR/DIALfailure.",
+    "The66image is a running Pro race. Static pixels do not verify relative-wind behavior or orbit.",
+    "TF03image identifies the agreedPL-onlySternikcourse, not a demonstratedSRCtranslationbug.",
+    "Legacy49/7images identify old lesson/diagram/Home contexts; old states do not establish current69or70regressions.",
+    "The emptyTF11comment has known image context, but no written intent; visible oldwordmark clipping is an audit observation.",
+    "Zero submitted crash feedback is not zero device crashes; no local diagnostic journal or manualPTT/microphone acceptance is provided."
+  ],
+  "allImagesReviewed": true,
+  "imageReviewCompletedAtUTC": "2026-10-28T15:02:31.075080+00:00",
+  "imageInventory": {
+    "GETCompletedAtUTC": "2026-10-28T14:57:35.634Z",
+    "submissions": 11,
+    "attachments": 11,
+    "downloadedBytes": 3388467,
+    "newDownloads": 9,
+    "reusedDownloads": 2,
+    "maxFiles": 20,
+    "maxBytes": 104857600,
+    "withinBounds": true,
+    "allImageContextsDetermined": true
+  }
+}

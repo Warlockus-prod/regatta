@@ -14,7 +14,7 @@
 - `mobile/src/bootcamp/learning-guide.ts` - цели, три модуля, состояния схем и задания курса из восьми уроков, семь языков.
 - `mobile/src/bootcamp/FoundationScene.tsx` - нативная интерактивная схема выбранного урока.
 - `mobile/src/bootcamp/lesson-position.ts` - отдельная закладка шага и схемы, проверка ID и адрес возврата.
-- `mobile/src/bootcamp/ReturnToLesson.tsx` - доступная кнопка возврата из практики, цвет наследуется от заголовка.
+- `mobile/src/bootcamp/ReturnToLesson.tsx` - доступная кнопка возврата из практики через dismissTo известного урока; следующий Back не должен снова открывать практику. Цвет наследуется от заголовка.
 - `mobile/__tests__/foundation-learning.test.tsx` - покрытие уроков, языков, сохранения места, ошибок записи и отсутствия ложных оценок.
 - `docs/design/mobile/foundation-release47-2026-10-15.md` - объем, визуальная проверка и статус TestFlight 47.
 
@@ -28,7 +28,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight1.7.0(61), source37c7079, exactSelf VALID/IN_BETA_TESTING. Доставка61 не означает завершения всех65 требований; сайт удержан pre-deploy gate, физические short/long трассы согласованы для62. Свой CI-джоб и гейт релиза.
+- Мобильное: Expo / React Native в `mobile/`. Подтвержденная поставка69/source2ea498b и текущий кандидат70 описаны в `docs/audits/2026-10-28/completion-status.md`; native/manual-radio/physical65/public gates остаются отдельными. Свой CI-джоб и гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -152,9 +152,13 @@ URL и удаление со страницы не принимаются).
 
 ### 3.7 Тема
 
-`src/lib/theme.ts` - единственное место, где решается light/dark; его читают
+`src/lib/theme.ts` - общий web resolver для light/dark; его читают
 `src/components/ThemeManager.tsx`, `src/components/ThemeToggle.tsx` и
-inline-скрипт без мигания в `src/app/layout.tsx`.
+inline-скрипт без мигания в `src/app/layout.tsx`. Текущий исходник наследует
+выбранную web-тему и в тренажерах/embed. Валидный native override задает только
+поверхность, без изменения сохраненной web-настройки или освещения3D. Native
+`mobile/src/design-system/embedded-theme.ts` передает дневной AppSurface до
+загрузки и повторно после нее; глобальные native Dark/Auto пока не реализованы.
 
 ### 3.8 Управление тренажерами
 
@@ -216,12 +220,12 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 ### 4.3 Тренажеры, гонка, реплей, статистика
 
-- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - цвет полосы браузера под всегда темные тренажеры (`themeColor`).
+- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - описания тренажеров; viewport наследует корневую тему без fixed-dark переопределения.
 - `src/app/simulator/page.tsx` - Основы (внутреннее имя V1), canvas, прод-поверхность; на телефоне холст закреплен, управление в общем доке (раскладка изменена с согласия владельца 2026-10-19, логика холста прежняя).
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
-- `src/app/game/GameClient.tsx` - единая 3D-гонка: брифинг, старт, знаки, боты, Simple/Pro, локальный финиш и коуч. Сцена и штурвалы общие с тренажером. Нативное меню содержит явную ссылку возврата к выбору гонок через существующий проверенный bridge.
+- `src/app/game/GameClient.tsx` - единая 3D-гонка: брифинг, старт, знаки, боты, Simple/Pro, локальный финиш и коуч. Сцена и штурвалы общие с тренажером; SVG брифинга использует локальный Source Sans 3 и переносит длинные подписи без изменения переводов. Нативное меню содержит явную ссылку возврата к выбору гонок через существующий проверенный bridge.
 - `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
 - `src/app/game/GameMenu.tsx` - меню гонки: три режима (первая гонка, свободная, миссия), вид 2D/3D, акватория, кнопка старта.
 - `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
@@ -281,6 +285,16 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 Radio pages, theory, lessons, all question presentation and practice use seven public catalogs in `public/radio-locales/`. Native embeds the same catalogs. Official English protocol utterances and the exact English language-exercise answer options remain unchanged. Original Polish UKE wording is available on request. See `docs/radio-i18n.md`.
 
 - `src/app/radio/LocalTranscriptEntry.tsx` - English transmission entry: native on-device PTT and separately labelled typed checking, with model-unavailable fallback.
+- `src/app/radio/FreeSpeechPractice.tsx` - Free-practice dock: provisional on-device draft, eight session-only rows, typed fallback,45second hold, Clear and actual PTT release/cancel ownership.
+- Free radio session ownership: `src/app/radio/symulator/page.tsx` increments a generation on every scenario start/reset. That generation plus the model remounts private speech state and returns the independent dock to its top; wall-clock timestamps are only elapsed-time data. The actual PTT journey in `e2e/offline.spec.ts` fixes Date while resetting and rejects old native results.
+- `src/app/radio/FreeSpeechPractice.test.tsx` - Actual rendered dock/handle regressions for off/DSC gating, no model, hold limit, genuine release versus cancellation, Clear and seven-language labels.
+- `src/data/radio/free-speech-copy.ts` - Seven explicit interface adaptations for free radio speech practice; English radio transmissions stay separate.
+- `src/data/radio/free-speech-labels.ts` - Generated minimal source-label map; the existing radio catalogs carry all seven reviewed adaptations without shipping their full matrix in route chunks.
+- `src/data/radio/free-speech-copy.test.ts` - Resolves every real generated label through the actual aliases/catalog in each of seven languages and checks exact reviewed text.
+- `src/app/radio/audio/freeSpeechSession.ts` - Pure immutable eight-row/1000character in-memory transmission boundary, with no grading or persistence.
+- `src/app/radio/audio/freeSpeechSession.test.ts` - Bounded Unicode/session history and immutable empty-input regressions.
+- `src/app/radio/audio/speech-diagnostics.ts` - Closed speech lifecycle/outcome journal adapter; copies no transcript, audio or raw native errors.
+- `src/app/radio/audio/speech-diagnostics.test.ts` - Actual canonical journal validation, private-field rejection and fail-open logging regressions.
 - `src/app/radio/OriginalPolish.tsx` - Optional exact Polish UKE wording disclosure, outside localization reads.
 - `src/app/radio/audio/localRecognitionSession.test.ts` - ASR regressions: segmented final results, accumulated end, PTT release and stale/cancelled sessions.
 - `src/app/radio/audio/localRecognitionSession.ts` - Pure local ASR session transitions; submit only after end plus release.
@@ -453,6 +467,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/data/sailing-lab/reef-lesson.ts` - урок "Рифление": когда (крен 25, руль 8), системы, порядок слэб-рифления, ошибки, которые рвут парус.
 - `src/data/sailing-lab/winch-lesson.ts` - урок 13 «Лебедка и стопор: путь нагрузки» (7 языков), практика на учебном стенде (`practice: "line-bench"`), добавлен в конец курса.
 - `src/data/sailing-lab/line-bench-copy.ts` - тексты стенда лебедки и стопора: действия, причины отказа, подсказки, 7 языков.
+- `src/data/sailing-lab/practice-copy.ts` - synchronous narrow return/save/status copy for practice consumers; original guideCopy keys retain identical localized objects.
+- `src/data/sailing-lab/assessment-entry-copy.ts` - synchronous title/intro/twist/depth copy used by course entry without importing the full assessment runtime labels.
 - `src/data/sailing-lab/lesson-guide.ts` - цели 13 уроков, результаты четырех модулей и подписи учебного пути на семи языках.
 - `src/data/sailing-lab/learning-path.ts` - шаги урока (разобраться, проверить, на лодке; шаги не засчитывают урок), модули программы курса парусов по порядку уроков, термины урока.
 - `src/data/sailing-lab/assessment-copy.ts` - тексты независимой проверки настройки в Тренажере (скрутка, глубина).
@@ -570,7 +586,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/simulator-v3/runtime/trainer-catalog.test.ts` - сверка сценариев с `src/data/drills.ts`.
 - `src/features/simulator-v3/runtime/drill-clock.ts` - часы упражнения.
 - `src/features/simulator-v3/runtime/drill-clock.test.ts` - тесты часов упражнения.
-- `src/features/simulator-v3/runtime/deep-link.ts` - разбор ссылки на конкретное упражнение.
+- `src/features/simulator-v3/runtime/deep-link.ts` - чистый разбор упражнения и share-state; известный первый урок выбирает камеру всей яхты, сохраняя приоритет учебных preset-входов. TWA принимает0..180.
 - `src/features/simulator-v3/runtime/deep-link.test.ts` - тесты диплинков.
 - `src/features/simulator-v3/runtime/wind-dynamics.ts` - совместимость: динамика ветра у общей сессии.
 - `src/features/simulator-v3/runtime/wind-dynamics.test.ts` - тесты динамики ветра.
@@ -617,10 +633,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/trainer-controls/sound.ts` - щелчки штурвалов звуком (WebAudio, без файлов), только при включенном звуке.
 - `src/features/trainer-controls/labels.ts` - строки дока, штурвалов и настроек на 7 языках.
 - `src/features/trainer-controls/Wheel.tsx` - один штурвал: жест по кругу, клавиши, `role="slider"`.
-- `src/features/trainer-controls/WheelDeck.tsx` - режим штурвалов: руль по центру, стаксель-шкот и гика-шкот по бокам, обмен местами по нажатию.
+- `src/features/trainer-controls/WheelDeck.tsx` - общий руль/шкоты с50pxрезервом трехстрочной подписи, адаптивным нижним рулем от96px и шкотами64px; в нижнем доке помощь идет после основных controls, desktop column сохраняет ее внутри своей области.
 - `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
-- `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: строка над сценой, закрепленная сцена, показания, док; горизонталь: сцена слева, показания и док справа.
+- `src/features/trainer-controls/TrainerWorkspace.tsx` - закрепленная сцена, показания и док; в короткой горизонтали показания справа прокручиваются с клавиатуры, сохраняя место основным controls и лодке.
 - `src/features/venues/drawVenue.ts` - берег и острова акватории на canvas веб-гонки и мультиплеера (под трассой).
 - `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
 - `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
@@ -691,6 +707,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/ws-limits.test.ts` - контракт `ws-server/limits.js`: последний хоп XFF и потолки комнат.
 - `src/lib/storage.ts` - версионированный localStorage в пространстве `regatta.`.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
+- `src/lib/theme.test.ts` - saved/system/native theme resolution и фактическое исполнение prepaint bootstrap, включая theme-color.
+- `src/components/ThemeManager.test.tsx` - route/system/storage/native events, живое применение и очистка listeners без reload.
 - `src/lib/sounds.ts` - процедурные звуки на WebAudio, уважают общий mute.
 - `src/lib/race-physics.ts` - гонка `/game`, мультиплеера и мобильного AI: шаг лодки через движок, ворота огибания (`updateLap`), подсказка игроку (`raceWaypoint`) автопилот ботов (`raceAutopilotTurn`: петли по дистанции, сброс скорости перед знаком, повторный круг при промахе; `DECISIONS.md` ADR-0003) и столкновения (`resolveCollisions`: расталкивают всегда, скорость гасят только при сближении, финишировавшие не участвуют; ADR-0004); сложность ботов через `speedMul` в `stepBoat` (ADR-0007). Остатки аркадной модели (`speedFactorFromTWA`, `MAX_SPEED`) - долг Phase 3.
 - `src/lib/race-physics.drift.test.ts` - паритет `ws-server/race-physics.js` и `src/lib/race-physics.ts`: константы, ветер, шаг лодки, курс и огибание знаков совпадают.
@@ -780,7 +798,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; catalog inventory отдельно от Diagnostics utility, для которой проверяются все7 названий, route, доступность при поиске и 44px. Три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены. Pro требует canvas и actual data-scene-startup=ready в одном 25s startup deadline перед прежней 15s clock-проверкой, без обхода renderer gate. Pro прикладывает before-clock/finally scene-startup, clock, visibility и максимум 10 pageerror stacks по 4KiB UTF-8. Read-only probe собирает shared pure parser внутри evaluate, возвращая только canonical 64KiB/200-entry journal либо present/invalid flags: raw invalid storage не попадает даже в retry trace. Переход Trainer/3D сохраняет actual pageerror stack в private synthetic CI report без изменения product telemetry.
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8); отдельные120s сохраняют весь keyboard/WS/settings/layout/Fleet flow после доказанного60s deadline на поздней геометрии.
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
-- `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры. Scroll и оба3D drawer-кейса ждут actual first frame в прежнем общем25s startup deadline до геометрии; drawer сохраняет1px bounds, view actions и60s total. Wheel-dock проверяет локализованный44px Diagnostics summary как занятое место, отсутствие перекрытий и настоящие пустые промежутки<24px, без увеличения бюджетов.
+- `e2e/trainer-controls.spec.ts` - независимые DOM measurements объединяются на одной границе состояния; missing/zero-size не принимаются, реальные действия и deadlines сохраняются. На телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры. Scroll и оба3D drawer-кейса ждут actual first frame в прежнем общем25s startup deadline до геометрии; drawer сохраняет1px bounds, view actions и60s total. Wheel-dock проверяет локализованный44px Diagnostics summary как занятое место, отсутствие перекрытий и настоящие пустые промежутки<24px, без увеличения бюджетов.
 - `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев. Три модели проходят реальные SQL/Volume уроки мышью: actual LCD `Volume:`, вращение обода и индекса, Complete, release, Next и 44px альтернативы проверяются без изменения timeout.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
 - `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд, compact Task и реальное изменение9m->11m с сохранением намерения через виды, панели и checkpoint; обычный30s бюджет этого case сохранен.
@@ -1007,14 +1025,14 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/lib/race-trim-coach.ts` reads race force diagnostics without stepping time and returns shared trainer coaching keys; `src/lib/race-trim-coach.test.ts` checks per-sail luff/stall, deployment, downwind and immutable state.
 
 - `mobile/src/radio/startup-diagnostics.ts` - SRC startup attempt lifecycle, shared15s deadline and bounded session-only support codes; no storage contents, URL, message or stack retention. `mobile/__tests__/radio-startup-diagnostics.test.ts` verifies deadlines, stale callbacks, classifications and bounds.
-- `mobile/src/radio/local-speech.ts` validates the local SRC speech bridge, selects device voices, requests on-device recognition only, bounds sessions and cancels stale activity results. `mobile/src/radio/useLocalRadioSpeech.ts` binds its lifetime to the local WebView, focus and app state. `mobile/src/radio/README.md` specifies the contract and model-unavailable fallback.
-- `mobile/plugins/with-local-radio-speech.js` applies version/assertion-checked SDK54 native volume and local recognition patches. Fresh prebuild and binary are required. `mobile/__tests__/local-radio-speech.test.ts` and `mobile/__tests__/local-radio-speech-plugin.test.ts` protect permission hydration, cancellation, bounds and patch idempotence.
+- `mobile/src/radio/local-speech.ts` validates the local SRC speech bridge, selects device voices, probes requested-language iOS local capability instead of the phone default, requests on-device recognition only, bounds sessions and cancels stale activity results. Missing selected-locale native probe fails closed to typing. `mobile/src/radio/useLocalRadioSpeech.ts` binds its lifetime to the local WebView, focus and app state. `mobile/src/radio/README.md` specifies the contract and model-unavailable fallback.
+- `mobile/plugins/with-local-radio-speech.js` applies version/assertion-checked SDK54 native volume and local recognition patches, including the selected-locale probe. All recognition anchors are checked before either native source is written. Fresh prebuild and binary are required. `mobile/__tests__/local-radio-speech.test.ts` and `mobile/__tests__/local-radio-speech-plugin.test.ts` protect permission hydration, cancellation, bounds, capability/dialect gates and patch idempotence/atomic rejection.
 
 - `src/app/multiplayer/MultiplayerCockpit.tsx` and `src/app/multiplayer/MultiplayerCockpit.module.css` reserve server-driven race scenery and common helm controls. Online sailing remains automatically trimmed because the authoritative protocol accepts helm input only.
 - `src/app/multiplayer/presentation.ts` adapts server snapshots to shared scene poses without client-side stepping; `src/app/multiplayer/presentation.test.ts` protects identity, coordinates, input and render immutability.
 - `src/lib/best-times.test.ts` separates manual Pro records from existing auto-trim records while keeping old saved buckets readable.
 - `src/lib/race-clock.test.ts` verifies identical solo integration at 10/15/30/60/120 FPS and pause/background handling through the shared fixed clock.
-- `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options; `src/lib/race-setup.test.ts` protects mission wind and identical bare/parameterized daily links.
+- `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options and plans saved briefing restarts with recorded mode and known mission conditions. Explicit activity links suppress stale offers; unknown missions stay unavailable. `src/lib/race-setup.test.ts` protects these contracts and the unchanged wind multipliers.
 - `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
 
 - `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
@@ -1057,7 +1075,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/router.tsx` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
-- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage; validated sail lesson return dismisses the practice route so the following Back reaches the original outline.
 
 Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, sailing learning, shared replay, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. `ops/deploy/test_deploy.py` locks the prepublication suite selection, loopback target, absence of deploy secrets and main-only publication/deployment conditions. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged. The expanded browser gate must still run on the combined source candidate before another publication.
 
@@ -1164,7 +1182,7 @@ Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-
 - `src/features/sailing-lab/runtime/session.kinematics.test.ts` locks a complete600-tick pre-extraction production trajectory with a portable normalized digest and readable numeric checkpoints.
 - `src/lib/race-context.ts` defines immutable registered legacy/physical contexts, strict invalid/unsupported reads and canonical base result classes. Missing historical context remains legacy.
 - `src/lib/race-context.test.ts` checks all registered contexts, unknown revisions/models/units and preservation of raw inputs.
-- `src/lib/race-courses.ts` is an unconnected120/300/600m metric registry and fresh world-coordinate factory/spawn layout. It does not switch race defaults, physics, progression, recordings or multiplayer. Metadata/PB/replay/server compatibility must precede activation.
+- `src/lib/race-courses.ts` is an unconnected120/300/600m metric registry and fresh world-coordinate factory/spawn layout. Its hull-centre water limits are shared by actual physical motion and prediction. It does not switch race defaults, physics, progression, recordings or multiplayer. Metadata/PB/replay/server compatibility must precede activation.
 - `src/lib/race-courses.test.ts` checks metric distances, fixed hull/hardware, all five fleet clearances, proposed rounding envelopes and unchanged legacy factory output. Full sailing/recovery validation remains a later engine gate.
 
 - `src/app/radio/obsluga/guideTranslations.test.ts` reads actual JSX section titles and visible table cells through the real catalog/generator, protecting all7 guide adaptations, verbatim hardware inscriptions and existing aliases. The generator explicitly enumerates paired JSX language attributes and visible Table arrays, including copy with equals signs; it does not rewrite course IDs, state or protocol speech.
@@ -1273,13 +1291,13 @@ CoursePreview wind text suppresses the inherited arrow stroke.
 - `src/features/race-hud/RaceOverviewMap.test.tsx` - map labels, actual elements,
   shared-line deduplication and invalid snapshot fallback.
 - `src/features/race-hud/navigation-copy.ts` - all map/wind/style labels in
-  RU/EN/PL/ES/FR/DE/IT. True wind is geographic; air arrows use apparent wind.
-- `src/features/race-hud/RaceWindInstrument.tsx` - compact actual TWD/TWS,
-  north-up compass and detailed true/apparent readings; four visual aid choices.
+  RU/EN/PL/ES/FR/DE/IT: bow-relative true TWA, absolute TWD and distinct apparent air arrows.
+- `src/features/race-hud/RaceWindInstrument.tsx` - bow-up true-wind instrument,
+  signed-side TWA, separate absolute TWD/TWS and detailed apparent speed; all four saved visual aid choices retained.
 - `src/features/race-hud/RaceWindInstrument.module.css` - compact/detailed
   instruments,44px choices and wrapping unknown values on narrow screens.
-- `src/features/race-hud/RaceWindInstrument.test.tsx` - known/unknown readings
-  and complete exclusive four-way controls across all seven languages.
+- `src/features/race-hud/RaceWindInstrument.test.tsx` - bow/arrow/side/wrap/endpoints,
+  true/apparent separation, unknown readings and exclusive four-way controls across all seven languages.
 - `src/lib/race-visual-prefs.ts` - shared finite visual-assist schema with
   compass/arrows/both/off enum, default compass and legacy-safe sanitization.
 - `src/lib/race-visual-prefs.test.ts` - all valid enum values, unknown payloads
@@ -1293,7 +1311,7 @@ CoursePreview wind text suppresses the inherited arrow stroke.
 - `src/components/ContentFooterNavLoader.tsx` - one shared dynamic import with
   default SSR. Eleven content pages share it; footer links and all translations
   stay server rendered. Keep ContentFooterNav's source path for offline adapters.
-- `e2e/race-navigation.spec.ts` - two independent real390px Simple race journeys:
+- `e2e/race-navigation.spec.ts` - batches only independent acceptance reads, with fresh per-wheel baselines. Private stage markers stay in Node; one installed passive bounded observer records classified input/EventTiming/semantic commits/RAF/longtasks with at most2documents/64KiB test-only handoff and one500ms final read. No layout reads in observers, content, product storage or per-event IPC; RAF is not presented FPS and correlation is not a delay cause. All real inputs/assertions/viewport/deadlines remain. Two independent real390px Simple race journeys:
   full live Map/Fleet/clock with five geometry samples, then wind styles/Helm
   input/preferences. Each shares the original real25s startup and15s clock
   checks within its120s total. All original assertions remain; attachments reuse
@@ -1324,8 +1342,450 @@ The race-navigation E2E checks complete SVG/caption containment at four viewport
 sizes before any scroll. Native1543 clipping was found before upload; its
 verified artifacts remain a historical never-uploaded candidate.
 
+### Physical record readers, isolated phase2
+
+- `src/lib/physical-race-record.ts` - strict physical sample validation without
+  legacy coercion or dropped rows, actual world bounds, t0 and optional exact
+  finished endpoint. Unfinished public replay does not invent a finish.
+- `src/lib/race-record-context.test.ts` - old identity/bytes, all3 physical
+  geometries, unknown/conflicting contexts, raw rounding, strict samples and
+  disabled result/start emission.
+- `src/lib/race-native-env.ts` - synchronous native marker, injected race query
+  and fixed race/history navigation, without importing the saved-record decoder.
+- `src/lib/race-native-env.test.ts` - public reexport identity, SSR/query
+  precedence, unchanged input and native destination allowlist contracts.
+- `src/lib/race-replay-frame.ts` - recorded-time interpolation kept separate
+  from shared replay parsing, with the existing public reexport preserved.
+- `src/lib/race-replay-frame.test.ts` - public function identity, irregular
+  recorded intervals, final frames, wrapped heading/wind and saved rig playback.
+
+The existing race-courses matcher compares raw registered physical geometry;
+race-native validates optional raceContext before accepting any world snapshot.
+The replay context reader checks both direct and stored metadata locations
+before legacy normalization. replayRecordMetadata is shared with the API so
+mode cannot hide future coordinates or lose a context-only record. Historical
+records without context keep their previous parser/serialized shape.
+Physical records require an explicit Simple/Pro mode and retain exact recorded
+coordinates, headings, speeds and timestamps. Explicit future replay schemas
+are rejected before historical defaults. Legacy rounding remains unchanged.
+PHYSICAL_RACE_EMISSION_ENABLED remains false at every new producer boundary;
+this reader checkpoint does not introduce playable physical races or new PB.
+
+Replay POST validates the same direct/nested metadata and raw physical samples
+before player lookup, global quota or storage; known physical uploads remain422
+while emission is disabled. Rebuilt course UTF-8 JSON keeps its existing16KiB
+cap. GET returns422 for unsupported physical records instead of silently changing
+coordinate classes, preserving the existing404 and legacy scenery behavior.
+Native entry classification is mapped in docs/design/mobile/ARCHITECTURE.md.
+The same classifier guards Coach before pixel-course lookup or remote requests;
+late requests from a previous race cannot replace the current result. The shared
+native unavailable screen and its seven-language copy keep stored history intact.
+Local dependency directories and symlinks are both ignored, so worktree reuse
+cannot accidentally add a machine-specific node_modules path to the repository.
+Race preferences and camera hooks import only the lightweight environment;
+the live replay component imports interpolation without the upload/read codec.
+These synchronous boundaries preserve offline behavior. The existing6.5MiB
+budget is unchanged; actual final measurements belong to the phase2 harness.
+
+- `src/app/game/replay-copy.ts` - canonical nine replay label resources and the
+  small synchronous hook, reused by the full race dictionary without a reverse
+  dependency on that dictionary.
+- `src/app/game/replay-copy.test.ts` - all seven languages, full dictionary
+  public-shape/formatter parity and the replay-only import boundary.
+
+The replay component no longer imports the complete rules/save dictionary.
+No async boundary or first-frame fetch was added. Actual measured headroom and
+offline package acceptance: `docs/audits/2026-10-26/replay-bundle-harness.md`.
+
+### Radio16/C cancellation follow-up
+
+RadioFront Key accepts a distinct cancel callback. Only16/C overrides the
+historical cancel-as-release behavior: it clears the real hold timer before
+recording one constant local radio.gesture cancel/noop. AQUA and PTT still release
+on cancellation. Pointerleave and cleanup do not masquerade as pointer-cancel,
+and diagnostics failure cannot revive a command or timer. RadioFront tests cover
+both models/layouts and actual reducer/timer behavior. The catalog generator
+excludes only the internal16c diagnostic ID, retaining visible[16/C] guide copy;
+the real-generator regression guards that distinction.
+Source and delivery limits: `docs/audits/2026-10-26/radio-cancel-harness.md`.
+The16/C release callback also checks actual button bounds before a short command:
+iOS implicit capture can deliver pointerup before pointerleave. Outside release
+uses the bounded cancelled/noop path; an OS pointercancel keeps its distinct
+pointer-cancel reason, and an already settled hold/cancellation is not logged twice.
+
+### Physical comparison and result classes
+
+- `src/lib/race-record-class.ts` - pure canonical local comparison keys, closed
+  registered class lookup and global unclassified/classified selection. It has
+  no storage, React, database or physics dependency and does not prove eligibility.
+- `src/lib/race-record-class.test.ts` - all18 historical/54 physical keys,
+  supported whole-store capacity, explicit physical mode, global provenance,
+  derived class authority, unknown metadata and nonmutation.
+
+Missing local PB context keeps the exact old key convention. Missing global
+context remains unclassified even when a valid mode is supplied. Classified
+saved-record/result eligibility additionally requires explicit context, mode and
+raw registered geometry. Unsupported native records cannot inherit a Simple or
+Short fallback. Consumer implementation and emission gates are owned by
+`docs/audits/2026-10-26/physical-classes-harness.md`.
+
+The native Sternik LocalCourseWebView guard records only actual dirty-exam
+prompt requests and one cancellation per prompt. Stay/system dismissal share a
+settled guard; confirmed Exit dispatches the original blocked action and a later
+dismiss cannot cancel it. local-course-host tests cover actual callbacks,
+duplicate suppression, stale dismissal, privacy and diagnostic failure isolation.
+The remaining nine-scope logging matrix is
+`docs/audits/2026-10-26/diagnostics-followup.md`.
+
+### Physical consumer foundation, not activated
+
+- `src/lib/race-result-eligibility.ts` - canonical registered raw course matching
+  and closed classified Free-result eligibility, with physical emission disabled.
+- `src/lib/race-result-eligibility.test.ts` - geometry, provenance, adjusted-time,
+  condition and disabled-writer boundaries.
+- `src/lib/race-result-schema.ts` - transactional additive nullable SQLite class,
+  mode, context, raw finish and penalty columns, without historical backfill.
+- `src/lib/race-result-schema.test.ts` - real SQLite migration, retained rows,
+  rollback and repeat initialization.
+- `src/lib/db.race-classes.test.ts` - real DB historical winning rows, isolated
+  class/mode/conditions queries and all72comparison buckets.
+- `src/lib/db.race-init.test.ts` - failed initialization closes the unpublished
+  candidate connection and allows a clean retry.
+- `src/lib/race-resume.test.ts` - future metadata before TTL, protected intent,
+  explicit replacement/discard and actual storage outcome contracts.
+- `mobile/src/persistence/race-record-presentation.ts` - pure historical,
+  classified and unavailable native projection, separate from permissive replay.
+- `mobile/__tests__/race-record-presentation.test.ts` - raw plus penalty,
+  explicit provenance, class aliases, builder fixtures and writer-off boundary.
+- `mobile/__tests__/race-history-diagnostics.test.tsx` - awaited serial clear,
+  failed read/clear, unknown-row preservation and diagnostic failure isolation.
+
+best-times owns bounded pure update planning and honest synchronous web writes.
+race-resume owns protected intent storage, not live race state. Additive Daily
+identity validates its canonical conditions before TTL cleanup. GameClient uses
+the saved mode and sets the wind ref before initial trim, retaining context
+absence/null through briefing/countdown saves. Explicit new Start may replace
+an incompatible intent; dismiss and finish remain guarded against a concurrent
+future save. Restart buttons retain44px targets. The navigation browser suite
+adds one real saved-mode regression to the same70-case prepublication command,
+without changing permissions, assertions or timeout budgets. Native validators
+preserve null/absent context through actual messages; replay omits absent context
+and checks both locations before using a known nested context. No historical
+global/native record inherits a class from a local-PB default.
+
+The real result/leaderboard routes retain cookie/rate/privacy contracts and
+explicit finite class selectors. DB initialization publishes its connection only
+after all migrations succeed. Default/Daily/mission pools exclude classified
+rows; explicit class queries do not expose session IDs or arbitrary stored JSON.
+Native save preparation/projection does not yet connect real History/Leaderboard
+views in the initial foundation; the following list integration is described
+below. A separate PB write still needs native acknowledgement. Ordered evidence:
+`docs/audits/2026-10-26/physical-consumers-harness.md`.
+
+Delivered64 is documented in `docs/design/mobile/testflight64-2026-10-26.md`,
+with all65IDs retained in `docs/audits/2026-10-26/acceptance64.md` and safe portable
+proof `docs/audits/2026-10-26/checks/native64-delivery.json`. NEXT source is excluded.
+
+Native namespaced class-alias consistency belongs to the shared Replay/Coach
+entry classifier, so the projection and both real routes cannot disagree about
+a contradictory or future wrapper identity. Old bare aliases and minimal
+historical classifier inputs remain supported. Actual-route tests verify safe
+notice/Back, no shared redirect/pixel geometry/Coach request and byte-preserved
+history. This boundary is not a new result class or physical writer.
+
+- `src/lib/race-record-copy.ts` - shared seven-language saved-course titles,
+  mode/condition labels and adjusted/raw/penalty wording. Unknown descriptors
+  have a generic title; IDs and comparison keys never become display text.
+- `mobile/src/leaderboard/race-records.ts` - projection once per stable history
+  array, canonical profile/period filtering, previous score-first PBs and
+  adjusted-time PB selection within each registered comparison only.
+- `mobile/src/components/RaceRecordDetails.tsx` - native registered conditions,
+  raw finish, penalty and adjusted time, plus preserved unavailable-record copy.
+- `mobile/__tests__/race-list-consumers.test.tsx` - actual History/Leaderboard
+  consumers, old ordering, all54physical groups, period/profile filtering,
+  authoritative times, route exits, stable-array memoization and all7languages.
+- `docs/audits/2026-10-26/checks/next70-prepublication.json` - exact16d4eed
+  safe non-main gate:70first-attempt browser passes, retained artifact hash,
+  source checks and explicitly skipped publication/deployment/production jobs.
+- `src/features/race-hud/RaceCornerInstruments.tsx` - shared solo/multiplayer
+  passive wind corner and live mini-map button, using the existing snapshots
+  and full dock Map action, with no second simulation or animation loop.
+- `src/features/race-hud/RaceCornerInstruments.module.css` - bounded scene-corner
+  positions, container-relative map sizing and pointer-through wind surface.
+- `docs/audits/2026-10-26/corner-instruments-harness.md` - owner-requested
+  persistent corner instrument contract, source/real browser evidence and
+  explicit next installed/delivery gates.
+- `docs/audits/2026-10-26/release65-harness.md` - ordered source/version,
+  corrected72-case browser, generated/native G2/archive/export and exact Self
+  delivery gates for the corner-instrument candidate, retaining64rollback.
+- `docs/audits/2026-10-26/checks/native65-delivery.json` - portable exact65
+  source, all72browser first-pass, native package/installed and independent
+  Apple Self/notes proof, without private journals or signed URLs.
+- `docs/audits/2026-10-26/acceptance65.md` - the same65ordered product IDs,
+  historical statuses plus qualified fresh65 evidence and remaining work.
+- `docs/audits/2026-10-26/independent-product-audit.md` - audit-only second
+  product review with15prioritized findings, confidence, proposed decision gates,
+  twelve observed journeys and explicit physical-device/full-course limits.
+- `docs/audits/2026-10-26/checks/independent-product-audit.json` - bounded
+  audit provenance, two confirmed native Skia terminations and22screen hashes;
+  no raw native journal or personal data.
+- `docs/audits/2026-10-26/independent-product-screens/` - exact accepted PNGs
+  captured in this audit, linked in journey order; no generated concept images.
+- `docs/audits/2026-10-28/cockpit-navigation-harness.md` - ordered P10/T02/T04 source, smaller dock, phase focus/scroll, same-map retap, copy parity/budget and separate candidate70 native/release gates.
+- `docs/audits/2026-10-28/cockpit-screens/` - intermediate/follow-up web screens, exact first94gate IT/Simple/DE failures and ten inspected installed d8 native70 upgrade/clean screens; observations stay separate from full G2 and delivery.
+- `mobile/releases/testflight-1.7.0-70.json` - prepared eight-locale beta notes for day chrome/navigation/scene checkpoint; no delivery or public submission implied.
+- `docs/audits/2026-10-28/checks/cockpit-navigation.json` - exact source/check/artifact hashes, retained rejected regressions and qualified current candidate70 evidence.
+- `docs/audits/2026-10-28/completion-status.md` - current owner-facing full status: all65IDs/F01-F15/feedback, concise done/partial/open readout, delivered69 versus D8 package/acf source/working footer, native upgrade/clean audit, five final web screens, actual offline exceptions, bounded live-language observation and ordered completion gates.
+- `docs/audits/2026-10-28/checks/completion-status.json` - historical12:19baseline with9screens and its original report hash; it does not hash the later owner report, whose current hash lives in cockpit-navigation proof.
+- `docs/audits/2026-10-28/testflight-feedback-review.md` - actual read-only Apple feedback reconciliation: all11 submissions, chronological builds, qualified text/image scope and remaining radio/relative-wind findings.
+- `docs/audits/2026-10-28/checks/testflight-feedback-review.json` - sanitized feedback evidence and private artifact digests; no tester data, image URLs or user screenshots.
+- `docs/audits/2026-10-28/review-screens/` - nine retained baseline29aa production-web JPEGs, including actual T04 clipping, plus five final acf RU Light production-web PNGs10-14; each set keeps its source/surface boundary.
+- `docs/audits/2026-10-27/completion-reconciliation.md` - owner-facing reconciliation of all65requirements, F01-F15 and delivered69, with reopened cross-surface theme consistency and proposed ordered checkpoints. Source-only physical preparation is not presented as live racing.
+- `docs/audits/2026-10-27/checks/completion-reconciliation.json` - audited refs, eight fresh local web JPEG hashes, theme/canvas/orbit observations and explicit limits; no installed-native acceptance or private journals.
+- `docs/audits/2026-10-27/completion-review-screens/` - eight unedited, inspected screenshots of Light Home/Practice, forced-dark Trainer, Pro briefing/running/Pause/Orbit and OFF radio free entry.
+- `docs/audits/2026-10-26/completion-program.md` - owner-approved P00-P12
+  completion harness, current P01 native crash/offline-weather contract, ghost
+  versus live multiplayer semantics and a staged SwiftUI shell proposal.
+- `docs/audits/2026-10-26/completion-history-before-program.md` - preserved
+  former AGENTS current-work block; historical statuses are not current gates.
+- `docs/audits/2026-10-26/release66-harness.md` - P01 native crash/offline
+  hotfix66, old-source regression, final source gates and ordered exact
+  installed/archive/Apple delivery checks; later program stages stay open.
+- `docs/audits/2026-10-26/checks/native66-installed.json` - retained26.5/27
+  actual first-lesson drill, wind, Back, repeated entry and cold relaunch proof;
+  data-preservation counts, private screenshot hashes and physical-device limits.
+- `docs/audits/2026-10-26/checks/source66-predeploy.json` - exact422b safe
+  workflow,72first-attempt cases, artifact hash and skipped publication jobs.
+- `docs/audits/2026-10-26/checks/native66-delivery.json` - exact source/tag,
+  archive/IPA checks, independent Apple Self/eight-note GETs and delivery limits.
+- `docs/audits/2026-10-26/acceptance66.md` - preserved65ordered product IDs,
+  qualified fresh P01 evidence and corrected partial first-lesson parity status.
+- `docs/audits/2026-10-26/checks/local-branch-archive.json` -52local recovery
+  refs,50safely removed local heads and the two safe-delete refusals. Remote
+  branches, unique work and active worktrees are retained; this is partial cleanup.
+- `docs/design/learning-renders/README.md` - exact built-in ImageGen prompts,
+  artifact hashes and review limits for the first filled/luffing mainsail pair.
+  Its two WebP assets are art preparation, not bundled production lesson content.
+- `docs/design/mobile/testflight65-2026-10-26.md` - delivered65 scope,
+  first-candidate native rejection, final G2 and exact Apple delivery limits.
+- `docs/design/mobile/testflight66-2026-10-26.md` - delivered P01 offline
+  practice fix, retained-data/native/browser checks, exact Apple GETs and rollback.
+
+P02 shared teaching and illustration boundary:
+
+- `src/data/foundation-wind.ts` - reviewed first-lesson teaching and wind-scene
+  copy shared by native compatibility entries and the web Foundation guide.
+- `src/data/foundation-practice.ts` - shared wind-observation task, title and
+  explicit web/native routes to the same3Dboat, retaining bounded lesson return.
+- `src/data/lesson-copy.ts` - shared seven-language lesson-template labels;
+  native pilots retain their compatibility re-export.
+- `src/data/sail-shape.ts` - generated-illustration frames, callout labels,
+  observations and limits; no calculated pressure field or procedural rigging.
+- `src/lib/learning/illustration-attempt.ts` - framework-free stale/duplicate/
+  unmount image-event guard; each platform owns its React render token.
+- `src/lib/learning/sail-shape-markers.ts` - read-only numeric leader geometry
+  in the image coordinate system, without external assets or baked text.
+- `src/app/start/FoundationClient.tsx` - existing interactive Foundation flow;
+  the server page supplies teaching copy as serializable data.
+- `src/app/start/SailShapeIllustration.tsx` and
+  `src/app/start/sail-shape.module.css` - web Scheme/Picture pilot, real asset
+  outcomes, stale callback guard and preserved force diagram.
+- `mobile/src/bootcamp/SailShapeIllustration.tsx` - native version using the
+  same content/markers and bundled images, preserving lesson/quiz schemas.
+- `public/learning/mainsail-filled.jpg` and
+  `public/learning/mainsail-luffing.jpg` - shared web/native packaging assets
+  derived from the reviewed draft pair; narrow Metro watch path bundles them.
+- `mobile/__tests__/learning-illustration.test.tsx` - shared teaching identity,
+  seven-language completeness, no false credit, image error/retry and stale events.
+- `docs/audits/2026-10-26/learning-visuals-harness.md` - P02 scope, ordered
+  source/browser/native/delivery gates and the explicit wider-illustration limits.
+
+History keeps every row newest-first and projects once per history array.
+Leaderboard filters already projected rows, keeps historical score ranks in
+their own section and chooses one adjusted-time PB per class/mode/conditions.
+Registered groups are ordered by identity, with no cross-class time rank.
+Unavailable rows stay visible in All and never enter a PB. Titles wrap and
+course-filter chips retain44px targets. The native course registry reuses the
+same historical title resource without changing any saved ID, geometry or hint.
+
+The shared RaceCornerInstruments lives inside each real race scene, independently
+of the dock tab. Speed/time/position retain the header; the existing compact
+true-wind instrument moves to the upper-left, keeping its numeric readings even
+when compass/arrows are off. The upper-right mini-map reuses RaceOverviewMap's
+canonical projection without the full legend; compact clipping preserves edge
+boats inside the outer frame. Its44px-plus button opens the existing full dock
+map. The wind surface passes pointer input to the3Dcanvas; only the map button
+captures its own corner. Mini-map visibility defaults true, validates strictly
+as a boolean, persists in regatta.race.assists.v1 and records only bounded
+mini-map preference values. Native bridges keep the same allowed key/limits.
+  The same prepublication files now select72cases, with independent real3D
+journeys for five viewport bounds and persistence/reload/canonical diagnostics.
+Existing browser assertions and timeout/publication guards stay unchanged;
+physics and result classes are untouched.
+
 - `docs/audits/2026-10-25/checks/website64-prepublication-main.json` - exactb459ecc
   prepublication failure and retained timing/geometry proof,67passed/1deadline,
   no image/deploy mutation, prior production health and the bounded two-journey
   SITE correction. The unchanged eight-file policy now selects69cases; future
   browser/native/production acceptance is recorded separately.
+
+
+P02 portable acceptance evidence:
+
+- `docs/audits/2026-10-26/checks/source67-predeploy.json` - exact77c safe gate,
+  77first-attempt browser cases, active-worker image fault injection and3skipped
+  main-only publication jobs.
+- `docs/audits/2026-10-26/checks/native67-installed.json` - actual teaching and
+  picture review, exact installed packages, explicit120-file runtime/asset
+  equivalence plus local Expo manifest identity/time, upgrade preservation and
+  bounded journals; exact delivery is recorded separately below and physical-phone checks remain open.
+
+- `docs/audits/2026-10-26/checks/native67-delivery.json` - exact source/tag,
+  18/29/36/38package checks, unchanged IPA hash, VALID import and independent
+  Self/eight-note GET proof; physical emission OFF.
+- `docs/audits/2026-10-26/acceptance67.md` - all65ordered product IDs with
+  qualified fresh P02 evidence and explicit broader completion gaps.
+- `docs/design/mobile/testflight67-2026-10-26.md` - delivered P02 pilot scope,
+  package equivalence, installed/source proof and immutable66rollback.
+
+
+P03 independent native personal-best acknowledgement:
+
+- `src/lib/race-best-command.ts` - closed command/reply validation, canonical
+  comparison/course/time, same-row durable receipt and bounded attempt queue.
+  `src/lib/race-best-command.test.ts` owns lost/stale/foreign/reordered reply,
+  receipt, opaque-row and all18legacy condition-bucket contracts.
+- `src/lib/race-native.ts` transports the separate PB command. The actual
+  `src/app/game/GameClient.tsx` finish waits for its PB reply independently of
+  History; web synchronous storage is retained. Four new7language labels live
+  in `src/app/game/race-copy.ts`; old43copy/formatter hashes stay unchanged.
+- `mobile/src/persistence/race-personal-best.ts` - start ownership, serial
+  native read/compare/write and finite result event. Generic race storage never
+  writes PB rows; `mobile/src/persistence/race-web-storage.ts` hydrates/accepts
+  only confirmed PB cache data and re-reads after epoch changes.
+- `mobile/src/persistence/data-epoch.ts` and
+  `mobile/src/persistence/clear-native-data.ts` - invalidate old race work and
+  serialize the actual global sweep before fresh race reads; preserve analytics
+  choice/unrelated keys. Settings reports an unconfirmed sweep on failure.
+  Other writers/app caches remain P08 acceptance work.
+- `mobile/app/game/index.tsx` re-exports `mobile/src/game/SharedRaceHost.tsx`,
+  which owns active starts and independent PB replies. `mobile/app/replay/[id].tsx`
+  mounts the same host with an explicit saved ID in its own route, preserving
+  the original race parameters and dismissing to History on replay Back;
+  `mobile/src/simulator/SimWebView.tsx` ties async injection to its owning view.
+- `mobile/__tests__/race-personal-best.test.tsx` exercises real host/storage
+  delayed ACK, independent History failure, retry, corrupt/read errors,
+  disposal, clear ordering and mounted-cache rehydration. Native Settings and
+  SimWebView route tests check actual failure alert and stale-injection guard.
+
+Current native candidate68 is not the delivered67binary. Physical emission
+remains OFF. Its ordered installed/cloud/delivery gates belong to the existing
+physical consumer harness; no private storage or raw journal enters this map.
+
+## P03 delivered68 evidence
+
+- `docs/design/mobile/testflight68-2026-10-27.md` - exact source/IPA/native/browser/Apple scope and limits.
+- `docs/audits/2026-10-26/acceptance68.md` - all65stable IDs with new and inherited evidence separated.
+- `docs/audits/2026-10-26/checks/native68-delivery.json` - exact Self/notes independent GET, IPA and artifact checks.
+- `docs/audits/2026-10-26/checks/native68-installed.json` - real finished races, receipts/cold, Back and additional exact-f7 fresh27 startup.
+- `docs/audits/2026-10-26/checks/source68-predeploy.json` - exact77first-attempt cloud gate and qualified mobile CI retry history.
+
+Physical emission remains OFF. Shared replay uses its own native route/host, preserving the original race route and dismissing to History; the full program is still ordered in the completion harness.
+
+## P04 physical motion boundary
+
+- `src/features/simulator-3d/scene-diagnostics.ts` - finite actual startup-stage observations and binary viewport state, with safe installed-route mapping and fail-open logging.
+- `src/features/simulator-3d/scene-diagnostics.test.ts` - actual canonical batch acceptance, no URL/query/dimensions, logging failures and rejected unknown stage/viewport fields.
+- `src/features/simulator-3d/yacht-loader-observer.ts` - observes actual shared GLTF asset/decode callbacks once per loader while preserving requests, progress, errors, cache and decoder selection.
+- `src/features/simulator-3d/yacht-loader-observer.test.ts` - pending/completed stages, exact callback identity, original error propagation and no stacked wrappers or private model paths in observations.
+- `src/features/race-scene/renderer.test.ts` - unresolved initialization, actual constructor/init errors, preserved backend policy and viewport classification.
+- `docs/audits/2026-10-27/scene-startup-harness.md` - native69 fresh startup gate failure, private preserved candidate and ordered observation/repair gate.
+- `docs/audits/2026-10-27/checks/scene-probe-source.json` - exact observation-source inputs,1672web/589native gates, preserved failed size report and restored budget; installed diagnosis/repair still pending.
+- `docs/audits/2026-10-27/checks/scene-probe-native8e.json` - official31-check/121-file package evidence, actual Simple/Pro cold startup stages, clock/Back/orbit/trim observations; prior failure cause and full native acceptance remain open.
+- `docs/audits/2026-10-27/checks/scene-loader-source.json` - exact asset/decode observer inputs,1679web/589native checks, unchanged bundle budget and regenerated installed packages; actual callbacks are not accepted until native observation.
+- `docs/audits/2026-10-27/checks/scene-loader-nativef3.json` - official exactf3 package/install proof, actual GLTF asset/decode callbacks, submitted frame and native Back; qualified observation only, no repaired-cause or delivery claim.
+- `docs/audits/2026-10-27/radio-free-speech-harness.md` - ordered main P07 scope for visible bounded free PTT, typed fallback, private session rows and actual lifecycle diagnostics; source/browser/native/delivery gates remain separate.
+- `docs/audits/2026-10-27/checks/radio-reset-source.json` - exact89ced94 reset source/log hashes,1760web/589native gate, retained initial local timeout failures and explicit pending browser/native acceptance.
+- `docs/audits/2026-10-27/checks/radio-reset-browser89.json` - exact downloaded/digest-checked89 cloud report:81first-attempt plus one flaky LCD geometry sample; four actual free-speech journeys pass first attempt, full acceptance stays open.
+- `docs/audits/2026-10-27/checks/radio-reset-native89.json` - exact31-check/121-file retained26.5 installation,16preserved prior keys and actual radio entry/Exit; typed reset, PTT/model and microphone remain unaccepted.
+- `docs/audits/2026-10-27/checks/scene-probe-browser8e.json` - exact8e safe non-main cloud gate with78first-attempt cases and verified artifact digest; source scope is separate from subsequent loader observations.
+- `docs/audits/2026-10-27/checks/scene-startup69-held.json` - exact held source/IPA, qualified older checks, responsive UI and unproven cause.
+- `src/lib/race-physical-progress.ts` - canonical immutable metric gates and ordered progression from propelled endpoints; currently unwired, rejects invalid contexts/states before mutation.
+- `src/lib/race-physical-progress.test.ts` - all profiles, gate order/direction/extensions, countdown, collision/recovery independence, finish idempotence and invalid-state atomicity.
+- `docs/audits/2026-10-27/checks/physical-progress-browser.json` - exact6fcf safe non-main cloud gate, verified artifact digest and78first-attempt browser cases; publication/deploy skipped.
+- `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
+- `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
+- `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
+- `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, integer-tick memory, reachable-turn traffic/hardware prediction, canonical gate entry, weak-authority turn-side memory, shared water bounds and endpoint-clear recovery; legacy autopilot and human steering stay separate.
+- `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction, metre-per-knot and stable weak/full-authority turn behavior.
+- `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception of last actual bot commands, unchanged shared forces/helm, coupled impact-truncated travel and recovery-free progress; live emission stays OFF.
+- `src/lib/race-physical-contact.ts` - bounded immutable hull/mark swept-circle observations from actual propelled segments, canonical hardware and explicit physical context; no response, penalty, diagnostic stream or persistence.
+- `src/lib/race-physical-contact.test.ts` - simultaneous versus different-time path crossings, tangency/initial overlap, larger committee hardware, finished exclusion, bounds/ownership and malformed-frame rejection.
+- `src/lib/race-physical-fleet.test.ts` - real five-boat18profile/wind/early-start journeys plus atomic rejection, memory ownership, fixed-clock/countdown, human input and collision-credit contracts.
+- `src/lib/race-physical-motion.test.ts` - actual integrated metre travel, helm/course assist, low-speed choice, force/trim/handicap parity, rejected-input atomicity and collision-independent endpoint tests.
+- `src/lib/race-legacy-motion.fixture.json` - twelve pre-extraction legacy/responsive trajectories captured from frozen68 sourcef7, not generated from the new implementation.
+- `src/lib/race-legacy-motion.test.ts` - preserves those independent legacy trajectories after extracting the shared force/trim boundary.
+- `docs/audits/2026-10-27/physical-motion-harness.md` - verified foundation and explicit remaining activation/release gates.
+
+`src/lib/race-physics.ts` now exports the same force/trim step for both motion adapters. Its existing `stepBoat` keeps legacy turning,8units/knot-second and20unit clamp; generated server behavior and no-context defaults remain unchanged. Physical emission stays OFF. The trainer's transient rig integration remains separate and is not claimed identical to steady race trim.
+
+- `docs/audits/2026-10-27/checks/physical-motion-observations.json` - three synthetic metre/heading measurements, explicitly not installed acceptance.
+- `docs/audits/2026-10-27/checks/physical-motion-source.json` - production input hashes, source gates and qualified native timing retry.
+
+## Ads inspection lab, native prototype
+
+- `src/lib/ads-preview.ts` - fixed scene/camera/lens/placement vocabulary and immutable40-action session preview journal; no SDK signal ingestion.
+- `src/lib/ads-preview.test.ts` - bounded/private-free preview journal and diagnostic rejection of unknown IDs/SDK payloads.
+- `src/features/ads-lab/AdsLab.tsx` - camera/venue/placement inspection dock and explicit unconfigured SDK status.
+- `src/features/ads-lab/AdsLab.module.css` - reserved scene and scrollable44px controls, desktop sidebar/mobile lower dock.
+- `src/features/ads-lab/AdsCameraRig.tsx` - shared scoped OrbitControls binding, camera presets and actual directional button movement.
+- `src/features/ads-lab/camera.ts` - pure camera fitting and horizontal/vertical rotation geometry.
+- `src/features/ads-lab/camera.test.ts` - declared lens/viewport fitting, directional geometry and seven-language copy coverage.
+- `src/lib/ads-copy.ts` - seven-language lab instructions/statuses; owner-requested Ads name and fixed test-card IDs remain technical labels.
+- `src/features/ads-lab/TestPlacements.tsx` - three local front-facing test cards with explicit texture disposal; no ad network/SDK.
+- `docs/design/mobile/ads-lab.md` - requested scope, actual evidence and SDK/release limits.
+
+`RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. Actual ad serving is absent.
+
+`e2e/offline.spec.ts` adds an actual bundled Ads first-frame/control/geometry/placement-journal case with the existing25s scene and60s case limits; it checks no external/API request. This source test still requires its next exact cloud run. `SceneBoundary`/`SceneStartup` optional callbacks keep Ads directional controls disabled until a real frame and after an actual scene failure; normal trainer callers retain their existing behavior.
+
+- `docs/audits/2026-10-27/checks/physical-motion-browser.json` - exact3f portable77-case report with one attempt each; physical activation remains off.
+- `docs/audits/2026-10-27/checks/ads-source.json` - source gates and qualified actual browser geometry/controls, with original screenshot hashes; native acceptance remains separate.
+
+- `docs/audits/2026-10-27/checks/radio-readiness-browser36.json` - exact downloaded/digest-checked82first-attempt radio/browser journeys after bounded faceplate readiness, separate from native microphone and physical095 acceptance.
+- `docs/audits/2026-10-27/checks/physical-contact-source.json` - exact095 source/log hashes,1769web/589native and89targeted checks,18contact-free circle-model fleets, preserved failed experiments and still-disabled physical emission.
+
+- `docs/audits/2026-10-27/checks/physical-game-fleet95.json` - separate54case autonomous game-ID/handicap research:53full finishes,39strict clean,15contact observations and one short weak deadline miss; no human Pro or activation acceptance.
+
+- `docs/audits/2026-10-27/checks/physical-contact-browser95.json` - exact095 source passes82first-attempt preserved-UI journeys; physical API remains unwired and expanded54case/installed gates stay separate.
+- `docs/audits/2026-10-27/checks/radio-powered-native916.json` - human power-on, actual native unavailable recognition state and121retained916 hashes, with coordinate PTT/typing still unaccepted.
+
+- `docs/audits/2026-10-27/checks/physical-game-luff.json` - exact-input54autonomous game-ID/difficulty sweep after stable luff candidate selection:54finish,45strict clean, zero mark frames and nine moving early hard hull-contact cases, with full counters.
+- `docs/audits/2026-10-27/checks/physical-luff-source.json` -1772web/589native and92targeted source acceptance; unchanged forces/server/offline HTML and qualified following cloud/native gates.
+
+- `src/lib/race-physical-response.ts` - physical-only atomic circular hull/mark/water constraint, initial recovery excluded from travel, one common impact clock, bounded stops/closing loss and immutable actual segments. Separate initialContacts and owned metric impact centres/velocities/closing evidence feed the following judge; no live caller outside the unwired fleet.
+- `src/lib/race-physical-response.test.ts` -14contracts for tunnelling/later/tangent/escape/coupled recovery, actual common-clock metric impact evidence, conservative wall constraints, actual contact/gate truth, finished exclusion and atomic rejection.
+- `docs/audits/2026-10-27/physical-response-harness.md` - ADR-0013 development checkpoint, preserved8ccd RED deadline and following90specified full-fleet finishes; not physical activation or delivery acceptance.
+- `docs/audits/2026-10-27/checks/physical-response-source.json` - input-bound1783web/589native source checks and all54research rows, retaining53full finishes and actual contact counter semantics.
+
+- `docs/audits/2026-10-27/checks/physical-luff-browser-d580.json` - exactd58082first-attempt downloaded/digest-verified UI gate, publication/deploy skipped, following response/physical activation excluded.
+- `docs/audits/2026-10-27/checks/radio-typed-native916.json` -121exact installed hashes, PL typed Add/Clear/Exit and actual unavailable PTT, only diagnostic storage changes, qualified real-hold/microphone/native89reset limits.
+
+- `docs/audits/2026-10-27/checks/physical-bot-stability-source.json` - exact-input109targeted/1789web/589native local gate and90autonomous fleet rows, with qualified retained hull contacts and no physical activation.
+- `docs/audits/2026-10-27/completion-checkpoint-history.md` - verbatim dated checkpoint archive moved from AGENTS afterfa42626; preserves earlier scope/failures without presenting them as current state.
+- `docs/audits/2026-10-27/checks/physical-response-browser8ccd.json` - exact8ccd82first-attempt UI gate, separate from its retained RED autonomous-fleet result.
+- `docs/audits/2026-10-27/checks/physical-bot-stability-browser-e414.json` - exacte41482first-attempt digest-verified UI report and successful push/PR CI; the physical API remains unwired, publication/deploy skipped.
+- `docs/audits/2026-10-27/checks/radio-typed-native89.json` - retained26.5/121matching installed files, actual nonempty typed Add and native Exit, with exact-string/tool qualification and native Reset/microphone still open.
+- `docs/audits/2026-10-27/checks/physical-impact-evidence-source.json` - input-bound113targeted/1793web/589native local gate for actual metric impact data, identical installed HTML and unchanged force/navigation inputs; no new90-case or physical-judge/native acceptance claim.
+- `docs/audits/2026-10-27/checks/radio-locale-source.json` - requested-locale native capability fix with1793web/596native and15focused post-patch tests; guarded SDK source hashes/Swift parse, separate pending full native compile/install/microphone gates.
+- `docs/audits/2026-10-27/checks/radio-locale-native-b9.json` - exactb9 Release Simulator compile,31package checks plus native/Hermes method presence,121matching retained26.5 installed files and16preserved prior keys; actual new-probe UI/Reset/microphone remain open after Device Hub timeouts.
+- `docs/audits/2026-10-27/checks/radio-locale-ci-b9.json` - exactb9 successful push/PR CI and Foundation browser jobs; full predeploy82-case gate stays separate from these source checks.
+- `mobile/src/diagnostics/export.ts` - native clipboard support envelope with validated canonical journal and bounded app version/build/platform, preserving storage/entry schema and excluding arbitrary context.
+- `mobile/__tests__/diagnostic-export.test.ts` - support context, unchanged session, privacy rejection and finite long-test export contracts. The real Diagnostics copy handler remains covered by its screen test.
+- `docs/audits/2026-10-27/release69-owner-beta.md` - owner's explicit TestFlight manual-radio acceptance transfer, retained exact-source/archive/IPA/Apple gates and bounded support-journal scope; not public App Review or physical activation.
+- `mobile/releases/testflight-1.7.0-69.json` - eight adapted Apple beta-note locales for the owner's radio walkthrough and local support export, separate from public App Store1.7.0 notes.
+- `docs/audits/2026-10-27/checks/release69-source.json` - input-bound1793web/602native and source/budget checks for the owner's TestFlight checkpoint, explicitly deferred manual radio gate and pending exact archive/Apple delivery.
+- `docs/design/mobile/testflight69-2026-10-27.md` - exact2ea TestFlight69 delivery, source/package/Apple gates, owner-deferred manual radio acceptance and actual support-copy route.
+- `docs/audits/2026-10-27/checks/native69-delivery.json` - immutable runtime source, IPA/native/Hermes digests, generated18/archive36/IPA38, Apple import VALID and independent exact Self/eight-note reads. No current69Simulator UI/microphone acceptance is asserted.
+- `docs/audits/2026-10-27/checks/release69-browser.json` - exact2ea82first-attempt downloaded/digest-verified predeploy report; publication/deploy skipped, unwired physical API excluded.
+- `docs/audits/2026-10-27/acceptance69.md` - qualified69delta over the immutable65-ID acceptance68 matrix, preserving all unresolved work and owner-led radio checks.

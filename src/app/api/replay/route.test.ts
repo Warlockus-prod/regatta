@@ -18,10 +18,16 @@ vi.mock('next/headers', () => ({
 }));
 vi.mock('@/lib/db', () => mocks.db);
 vi.mock('@/lib/log', () => ({ logInfo: vi.fn(), logWarn: vi.fn() }));
+vi.mock('@/lib/rate-limit', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/lib/rate-limit')>();
+  return { ...actual, rateLimitGlobal: vi.fn(actual.rateLimitGlobal) };
+});
 
 import { POST } from './route';
-import { __resetRateLimitsForTests } from '@/lib/rate-limit';
+import { __resetRateLimitsForTests, rateLimitGlobal } from '@/lib/rate-limit';
 import { defaultReplayCourse } from '@/lib/race-replay';
+import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext } from '@/lib/race-context';
+import { makePhysicalRaceCourse } from '@/lib/race-courses';
 
 const samples = [0, 0.5, 1].map((t) => ({ t, x: 400, y: 1050 - t * 10, heading: 45, twa: 45, speed: 5, lap: 0 }));
 const base = { difficulty: 'easy', windStrength: 'light', samples, events: [] as unknown[] };
@@ -40,6 +46,7 @@ function saved(): Record<string, unknown> {
 
 beforeEach(() => {
   __resetRateLimitsForTests();
+  vi.mocked(rateLimitGlobal).mockClear();
   mocks.sid = 'sid-replay-1';
   mocks.db.insertReplay.mockReset().mockReturnValue('ABC123');
   mocks.db.getPlayer.mockReset().mockReturnValue(null);
@@ -50,6 +57,7 @@ describe('POST /api/replay', () => {
     const res = await POST(makeReq({ ...base, missionId: 'clean-laps', finishTimeSec: 95.2, events: [{ type: 'tack', t: 3 }] }));
     expect(res.status).toBe(200);
     expect(saved()).toMatchObject({ missionId: 'clean-laps', finishTimeSec: 95.2 });
+    expect(saved().course).toBeNull();
   });
 
   it('400 when the serialized events blob is too large', async () => {
@@ -176,5 +184,86 @@ describe('POST /api/replay', () => {
       if ((await POST(makeReq(base, `198.51.${Math.floor(i / 50)}.${i % 50}`))).status === 200) ok++;
     }
     expect(ok).toBe(300);
+  });
+
+  it.each(PHYSICAL_RACE_PROFILES)("422 for a canonical %s physical replay before any global budget or DB access", async profile => {
+    const response = await POST(makeReq({ ...base, mode: "simple", raceContext: physicalRaceContext(profile), course: makePhysicalRaceCourse(profile) }));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toEqual({ error: "Physical race sharing is not enabled" });
+    expect(rateLimitGlobal).not.toHaveBeenCalled();
+    expect(mocks.db.getPlayer).not.toHaveBeenCalled();
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
+  });
+
+  it("rejects unknown or conflicting nested context even when top-level mode or context is valid", async () => {
+    const physical = physicalRaceContext("short");
+    const course = makePhysicalRaceCourse("short");
+    for (const raceContext of [{ ...physical, geometryRevision: 2 }, { ...physical, model: "future-model" }, { ...physical, coordinateUnits: "pixels" }]) {
+      for (const patch of [{ mode: "pro" }, { raceContext: LEGACY_RACE_CONTEXT }]) {
+        const response = await POST(makeReq({ ...base, ...patch, course: { ...course, replayMetadata: { raceContext } } }));
+        expect(response.status).toBe(400);
+      }
+    }
+    expect((await POST(makeReq({ ...base, raceContext: physical,
+      course: { ...course, replayMetadata: { raceContext: physicalRaceContext("long") } } }))).status).toBe(400);
+    expect(rateLimitGlobal).not.toHaveBeenCalled();
+    expect(mocks.db.getPlayer).not.toHaveBeenCalled();
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
+  });
+
+  it("refuses mismatched raw physical geometry rather than hiding it behind the emission gate or normalization", async () => {
+    const course = makePhysicalRaceCourse("short");
+    const courses = [
+      defaultReplayCourse(),
+      { ...course, finishLine: undefined },
+      ...["starboard", "future-rounding", null, 3].map(roundSide => ({ ...course,
+        marks: course.marks.map((mark, index) => index ? mark : { ...mark, roundSide }) })),
+    ];
+    for (const value of courses) {
+      expect((await POST(makeReq({ ...base, mode: "pro", raceContext: physicalRaceContext("short"), course: value }))).status).toBe(400);
+    }
+    expect(rateLimitGlobal).not.toHaveBeenCalled();
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
+  });
+
+  it("does not repair, drop or clamp invalid physical samples before returning a validation error", async () => {
+    const physical = { ...base, mode: "pro", raceContext: physicalRaceContext("short"), course: makePhysicalRaceCourse("short") };
+    for (const patch of [{ heading: "bad" }, { twa: 360 }, { speed: -1 }, { lap: 99 }, { x: 801 }, { y: 1201 }, { t: "bad" }]) {
+      expect((await POST(makeReq({ ...physical, samples: [{ ...samples[0], ...patch }, ...samples.slice(1)] }))).status).toBe(400);
+    }
+    for (const finishTimeSec of [1, 10, -1, "invalid"]) {
+      expect((await POST(makeReq({ ...physical, finishTimeSec }))).status).toBe(400);
+    }
+    expect((await POST(makeReq({ ...physical, samples: samples.map(sample => ({ ...sample, t: sample.t + 1 })) }))).status).toBe(400);
+    const complete = samples.map((sample, index) => index === samples.length - 1 ? { ...sample, lap: 2 } : sample);
+    expect((await POST(makeReq({ ...physical, samples: complete, finishTimeSec: 1 }))).status).toBe(422);
+    expect((await POST(makeReq({ ...physical, finishTimeSec: null }))).status).toBe(422);
+    expect(rateLimitGlobal).not.toHaveBeenCalled();
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
+  });
+
+  it.each(["top", "nested"])("preserves explicit context-only legacy metadata from the %s location", async location => {
+    const course = defaultReplayCourse();
+    const payload = location === "top"
+      ? { ...base, course, raceContext: { ...LEGACY_RACE_CONTEXT, padding: "drop" } }
+      : { ...base, course: { ...course, replayMetadata: { raceContext: { ...LEGACY_RACE_CONTEXT, padding: "drop" } } } };
+    expect((await POST(makeReq(payload))).status).toBe(200);
+    expect(saved().course).toEqual({ ...course, replayMetadata: { schema: 1, mode: "simple", penaltySeconds: 0, raceContext: LEGACY_RACE_CONTEXT } });
+  });
+
+  it("preserves nested legacy Pro metadata without requiring duplicate top-level fields", async () => {
+    const course = { ...defaultReplayCourse(), replayMetadata: { mode: "pro", penaltySeconds: 5 } };
+    expect((await POST(makeReq({ ...base, course }))).status).toBe(200);
+    expect(saved().course).toEqual({ ...defaultReplayCourse(), replayMetadata: { schema: 1, mode: "pro", penaltySeconds: 5 } });
+  });
+
+  it("checks the actual stored UTF-8 course size after translated-label rebuilding", async () => {
+    const course = { ...defaultReplayCourse(), marks: Array.from({ length: 20 }, () => ({
+      pos: { x: 400, y: 180 }, radius: 14, type: "windward", label: "€".repeat(140),
+    })) };
+    expect(Buffer.byteLength(JSON.stringify(course))).toBeLessThan(16_000);
+    expect((await POST(makeReq({ ...base, course, raceContext: LEGACY_RACE_CONTEXT }))).status).toBe(400);
+    expect(rateLimitGlobal).not.toHaveBeenCalled();
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,5 @@
 import { words, type Label } from "../../lib/product/catalog";
+import { practiceCopy } from "./practice-copy";
 
 /** Shared lesson framing. The lesson's existing sourced explanation is authoritative. */
 export const guideCopy = {
@@ -7,11 +8,11 @@ export const guideCopy = {
   resume: words("Продолжить с этого места", "Continue where you left off", "Kontynuuj od tego miejsca", "Retomar donde lo dejaste", "Reprendre au même endroit", "Hier weitermachen", "Riprendi da qui"),
   explore: words("Исследуй схему", "Explore the diagram", "Zbadaj schemat", "Explora el esquema", "Explore le schéma", "Erkunde die Grafik", "Esplora lo schema"),
   practice: words("Практика", "Practice", "Praktyka", "Práctica", "Pratique", "Übung", "Pratica"),
-  saved: words("Результат упражнения сохранён на устройстве", "Exercise result saved on this device", "Wynik ćwiczenia zapisany na urządzeniu", "Resultado guardado en este dispositivo", "Résultat enregistré sur cet appareil", "Übungsergebnis auf diesem Gerät gespeichert", "Risultato salvato su questo dispositivo"),
-  save: words("Сохранить результат упражнения", "Save exercise result", "Zapisz wynik ćwiczenia", "Guardar resultado", "Enregistrer le résultat", "Übungsergebnis speichern", "Salva il risultato"),
-  saving: words("Сохраняем...", "Saving...", "Zapisywanie...", "Guardando...", "Enregistrement...", "Speichern...", "Salvataggio..."),
-  saveError: words("Не удалось сохранить. Попробуй ещё раз, пока упражнение открыто.", "Could not save. Try again while the exercise is open.", "Nie udało się zapisać. Spróbuj ponownie przed zamknięciem ćwiczenia.", "No se pudo guardar. Reinténtalo antes de cerrar el ejercicio.", "Enregistrement impossible. Réessaie avant de fermer l'exercice.", "Speichern fehlgeschlagen. Versuche es erneut, solange die Übung offen ist.", "Salvataggio non riuscito. Riprova prima di chiudere l'esercizio."),
-  return: words("Вернуться к уроку", "Return to the lesson", "Wróć do lekcji", "Volver a la lección", "Revenir à la leçon", "Zurück zur Lektion", "Torna alla lezione"),
+  saved: practiceCopy.saved,
+  save: practiceCopy.save,
+  saving: practiceCopy.saving,
+  saveError: practiceCopy.saveError,
+  return: practiceCopy.return,
   returnNote: words("Шаг урока сохранится. После практики вернись к нему кнопкой «Вернуться к уроку».", "Your lesson step is kept. After practice, use Return to the lesson.", "Etap lekcji zostanie zachowany. Po ćwiczeniu wybierz Wróć do lekcji.", "Se conserva el paso. Tras practicar, elige Volver a la lección.", "L'étape est conservée. Après la pratique, choisis Revenir à la leçon.", "Dein Schritt bleibt erhalten. Wähle nach der Übung Zurück zur Lektion.", "Il passo viene conservato. Dopo la pratica scegli Torna alla lezione."),
   observation: words("Наблюдение", "Observation", "Obserwacja", "Observación", "Observation", "Beobachtung", "Osservazione"),
   readError: words("Не удалось прочитать сохранения. Урок доступен, но сохранение прогресса пока отключено. Открой урок снова, чтобы повторить загрузку.", "Saved data could not be read. You can read the lesson; progress saving is disabled. Reopen the lesson to retry.", "Nie udało się odczytać zapisów. Możesz czytać lekcję, ale zapis postępu jest wyłączony. Otwórz lekcję ponownie.", "No se pudieron leer los datos. Puedes leer la lección, pero el guardado está desactivado. Vuelve a abrirla.", "Lecture des données impossible. La leçon reste accessible, mais l'enregistrement est désactivé. Rouvre la leçon.", "Gespeicherte Daten nicht lesbar. Die Lektion bleibt verfügbar, Speichern ist deaktiviert. Öffne die Lektion erneut.", "Dati salvati non leggibili. Puoi leggere la lezione, ma il salvataggio è disattivato. Riapri la lezione."),

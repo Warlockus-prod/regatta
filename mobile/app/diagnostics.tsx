@@ -1,13 +1,15 @@
 import { Stack } from "expo-router";
 import * as Clipboard from "expo-clipboard";
+import * as Application from "expo-application";
 import { useState, useSyncExternalStore } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { diagnosticCopy as copy, diagnosticOutcomeCopy, diagnosticText } from "../../src/lib/diagnostic-copy";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
+import { diagnosticSupportExport } from "../src/diagnostics/export";
 import { useI18n } from "../src/i18n/context";
 import { Screen, Text } from "../src/design-system/components";
-import { DarkSurface, darkStackOptions } from "../src/design-system/surface";
-import { darkColors as colors } from "../src/design-system/tokens";
+import { AppSurface, appStackOptions } from "../src/design-system/surface";
+import { colors } from "../src/design-system/tokens";
 
 export default function Diagnostics() {
   const { lang } = useI18n();
@@ -17,13 +19,13 @@ export default function Diagnostics() {
   const [status, setStatus] = useState<"copied" | "copyFailed" | null>(null);
   const entries = snapshot.entries.filter(entry => !failedOnly || entry.event.outcome === "failed" || entry.event.outcome === "rejected");
   const action = (label: string, onPress: () => void, selected?: boolean) => <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={selected === undefined ? undefined : { selected }} onPress={onPress} style={[styles.button, selected && styles.selected]}><Text>{label}</Text></Pressable>;
-  return <DarkSurface><Screen><Stack.Screen options={{ ...darkStackOptions, title: text("title") }} />
+  return <AppSurface><Screen><Stack.Screen options={{ ...appStackOptions, title: text("title") }} />
     <ScrollView contentContainerStyle={styles.content}>
       <Text variant="subtitle">{text("title")}</Text><Text variant="muted">{text("intro")}</Text>
       <View style={styles.actions}>
         {action(text("all"), () => setFailedOnly(false), !failedOnly)}
         {action(text("failures"), () => setFailedOnly(true), failedOnly)}
-        {action(text("copy"), () => { void (async () => { try { const copied = await Clipboard.setStringAsync(JSON.stringify(nativeDiagnostics.snapshot(), null, 2)); setStatus(copied ? "copied" : "copyFailed"); } catch { setStatus("copyFailed"); } })(); })}
+        {action(text("copy"), () => { void (async () => { try { const copied = await Clipboard.setStringAsync(diagnosticSupportExport(nativeDiagnostics.snapshot(), { version: Application.nativeApplicationVersion, build: Application.nativeBuildVersion, platform: Platform.OS })); setStatus(copied ? "copied" : "copyFailed"); } catch { setStatus("copyFailed"); } })(); })}
         {action(text("clear"), () => { setStatus(null); void nativeDiagnostics.clear(); })}
       </View>
       {status && <Text accessibilityLiveRegion="polite">{text(status)}</Text>}
@@ -36,7 +38,7 @@ export default function Diagnostics() {
         <Text variant="caption">{Object.entries(entry.event).filter(([key]) => !["type", "surface", "outcome"].includes(key)).map(([key, value]) => `${key}: ${String(value)}`).join(" · ")}</Text>
       </View>)}
     </ScrollView>
-  </Screen></DarkSurface>;
+  </Screen></AppSurface>;
 }
 const styles = StyleSheet.create({
   content: { padding: 20, gap: 12, paddingBottom: 32 },

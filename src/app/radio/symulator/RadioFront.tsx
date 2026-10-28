@@ -1,6 +1,7 @@
 'use client';
 
 import { useRadioI18n } from "@/app/radio/localization/context";
+import { recordWebDiagnostic } from "@/lib/diagnostics-web";
 
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTrainerI18n } from './trainerText';
@@ -96,6 +97,8 @@ interface Props {
   onDistressUp: () => void;
   onPttDown: () => void;
   onPttUp: () => void;
+  /** Optional cancelled hold, distinct from a completed free transmission. */
+  onPttCancel?: () => void;
   /** wall-clock string for the LCD, e.g. "14:30" */
   clock: string;
   /** seconds until next auto re-TX while waiting for ACK. */
@@ -122,11 +125,11 @@ interface Props {
 }
 
 function Key({
-  id, ik, children, onClick, onPointerDown, onPointerUp, onPointerLeave,
+  id, ik, children, onClick, onPointerDown, onPointerUp, onPointerLeave, onPointerCancel,
   onKeyDown, onKeyUp, wide, round, tone = 'grey', disabled, small, ariaLabel,
 }: {
   id: string; ik?: string; children: ReactNode; onClick?: () => void;
-  onPointerDown?: () => void; onPointerUp?: () => void; onPointerLeave?: () => void;
+  onPointerDown?: () => void; onPointerUp?: (e: React.PointerEvent<HTMLButtonElement>) => void; onPointerLeave?: () => void; onPointerCancel?: () => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onKeyUp?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   wide?: boolean; round?: boolean; tone?: 'grey' | 'blue' | 'red' | 'soft'; disabled?: boolean; small?: boolean;
@@ -150,7 +153,7 @@ function Key({
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
-      onPointerCancel={onPointerUp}
+      onPointerCancel={onPointerCancel ?? onPointerUp}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
       className={`select-none font-semibold transition active:translate-y-px active:brightness-95 disabled:opacity-35 ${
@@ -827,7 +830,7 @@ function softIk(label: string): string {
 }
 
 export default function RadioFront({
-  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
+  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, onPttCancel, clock, nextTxSec,
   highlightControl, inspect = false, onInspect, inspectKey = null, busy = false, skin = 'green', realistic = false,
   compact = false,
 }: Props) {
@@ -888,6 +891,14 @@ export default function RadioFront({
     if (callTimer.current) clearTimeout(callTimer.current);
     callFiredHold.current = true;
   }, []);
+  const callGestureCancel = useCallback((reason: 'pointer-cancel' | 'cancelled') => {
+    if (callFiredHold.current) return;
+    callCancel();
+    try {
+      recordWebDiagnostic({ type: 'radio.gesture', surface: 'radio', control: '16c', action: 'cancel',
+        outcome: 'noop', source: 'pointer', reason });
+    } catch { /* diagnostics cannot interrupt cancellation */ }
+  }, [callCancel]);
   const isActivationKey = (key: string) => key === ' ' || key === 'Enter';
   useEffect(() => () => {
     if (callTimer.current) clearTimeout(callTimer.current);
@@ -1015,8 +1026,13 @@ export default function RadioFront({
       ariaLabel={radioText("Channel 16, hold for Call Channel")}
       onClick={inspect ? () => onInspect?.('key-16c') : undefined}
       onPointerDown={hold(callDown)}
-      onPointerUp={hold(callUp)}
+      onPointerUp={hold((e: React.PointerEvent<HTMLButtonElement>) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) callGestureCancel('cancelled');
+        else callUp();
+      })}
       onPointerLeave={hold(callCancel)}
+      onPointerCancel={hold(() => callGestureCancel('pointer-cancel'))}
       onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
       })}
@@ -1155,12 +1171,14 @@ export default function RadioFront({
     <button
       type="button"
       data-testid="ptt"
+      aria-pressed={s.ptt}
       data-ik="ptt"
       onClick={inspect ? () => onInspect?.('ptt') : undefined}
       onPointerDown={hold(onPttDown)}
       onPointerUp={hold(onPttUp)}
-      onPointerLeave={hold(onPttUp)}
-      onPointerCancel={hold(onPttUp)}
+      onPointerLeave={hold(onPttCancel ?? onPttUp)}
+      onPointerCancel={hold(onPttCancel ?? onPttUp)}
+      onBlur={hold(onPttCancel ?? onPttUp)}
       onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
       })}

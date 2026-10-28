@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T23:25:13.052200+00:00",
+  "sourceCommit": "f7e7ed2dc115ce42ee655ffe33edfe26ea015894",
+  "tag": "testflight-1.7.0-68",
+  "version": "1.7.0",
+  "build": "68",
+  "scope": "P03 independent native PB durability and corrected History/shared3D replay Back ownership. Full completion remains open.",
+  "apple": {
+    "buildId": "8c4564b9-3d2e-4596-a634-d748499c4891",
+    "selfCheckedAt": "2026-10-26T23:23:36.856Z",
+    "notesCheckedAt": "2026-10-26T23:23:11.300Z",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "exactSelfMember": true,
+    "independentGETWrites": 0,
+    "all8NotesMatchSource": true,
+    "notesGETStatus": "PLANNED",
+    "notesGETMeaning": "GET-only comparison: every selected locale unchanged, SHA256 matches.",
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 588,
+        "bytes": 588,
+        "sha256": "38a7b1fac0e076d1faecd36de2a9abc37c5cd822d4d3605c4882c9e2e86657e7",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 588,
+        "bytes": 588,
+        "sha256": "38a7b1fac0e076d1faecd36de2a9abc37c5cd822d4d3605c4882c9e2e86657e7",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 585,
+        "bytes": 1076,
+        "sha256": "4c3b49ca74d952bdbe6e8dfc3ff107793167564e0c60d2b84df3bca07583918f",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 586,
+        "bytes": 608,
+        "sha256": "2ef8e17120754be227a8069d23f3dbb9be9fd928b9131df63a32ceba766309a7",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 643,
+        "bytes": 650,
+        "sha256": "e8b7a6a0db475bb6efa32edabac52c52bc47cd6b12e5629a66d5b7d088df84d7",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 655,
+        "bytes": 671,
+        "sha256": "e83c25d8fc7399e9ec2694cb52faf504ab34de891b14df82337762696161da29",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 649,
+        "bytes": 660,
+        "sha256": "6ca851281801e4dc4e7642b232f500dec8f9d95edebad0c031974b0c4fb2d049",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 601,
+        "bytes": 602,
+        "sha256": "9b99e496191caec524910b0a90f2094f4854f07a0480536ec3c1eef45bf15428",
+        "action": "unchanged"
+      }
+    ],
+    "validationExit": 0,
+    "uploadExit": 0,
+    "importExit": 0,
+    "notesApplyWrites": 8,
+    "selfApplyWrites": 1
+  },
+  "artifactChecks": {
+    "generated-final": {
+      "passed": true,
+      "checks": 18,
+      "checkedAt": "2026-10-26T20:11:10.753895+00:00",
+      "sha256": "528001dd6d5fb6f24ee6d91c5a4163a3b2e4ac0817a3ac69ee5b4fceea7da66c"
+    },
+    "expanded-simulator": {
+      "passed": true,
+      "checks": 29,
+      "checkedAt": "2026-10-26T21:35:03.996110+00:00",
+      "sha256": "afd06a61c8c6b134b785009f45b61de488383ea8d1c32f2010fd2a68a1251c77"
+    },
+    "archive": {
+      "passed": true,
+      "checks": 36,
+      "checkedAt": "2026-10-26T21:35:03.996653+00:00",
+      "sha256": "29f01d23a80151349837d0695be565944b165238ccc8f59366b8b862da1e8308"
+    },
+    "export-ipa": {
+      "passed": true,
+      "checks": 38,
+      "checkedAt": "2026-10-26T21:35:51.512899+00:00",
+      "sha256": "6591f7bc62f4a1f9434b7a6fec756c970db892659bf649685d03742826decaeb"
+    }
+  },
+  "ipa": {
+    "bytes": 30557441,
+    "sha256": "b11e161905340263056d47f017e2f48539f8f964407556fcf37dff362f58f66d"
+  },
+  "installedProof": "native68-installed.json",
+  "browserProof": "source68-predeploy.json",
+  "rollbackTag": "testflight-1.7.0-67",
+  "supersededNeverUploadedSource": "0a376a354e6b3a556e8b8f86e8e7dce9da309f26",
+  "physicalRaceEmissionEnabled": false,
+  "websitePublished": false,
+  "publicAppReviewSubmitted": false,
+  "limits": [
+    "Actual retained26.5 and dedicated27 finished races, receipt matches and cold persistence are accepted; forced storage failures remain component/storage test evidence.",
+    "An additional new27 device receives exact f7 clean install and passes Home/start/first3D/clock/pause/Menu/Back; no finished race is claimed for this third device.",
+    "Physical phone, network blackhole, microphone, thermal/FPS and whole product acceptance remain open.",
+    "Physical courses, visible free-radio speech, broader Scheme/Picture collection, Pro full-race and ghost remain ordered work.",
+    "Initial push mobile CI failed strict radio bytes; PR and exact-source retry pass. Root cause remains unproven; the guard is unchanged."
+  ]
+}

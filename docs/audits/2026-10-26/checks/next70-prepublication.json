@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "scope": "NEXT saved briefing restart, safe non-main prepublication",
+  "source": "16d4eed71c1b458999b6175b5933b5ae0aa08085",
+  "workflowRun": 40286829987,
+  "workflowUrl": "https://github.com/Warlockus-prod/regatta/actions/runs/40286829987",
+  "job": 121452351879,
+  "conclusion": "success",
+  "browser": {
+    "selectedFiles": 8,
+    "total": 70,
+    "passed": 70,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "attemptsPerCase": 1,
+    "project": "chromium",
+    "durationMs": 624379.723,
+    "reportErrors": 0,
+    "savedModeRegressionMs": 732
+  },
+  "artifact": {
+    "id": 12634582879,
+    "bytes": 611315,
+    "sha256": "36656ae19bb2dc28fc5fe33f2d715edcadebd5962eebf8728095f8a0d48ae151",
+    "expiresAt": "2026-11-09T07:50:12Z",
+    "privateReportRetainedOutsideGit": true
+  },
+  "sourceGates": {
+    "webTests": 1538,
+    "webFiles": 156,
+    "socketLifecycle": true,
+    "types": true,
+    "map": true,
+    "typography": true,
+    "serverGeneration": true,
+    "build": true,
+    "unchangedBundleBudget": true,
+    "threeOfflinePackagesFresh": true,
+    "deploymentBoundaryTests": true
+  },
+  "releaseMutations": {
+    "imagePublication": false,
+    "deployment": false,
+    "productionBrowserRun": false,
+    "appleSubmission": false
+  },
+  "limits": [
+    "Following native History/Leaderboard consumer source is excluded from this exact run",
+    "Next installed native G2 and PB durability remain incomplete",
+    "The main5df production multiplayer browser failure remains historical red evidence",
+    "Physical result emission remains OFF",
+    "This is not full65-item product acceptance"
+  ]
+}

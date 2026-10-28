@@ -1,28 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { applyTheme, isImmersive, readMode, THEME_KEY, type ThemeMode } from '@/lib/theme';
+import { applyTheme, readMode, THEME_KEY, type ThemeMode } from '@/lib/theme';
 
 // ============================================================================
 // Theme toggle: cycles Auto -> Light -> Dark -> Auto.
 //
 // - 'auto' follows the OS via prefers-color-scheme.
 // - The chosen mode is stored in localStorage; a no-flash inline script in
-//   app/layout.tsx applies it (and pins immersive routes to dark) before first
-//   paint. ThemeManager re-applies on route changes.
-// - Resolution logic + immersive-route handling live in src/lib/theme.ts.
+//   app/layout.tsx applies it before first paint. ThemeManager re-applies on
+//   route changes. Trainers and races inherit the same preference.
+// - Resolution logic and the native host override live in src/lib/theme.ts.
 // ============================================================================
 
 export default function ThemeToggle() {
   const { tp } = useI18n();
-  const pathname = usePathname();
   const [mode, setMode] = useState<ThemeMode>('auto');
-  // Trainers, races and the multiplayer are always dark (one style for every
-  // trainer, owner decision 2026-10-19); the toggle says so instead of
-  // changing an icon that changes nothing.
-  const pinnedDark = isImmersive(pathname);
 
   useEffect(() => {
     // The stored mode is in localStorage: read after mount so the server HTML
@@ -31,23 +25,18 @@ export default function ThemeToggle() {
     setMode(readMode());
   }, []);
 
-  const cycle = useCallback(() => {
-    setMode((prev) => {
-      const next: ThemeMode = prev === 'auto' ? 'light' : prev === 'light' ? 'dark' : 'auto';
-      try {
-        localStorage.setItem(THEME_KEY, next);
-      } catch {
-        /* ignore */
-      }
-      applyTheme(next, pathname);
-      return next;
-    });
-  }, [pathname]);
+  const cycle = () => {
+    const next: ThemeMode = mode === 'auto' ? 'light' : mode === 'light' ? 'dark' : 'auto';
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch {
+      /* ignore */
+    }
+    applyTheme(next);
+    setMode(next);
+  };
 
-  const label = pinnedDark
-    ? tp('Тренажёры и гонки всегда в тёмной теме', 'Trainers and races always use the dark theme', 'Trenażery i regaty zawsze mają ciemny motyw',
-        { es: 'Los simuladores y las regatas siempre usan el tema oscuro', fr: 'Les simulateurs et les courses restent en thème sombre', de: 'Simulatoren und Rennen sind immer dunkel', it: 'I simulatori e le regate usano sempre il tema scuro' })
-    : mode === 'auto'
+  const label = mode === 'auto'
       ? tp('Тема: авто', 'Theme: auto', 'Motyw: auto',
           { es: 'Tema: auto', fr: 'Thème : auto', de: 'Design: automatisch', it: 'Tema: auto' })
       : mode === 'light'
@@ -59,30 +48,26 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      onClick={pinnedDark ? undefined : cycle}
-      aria-disabled={pinnedDark || undefined}
+      onClick={cycle}
       title={label}
       aria-label={label}
       className="flex w-11 h-11 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(127,127,127,0.14)] transition"
     >
-      {mode === 'light' && !pinnedDark ? (
-        // sun
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-        </svg>
-      ) : mode === 'dark' || pinnedDark ? (
-        // moon
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {mode === 'light' ? (
+          <>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </>
+        ) : mode === 'dark' ? (
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-        </svg>
-      ) : (
-        // auto (monitor)
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <path d="M8 21h8M12 17v4" />
-        </svg>
-      )}
+        ) : (
+          <>
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </>
+        )}
+      </svg>
     </button>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Language } from "../../../lib/product/catalog";
-import { guideCopy } from "../../../data/sailing-lab/lesson-guide";
+import { practiceCopy } from "../../../data/sailing-lab/practice-copy";
 import { practiceStorage } from "../runtime/checkpoint-storage";
 import type { PracticeId } from "../lessons/practice-results";
 
@@ -16,7 +16,7 @@ export function SavePractice({ id, lang }: { id: PracticeId; lang: Language }) {
     catch { setStatus("error"); }
   };
   return <div className="my-4 space-y-2">
-    {status === "saved" ? <p role="status">✓ {guideCopy.saved[lang]}</p> : <button type="button" disabled={status === "saving"} onClick={() => { void save(); }} className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-4 py-3 text-sm text-[var(--accent-cyan)]">{guideCopy[status === "saving" ? "saving" : "save"][lang]}</button>}
-    {status === "error" && <p role="alert">{guideCopy.saveError[lang]}</p>}
+    {status === "saved" ? <p role="status">✓ {practiceCopy.saved[lang]}</p> : <button type="button" disabled={status === "saving"} onClick={() => { void save(); }} className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-4 py-3 text-sm text-[var(--accent-cyan)]">{practiceCopy[status === "saving" ? "saving" : "save"][lang]}</button>}
+    {status === "error" && <p role="alert">{practiceCopy.saveError[lang]}</p>}
   </div>;
 }

@@ -12,27 +12,31 @@ export interface RaceOverviewMapProps {
   labels: RaceOverviewLabels;
   width?: number;
   height?: number;
+  compact?: boolean;
 }
 const number = (value: number) => Number(value.toFixed(2));
 const CYAN = "var(--accent-cyan, #00d4ff)", SECONDARY = "var(--text-secondary, #a2b4c4)";
 
 /** A north-up schematic of the supplied race, never another game renderer. */
-export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220 }: RaceOverviewMapProps) {
+export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, compact = false }: RaceOverviewMapProps) {
   const clip = `race-map-${useId().replace(/:/g, "")}`;
   const projection = snapshot && raceMapProjection(snapshot.bounds, width, height);
   if (!snapshot || !projection) return <p role="status" data-testid="race-map-empty">{labels.empty}</p>;
   const { project, viewport } = projection;
+  const Container = compact ? "span" : "figure";
+  // Keep edge boats fully visible in the smaller map, inside its outer frame.
+  const clipViewport = compact ? { x: 8, y: 8, width: width - 16, height: height - 16 } : viewport;
   let windwardOrdinal = 0;
   const line = (kind: "start" | "finish" | "start-finish", endpoints: RaceNavigationSnapshot["course"]["startLine"], label: string) => {
     const a = project(endpoints.a), b = project(endpoints.b);
     return <line data-map-line={kind} x1={number(a.x)} y1={number(a.y)} x2={number(b.x)} y2={number(b.y)}
       stroke={kind === "finish" ? "var(--success, #3ddc84)" : "var(--warning, #ffaa00)"} strokeWidth={2} strokeDasharray={kind === "finish" ? undefined : "5 3"}><title>{label}</title></line>;
   };
-  return <figure className="m-0" data-testid="race-overview-map">
+  return <Container className="m-0" data-testid={compact ? "race-mini-map" : "race-overview-map"}>
     <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label={labels.title}
       style={{ width: "100%", height: "var(--race-map-height, auto)", display: "block", color: SECONDARY }}>
       <title>{labels.title}</title>
-      <defs><clipPath id={clip}><rect x={viewport.x} y={viewport.y} width={viewport.width} height={viewport.height} /></clipPath></defs>
+      <defs><clipPath id={clip}><rect x={clipViewport.x} y={clipViewport.y} width={clipViewport.width} height={clipViewport.height} /></clipPath></defs>
       <rect x={0} y={0} width={width} height={height} rx={8} fill="var(--bg-card, #102838)" />
       <g clipPath={`url(#${clip})`}>
         {snapshot.terrain.map((polygon, index) => <polygon key={index} data-map-terrain="" points={polygon.map(point => { const p = project(point); return `${number(p.x)},${number(p.y)}`; }).join(" ")}
@@ -68,11 +72,11 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220 }:
         </g>
       </g>}
     </svg>
-    <figcaption className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: SECONDARY }}>
+    {!compact && <figcaption className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: SECONDARY }}>
       <span>{snapshot.sharedLine ? `${labels.start} / ${labels.finish}` : `${labels.start} · ${labels.finish}`}</span>
       <span style={{ color: CYAN }}>▲ {labels.you}</span>
       <span>{labels.fleet}: {snapshot.boats.filter(boat => !boat.isPlayer).length}</span>
       {snapshot.windFrom !== null && <span>{labels.windFrom}: {Math.round(snapshot.windFrom)}°</span>}
-    </figcaption>
-  </figure>;
+    </figcaption>}
+  </Container>;
 }

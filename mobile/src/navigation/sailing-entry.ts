@@ -1,6 +1,7 @@
 import { findSailLesson } from "../../../src/data/sailing-lab/course";
 
 const routes: Record<string, string> = {
+  "/ads": "/ads",
   "/": "/", "/practice": "/simulators", "/simulator": "/simulator-v1",
   "/simulator-v3": "/simulator-v3", "/simulator2": "/simulator2",
   "/learn/sails": "/learn/sails", "/anatomy": "/anatomy",

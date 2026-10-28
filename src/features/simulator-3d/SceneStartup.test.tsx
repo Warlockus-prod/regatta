@@ -5,19 +5,35 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SceneStartup, watchFirstSceneFrame } from "./SceneStartup";
 
 beforeEach(() => vi.stubGlobal("React", React));
-afterEach(() => vi.unstubAllGlobals());
-function fixture() {
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+function fixture(waiting?: () => void) {
   const scene = new Scene(), ready = vi.fn(), before = vi.fn();
   scene.onAfterRender = before;
   const callbacks = new Map<number, FrameRequestCallback>();
   const request = vi.fn((callback: FrameRequestCallback) => { callbacks.set(callbacks.size + 1, callback); return callbacks.size; });
   const cancel = vi.fn();
-  const dispose = watchFirstSceneFrame(scene, ready, request, cancel);
+  const dispose = watchFirstSceneFrame(scene, ready, request, cancel, waiting);
   const render = () => Reflect.apply(scene.onAfterRender, scene, ["renderer", "scene", "camera", null]);
   return { scene, ready, before, callbacks, request, cancel, dispose, render };
 }
 
 describe("visible startup until the first submitted scene frame", () => {
+  it("observes one prolonged wait without substituting it for a submitted frame", () => {
+    vi.useFakeTimers(); const waiting = vi.fn(), f = fixture(waiting);
+    vi.advanceTimersByTime(14_999); expect(waiting).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1); expect(waiting).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(60_000); expect(waiting).toHaveBeenCalledOnce();
+    expect(f.ready).not.toHaveBeenCalled();
+    f.render(); f.callbacks.get(1)!(16); expect(f.ready).toHaveBeenCalledOnce(); f.dispose();
+  });
+
+  it.each(["render", "unmount"])("cancels the wait observation after %s", action => {
+    vi.useFakeTimers(); const waiting = vi.fn(), f = fixture(waiting);
+    if (action === "render") { f.render(); f.callbacks.get(1)!(16); }
+    else f.dispose();
+    vi.advanceTimersByTime(60_000); expect(waiting).not.toHaveBeenCalled(); f.dispose();
+  });
+
   it("does not report ready at model mount or before a render and following animation frame", () => {
     const f = fixture();
     expect(f.ready).not.toHaveBeenCalled(); expect(f.request).not.toHaveBeenCalled();

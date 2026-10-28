@@ -30,10 +30,10 @@ describe("shared race preference storage", () => {
     h.values.set("regatta.race.mode.v1", "pro");
     h.values.set("regatta.race.assists.v1", JSON.stringify({ guidance: false, trimHints: false, rules: false, penalties: true }));
     const { readRacePrefs } = await import("./race-prefs");
-    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: false, rules: false, penalties: true, windDisplay: "compass" });
+    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: false, rules: false, penalties: true, windDisplay: "compass", miniMap: true });
     expect(readRacePrefs()).toBe(readRacePrefs());
     h.values.set("regatta.race.assists.v1", JSON.stringify({ guidance: false, windDisplay: "private-weather", penalties: "true" }));
-    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "compass" });
+    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true });
     h.values.set("regatta.race.assists.v1", "null");
     expect(readRacePrefs().windDisplay).toBe("compass");
   });
@@ -56,14 +56,14 @@ describe("shared race preference storage", () => {
     h.windowHost.__REGATTA_EMBED__.query = "scene=next&mode=pro";
     const prefs = await import("./race-prefs");
     expect(prefs.readRacePrefs().mode).toBe("pro");
-    prefs.writeRacePrefs({ windDisplay: "both", guidance: false }, "multiplayer");
-    expect(JSON.parse(h.postMessage.mock.calls[0][0])).toEqual({ type: "race-prefs", mode: "pro", assists: { guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "both" } });
+    prefs.writeRacePrefs({ windDisplay: "both", guidance: false, miniMap: false }, "multiplayer");
+    expect(JSON.parse(h.postMessage.mock.calls[0][0])).toEqual({ type: "race-prefs", mode: "pro", assists: { guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "both", miniMap: false } });
     expect(h.windowHost.__REGATTA_EMBED__.query).toBe("scene=next");
     expect(h.windowHost.location.href).toBe("https://example.test/game?scene=next#private-anchor");
     expect(mocks.record).toHaveBeenCalledWith({ type: "control.preferences", surface: "multiplayer", preference: "wind-display", value: "both", previous: "compass", outcome: "accepted" });
     vi.resetModules();
     const relaunched = await import("./race-prefs");
-    expect(relaunched.readRacePrefs()).toMatchObject({ mode: "pro", windDisplay: "both", guidance: false });
+    expect(relaunched.readRacePrefs()).toMatchObject({ mode: "pro", windDisplay: "both", guidance: false, miniMap: false });
   });
 
   it("keeps invalid updates out of storage and diagnostics and avoids wind logs for unrelated settings", async () => {

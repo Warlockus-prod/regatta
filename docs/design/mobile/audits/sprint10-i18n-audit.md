@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-25T20:32:48.557Z
+Generated: 2026-10-28T17:50:03.370Z
 
-Files scanned: 91
+Files scanned: 96
 
 ## Summary
 
@@ -29,7 +29,7 @@ Files scanned: 91
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/app/diagnostics.tsx:33` | non-english-leak |  ×${entry.count} |
+| `mobile/app/diagnostics.tsx:35` | non-english-leak |  ×${entry.count} |
 
 ### `mobile/app/spots/index.tsx` (1)
 
@@ -41,14 +41,14 @@ Files scanned: 91
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/course/LocalCourseWebView.tsx:100` | non-english-leak | Wyjść z egzaminu? |
-| `mobile/src/course/LocalCourseWebView.tsx:100` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
-| `mobile/src/course/LocalCourseWebView.tsx:101` | non-english-leak | Zostań |
-| `mobile/src/course/LocalCourseWebView.tsx:102` | non-english-leak | Wyjdź |
-| `mobile/src/course/LocalCourseWebView.tsx:170` | non-english-leak | Wyjdź z egzaminu |
-| `mobile/src/course/LocalCourseWebView.tsx:173` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
-| `mobile/src/course/LocalCourseWebView.tsx:197` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
-| `mobile/src/course/LocalCourseWebView.tsx:198` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
+| `mobile/src/course/LocalCourseWebView.tsx:107` | non-english-leak | Wyjść z egzaminu? |
+| `mobile/src/course/LocalCourseWebView.tsx:107` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
+| `mobile/src/course/LocalCourseWebView.tsx:108` | non-english-leak | Zostań |
+| `mobile/src/course/LocalCourseWebView.tsx:109` | non-english-leak | Wyjdź |
+| `mobile/src/course/LocalCourseWebView.tsx:177` | non-english-leak | Wyjdź z egzaminu |
+| `mobile/src/course/LocalCourseWebView.tsx:180` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
+| `mobile/src/course/LocalCourseWebView.tsx:205` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
+| `mobile/src/course/LocalCourseWebView.tsx:206` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
 
 ### `mobile/src/design-system/components/WindNowCard.tsx` (1)
 
@@ -60,25 +60,4 @@ Files scanned: 91
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/simulator/SimWebView.tsx:361` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |
-
-
-## Candidate63 manual classification
-
-The12 heuristic findings above are not missing/empty translations:
-
-- Eight are the intentionally Polish Sternik host and its exam/storage UI.
-  The owner explicitly retains this course in Polish. SRC uses its separate
-  seven-language OfflineRadioCourse host.
-- Two are the real place name Hyères, shared across languages.
-- One is the universal multiplication/count symbol in the journal.
-- The SimWebView Cyrillic finding spans JSX callback code because the regex
-  scanner loses string boundaries. Its real recovery copy is supplied through
-  complete seven-language tp calls; no quoted Cyrillic label is present at the
-  reported line.
-
-The tp arity and missing language-overlay counts are both0. Shared diagnostic
-copy has explicit ru/en/pl/es/fr/de/it values and passes strict compilation.
-SRC catalog validation covers3761resources in all7catalogs with missing0.
-This classification is source evidence, not a complete physical-device language
-walkthrough or a claim that every official question has been visually inspected.
+| `mobile/src/simulator/SimWebView.tsx:363` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |

@@ -1,9 +1,13 @@
 import type { NativeRaceSnapshot } from "./race-native";
-import { angleDiff, makeStandardCourse, raceTrim, windAt } from "./race-physics";
+import { makeStandardCourse } from "./race-physics";
+import { readRaceContext, type RaceContext, type ReadRaceContext } from "./race-context";
+import { matchesPhysicalRaceCourse } from "./race-courses";
+import { physicalRaceSamplesValid } from "./physical-race-record";
+export { replayFrame } from "./race-replay-frame";
 
 export type ReplaySample = NativeRaceSnapshot["samples"][number];
 export type ReplayCourse = NativeRaceSnapshot["course"];
-export interface ReplayMetadata { schema: 1; mode: "simple" | "pro"; penaltySeconds: number }
+export interface ReplayMetadata { schema: 1; mode: "simple" | "pro"; penaltySeconds: number; raceContext?: RaceContext }
 export type StoredReplayCourse = ReplayCourse & { replayMetadata?: ReplayMetadata };
 const MAX_COORD = 100_000;
 const MAX_TIME = 86_400;
@@ -21,19 +25,20 @@ export function replayTrim(raw: unknown): ReplaySample["trim"] | null {
 
 /** Legacy numeric samples still work. New optional rig/wind data is bounded.
  * Preserve exact simulation timestamps, including a short final interval. */
-export function replaySamples(raw: unknown, strictOptional = true): ReplaySample[] | null {
+export function replaySamples(raw: unknown, strictOptional = true, preserveRecordedValues = false): ReplaySample[] | null {
   if (!Array.isArray(raw) || raw.length > 5000) return null;
   const samples: ReplaySample[] = [];
+  const precision = (value: number, scale: number) => preserveRecordedValues ? value : Math.round(value * scale) / scale;
   for (const item of raw) {
     if (!record(item) || !finite(item.t, 0, MAX_TIME) || !finite(item.x, -MAX_COORD, MAX_COORD) || !finite(item.y, -MAX_COORD, MAX_COORD)) continue;
     if (samples.length && item.t < samples[samples.length - 1].t) return null;
     const trim = item.trim === undefined ? undefined : replayTrim(item.trim);
     const windDir = item.windDir === undefined ? undefined : finite(item.windDir, 0, 360) ? item.windDir : null;
     if (strictOptional && (trim === null || windDir === null)) return null;
-    samples.push({ t: item.t, x: Math.round(item.x * 10) / 10, y: Math.round(item.y * 10) / 10,
-      heading: Math.round(number(item.heading, -720, 720, 0) * 10) / 10,
-      twa: Math.round(number(item.twa, -360, 360, 0) * 10) / 10,
-      speed: Math.round(number(item.speed, 0, 1000, 0) * 100) / 100, lap: Math.round(number(item.lap, 0, 100, 0)),
+    samples.push({ t: item.t, x: precision(item.x, 10), y: precision(item.y, 10),
+      heading: precision(number(item.heading, -720, 720, 0), 10),
+      twa: precision(number(item.twa, -360, 360, 0), 10),
+      speed: precision(number(item.speed, 0, 1000, 0), 100), lap: Math.round(number(item.lap, 0, 100, 0)),
       ...(trim ? { trim } : {}), ...(windDir !== null && windDir !== undefined ? { windDir } : {}) });
   }
   return samples;
@@ -61,7 +66,38 @@ export function defaultReplayCourse(): ReplayCourse { return replayCourse(makeSt
 
 export function replayMetadata(raw: unknown): ReplayMetadata | null {
   if (!record(raw) || (raw.mode !== undefined && raw.mode !== "simple" && raw.mode !== "pro") || (raw.penaltySeconds !== undefined && !finite(raw.penaltySeconds, 0, 3600))) return null;
-  return { schema: 1, mode: raw.mode === "pro" ? "pro" : "simple", penaltySeconds: (raw.penaltySeconds as number | undefined) ?? 0 };
+  if (raw.schema !== undefined && raw.schema !== 1) return null;
+  const context = readRaceContext(raw.raceContext);
+  if (!context.ok) return null;
+  if (context.context.model === "physical-cruiser-v1" && raw.mode !== "simple" && raw.mode !== "pro") return null;
+  return { schema: 1, mode: raw.mode === "pro" ? "pro" : "simple", penaltySeconds: (raw.penaltySeconds as number | undefined) ?? 0,
+    ...(raw.raceContext != null ? { raceContext: context.context } : {}) };
+}
+
+/** Inspect both supported metadata locations before any legacy normalization.
+ * A mode at the top must not hide unknown or conflicting stored coordinates. */
+export function readReplayRecordContext(raw: unknown): ReadRaceContext {
+  if (!record(raw)) return { ok: false, reason: "invalid" };
+  const nested = record(raw.course) && record(raw.course.replayMetadata) ? raw.course.replayMetadata : undefined;
+  for (const schema of [raw.schema, nested?.schema]) {
+    if (schema !== undefined && schema !== 1) return { ok: false, reason: typeof schema === "number" && Number.isInteger(schema) && schema > 1 ? "unsupported" : "invalid" };
+  }
+  const direct = readRaceContext(raw.raceContext), stored = readRaceContext(nested?.raceContext);
+  if (!direct.ok) return direct;
+  if (!stored.ok) return stored;
+  if (raw.raceContext != null && nested?.raceContext != null
+    && (direct.context.model !== stored.context.model || direct.context.profile !== stored.context.profile)) return { ok: false, reason: "invalid" };
+  return raw.raceContext != null ? direct : stored;
+}
+
+export function replayRecordMetadata(raw: unknown): ReplayMetadata | null {
+  if (!record(raw)) return null;
+  const context = readReplayRecordContext(raw);
+  if (!context.ok) return null;
+  const nested = record(raw.course) && record(raw.course.replayMetadata) ? raw.course.replayMetadata : undefined;
+  const source = raw.mode !== undefined || raw.penaltySeconds !== undefined ? raw : nested ?? {};
+  return replayMetadata({ mode: source.mode, penaltySeconds: source.penaltySeconds,
+    ...(raw.raceContext != null || nested?.raceContext != null ? { raceContext: context.context } : {}) });
 }
 
 export interface SharedReplay {
@@ -72,31 +108,23 @@ export interface SharedReplay {
 /** Read both old rows and new rows. Bad legacy scenery cannot block the track. */
 export function sharedReplay(raw: unknown): SharedReplay | null {
   if (!record(raw)) return null;
-  const samples = replaySamples(raw.samples, false);
+  const context = readReplayRecordContext(raw);
+  if (!context.ok) return null;
+  if (context.context.model === "physical-cruiser-v1") {
+    if (raw.finishTimeSec != null && !finite(raw.finishTimeSec, .01, 3600)) return null;
+    if (!physicalRaceSamplesValid(raw.samples, context.context, typeof raw.finishTimeSec === "number" ? raw.finishTimeSec : undefined)) return null;
+  }
+  const samples = replaySamples(raw.samples, false, context.context.model === "physical-cruiser-v1");
   if (!samples?.length) return null;
-  const nested = record(raw.course) ? raw.course.replayMetadata : undefined;
-  const metadata = replayMetadata(raw.mode !== undefined || raw.penaltySeconds !== undefined ? raw : nested ?? {}) ?? replayMetadata({})!;
+  const parsedMetadata = replayRecordMetadata(raw);
+  const course = replayCourse(raw.course, context.context.model === "legacy-race-v1");
+  if (context.context.model === "physical-cruiser-v1" && (!parsedMetadata || !course || !matchesPhysicalRaceCourse(context.context, raw.course))) return null;
+  const metadata = parsedMetadata ?? replayMetadata({})!;
   return { code: label(raw.code, ""), ts: finite(raw.ts, 0, 8.64e15) ? raw.ts : 0,
     nickname: typeof raw.nickname === "string" ? raw.nickname.slice(0, 100) : null,
     difficulty: typeof raw.difficulty === "string" ? raw.difficulty.slice(0, 20) : null,
     windStrength: typeof raw.windStrength === "string" ? raw.windStrength.slice(0, 20) : null,
     finishTimeSec: finite(raw.finishTimeSec, 0, MAX_TIME) ? raw.finishTimeSec : null,
     views: finite(raw.views, 0, Number.MAX_SAFE_INTEGER) ? raw.views : 0,
-    samples, course: replayCourse(raw.course, true) ?? defaultReplayCourse(), metadata };
-}
-
-/** Interpolate by recorded seconds, never by a presumed sampling interval. */
-export function replayFrame(samples: readonly ReplaySample[], time: number) {
-  let lo = 0, hi = Math.max(0, samples.length - 1);
-  while (lo < hi) { const mid = Math.floor((lo + hi + 1) / 2); if (samples[mid].t <= time) lo = mid; else hi = mid - 1; }
-  const a = samples[lo];
-  if (!a) return null;
-  const b = samples[Math.min(lo + 1, samples.length - 1)];
-  const fraction = b.t > a.t ? Math.max(0, Math.min(1, (time - a.t) / (b.t - a.t))) : 0;
-  const from = a.windDir ?? windAt(time).dir;
-  return { pos: { x: a.x + (b.x - a.x) * fraction, y: a.y + (b.y - a.y) * fraction },
-    heading: (a.heading + angleDiff(a.heading, b.heading) * fraction + 360) % 360,
-    speed: a.speed + (b.speed - a.speed) * fraction, lapDone: a.lap,
-    windDir: b.windDir !== undefined ? (from + angleDiff(from, b.windDir) * fraction + 360) % 360 : from,
-    trim: a.trim ? raceTrim(a.trim) : undefined };
+    samples, course: course ?? defaultReplayCourse(), metadata };
 }

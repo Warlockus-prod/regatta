@@ -9,6 +9,7 @@ import BootcampFooterNav from "@/components/BootcampFooterNav";
 import SiteFooter from "@/components/SiteFooter";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import ThemeManager from "@/components/ThemeManager";
+import { BROWSER_THEME_COLORS, THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import { I18nProvider } from "@/lib/i18n";
 import {
@@ -148,8 +149,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#0a1628' },
-    { media: '(prefers-color-scheme: light)', color: '#f4f8fc' },
+    { media: '(prefers-color-scheme: dark)', color: BROWSER_THEME_COLORS.dark },
+    { media: '(prefers-color-scheme: light)', color: BROWSER_THEME_COLORS.light },
   ],
 };
 
@@ -177,17 +178,10 @@ export default async function RootLayout({
         >
           {skipLabel}
         </a>
-        {/* No-flash theme: resolve the saved preference ('auto' follows the
-            OS) and set <html data-theme> before first paint, so there is no
-            light/dark flicker on load. Mirrors src/components/ThemeToggle.
-            Pinned to dark on the immersive surfaces, and on ?embed=1 - that is
-            the mobile app's WebView, and the app itself is dark-only, so an OS
-            light preference must not light up a page inside a dark shell. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=location.pathname;var im=['/game','/multiplayer','/simulator','/simulator2','/simulator-v3'].some(function(x){return p===x||p.indexOf(x+'/')===0;})||/[?&]embed=1/.test(location.search);var t=localStorage.getItem('regatta_theme')||'auto';var d=im||t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
-          }}
-        />
+        {/* One preference across reading and practice, resolved before paint.
+            Native embeds may supply their resolved appearance independently
+            of browser storage. ThemeManager keeps it after hydration. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
         {/*
           Structured data (JSON-LD) for search engines. Two graphs at once:
 

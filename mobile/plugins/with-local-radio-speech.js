@@ -34,12 +34,27 @@ function patchSpeechSources(directory, platform) {
 function patchRecognitionSources(directory) {
   const pkg = JSON.parse(fs.readFileSync(path.join(directory, "package.json"), "utf8"));
   if (pkg.version !== "3.1.3") throw new Error("Regatta local ASR supports expo-speech-recognition3.1.3; review the patch before upgrading");
-  const file = path.join(directory, "ios/ExpoSpeechRecognizer.swift");
-  const original = fs.readFileSync(file, "utf8");
-  const patched = replaceOnce(original,
-    "    if recognizer.supportsOnDeviceRecognition {\n      request.requiresOnDeviceRecognition = options.requiresOnDeviceRecognition\n    }",
-    "    // Regatta: an unsupported local model must fail, never use a server.\n    request.requiresOnDeviceRecognition = options.requiresOnDeviceRecognition");
-  fs.writeFileSync(file, patched);
+  const patches = [
+    ["ios/ExpoSpeechRecognizer.swift",
+      "    if recognizer.supportsOnDeviceRecognition {\n      request.requiresOnDeviceRecognition = options.requiresOnDeviceRecognition\n    }",
+      "    // Regatta: an unsupported local model must fail, never use a server.\n    request.requiresOnDeviceRecognition = options.requiresOnDeviceRecognition"],
+    ["ios/ExpoSpeechRecognitionModule.swift",
+      '    Function("isRecognitionAvailable") { () -> Bool in',
+      `    // Regatta: check the requested locale, not the phone's default language.
+    Function("regattaOnDeviceRecognitionAvailable") { (identifier: String) -> Bool in
+      guard let locale = self.resolveLocale(localeIdentifier: identifier),
+        let recognizer = SFSpeechRecognizer(locale: locale) else { return false }
+      return recognizer.isAvailable && recognizer.supportsOnDeviceRecognition
+    }
+
+    Function("isRecognitionAvailable") { () -> Bool in`],
+  ];
+  const changed = new Map();
+  for (const [file, before, after] of patches) {
+    const full = path.join(directory, file);
+    changed.set(full, replaceOnce(fs.readFileSync(full, "utf8"), before, after));
+  }
+  for (const [file, source] of changed) fs.writeFileSync(file, source);
 }
 
 module.exports = function withLocalRadioSpeech(config) {

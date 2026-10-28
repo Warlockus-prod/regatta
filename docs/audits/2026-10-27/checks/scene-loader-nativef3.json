@@ -1,0 +1,76 @@
+{
+  "source": "f3fc7a1a6600c64aafbc7172030c752ff6e6950d",
+  "scope": "Official Simulator native observation of actual GLTF callbacks, not full release acceptance",
+  "packageChecks": "31/31",
+  "installedFiles": 121,
+  "allInstalledFilesMatch": true,
+  "existingStorageKeysPreservedOnInstall": 4,
+  "mode": "pro",
+  "coldProcessLaunch": true,
+  "stages": [
+    {
+      "elapsedMs": 134275,
+      "stage": "scene",
+      "action": "begin"
+    },
+    {
+      "elapsedMs": 135409,
+      "stage": "renderer",
+      "action": "begin"
+    },
+    {
+      "elapsedMs": 135412,
+      "stage": "renderer",
+      "action": "ready"
+    },
+    {
+      "elapsedMs": 135413,
+      "stage": "asset",
+      "action": "begin"
+    },
+    {
+      "elapsedMs": 136108,
+      "stage": "decode",
+      "action": "begin"
+    },
+    {
+      "elapsedMs": 136111,
+      "stage": "decode",
+      "action": "ready"
+    },
+    {
+      "elapsedMs": 136113,
+      "stage": "asset",
+      "action": "ready"
+    },
+    {
+      "elapsedMs": 137081,
+      "stage": "model",
+      "action": "ready"
+    },
+    {
+      "elapsedMs": 137082,
+      "stage": "frame",
+      "action": "begin"
+    },
+    {
+      "elapsedMs": 137084,
+      "stage": "frame",
+      "action": "ready"
+    }
+  ],
+  "firstActualFrameAfterCountdownMs": 2811,
+  "visibleClock": "0:03.6",
+  "backToNativeRaceHub": true,
+  "screens": {
+    "officialf3-native-back-observation.jpg": "a95d3a575dc97464286cbfaebabbe6a76868221fd5632b67bf5521269cb68a92",
+    "officialf3-pro-start-observation.jpg": "ffb12ad6901a846ceb372d8f328a3155e4927e01c9e51107f3757c682a0ffe62"
+  },
+  "actualObserverAccepted": true,
+  "rootCauseConfirmed": false,
+  "startupFixConfirmed": false,
+  "fullNativeAcceptance": false,
+  "delivery": false,
+  "appleWrites": 0,
+  "physicalEmission": false
+}

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { insertRaceResult, getPlayer, insertEvent } from '@/lib/db';
+import { insertRaceResult, insertClassifiedRaceResult, getPlayer, insertEvent } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
 import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
 import { FINISH_SEC_MAX, FINISH_SEC_MIN, isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
+import { readRaceResultSelection } from "@/lib/race-record-class";
+import { readClassifiedRaceResult, type ClassifiedRaceResult } from "@/lib/race-result-eligibility";
 
 export const runtime = 'nodejs';
 
@@ -24,6 +26,14 @@ interface Payload {
   topSpeed?: number | null;
   score?: number | null;
   nicknameFallback?: string;
+  raceContext?: unknown;
+  mode?: unknown;
+  classId?: unknown;
+  course?: unknown;
+  rawFinishTimeSec?: unknown;
+  penaltySeconds?: unknown;
+  dailyDay?: unknown;
+  daily?: unknown;
 }
 
 export async function POST(req: Request) {
@@ -40,8 +50,15 @@ export async function POST(req: Request) {
   }
 
   let body: Payload;
-  try { body = await req.json(); }
+  try {
+    const raw: unknown = await req.json();
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return NextResponse.json({ error: "Invalid result" }, { status: 400 });
+    body = raw as Payload;
+  }
   catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+
+  const selection = readRaceResultSelection(body);
+  if (!selection.ok) return NextResponse.json({ error: "Invalid result identity" }, { status: 400 });
 
   // finishTimeSec must be a plausible race time (see race-submission.ts):
   // under FINISH_SEC_MIN no boat can sail the course, so it is a forged
@@ -84,6 +101,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'position above totalBoats' }, { status: 400 });
   }
 
+  let classified: ClassifiedRaceResult | null = null;
+  if (selection.value.kind === "classified") {
+    const read = readClassifiedRaceResult(body);
+    if (!read.ok) return NextResponse.json({ error: read.reason === "disabled" ? "Race class not enabled" : "Invalid classified result" }, { status: read.reason === "disabled" ? 422 : 400 });
+    classified = read.value;
+  }
+  const finishTimeSec = classified?.finishTimeSec ?? body.finishTimeSec;
+
   const player = getPlayer(sid);
   // Same sanitizer as /api/player: the fallback is client text that lands on
   // the public leaderboard.
@@ -92,26 +117,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No nickname set; call /api/player first' }, { status: 400 });
   }
 
-  const id = insertRaceResult({
+  const result = {
     sid,
     nickname,
     difficulty: body.difficulty,
     windStrength: body.windStrength,
     missionId,
-    finishTimeSec: body.finishTimeSec,
+    finishTimeSec,
     position: body.position ?? null,
     totalBoats: body.totalBoats ?? null,
     tacks: body.tacks ?? null,
     noGoEntries: body.noGoEntries ?? null,
     topSpeed: body.topSpeed ?? null,
     score: body.score ?? null,
-  });
+  };
+  const id = classified
+    ? insertClassifiedRaceResult({ ...result, ...classified, course: body.course })
+    : insertRaceResult(result);
   if (!id) {
     return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
   }
   logInfo('race-result.saved', {
     sid: sid.slice(0, 8),
-    time: body.finishTimeSec,
+    time: finishTimeSec,
     mission: missionId ?? 'free',
   });
 
@@ -126,7 +154,7 @@ export async function POST(req: Request) {
     ua: req.headers.get('user-agent') ?? undefined,
     ip: req.headers.get('x-forwarded-for')?.split(',')[0] ?? undefined,
     meta: {
-      finishTimeSec: body.finishTimeSec,
+      finishTimeSec,
       difficulty: body.difficulty,
       windStrength: body.windStrength,
       missionId,
@@ -134,6 +162,7 @@ export async function POST(req: Request) {
       totalBoats: body.totalBoats ?? null,
       tacks: body.tacks ?? null,
       score: body.score ?? null,
+      ...(classified ? { raceClass: classified.classId, raceMode: classified.mode } : {}),
     },
   });
 

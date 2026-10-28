@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "source": "3f29b42bf615fee6998496f2830deaea652d5e01",
+  "run": 40422279681,
+  "artifact": 12697968440,
+  "artifactSHA256": "5c7011570d8529790d3c83fe7d1055e3d25e2b06efadafd179dfaca615545b33",
+  "stats": {
+    "total": 77,
+    "expected": 77,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "allCasesOneAttempt": true,
+  "publication": "skipped",
+  "deployment": "skipped",
+  "physicalEmissionEnabled": false
+}

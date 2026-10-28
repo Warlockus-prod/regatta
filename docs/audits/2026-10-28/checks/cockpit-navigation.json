@@ -1,0 +1,1903 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-28T15:20:54.650257+00:00",
+  "baseCommit": "29aaaf1571fe5abbc0a28c8aa6236009d2b1b1ce",
+  "candidateVersion": "1.7.0",
+  "candidateBuild": "70",
+  "candidateDelivered": false,
+  "deliveredBuild": "69",
+  "deliveredRuntime": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+  "nativeInstalledAcceptance": false,
+  "sourceFrozen": true,
+  "physicalRaceEmissionEnabled": false,
+  "scope": [
+    "P10",
+    "T01",
+    "T02",
+    "T04",
+    "F06",
+    "F12",
+    "F15"
+  ],
+  "retainedRejectedChecks": [
+    {
+      "name": "briefing-before-report.json",
+      "sha256": "0ae4187a2db1c0631c7628d62a829711c07471b6d5bccc6534434ddd085443bc",
+      "stats": {
+        "startTime": "2026-10-28T12:33:27.427Z",
+        "duration": 10682.822999999999,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "qualifiedMeaning": "actual29aa T04redgeometry"
+    },
+    {
+      "name": "cockpit-targeted-browser-report.json",
+      "sha256": "d0e5f8f3997182375afd775bc580e6527a00793549f1c3e026e213980b4944b0",
+      "stats": {
+        "startTime": "2026-10-28T12:39:12.350Z",
+        "duration": 144861.40399999998,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      },
+      "qualifiedMeaning": "first redgeometry; subsequent3fail; then4pass stillinsufficient forsimultaneousprimarycaptions"
+    },
+    {
+      "name": "cockpit-targeted-final-report.json",
+      "sha256": "1f7fd21cc1cd020398a485a4d042b7f24786367d7a29768d0334942253a80467",
+      "stats": {
+        "startTime": "2026-10-28T12:49:31.408Z",
+        "duration": 160948.237,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "qualifiedMeaning": "first redgeometry; subsequent3fail; then4pass stillinsufficient forsimultaneousprimarycaptions"
+    }
+  ],
+  "copyParity": {
+    "labelObjects": 54,
+    "localeValues": 378,
+    "sha256": "373ac2b4d74288bc99a43fad83a91337d254d1324ed8a7710e6b34a8eacccb1f",
+    "unchanged": true,
+    "synchronous": true
+  },
+  "checks": {
+    "webUnit": {
+      "passed": 1827,
+      "files": 175,
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-web-unit.log",
+        "sha256": "17866c4e722bc54750b7da0072a330f445dea06a68b5b1abe4128012fba929d0",
+        "bytes": 17712
+      }
+    },
+    "nativeUnit": {
+      "passed": 608,
+      "suites": 82,
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-native-unit.log",
+        "sha256": "c71b899f7259f38de941912936fac4a37d5621b961d086b88f210f0e3af398d3",
+        "bytes": 10376
+      }
+    },
+    "primaryFullWeb": {
+      "passed": 1818,
+      "files": 175,
+      "log": {
+        "path": "cockpit-primary-web-full.log",
+        "sha256": "93e0c63c4b8fa9821b8bb7f212feb7fc4d89982e33411f6add7cce8a8a835f3f",
+        "bytes": 16083
+      }
+    },
+    "primaryFullNative": {
+      "passed": 608,
+      "suites": 82,
+      "log": {
+        "path": "cockpit-primary-native-full.log",
+        "sha256": "c4e6f8f46c052329f69e58ffcb661af9e25eed4150a41fc2f9d0a65c1ef6ba46",
+        "bytes": 10374
+      }
+    },
+    "primaryTargetedBrowser": {
+      "path": "cockpit-primary-targeted-report.json",
+      "sha256": "fe1325c2a0c76515861343145ca6642fb28331481976cb91c400af7f98c06733",
+      "bytes": 23586,
+      "stats": {
+        "startTime": "2026-10-28T13:08:55.457Z",
+        "duration": 166636.199,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0
+    },
+    "combinedProductionBrowser": {
+      "status": "passed",
+      "name": "caption-wrap-batch-full94.json",
+      "sha256": "e2f5362fe0881297fc7332887fb0f8a4600b33817bdaa777f5141a1dd7c3f71f",
+      "bytes": 1111279,
+      "stats": {
+        "startTime": "2026-10-28T16:29:36.578Z",
+        "duration": 622515.613,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "files": 8,
+      "workers": 1,
+      "exitCode": 0,
+      "firstAttempt": true,
+      "sourceFrozenAtCapture": false,
+      "deadlineIncreased": false,
+      "assertionsRemoved": false,
+      "acceptsCandidateForReleaseByItself": false
+    },
+    "i18n": {
+      "baselineFindings": 12,
+      "newMissingOrEmpty": 0,
+      "localeCopyUnchanged": true,
+      "localeCopyUnchangedScope": "54 extracted copy objects/378 values only; new bow-relative wind copy independently adapted in seven locales"
+    },
+    "verifierUnit": {
+      "passed": 27,
+      "packageVerified": false,
+      "scope": "Simulator70 verifier unit cases only"
+    },
+    "sourceAndDeviceGatesSeparate": true,
+    "briefingSvgBrowser": {
+      "path": "cockpit-chart-briefing-report.json",
+      "sha256": "12237633491472d5373b3cefc6a45d364280d018a523f702db779b5184930a65",
+      "bytes": 3799,
+      "stats": {
+        "startTime": "2026-10-28T13:33:29.395Z",
+        "duration": 4115.588000000001,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0
+    },
+    "contrastBrowser": {
+      "path": "cockpit-contrast-report.json",
+      "sha256": "9fe1cc39fc6e8cba0af76c8fbc55db7c601882fa371338cc9ff222325ccb0b49",
+      "bytes": 2708,
+      "stats": {
+        "startTime": "2026-10-28T13:15:46.730Z",
+        "duration": 2368.984,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0
+    },
+    "readonlyGeneratedChecks": [
+      {
+        "label": "radio",
+        "command": [
+          "node",
+          "mobile/scripts/build-radio-offline.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:44.315694+00:00",
+        "completedAtUTC": "2026-10-28T13:51:44.970211+00:00",
+        "exitCode": 0,
+        "stdout": "[radio-offline] asset is current (636b981087ba, 6154 KiB)\n",
+        "stderr": ""
+      },
+      {
+        "label": "sailing",
+        "command": [
+          "node",
+          "mobile/scripts/build-sailing-offline.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:44.970237+00:00",
+        "completedAtUTC": "2026-10-28T13:51:45.977449+00:00",
+        "exitCode": 0,
+        "stdout": "Verified offline sailing: 6.27 MiB, fc5f368cb9ef, 236 source files\n",
+        "stderr": ""
+      },
+      {
+        "label": "sternik",
+        "command": [
+          "node",
+          "mobile/scripts/build-sternik-offline.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:45.977487+00:00",
+        "completedAtUTC": "2026-10-28T13:51:46.235778+00:00",
+        "exitCode": 0,
+        "stdout": "Verified offline Sternik: 2.46 MiB, cdef6534874d, 49 source files\n",
+        "stderr": ""
+      },
+      {
+        "label": "server",
+        "command": [
+          "node",
+          "scripts/build-race-server.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:46.235814+00:00",
+        "completedAtUTC": "2026-10-28T13:51:46.306006+00:00",
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "readonlySourceProof": {
+      "path": "readonly-source-proof-20261028T135144161797Z.json",
+      "sha256": "bb39edd46893ae5259de7fb3b986e17d720aaea940de5a164fab83e7c5d602a1",
+      "bytes": 23076,
+      "readAtUTC": "2026-10-28T13:51:46.320946+00:00"
+    },
+    "rootTypecheck": {
+      "exitCode": 0,
+      "log": "review-final-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "finalAssetTests": {
+      "passed": 9,
+      "suites": 3,
+      "exitCode": 0,
+      "name": "review-final-assets.log",
+      "sha256": "095a3e703994579fcf08f7fb5f00aebc8c4da9fdfde6b29249a0c7c251670194"
+    },
+    "map": {
+      "passed": true,
+      "atCurrentWorkingTreeBeforeStaging": true
+    },
+    "dash": {
+      "passed": true,
+      "scope": "whole repository"
+    },
+    "latestReadonlyGeneratedChecks": {
+      "readAtUTC": "2026-10-28T15:20:55.603612+00:00",
+      "checks": [
+        {
+          "label": "radio",
+          "command": [
+            "node",
+            "mobile/scripts/build-radio-offline.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "[radio-offline] asset is current (636b981087ba, 6154 KiB)\n",
+          "stderr": ""
+        },
+        {
+          "label": "sailing",
+          "command": [
+            "node",
+            "mobile/scripts/build-sailing-offline.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "Verified offline sailing: 6.28 MiB, 32ee4c0fea92, 236 source files\n",
+          "stderr": ""
+        },
+        {
+          "label": "sternik",
+          "command": [
+            "node",
+            "mobile/scripts/build-sternik-offline.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "Verified offline Sternik: 2.46 MiB, cdef6534874d, 49 source files\n",
+          "stderr": ""
+        },
+        {
+          "label": "server",
+          "command": [
+            "node",
+            "scripts/build-race-server.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    "readonlyGeneratedChecksHistorical": true,
+    "retained25baff1CombinedProductionBrowser": {
+      "status": "passed",
+      "name": "caption-wind-full94.json",
+      "sha256": "7306679717b5b5a6ec6cbfd6e396b567066615a44c1ea8f05860838d71666b23",
+      "exitCode": 0,
+      "expectedCases": 94,
+      "files": 8,
+      "workers": 1,
+      "target": "http://localhost:3331",
+      "stats": {
+        "startTime": "2026-10-28T14:55:35.614Z",
+        "duration": 638474.012,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "acceptsCandidateForReleaseByItself": false,
+      "deadlineIncreased": false,
+      "assertionsRemoved": false
+    }
+  },
+  "applePreflight": {
+    "readAtUTC": "2026-10-28T12:41:43.898Z",
+    "iosTrainBuilds": 23,
+    "maxBuild": 69,
+    "exact70Matches": 0,
+    "remoteWrites": 0,
+    "reserved": false,
+    "publicVersion": "1.6.4",
+    "publicBuild": "48",
+    "publicState": "READY_FOR_SALE",
+    "version170State": "PREPARE_FOR_SUBMISSION"
+  },
+  "nativePlan": {
+    "runtime27": "27.0 24A434",
+    "runtime26": "26.5 23F77",
+    "xcode": "27.1 27A9275",
+    "sdk": "27.1 24A94232",
+    "originalQAPreserved": false,
+    "ownerRadioManualAcceptance": "pending TestFlight",
+    "expectedPackageChecks": 43,
+    "packageChecksNotYetRun": false,
+    "originalFrozenPackagesPreserved": true,
+    "originalQADataQualification": "cloned old48 alias placed test progress in source QA data; source QA data not claimed unchanged"
+  },
+  "sourceFiles": [
+    {
+      "path": "e2e/race-navigation.spec.ts",
+      "sha256": "edc5afbba173c7d618c5152160bac61fdc5347f6c8a97c96ba17868bdd99f99e",
+      "bytes": 54198
+    },
+    {
+      "path": "e2e/smoke.spec.ts",
+      "sha256": "96913fd9267594a211d29cd563ddbbcfa958c0a7b2e18668ceeea74ca667068f",
+      "bytes": 34292
+    },
+    {
+      "path": "e2e/trainer-controls.spec.ts",
+      "sha256": "fdeb8917fd177ded17f880f84f76506e5e1a52c9a55c80efc7298d0210735aca",
+      "bytes": 17938
+    },
+    {
+      "path": "mobile/__tests__/app-surface.test.tsx",
+      "sha256": "2d98078a79e0b51b118c07eed8be70677e0a67606846c0c4157d460bcc2963b8",
+      "bytes": 3741
+    },
+    {
+      "path": "mobile/app.json",
+      "sha256": "ee8e83e701015eaa84b3259237e13fad55c7eda01ec71f878c5e9ed68b6f820b",
+      "bytes": 6195
+    },
+    {
+      "path": "mobile/assets/sailing-offline.html",
+      "sha256": "c9d9675cd7c72dfb4621386f0c6704f5a4fca4d7356f7921c9d838a714e3bdc4",
+      "bytes": 6580190
+    },
+    {
+      "path": "mobile/assets/sailing-offline.manifest.json",
+      "sha256": "20ee043cc132e680a89ddcbc08376a57c3a55c0935b21a09f1abb2468ebbf4ef",
+      "bytes": 87657
+    },
+    {
+      "path": "src/app/game/GameClient.tsx",
+      "sha256": "97baa7a30a1aa13f47b61f396d7591e43f802ade39456ec51e811dc7e80fdaae",
+      "bytes": 119668
+    },
+    {
+      "path": "src/app/game/GameMenu.tsx",
+      "sha256": "b883bce32e0ca84956eac95d5cbec34eef2482adf969db281fe87c1bcb87d0e7",
+      "bytes": 23234
+    },
+    {
+      "path": "src/app/game/RaceCockpit.module.css",
+      "sha256": "959d96316c8dd0abe1532a84beef152f9eab91bac747a86cfd9bf2187d30a211",
+      "bytes": 7990
+    },
+    {
+      "path": "src/app/game/RaceCockpit.tsx",
+      "sha256": "1abf3e7cb7e6a58fb5bf67ed5f48cc4b7543f09bc325aa99bf29da0181b53813",
+      "bytes": 12263
+    },
+    {
+      "path": "src/app/multiplayer/MultiplayerCockpit.tsx",
+      "sha256": "acd63528b9e3c25b290113d0104e2fbfdeb1310263051ef1894c8bcfa20541ed",
+      "bytes": 11074
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-copy.ts",
+      "sha256": "ef1422e87c22c9b6db8262e8c797a586767481d1ad2dab15570a19c527033c78",
+      "bytes": 11621
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-entry-copy.ts",
+      "sha256": "3f46a1d4e3219c5fc1b8df4bfcdc2fc4897b275b67ec35f884d01fbf40c3f1fe",
+      "bytes": 2497
+    },
+    {
+      "path": "src/data/sailing-lab/lesson-guide.ts",
+      "sha256": "a86890b33444f2546fc165e5a4b3550505b6463b6d704dec62265257e1e6bae2",
+      "bytes": 10929
+    },
+    {
+      "path": "src/data/sailing-lab/practice-copy.ts",
+      "sha256": "7da8cfb9c25a152573deae11452c271ac2beabbdf0be706d88df9ca5d67e25bb",
+      "bytes": 1714
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.module.css",
+      "sha256": "d706b30b845f99c57345f2338935b3d6a60bc6896cfc5b3d533a6b618fb54723",
+      "bytes": 1834
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.test.tsx",
+      "sha256": "9dae7f665a46947e805d033578dabe4a42fd4589d188cc6b17b6a12a0892e775",
+      "bytes": 6956
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.tsx",
+      "sha256": "02cb5a675319d4f8bf8a6f26d307e312cf44b068638e98ee36748f060dd56b9e",
+      "bytes": 4196
+    },
+    {
+      "path": "src/features/race-hud/navigation-copy.ts",
+      "sha256": "573c7d48a41c30eb57d8d140f6405e21e745301bbd8c7b43e3a6d1044a843044",
+      "bytes": 6485
+    },
+    {
+      "path": "src/features/sailing-lab/ui/LessonReturn.tsx",
+      "sha256": "a89f733706667f4be0937478c9b746efcde861ec7e9bd69c787af47f8f6468c3",
+      "bytes": 1040
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SailingCourse.tsx",
+      "sha256": "fe0c0ebbc5753e3ac2566e0dc75e201fd0fb60cc4341be13db10468af31f540f",
+      "bytes": 14053
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SavePractice.tsx",
+      "sha256": "0dd4ec1649d4adad5474613b4c946d38d9d54a70ed40654a9f4841a285de8b98",
+      "bytes": 1316
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerControls.module.css",
+      "sha256": "b922b4c9a355d741a0909fb44bf9f8fb3f455c78972c5fb129b06ffb3c968d92",
+      "bytes": 14995
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
+      "sha256": "d01e974350a198005a679ce05d8d4aa17dfd2b6fb9d59c0806888940da6f020b",
+      "bytes": 2506
+    },
+    {
+      "path": "src/features/trainer-controls/WheelDeck.tsx",
+      "sha256": "be1edf9e2327444cb359685041338d1260141c7ec81dcbf41d301a5bd1703b94",
+      "bytes": 13760
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/05-briefing-accepted.jpg",
+      "sha256": "7e6de154a2a72f403ebd89363dbeeaa68b05368c55a93a50e08ace6af385faff",
+      "bytes": 30979,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/06-pro-accepted.jpg",
+      "sha256": "9ae302c01c4d413d272366ea807e3e649896bd3ae11eee7108f39bacf4e35e45",
+      "bytes": 49710,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/07-home-current.jpg",
+      "sha256": "c46ee81374ce69e6275076977b53afad6fcec16109d6ed77f288cdf2adbe9761",
+      "bytes": 51674,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/08-trainer-current.jpg",
+      "sha256": "89d5126c1682ad5c69da12be5786148962d944edcecb6472c1ff7ebdf94fecc8",
+      "bytes": 50441,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/09-radio-current.jpg",
+      "sha256": "75af756e7453ee4f16d5493f8d214913e0d0dfa437b1a5d06f9983859867c48e",
+      "bytes": 39539,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/10-it-short-failure.png",
+      "sha256": "0f8389d36e2eebe542c6e55e039550fef5e12adc7f478b4819b5eec27dd5063a",
+      "bytes": 100986,
+      "acceptedAs": "unmodified inspected failure evidence; product acceptance failed"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/11-simple-deadline.png",
+      "sha256": "614e4cee0d6308b2f38db72fd1567339786dd25d369e07f0496793cb36bf8d68",
+      "bytes": 195911,
+      "acceptedAs": "unmodified inspected failure evidence; product acceptance failed"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/12-de-selector.png",
+      "sha256": "d9b77877f087c06f40e92677413434c74abd84c9cc35ff90886aeae04a0bdfb6",
+      "bytes": 33216,
+      "acceptedAs": "unmodified inspected failure evidence; product acceptance failed"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/15-trainer-caption-final.jpg",
+      "sha256": "44a6d45752b428ee93f099241b93d017726d0c5fdb63caf9e397da699c8de63a",
+      "bytes": 47937,
+      "acceptedAs": "current inspected local web frame; native acceptance remains separate"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/16-trainer-landscape-final.jpg",
+      "sha256": "db0774b905bbc50d7d38c62221aa62610fee45f0a2af2bb348fda7a0ad29143b",
+      "bytes": 40202,
+      "acceptedAs": "current inspected local web frame; native acceptance remains separate"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/17-it-short-pro-wind-final.jpg",
+      "sha256": "91c49ed5526288a91ead3024a83890ddacc71f9e159dcd41859640cdf6b497ec",
+      "bytes": 29759,
+      "acceptedAs": "current inspected local web frame; native acceptance remains separate"
+    }
+  ],
+  "limitations": [
+    "no current physical iPhone acceptance",
+    "no new binary installed acceptance",
+    "not full accessibility or language QA",
+    "metric fleet unwired; no playable newphysicalcourses orghost",
+    "canonical generated THREE.TSL shader-comment trailingwhitespace kept, generator freshness required"
+  ],
+  "updatedAtUTC": "2026-10-28T18:23:45.438404+00:00",
+  "productionChunks": {
+    "fileCount": 111,
+    "totalBytes": 6790155,
+    "capBytes": 6815744,
+    "headroomBytes": 25589,
+    "allRegularFilesNotOnlyJS": true
+  },
+  "productionBuildId": "Mq-fQfw5QtiSrnfOrjMIv",
+  "offlineVersions": {
+    "radio": "636b981087ba",
+    "sailing": "32ee4c0fea92",
+    "sternik": "cdef6534874d"
+  },
+  "freshVisualObservations": {
+    "viewport": [
+      569,
+      750
+    ],
+    "language": "ru",
+    "theme": "light",
+    "raceSceneHeightPx": 250.21875,
+    "trainerSceneHeightPx": 248.40625,
+    "raceObservedClock": "0:00.7",
+    "radioPower": "off",
+    "microphoneTested": false,
+    "briefingBackVisible": true,
+    "scope": "earlier five-frame source review before caption/wind follow-up; retained as dated observations",
+    "trainerLowerHelmCaptionNeedsReviewAtThatTime": true
+  },
+  "additionalOpenFindings": [
+    "compiled day splash color verified; actual launch-transition and complete native acceptance remain open",
+    "native whole-app Light/Dark/Auto unavailable",
+    "repeated setup choices remain original F06",
+    "trainer course-assist versus race rudder defaults",
+    "trainer stepWithRig versus race tick rig gap"
+  ],
+  "reportCoverage": {
+    "requirements": 65,
+    "uniqueRequirements": 65,
+    "sameIdsAs68": true,
+    "findingIds": [
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F05",
+      "F06",
+      "F07",
+      "F08",
+      "F09",
+      "F10",
+      "F11",
+      "F12",
+      "F13",
+      "F14",
+      "F15"
+    ],
+    "independentReviewSlices": [
+      "native/release/offline/radio",
+      "engines/product/strategy",
+      "65-ID/design/feedback"
+    ],
+    "runtimeChangedDuringFollowupReview": false
+  },
+  "releaseHeld": true,
+  "releaseHoldReasons": [
+    "ExactD8 nativeT05: nextBack after sail/Foundation practice returns into trainer; new contextual-return fix/package/installed acceptance required",
+    "Exact d8 cloud40728700280 failed92/94; clean27 limited path passed, remaining G2 includes previous-major/short/landscape/large-text and splash transition",
+    "Exact archive/IPA validation, Apple processing and independent Self/notes delivery have not been performed; no70upload",
+    "25baff1 cloud90/94 is retained rejected history; ownership-invalid clone observations cannot accept upgrade"
+  ],
+  "ownerManualRadio": {
+    "status": "pending owner TestFlight walkthrough",
+    "blocksThisBetaByItself": false,
+    "exception": "docs/audits/2026-10-27/release69-owner-beta.md",
+    "doesNotWaiveOtherGates": true
+  },
+  "activeCheckpoint": "contextual-return-fifth-footer-source614-native-package-pending",
+  "retainedFirst94Proof": {
+    "name": "cockpit-navigation-first94-held.json",
+    "sha256": "cd21bab2ae16d660474fd00ea464a680950b37240b7f81948a49d0453260cf1f",
+    "bytes": 17860
+  },
+  "lastCompleteProductionBrowser": {
+    "status": "passed",
+    "name": "caption-wrap-batch-full94.json",
+    "sha256": "e2f5362fe0881297fc7332887fb0f8a4600b33817bdaa777f5141a1dd7c3f71f",
+    "bytes": 1111279,
+    "stats": {
+      "startTime": "2026-10-28T16:29:36.578Z",
+      "duration": 622515.613,
+      "expected": 94,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "topLevelErrors": 0,
+    "files": 8,
+    "workers": 1,
+    "exitCode": 0,
+    "firstAttempt": true,
+    "sourceFrozenAtCapture": false,
+    "deadlineIncreased": false,
+    "assertionsRemoved": false,
+    "acceptsCandidateForReleaseByItself": false
+  },
+  "captionWindFollowup": {
+    "atUTC": "2026-10-28T15:03:02.911362+00:00",
+    "firstTargeted": {
+      "name": "caption-followup-targeted.json",
+      "sha256": "c5efa73495982938b9ecf72ac2b15525886b9671833160c79815e3d4f5d3bd65",
+      "bytes": 269350,
+      "stats": {
+        "startTime": "2026-10-28T14:14:31.325Z",
+        "duration": 308130.256,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "errors": 0
+    },
+    "currentTargeted": {
+      "name": "caption-wind-targeted.json",
+      "sha256": "d2cd55f3961342169f0fd2a8f6f8b4bb1dae3183da2f39303b0fb88739e32ee0",
+      "bytes": 38824,
+      "stats": {
+        "startTime": "2026-10-28T14:51:33.120Z",
+        "duration": 87698.371,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": 0
+    },
+    "changes": [
+      "50px shared three-line helm caption reserve",
+      "intrinsic translated race dock floor",
+      "adaptive trainer primary row before secondary help",
+      "short landscape primary row and keyboard-scroll readouts",
+      "day splash source and explicit compiled-color verifier",
+      "bow-up true TWA with separate absolute TWD and unchanged apparent airflow"
+    ],
+    "currentSourceFrozen": true,
+    "candidateInstalled": false,
+    "ownerRadioAccepted": false,
+    "nativeSimulatorVerifierUnit": {
+      "passed": 27,
+      "expectedCandidatePackageChecks": 43,
+      "candidatePackageChecksPassed": false
+    },
+    "web-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-web-types.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "native-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-native-types.log",
+        "sha256": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+        "bytes": 42
+      }
+    },
+    "native-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-native-lint.log",
+        "sha256": "fe6501c28c86b4ec1dc11a5e13ae456330adc62af2b5ac46f4b2c2ceaa636b94",
+        "bytes": 103
+      }
+    },
+    "web-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-web-lint.log",
+        "sha256": "5d192113edf7e73432906b654a30be8887a13f7fd8e29105b46e3d55fa63a3cc",
+        "bytes": 3160
+      }
+    },
+    "multiplayer": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-multiplayer.log",
+        "sha256": "a89450d6a11129150639530d7380f08ae869061d7699e98bc2ca8b07af2e8abd",
+        "bytes": 454
+      }
+    },
+    "content": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-content.log",
+        "sha256": "6d2f34d6f0cf799034ef18754b719d2fa639590864fd194978803aa01d597446",
+        "bytes": 115
+      }
+    },
+    "i18n": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-i18n.log",
+        "sha256": "97cd126bc9f16c80355c677350657ab5e86e004003d3fd00a8bce5e5d4a1211b",
+        "bytes": 181
+      }
+    },
+    "sourceGatesPassed": true,
+    "simpleFullJourneyMs": 75925,
+    "proFullJourneyMs": 93596,
+    "landscapeHelmReturnMs": {
+      "simple": 700,
+      "pro": 691
+    },
+    "priorTimeoutSoleCause": "unproven; old failed report retained",
+    "freshProObservation": {
+      "language": "it",
+      "viewport": [
+        320,
+        568
+      ],
+      "startup": "ready",
+      "clock": "0:05.8",
+      "trueAngle": "41°",
+      "absoluteFrom": "4°",
+      "screenshot": "17-it-short-pro-wind-final.jpg"
+    }
+  },
+  "retainedFirst94Browser": {
+    "name": "cockpit-full-browser-first94-red.json",
+    "sha256": "dc90f906b7c6fbdc08a7d9564c9ebe635da8584aa3b2dd0f4875f75a6346d46d",
+    "bytes": 897223,
+    "status": "failed",
+    "exitCode": 1,
+    "expectedCases": 94,
+    "files": 8,
+    "workers": 1,
+    "target": "http://localhost:3331",
+    "stats": {
+      "startTime": "2026-10-28T13:49:12.309Z",
+      "duration": 721445.428,
+      "expected": 91,
+      "skipped": 0,
+      "unexpected": 3,
+      "flaky": 0
+    },
+    "topLevelErrors": 0,
+    "runtimeAssertionsRelaxed": false,
+    "deadlineIncreased": false,
+    "acceptsCandidateForRelease": false,
+    "failureClassification": [
+      {
+        "case": "IT short Pro",
+        "viewport": [
+          320,
+          568
+        ],
+        "type": "product geometry",
+        "observed": "three-line map tab; helm third caption pala clipped; 3 wheels exist; scrollTop 0",
+        "exactOverflowPx": "not recorded"
+      },
+      {
+        "case": "DE short Pro",
+        "viewport": [
+          320,
+          568
+        ],
+        "type": "test selector ambiguity",
+        "observed": "preset and CTA both match /^Erstes Rennen/; Pro flow not reached"
+      },
+      {
+        "case": "Simple controls/utilities",
+        "viewport": [
+          844,
+          390
+        ],
+        "type": "unresolved case deadline",
+        "observed": "120s at Settings to Helm after Diagnostics close; visible stable locator; dispatch not confirmed; clock52.9s",
+        "soleCause": "unknown"
+      }
+    ]
+  },
+  "finalVisualObservations": {
+    "screens": [
+      "docs/audits/2026-10-28/cockpit-screens/15-trainer-caption-final.jpg",
+      "docs/audits/2026-10-28/cockpit-screens/16-trainer-landscape-final.jpg",
+      "docs/audits/2026-10-28/cockpit-screens/17-it-short-pro-wind-final.jpg"
+    ],
+    "actualInspected": true,
+    "shortProClock": "0:05.8",
+    "shortProTWA": "41 degrees port",
+    "shortProTWD": "4 degrees",
+    "primaryCaptionsVisible": true,
+    "installedNative": false
+  },
+  "sourceCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+  "sourceFreezeRecord": {
+    "name": "source-freeze70.json",
+    "sha256": "60412797f72b8aece454ac98597c61caea15ccb2d914b964f27d45160ad9c619"
+  },
+  "exactCloudCI": {
+    "readAtUTC": "2026-10-28T15:29:42.128669+00:00",
+    "runs": [
+      {
+        "id": "40715210570",
+        "headSha": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+        "event": "push",
+        "conclusion": "success",
+        "sha256": "e29551e10f3de68eb1c0c8710daf47a4f934c08ab9af54616121dfbab40bfeea",
+        "path": "ci-40715210570-readonly.json"
+      },
+      {
+        "id": "40715222392",
+        "headSha": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+        "event": "pull_request",
+        "conclusion": "success",
+        "sha256": "c5416f1cf23fb0cfcb143a943bd424c16df55d3cfad6319e8371e0eefcf217e7",
+        "path": "ci-40715222392-readonly.json"
+      }
+    ],
+    "fullPredeploy94StillPending": false,
+    "predeploy": {
+      "runId": "40715540679",
+      "conclusion": "failure",
+      "actualReportVerification": "pending independent reader",
+      "publicationAndDeploy": "skipped on non-main",
+      "expected": 90,
+      "unexpected": 4,
+      "flaky": 0,
+      "skipped": 0,
+      "attempts": 102,
+      "artifactDigest": "298a66e56d8ce671236cbe3b54eb716000fff9d0b159bc7f8ac769d4ad181901",
+      "artifactDigestVerified": true,
+      "auditProof": {
+        "name": "audit-proof.json",
+        "sha256": "1a7e993dfa03b92b709a9609ff72c6ba97b28c568e7c575b5413ee8912f95191",
+        "bytes": 3685
+      },
+      "currentFollowupAccepted": false
+    }
+  },
+  "nativeProgress": {
+    "generatedProject": {
+      "passed": true,
+      "checks": 22,
+      "name": "generated-verification70.json",
+      "sha256": "801bbb755f5f712ad7589beb5a5e7fedda2faad66ee62721d8707015eb352df4"
+    },
+    "simulatorCompileSession": 89078,
+    "compiledPackageVerified": true,
+    "installedAccepted": false,
+    "simulatorPackage": {
+      "passed": true,
+      "passCount": 43,
+      "checkCount": 43,
+      "name": "simulator-verification70.json",
+      "sha256": "24679c9b6b2594d37e2f2aa54b5f874a84760a1e1ae2a43d2ed6045122ef0039",
+      "sourceCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+      "fileCount": 121,
+      "compiledSplashColorVerified": true
+    },
+    "simulatorCompileExitCode": 0,
+    "upgrade27Qualified": {
+      "installedFilesMatch": 121,
+      "oldKeysPreservedBeforeLaunch": 5,
+      "oldKeysPreservedAfterFirstHome": 5,
+      "actualHome": "1/8, continue lesson2, pl",
+      "actualQuiz": "3/3",
+      "actualPractice": "real3D/dayChrome/More/return to same lesson practice step",
+      "actualSternik": "day local course and working native Back",
+      "coldHome": "Foundation1/8, last course Sternik after intentional visit",
+      "postRoutesKeys": 9,
+      "postRoutesOldKeysUnchanged": 4,
+      "postRoutesOldViewedKeyChanged": 1,
+      "postRoutesOldKeysMissing": 0,
+      "fullG2Accepted": false,
+      "preinstallContainerOwnershipNotRecorded": true,
+      "upgradePreservationAcceptance": "requires fresh direct27 evidence; installed UI observations remain separately valid"
+    },
+    "upgrade26Failed": {
+      "name": "failed-g2-upgrade26.json",
+      "sha256": "45e95f4b830067dca8b6300218c573c0945e7cecb73f39c29b28d8df4faa184f",
+      "runtime": "iOS26.5",
+      "beforeInstallKeys": 6,
+      "afterInstallBeforeExplicitLaunchKeys": 1,
+      "missingOldKeys": 5,
+      "actualHome": "pl/start first lesson instead of saved ru/1of8",
+      "cause": "unresolved installation/container/clone investigation",
+      "reproduction": "fresh SE3 direct48 upgrade being prepared; not passed",
+      "eraseOrUninstall": false,
+      "comparisonInvalidDeviceOwnership": true,
+      "actualApplicationDataLossProven": false,
+      "currentClassification": "preinstall source-original vs postinstall clone-own container; invalid cross-device comparison"
+    },
+    "g2Passed": false,
+    "ownershipCorrection": {
+      "name": "clone-path-misattribution70.json",
+      "sha256": "17836ffb23c629162dc5df4a9e9e09829224c73cc9222c468f6f3f83e88fefd0",
+      "confirmedLiveReturnedPathUnderOriginal": true,
+      "frontBoardCacheAppAndDataURLsUnderOriginal": true,
+      "originalSixKeysStillPresent": true,
+      "originalQADataReceivedTestProgress": true,
+      "runtimeOrFrozenPackagesChanged": false,
+      "beforeNextUIRequireBothAppAndDataOwnership": true,
+      "newGuardFixtureChecks": 19
+    },
+    "directFreshSE26": {
+      "deviceCloned": false,
+      "oldPublic48Files": 106,
+      "candidate70FilesMatch": 121,
+      "beforeKeys": 6,
+      "afterInstallBeforeLaunchKeys": 6,
+      "afterFirstHomeKeys": 7,
+      "allSixOldKeysByteAndSHAMatch": true,
+      "recordedBeforeAfterDataPathsOwnedByRequestedDevice": true,
+      "actualRootHome": "ru,1/8,nextlesson2",
+      "fullG2Accepted": false
+    },
+    "ownershipLiveReject": {
+      "name": "ownership-control26-live-rejected.json",
+      "appRejected": true,
+      "dataRejected": true,
+      "storageRead": false,
+      "expectedFailure": true
+    },
+    "directOwned27Old48Baseline": {
+      "name": "direct48-owned27-baseline-private.json",
+      "candidateInstalled": false,
+      "actualUI": "en,3of3,cold1of8,nextlesson2",
+      "bothContainersOwned": true,
+      "oldKeysPreservedAfterCold": 6
+    },
+    "sourceCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+    "evidenceScope": "Historical previous frozen25 checkpoint; use ownerReportNativeFollowup for d8 partial installed evidence"
+  },
+  "retained25baff1SourceFiles": [
+    {
+      "path": "e2e/race-navigation.spec.ts",
+      "sha256": "c1e457f4ebd8d02e70e2bb0ac019d0125231ef107fede7ebea55448db29a5b5b",
+      "bytes": 51506
+    },
+    {
+      "path": "e2e/smoke.spec.ts",
+      "sha256": "96913fd9267594a211d29cd563ddbbcfa958c0a7b2e18668ceeea74ca667068f",
+      "bytes": 34292
+    },
+    {
+      "path": "e2e/trainer-controls.spec.ts",
+      "sha256": "d8cf8e9c2c843c6ce4efb2d50fae4854788c516a81e8e6e8aa45c336c3dceb8d",
+      "bytes": 15748
+    },
+    {
+      "path": "mobile/__tests__/app-surface.test.tsx",
+      "sha256": "2d98078a79e0b51b118c07eed8be70677e0a67606846c0c4157d460bcc2963b8",
+      "bytes": 3741
+    },
+    {
+      "path": "mobile/app.json",
+      "sha256": "ee8e83e701015eaa84b3259237e13fad55c7eda01ec71f878c5e9ed68b6f820b",
+      "bytes": 6195
+    },
+    {
+      "path": "mobile/assets/sailing-offline.html",
+      "sha256": "a2ee7a757c52f21f097e6c2163d094874f7da312039cb2533765bd801570a69f",
+      "bytes": 6580023
+    },
+    {
+      "path": "mobile/assets/sailing-offline.manifest.json",
+      "sha256": "b494bd8381975682166de20ce6f679dfdb74c978cd4b50820e70d344994f5611",
+      "bytes": 87657
+    },
+    {
+      "path": "src/app/game/GameClient.tsx",
+      "sha256": "a66886dcf53316883e3c9348a9d2728efb4d2223e99c4ef6c05496685094a64c",
+      "bytes": 119142
+    },
+    {
+      "path": "src/app/game/GameMenu.tsx",
+      "sha256": "b883bce32e0ca84956eac95d5cbec34eef2482adf969db281fe87c1bcb87d0e7",
+      "bytes": 23234
+    },
+    {
+      "path": "src/app/game/RaceCockpit.module.css",
+      "sha256": "959d96316c8dd0abe1532a84beef152f9eab91bac747a86cfd9bf2187d30a211",
+      "bytes": 7990
+    },
+    {
+      "path": "src/app/game/RaceCockpit.tsx",
+      "sha256": "1abf3e7cb7e6a58fb5bf67ed5f48cc4b7543f09bc325aa99bf29da0181b53813",
+      "bytes": 12263
+    },
+    {
+      "path": "src/app/multiplayer/MultiplayerCockpit.tsx",
+      "sha256": "acd63528b9e3c25b290113d0104e2fbfdeb1310263051ef1894c8bcfa20541ed",
+      "bytes": 11074
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-copy.ts",
+      "sha256": "ef1422e87c22c9b6db8262e8c797a586767481d1ad2dab15570a19c527033c78",
+      "bytes": 11621
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-entry-copy.ts",
+      "sha256": "3f46a1d4e3219c5fc1b8df4bfcdc2fc4897b275b67ec35f884d01fbf40c3f1fe",
+      "bytes": 2497
+    },
+    {
+      "path": "src/data/sailing-lab/lesson-guide.ts",
+      "sha256": "a86890b33444f2546fc165e5a4b3550505b6463b6d704dec62265257e1e6bae2",
+      "bytes": 10929
+    },
+    {
+      "path": "src/data/sailing-lab/practice-copy.ts",
+      "sha256": "7da8cfb9c25a152573deae11452c271ac2beabbdf0be706d88df9ca5d67e25bb",
+      "bytes": 1714
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.module.css",
+      "sha256": "d706b30b845f99c57345f2338935b3d6a60bc6896cfc5b3d533a6b618fb54723",
+      "bytes": 1834
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.test.tsx",
+      "sha256": "9dae7f665a46947e805d033578dabe4a42fd4589d188cc6b17b6a12a0892e775",
+      "bytes": 6956
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.tsx",
+      "sha256": "02cb5a675319d4f8bf8a6f26d307e312cf44b068638e98ee36748f060dd56b9e",
+      "bytes": 4196
+    },
+    {
+      "path": "src/features/race-hud/navigation-copy.ts",
+      "sha256": "573c7d48a41c30eb57d8d140f6405e21e745301bbd8c7b43e3a6d1044a843044",
+      "bytes": 6485
+    },
+    {
+      "path": "src/features/sailing-lab/ui/LessonReturn.tsx",
+      "sha256": "a89f733706667f4be0937478c9b746efcde861ec7e9bd69c787af47f8f6468c3",
+      "bytes": 1040
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SailingCourse.tsx",
+      "sha256": "fe0c0ebbc5753e3ac2566e0dc75e201fd0fb60cc4341be13db10468af31f540f",
+      "bytes": 14053
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SavePractice.tsx",
+      "sha256": "0dd4ec1649d4adad5474613b4c946d38d9d54a70ed40654a9f4841a285de8b98",
+      "bytes": 1316
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerControls.module.css",
+      "sha256": "b922b4c9a355d741a0909fb44bf9f8fb3f455c78972c5fb129b06ffb3c968d92",
+      "bytes": 14995
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
+      "sha256": "d01e974350a198005a679ce05d8d4aa17dfd2b6fb9d59c0806888940da6f020b",
+      "bytes": 2506
+    },
+    {
+      "path": "src/features/trainer-controls/WheelDeck.tsx",
+      "sha256": "be1edf9e2327444cb359685041338d1260141c7ec81dcbf41d301a5bd1703b94",
+      "bytes": 13760
+    }
+  ],
+  "sourceCommitRole": "top sourceCommit/baseCommit retain historical checkpoints; current HEAD acf plus uncommitted native footer is not frozen; source checks do not prove a compiled package",
+  "currentSourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+  "currentFollowup": {
+    "recordedAtUTC": "2026-10-28T16:35:53.226645+00:00",
+    "baseFrozenCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+    "sourceFrozen": true,
+    "nativePackageVerifiedForThisFollowup": true,
+    "productionBuildId": "8NseqWISCbLglpTGyjrZw",
+    "productionChunks": {
+      "directory": ".next/static/chunks",
+      "recursiveAllRegularFilesIncludesCSS": true,
+      "fileCount": 111,
+      "totalBytes": 6790321,
+      "capBytes": 6815744,
+      "headroomBytes": 25423
+    },
+    "sailingOfflineVersion": "662cb2493d8d",
+    "changes": [
+      "word-wrapped mark label with exact localized text/size and bundled font",
+      "independent DOM reads batched without input/assertion/deadline reduction",
+      "single-flight content-free observational probes",
+      "mandatory actual/resolved App+Data ownership before Simulator read/launch/UI"
+    ],
+    "build": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-build.log",
+        "sha256": "ca0483651afd9e14f753c477793434fbc3a6f60039597cb9b67d6fd880e2d4e3",
+        "bytes": 2149
+      }
+    },
+    "web-unit": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-web-unit.log",
+        "sha256": "ef1599bcfaf97d32eb90b31417d19506e2167a622c43e9928a8fef94c229af43",
+        "bytes": 17650
+      }
+    },
+    "native-unit": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-native-unit.log",
+        "sha256": "621af34dc1e4c66d65e8bd03cd61ff1f1415862fa6191bb5d45f578952024ab1",
+        "bytes": 10375
+      }
+    },
+    "web-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-web-types.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "native-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-native-types.log",
+        "sha256": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+        "bytes": 42
+      }
+    },
+    "web-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-web-lint.log",
+        "sha256": "5d192113edf7e73432906b654a30be8887a13f7fd8e29105b46e3d55fa63a3cc",
+        "bytes": 3160
+      }
+    },
+    "native-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-native-lint.log",
+        "sha256": "fe6501c28c86b4ec1dc11a5e13ae456330adc62af2b5ac46f4b2c2ceaa636b94",
+        "bytes": 103
+      }
+    },
+    "multiplayer": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-multiplayer.log",
+        "sha256": "ad4d1d240696205ddb4ce3fce1d92d0c60930eb499b010acffdf48dd2d85fe27",
+        "bytes": 454
+      }
+    },
+    "budget": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-budget.log",
+        "sha256": "da0c9a1ced99b1a4f5c1928832d4655509f67496232843f68cb27ff03a506eb9",
+        "bytes": 330
+      }
+    },
+    "i18n": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wrap-batch-i18n.log",
+        "sha256": "97cd126bc9f16c80355c677350657ab5e86e004003d3fd00a8bce5e5d4a1211b",
+        "bytes": 181
+      }
+    },
+    "webUnitCount": 1827,
+    "nativeUnitCount": 608,
+    "nativeSuiteCount": 82,
+    "webLintBaselineWarnings": 15,
+    "i18nBaselineFindings": 12,
+    "newMissingOrEmptyLabels": 0,
+    "targetedBrowser": {
+      "name": "caption-wrap-batch-target4b.json",
+      "sha256": "8d5ef0ec31cdfd88c7a6f017d8110444c0d68d08682ad862a9ca93c0bd15cdcd",
+      "bytes": 182361,
+      "stats": {
+        "startTime": "2026-10-28T16:25:46.375Z",
+        "duration": 194509.876,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "exitCode": 0
+    },
+    "initialInvocationError": {
+      "name": "caption-wrap-batch-target4.log",
+      "sha256": "95ba9571d03805b4ca070d39bc6a106a8905a88f1c45352d510978208478fba7",
+      "bytes": 174,
+      "classification": "anchored title filter matched no full test titles;0productcases;corrected discovery confirms4cases",
+      "exitCode": 1,
+      "productFailure": false
+    },
+    "combinedBrowser": {
+      "status": "passed",
+      "name": "caption-wrap-batch-full94.json",
+      "sha256": "e2f5362fe0881297fc7332887fb0f8a4600b33817bdaa777f5141a1dd7c3f71f",
+      "bytes": 1111279,
+      "stats": {
+        "startTime": "2026-10-28T16:29:36.578Z",
+        "duration": 622515.613,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "files": 8,
+      "workers": 1,
+      "exitCode": 0,
+      "firstAttempt": true,
+      "sourceFrozenAtCapture": false,
+      "deadlineIncreased": false,
+      "assertionsRemoved": false,
+      "acceptsCandidateForReleaseByItself": false
+    },
+    "allStaticAssetsOutsideBudgetDefinition": {
+      "directory": ".next/static",
+      "fileCount": 115,
+      "totalBytes": 6816942,
+      "note": "includes media/fonts outside the established chunks budget; not compared against that cap"
+    },
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "sourceFreezeRecord": {
+      "name": "native-release70-day-followup/source-freeze70.json",
+      "sha256": "a8093e416372b646092250e4af07d007e94e2739d0ffb0b0d843a84067eb47b6"
+    },
+    "generatedProject": {
+      "checks": 22,
+      "passed": true,
+      "name": "generated-verification70.json",
+      "sha256": "fbe089ccd656469bd7e69992499b517e4538ec12eb6992927901ca1e2aff82b6"
+    },
+    "nativeCompile": {
+      "session": 5087,
+      "status": "succeeded",
+      "actualPackageVerified": true,
+      "packageCheckCount": 43,
+      "packagePassCount": 43,
+      "packageVerification": {
+        "name": "simulator-verification70.json",
+        "bytes": 14102,
+        "sha256": "3bff8eea521a857235b78b24f2b4627d49ef419a96697aee6b89b0e626807008"
+      },
+      "frozenInventory": {
+        "name": "simulator-frozen70-inventory.json",
+        "bytes": 21852,
+        "sha256": "e9f50263ed51b35c2bd31dbf8b60f9a7aa78647e71aad73213f75c9cfe5518f0"
+      }
+    },
+    "cloudRuns": {
+      "predeploy": "40728700280",
+      "pushCI": "40728631299",
+      "prCI": "40728643633",
+      "allForCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+      "observedStatus": "completed",
+      "accepted": false,
+      "predeployConclusion": "failure",
+      "pushCIConclusion": "success",
+      "prCIConclusion": "success",
+      "analysis": {
+        "name": "cloud40728700280-analysis.json",
+        "bytes": 7688,
+        "sha256": "08a0536416c3bd8e3edd9898c2dc3a13dc10d4c547520affc3c96a845e64db6b"
+      },
+      "artifactId": 12836202433,
+      "artifactDigest": "sha256:83f0111ab07f4b324587653f15176609f6e691dbd622a431a93dbefe8f0b8fba",
+      "stats": {
+        "total": 94,
+        "expected": 92,
+        "unexpected": 2,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "totalAttempts": 98,
+      "attemptStatuses": {
+        "passed": 92,
+        "timedOut": 6
+      },
+      "allMainOnlyJobsSkipped": true,
+      "remoteWrites": 0
+    },
+    "lastReconciledAtUTC": "2026-10-28T17:29:44.620535+00:00"
+  },
+  "currentProductionMetadataScope": "contextualReturnSourceFollowup; currentFollowup retains frozenD8 history",
+  "ownerReportNativeFollowup": {
+    "checkedAt": "2026-10-28T17:04:53.934427+00:00",
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "packageChecks": "43/43",
+    "installedFileMatches": 121,
+    "directUpgrade": "48->70; fresh iOS27 QA, no clone",
+    "oldKeysUnchangedBeforeLaunch": 6,
+    "homeLanguage": "en",
+    "foundation": "1/8",
+    "screenshots": [
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/18-native70-home.jpg",
+        "sha256": "3e72503d86b9fc268880b35e93720707a975881d7c14779ddc8be1b546cfe438",
+        "bytes": 291528,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/19-native70-trainer.jpg",
+        "sha256": "d63ae55344d6da94728fb5d8b8ce0460e2580496668096e80045ace6b459a406",
+        "bytes": 282099,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/20-native70-radio.jpg",
+        "sha256": "eabff8b70ef7f91607f520573a088f92eb53ec2a52a34d0cb32de35e3db7973c",
+        "bytes": 263236,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/21-native70-briefing.jpg",
+        "sha256": "2a3129344e67aa71154c992895d8002580e3ceff478384519ce900f7448934b1",
+        "bytes": 255325,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/22-native70-pro.jpg",
+        "sha256": "331c50208bd738c9300b0983ecda4e3d055bd0c04aae8f5fec2ef1fd1902442d",
+        "bytes": 277607,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/23-native70-orbit.jpg",
+        "sha256": "8f2488ed6c6affaf3db4fdf6865e4a906ef6c7d467719d50565954d6ebf3f78c",
+        "bytes": 290696,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/24-native70-jib.jpg",
+        "sha256": "4bbf6c35b5d05e7af27f2cb6bc0a82b68b5578a76efd0e013354eafb4cbbc883",
+        "bytes": 288687,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      }
+    ],
+    "observed": [
+      "trainer day/3D/More/Back",
+      "radio entry/Exit",
+      "briefing visible Back/CTA",
+      "Pro real scene/clock/orbit/manual jib53->45",
+      "mini-map/course map/settings/Helm",
+      "Menu/Back to races/Home/cold relaunch"
+    ],
+    "g2Passed": false,
+    "testflight70Uploaded": false,
+    "radioManual": "owner-deferred live TestFlight",
+    "modeObservation": "Initial immediate native AX lagged; cold Pro and reverse Simple return matched. Persistent sync failure not established.",
+    "ownerReportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9",
+    "afterColdOldKeysUnchanged": 6,
+    "allThreeNativeWheelInputsVerified": false,
+    "localObservedManualInput": "jib53%->45% only; all3controls visible",
+    "ownerReportSha256AtPriorSnapshot": "680a0dd0057235b91c7788d9e5b811507819dcef3d40cd3ff133ad11a5d17103"
+  },
+  "ownerReportCleanFollowup": {
+    "checkedAtUTC": "2026-10-28T17:29:44.620535+00:00",
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "freshDirectDevice": true,
+    "cloned": false,
+    "runtime": "iOS27.0",
+    "model": "iPhone18Pro",
+    "language": "pl",
+    "installedFileMatches": 121,
+    "bothContainersOwned": true,
+    "packageProof": {
+      "name": "clean27-package-beforefirstlaunch-private.json",
+      "bytes": 308,
+      "sha256": "03ba115db8fef6d7eb495a5adaec2fec09ccd4868aa4956c664dc2d192767c0a"
+    },
+    "deviceProof": {
+      "name": "clean27-device-private.json",
+      "bytes": 316,
+      "sha256": "64bc62c56efcd50c4be1c99fe0c52d48dcc1c56dfe03d01789b670363a8326ed"
+    },
+    "screenshots": [
+      {
+        "bytes": 286855,
+        "sha256": "8355676e0e1faa2c490ebeb9e8c13e12b891fd04add8e86cb931188b6776b06e",
+        "path": "docs/audits/2026-10-28/cockpit-screens/25-native70-clean-lesson.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "clean installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "bytes": 285679,
+        "sha256": "731bb28b1cab6985b527ba9244fe384ff1f322d7a686afcff4318d457b70e43c",
+        "path": "docs/audits/2026-10-28/cockpit-screens/26-native70-clean-resume.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "clean installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "bytes": 258251,
+        "sha256": "9a86eb5300e93501f2d44835be1d5def9cd5d0fbcc60f9475e099e775c158569",
+        "path": "docs/audits/2026-10-28/cockpit-screens/27-native70-clean-simple.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "clean installed iOS27 Simulator; not TestFlight"
+      }
+    ],
+    "observed": [
+      "first Foundation practice -> real3D -> course90to70 -> same practice",
+      "cold launch -> same lesson practice step3",
+      "Simple actual first frame and clock8.8to25.4",
+      "Simple rudder0to8/course45to50/TWA40to46",
+      "Simple Menu returns race selection"
+    ],
+    "skillPassedByOpening": false,
+    "g2Passed": false,
+    "allThreeProWheelInputsVerified": false,
+    "testflight70Uploaded": false,
+    "ownerReportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9"
+  },
+  "currentOwnerReportScope": {
+    "recordedAtUTC": "2026-10-28T18:20:42.830200+00:00",
+    "requirements": 65,
+    "findings": 15,
+    "testflightFeedbackThemes": 11,
+    "nativeScreenshots": 13,
+    "reportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9",
+    "historicalProof": "checks/completion-status.json is the unchanged12:19 snapshot, not the current report hash",
+    "runtimeEditsDuringThisReconciliation": false,
+    "deliveryChanged": false,
+    "g2Passed": false,
+    "freshFinalWebScreenshots": 5
+  },
+  "nativeBackLoopHold": {
+    "recordedAtUTC": "2026-10-28T17:46:17.892878+00:00",
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "finding": "T05",
+    "g2Status": "rejected for contextual next-Back",
+    "observed": [
+      "sail lesson3 practice -> return to same step3 -> native Back reopens trainer",
+      "Foundation lesson1 practice -> return to step3 -> native Back reopens trainer"
+    ],
+    "coordinateVerification": true,
+    "storageLossNotEstablished": true,
+    "screenshots": [
+      {
+        "bytes": 258180,
+        "sha256": "c7b92bfa75727dfc5f0a2e59a335bf9e283576c9f62edc4ed4815efc84a3a377",
+        "path": "docs/audits/2026-10-28/cockpit-screens/28-native70-sail-before-back.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "meaning": "negative installed T05 evidence"
+      },
+      {
+        "bytes": 279239,
+        "sha256": "437cb5c9d749e50342d1fc59c3c14a30963da806a1bd82be1f8d46129bdfffba",
+        "path": "docs/audits/2026-10-28/cockpit-screens/29-native70-sail-back-loop.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "meaning": "negative installed T05 evidence"
+      },
+      {
+        "bytes": 280255,
+        "sha256": "fcc5e105c8bc3d8f76d4f58f0362f47e0c25a926dcf87064fac2d92efa9bcc32",
+        "path": "docs/audits/2026-10-28/cockpit-screens/30-native70-foundation-back-loop.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "meaning": "negative installed T05 evidence"
+      }
+    ],
+    "ownerGuard": {
+      "name": "ownership-clean27-after-backloop.json",
+      "bytes": 1234,
+      "sha256": "b50b4c119c81d5edb5b8b4caed3ef114c13a8effe78813ec1ab1221118353b4f"
+    },
+    "snapshot": {
+      "name": "clean27-after-backloop-storage-private.json",
+      "bytes": 1911,
+      "sha256": "4ccf962527deb6597ad6dc0c2ec0de57260177fd7111b5b66dcb6462cdadabc7"
+    },
+    "newFixInstalled": false,
+    "deliveryChanged": false
+  },
+  "localPassiveRingTargeted": {
+    "sourceScope": "uncommitted e2e observer against unchanged D8 web build; not cloud/native",
+    "report": {
+      "name": "two-cockpit-report.json",
+      "bytes": 111885,
+      "sha256": "247e16acafb7da94f76dfad49e777d94b6932615db3b0203447a9dd113c6b5ad"
+    },
+    "passed": 2,
+    "firstAttempt": true,
+    "durationMs": 169111.151,
+    "simpleMs": 76795,
+    "proMs": 91382,
+    "allInputsAssertionsViewportsDeadlinesPreserved": true,
+    "finalObservationsCaptured": 2,
+    "documentsPerObservation": 2,
+    "doesNotProvePreviousDelayCause": true
+  },
+  "contextualReturnSourceFollowup": {
+    "recordedAtUTC": "2026-10-28T17:56:00.472398+00:00",
+    "baseCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "sourceFrozen": true,
+    "nativePackageBuilt": false,
+    "nativeAccepted": false,
+    "webTests": 1827,
+    "nativeTests": 613,
+    "nativeSuites": 82,
+    "targetedNativeTests": 41,
+    "targetedNativeSuites": 3,
+    "typesPassed": true,
+    "webLintErrors": 0,
+    "webLintPriorWarnings": 15,
+    "nativeLintErrors": 0,
+    "socketsPassed": true,
+    "sourceGenerationCurrent": true,
+    "contentAndOfflineCurrent": true,
+    "g1HeuristicFindings": {
+      "count": 12,
+      "sameAsD8ExceptTimestamp": true,
+      "missingTpArity": 0,
+      "missingLocaleOverlays": 0,
+      "qualified": "ExistingPL-onlySternik,placenames,countsymbol and scanner heuristic; not full natural-language acceptance"
+    },
+    "checks": {
+      "web-unit.log": {
+        "name": "web-unit.log",
+        "bytes": 17167,
+        "sha256": "97f5d10acf3ae76630aa7aa78510f983b53318252d00bbb7393be312e593405a",
+        "exitCode": 0
+      },
+      "web-build.log": {
+        "name": "web-build.log",
+        "bytes": 2149,
+        "sha256": "11044fdc34f7231f41e86961136b03120e0afb7b1b7ee91c422cfb1155aa355f",
+        "exitCode": 0
+      },
+      "native-unit.log": {
+        "name": "native-unit.log",
+        "bytes": 10391,
+        "sha256": "bb6037efcf2aeb0f39e1c32b13aac4e1751479064d4e5b305d5d009839b936bc",
+        "exitCode": 0
+      },
+      "native-types.log": {
+        "name": "native-types.log",
+        "bytes": 42,
+        "sha256": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+        "exitCode": 0
+      },
+      "native-lint.log": {
+        "name": "native-lint.log",
+        "bytes": 103,
+        "sha256": "fe6501c28c86b4ec1dc11a5e13ae456330adc62af2b5ac46f4b2c2ceaa636b94",
+        "exitCode": 0
+      },
+      "web-types.log": {
+        "name": "web-types.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exitCode": 0
+      },
+      "web-lint.log": {
+        "name": "web-lint.log",
+        "bytes": 3160,
+        "sha256": "5d192113edf7e73432906b654a30be8887a13f7fd8e29105b46e3d55fa63a3cc",
+        "exitCode": 0
+      }
+    },
+    "files": [
+      {
+        "name": "race-navigation.spec.ts",
+        "bytes": 63035,
+        "sha256": "c827bb6af1fbde87a7d6e0b48ea358d2262286e5dde46491a5a6a10dd6262974",
+        "path": "e2e/race-navigation.spec.ts"
+      },
+      {
+        "name": "race-host.test.tsx",
+        "bytes": 14325,
+        "sha256": "6521af4b9d96ce09a94345e67b5d66728210fbef929339903e1302b1a071a920",
+        "path": "mobile/__tests__/race-host.test.tsx"
+      },
+      {
+        "name": "sailing-course.test.tsx",
+        "bytes": 19053,
+        "sha256": "305c99255e7d101c3f94c4f8c00595213a8c13666fc61219eadf36215dd63b08",
+        "path": "mobile/__tests__/screens/sailing-course.test.tsx"
+      },
+      {
+        "name": "sim-webview.test.tsx",
+        "bytes": 21281,
+        "sha256": "ba8977c3fd480490b780fad8695a5a8b978a7fe3dc143a406dba3f6ea6887c13",
+        "path": "mobile/__tests__/sim-webview.test.tsx"
+      },
+      {
+        "name": "ReturnToLesson.tsx",
+        "bytes": 1003,
+        "sha256": "d125de73619225e8c7ea648b9883e9613c642f25c0ce87eee952401f27ac3df1",
+        "path": "mobile/src/bootcamp/ReturnToLesson.tsx"
+      },
+      {
+        "name": "SharedRaceHost.tsx",
+        "bytes": 11685,
+        "sha256": "b7a6bccbb629758c5449198240de554ae5c16f048cd6e9ed944e923ff51ac974",
+        "path": "mobile/src/game/SharedRaceHost.tsx"
+      },
+      {
+        "name": "SailingCourseScreen.tsx",
+        "bytes": 19578,
+        "sha256": "01a5744f31267ca3cf1e44e30e302bca6e2aa2cd28743d507668fe90e97d9b67",
+        "path": "mobile/src/sailing/SailingCourseScreen.tsx"
+      },
+      {
+        "name": "SimWebView.tsx",
+        "bytes": 26208,
+        "sha256": "5e66068563fb5fed23a230e1a71714276b1707b2bdbd52f7baa0485d4bf0e26b",
+        "path": "mobile/src/simulator/SimWebView.tsx"
+      }
+    ],
+    "build": {
+      "id": "nxugNMA4jmTyt34ewz_yq",
+      "chunkFiles": 111,
+      "bytes": 6790321,
+      "capBytes": 6815744,
+      "headroomBytes": 25423
+    },
+    "fullBrowserStatus": "passed-local",
+    "newPrivateGuardFixtures": 99,
+    "fullG2Passed": false,
+    "uploaded": false,
+    "fullBrowser": {
+      "name": "full94-local-report.json",
+      "sha256": "8c9697a0cb35fff41b024ccad730a1b9c67f8d4c4b1ec267396f4293f26961d6",
+      "stats": {
+        "startTime": "2026-10-28T17:48:31.412Z",
+        "duration": 620658.6830000001,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": 94,
+      "cases": 94,
+      "allFirstAttempt": true,
+      "cloudAccepted": false
+    },
+    "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+    "sourceFreeze": {
+      "name": "source-freeze70.json",
+      "bytes": 531,
+      "sha256": "658bda9465abc964f447e6906de360432d8fbf5197bc331206a8be5f3978516e"
+    },
+    "generatedProject": {
+      "name": "generated-verification70.json",
+      "bytes": 5415,
+      "sha256": "1a658ccbda2962c69225fceeedfd84e082ed965327ff48977f428571c6168763"
+    },
+    "generatedChecks": 22,
+    "nativeCompile": {
+      "session": 33017,
+      "status": "controlled_stop",
+      "exitCode": 75,
+      "atUTC": "2026-10-28T18:08:09.723552+00:00",
+      "sourceMutationBeforeStop": false,
+      "reason": "Fifth Foundation footer correction before next source freeze",
+      "compiledPackageExists": false,
+      "record": {
+        "name": "compile-controlled-stop.json",
+        "bytes": 392,
+        "sha256": "40a81a52d2695fb3e7aa8d63037989a90ed4cf335271e745c9ded0f9116a4840"
+      }
+    },
+    "cloudRuns": {
+      "predeploy": 40741168924,
+      "pushCI": 40741090514,
+      "prCI": 40741103322,
+      "status": "in_progress",
+      "accepted": false,
+      "lastReadAtUTC": "2026-10-28T18:23:08.454066+00:00",
+      "pushCIStatus": "success",
+      "prCIStatus": "success",
+      "conclusion": null,
+      "localWatcherStoppedAtUTC": "2026-10-28T18:23:13+00:00",
+      "remoteRunChanged": false,
+      "remoteWrites": 0,
+      "finalReadOnlyEvidence": [
+        {
+          "name": "run-last-snapshot.json",
+          "bytes": 14768,
+          "sha256": "a14a5b8e8c7489170a921743523c09b874cb2347be9042428cf77d82d19e29b9"
+        },
+        {
+          "name": "jobs-last-snapshot.json",
+          "bytes": 6668,
+          "sha256": "13e8d8554462faf6b95227864289b3a5e54fda3d276213c2ca68384ec4f1e4ba"
+        },
+        {
+          "name": "last-snapshot-summary.json",
+          "bytes": 496,
+          "sha256": "b09314acf2519006e9cbd0dd67de66dcab3b07d80bd1c13ec129949c46d6b924"
+        },
+        {
+          "name": "local-watch-stop.json",
+          "bytes": 208,
+          "sha256": "84b74861774377117f538335325eaf394d838c335347d77ffb57c04b639dc372"
+        }
+      ]
+    }
+  },
+  "finalOwnerReadout": {
+    "checkedAtUTC": "2026-10-28T18:20:42.830200+00:00",
+    "requirements": 65,
+    "sameIdsAndOrderAs68": true,
+    "findings": 15,
+    "testflightFeedbackThemes": 11,
+    "sourceRuntimeChangedDuringThisReadout": false,
+    "fiveFreshWebScreens": [
+      {
+        "path": "docs/audits/2026-10-28/review-screens/10-final-home.png",
+        "bytes": 85584,
+        "sha256": "256eb6eb2d720525b22ef74cd503435639a01aa70b23e6bb3d206bd85fc7e0be",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:15:31.504777+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/11-final-trainer.png",
+        "bytes": 90381,
+        "sha256": "377d5bf965045f32916d816a9e78be9da979b21bbeff874ca1f47bf9ce3ae4d7",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:15:50.824391+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/12-final-radio.png",
+        "bytes": 63530,
+        "sha256": "25ddaa05651cded07e24a0458bd346f69cf79ffcb02d73ef48f71f79dda6822c",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:16:17.248224+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/13-final-briefing.png",
+        "bytes": 47281,
+        "sha256": "be13723c47c298154c1aede33f90434f7655f6d972b3311b37526fb1eccd3cdc",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:16:42.939125+00:00"
+      },
+      {
+        "path": "docs/audits/2026-10-28/review-screens/14-final-pro.png",
+        "bytes": 90734,
+        "sha256": "73843a03fecd46532583f7303e095d0baf6d8d4bbea61c60b2e4da546551d41e",
+        "inspectedSavedFile": true,
+        "surface": "local production web; not public SITE/native/TestFlight",
+        "sourceCommit": "acf0415d3687a4d50b5b14bdc4c9dc654970d820",
+        "capturedAtUTC": "2026-10-28T18:17:00.605950+00:00"
+      }
+    ],
+    "buildId": "nxugNMA4jmTyt34ewz_yq",
+    "browserViewport": [
+      1280,
+      720
+    ],
+    "language": "ru",
+    "theme": "light",
+    "newNativeAcceptance": false,
+    "deliveredBuild": 69,
+    "testflight70Uploaded": false,
+    "fifthFooter": {
+      "committed": false,
+      "targetedTests": 10,
+      "fullSuiteAccepted": true,
+      "installedAccepted": false,
+      "nativeTests": 614,
+      "nativeSuites": 82,
+      "nativeTypesPassed": true,
+      "nativeLintPassed": true,
+      "nativeSourceOnly": true,
+      "checkedAtUTC": "2026-10-28T18:21:35+00:00",
+      "proof": {
+        "name": "native-source-checks-20261028T182108Z.json",
+        "bytes": 4976,
+        "sha256": "395f755947790687da50c8f75f88289fcdff4fcda30f0ae80b8ae89844b58fdd"
+      }
+    },
+    "offlineExceptionsVerifiedInSource": [
+      "Gallery photo/thumbnail/full media and YouTube/Linking",
+      "Spots/weather",
+      "Ask assistant"
+    ],
+    "liveLanguageObservation": {
+      "priority": "P2",
+      "finding": "IT-to-RU client switch retained Italian skip-link through navigation; ordinary reload rendered Russian",
+      "allLanguagesTested": false,
+      "privateEvidence": [
+        {
+          "name": "ru-after-client-language-change.ax.txt",
+          "bytes": 3289,
+          "sha256": "36b67c93c5dca44204dd1085ae36069f5e26ebf1f7ac6734b42a1cf03b20905f"
+        },
+        {
+          "name": "ru-after-reload.ax.txt",
+          "bytes": 3380,
+          "sha256": "7b4a436d60e2e0037260c86861169d0bcc43dfe47fbf2970ecf8ed10d455b123"
+        }
+      ]
+    },
+    "releaseStatus": "open"
+  },
+  "currentWorkingSourceFrozen": false
+}

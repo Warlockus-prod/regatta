@@ -1,0 +1,319 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-26T11:49:07.079461+00:00",
+  "sourceCommit": "b0e5868e0b1cc368360d0c84e10fcc304e22020a",
+  "tag": "testflight-1.7.0-65",
+  "version": "1.7.0",
+  "build": "65",
+  "apple": {
+    "buildId": "7205fcd3-b935-47cc-9122-3ef2f65aecba",
+    "selfCheckedAt": "2026-10-26T11:46:55.327Z",
+    "notesCheckedAt": "2026-10-26T11:46:54.829Z",
+    "processingState": "VALID",
+    "internalState": "IN_BETA_TESTING",
+    "exactSelfMember": true,
+    "independentGETWrites": 0,
+    "all8NotesMatchSource": true,
+    "notesGETStatus": "PLANNED",
+    "notesGETMeaning": "GET-only comparison plan; every locale is unchanged and its hash matches the prepared source.",
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 854,
+        "bytes": 854,
+        "sha256": "6278b0ccfd1e2aa5035966094b1238f62501759abe5afd65af7d0338db41b147",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 854,
+        "bytes": 854,
+        "sha256": "6278b0ccfd1e2aa5035966094b1238f62501759abe5afd65af7d0338db41b147",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 891,
+        "bytes": 1626,
+        "sha256": "83e11e1081a78e2f42f1618f6baa60681b63bd53ee9bc882a58efb3238f6eaff",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 902,
+        "bytes": 946,
+        "sha256": "e8eec6780ae32b0afb78d78a48ef5840e32a332d3d130ef920a045ffba94142d",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 953,
+        "bytes": 964,
+        "sha256": "5b56112f67f7b29401e0082eb0c38f0c0962f56d28ece97cd9bb4b65b23272a7",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 1004,
+        "bytes": 1034,
+        "sha256": "a94a51ca987ed6aac7a342684905a27c8a45ec24409767fbcf84b54d1e6cc71b",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 1003,
+        "bytes": 1013,
+        "sha256": "7279356bf91c048926ff86263fcf1909139dc4ca93dda91b9a5335292bf8619d",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 970,
+        "bytes": 972,
+        "sha256": "c4bc089d7fc28d17eb11b22a349b33d5bf342bda1cfd059c1fd34d8f8a75a487",
+        "action": "unchanged"
+      }
+    ]
+  },
+  "artifactChecks": {
+    "generated-final": {
+      "passed": true,
+      "checks": 18,
+      "sha256": "8be0786d570652b18c36335b028b03eaf274a443dcccc4d2b381497280ff520a"
+    },
+    "expanded-simulator": {
+      "passed": true,
+      "checks": 27,
+      "sha256": "49d4b93b0f55036786cb813f0da2187f1116a4088ab5d2aecb433287d8e2d001"
+    },
+    "archive": {
+      "passed": true,
+      "checks": 33,
+      "sha256": "13d505ed25451784b55038059e9f86d175932bc460c98148f5646cf1dfc3a4d5"
+    },
+    "export-ipa": {
+      "passed": true,
+      "checks": 35,
+      "sha256": "46f742621a1810270ce47464deaeeea332a3f4a39f46fc9814067bb1d9aac0ae"
+    }
+  },
+  "ipa": {
+    "bytes": 30001035,
+    "sha256": "fddd1eba6c88458afc3510f5cbcabf7759f94e2cc7aeae16b29e0c597c10730e"
+  },
+  "sourceChecks": {
+    "webTests": 1547,
+    "webFiles": 156,
+    "nativeTests": 565,
+    "nativeSuites": 76,
+    "releaseToolTests": 9,
+    "freshOfflinePackages": 3,
+    "budgetBytes": 6815470,
+    "budgetLimit": 6815744,
+    "budgetHeadroom": 274,
+    "staticFiles": 111,
+    "i18nScan": {
+      "files": 93,
+      "classifiedHeuristics": 12,
+      "arity": 0,
+      "missingLanguageExtras": 0
+    }
+  },
+  "browser": {
+    "runId": 40312922878,
+    "sourceCommit": "b0e5868e0b1cc368360d0c84e10fcc304e22020a",
+    "artifactId": 12645579750,
+    "artifactBytes": 620688,
+    "artifactSha256": "ecef8994e289feb13d14c82ccbd47c3c6b3ce9417a88fe655a44a9bff2757103",
+    "stats": {
+      "total": 72,
+      "expected": 72,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "allFirstAttempt": true,
+    "publicationDeployProductionJobsSkipped": 3
+  },
+  "nativeChangedScreens": {
+    "upgradeRuntime": "26.5",
+    "cleanRuntime": "27.0",
+    "noEraseOrUninstall": true,
+    "ordinaryAndProRealFrames": true,
+    "miniMapAndWindCorners": true,
+    "mapTapFullMap": true,
+    "orbitFromWindArea": true,
+    "fourWindChoices": true,
+    "numericWindInOff": true,
+    "miniMapColdRestoration": true,
+    "helm45to63": true,
+    "jib53to46": true,
+    "main35to29": true,
+    "backToNative": true,
+    "historyAndPersonalEmptyExits": true,
+    "capturedRadioRelease17to17OneCancel": true,
+    "realRadioTap16AndHold06": true,
+    "sternikExitStayRequestAndCancel": true
+  },
+  "nativeObservations": {
+    "upgrade26_5": [
+      "same retained data container across64 and both65 candidates; no erase/uninstall",
+      "first upgrade retained9keys; only diagnostics changed initially",
+      "Pro clock0to32.6to49.7 and after cold restart0to30.9to53.7",
+      "miniMap hidden and wind off persist across full process restart; then true/both restored",
+      "actual wheel course45to63, jib53to46 and main35to29",
+      "Map opens from mini-map; full map and caption fit; all four dock tabs preserve corners",
+      "Orbit starts under wind card",
+      "actual Sternik request/Stay keeps exam, next Exit returns native Menu; one cancellation recorded",
+      "radio captured release CH17to17, one cancelled/noop and no channel command; inside tapCH16 and holdCH06"
+    ],
+    "clean27_0": [
+      "fresh dedicated device, native Home/Settings1.7.0(65) launch",
+      "RU shell, Simple3D clock0to48.9to71.7 and one auto-trim wheel",
+      "RU Pro clock0to33.2to62.3 and three wheels",
+      "same corners and Map tap; real Orbit from wind area; native Back",
+      "empty RU History/Personal records and Back",
+      "RU radio, power hold, CH17 captured release with one cancelled/noop and no channel command",
+      "DIAL Volume16to20to15 and visible moving index"
+    ]
+  },
+  "radioCapturedRelease": {
+    "upgrade26_5": {
+      "sourceCommit": "b0e5868e0b1cc368360d0c84e10fcc304e22020a",
+      "checkedAt": "2026-10-26T11:15:52.910Z",
+      "events": [
+        {
+          "type": "radio.gesture",
+          "surface": "radio",
+          "control": "16c",
+          "action": "cancel",
+          "outcome": "noop",
+          "source": "pointer",
+          "reason": "cancelled"
+        }
+      ],
+      "oneCancellation": true,
+      "noChannelCommand": true,
+      "channelBefore": "17",
+      "channelAfterObserved": "17"
+    },
+    "clean27_0": {
+      "checkedAt": "2026-10-26T11:39:49.263Z",
+      "sourceCommit": "b0e5868e0b1cc368360d0c84e10fcc304e22020a",
+      "oneCancellation": true,
+      "noChannelCommand": true,
+      "channelBefore": "17",
+      "channelAfterObserved": "17",
+      "events": [
+        {
+          "type": "radio.gesture",
+          "surface": "radio",
+          "control": "16c",
+          "action": "cancel",
+          "outcome": "noop",
+          "source": "pointer",
+          "reason": "cancelled"
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    {
+      "name": "upgrade26-radio-captured-release.png",
+      "sha256": "998a8e40352f7bdd1c91bebadbd82fda43de2a42e493ec346489bb7f657cf328"
+    },
+    {
+      "name": "upgrade26-hidden-before-restart.png",
+      "sha256": "760f5a73492d094285f8316d6fd099ecee9ed34a1daec6e968a9ecebbd4ebc60"
+    },
+    {
+      "name": "upgrade26-corners-pro.png",
+      "sha256": "563770a057bdd524ab0acaa24c5ae7c520a061d5282e9ca4308e078c7346b9bb"
+    },
+    {
+      "name": "clean27-home.png",
+      "sha256": "44b58c082e76a8c52358ca9b72b34527c946d0322c7b0e998734b1279a4da301"
+    },
+    {
+      "name": "clean27-simple-map.png",
+      "sha256": "5aed3430442378d2352d196b24275ee69f4791d29bd839a3fa0a67b56cf54a10"
+    },
+    {
+      "name": "clean27-corners-pro-ru.png",
+      "sha256": "fecda4e42f82325b99ab52f864fc869e7fa98c8d7b7acf58bd01546fb24deab5"
+    },
+    {
+      "name": "clean27-radio-ru-dial.png",
+      "sha256": "859b02dac65d521378288807955dcd03ad69a7df8f31fcac06d61b951e51ef87"
+    }
+  ],
+  "canonicalJournals": [
+    {
+      "device": "upgrade26-final",
+      "canonicalParserAccepted": true,
+      "entries": 200,
+      "bytes": 39846,
+      "types": [
+        "control.change",
+        "control.preferences",
+        "embedded.lifecycle",
+        "navigation",
+        "race.lifecycle",
+        "radio.command",
+        "radio.gesture",
+        "radio.startup",
+        "storage.operation"
+      ],
+      "miniMap": true,
+      "windDisplay": "both"
+    },
+    {
+      "device": "clean27-final",
+      "canonicalParserAccepted": true,
+      "entries": 82,
+      "bytes": 16577,
+      "types": [
+        "control.change",
+        "embedded.lifecycle",
+        "navigation",
+        "race.lifecycle",
+        "radio.command",
+        "radio.gesture",
+        "radio.startup",
+        "storage.operation"
+      ],
+      "miniMap": true,
+      "windDisplay": "compass"
+    }
+  ],
+  "limits": [
+    "Owner physical iPhone gestures, microphone models, heat and sustained FPS remain unverified.",
+    "Full manual Pro finish, nonempty registered native lists and the full65-item product audit remain separate.",
+    "Physical emission is disabled.",
+    "Device Hub mouse drag did not prove finger scrolling in inner WK panels; keyboard focus navigation reached controls.",
+    "A shared dock scroll position can carry across tabs; a sail toggle began above the visible panel after Settings scrolling.",
+    "Seven-language handler/source checks and RU/PL installed samples do not replace every-language visual acceptance.",
+    "Website main5df0ee5 and its existing red final multiplayer gate are unchanged.",
+    "OS pointercancel on the owner physical iPhone remains separate from the installed captured-release correction."
+  ],
+  "fullProductAcceptanceComplete": false,
+  "newPhysicalEngineIncluded": false,
+  "offlinePackages": [
+    {
+      "name": "sailing-offline.html",
+      "bytes": 6553586,
+      "sha256": "1fb9c43e213bb130c857e440241dbc8bedb6838241d04d393e9444d148a78720"
+    },
+    {
+      "name": "radio-offline.html",
+      "bytes": 6265064,
+      "sha256": "d5dd766093caf06045f02a4a43be27b16c000fc1b4903365f781f5df80afb55b"
+    },
+    {
+      "name": "sternik-offline.html",
+      "bytes": 2580498,
+      "sha256": "c1ed0a8468c71e1eb2942e4c42de40505b6ccaf91fa4ef35e91fe00118d03575"
+    }
+  ]
+}

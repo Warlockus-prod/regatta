@@ -13,6 +13,10 @@ export type RaceContext = LegacyRaceContext | PhysicalRaceContext;
 export type RaceClassId = "legacy-race-v1:standard:r1" | `physical-cruiser-v1:${PhysicalRaceProfile}:r1`;
 export type ReadRaceContext = { ok: true; context: RaceContext } | { ok: false; reason: "invalid" | "unsupported" };
 
+// Readers must land before any new result can enter the legacy score buckets.
+// Enable only with the native/PB/server class and physical engine checkpoints.
+export const PHYSICAL_RACE_EMISSION_ENABLED = false;
+
 const coordinates = { version: 1, geometryRevision: 1, coordinateUnits: "race-world-v1", metresPerUnit: 0.6 } as const;
 export const LEGACY_RACE_CONTEXT: LegacyRaceContext = Object.freeze({ ...coordinates, model: "legacy-race-v1", profile: "standard" });
 const physical: Readonly<Record<PhysicalRaceProfile, PhysicalRaceContext>> = Object.freeze({

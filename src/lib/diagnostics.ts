@@ -1,4 +1,5 @@
 import { WIND_DISPLAYS, type WindDisplay } from "./race-visual-prefs";
+import { ADS_CAMERAS, ADS_FOVS, ADS_PLACEMENTS, ADS_SCENES, type AdsCamera, type AdsFov, type AdsPlacement, type AdsScene } from "./ads-preview";
 
 /** Local diagnostics only. This module has no platform, storage or clock globals. */
 export const DIAGNOSTIC_STORAGE_KEY = "regatta.diagnostics.v1";
@@ -13,12 +14,12 @@ const MAX_COUNTER = Number.MAX_SAFE_INTEGER;
 const MAX_ELAPSED = DIAGNOSTIC_TTL_MS;
 const COALESCE_MS = 250;
 
-export const DIAGNOSTIC_SURFACES = ["app", "radio", "race", "multiplayer", "replay", "basics", "trainer", "boat", "anatomy", "sternik", "learn", "menu", "diagnostics"] as const;
+export const DIAGNOSTIC_SURFACES = ["app", "radio", "race", "multiplayer", "replay", "basics", "trainer", "boat", "anatomy", "sternik", "learn", "menu", "diagnostics", "ads"] as const;
 export const DIAGNOSTIC_OUTCOMES = ["accepted", "noop", "rejected", "failed"] as const;
-export const DIAGNOSTIC_REASONS = ["unchanged", "limit", "disabled", "invalid-input", "invalid-message", "unsupported", "power-off", "tx-inhibit", "inspect", "cancelled", "pointer-cancel", "lost-capture", "blur", "hidden", "unmount", "secondary-pointer", "wrong-key", "duplicate", "stale-attempt", "timeout", "storage-invalid", "storage-read", "storage-write", "storage-unavailable", "webview-load", "webview-process", "scene-load", "not-ready", "not-found", "connection", "permission", "model-unavailable", "unknown"] as const;
+export const DIAGNOSTIC_REASONS = ["unchanged", "limit", "disabled", "invalid-input", "invalid-message", "unsupported", "power-off", "tx-inhibit", "inspect", "cancelled", "pointer-cancel", "lost-capture", "blur", "hidden", "unmount", "secondary-pointer", "wrong-key", "duplicate", "stale-attempt", "timeout", "storage-invalid", "storage-read", "storage-write", "storage-unavailable", "webview-load", "webview-process", "scene-load", "asset-load", "not-ready", "not-found", "connection", "permission", "model-unavailable", "unknown"] as const;
 export const RADIO_DIAGNOSTIC_ACTIONS = ["dial-hold", "dial-push", "dial-rotate", "key-16c", "key-16c-hold", "soft", "soft-page", "up", "down", "ent", "clr", "menu", "distress-down", "distress-up", "distress-held", "distress-txdone", "cancel-txdone", "auto-retx", "coast-ack", "otherdsc-ack", "scan-tick", "dw-tick", "alarm-off", "aqua-down", "aqua-up", "ptt-down", "ptt-up"] as const;
 export const RADIO_DIAGNOSTIC_SCREENS = ["off", "standby", "volume", "squelch", "channel-select", "backlight", "menu", "m323-dsc-calls", "gps-info", "radio-info", "dsc-log", "stub-view", "config", "dsc-settings", "position-input", "individual-id-list", "individual-id-add-mmsi", "individual-id-add-name", "individual-id-delete", "distress-compose", "distress-nature", "distress-hold", "distress-tx", "distress-wait", "distress-ack", "distress-ack-done", "cancel-confirm", "cancel-tx", "cancel-voice", "cancel-done", "otherdsc-compose", "otherdsc-field", "otherdsc-sent", "otherdsc-ack", "rx-distress-alert", "rx-individual-call"] as const;
-export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "unknown"] as const;
+export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "ads", "unknown"] as const;
 const SOURCES = ["pointer", "keyboard", "arrow", "slider", "system", "native", "assistive"] as const;
 const CAMERAS = ["orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
 type Member<T extends readonly string[]> = T[number];
@@ -41,23 +42,26 @@ type ControlValues = {
 type PreferenceValues = {
   mode: "sliders" | "wheels"; "helm-mapping": "course" | "rudder";
   "return-center": boolean; sensitivity: 0.5 | 1 | 2; "jib-side": "left" | "right";
-  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay;
+  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay; "mini-map": boolean;
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
 export type DiagnosticInput = Common & (
+  | { type: "radio.speech"; action: "availability" | "request" | "started" | "release" | "result" | "cancel" | "clear"; input: "voice" | "typed"; status?: "recognized" | "entered" | "silent" | "cancelled" | "unavailable" | "denied" | "error"; available?: boolean }
+  | { type: "ads.preview"; action: "open" | "scene" | "camera" | "reset" | "orbit" | "show" | "hide" | "clear"; scene?: AdsScene; camera?: AdsCamera; fov?: AdsFov; placement?: AdsPlacement }
   | { type: "radio.command"; action: Member<typeof RADIO_DIAGNOSTIC_ACTIONS>; model?: "M330" | "M323"; screenFrom?: RadioScreen; screenTo?: RadioScreen; direction?: 1 | -1; index?: number; volume?: number; squelch?: number; channel?: number; power?: boolean }
   | { type: "radio.gesture"; action: "start" | "rotate" | "tap" | "hold" | "cancel" | "ignored"; control: "dial" | "16c" | "ptt" | "distress" | "aqua"; steps?: number }
   | { type: "radio.startup"; action: "begin" | "storage-read" | "bootstrap" | "load" | "ready" | "retry" | "error" | "process-terminated"; supportCode?: "SRC-S01" | "SRC-S02" | "SRC-S03" | "SRC-B01" | "SRC-W01" | "SRC-W02" | "SRC-W03"; attempt?: number; wkDomain?: "WKErrorDomain" | "WebKitErrorDomain" | "NSURLErrorDomain" | "NSCocoaErrorDomain" | "other"; wkCode?: number }
   | { type: "navigation"; action: "request" | "confirmed" | "cancelled" | "back"; from?: Member<typeof DIAGNOSTIC_DESTINATIONS>; to?: Member<typeof DIAGNOSTIC_DESTINATIONS> }
-  | { type: "embedded.lifecycle"; action: "begin" | "ready" | "retry" | "error" | "process-terminated" | "background" | "foreground"; attempt?: number }
+  | { type: "embedded.lifecycle"; action: "begin" | "ready" | "waiting" | "retry" | "error" | "process-terminated" | "background" | "foreground"; attempt?: number; stage?: "scene" | "renderer" | "asset" | "decode" | "model" | "frame"; viewport?: "empty" | "sized" }
   | ({ type: "control.change" } & Changes<ControlValues, "control">)
   | ({ type: "control.preferences" } & Changes<PreferenceValues, "preference">)
   | { type: "race.lifecycle"; action: "briefing" | "init" | "scene-ready" | "countdown" | "start" | "pause" | "resume" | "exit" | "finish" | "timeout"; mode?: "simple" | "pro"; phase?: "menu" | "briefing" | "countdown" | "racing" | "finished" | "replay"; elapsedSeconds?: number }
-  | { type: "race.save"; action: "request" | "ack" | "retry" | "error"; target: "local" | "share" | "leaderboard" | "coach"; attempt?: number }
+  | { type: "race.save"; action: "request" | "ack" | "retry" | "error"; target: "local" | "share" | "leaderboard" | "coach" | "personal-best"; attempt?: number }
   | { type: "race.replay"; action: "open" | "play" | "pause" | "seek" | "rate" | "close" | "error"; timeSeconds?: number; rate?: 0.25 | 0.5 | 1 | 2 | 4 }
   | { type: "trainer.lifecycle"; action: "reset" | "restore" | "pause" | "resume" | "preset" | "ready" | "error" | "assessment"; mode?: "free" | "sail" | "drill" | "scenario" | "lesson"; attempt?: number }
   | { type: "trainer.checkpoint"; action: "save" | "restore" | "clear" | "error"; attempt?: number }
-  | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" }
+  | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" | "personal-best" | "history" }
+  | { type: "learning.visual"; action: "mode" | "frame" | "image-ready" | "image-error"; lesson: "how-sail-works"; mode: "scheme" | "picture"; frame: "filled" | "luffing" }
   | { type: "learning.command"; action: "start" | "answer" | "check" | "next" | "back" | "complete" | "retry"; course: "foundation" | "sails" | "radio" | "sternik"; step?: number }
 );
 export interface DiagnosticEntry {
@@ -100,24 +104,27 @@ const controlChecks: Record<keyof ControlValues, Check> = {
 };
 const preferenceChecks: Record<keyof PreferenceValues, Check> = {
   mode: enumeration(["sliders", "wheels"]), "helm-mapping": enumeration(["course", "rudder"]), "return-center": boolean,
-  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS),
+  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS), "mini-map": boolean,
 };
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };
 const attempt = numeric(0, 100000, true);
 const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Record<string, Check> }> = {
+  "radio.speech": { required: ["action", "input"], fields: { action: enumeration(["availability", "request", "started", "release", "result", "cancel", "clear"]), input: enumeration(["voice", "typed"]), status: enumeration(["recognized", "entered", "silent", "cancelled", "unavailable", "denied", "error"]), available: boolean } },
+  "ads.preview": { required: ["action"], fields: { action: enumeration(["open", "scene", "camera", "reset", "orbit", "show", "hide", "clear"]), scene: enumeration(ADS_SCENES), camera: enumeration(ADS_CAMERAS), fov: enumeration(ADS_FOVS), placement: enumeration(ADS_PLACEMENTS) } },
   "radio.command": { required: ["action"], fields: { action: enumeration(RADIO_DIAGNOSTIC_ACTIONS), model: enumeration(["M330", "M323"]), screenFrom: enumeration(RADIO_DIAGNOSTIC_SCREENS), screenTo: enumeration(RADIO_DIAGNOSTIC_SCREENS), direction: enumeration([-1, 1]), index: numeric(0, 3, true), volume: numeric(0, 20, true), squelch: numeric(0, 10, true), channel: numeric(1, 88, true), power: boolean } },
   "radio.gesture": { required: ["action", "control"], fields: { action: enumeration(["start", "rotate", "tap", "hold", "cancel", "ignored"]), control: enumeration(["dial", "16c", "ptt", "distress", "aqua"]), steps: numeric(-1000, 1000, true) } },
   "radio.startup": { required: ["action"], fields: { action: enumeration(["begin", "storage-read", "bootstrap", "load", "ready", "retry", "error", "process-terminated"]), supportCode: enumeration(["SRC-S01", "SRC-S02", "SRC-S03", "SRC-B01", "SRC-W01", "SRC-W02", "SRC-W03"]), attempt, wkDomain: enumeration(["WKErrorDomain", "WebKitErrorDomain", "NSURLErrorDomain", "NSCocoaErrorDomain", "other"]), wkCode: numeric(-100000, 100000, true) } },
   navigation: { required: ["action"], fields: { action: enumeration(["request", "confirmed", "cancelled", "back"]), from: enumeration(DIAGNOSTIC_DESTINATIONS), to: enumeration(DIAGNOSTIC_DESTINATIONS) } },
-  "embedded.lifecycle": { required: ["action"], fields: { action: enumeration(["begin", "ready", "retry", "error", "process-terminated", "background", "foreground"]), attempt } },
+  "embedded.lifecycle": { required: ["action"], fields: { action: enumeration(["begin", "ready", "waiting", "retry", "error", "process-terminated", "background", "foreground"]), attempt, stage: enumeration(["scene", "renderer", "asset", "decode", "model", "frame"]), viewport: enumeration(["empty", "sized"]) } },
   "control.change": { required: ["control", "value"], fields: { control: enumeration(Object.keys(controlChecks)), value: () => true, previous: () => true } },
   "control.preferences": { required: ["preference", "value"], fields: { preference: enumeration(Object.keys(preferenceChecks)), value: () => true, previous: () => true } },
   "race.lifecycle": { required: ["action"], fields: { action: enumeration(["briefing", "init", "scene-ready", "countdown", "start", "pause", "resume", "exit", "finish", "timeout"]), mode: enumeration(["simple", "pro"]), phase: enumeration(["menu", "briefing", "countdown", "racing", "finished", "replay"]), elapsedSeconds: numeric(0, 7200) } },
-  "race.save": { required: ["action", "target"], fields: { action: enumeration(["request", "ack", "retry", "error"]), target: enumeration(["local", "share", "leaderboard", "coach"]), attempt } },
+  "race.save": { required: ["action", "target"], fields: { action: enumeration(["request", "ack", "retry", "error"]), target: enumeration(["local", "share", "leaderboard", "coach", "personal-best"]), attempt } },
   "race.replay": { required: ["action"], fields: { action: enumeration(["open", "play", "pause", "seek", "rate", "close", "error"]), timeSeconds: numeric(0, 86400), rate: enumeration([.25, .5, 1, 2, 4]) } },
   "trainer.lifecycle": { required: ["action"], fields: { action: enumeration(["reset", "restore", "pause", "resume", "preset", "ready", "error", "assessment"]), mode: enumeration(["free", "sail", "drill", "scenario", "lesson"]), attempt } },
   "trainer.checkpoint": { required: ["action"], fields: { action: enumeration(["save", "restore", "clear", "error"]), attempt } },
-  "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics"]) } },
+  "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics", "personal-best", "history"]) } },
+  "learning.visual": { required: ["action", "lesson", "mode", "frame"], fields: { action: enumeration(["mode", "frame", "image-ready", "image-error"]), lesson: enumeration(["how-sail-works"]), mode: enumeration(["scheme", "picture"]), frame: enumeration(["filled", "luffing"]) } },
   "learning.command": { required: ["action", "course"], fields: { action: enumeration(["start", "answer", "check", "next", "back", "complete", "retry"]), course: enumeration(["foundation", "sails", "radio", "sternik"]), step: numeric(0, 10000, true) } },
 };
 const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);

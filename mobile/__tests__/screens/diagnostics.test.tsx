@@ -9,6 +9,7 @@ jest.mock("@react-native-async-storage/async-storage", () => require("@react-nat
 jest.mock("expo-router", () => ({ Stack: { Screen: () => null } }));
 jest.mock("expo-localization", () => ({ getLocales: () => [{ languageTag: "en-US" }] }));
 jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn() }));
+jest.mock("expo-application", () => ({ nativeApplicationVersion: "1.7.0", nativeBuildVersion: "69" }));
 beforeEach(async () => { await nativeDiagnostics.clear(); jest.clearAllMocks(); });
 it("renders real outcomes, filters failures and clears only diagnostics", async () => {
   await AsyncStorage.setItem("regatta.progress.bootcamp.v1", "PRESERVED_PROGRESS");
@@ -28,7 +29,9 @@ it("reports copy success only after native clipboard confirms, and handles failu
   const copy = await waitFor(() => view.getByRole("button", { name: "Copy journal" }));
   (Clipboard.setStringAsync as jest.Mock).mockResolvedValueOnce(true);
   fireEvent.press(copy); await waitFor(() => view.getByText("Copied"));
-  expect(JSON.parse((Clipboard.setStringAsync as jest.Mock).mock.calls[0][0]).entries[0].event.action).toBe("dial-push");
+  const exported = JSON.parse((Clipboard.setStringAsync as jest.Mock).mock.calls[0][0]);
+  expect(exported.app).toEqual({ version: "1.7.0", build: "69", platform: "ios" });
+  expect(exported.journal.entries[0].event.action).toBe("dial-push");
   (Clipboard.setStringAsync as jest.Mock).mockRejectedValueOnce(new Error("unavailable"));
   fireEvent.press(copy); await waitFor(() => view.getByText("Could not copy"));
 });

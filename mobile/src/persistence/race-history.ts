@@ -16,6 +16,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CoachLogEvent, CoachLogSample } from '../api/coach';
 import { serial } from './serial';
 import type { NativeRaceSnapshot } from '../../../src/lib/race-native';
+import type { DiagnosticOutcome, DiagnosticReason } from '../../../src/lib/diagnostics';
+import { recordNativeDiagnostic } from '../diagnostics/journal';
+import { projectNativeRaceRecord } from './race-record-presentation';
 
 const STORAGE_KEY = 'regatta.race-history.v1';
 export const MAX_RACES = 20;
@@ -107,13 +110,20 @@ export function saveRaceRecord(record: NewRaceRecord): Promise<RaceRecord> {
   });
 }
 
-export async function readRaces(): Promise<RaceRecord[]> {
+type HistoryRead = { ok: true; races: RaceRecord[] } | { ok: false; outcome: "failed" | "rejected"; reason: "storage-read" | "storage-invalid" };
+function recordHistoryOperation(action: "read" | "clear", outcome: DiagnosticOutcome, reason?: DiagnosticReason) {
+  try { recordNativeDiagnostic({ type: "storage.operation", surface: "app", action, target: "history", outcome, ...(reason ? { reason } : {}) }); } catch { /* Diagnostics never change storage outcomes. */ }
+}
+
+async function readStoredRaces(): Promise<HistoryRead> {
+  let raw: string | null;
+  try { raw = await AsyncStorage.getItem(STORAGE_KEY); }
+  catch { return { ok: false, outcome: "failed", reason: "storage-read" }; }
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) return { ok: true, races: [] };
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return (parsed as Array<Partial<RaceRecord>>)
+    if (!Array.isArray(parsed)) return { ok: false, outcome: "rejected", reason: "storage-invalid" };
+    const races = (parsed as Array<Partial<RaceRecord>>)
       .filter(
         (r): r is RaceRecord =>
           !!r &&
@@ -132,9 +142,17 @@ export async function readRaces(): Promise<RaceRecord[]> {
             !!p && typeof p.x === 'number' && typeof p.y === 'number' && typeof p.t === 'number',
         ),
       }));
+    return { ok: true, races };
   } catch {
-    return [];
+    return { ok: false, outcome: "rejected", reason: "storage-invalid" };
   }
+}
+
+export async function readRaces(): Promise<RaceRecord[]> {
+  const result = await readStoredRaces();
+  if (!result.ok) { recordHistoryOperation("read", result.outcome, result.reason); return []; }
+  recordHistoryOperation("read", "accepted");
+  return result.races;
 }
 
 export interface UseRaceHistory {
@@ -206,13 +224,16 @@ export function useRaceHistory(): UseRaceHistory {
   );
 
   const clear = useCallback(async () => {
+    let cleared = false;
     try {
       await serial(async () => {
         await AsyncStorage.removeItem(STORAGE_KEY);
+        cleared = true;
+        recordHistoryOperation("clear", "accepted");
         publishHistory([]);
       });
     } catch {
-      /* ignore */
+      if (!cleared) recordHistoryOperation("clear", "failed", "storage-write");
     }
   }, []);
 
@@ -283,8 +304,14 @@ export function shareCode(id: string): string {
  * if the id is unknown or the storage row is missing / malformed.
  */
 export async function loadRaceById(id: string): Promise<RaceRecord | null> {
-  const list = await readRaces();
-  return list.find((r) => r.id === id) ?? null;
+  const result = await readStoredRaces();
+  if (!result.ok) { recordHistoryOperation("read", result.outcome, result.reason); return null; }
+  const race = result.races.find((r) => r.id === id) ?? null;
+  if (!race) { recordHistoryOperation("read", "noop", "not-found"); return null; }
+  const projection = projectNativeRaceRecord(race);
+  if (projection.kind === "unavailable") recordHistoryOperation("read", "rejected", projection.reason === "unsupported" ? "unsupported" : "storage-invalid");
+  else recordHistoryOperation("read", "accepted");
+  return race;
 }
 
 function generateId(): string {

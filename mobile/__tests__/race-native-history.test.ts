@@ -6,6 +6,7 @@ jest.mock("../src/simulator/SimWebView", () => ({ SimWebView: (props: { onOfflin
 jest.mock("../src/analytics", () => ({ ...jest.requireActual("../src/analytics/events"), useAnalytics: jest.requireActual("../src/analytics/use-analytics").useAnalytics }));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { nativeDiagnostics } from "../src/diagnostics/journal";
 import { createElement } from "react";
 import type PostHog from "posthog-react-native";
 import { act, render, renderHook, waitFor } from "@testing-library/react-native";
@@ -29,7 +30,7 @@ const race: NativeRaceSnapshot = {
   events: [{ type: "start", t: 0 }, { type: "finish", t: 10 }],
 };
 
-beforeEach(async () => { jest.clearAllMocks(); mockRaceParams = {}; mockRaceMessage = null; await AsyncStorage.clear(); });
+beforeEach(async () => { await nativeDiagnostics.clear(); jest.clearAllMocks(); mockRaceParams = {}; mockRaceMessage = null; await AsyncStorage.clear(); });
 
 it("adds world-space replay without rewriting a legacy pixel recording", async () => {
   await AsyncStorage.setItem(key, JSON.stringify([legacy]));

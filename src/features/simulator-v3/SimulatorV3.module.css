@@ -16,3 +16,11 @@
   .elevationHint { display: none; }
   .elevationHelp { display: block; }
 }
+
+/* Auxiliary web navigation belongs in the existing scrollable More panel on
+   compact screens, rather than a second row above the working scene. */
+.utilityLinks { display: flex; min-width: 0; padding-block: 8px; }
+.utilityLinks > :first-child { display: none; }
+.utilityLinks > :last-child { flex: 1 1 auto; flex-wrap: wrap; overflow: visible; }
+.utilityLinks .otherTools { flex: 1 0 100%; }
+.utilityLinks .otherTools nav { position: static; width: 100%; }

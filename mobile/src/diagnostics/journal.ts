@@ -79,7 +79,10 @@ export function createNativeDiagnosticService(storage: DiagnosticStorage, now: (
 }
 
 export const nativeDiagnostics = createNativeDiagnosticService(AsyncStorage);
-export const recordNativeDiagnostic = (input: DiagnosticInput) => nativeDiagnostics.record(input);
+export const recordNativeDiagnostic = (input: DiagnosticInput) => {
+  try { return nativeDiagnostics.record(input); }
+  catch { return null; }
+};
 
 /** Append-only bridge. Raw message contents and unrecognized fields never enter logs. */
 export function handleNativeDiagnosticMessage(raw: string, surface: DiagnosticSurface): boolean {

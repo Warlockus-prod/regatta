@@ -459,11 +459,8 @@ function raceTurnRate(speed, steering = "legacy") {
   const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
   return steering === "responsive" ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority) : TURN_RATE * authority;
 }
-function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
-  if (!Number.isFinite(dt) || dt <= 0) return;
+function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}) {
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
-  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
   const params2 = getBoatParams();
   const state = {
     ...boat.physics ?? createInitialState({ tws: 12 }),
@@ -487,7 +484,14 @@ function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
   }
   boat.physics = tick(state, boat.trim, params2, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
-  const rad = deg2rad(boat.heading + boat.physics.leeway);
+  return boat.physics;
+}
+function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
+  if (!Number.isFinite(dt) || dt <= 0) return;
+  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
+  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
+  const physics = stepRaceBoatForces(boat, dt, windDir, gust, input, opts);
+  const rad = deg2rad(boat.heading + physics.leeway);
   boat.pos.x += Math.sin(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;
   boat.pos.y -= Math.cos(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;
   boat.pos.x = Math.max(20, Math.min(WORLD.width - 20, boat.pos.x));
@@ -774,6 +778,7 @@ export {
   segmentCrossed,
   speedFactorFromTWA,
   stepBoat,
+  stepRaceBoatForces,
   updateLap,
   windAt
 };

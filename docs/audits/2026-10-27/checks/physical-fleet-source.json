@@ -1,0 +1,220 @@
+{
+  "checkedAt": "2026-10-27T04:25:50.941187+00:00",
+  "base": "1020dda412e7c8820c7e5dd36fd051dfd8912c09",
+  "sourceBinding": "Input hashes in this checkpoint; exact commit is recorded after commit creation.",
+  "web": {
+    "files": 171,
+    "passed": 1760
+  },
+  "native": {
+    "suites": 79,
+    "passed": 589
+  },
+  "targetedCurrent": 39,
+  "types": "root/native passed",
+  "lint": "changed source and native passed",
+  "packages": "all three freshness checks and content twins passed; bytes unchanged from916",
+  "production": "112 chunks,6814832bytes within6815744byte limit",
+  "server": "force/legacy/server bytes unchanged from916; generated check, physics tests and real sockets passed",
+  "oldResearchManifestExact": true,
+  "fixedStepHz": 30,
+  "matrix": {
+    "cases": [
+      {
+        "case": "short-0.65-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 423.2,
+        "deadline": 480,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "short-0.65-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 452.1333333333333,
+        "deadline": 480,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "short-1-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 387.2,
+        "deadline": 480,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "short-1-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 347.93333333333334,
+        "deadline": 480,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "short-1.3-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 225.4,
+        "deadline": 480,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "short-1.3-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 307.8,
+        "deadline": 480,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "medium-0.65-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 757.2,
+        "deadline": 1200,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "medium-0.65-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 794.3333333333334,
+        "deadline": 1200,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "medium-1-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 475.96666666666664,
+        "deadline": 1200,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "medium-1-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 543.7333333333333,
+        "deadline": 1200,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "medium-1.3-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 381.93333333333334,
+        "deadline": 1200,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "medium-1.3-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 481.3666666666667,
+        "deadline": 1200,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "long-0.65-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 1182.1333333333334,
+        "deadline": 2400,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "long-0.65-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 1236,
+        "deadline": 2400,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "long-1-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 823.8333333333334,
+        "deadline": 2400,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "long-1-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 830.4666666666667,
+        "deadline": 2400,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "long-1.3-ordinary",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 665.1333333333333,
+        "deadline": 2400,
+        "separationResponseFrames": 0
+      },
+      {
+        "case": "long-1.3-early",
+        "exit": 0,
+        "finished": 5,
+        "total": 5,
+        "elapsed": 695.8333333333334,
+        "deadline": 2400,
+        "separationResponseFrames": 0
+      }
+    ],
+    "allPassed": true,
+    "observation": "Actual post-separation positions versus immutable propelled endpoints; does not assert absence of grazing contact.",
+    "physicalEmission": false
+  },
+  "inputs": {
+    "src/lib/race-physical-bot.ts": "e2a48928c0ece9eb123e7d162e047ae53af3090ac1d9b873d2a70b78edf77f36",
+    "src/lib/race-physical-bot.test.ts": "ab633af894ac3cbe1a42993f26f80c94fa1426063ca4467493090e1c1168f29e",
+    "src/lib/race-physical-fleet.ts": "b9fc9a8067f0b3fb216e3c59347c06471d3a3b2044fe8a9cf50694d3e94918ac",
+    "src/lib/race-physical-fleet.test.ts": "093c6cd0fa5b54d69cc51d9289fc9f3711dc2998abcd80164aaffd2f189fb555",
+    "src/lib/race-physical-motion.ts": "518e4cee3e0b12c7db89483fb3d0247cc78da6b44b9265899f9d5d8cb758142b",
+    "src/lib/race-physical-progress.ts": "f7d467c5443fc6daa29b3d4eb2657216d309a33f56403ce314f4c7e1cdcd296b",
+    "src/lib/race-courses.ts": "a47c87fc741b1c9e2f71b5c3f23e494e2b3e43035ffdd7efa5e46fb42c059fa8",
+    "src/lib/sailing-kinematics.ts": "ca3585111eb2dd8c982702d7d6adb89a83b82c8389ce84491f40f04ef63788cd",
+    "src/lib/race-physics.ts": "dd4244dcab9508e4462b436ff635c2c9c1de3c300c6649824ce111a3d34ad7e3"
+  },
+  "logs": {
+    "physical-fleet-web-final.log": "2ecaa815a184a93042d77e52d2335eb2fc8c2d9d2da5588eeb5dc40594346d25",
+    "physical-fleet-native-tests.log": "eba62aa97213ff8ab0726459398aaccb8b47845c772f4080b0cffc2b3b85efe4",
+    "physical-fleet-types-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "physical-fleet-native-types.log": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+    "physical-fleet-lint-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "physical-fleet-build.log": "8afb93f4d2894e0c8d040fa429fd7b2b6fa88a2044bc4c08e118536a36d541d6",
+    "physical-fleet-budget.log": "fd69654cc2c2be537865df4a2d96456e4ceac1e4804bc9920c0209c68c732b80",
+    "physical-fleet-physics.log": "913ac54542813a764f3384fc093dd426aff0085ea7a3610f3eaa2d5f40fd1bcd",
+    "physical-fleet-ws.log": "32073babf5c0105f51a87e2817d00f916d85d1709736cc5143e9680eb619a625",
+    "physical-fleet-public-targeted.log": "05f269b4b47cb896cbc2472b451fe6ee72dc672a56590abe85ca1e660f06a8c4",
+    "physical-fleet-public-fixed-clock.log": "b205a068176934a2482cd33261f3347bbaa3d4553de31465b24fd53d4c348f8d",
+    "physical-fleet-public-contracts.log": "949367abbf3de920bacea6276c0a5be367972c51eccf4596f60f478e222a5a6c"
+  },
+  "browserScope": "Prior exact91682first-attempt evidence owns unchanged UI/offline assets; no new current-source browser run is claimed here.",
+  "liveCallers": 0,
+  "physicalEmission": false,
+  "delivery": false,
+  "qualification": "Unwired engine checkpoint. The first public floating-clock port failed17/18 and is preserved. Integer-tick18-case pass does not certify hardware, judging, recording, arbitrary seeds/human decisions, actual UI activation or installed racing."
+}

@@ -1,0 +1,17 @@
+{
+  "run": "40440075263",
+  "source": "f3fc7a1a6600c64aafbc7172030c752ff6e6950d",
+  "artifact": 12706174106,
+  "sha256": "7624f65a2e699c70456f84528f04bb9f0793fcde9be021cdcc486af2532b00cd",
+  "stats": {
+    "total": 78,
+    "expected": 78,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "oneAttemptEach": true,
+  "publication": "skipped",
+  "scope": "Exactf3 asset/decode observation source. Does not validate following radio speech source, establish a startup cause fix, enable physical races or claim Apple delivery."
+}

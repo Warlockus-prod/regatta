@@ -1,5 +1,17 @@
 # The PL licence courses in the mobile app: online, offline, and what it would take
 
+> **Historical snapshot for 1.5.0(28), not the current contract.** Delivered
+> 1.7.0(69) bundles sailing, SRC and Polish Sternik content. Native SRC has an
+> on-device English speech path and typed fallback; recognition requires an
+> available local model and permissions, and actual microphone acceptance stays
+> with the owner in TestFlight. Website cloud speech/AI and live multiplayer
+> remain separate network features. The old statements below that everything
+> needs a network or that voice can never work offline describe the earlier
+> architecture and must not guide current implementation. Full physical-device
+> offline acceptance remains open. Current references: root `AGENTS.md`, root
+> `ARCHITECTURE.md`, `docs/radio-i18n.md` and
+> `docs/audits/2026-10-26/completion-program.md`.
+
 Status: **shipped as a WebView** (app 1.5.0, build 28). This document says exactly
 what works, what needs a network, and what it would cost to change that - so the
 next decision is made with numbers rather than vibes.

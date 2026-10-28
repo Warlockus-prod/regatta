@@ -29,7 +29,7 @@
  *    to where they happened on the track via `frameAt(event.t)` and drawn
  *    as colour-coded dots, with a small legend under the canvas.
  */
-import { Redirect, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
@@ -62,7 +62,9 @@ import {
   useRaceHistory,
   type RaceRecord,
 } from '../../src/persistence/race-history';
-import { validateNativeRace } from '../../../src/lib/race-native';
+import { classifyNativeReplayEntry, type NativeReplayEntry } from '../../src/replay/entry';
+import { ReplayUnavailable } from '../../src/replay/ReplayUnavailable';
+import SharedRaceHost from '../../src/game/SharedRaceHost';
 import {
   frameAt,
   summarizeReplay,
@@ -77,8 +79,8 @@ import {
   scoreCourse,
   type CourseMarkScreen,
 } from '../../src/game/course';
-import { darkColors as colors, darkGlow as glow, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
-import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
+import { colors, darkColors as sceneColors, glow, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { AppSurface, appStackOptions } from '../../src/design-system/surface';
 
 const SPEED_OPTIONS: ReadonlyArray<1 | 2 | 4> = [1, 2, 4];
 
@@ -167,13 +169,13 @@ function buildEventMarkers(
     let color: string;
     switch (ev.type) {
       case 'mark-rounded':
-        color = colors.accentCyan;
+        color = sceneColors.accentCyan;
         break;
       case 'tack':
-        color = colors.accentTeal;
+        color = sceneColors.accentTeal;
         break;
       case 'no-go-entered':
-        color = colors.overtrim;
+        color = sceneColors.overtrim;
         break;
       default:
         // start / finish - no on-track marker.
@@ -523,7 +525,7 @@ function Replay() {
   if (!raceId || (hydrated && !race)) {
     return (
       <Screen>
-        <Stack.Screen options={{ ...darkStackOptions, title: screenTitle }} />
+        <Stack.Screen options={{ ...appStackOptions, title: screenTitle }} />
         <ScrollView contentContainerStyle={styles.scroll}>
           <EmptyState
             icon="flag"
@@ -543,7 +545,7 @@ function Replay() {
     // jump once the record arrives.
     return (
       <Screen>
-        <Stack.Screen options={{ ...darkStackOptions, title: screenTitle }} />
+        <Stack.Screen options={{ ...appStackOptions, title: screenTitle }} />
         <View style={styles.scroll}>
           <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]} />
         </View>
@@ -558,7 +560,7 @@ function Replay() {
 
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ ...darkStackOptions, title: screenTitle }} />
+      <Stack.Screen options={{ ...appStackOptions, title: screenTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.summary}>
           <View style={styles.summaryHeader}>
@@ -606,7 +608,7 @@ function Replay() {
                     cx={m.x}
                     cy={m.y}
                     r={m.radius}
-                    color={colors.success}
+                    color={sceneColors.success}
                   />
                 </Group>
               ))}
@@ -615,7 +617,7 @@ function Replay() {
                 <SkiaLine
                   p1={{ x: finishLine.x1, y: finishLine.y1 }}
                   p2={{ x: finishLine.x2, y: finishLine.y2 }}
-                  color={colors.accentCyan}
+                  color={sceneColors.accentCyan}
                   strokeWidth={2.5}
                   opacity={0.86}
                 />
@@ -833,7 +835,7 @@ const styles = StyleSheet.create({
   },
   canvasWrap: {
     alignSelf: 'center',
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: sceneColors.bgSecondary,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
@@ -861,7 +863,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 14,
     bottom: 14,
-    backgroundColor: 'rgba(232, 244, 248, 0.12)',
+    backgroundColor: colors.borderCyanSoft,
     borderRadius: radii.pill,
   },
   scrubFill: {
@@ -987,17 +989,23 @@ const styles = StyleSheet.create({
   },
 });
 
-/** Instrument screen: dark ocean palette, see design-system/surface. */
+/** Activity chrome follows the same day surface as its History entry. */
 export default function ReplayRoute() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const [checked, setChecked] = useState<{ id: string | undefined; shared: boolean } | null>(null);
+  const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const id = typeof rawId === "string" ? rawId : undefined;
+  const [checked, setChecked] = useState<{ id: string; entry: NativeReplayEntry } | null>(null);
   useEffect(() => {
     let active = true;
     if (!id) return undefined;
-    loadRaceById(id).then(record => { if (active) setChecked({ id, shared: Boolean(validateNativeRace(record?.webRace)) }); });
+    loadRaceById(id).then(record => {
+      if (active) setChecked({ id, entry: classifyNativeReplayEntry(record) });
+    }).catch(() => {
+      if (active) setChecked({ id, entry: { kind: "unavailable", reason: "corrupt" } });
+    });
     return () => { active = false; };
   }, [id]);
-  if (id && checked?.id !== id) return <DarkSurface><Screen><ActivityIndicator color={colors.accentCyan} /></Screen></DarkSurface>;
-  if (checked?.shared && id) return <Redirect href={{ pathname: "/game", params: { replayId: id } }} />;
-  return <DarkSurface><Replay /></DarkSurface>;
+  if (id && checked?.id !== id) return <AppSurface><Screen><ActivityIndicator color={colors.accentCyan} /></Screen></AppSurface>;
+  if (checked?.entry.kind === "shared" && id) return <SharedRaceHost savedReplayId={id} />;
+  if (id && checked?.entry.kind === "unavailable") return <ReplayUnavailable reason={checked.entry.reason} />;
+  return <AppSurface><Replay /></AppSurface>;
 }

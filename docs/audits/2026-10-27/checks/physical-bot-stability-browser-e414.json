@@ -1,0 +1,51 @@
+{
+  "source": "e4141b295850c1365d17839edb2c0d996d4953ce",
+  "run": 40479770819,
+  "artifact": 12723129262,
+  "artifactBytes": 1230921,
+  "artifactSha256": "df9e41e96ad73bbc0cd086c0b693b57b8a79c59b20d13a93e8da9a67a5847468",
+  "checkedAt": "2026-10-27T09:45:47.239025+00:00",
+  "stats": {
+    "total": 82,
+    "expected": 82,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "attempts": {
+    "totalTests": 82,
+    "oneAttemptEach": true
+  },
+  "reportErrors": 0,
+  "jobs": {
+    "Build, checks + pre-deploy E2E": "success",
+    "Build immutable deployment images": "skipped",
+    "Playwright E2E on prod": "skipped",
+    "Deploy to VPS": "skipped"
+  },
+  "publication": "Image publication, VPS deploy and production E2E jobs skipped on non-main ref.",
+  "scope": "Existing UI gate for exacte414. The physical fleet API is unwired; this does not exercise a live physical game, human Pro, advice, judging, recording or installed activation.",
+  "ci": [
+    {
+      "run": 40479771068,
+      "headSha": "e4141b295850c1365d17839edb2c0d996d4953ce",
+      "conclusion": "success",
+      "jobs": {
+        "Mobile (twins + lint + typecheck + tests)": "success",
+        "Typecheck + Lint + Typography": "success",
+        "Foundation browser flow": "success"
+      }
+    },
+    {
+      "run": 40479787148,
+      "headSha": "e4141b295850c1365d17839edb2c0d996d4953ce",
+      "conclusion": "success",
+      "jobs": {
+        "Mobile (twins + lint + typecheck + tests)": "success",
+        "Foundation browser flow": "success",
+        "Typecheck + Lint + Typography": "success"
+      }
+    }
+  ]
+}

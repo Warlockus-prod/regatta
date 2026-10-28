@@ -4,10 +4,11 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockPush,
     back: jest.fn(),
     replace: jest.fn(),
   }),
@@ -50,6 +51,7 @@ import {
 } from '../../src/persistence/analytics-consent';
 
 beforeEach(async () => {
+  mockPush.mockReset();
   await AsyncStorage.clear();
 });
 
@@ -58,6 +60,12 @@ afterEach(() => {
 });
 
 describe('Settings screen', () => {
+  it('opens the owner-requested Ads inspection lab from its named Settings entry', async () => {
+    const view = renderWithProviders(<Settings />);
+    const button = await waitFor(() => view.getByRole('button', { name: 'Ads' }));
+    fireEvent.press(button);
+    expect(mockPush).toHaveBeenCalledWith('/ads');
+  });
   it('renders all 7 enabled languages', async () => {
     const view = renderWithProviders(<Settings />);
     // Native names from LANGUAGE_CATALOG. Native and EN-name diverge for
@@ -113,5 +121,19 @@ describe('Settings screen', () => {
     });
     expect(await AsyncStorage.getItem('regatta.units.v1')).toBeNull();
     expect(await readAnalyticsEnabled()).toBe(false);
+  });
+
+  it('reports an unconfirmed global clear instead of a false Done alert', async () => {
+    await AsyncStorage.setItem('regatta.best-times.v1', 'preserve-unread-data');
+    const alerts = jest.spyOn(Alert, 'alert').mockImplementation((_title, _body, buttons?: AlertButton[]) => {
+      buttons?.find(button => button.text === 'Continue' || button.text === 'Delete all')?.onPress?.();
+    });
+    const view = renderWithProviders(<Settings />);
+    const button = await waitFor(() => view.getByRole('button', { name: 'Clear all data' }));
+    (AsyncStorage.getAllKeys as jest.Mock).mockRejectedValueOnce(new Error('storage-read-failure'));
+    fireEvent.press(button);
+    await waitFor(() => expect(alerts).toHaveBeenCalledWith('Clear not confirmed', expect.stringContaining('Restart the app'), expect.any(Array)));
+    expect(alerts.mock.calls.some(([title]) => title === 'Done')).toBe(false);
+    expect(await AsyncStorage.getItem('regatta.best-times.v1')).toBe('preserve-unread-data');
   });
 });

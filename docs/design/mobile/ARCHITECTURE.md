@@ -4,6 +4,20 @@ Authoritative "how the mobile app is built and where every screen/element lives"
 reference. Current mobile learning slice: 2026-10-15, `codex/learning-modules`.
 Actual distribution state belongs to `BUILDS.md`.
 
+## Ads inspection prototype
+
+- `mobile/app/ads.tsx` - local Settings recovery and installed sailing package at `/ads`, without a tier switcher or ad SDK.
+- `mobile/app/settings.tsx` - owner-requested named Ads entry and actual navigation request diagnostic.
+- `mobile/__tests__/ads-entry.test.tsx` - bundled route, native frame/hidden tabs and Settings recovery contract.
+- `mobile/__tests__/screens/settings.test.tsx` - actual Ads entry press reaches its route.
+
+`mobile/scripts/offline-sailing/entry.tsx` dispatches Ads only to the local lab;
+the embed/manifest route contracts include it. Shared scene/camera/preview code
+is mapped in the root architecture. The40-action preview journal is session
+memory; general diagnostics remain bounded and native-authoritative. No SDK,
+ad request, impression measurement or website Ads route is introduced. See
+`ads-lab.md` for the pending provider and exact acceptance limits.
+
 ## 0. READ FIRST - where the code lives
 
 | App | Lives in | Release branch | Ships via | URL / target |
@@ -169,7 +183,7 @@ All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
 | `/settings` | `app/settings.tsx` | Language (7) + units + privacy + data | plain RN |
 | `/leaderboard` | `app/leaderboard/index.tsx` | Local + global leaderboard | plain RN |
 | `/history` | `app/history/index.tsx` | Race history + replay/coach actions | plain RN |
-| `/replay/[id]` | `app/replay/[id].tsx` | Race replay scrubber | **Skia** + `SkiaYacht` |
+| `/replay/[id]` | `app/replay/[id].tsx` | World records use bundled3D; historical pixel records keep their scrubber; unavailable world data shows Back | **Bundled3D** / legacy **Skia** |
 | `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
 | `/race-3d` | `app/race-3d/index.tsx` | The solo race seen from the boat: web `/game?view=3d` in `SimWebView` (online), with the Race hub venue and shore written into the page's localStorage (`localStorage` prop); offline falls back to the native `/game` | WebView |
 
@@ -194,11 +208,20 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
   Back is chevron-only on every screen, the Home photo title grows at most 1.4x, and
   from a font scale of 1.6 the decorative thumbnails (Home card and paths, course path
   icon tiles) are not drawn so titles get the full width.
-- **Surfaces** (`surface.tsx`): instrument screens (native simulators, race, replay,
-  offline anatomy, every `SimWebView` page) wrap their content in `<DarkSurface>` and
-  import `darkColors as colors`; `Text`, `Button`, `Card`, `ListRow`, `Screen`,
-  `EmptyState`, `WindNowCard` follow the surface via `bySurface()`. `darkStackOptions`
-  gives those screens a dark header and light status bar icons.
+- **Surfaces** (`surface.tsx`): current source uses `AppSurface`/`appStackOptions`
+  for day activity chrome, including simulator/race/replay, diagnostics, offline
+  anatomy and embedded course hosts. This matches the fixed-light native shell;
+  global native Dark/Auto is not yet available. Explicit scene/diagram/hardware
+  colors stay independent. `DarkSurface` remains available for deliberate dark
+  subtrees; shared Icon/Slider/WheelDeck read the surface palette.
+- **Embedded theme** (`mobile/src/design-system/embedded-theme.ts`): before-load
+  and after-load host injection sets a closed light/dark override and emits a
+  theme event without writing web preferences or course/race data. Sailing,
+  radio and Sternik HTML default to light. Analytics guards stay first.
+- Theme contracts: `mobile/__tests__/app-surface.test.tsx` checks headers/status
+  and surface-aware controls; `mobile/__tests__/embedded-theme.test.ts` executes
+  the actual host script before/after the document root without storage access.
+  Installed visual acceptance of this source remains separate from delivered69.
 - **Status bar:** the app is scene-based (`plugins/with-uiscene.js`), and iOS ignores the
   UIApplication status bar API there, so `UIViewControllerBasedStatusBarAppearance` is on
   and each screen sets `statusBarStyle` through its stack options (root default `dark`;
@@ -301,12 +324,36 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
 4. For a release: bump version + buildNumber, archive, upload, confirm the build shows
    in TestFlight (`mobile/scripts/asc-state.mjs` / App Store Connect).
 
-## 2026-10-25 native correction flow
+## 2026-10-25 native correction flow, updated source28October
 
 - `mobile/src/navigation/ActivityBack.tsx` provides a labelled44px exit with a contextual hub when no native history exists. `mobile/src/navigation/sailing-entry.ts` accepts only installed trainer/lesson routes and bounded query parameters.
-- `mobile/src/simulator/SimWebView.tsx` shows the dark native header while loading or failed, owns a validated return to the lesson, and permits scrolling in reserved content panels. Canvas and wheels own their own pointer gestures.
+- `mobile/src/simulator/SimWebView.tsx` now shows the day AppSurface header while loading or failed, owns a validated return to the lesson, and permits scrolling in reserved content panels. Canvas and wheels own their own pointer gestures.
 - `mobile/src/course/OfflineRadioCourse.tsx` boots explicit free practice or course intent. Shared route/exit contract: `src/lib/radio-navigation.ts`. Practice first item goes directly to the radio; Learn continues the course with view=course.
-- `mobile/app/multiplayer/index.tsx` is the actual combined lobby/race surface; its native frame is dark and the five main tabs do not consume cockpit space.
+- `mobile/app/multiplayer/index.tsx` is the actual combined lobby/race surface; its native frame follows AppSurface and the five main tabs do not consume cockpit space.
 - `mobile/app/simulator/index.tsx` retains the simplified recovery trainer with overlays moved to a reserved scrollable dock. Wheels do not acquire a second rudder; core physics is unchanged.
 - Pure foundation sources are canonical in `src/data/bootcamp-quiz.ts`, `src/data/foundation-guide.ts` and `src/lib/learning/foundation-drawings.ts`. The old mobile modules re-export them; mobile-only practice routes remain native.
 - Focused contracts: `mobile/__tests__/activity-back.test.tsx`, `mobile/__tests__/sailing-navigation.test.ts`, `mobile/__tests__/radio-course-host.test.tsx`. Installed UI evidence remains separate in `docs/audits/2026-10-25/corrections.md`.
+
+## Versioned replay entry before physical emission
+
+- `mobile/src/replay/entry.ts` classifies absent records, historical pixel rows,
+  validated world snapshots and unsupported/corrupt world payloads. A rejected
+  webRace never enters the pixel renderer. Existing history is never rewritten.
+- `mobile/__tests__/replay-entry.test.tsx` covers27 classifier/route cases,
+  all3 physical profiles, unchanged storage bytes, actual Back/history fallback,
+  asynchronous ID changes and read failure.
+- `mobile/src/replay/ReplayUnavailable.tsx` owns the common saved-race notice
+  for replay and Coach, with five text resources in all seven languages and a
+  real native Back/history fallback.
+- `mobile/__tests__/coach-entry.test.tsx` covers22 cases: known world records
+  use local analysis, unsupported/corrupt world data never reaches pixel course
+  lookup or the remote Coach, and late requests cannot overwrite a new race.
+
+The replay and Coach notice has RU/EN/PL/ES/FR/DE/IT adaptations. The existing Button
+provides a48px minimum. This is source/test evidence; installed native acceptance
+and playable physical races remain separate. saveNativeRace explicitly refuses
+new physical emission until result classes and the engine are ready.
+
+## Prepared native race classification, before physical activation
+
+`mobile/src/persistence/race-record-presentation.ts` projects historical pixel/world, explicit registered and unavailable records separately. `race-native.ts` prepares raw finish plus penalty without changing saved provenance; null remains absent authority through the actual shared bridge. The physical writer remains OFF. `race-history.ts` journals actual reads and awaited serial clear without private IDs or trajectories. Real History and Leaderboard now project once per stable history array through `mobile/src/leaderboard/race-records.ts`; old score PBs retain their section, registered PBs compare adjusted time only within the same class/mode/conditions, and unavailable records stay visible without ranking. Shared seven-language names and conditions live in `src/lib/race-record-copy.ts`, also used by the historical course registry. `mobile/src/components/RaceRecordDetails.tsx` renders the authoritative time components. Actual-route, seven-language and memoization tests are in `mobile/__tests__/race-list-consumers.test.tsx`. Next installed UI and native PB finish acknowledgement remain pending in `docs/audits/2026-10-26/physical-consumers-harness.md`.

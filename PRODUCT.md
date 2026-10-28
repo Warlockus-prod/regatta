@@ -55,4 +55,6 @@ Target WCAG AA contrast and keyboard operation. Never communicate priority or co
 
 ## Evidence boundary
 
+The owner's theme-consistency complaint remains open for delivered69. The [current status](docs/audits/2026-10-28/completion-status.md) retains all65IDs and F01-F15, distinguishes day-theme/layout source from the delivered binary, and records the remaining briefing, scene, physical-runtime and learning gaps. The selected first concept remains a visual reference, not proof of achieved graphics. Native day chrome and web inheritance are prepared; full native modes and installed acceptance remain open.
+
 The 2026-10-25 source corrections address the follow-up audit of TestFlight build60: direct radio practice entry, orbit controls, consistent activity navigation, reserved control areas and the website foundation flow. Unit tests and a source/build check do not close device acceptance. Current implementation, visual evidence and release gates belong to [the harness](docs/audits/2026-10-24/implementation-harness.md); the frozen [25 October recheck](docs/audits/2026-10-25/plan-recheck.md) records the earlier baseline.

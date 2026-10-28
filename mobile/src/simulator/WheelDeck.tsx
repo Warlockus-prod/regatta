@@ -15,8 +15,7 @@ import Svg, { Circle, Defs, G, Line, Marker, Path, Rect } from 'react-native-svg
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useI18n } from '../i18n/context';
 import { Text } from '../design-system/components/Text';
-// Both hosts (the race and Basics) are dark instrument screens.
-import { darkColors as colors } from '../design-system/tokens';
+import { bySurface, useSurface, useSurfaceColors } from '../design-system/surface';
 import { angleDelta, type Sensitivity } from '../../../src/features/trainer-controls/mapping';
 import {
   COLLAPSE_MS,
@@ -79,6 +78,8 @@ interface WheelProps {
 }
 
 function Wheel(props: WheelProps) {
+  const colors = useSurfaceColors();
+  const styles = deckStyles[useSurface()];
   const { kind, box, small, rotation, label, valueText, value, unit, a11yNow, a11yMin, a11yMax, reduceMotion, onActivate, onTurn, onStep, testID } = props;
   const [cx, cy, d] = box;
   const left = useSharedValue(cx - d / 2);
@@ -188,6 +189,7 @@ export interface WheelDeckProps {
 }
 
 function WheelDeckImpl(props: WheelDeckProps) {
+  const styles = deckStyles[useSurface()];
   const { targetHeadingDeg, windFromDeg, mainSheet, jibSheet, onCourse, setMainSheet, setJibSheet, sound, sensitivity, jibSheetSide } = props;
   const { tl } = useI18n();
   const reduceMotion = useReduceMotion();
@@ -357,7 +359,7 @@ function WheelDeckImpl(props: WheelDeckProps) {
 
 export const WheelDeck = memo(WheelDeckImpl);
 
-const styles = StyleSheet.create({
+const deckStyles = bySurface((colors) => StyleSheet.create({
   deck: { gap: 4 },
   note: { textAlign: 'center', color: colors.textMuted, fontSize: 12, lineHeight: 16 },
   area: { height: DECK_H, position: 'relative' },
@@ -367,4 +369,4 @@ const styles = StyleSheet.create({
   capName: { color: colors.textPrimary, fontSize: 13, fontWeight: '700', textAlign: 'center', lineHeight: 16 },
   capValue: { color: colors.accentCyan, fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'], lineHeight: 16 },
   capUnit: { color: colors.textMuted, fontSize: 11, lineHeight: 14 },
-});
+}));

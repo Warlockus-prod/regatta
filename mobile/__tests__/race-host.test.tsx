@@ -1,11 +1,12 @@
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 jest.mock("../assets/sailing-offline.html", () => 123);
 const mockNavigate = jest.fn();
+const mockDismissTo = jest.fn();
 const mockCapture = jest.fn();
 let mockParams: Record<string, string | string[]> = {};
 jest.mock("expo-router", () => ({
   Stack: { Screen: (props: { options?: { headerLeft?: () => React.ReactNode } }) => props.options?.headerLeft?.() ?? null },
-  useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate, canGoBack: () => false }),
+  useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate, dismissTo: mockDismissTo, canGoBack: () => false }),
   usePathname: () => "/game",
   useLocalSearchParams: () => mockParams,
 }));
@@ -29,6 +30,9 @@ jest.mock("../src/simulator/SimWebView", () => {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import Game from "../app/game";
+import SharedRaceHost from "../src/game/SharedRaceHost";
+import { CommonActions, StackActions, StackRouter } from "@react-navigation/routers";
+import { saveNativeRace } from "../src/persistence/race-native";
 import { readRaces } from "../src/persistence/race-history";
 import type { NativeRaceSnapshot } from "../../src/lib/race-native";
 
@@ -40,7 +44,7 @@ const race: NativeRaceSnapshot = {
   events: [{ type: "start", t: 0 }, { type: "finish", t: 10 }],
 };
 
-beforeEach(async () => { jest.clearAllMocks(); mockParams = {}; await AsyncStorage.clear(); });
+beforeEach(async () => { jest.clearAllMocks(); mockNavigate.mockReset(); mockDismissTo.mockReset(); mockParams = {}; await AsyncStorage.clear(); });
 
 it("starts one local 3D game on a clean install and keeps changed prefs for Retry", async () => {
   const view = render(<Game />);
@@ -84,21 +88,48 @@ it("returns a lesson-launched mini-race through both the loading header and the 
   mockParams = { fromLesson: "mini-race" };
   const view = render(<Game />);
   fireEvent.press(view.getByRole("button", { name: "Return to lesson" }));
-  expect(mockNavigate).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
+  expect(mockDismissTo).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
   const game = await waitFor(() => view.getByTestId("local-race"));
   expect(game.props.query.fromLesson).toBe("mini-race");
   const message = game.props.onOfflineMessage;
   for (const href of ["/", "/race"]) {
     act(() => message(JSON.stringify({ type: "native-navigate", href }), jest.fn()));
-    expect(mockNavigate).toHaveBeenLastCalledWith("/bootcamp/mini-race");
+    expect(mockDismissTo).toHaveBeenLastCalledWith("/bootcamp/mini-race");
   }
   for (const href of ["/history", "/replay/web-race-10"]) {
     act(() => message(JSON.stringify({ type: "native-navigate", href }), jest.fn()));
     expect(mockNavigate).toHaveBeenLastCalledWith(href);
   }
   const calls = mockNavigate.mock.calls.length;
+  const dismissCalls = mockDismissTo.mock.calls.length;
   act(() => message(JSON.stringify({ type: "native-navigate", href: "/bootcamp/unknown" }), jest.fn()));
   expect(mockNavigate).toHaveBeenCalledTimes(calls);
+  expect(mockDismissTo).toHaveBeenCalledTimes(dismissCalls);
+});
+
+it("the trusted Foundation race exit removes the game before the following native Back", async () => {
+  mockParams = { fromLesson: "mini-race" };
+  const stack = StackRouter({ initialRouteName: "bootcamp/index" });
+  const config = { routeNames: ["bootcamp/index", "bootcamp/[id]", "game/index"], routeParamList: {}, routeGetIdList: {} };
+  let state = stack.getInitialState(config);
+  const dispatch = (action: Parameters<typeof stack.getStateForAction>[1]) => {
+    const next = stack.getStateForAction(state, action, config);
+    if (!next || next.stale !== false) throw new Error("Foundation race return did not return a hydrated state");
+    state = next;
+  };
+  dispatch(StackActions.push("bootcamp/[id]", { id: "mini-race" }));
+  const originalLessonKey = state.routes[state.index].key;
+  dispatch(StackActions.push("game/index", { fromLesson: "mini-race" }));
+  mockNavigate.mockImplementation(href => { expect(href).toBe("/bootcamp/mini-race"); dispatch(CommonActions.navigate("bootcamp/[id]", { id: "mini-race" })); });
+  mockDismissTo.mockImplementation(href => { expect(href).toBe("/bootcamp/mini-race"); dispatch(StackActions.popTo("bootcamp/[id]", { id: "mini-race" })); });
+  const view = render(<Game />);
+  const game = await waitFor(() => view.getByTestId("local-race"));
+  act(() => game.props.onOfflineMessage(JSON.stringify({ type: "native-navigate", href: "/" }), jest.fn()));
+  expect(state.routes.map(route => route.name)).toEqual(["bootcamp/index", "bootcamp/[id]"]);
+  expect(state.routes[state.index].key).toBe(originalLessonKey);
+  expect(state.routes[state.index].params).toEqual({ id: "mini-race" });
+  dispatch(CommonActions.goBack());
+  expect(state.routes.map(route => route.name)).toEqual(["bootcamp/index"]);
 });
 
 it("keeps ordinary or unknown-lesson race exits at the race hub", async () => {
@@ -117,14 +148,14 @@ it("retains Return to lesson when local race preferences fail to load", async ()
   await waitFor(() => view.getByText(/Could not read race data/));
   expect(view.queryByTestId("local-race")).toBeNull();
   fireEvent.press(view.getByRole("button", { name: "Return to lesson" }));
-  expect(mockNavigate).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
+  expect(mockDismissTo).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
 });
 
 it("persists every closed wind style through the preference bridge and restores it after a native relaunch", async () => {
   const view = render(<Game />);
   const game = await waitFor(() => view.getByTestId("local-race"));
   for (const windDisplay of ["off", "compass", "arrows", "both"]) {
-    const assists = { guidance: false, trimHints: false, rules: true, penalties: true, windDisplay };
+    const assists = { guidance: false, trimHints: false, rules: true, penalties: true, windDisplay, miniMap: false };
     await act(async () => game.props.onOfflineMessage(JSON.stringify({ type: "race-prefs", mode: "pro", assists }), jest.fn()));
     await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage["regatta.race.assists.v1"])).toEqual(assists));
     expect(JSON.parse((await AsyncStorage.getItem("regatta.race.assists.v1"))!)).toEqual(assists);
@@ -133,7 +164,7 @@ it("persists every closed wind style through the preference bridge and restores 
   view.unmount();
   const reopened = render(<Game />);
   const next = await waitFor(() => reopened.getByTestId("local-race"));
-  expect(JSON.parse(next.props.localStorage["regatta.race.assists.v1"])).toEqual({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay: "both" });
+  expect(JSON.parse(next.props.localStorage["regatta.race.assists.v1"])).toEqual({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay: "both", miniMap: false });
   expect(next.props.query.mode).toBe("pro");
 });
 
@@ -150,7 +181,7 @@ it("preserves the required legacy boolean guard and defaults optional trim and i
   expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(key)).toBe(existing);
   await act(async () => game.props.onOfflineMessage(JSON.stringify({ type: "race-prefs", assists: { guidance: false, rules: false, penalties: true, trimHints: "false", windDisplay: "PRIVATE", privatePayload: "PRIVATE" } }), jest.fn()));
-  await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage[key])).toEqual({ guidance: false, trimHints: true, rules: false, penalties: true, windDisplay: "compass" }));
+  await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage[key])).toEqual({ guidance: false, trimHints: true, rules: false, penalties: true, windDisplay: "compass", miniMap: true }));
   expect(await AsyncStorage.getItem(key)).not.toContain("PRIVATE");
 });
 
@@ -169,4 +200,21 @@ it("retains the old durable wind preference on a failed write and accepts an exp
   await act(async () => game.props.onOfflineMessage(payload, jest.fn()));
   await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage[key]).windDisplay).toBe("both"));
   expect(JSON.parse((await AsyncStorage.getItem(key))!).windDisplay).toBe("both");
+});
+
+// A saved replay must not redirect into the live race route or inherit its intent.
+it("mounts a saved replay with its own identity and dismisses back to History", async () => {
+  const record = await saveNativeRace(race, "en", false);
+  mockParams = { id: record.id, daily: "2026-10-26", fromLesson: "mini-race" };
+  const view = render(<SharedRaceHost savedReplayId={record.id} />);
+  const replay = await waitFor(() => view.getByTestId("local-race"));
+  expect(replay.props.query.replayId).toBe(record.id);
+  expect(replay.props.query).not.toHaveProperty("daily");
+  expect(replay.props.query).not.toHaveProperty("fromLesson");
+  expect(replay.props.raceReplay.id).toBe(race.id);
+  expect(mockNavigate).not.toHaveBeenCalled();
+  act(() => replay.props.onOfflineMessage(JSON.stringify({ type: "native-navigate", href: "/history" }), jest.fn()));
+  expect(mockDismissTo).toHaveBeenCalledTimes(1);
+  expect(mockDismissTo).toHaveBeenCalledWith("/history");
+  expect(mockNavigate).not.toHaveBeenCalled();
 });

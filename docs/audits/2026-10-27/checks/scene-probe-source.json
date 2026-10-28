@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-27T02:09:37.762513+00:00",
+  "baseSource": "6fcf0d557f599c6378446b4803d03a0f3c2ce21c",
+  "scope": "Bounded actual scene startup observation; not a confirmed startup fix, installed acceptance, physical race activation or delivery.",
+  "inputSHA256": {
+    "src/lib/diagnostics.ts": "94f75793763b006dcaa11fd77e223ac4fed2db34ffa3c0c6ad79cd68f6826778",
+    "src/features/simulator-3d/scene-diagnostics.ts": "733276ad59c9405e726cc1b3001e7399d18015e4f8a781c9938d3d6eebea72d1",
+    "src/features/simulator-3d/scene-diagnostics.test.ts": "f5a23fc96d8b8d6bcb8bff51be897bfcaac58313bf9757b0dce12e9a15fe64d8",
+    "src/features/simulator-3d/SceneStartup.tsx": "f96b0d1b56ec215818e43669c880b17a7f3fef9c1fd16c6aaf5777cc245bf09d",
+    "src/features/simulator-3d/SceneStartup.test.tsx": "52983b7a22339a56aa876a82a9506fb3051b26302933df1894e593a6b0c99491",
+    "src/features/race-scene/renderer.ts": "edb342776b183c5bd6ab7c9753fd8bf233f25126c6b50feefa7f67bc1e2469a2",
+    "src/features/race-scene/renderer.test.ts": "0d2fa579767d238812a789a5d34a11253c048ab5c9dab31d88d75ea6efe80788",
+    "src/features/race-scene/RaceScene.tsx": "f9c0a3cc6b1d1670e7baa9ff63c0006c47c02012e0ab113e6e1df101185533c1",
+    "mobile/assets/sailing-offline.html": "5cf01c06ef4643102391181e361fb6dac96942c87b4fbdf058db991592aec9e7",
+    "mobile/assets/sailing-offline.manifest.json": "7c688925f09cdefe99b6f37710c9092da7b9efb5f1b796a654a9e6e7b1ca0a6e",
+    "mobile/assets/radio-offline.html": "d5c8e1804a31b50856ff39b915c010c7a12881c49a3b0365516bb3e25d32932c",
+    "mobile/assets/sternik-offline.html": "1c0938fca15e0cb6d2aa39942ebf3e54a1c240bb3646a49828a4325034faeb30",
+    "mobile/assets/sternik-offline.manifest.json": "fce052b36fe6e484975d98045c4b2ee0c6c28a4dccb7c268497aa989a60f67fa"
+  },
+  "targetedPassed": 34,
+  "web": {
+    "passed": 1672,
+    "files": 164,
+    "workers": 1
+  },
+  "native": {
+    "passed": 589,
+    "suites": 79,
+    "runInBand": true
+  },
+  "rootAndNativeTypes": true,
+  "changedSourceLintErrors": 0,
+  "nativeLintWarnings": 0,
+  "releaseToolsPassed": 9,
+  "allThreeOfflinePackagesFresh": true,
+  "contentTwinsFresh": true,
+  "generatedServerFresh": true,
+  "realWebSocketLifecycle": true,
+  "productionBuild": true,
+  "staticBudget": {
+    "MiBDisplay": 6.48,
+    "files": 110,
+    "unchangedLimitMiB": 6.5,
+    "previousFailedMiBDisplay": 6.56,
+    "previousFailedReportRetained": true,
+    "correction": "Narrow guarded scene logging to the existing web adapter instead of the controls wrapper."
+  },
+  "allPriorAssertionsAndTimeoutsPreserved": true,
+  "firstFrameGatePreserved": true,
+  "backendPolicyPreserved": true,
+  "rootCauseConfirmed": false,
+  "installedProbeAccepted": false,
+  "startupFixConfirmed": false,
+  "testflightReleaseCreated": false,
+  "physicalEmissionEnabled": false,
+  "sitePublished": false
+}

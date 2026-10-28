@@ -1,0 +1,110 @@
+{
+  "checkedAtUTC": "2026-10-27T02:41:48.339269+00:00",
+  "source": "8e7b460ea6fa794ed1cc21dc3e3e657b132f119e",
+  "scope": "Official Xcode Simulator package on fresh27 device, two qualified cold process observations; not full G2 or delivery acceptance",
+  "packageChecks": "31/31",
+  "installedFiles": 121,
+  "allInstalledFilesMatch": true,
+  "existingStorageKeysPreservedOnInstall": 3,
+  "runs": [
+    {
+      "mode": "simple",
+      "coldProcessLaunch": true,
+      "countdownElapsedMs": 109500,
+      "stages": [
+        {
+          "elapsedMs": 109500,
+          "stage": "scene",
+          "action": "begin"
+        },
+        {
+          "elapsedMs": 119043,
+          "stage": "renderer",
+          "action": "begin"
+        },
+        {
+          "elapsedMs": 119044,
+          "stage": "renderer",
+          "action": "ready"
+        },
+        {
+          "elapsedMs": 130628,
+          "stage": "model",
+          "action": "ready"
+        },
+        {
+          "elapsedMs": 130630,
+          "stage": "frame",
+          "action": "begin"
+        },
+        {
+          "elapsedMs": 131216,
+          "stage": "frame",
+          "action": "ready"
+        }
+      ],
+      "firstFrameAfterCountdownMs": 21716,
+      "startElapsedMs": 134676
+    },
+    {
+      "mode": "pro",
+      "coldProcessLaunch": true,
+      "countdownElapsedMs": 126343,
+      "stages": [
+        {
+          "elapsedMs": 126344,
+          "stage": "scene",
+          "action": "begin"
+        },
+        {
+          "elapsedMs": 127200,
+          "stage": "renderer",
+          "action": "begin"
+        },
+        {
+          "elapsedMs": 127202,
+          "stage": "renderer",
+          "action": "ready"
+        },
+        {
+          "elapsedMs": 128809,
+          "stage": "model",
+          "action": "ready"
+        },
+        {
+          "elapsedMs": 128810,
+          "stage": "frame",
+          "action": "begin"
+        },
+        {
+          "elapsedMs": 128811,
+          "stage": "frame",
+          "action": "ready"
+        }
+      ],
+      "firstFrameAfterCountdownMs": 2468,
+      "startElapsedMs": 132238
+    }
+  ],
+  "observedUi": {
+    "simpleClock": "2:14.6",
+    "simplePause": "2:48.2",
+    "simpleMenuAndNativeHubBack": true,
+    "proClock": "0:03.1 to0:46.1",
+    "proCameraOrbitChanged": true,
+    "proJibWheel": "53% to37%",
+    "proControlDiagnosticAccepted": true
+  },
+  "screens": {
+    "official8e-pro-orbit-observation.jpg": "3ebdab45c552fdcd70f288ee05a8c060c9a04347a2877dba613eefdaa2686ca1",
+    "official8e-pro-trim-observation.jpg": "7399f29982c74f09b7e00f70b3548242ff6ce5bff4e978d23b8b76a4ab4aacdc",
+    "official8e-running-observation2.jpg": "db0ac69d50b239db2d8707367753fd6ba3d6aea0999536ea5aa3234c85788e42",
+    "official8e-start-observation1.jpg": "8461af7ba5b264a34ccc6071b013d46a0fc3c16d72deb765264eac41ca57d103"
+  },
+  "rootCauseConfirmed": false,
+  "startupFixConfirmed": false,
+  "fullNativeAcceptance": false,
+  "appleWrites": 0,
+  "delivery": false,
+  "physicalEmission": false
+}

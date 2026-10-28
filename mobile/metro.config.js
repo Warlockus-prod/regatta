@@ -19,6 +19,8 @@ config.watchFolders = [
   path.dirname(PHYSICS_DIR),
   // Home continuation also reads the shared bootcamp lesson IDs and routes.
   path.resolve(__dirname, '../src/data'),
+  // Shared generated lesson illustrations, bundled locally on iOS.
+  path.resolve(__dirname, '../public/learning'),
   path.resolve(__dirname, '../src/features/sailing-lab'),
   // Wheel mapping of the native trainer (src/simulator/wheel-controls.ts).
   path.resolve(__dirname, '../src/features/trainer-controls'),

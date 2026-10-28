@@ -1,0 +1,540 @@
+{
+  "source": "09537f724ca9621311110aafa2725f0e4c15e625",
+  "checkedAt": "2026-10-27T05:19:25.253829+00:00",
+  "researchCases": 54,
+  "allBoatsFinishCases": 53,
+  "strictCleanCases": 39,
+  "observedContactCases": 15,
+  "strictCleanCriterion": "Every autonomous boat finishes within original course deadline, with no observed swept envelope or separation response. Research criterion, not a claim that no contact can ever happen during a game.",
+  "setup": "Canonical physical spawns with actual current game player/ai IDs, inward initial headings and2/3/4opponents. Current3difficulty multipliers and deterministic.97/1/1.03spread. All boats use autonomous planner; no human Pro/advice/native acceptance.",
+  "windSeed": 3,
+  "notHumanProOrGuidanceAcceptance": true,
+  "deadlineMisses": [
+    {
+      "name": "short-0.65-ordinary-hard",
+      "finished": 4,
+      "total": 5,
+      "elapsed": 480,
+      "hitFramesCappedAt20": 16,
+      "separationResponseFrames": 15,
+      "accepted": false
+    }
+  ],
+  "contactRecordingLimit": "Detailed contact samples retain first20frames per case. A non-empty sample establishes contact; it cannot exclude later kinds or count every contact frame. Separation-response count covers the whole case.",
+  "rows": [
+    {
+      "name": "long-0.65-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 1436.8333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-0.65-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 1193.6,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 362,
+      "accepted": false
+    },
+    {
+      "name": "long-0.65-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 1213.1333333333334,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-0.65-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 1415,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-0.65-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 1165.4333333333334,
+      "hitFramesCappedAt20": 16,
+      "separationResponseFrames": 15,
+      "accepted": false
+    },
+    {
+      "name": "long-0.65-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 1214.4666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 953.9666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 835.6,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 408,
+      "accepted": false
+    },
+    {
+      "name": "long-1-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 834.6666666666666,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 924.6666666666666,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 790.3,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 854.4666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1.3-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 758.3666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1.3-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 702.8,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 136,
+      "accepted": false
+    },
+    {
+      "name": "long-1.3-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 677.2666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1.3-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 754.4,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1.3-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 615.4333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "long-1.3-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 661.4666666666667,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 89,
+      "accepted": false
+    },
+    {
+      "name": "medium-0.65-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 781.8,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-0.65-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 734.7333333333333,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 362,
+      "accepted": false
+    },
+    {
+      "name": "medium-0.65-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 661.0666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-0.65-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 772.3666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-0.65-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 688.8,
+      "hitFramesCappedAt20": 16,
+      "separationResponseFrames": 15,
+      "accepted": false
+    },
+    {
+      "name": "medium-0.65-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 658.4333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 631.3333333333334,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 509.06666666666666,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 408,
+      "accepted": false
+    },
+    {
+      "name": "medium-1-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 499.8333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 502.8333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 405.06666666666666,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 563.3333333333334,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1.3-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 420.8333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1.3-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 388.6666666666667,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 136,
+      "accepted": false
+    },
+    {
+      "name": "medium-1.3-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 398.43333333333334,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1.3-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 417.6666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1.3-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 315.7,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "medium-1.3-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 387.43333333333334,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 89,
+      "accepted": false
+    },
+    {
+      "name": "short-0.65-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 468.03333333333336,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-0.65-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 438.3666666666667,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 362,
+      "accepted": false
+    },
+    {
+      "name": "short-0.65-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 347.56666666666666,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-0.65-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 386.1,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-0.65-ordinary-hard",
+      "finished": 4,
+      "total": 5,
+      "elapsed": 480,
+      "hitFramesCappedAt20": 16,
+      "separationResponseFrames": 15,
+      "accepted": false
+    },
+    {
+      "name": "short-0.65-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 328.2,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 353.46666666666664,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 311.8,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 408,
+      "accepted": false
+    },
+    {
+      "name": "short-1-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 307.8666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 242.63333333333333,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 211.6,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 260.1666666666667,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1.3-early-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 222.4,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1.3-early-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 278.43333333333334,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 136,
+      "accepted": false
+    },
+    {
+      "name": "short-1.3-early-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 249.76666666666668,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1.3-ordinary-easy",
+      "finished": 3,
+      "total": 3,
+      "elapsed": 213.5,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1.3-ordinary-hard",
+      "finished": 5,
+      "total": 5,
+      "elapsed": 202.83333333333334,
+      "hitFramesCappedAt20": 0,
+      "separationResponseFrames": 0,
+      "accepted": true
+    },
+    {
+      "name": "short-1.3-ordinary-medium",
+      "finished": 4,
+      "total": 4,
+      "elapsed": 165.23333333333332,
+      "hitFramesCappedAt20": 20,
+      "separationResponseFrames": 89,
+      "accepted": false
+    }
+  ],
+  "privateSummarySha256": "32a480108ab9560830e0dfbc89a90e17d36d194329f3fdfaae3ed89e1b75f50c",
+  "privateObserverSha256": "926c09b510309f60ab5f8b49f90e7caa1f887233851837bc1ae31384670c6e42",
+  "sourceInputs": {
+    "src/app/game/config.ts": "981d70f75f02303a8239a5042d7ad7a5637ec097a8fff999b052f678623d9fa2",
+    "src/lib/race-context.ts": "27a924d1c5912e070c5eb1531b51ce68b527364b074653d1b9769411fbeaaac7",
+    "src/lib/race-courses.ts": "6e10514a01af5a379692d676b317c12fb8b25a90877b40e07d7c2987fffb2614",
+    "src/lib/sailing-physics/wind.ts": "f4b4a13e512a03d41b91b4e89351635f7028b9f43bd36874096c60643dfe85d5",
+    "src/lib/sailing-physics/aero.ts": "650110a475d05ef6c9f9d3c7d5ae4217b2c81bc1270058bd33f5ecd200985966",
+    "src/lib/sailing-physics/mainsail-shape.ts": "498f3d595800209fadc4a83311620d285feadcb3e5a55a30866a5aee952f2910",
+    "src/lib/sailing-physics/forces.ts": "f6f22f72d028a145cbf749693f2c87c5a5f8ceea95190865868faf03519a85e7",
+    "src/lib/sailing-physics/balance.ts": "03c96a77d1bec90e345827428857b19f1a74d566bbe011dd35e6e9629d9d099e",
+    "src/lib/sailing-physics/sail-plan.ts": "2bd1d5a95f3cfbfcb0961611c6231ef674b2c91949f0c5fb11ae8962d6543cfc",
+    "src/lib/sailing-physics/simulate.ts": "5fdcb9d115570d70b9635100575e486fa9a10050e510fc893dee26e00174824e",
+    "src/lib/sailing-physics/boat.ts": "6e3d9a72057b379c3fd8f54fd41fd25227b52a2464e314c83d0ac41a70389399",
+    "src/lib/sailing-physics/polar.ts": "629f3a5391ebe942341a6aa9e42eb47d4d1e273d082c2cbc31f28d40c3540e01",
+    "src/lib/race-physics.ts": "dd4244dcab9508e4462b436ff635c2c9c1de3c300c6649824ce111a3d34ad7e3",
+    "src/lib/race-physical-progress.ts": "f7d467c5443fc6daa29b3d4eb2657216d309a33f56403ce314f4c7e1cdcd296b",
+    "src/lib/sailing-kinematics.ts": "ca3585111eb2dd8c982702d7d6adb89a83b82c8389ce84491f40f04ef63788cd",
+    "src/lib/race-physical-motion.ts": "38746c350b7fa1677ebf36b9d58c996fb6a319bbd34f48758f1a24f049b1e6f6",
+    "src/lib/race-physical-bot.ts": "fbff4efbe0c67379fcbdc9c47026321e4e31d06670ef8e118bca01f35bc71336",
+    "src/lib/race-physical-contact.ts": "32cdd71ea33d00cd27e0938b0db3e0cb8597dbc93990da2c4db8c93d981974de",
+    "src/lib/race-physical-fleet.ts": "e34256eb3516cb3db44c23632c1235262947f431b9b3772a56e51b242c9a19a9",
+    "private-observer.ts": "926c09b510309f60ab5f8b49f90e7caa1f887233851837bc1ae31384670c6e42"
+  },
+  "inputHashesUnchangedAfterRun": true,
+  "physicalActivationAccepted": false,
+  "delivery": false,
+  "following": "Resolve actual start/recovery/difficulty behavior and integrate real hardware response/judging. Preserve18baseline zero-contact assertions; do not inflate them into full game acceptance."
+}

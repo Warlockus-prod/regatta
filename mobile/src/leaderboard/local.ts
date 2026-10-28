@@ -1,6 +1,9 @@
 /**
  * Local leaderboard helpers.
  *
+ * These score-first helpers serve historical rows only. Registered result
+ * consumers use race-records.ts so classes and conditions cannot be mixed.
+ *
  * Pure functions that turn the device's race-history list into the rows
  * the Leaderboard screen renders. The screen is the only React-aware
  * caller of these helpers; the helpers themselves are React-free,
