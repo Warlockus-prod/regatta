@@ -236,3 +236,97 @@ content sync и generation checks проходят. Sailing HTML662cb2493d8d.
 создаются только для нового фактического commit. В новом прямом27QA через UI
 подготовлены EN/quiz3of3/cold Home1of8 и6ключей с проверенным владельцем обоих
 контейнеров; candidate там еще не установлен.
+
+## Exact d8: установленная часть повторного аудита
+
+Новыйd8dbca3, не прежний25baff1: Release завершился успешно; generated22 и
+Simulator43 проходят. Замороженная копия и все121установленный файл совпадают.
+Новый прямой iPhone18Pro/iOS27 QA, не clone: оба App+Data ownership guards
+проходят до чтения/UI, после install и перед cold relaunch. Все6старых значений
+публичной48сохранились bytes/SHA до первого запуска70. EN/1из8видны сразу и
+после cold launch. После Radio главный Continue относится к SRC, а Foundation
+1/8остается доступен; не объявляем все значения неизменными после намеренных
+переходов и выбора настроек.
+
+Свежие наблюдения: day Home/Trainer/More/Back, Radio entry/Exit, видимые
+briefing Back/CTA, настоящие3D Pro кадры/clock/orbit, ручной jib53%->45%,
+mini-map->Course map, Settings->Helm, Menu->Back to races->Home. Три повторные
+подготовительные поверхности остаются F06. Одна немедленная native AX-выборка
+показала старый Simple после Pro; cold restore показал Pro, обратный контроль
+Simple->Back совпал. Это не доказывает устойчивую рассинхронизацию или потерю
+настройки. Имена сырых файлов не заменяют фактическое содержимое кадров.
+
+Все21сырых JPEG/AX этого ограниченного прохода приватны; семь проверенных
+byte-identical копий18-24 показаны в текущем owner report. Новый source package
+proof и installed-upgrade-beforelaunch report относятся только кd8. ПолныйG2,
+clean70/short/landscape/large-text/physicaloffline и выпуск70не закрыты.
+Owner radio/PTT/Reset/mic по-прежнему pending в живомTestFlight. Новых archive,
+export/upload/Apple writes и website/public submission нет.
+
+## Exact d8: clean27 и конечный cloud
+
+Следующий новый прямой iPhone18Pro/iOS27 QA впервые запустилD8 после App+Data
+ownership и121matching installed files. PL Home0/8 -> урок1/практика -> реальный
+3D -> курс90->70 -> возврат к практике. После cold launch восстановился шаг3.
+Открытие практики не засчитано навыком. Simple: настоящий первый кадр,
+часы0:08.8->0:25.4, руль0->8°, курс45->50°,TWA40->46°, Menu вернул выбор.
+Три byte-identical принятых кадра25-27добавлены в owner report; остальные
+private JPEG/AX сохранены отдельно. Это ограниченная clean-приемка, не fullG2.
+
+Exact non-main40728700280 завершился FAILURE92/94. Все94case IDs совпали с
+локальнымD8.92passed first attempt; Simple/Pro исчерпали120sна retry0/1/2:
+98attempts=92passed+6timedOut,0skipped/flaky/top-level errors. Artifact12836202433,
+22489004bytes, API/download SHA256совпадает:
+`83f0111ab07f4b324587653f15176609f6e691dbd622a431a93dbefe8f0b8fba`.
+Run/artifact/embedded Git/CI всеD8. Main-only publication/deploy/prod skipped.
+Разбор GET-only, remote writes0; источник/настройки/действия/deadlines не менялись.
+
+Все6timing attachments сохранены в новой приватной папке. Два Simple прошли
+первый web journey за91.8/92.8sпосле19-20sstartup и начали embedded около112s.
+Остальные попытки остановились в разных поздних точках; успешные clicks4-6s,
+DOM reads1-3s. Это подтверждает накопление времени, но не единственный overlay,
+сломанныйTWD или известную долю renderer/product/test-protocol задержки.
+Следующий ограниченный test-side event/commit/RAF/longtask ring предложен,
+еще не реализован; качество/inputs/assertions/viewports/deadlines сохраняются.
+
+FullG2, previous-major/short/landscape/large-text и splash transition остаются
+открытыми. Clean27не доказывает physical-phone offline/ASR/performance.70не
+архивирован/не загружен; поставленный69не изменен. Текущий owner-report hash
+и конечная cloud сводка находятся в `checks/cockpit-navigation.json`;
+`checks/completion-status.json` остается неизменной исторической12:19сверкой.
+
+## T05: следующий Back после учебной практики
+
+Продолженный D8 clean27 walkthrough нашел реальный отказ: после sail lesson3
+->practice->Return to lesson следующий native Back снова открывает Trainer.
+Повторен через AX и координату видимого header. Первый Foundation дает тот же
+исход. Кадры29/30/32в private clean27 сохраняют отрицательную проверку; копии
+28-30в repository cockpit-screens показаны в owner report. Это не ошибка
+ownership и не доказательство потери позиции: шаг3сохраняется, нарушен стек.
+
+Установленный Expo navigate отправляет NAVIGATE, сохраняя практику под новым
+уроком. Новый узкий source followup использует dismissTo для известных sail
+и Foundation return, выхода к sail outline и validated Foundation race exit.
+Global ActivityBack, ordinary exits, replay-history и запуск practice push
+не меняются. Настоящий StackRouter regression проверяет удаление practice,
+исходные lesson key/params, следующий Back и непустые сохраненные данные.
+41targeted/3suites и613full-native/82suites проходят, types/lints чистые.
+Новый binary/G2 еще не выполнены; прежний D8 этим source-fix не становится PASS.
+
+Диагностические per-stage layout probes в race browser journeys заменены
+Node markers и одним passive ring на документ: classified captures/EventTiming,
+semantic commits, RAF gaps/longtasks/lifecycle. Максимум2документа/64KiB в
+test-only sessionStorage handoff, один финальный read с прежним500msbudget.
+Все173assertions/53actual actions/7test bodies/6deadlines120sи viewports
+сверены независимым AST reader. Нет изменения качества, workflow или physics.
+Ring не читает layout/content/product storage, не доказывает React handler,
+отсутствие overlay, presented FPS или причину задержек.
+
+Узкий новый local2/2 first-attempt проходит за169.111151s: Simple76.795s,
+Pro91.382s, оба final observations captured с2documents. Новый production
+buildnxugNMA4jmTyt34ewz_yq:111chunks/6790321bytes, прежнийcap6815744,
+запас25423. Web1827/175проходит. Новый полныйlocal94/94 first-attempt проходит
+за620.658683s,0skipped/flaky/unexpected/errors;8файлов прежние. SHAотчета:
+`8c9697a0cb35fff41b024ccad730a1b9c67f8d4c4b1ec267396f4293f26961d6`.
+Это не новый успешныйcloud/native. Новый private native-release70-back-followup
+содержит только подготовленные helper/fixtures, не выбранный source/G2.

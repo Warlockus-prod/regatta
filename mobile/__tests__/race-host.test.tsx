@@ -31,6 +31,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import Game from "../app/game";
 import SharedRaceHost from "../src/game/SharedRaceHost";
+import { CommonActions, StackActions, StackRouter } from "@react-navigation/routers";
 import { saveNativeRace } from "../src/persistence/race-native";
 import { readRaces } from "../src/persistence/race-history";
 import type { NativeRaceSnapshot } from "../../src/lib/race-native";
@@ -43,7 +44,7 @@ const race: NativeRaceSnapshot = {
   events: [{ type: "start", t: 0 }, { type: "finish", t: 10 }],
 };
 
-beforeEach(async () => { jest.clearAllMocks(); mockParams = {}; await AsyncStorage.clear(); });
+beforeEach(async () => { jest.clearAllMocks(); mockNavigate.mockReset(); mockDismissTo.mockReset(); mockParams = {}; await AsyncStorage.clear(); });
 
 it("starts one local 3D game on a clean install and keeps changed prefs for Retry", async () => {
   const view = render(<Game />);
@@ -87,21 +88,48 @@ it("returns a lesson-launched mini-race through both the loading header and the 
   mockParams = { fromLesson: "mini-race" };
   const view = render(<Game />);
   fireEvent.press(view.getByRole("button", { name: "Return to lesson" }));
-  expect(mockNavigate).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
+  expect(mockDismissTo).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
   const game = await waitFor(() => view.getByTestId("local-race"));
   expect(game.props.query.fromLesson).toBe("mini-race");
   const message = game.props.onOfflineMessage;
   for (const href of ["/", "/race"]) {
     act(() => message(JSON.stringify({ type: "native-navigate", href }), jest.fn()));
-    expect(mockNavigate).toHaveBeenLastCalledWith("/bootcamp/mini-race");
+    expect(mockDismissTo).toHaveBeenLastCalledWith("/bootcamp/mini-race");
   }
   for (const href of ["/history", "/replay/web-race-10"]) {
     act(() => message(JSON.stringify({ type: "native-navigate", href }), jest.fn()));
     expect(mockNavigate).toHaveBeenLastCalledWith(href);
   }
   const calls = mockNavigate.mock.calls.length;
+  const dismissCalls = mockDismissTo.mock.calls.length;
   act(() => message(JSON.stringify({ type: "native-navigate", href: "/bootcamp/unknown" }), jest.fn()));
   expect(mockNavigate).toHaveBeenCalledTimes(calls);
+  expect(mockDismissTo).toHaveBeenCalledTimes(dismissCalls);
+});
+
+it("the trusted Foundation race exit removes the game before the following native Back", async () => {
+  mockParams = { fromLesson: "mini-race" };
+  const stack = StackRouter({ initialRouteName: "bootcamp/index" });
+  const config = { routeNames: ["bootcamp/index", "bootcamp/[id]", "game/index"], routeParamList: {}, routeGetIdList: {} };
+  let state = stack.getInitialState(config);
+  const dispatch = (action: Parameters<typeof stack.getStateForAction>[1]) => {
+    const next = stack.getStateForAction(state, action, config);
+    if (!next || next.stale !== false) throw new Error("Foundation race return did not return a hydrated state");
+    state = next;
+  };
+  dispatch(StackActions.push("bootcamp/[id]", { id: "mini-race" }));
+  const originalLessonKey = state.routes[state.index].key;
+  dispatch(StackActions.push("game/index", { fromLesson: "mini-race" }));
+  mockNavigate.mockImplementation(href => { expect(href).toBe("/bootcamp/mini-race"); dispatch(CommonActions.navigate("bootcamp/[id]", { id: "mini-race" })); });
+  mockDismissTo.mockImplementation(href => { expect(href).toBe("/bootcamp/mini-race"); dispatch(StackActions.popTo("bootcamp/[id]", { id: "mini-race" })); });
+  const view = render(<Game />);
+  const game = await waitFor(() => view.getByTestId("local-race"));
+  act(() => game.props.onOfflineMessage(JSON.stringify({ type: "native-navigate", href: "/" }), jest.fn()));
+  expect(state.routes.map(route => route.name)).toEqual(["bootcamp/index", "bootcamp/[id]"]);
+  expect(state.routes[state.index].key).toBe(originalLessonKey);
+  expect(state.routes[state.index].params).toEqual({ id: "mini-race" });
+  dispatch(CommonActions.goBack());
+  expect(state.routes.map(route => route.name)).toEqual(["bootcamp/index"]);
 });
 
 it("keeps ordinary or unknown-lesson race exits at the race hub", async () => {
@@ -120,7 +148,7 @@ it("retains Return to lesson when local race preferences fail to load", async ()
   await waitFor(() => view.getByText(/Could not read race data/));
   expect(view.queryByTestId("local-race")).toBeNull();
   fireEvent.press(view.getByRole("button", { name: "Return to lesson" }));
-  expect(mockNavigate).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
+  expect(mockDismissTo).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
 });
 
 it("persists every closed wind style through the preference bridge and restores it after a native relaunch", async () => {

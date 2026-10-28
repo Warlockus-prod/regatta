@@ -214,7 +214,7 @@ function CourseContent({ lessonId }: { lessonId?: string }) {
         <Text style={styles.note}>{sailCourse.safety[lang]}</Text>
       </>}
       {step === "try" && sailLessons[index + 1] && <Button onPress={() => openLesson(sailLessons[index + 1].id)}>{sailCourse.next[lang]}</Button>}
-      <Button variant="ghost" onPress={() => router.navigate("/learn/sails")}>{sailCourse.back[lang]}</Button>
+      <Button variant="ghost" onPress={() => router.dismissTo("/learn/sails")}>{sailCourse.back[lang]}</Button>
     </ScrollView>
   </Screen>;
 }

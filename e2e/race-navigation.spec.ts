@@ -161,93 +161,184 @@ async function primaryWheelGeometry(cockpit: Locator, autopilotName?: string) {
   }, autopilotName);
 }
 
-/** Private CI evidence contains geometry and fixed classifications only. Never
- * collect DOM text, arbitrary attributes, storage, errors or user content. */
-async function cockpitProbe(page: Page) {
-  return page.evaluate(() => {
-    const box = (element: Element | null) => {
-      if (!element) return null;
-      const { left, top, right, bottom, width, height } = element.getBoundingClientRect();
-      return { left, top, right, bottom, width, height };
+/** Installs once per document, before app code. Only finite numeric tuples leave
+ * the browser. No layout reads, product storage, content or per-event IPC. */
+async function installCockpitTiming(context: BrowserContext) {
+  await context.addInitScript(() => {
+    type Row = [number, number, number, number, number, number, number, number];
+    type DocumentTiming = { originMs: number; rows: Row[][]; dropped: number[]; raf: number[]; supported: number[] };
+    type TimingWindow = Window & { __REGATTA_E2E_COCKPIT_TIMING__?: { finish: () => { documents: DocumentTiming[]; storageStatus: number } } };
+    const host = window as TimingWindow;
+    if (host.__REGATTA_E2E_COCKPIT_TIMING__) return;
+    const key = "__regatta_e2e_cockpit_timing_v1";
+    // Input, EventTiming, semantic commits, RAF gaps, longtasks, lifecycle.
+    const caps = [96, 64, 64, 40, 40, 16];
+    const rows: Row[][] = caps.map(() => []), dropped = caps.map(() => 0);
+    const raf = [0, 0, 0, 0, 0]; // frames, total gap, max gap, gaps >=50ms, >=250ms
+    const supported = [0, 0];
+    const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+    const bounded = (value: unknown): value is number => finite(value) && Math.abs(value) <= 3_600_000;
+    const round = (value: number) => Math.round(value * 100) / 100;
+    const readDocument = (value: unknown): DocumentTiming | null => {
+      if (!value || typeof value !== "object") return null;
+      const v = value as Record<string, unknown>;
+      if (!finite(v.originMs) || v.originMs < 0 || v.originMs > Number.MAX_SAFE_INTEGER
+        || !Array.isArray(v.rows) || v.rows.length !== caps.length
+        || !Array.isArray(v.dropped) || v.dropped.length !== caps.length || !v.dropped.every(bounded)
+        || !Array.isArray(v.raf) || v.raf.length !== 5 || !v.raf.every(bounded)
+        || !Array.isArray(v.supported) || v.supported.length !== 2 || !v.supported.every(n => n === 0 || n === 1)) return null;
+      const clean: Row[][] = [];
+      for (const [index, channel] of v.rows.entries()) {
+        if (!Array.isArray(channel) || channel.length > caps[index]) return null;
+        const cleanRows: Row[] = [];
+        for (const row of channel) {
+          if (!Array.isArray(row) || row.length !== 8 || !row.every(bounded)
+            || row[0] < 0 || !Number.isInteger(row[1]) || row[1] < 0 || row[1] > 13
+            || !Number.isInteger(row[2]) || row[2] < 0 || row[2] > 10) return null;
+          cleanRows.push(row.map(round) as Row);
+        }
+        clean.push(cleanRows);
+      }
+      // Reconstruct the fixed schema instead of returning parsed storage.
+      return { originMs: v.originMs, rows: clean, dropped: v.dropped.map(round), raf: v.raf.map(round), supported: [...v.supported] };
     };
-    const cockpit = document.querySelector('[data-testid="race-cockpit"]');
-    const dock = cockpit?.querySelector("aside") ?? null;
-    const panel = dock?.lastElementChild;
-    const nav = dock?.querySelector("nav");
-    const classify = (element: Element | null) => {
-      if (!element) return "none";
-      if (element.closest('[role="dialog"],[role="alertdialog"],[aria-modal="true"]')) return "dialog";
-      if (element.closest("details")) return "diagnostics";
-      if (element.closest('[data-testid="race-3d"]')) return "scene";
-      if (nav?.contains(element)) return "actions";
-      if (panel?.contains(element)) return "panel";
-      if (dock?.contains(element)) return "dock";
-      if (element.closest("nav[data-product-navigation]")) return "site-navigation";
-      return "other";
+    let previous: DocumentTiming[] = [], storageStatus = 0;
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw !== null) {
+        const parsed: unknown = raw.length <= 65_536 ? JSON.parse(raw) : null;
+        if (Array.isArray(parsed) && parsed.length <= 2) {
+          const clean = parsed.map(readDocument);
+          if (clean.every((entry): entry is DocumentTiming => entry !== null)) { previous = clean.slice(-1); storageStatus = 1; }
+          else storageStatus = 3;
+        } else storageStatus = 3;
+      }
+    } catch { storageStatus = 2; }
+    let stopped = false, frame = 0, lastFrame = 0, sequence = 0;
+    const push = (channel: number, target: number, event: number, a = 0, b = 0, c = 0, d = 0, seq = sequence) => {
+      if (stopped) return;
+      const row = [performance.now(), target, event, a, b, c, d, seq];
+      if (!row.every(bounded)) { dropped[channel]++; return; }
+      if (rows[channel].length === caps[channel]) { rows[channel].shift(); dropped[channel]++; }
+      rows[channel].push(row.map(round) as Row);
     };
-    const hit = (element: Element) => {
-      const rect = element.getBoundingClientRect();
-      const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
-      const top = document.elementFromPoint(x, y);
-      const zIndex = top ? Number.parseInt(getComputedStyle(top).zIndex, 10) : NaN;
-      return { centreReceivesPointer: top !== null && element.contains(top), topRegion: classify(top),
-        pointerDisabled: getComputedStyle(element).pointerEvents === "none", topZIndex: Number.isFinite(zIndex) ? zIndex : null,
-        stack: document.elementsFromPoint(x, y).slice(0, 4).map(classify) };
+    const targetOf = (element: EventTarget | null): number => {
+      if (!(element instanceof Element)) return 0;
+      if (element.closest('[data-testid="wheel-helm"]')) return 1;
+      if (element.closest('[data-testid="wheel-main"]')) return 2;
+      if (element.closest('[data-testid="wheel-jib"]')) return 3;
+      const action = element.closest('[data-testid="race-cockpit"] aside nav button');
+      if (action) { const index = Array.from(action.parentElement!.children).indexOf(action); if (index >= 0 && index < 5) return 4 + index; }
+      if (element.closest('[data-testid="race-mini-map-button"]')) return 9;
+      if (element.closest('[data-testid="race-cockpit"] details')) return 10;
+      if (element.closest('[data-testid="race-cockpit"] aside')) return 11;
+      if (element.closest('[data-testid="race-3d"]')) return 12;
+      return 0;
     };
-    const scroll = (element: Element | null | undefined) => element instanceof HTMLElement
-      ? { top: element.scrollTop, height: element.scrollHeight, clientHeight: element.clientHeight } : null;
-    const summary = panel?.querySelector("details > summary");
-    const preview = document.querySelector("svg:has(#cpWater)");
-    return { viewport: { width: innerWidth, height: innerHeight }, visibility: document.visibilityState,
-      document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight, top: scrollY },
-      cockpit: box(cockpit), scene: box(cockpit?.querySelector('[data-testid="race-3d"]') ?? null), dock: box(dock),
-      panel: box(panel ?? null), panelScroll: scroll(panel), notice: box(dock?.querySelector('[role="status"]') ?? null),
-      noticeScroll: scroll(dock?.querySelector('[role="status"]')), activeRegion: classify(document.activeElement),
-      actions: Array.from(nav?.querySelectorAll("button") ?? []).slice(0, 5).map((element, index) => ({
-        index, box: box(element), pressed: element.getAttribute("aria-pressed") === "true", ...hit(element),
-      })),
-      diagnostics: summary ? { box: box(summary), open: summary.closest("details")?.open === true, ...hit(summary) } : null,
-      wheels: Array.from(panel?.querySelectorAll('[role="slider"]') ?? []).slice(0, 3).map((element, index) => ({
-        index, kind: element.getAttribute("data-testid") === "wheel-helm" ? "helm"
-          : element.getAttribute("data-testid") === "wheel-main" ? "main" : element.getAttribute("data-testid") === "wheel-jib" ? "jib" : "other",
-        wheel: box(element), caption: box(element.lastElementChild), captionLength: element.lastElementChild?.textContent?.trim().length ?? 0,
-      })),
-      preview: preview ? { box: box(preview), labels: Array.from(preview.querySelectorAll("text")).slice(0, 5)
-        .map(element => ({ box: box(element), length: element.textContent?.trim().length ?? 0 })) } : null,
-      startup: Array.from(cockpit?.querySelectorAll("[data-scene-startup]") ?? []).slice(0, 2).map(element =>
-        element.getAttribute("data-scene-startup") === "ready" ? "ready" : "loading"),
+    const eventNames = ["", "pointerdown", "pointerup", "click", "keydown", "keyup", "focusin"];
+    const capture = (event: Event) => {
+      sequence++;
+      const keyClass = event instanceof KeyboardEvent ? ["ArrowRight", "ArrowUp", "PageUp"].includes(event.key) ? 1
+        : ["ArrowLeft", "ArrowDown", "PageDown"].includes(event.key) ? 2 : event.key === "Home" ? 3 : event.key === "End" ? 4 : 0 : 0;
+      const stamp = event.timeStamp > 1e12 ? event.timeStamp - performance.timeOrigin : event.timeStamp;
+      push(0, targetOf(event.target), eventNames.indexOf(event.type), stamp, Number(event.isTrusted), keyClass, lastFrame);
     };
+    for (const name of eventNames.slice(1)) document.addEventListener(name, capture, { capture: true, passive: true });
+    let shape = -1;
+    const mutations = (entries: MutationRecord[]) => {
+      let structural = false;
+      for (const entry of entries) {
+        if (entry.type === "childList") { if ([...entry.addedNodes, ...entry.removedNodes].some(node => node instanceof Element)) structural = true; continue; }
+        const target = targetOf(entry.target), element = entry.target;
+        if (!(element instanceof Element) || target === 0) continue;
+        if (entry.attributeName === "aria-pressed") push(2, target, 1, Number(element.getAttribute("aria-pressed") === "true"), lastFrame);
+        else if (entry.attributeName === "aria-valuenow") {
+          const value = element.getAttribute("aria-valuenow");
+          if (value !== null && value.trim() !== "" && finite(Number(value))) push(2, target, 2, Number(value), lastFrame);
+        } else if (entry.attributeName === "open") push(2, target, 3, Number(element.hasAttribute("open")), lastFrame);
+        else if (entry.attributeName === "data-scene-startup") push(2, target, 5, Number(element.getAttribute("data-scene-startup") === "ready"), lastFrame);
+      }
+      if (structural) {
+        const root = document.querySelector('[data-testid="race-cockpit"]');
+        const panel = root?.querySelector("aside")?.lastElementChild;
+        const next = Number(Boolean(root)) + Number(Boolean(panel?.querySelector('[data-testid="race-overview-map"]'))) * 2
+          + Number(Boolean(panel?.querySelector('[data-testid="wheel-helm"]'))) * 4
+          + Number(Boolean(panel?.querySelector('[data-testid="wheel-main"]'))) * 8
+          + Number(Boolean(panel?.querySelector('[data-testid="wheel-jib"]'))) * 16
+          + Number(Boolean(panel?.querySelector("details > summary"))) * 32
+          + Number(Boolean(panel?.querySelector('[data-testid="diagnostic-panel"]'))) * 64;
+        if (next !== shape) { shape = next; push(2, 11, 4, next, lastFrame); }
+      }
+    };
+    const mutationObserver = new MutationObserver(mutations);
+    mutationObserver.observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-pressed", "aria-valuenow", "open", "data-scene-startup"] });
+    const observers: PerformanceObserver[] = [];
+    const performanceEntries = (entries: PerformanceEntry[]) => {
+      for (const entry of entries) {
+        if (entry.entryType === "longtask") push(4, 13, 0, entry.startTime, entry.duration);
+        else {
+          const event = eventNames.indexOf(entry.name);
+          if (event < 1) continue;
+          const timing = entry as PerformanceEntry & { target?: EventTarget | null; processingStart?: number; processingEnd?: number };
+          if (finite(timing.processingStart) && finite(timing.processingEnd)) push(1, targetOf(timing.target ?? null), event, entry.startTime, timing.processingStart, timing.processingEnd, entry.duration, 0);
+        }
+      }
+    };
+    for (const [index, type] of ["event", "longtask"].entries()) {
+      try {
+        if (!PerformanceObserver.supportedEntryTypes.includes(type)) continue;
+        const observer = new PerformanceObserver(list => performanceEntries(list.getEntries()));
+        observer.observe({ type, buffered: true, ...(type === "event" ? { durationThreshold: 16 } : {}) } as PerformanceObserverInit);
+        observers.push(observer); supported[index] = 1;
+      } catch { /* Unsupported observations never change app execution. */ }
+    }
+    const tick = (now: number) => {
+      if (stopped) return;
+      const gap = lastFrame ? now - lastFrame : 0;
+      raf[0]++; raf[1] += gap; raf[2] = Math.max(raf[2], gap);
+      if (gap >= 50) { raf[3]++; push(3, 13, 0, gap, lastFrame, Number(document.visibilityState === "visible")); }
+      if (gap >= 250) raf[4]++;
+      lastFrame = now; frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    const lifecycle = (event: Event) => push(5, 13, event.type === "resize" ? 7 : event.type === "visibilitychange" ? 8 : 9,
+      innerWidth, innerHeight, Number(document.visibilityState === "visible"));
+    window.addEventListener("resize", lifecycle, { passive: true });
+    document.addEventListener("visibilitychange", lifecycle, { passive: true });
+    const stop = () => {
+      if (stopped) return;
+      mutations(mutationObserver.takeRecords()); mutationObserver.disconnect();
+      for (const observer of observers) { performanceEntries(observer.takeRecords()); observer.disconnect(); }
+      stopped = true; cancelAnimationFrame(frame);
+      for (const name of eventNames.slice(1)) document.removeEventListener(name, capture, true);
+      window.removeEventListener("resize", lifecycle); document.removeEventListener("visibilitychange", lifecycle);
+      window.removeEventListener("pagehide", preserve);
+    };
+    const documents = () => [...previous, { originMs: performance.timeOrigin, rows, dropped, raf: raf.map(round), supported }];
+    const preserve = (event: Event) => {
+      lifecycle(event); stop();
+      try { const payload = JSON.stringify(documents()); if (payload.length <= 65_536) sessionStorage.setItem(key, payload); else storageStatus = 3; }
+      catch { storageStatus = 2; }
+    };
+    window.addEventListener("pagehide", preserve, { passive: true });
+    push(5, 13, 10, innerWidth, innerHeight, Number(document.visibilityState === "visible"));
+    host.__REGATTA_E2E_COCKPIT_TIMING__ = { finish: () => {
+      stop();
+      try { sessionStorage.removeItem(key); } catch { storageStatus = 2; }
+      return { documents: documents(), storageStatus };
+    } };
   });
 }
 
-function cockpitEvidence(page: Page, testInfo: TestInfo, name: string) {
+async function cockpitEvidence(page: Page, context: BrowserContext, testInfo: TestInfo, name: string) {
   const epoch = Date.now();
+  await installCockpitTiming(context);
   const steps: { name: string; atMs: number; durationMs: number; viewport: ReturnType<Page["viewportSize"]>; status: "running" | "passed" | "failed" }[] = [];
   const snapshots: unknown[] = [];
-  let inFlight: Promise<{ status: "captured"; geometry: Awaited<ReturnType<typeof cockpitProbe>> } | { status: "unavailable" }> | undefined;
-  const remember = (stage: string, observation: object) => {
-    // A small ring keeps the last failure context even after all viewports.
-    if (snapshots.length === 24) snapshots.shift();
-    snapshots.push({ stage, atMs: Date.now() - epoch, ...observation });
-  };
   const observe = async (stage: string) => {
-    // A timed-out observation can still be waiting on the renderer. Do not
-    // queue another read or present its eventual result as a fresh stage.
-    if (inFlight) {
-      remember(stage, { status: "probe-skipped-inflight" });
-      return;
-    }
-    const pending = cockpitProbe(page).then(geometry => ({ status: "captured" as const, geometry }))
-      .catch(() => ({ status: "unavailable" as const }));
-    inFlight = pending;
-    void pending.then(() => { if (inFlight === pending) inFlight = undefined; });
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    const observation = await Promise.race([
-      pending,
-      new Promise<{ status: "probe-timeout" }>(resolve => { timeout = setTimeout(() => resolve({ status: "probe-timeout" }), 500); }),
-    ]);
-    if (timeout) clearTimeout(timeout);
-    remember(stage, observation);
+    // Node markers do not enqueue renderer reads between real user actions.
+    if (snapshots.length === 24) snapshots.shift();
+    snapshots.push({ stage, atMs: Date.now() - epoch, status: "node-marker" });
   };
   return {
     observe,
@@ -262,8 +353,32 @@ function cockpitEvidence(page: Page, testInfo: TestInfo, name: string) {
     },
     async finish() {
       await observe("finally");
+      const readStart = Date.now();
+      // One final read only. If it is delayed, retain an unavailable observation
+      // and let normal teardown close the page; no following probe is queued.
+      const pending = page.evaluate(() => {
+        const host = window as Window & { __REGATTA_E2E_COCKPIT_TIMING__?: { finish: () => unknown } };
+        return host.__REGATTA_E2E_COCKPIT_TIMING__?.finish() ?? null;
+      }).then(timing => timing === null ? { status: "absent" as const } : { status: "captured" as const, timing }).catch(() => ({ status: "unavailable" as const }));
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      const finalObservation = await Promise.race([pending,
+        new Promise<{ status: "probe-timeout" }>(resolve => { timeout = setTimeout(() => resolve({ status: "probe-timeout" }), 500); })]);
+      if (timeout) clearTimeout(timeout);
       await testInfo.attach(name, { contentType: "application/json", body: JSON.stringify({
-        elapsedMs: Date.now() - epoch, status: testInfo.status, steps, snapshots,
+        schema: 2, epochMs: epoch, elapsedMs: Date.now() - epoch, status: testInfo.status, steps, snapshots,
+        finalRead: { atMs: readStart - epoch, durationMs: Date.now() - readStart, ...finalObservation },
+        legend: { row: ["observedAtMs", "target", "event", "a", "b", "c", "d", "lastCapturedInputSequence"],
+          channels: ["captured-input", "event-timing", "observed-semantic-commit", "raf-gap", "longtask", "lifecycle"],
+          targets: ["other", "helm", "main", "jib", "action0", "action1", "action2", "action3", "action4", "mini-map", "diagnostics", "panel", "scene", "document"],
+          events: ["none", "pointerdown", "pointerup", "click", "keydown", "keyup", "focusin", "resize", "visibilitychange", "pagehide", "installed"],
+          inputValues: ["eventTimeStampMs", "trusted", "closedKeyClass", "previousRafMs"], keyClasses: ["other", "increment", "decrement", "home", "end"],
+          eventTimingValues: ["startTimeMs", "processingStartMs", "processingEndMs", "durationMs"],
+          commitEvents: ["none", "pressed", "numeric-value", "details-open", "panel-shape-mask", "scene-ready"],
+          commitValues: ["value", "previousRafMs"], panelShapeBits: ["cockpit", "map", "helm", "main", "jib", "diagnostics-access", "diagnostics-panel"],
+          rafValues: ["gapMs", "previousRafMs", "visible"], rafSummary: ["frames", "totalGapMs", "maxGapMs", "gapsAtLeast50ms", "gapsAtLeast250ms"],
+          longtaskValues: ["startTimeMs", "durationMs"], lifecycleValues: ["width", "height", "visible"],
+          supported: ["event-timing", "longtask"], storageStatus: ["empty", "restored", "unavailable", "invalid-or-too-large"],
+          interpretation: "EventTiming processingStart/End span synchronous dispatch; duration includes subsequent browser work. Neither identifies a particular React handler. Commits are observed asynchronously; input sequence is correlation only, and EventTiming uses sequence0. RAF is callback opportunity, not presented FPS. Correlation does not establish a delay cause." },
       }) });
     },
   };
@@ -541,7 +656,7 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
 for (const mode of ["simple", "pro"] as const) {
   test(`${mode} cockpit gives the boat room and keeps actual inputs and utilities reachable`, async ({ page, context }, testInfo) => {
     test.setTimeout(120_000);
-    const evidence = cockpitEvidence(page, testInfo, `race-${mode}-journey-timing`);
+    const evidence = await cockpitEvidence(page, context, testInfo, `race-${mode}-journey-timing`);
     const samples: unknown[] = [];
     const sample = async (entry: Awaited<ReturnType<typeof startRace>>, label: string, minimumSceneHeight: number) => {
       const step = <T,>(name: string, run: () => Promise<T>) => evidence.step(`${label}:${name}`, run);
@@ -738,7 +853,7 @@ const localizedProEntries = [
 for (const localized of localizedProEntries) {
   test(`${localized.lang} short Pro cockpit keeps localized primary controls visible together`, async ({ page, context }, testInfo) => {
     test.setTimeout(120_000);
-    const evidence = cockpitEvidence(page, testInfo, `race-${localized.lang}-short-timing`);
+    const evidence = await cockpitEvidence(page, context, testInfo, `race-${localized.lang}-short-timing`);
     try {
       await evidence.step("storage-init", () => context.addInitScript(() => {
         localStorage.setItem("regatta.onboarding.v1", "1");

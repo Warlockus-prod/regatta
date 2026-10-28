@@ -68,6 +68,7 @@ export default function SharedRaceHost({ savedReplayId }: { savedReplayId?: stri
       const destination = raceNativeDestination(data.href, query.fromLesson);
       if (destination) {
         if (replayId && destination === "/history") router.dismissTo("/history");
+        else if (query.fromLesson && destination === `/bootcamp/${query.fromLesson}`) router.dismissTo(destination);
         else router.navigate(destination);
       }
     } else if (data.type === "race-storage") {

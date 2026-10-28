@@ -14,7 +14,7 @@
 - `mobile/src/bootcamp/learning-guide.ts` - цели, три модуля, состояния схем и задания курса из восьми уроков, семь языков.
 - `mobile/src/bootcamp/FoundationScene.tsx` - нативная интерактивная схема выбранного урока.
 - `mobile/src/bootcamp/lesson-position.ts` - отдельная закладка шага и схемы, проверка ID и адрес возврата.
-- `mobile/src/bootcamp/ReturnToLesson.tsx` - доступная кнопка возврата из практики, цвет наследуется от заголовка.
+- `mobile/src/bootcamp/ReturnToLesson.tsx` - доступная кнопка возврата из практики через dismissTo известного урока; следующий Back не должен снова открывать практику. Цвет наследуется от заголовка.
 - `mobile/__tests__/foundation-learning.test.tsx` - покрытие уроков, языков, сохранения места, ошибок записи и отсутствия ложных оценок.
 - `docs/design/mobile/foundation-release47-2026-10-15.md` - объем, визуальная проверка и статус TestFlight 47.
 
@@ -1075,7 +1075,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/router.tsx` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
-- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage; validated sail lesson return dismisses the practice route so the following Back reaches the original outline.
 
 Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, sailing learning, shared replay, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. `ops/deploy/test_deploy.py` locks the prepublication suite selection, loopback target, absence of deploy secrets and main-only publication/deployment conditions. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged. The expanded browser gate must still run on the combined source candidate before another publication.
 
@@ -1311,7 +1311,7 @@ CoursePreview wind text suppresses the inherited arrow stroke.
 - `src/components/ContentFooterNavLoader.tsx` - one shared dynamic import with
   default SSR. Eleven content pages share it; footer links and all translations
   stay server rendered. Keep ContentFooterNav's source path for offline adapters.
-- `e2e/race-navigation.spec.ts` - batches only independent reads, with fresh per-wheel baselines; private500ms probes are single-flight and skipped-inflight is never a fresh capture. All real inputs/assertions/viewport/deadlines remain. Two independent real390px Simple race journeys:
+- `e2e/race-navigation.spec.ts` - batches only independent acceptance reads, with fresh per-wheel baselines. Private stage markers stay in Node; one installed passive bounded observer records classified input/EventTiming/semantic commits/RAF/longtasks with at most2documents/64KiB test-only handoff and one500ms final read. No layout reads in observers, content, product storage or per-event IPC; RAF is not presented FPS and correlation is not a delay cause. All real inputs/assertions/viewport/deadlines remain. Two independent real390px Simple race journeys:
   full live Map/Fleet/clock with five geometry samples, then wind styles/Helm
   input/preferences. Each shares the original real25s startup and15s clock
   checks within its120s total. All original assertions remain; attachments reuse
@@ -1532,11 +1532,11 @@ history. This boundary is not a new result class or physical writer.
 - `docs/audits/2026-10-26/independent-product-screens/` - exact accepted PNGs
   captured in this audit, linked in journey order; no generated concept images.
 - `docs/audits/2026-10-28/cockpit-navigation-harness.md` - ordered P10/T02/T04 source, smaller dock, phase focus/scroll, same-map retap, copy parity/budget and separate candidate70 native/release gates.
-- `docs/audits/2026-10-28/cockpit-screens/` - intermediate and inspected follow-up web screens plus exact first94gate IT/Simple/DE failure screenshots; observations stay separate from product acceptance.
+- `docs/audits/2026-10-28/cockpit-screens/` - intermediate/follow-up web screens, exact first94gate IT/Simple/DE failures and ten inspected installed d8 native70 upgrade/clean screens; observations stay separate from full G2 and delivery.
 - `mobile/releases/testflight-1.7.0-70.json` - prepared eight-locale beta notes for day chrome/navigation/scene checkpoint; no delivery or public submission implied.
 - `docs/audits/2026-10-28/checks/cockpit-navigation.json` - exact source/check/artifact hashes, retained rejected regressions and qualified current candidate70 evidence.
-- `docs/audits/2026-10-28/completion-status.md` - current owner-facing full status: all65IDs/F01-F15/feedback, delivered69 versus candidate70 source, five inspected follow-up states, remaining helm/rig/setup/theme gaps and ordered completion gates.
-- `docs/audits/2026-10-28/checks/completion-status.json` - bounded source/screen hashes, check results, exact environment, inherited delivery refs and explicit untested native limits.
+- `docs/audits/2026-10-28/completion-status.md` - current owner-facing full status: all65IDs/F01-F15/feedback, delivered69 versus candidate70 source/package/partial installed acceptance, ten-step native upgrade/clean audit, exact cloud92/94 failure, remaining helm/rig/setup/theme gaps and ordered completion gates.
+- `docs/audits/2026-10-28/checks/completion-status.json` - historical12:19baseline with9screens and its original report hash; it does not hash the later owner report, whose current hash lives in cockpit-navigation proof.
 - `docs/audits/2026-10-28/testflight-feedback-review.md` - actual read-only Apple feedback reconciliation: all11 submissions, chronological builds, qualified text/image scope and remaining radio/relative-wind findings.
 - `docs/audits/2026-10-28/checks/testflight-feedback-review.json` - sanitized feedback evidence and private artifact digests; no tester data, image URLs or user screenshots.
 - `docs/audits/2026-10-28/review-screens/` - nine retained baseline29aa production-web JPEGs; screenshot07 preserves actual T04 clipping before the later source correction.

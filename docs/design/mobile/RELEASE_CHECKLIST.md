@@ -49,7 +49,7 @@ binary, with screenshots; do not report imaginary native modes.
 
 TestFlight delivery is separate from App Review submission. A hotfix must pass G0/G1, changed-screen installed Release acceptance and upgrade preservation under G2, an unused increasing build number, exact-source generated/archive/IPA checks, Apple validation and import VALID, matching localized beta notes and an independent GET confirming exact Self membership/readiness. Do not submit the public version or replace store assets as part of this delivery. G3 public-submission cleanup, G4 store metadata and G4b published privacy parity remain explicit public-release gates before G5, not claims implied by a TestFlight upload. A full product/device acceptance matrix remains separately qualified.
 
-For a radio upgrade fix, create real progress in the verified old public Simulator build through its UI; install the candidate over the same container without uninstall or Clear all data. Compare stored progress, open the instrument and exercise lesson/task/save/relaunch/Back. Include retired legitimate storage keys, language priority and classified Retry/Exit regressions. Preserve retained upgrade and frozen QA devices; use a disposable clone for a new candidate observation when needed. Use a newly created dedicated QA device or a newly created disposable clone reserved for clean-install checks. Erase is allowed only on that disposable clean-install device, never on a retained upgrade/frozen QA device or a device holding user progress.
+For a radio upgrade fix, create real progress in the verified old public Simulator build through its UI; install the candidate over the same container without uninstall or Clear all data. Compare stored progress, open the instrument and exercise lesson/task/save/relaunch/Back. Include retired legitimate storage keys, language priority and classified Retry/Exit regressions. Preserve retained upgrade and frozen QA devices. Use newly created direct dedicated QA devices for both new candidate observations and clean-install checks. Do not use Simulator clones: copied container registrations can still point to the source device. Erase is allowed only on the new disposable clean-install device, never on a retained upgrade/frozen QA device or a device holding user progress.
 
 The [owner-authorized TestFlight69 radio exception](../../audits/2026-10-27/release69-owner-beta.md) transfers manual installed radio entry/controls/Reset/PTT and microphone/model acceptance to the owner's TestFlight walkthrough for that internal beta. These checks remain pending, not passed. This narrow exception does not waive the other source, binary, visual, upgrade, startup or Apple gates, and does not authorize public submission.
 
@@ -107,7 +107,7 @@ Never submit a build no one has looked at.
   SAME Xcode that archives the store binary and install it fresh on a newly
   created disposable QA device using the newest available iOS runtime for
   that Xcode. Record the installed runtime separately from the SDK. A
-  disposable clone reserved for this clean-install check may be reset first;
+  directly created disposable device reserved for this clean-install check may be reset first;
   never erase or uninstall from a retained upgrade/frozen QA device or a device
   holding user progress. Launch the exact installed Release package from a
   cold process. For a changed 3D activity, verify its real first rendered frame,

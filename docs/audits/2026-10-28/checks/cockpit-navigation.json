@@ -8,7 +8,7 @@
   "deliveredBuild": "69",
   "deliveredRuntime": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
   "nativeInstalledAcceptance": false,
-  "sourceFrozen": false,
+  "sourceFrozen": true,
   "physicalRaceEmissionEnabled": false,
   "scope": [
     "P10",
@@ -567,7 +567,7 @@
     "metric fleet unwired; no playable newphysicalcourses orghost",
     "canonical generated THREE.TSL shader-comment trailingwhitespace kept, generator freshness required"
   ],
-  "updatedAtUTC": "2026-10-28T16:40:53.831890+00:00",
+  "updatedAtUTC": "2026-10-28T16:46:40.176676+00:00",
   "productionChunks": {
     "fileCount": 111,
     "totalBytes": 6790155,
@@ -598,7 +598,7 @@
     "trainerLowerHelmCaptionNeedsReviewAtThatTime": true
   },
   "additionalOpenFindings": [
-    "native source day splash corrected; compiled appearance and cold-launch acceptance pending",
+    "compiled day splash color verified; actual launch-transition and complete native acceptance remain open",
     "native whole-app Light/Dark/Auto unavailable",
     "repeated setup choices remain original F06",
     "trainer course-assist versus race rudder defaults",
@@ -634,8 +634,10 @@
   },
   "releaseHeld": true,
   "releaseHoldReasons": [
-    "new exact source freeze, cloud rerun and native compiled/installed gates pending",
-    "25baff1 cloud90/94 remains rejected history; cloned upgrade comparisons are invalid unless ownership proven"
+    "ExactD8 nativeT05: nextBack after sail/Foundation practice returns into trainer; new contextual-return fix/package/installed acceptance required",
+    "Exact d8 cloud40728700280 failed92/94; clean27 limited path passed, remaining G2 includes previous-major/short/landscape/large-text and splash transition",
+    "Exact archive/IPA validation, Apple processing and independent Self/notes delivery have not been performed; no70upload",
+    "25baff1 cloud90/94 is retained rejected history; ownership-invalid clone observations cannot accept upgrade"
   ],
   "ownerManualRadio": {
     "status": "pending owner TestFlight walkthrough",
@@ -643,7 +645,7 @@
     "exception": "docs/audits/2026-10-27/release69-owner-beta.md",
     "doesNotWaiveOtherGates": true
   },
-  "activeCheckpoint": "caption-wrap-batch-followup-unfrozen",
+  "activeCheckpoint": "contextual-lesson-return-followup-uncommitted-D8-held",
   "retainedFirst94Proof": {
     "name": "cockpit-navigation-first94-held.json",
     "sha256": "cd21bab2ae16d660474fd00ea464a680950b37240b7f81948a49d0453260cf1f",
@@ -998,7 +1000,9 @@
       "actualUI": "en,3of3,cold1of8,nextlesson2",
       "bothContainersOwned": true,
       "oldKeysPreservedAfterCold": 6
-    }
+    },
+    "sourceCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
+    "evidenceScope": "Historical previous frozen25 checkpoint; use ownerReportNativeFollowup for d8 partial installed evidence"
   },
   "retained25baff1SourceFiles": [
     {
@@ -1132,13 +1136,13 @@
       "bytes": 13760
     }
   ],
-  "sourceCommitRole": "last frozen25baff1 only; current follow-up has uncommitted production changes",
-  "currentSourceCommit": null,
+  "sourceCommitRole": "top sourceCommit/baseCommit retain previous checkpoint history; currentFollowup is frozen d8dbca3 with clean production source",
+  "currentSourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
   "currentFollowup": {
     "recordedAtUTC": "2026-10-28T16:35:53.226645+00:00",
     "baseFrozenCommit": "25baff1f528557622d9a63e92c8eb5f1e0e1763f",
-    "sourceFrozen": false,
-    "nativePackageVerifiedForThisFollowup": false,
+    "sourceFrozen": true,
+    "nativePackageVerifiedForThisFollowup": true,
     "productionBuildId": "8NseqWISCbLglpTGyjrZw",
     "productionChunks": {
       "directory": ".next/static/chunks",
@@ -1292,7 +1296,439 @@
       "fileCount": 115,
       "totalBytes": 6816942,
       "note": "includes media/fonts outside the established chunks budget; not compared against that cap"
-    }
+    },
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "sourceFreezeRecord": {
+      "name": "native-release70-day-followup/source-freeze70.json",
+      "sha256": "a8093e416372b646092250e4af07d007e94e2739d0ffb0b0d843a84067eb47b6"
+    },
+    "generatedProject": {
+      "checks": 22,
+      "passed": true,
+      "name": "generated-verification70.json",
+      "sha256": "fbe089ccd656469bd7e69992499b517e4538ec12eb6992927901ca1e2aff82b6"
+    },
+    "nativeCompile": {
+      "session": 5087,
+      "status": "succeeded",
+      "actualPackageVerified": true,
+      "packageCheckCount": 43,
+      "packagePassCount": 43,
+      "packageVerification": {
+        "name": "simulator-verification70.json",
+        "bytes": 14102,
+        "sha256": "3bff8eea521a857235b78b24f2b4627d49ef419a96697aee6b89b0e626807008"
+      },
+      "frozenInventory": {
+        "name": "simulator-frozen70-inventory.json",
+        "bytes": 21852,
+        "sha256": "e9f50263ed51b35c2bd31dbf8b60f9a7aa78647e71aad73213f75c9cfe5518f0"
+      }
+    },
+    "cloudRuns": {
+      "predeploy": "40728700280",
+      "pushCI": "40728631299",
+      "prCI": "40728643633",
+      "allForCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+      "observedStatus": "completed",
+      "accepted": false,
+      "predeployConclusion": "failure",
+      "pushCIConclusion": "success",
+      "prCIConclusion": "success",
+      "analysis": {
+        "name": "cloud40728700280-analysis.json",
+        "bytes": 7688,
+        "sha256": "08a0536416c3bd8e3edd9898c2dc3a13dc10d4c547520affc3c96a845e64db6b"
+      },
+      "artifactId": 12836202433,
+      "artifactDigest": "sha256:83f0111ab07f4b324587653f15176609f6e691dbd622a431a93dbefe8f0b8fba",
+      "stats": {
+        "total": 94,
+        "expected": 92,
+        "unexpected": 2,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": false
+      },
+      "totalAttempts": 98,
+      "attemptStatuses": {
+        "passed": 92,
+        "timedOut": 6
+      },
+      "allMainOnlyJobsSkipped": true,
+      "remoteWrites": 0
+    },
+    "lastReconciledAtUTC": "2026-10-28T17:29:44.620535+00:00"
   },
-  "currentProductionMetadataScope": "currentFollowup; top productionBuildId/offlineVersions retain frozen25baff1 history"
+  "currentProductionMetadataScope": "currentFollowup; top productionBuildId/offlineVersions retain frozen25baff1 history",
+  "ownerReportNativeFollowup": {
+    "checkedAt": "2026-10-28T17:04:53.934427+00:00",
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "packageChecks": "43/43",
+    "installedFileMatches": 121,
+    "directUpgrade": "48->70; fresh iOS27 QA, no clone",
+    "oldKeysUnchangedBeforeLaunch": 6,
+    "homeLanguage": "en",
+    "foundation": "1/8",
+    "screenshots": [
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/18-native70-home.jpg",
+        "sha256": "3e72503d86b9fc268880b35e93720707a975881d7c14779ddc8be1b546cfe438",
+        "bytes": 291528,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/19-native70-trainer.jpg",
+        "sha256": "d63ae55344d6da94728fb5d8b8ce0460e2580496668096e80045ace6b459a406",
+        "bytes": 282099,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/20-native70-radio.jpg",
+        "sha256": "eabff8b70ef7f91607f520573a088f92eb53ec2a52a34d0cb32de35e3db7973c",
+        "bytes": 263236,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/21-native70-briefing.jpg",
+        "sha256": "2a3129344e67aa71154c992895d8002580e3ceff478384519ce900f7448934b1",
+        "bytes": 255325,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/22-native70-pro.jpg",
+        "sha256": "331c50208bd738c9300b0983ecda4e3d055bd0c04aae8f5fec2ef1fd1902442d",
+        "bytes": 277607,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/23-native70-orbit.jpg",
+        "sha256": "8f2488ed6c6affaf3db4fdf6865e4a906ef6c7d467719d50565954d6ebf3f78c",
+        "bytes": 290696,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/24-native70-jib.jpg",
+        "sha256": "4bbf6c35b5d05e7af27f2cb6bc0a82b68b5578a76efd0e013354eafb4cbbc883",
+        "bytes": 288687,
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "installed iOS27 Simulator; not TestFlight"
+      }
+    ],
+    "observed": [
+      "trainer day/3D/More/Back",
+      "radio entry/Exit",
+      "briefing visible Back/CTA",
+      "Pro real scene/clock/orbit/manual jib53->45",
+      "mini-map/course map/settings/Helm",
+      "Menu/Back to races/Home/cold relaunch"
+    ],
+    "g2Passed": false,
+    "testflight70Uploaded": false,
+    "radioManual": "owner-deferred live TestFlight",
+    "modeObservation": "Initial immediate native AX lagged; cold Pro and reverse Simple return matched. Persistent sync failure not established.",
+    "ownerReportSha256": "c890a26ae31d5d18913da5310ad79c47b35d7295381bb063cac65209bcc047de",
+    "afterColdOldKeysUnchanged": 6,
+    "allThreeNativeWheelInputsVerified": false,
+    "localObservedManualInput": "jib53%->45% only; all3controls visible",
+    "ownerReportSha256AtPriorSnapshot": "680a0dd0057235b91c7788d9e5b811507819dcef3d40cd3ff133ad11a5d17103"
+  },
+  "ownerReportCleanFollowup": {
+    "checkedAtUTC": "2026-10-28T17:29:44.620535+00:00",
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "freshDirectDevice": true,
+    "cloned": false,
+    "runtime": "iOS27.0",
+    "model": "iPhone18Pro",
+    "language": "pl",
+    "installedFileMatches": 121,
+    "bothContainersOwned": true,
+    "packageProof": {
+      "name": "clean27-package-beforefirstlaunch-private.json",
+      "bytes": 308,
+      "sha256": "03ba115db8fef6d7eb495a5adaec2fec09ccd4868aa4956c664dc2d192767c0a"
+    },
+    "deviceProof": {
+      "name": "clean27-device-private.json",
+      "bytes": 316,
+      "sha256": "64bc62c56efcd50c4be1c99fe0c52d48dcc1c56dfe03d01789b670363a8326ed"
+    },
+    "screenshots": [
+      {
+        "bytes": 286855,
+        "sha256": "8355676e0e1faa2c490ebeb9e8c13e12b891fd04add8e86cb931188b6776b06e",
+        "path": "docs/audits/2026-10-28/cockpit-screens/25-native70-clean-lesson.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "clean installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "bytes": 285679,
+        "sha256": "731bb28b1cab6985b527ba9244fe384ff1f322d7a686afcff4318d457b70e43c",
+        "path": "docs/audits/2026-10-28/cockpit-screens/26-native70-clean-resume.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "clean installed iOS27 Simulator; not TestFlight"
+      },
+      {
+        "bytes": 258251,
+        "sha256": "9a86eb5300e93501f2d44835be1d5def9cd5d0fbcc60f9475e099e775c158569",
+        "path": "docs/audits/2026-10-28/cockpit-screens/27-native70-clean-simple.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "surface": "clean installed iOS27 Simulator; not TestFlight"
+      }
+    ],
+    "observed": [
+      "first Foundation practice -> real3D -> course90to70 -> same practice",
+      "cold launch -> same lesson practice step3",
+      "Simple actual first frame and clock8.8to25.4",
+      "Simple rudder0to8/course45to50/TWA40to46",
+      "Simple Menu returns race selection"
+    ],
+    "skillPassedByOpening": false,
+    "g2Passed": false,
+    "allThreeProWheelInputsVerified": false,
+    "testflight70Uploaded": false,
+    "ownerReportSha256": "c890a26ae31d5d18913da5310ad79c47b35d7295381bb063cac65209bcc047de"
+  },
+  "currentOwnerReportScope": {
+    "recordedAtUTC": "2026-10-28T17:46:17.892878+00:00",
+    "requirements": 65,
+    "findings": 15,
+    "testflightFeedbackThemes": 11,
+    "nativeScreenshots": 13,
+    "reportSha256": "c890a26ae31d5d18913da5310ad79c47b35d7295381bb063cac65209bcc047de",
+    "historicalProof": "checks/completion-status.json is the unchanged12:19 snapshot, not the current report hash",
+    "runtimeEditsDuringThisReconciliation": false,
+    "deliveryChanged": false,
+    "g2Passed": false
+  },
+  "nativeBackLoopHold": {
+    "recordedAtUTC": "2026-10-28T17:46:17.892878+00:00",
+    "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "finding": "T05",
+    "g2Status": "rejected for contextual next-Back",
+    "observed": [
+      "sail lesson3 practice -> return to same step3 -> native Back reopens trainer",
+      "Foundation lesson1 practice -> return to step3 -> native Back reopens trainer"
+    ],
+    "coordinateVerification": true,
+    "storageLossNotEstablished": true,
+    "screenshots": [
+      {
+        "bytes": 258180,
+        "sha256": "c7b92bfa75727dfc5f0a2e59a335bf9e283576c9f62edc4ed4815efc84a3a377",
+        "path": "docs/audits/2026-10-28/cockpit-screens/28-native70-sail-before-back.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "meaning": "negative installed T05 evidence"
+      },
+      {
+        "bytes": 279239,
+        "sha256": "437cb5c9d749e50342d1fc59c3c14a30963da806a1bd82be1f8d46129bdfffba",
+        "path": "docs/audits/2026-10-28/cockpit-screens/29-native70-sail-back-loop.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "meaning": "negative installed T05 evidence"
+      },
+      {
+        "bytes": 280255,
+        "sha256": "fcc5e105c8bc3d8f76d4f58f0362f47e0c25a926dcf87064fac2d92efa9bcc32",
+        "path": "docs/audits/2026-10-28/cockpit-screens/30-native70-foundation-back-loop.jpg",
+        "inspected": true,
+        "sourceCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+        "meaning": "negative installed T05 evidence"
+      }
+    ],
+    "ownerGuard": {
+      "name": "ownership-clean27-after-backloop.json",
+      "bytes": 1234,
+      "sha256": "b50b4c119c81d5edb5b8b4caed3ef114c13a8effe78813ec1ab1221118353b4f"
+    },
+    "snapshot": {
+      "name": "clean27-after-backloop-storage-private.json",
+      "bytes": 1911,
+      "sha256": "4ccf962527deb6597ad6dc0c2ec0de57260177fd7111b5b66dcb6462cdadabc7"
+    },
+    "newFixInstalled": false,
+    "deliveryChanged": false
+  },
+  "localPassiveRingTargeted": {
+    "sourceScope": "uncommitted e2e observer against unchanged D8 web build; not cloud/native",
+    "report": {
+      "name": "two-cockpit-report.json",
+      "bytes": 111885,
+      "sha256": "247e16acafb7da94f76dfad49e777d94b6932615db3b0203447a9dd113c6b5ad"
+    },
+    "passed": 2,
+    "firstAttempt": true,
+    "durationMs": 169111.151,
+    "simpleMs": 76795,
+    "proMs": 91382,
+    "allInputsAssertionsViewportsDeadlinesPreserved": true,
+    "finalObservationsCaptured": 2,
+    "documentsPerObservation": 2,
+    "doesNotProvePreviousDelayCause": true
+  },
+  "contextualReturnSourceFollowup": {
+    "recordedAtUTC": "2026-10-28T17:56:00.472398+00:00",
+    "baseCommit": "d8dbca39a32a51fd2b4fd09b349587e59ca3ea4f",
+    "sourceFrozen": false,
+    "nativePackageBuilt": false,
+    "nativeAccepted": false,
+    "webTests": 1827,
+    "nativeTests": 613,
+    "nativeSuites": 82,
+    "targetedNativeTests": 41,
+    "targetedNativeSuites": 3,
+    "typesPassed": true,
+    "webLintErrors": 0,
+    "webLintPriorWarnings": 15,
+    "nativeLintErrors": 0,
+    "socketsPassed": true,
+    "sourceGenerationCurrent": true,
+    "contentAndOfflineCurrent": true,
+    "g1HeuristicFindings": {
+      "count": 12,
+      "sameAsD8ExceptTimestamp": true,
+      "missingTpArity": 0,
+      "missingLocaleOverlays": 0,
+      "qualified": "ExistingPL-onlySternik,placenames,countsymbol and scanner heuristic; not full natural-language acceptance"
+    },
+    "checks": {
+      "web-unit.log": {
+        "name": "web-unit.log",
+        "bytes": 17167,
+        "sha256": "97f5d10acf3ae76630aa7aa78510f983b53318252d00bbb7393be312e593405a",
+        "exitCode": 0
+      },
+      "web-build.log": {
+        "name": "web-build.log",
+        "bytes": 2149,
+        "sha256": "11044fdc34f7231f41e86961136b03120e0afb7b1b7ee91c422cfb1155aa355f",
+        "exitCode": 0
+      },
+      "native-unit.log": {
+        "name": "native-unit.log",
+        "bytes": 10391,
+        "sha256": "bb6037efcf2aeb0f39e1c32b13aac4e1751479064d4e5b305d5d009839b936bc",
+        "exitCode": 0
+      },
+      "native-types.log": {
+        "name": "native-types.log",
+        "bytes": 42,
+        "sha256": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+        "exitCode": 0
+      },
+      "native-lint.log": {
+        "name": "native-lint.log",
+        "bytes": 103,
+        "sha256": "fe6501c28c86b4ec1dc11a5e13ae456330adc62af2b5ac46f4b2c2ceaa636b94",
+        "exitCode": 0
+      },
+      "web-types.log": {
+        "name": "web-types.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exitCode": 0
+      },
+      "web-lint.log": {
+        "name": "web-lint.log",
+        "bytes": 3160,
+        "sha256": "5d192113edf7e73432906b654a30be8887a13f7fd8e29105b46e3d55fa63a3cc",
+        "exitCode": 0
+      }
+    },
+    "files": [
+      {
+        "name": "race-navigation.spec.ts",
+        "bytes": 63035,
+        "sha256": "c827bb6af1fbde87a7d6e0b48ea358d2262286e5dde46491a5a6a10dd6262974",
+        "path": "e2e/race-navigation.spec.ts"
+      },
+      {
+        "name": "race-host.test.tsx",
+        "bytes": 14325,
+        "sha256": "6521af4b9d96ce09a94345e67b5d66728210fbef929339903e1302b1a071a920",
+        "path": "mobile/__tests__/race-host.test.tsx"
+      },
+      {
+        "name": "sailing-course.test.tsx",
+        "bytes": 19053,
+        "sha256": "305c99255e7d101c3f94c4f8c00595213a8c13666fc61219eadf36215dd63b08",
+        "path": "mobile/__tests__/screens/sailing-course.test.tsx"
+      },
+      {
+        "name": "sim-webview.test.tsx",
+        "bytes": 21281,
+        "sha256": "ba8977c3fd480490b780fad8695a5a8b978a7fe3dc143a406dba3f6ea6887c13",
+        "path": "mobile/__tests__/sim-webview.test.tsx"
+      },
+      {
+        "name": "ReturnToLesson.tsx",
+        "bytes": 1003,
+        "sha256": "d125de73619225e8c7ea648b9883e9613c642f25c0ce87eee952401f27ac3df1",
+        "path": "mobile/src/bootcamp/ReturnToLesson.tsx"
+      },
+      {
+        "name": "SharedRaceHost.tsx",
+        "bytes": 11685,
+        "sha256": "b7a6bccbb629758c5449198240de554ae5c16f048cd6e9ed944e923ff51ac974",
+        "path": "mobile/src/game/SharedRaceHost.tsx"
+      },
+      {
+        "name": "SailingCourseScreen.tsx",
+        "bytes": 19578,
+        "sha256": "01a5744f31267ca3cf1e44e30e302bca6e2aa2cd28743d507668fe90e97d9b67",
+        "path": "mobile/src/sailing/SailingCourseScreen.tsx"
+      },
+      {
+        "name": "SimWebView.tsx",
+        "bytes": 26208,
+        "sha256": "5e66068563fb5fed23a230e1a71714276b1707b2bdbd52f7baa0485d4bf0e26b",
+        "path": "mobile/src/simulator/SimWebView.tsx"
+      }
+    ],
+    "build": {
+      "id": "nxugNMA4jmTyt34ewz_yq",
+      "chunkFiles": 111,
+      "bytes": 6790321,
+      "capBytes": 6815744,
+      "headroomBytes": 25423
+    },
+    "fullBrowserStatus": "passed-local",
+    "newPrivateGuardFixtures": 99,
+    "fullG2Passed": false,
+    "uploaded": false,
+    "fullBrowser": {
+      "name": "full94-local-report.json",
+      "sha256": "8c9697a0cb35fff41b024ccad730a1b9c67f8d4c4b1ec267396f4293f26961d6",
+      "stats": {
+        "startTime": "2026-10-28T17:48:31.412Z",
+        "duration": 620658.6830000001,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": 94,
+      "cases": 94,
+      "allFirstAttempt": true,
+      "cloudAccepted": false
+    }
+  }
 }

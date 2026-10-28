@@ -5,14 +5,24 @@ import { SimWebView } from "../src/simulator/SimWebView";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_CHANNEL, TRAINER_STORAGE_KEY } from "../../src/features/sailing-lab/runtime/storage-protocol";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
+import { CommonActions, StackActions, StackRouter } from "@react-navigation/routers";
+import { ActivityBack } from "../src/navigation/ActivityBack";
+import { FOUNDATION_POSITION_KEY, loadFoundationPositions, saveFoundationPosition } from "../src/bootcamp/lesson-position";
+import { loadLessonPositions, saveLessonPosition } from "../src/sailing/lesson-position";
+import { LESSON_POSITION_KEY } from "../../src/features/sailing-lab/lessons/lesson-position";
+import { SAIL_PROGRESS_KEY } from "../../src/features/sailing-lab/lessons/progress";
+import { PRACTICE_RESULTS_KEY } from "../../src/features/sailing-lab/lessons/practice-results";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 
 const mockNavigate = jest.fn();
+const mockDismissTo = jest.fn();
+const mockBack = jest.fn();
+let mockCanGoBack = () => true;
 const mockWebInstances: { injectJavaScript: jest.Mock }[] = [];
 jest.mock("expo-router", () => ({
   Stack: { Screen: ({ options }: { options?: { headerShown?: boolean; headerLeft?: () => React.ReactNode } }) => options?.headerShown === false ? null : options?.headerLeft?.() ?? null },
-  useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate, canGoBack: () => true, back: jest.fn() }),
+  useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate, dismissTo: mockDismissTo, canGoBack: mockCanGoBack, back: mockBack }),
   usePathname: () => "/simulator-v3",
 }));
 jest.mock("../src/i18n/context", () => ({
@@ -38,7 +48,7 @@ jest.mock("react-native-webview", () => {
   }) };
 });
 
-beforeEach(async () => { jest.useFakeTimers(); await nativeDiagnostics.clear(); jest.clearAllMocks(); mockWebInstances.length = 0; });
+beforeEach(async () => { jest.useFakeTimers(); await nativeDiagnostics.clear(); jest.clearAllMocks(); mockNavigate.mockReset(); mockDismissTo.mockReset(); mockBack.mockReset(); mockCanGoBack = () => true; mockWebInstances.length = 0; });
 afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
 
 it("binds a deferred local reply to its original WebView through Retry and disposal", () => {
@@ -94,11 +104,74 @@ it("returns to a known lesson and hides tier switching during lesson practice", 
   await act(async () => {});
   expect(view.queryByRole("tab", { name: "Basics" })).toBeNull();
   fireEvent.press(view.getByRole("button", { name: "Return to the lesson" }));
-  expect(mockNavigate).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
+  expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
   view.unmount();
   const invalid = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "https://example.com" }} />);
   expect(invalid.queryByRole("button", { name: "Return to the lesson" })).toBeNull();
   expect(invalid.getByRole("tab", { name: "Basics" })).toBeTruthy();
+});
+
+it.each(["sails", "foundation"] as const)("%s practice return removes the trainer before the next native Back without changing saved learning evidence", async kind => {
+  const outline = kind === "sails" ? "learn/sails/index" : "bootcamp/index";
+  const lessonRoute = kind === "sails" ? "learn/sails/[lesson]" : "bootcamp/[id]";
+  const id = kind === "sails" ? "mainsheet" : "wind-direction";
+  const params = kind === "sails" ? { lesson: id } : { id };
+  const target = { pathname: `/${lessonRoute}`, params };
+  const stack = StackRouter({ initialRouteName: outline });
+  // Match the installed root Stack: no getId or dangerouslySingular override.
+  const config = { routeNames: [outline, lessonRoute, "simulator-v3/index"], routeParamList: {}, routeGetIdList: {} };
+  let state = stack.getInitialState(config);
+  const dispatch = (action: Parameters<typeof stack.getStateForAction>[1]) => {
+    const next = stack.getStateForAction(state, action, config);
+    if (!next || next.stale !== false) throw new Error("Lesson stack action did not return a hydrated state");
+    state = next;
+  };
+  dispatch(StackActions.push(lessonRoute, params));
+  const originalLessonKey = state.routes[state.index].key;
+  dispatch(StackActions.push("simulator-v3/index", kind === "sails" ? { lesson: id } : { fromLesson: id }));
+  mockNavigate.mockImplementation(href => { expect(href).toEqual(target); dispatch(CommonActions.navigate(lessonRoute, params)); });
+  mockDismissTo.mockImplementation(href => { expect(href).toEqual(target); dispatch(StackActions.popTo(lessonRoute, params)); });
+  mockCanGoBack = () => state.index > 0;
+  mockBack.mockImplementation(() => dispatch(CommonActions.goBack()));
+  await saveLessonPosition("mainsheet", { step: "try", diagram: 1 });
+  await saveFoundationPosition("wind-direction", { step: "practice", diagram: 2 });
+  await AsyncStorage.multiSet([
+    [SAIL_PROGRESS_KEY, JSON.stringify({ version: 1, checked: ["rig-basics"], current: "mainsheet" })],
+    [PRACTICE_RESULTS_KEY, JSON.stringify({ version: 1, completed: { mainsheet: 123 } })],
+    ["regatta.bootcamp-quiz.v1", JSON.stringify({ "wind-direction": { score: 3, total: 3, answeredAt: 123 } })],
+  ]);
+  const keys = [LESSON_POSITION_KEY, FOUNDATION_POSITION_KEY, SAIL_PROGRESS_KEY, PRACTICE_RESULTS_KEY, "regatta.bootcamp-quiz.v1"];
+  const savedBefore = await AsyncStorage.multiGet(keys);
+  expect(savedBefore.every(([, value]) => value !== null)).toBe(true);
+  const practice = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer"
+    query={kind === "sails" ? { lesson: id } : { fromLesson: id }} />);
+  fireEvent.press(practice.getByRole("button", { name: kind === "sails" ? "Return to the lesson" : "Return to lesson" }));
+  expect(state.routes.map(route => route.name)).toEqual([outline, lessonRoute]);
+  expect(state.routes[state.index].key).toBe(originalLessonKey);
+  expect(state.routes[state.index].params).toEqual(params);
+  practice.unmount();
+  const lessonHeader = render(<ActivityBack fallback="/learn" />);
+  fireEvent.press(lessonHeader.getByRole("button", { name: "Back" }));
+  expect(state.routes.map(route => route.name)).toEqual([outline]);
+  expect(await AsyncStorage.multiGet(keys)).toEqual(savedBefore);
+  if (kind === "sails") expect((await loadLessonPositions()).lessons[id]).toEqual({ step: "try", diagram: 1 });
+  else expect((await loadFoundationPositions())[id]).toEqual({ step: "practice", diagram: 2 });
+});
+
+it("a standalone sail practice returns to its known lesson without leaving a trainer behind", () => {
+  const stack = StackRouter({ initialRouteName: "simulator-v3/index" });
+  const config = { routeNames: ["simulator-v3/index", "learn/sails/[lesson]"], routeParamList: {}, routeGetIdList: {} };
+  let state = stack.getInitialState(config);
+  mockDismissTo.mockImplementation(href => {
+    expect(href).toEqual({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
+    const next = stack.getStateForAction(state, StackActions.popTo("learn/sails/[lesson]", { lesson: "mainsheet" }), config);
+    if (!next || next.stale !== false) throw new Error("Standalone return did not return a hydrated state");
+    state = next;
+  });
+  const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "mainsheet" }} />);
+  fireEvent.press(view.getByRole("button", { name: "Return to the lesson" }));
+  expect(state.routes.map(route => route.name)).toEqual(["learn/sails/[lesson]"]);
+  expect(state.routes[0].params).toEqual({ lesson: "mainsheet" });
 });
 
 it("keeps the 3D loader until the yacht is ready, then cancels the watchdog", () => {

@@ -257,7 +257,7 @@ export function SimWebView({
     <AppSurface><Screen noTopInset={!fullScreen}>
       <Stack.Screen options={{ ...appStackOptions, title, headerShown: !fullScreen || loading || failed, headerBackVisible: false,
         headerLeft: () => returnLesson
-          ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
+          ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
           : isFoundationLesson(query?.fromLesson)
             ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
             : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />,
