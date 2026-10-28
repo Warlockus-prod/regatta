@@ -12,6 +12,25 @@ const ROUTES = [
   { path: "/simulator2?embed=1&lang=en", scene: "canvas", firstFrame: true },
 ];
 
+async function primaryCaptions(page: Page) {
+  return page.getByTestId("wheel-deck").evaluate(deck => {
+    const panel = deck.closest('[role="tabpanel"]')!;
+    const bounds = panel.getBoundingClientRect();
+    const inside = (r: DOMRect) => r.width > 0 && r.height > 0
+      && r.left >= Math.max(0, bounds.left) - 1 && r.top >= Math.max(0, bounds.top) - 1
+      && r.right <= Math.min(innerWidth, bounds.right) + 1 && r.bottom <= Math.min(innerHeight, bounds.bottom) + 1;
+    const wheels = Array.from(deck.querySelectorAll('[role="slider"]')).map(wheel => {
+      const caption = wheel.lastElementChild!;
+      const r = caption.getBoundingClientRect();
+      return { name: wheel.getAttribute("aria-label"), caption: caption.textContent?.trim(),
+        captionBounds: { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
+        insidePanel: inside(r), wheelInsidePanel: inside(wheel.getBoundingClientRect()) };
+    });
+    return { scrollTop: panel.scrollTop, count: wheels.length, wheels,
+      allVisibleTogether: wheels.length === 3 && wheels.every(wheel => wheel.insidePanel && wheel.wheelInsidePanel) };
+  });
+}
+
 async function sceneInView(page: Page, selector: string) {
   const box = await page.locator(selector).first().boundingBox();
   expect(box).not.toBeNull();
@@ -111,6 +130,8 @@ test("wheel mode: wheels and Diagnostics occupy the dock without an empty band",
   const utility = dockElement.locator("details").filter({ has: page.locator("summary", { hasText: /^Diagnostics$/ }) });
   const dock = (await dockElement.boundingBox())!;
   const deck = (await page.getByTestId("wheel-deck").boundingBox())!;
+  const hint = page.getByTestId("wheel-hint");
+  const hintBox = await hint.count() ? await hint.boundingBox() : null;
   const utilityBox = (await utility.boundingBox())!;
   const target = (await summary.boundingBox())!;
   const scene = (await page.getByTestId("trainer-scene").boundingBox())!;
@@ -118,7 +139,16 @@ test("wheel mode: wheels and Diagnostics occupy the dock without an empty band",
   expect(target.width).toBeGreaterThanOrEqual(44);
   expect(target.height).toBeGreaterThanOrEqual(44);
   expect(utilityBox.y).toBeGreaterThanOrEqual(deck.y + deck.height);
-  expect(utilityBox.y - (deck.y + deck.height)).toBeLessThan(24);
+  // The full, localized help note is occupied secondary content after the
+  // wheels. Measure empty space after it instead of misclassifying its text.
+  if (hintBox) {
+    await expect(hint).toHaveText(/\S/);
+    expect(hintBox.y).toBeGreaterThanOrEqual(deck.y + deck.height);
+    expect(hintBox.y - (deck.y + deck.height)).toBeLessThan(24);
+  }
+  const occupiedEnd = hintBox ? hintBox.y + hintBox.height : deck.y + deck.height;
+  expect(utilityBox.y).toBeGreaterThanOrEqual(occupiedEnd);
+  expect(utilityBox.y - occupiedEnd).toBeLessThan(24);
   expect(dock.y + dock.height - (utilityBox.y + utilityBox.height)).toBeLessThan(24);
   expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
   expect(utilityBox.y + utilityBox.height).toBeLessThanOrEqual(PHONE.height);
@@ -143,10 +173,57 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   const initial = (await scene.boundingBox())!;
   // The audited runtime provided only160px at these exact dimensions.
   expect(initial.height).toBeGreaterThanOrEqual(240);
+  // A visible wheel alone does not prove its name, value and steering meaning
+  // fit. Inspect the whole set before focus or scroll can conceal clipping.
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
   const bar = (await page.getByTestId("scene-bar").boundingBox())!;
   expect(bar.y + bar.height).toBeLessThanOrEqual(initial.y + 1);
   await expect(page.getByRole("button", { name: "Show tour", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Share", exact: true })).toHaveCount(0);
+  // Keep the same actual scene through rotation. The short web landscape
+  // previously left only122px for controls and cut every lower caption.
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready");
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
+  const landscape = (await scene.boundingBox())!;
+  const sideDock = (await page.getByTestId("control-dock").boundingBox())!;
+  expect(landscape.height).toBeGreaterThanOrEqual(150);
+  expect(landscape.y).toBeGreaterThanOrEqual(0);
+  expect(landscape.y + landscape.height).toBeLessThanOrEqual(390);
+  expect(sideDock.x).toBeGreaterThanOrEqual(landscape.x + landscape.width - 1);
+  for (const name of ["Helm", "Mainsheet", "Jib sheet"]) {
+    const wheel = page.getByRole("slider", { name, exact: true });
+    await expect(wheel).toHaveAccessibleName(name);
+    const box = (await wheel.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  const readouts = page.getByTestId("trainer-readouts");
+  await expect.poll(() => readouts.evaluate(element => element.scrollTop)).toBe(0);
+  const readings = await readouts.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    const metrics = element.firstElementChild!.getBoundingClientRect();
+    return { content: element.scrollHeight, height: element.clientHeight,
+      metricsInside: metrics.width > 0 && metrics.height > 0 && metrics.left >= Math.max(0, bounds.left) - 1
+        && metrics.top >= Math.max(0, bounds.top) - 1 && metrics.right <= Math.min(innerWidth, bounds.right) + 1
+        && metrics.bottom <= Math.min(innerHeight, bounds.bottom) + 1 };
+  });
+  expect(readings.metricsInside).toBe(true);
+  if (readings.content > readings.height + 1) {
+    await readouts.focus();
+    await expect(readouts).toBeFocused();
+    await readouts.press("End");
+    await expect.poll(() => readouts.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    await readouts.press("Home");
+    await expect.poll(() => readouts.evaluate(element => element.scrollTop)).toBe(0);
+  }
+  const helm = page.getByRole("slider", { name: "Helm", exact: true });
+  const before = await helm.getAttribute("aria-valuenow");
+  await helm.press("ArrowLeft");
+  await expect(helm).not.toHaveAttribute("aria-valuenow", before ?? "");
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
+  await page.setViewportSize({ width: 569, height: 750 });
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
   await page.getByRole("tab", { name: "More", exact: true }).click();
   const panel = page.getByRole("tabpanel");
   const lessons = panel.getByRole("link", { name: "Lessons", exact: true });
@@ -175,6 +252,7 @@ test("short portrait Trainer keeps wheel controls and Diagnostics reachable belo
   expect(scene.height).toBeGreaterThanOrEqual(150);
   const dock = (await page.getByTestId("control-dock").boundingBox())!;
   expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
   for (const name of ["Helm", "Mainsheet", "Jib sheet"]) {
     const wheel = page.getByRole("slider", { name, exact: true });
     await wheel.scrollIntoViewIfNeeded();

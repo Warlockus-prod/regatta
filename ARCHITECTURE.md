@@ -28,7 +28,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, публичная1.6.4(48), TestFlight1.7.0(68), sourcef7e7ed2/tag68. Independent23:23UTC Apple GET confirms exact Self VALID/IN_BETA_TESTING and8notes. P03 result/PB/Back checkpoint has qualified installed26.5/27 and fresh27 acceptance; physical emission/full65/public gates remain separate. Свой CI-джоб и гейт релиза.
+- Мобильное: Expo / React Native в `mobile/`. Подтвержденная поставка69/source2ea498b и текущий кандидат70 описаны в `docs/audits/2026-10-28/completion-status.md`; native/manual-radio/physical65/public gates остаются отдельными. Свой CI-джоб и гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -467,6 +467,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/data/sailing-lab/reef-lesson.ts` - урок "Рифление": когда (крен 25, руль 8), системы, порядок слэб-рифления, ошибки, которые рвут парус.
 - `src/data/sailing-lab/winch-lesson.ts` - урок 13 «Лебедка и стопор: путь нагрузки» (7 языков), практика на учебном стенде (`practice: "line-bench"`), добавлен в конец курса.
 - `src/data/sailing-lab/line-bench-copy.ts` - тексты стенда лебедки и стопора: действия, причины отказа, подсказки, 7 языков.
+- `src/data/sailing-lab/practice-copy.ts` - synchronous narrow return/save/status copy for practice consumers; original guideCopy keys retain identical localized objects.
+- `src/data/sailing-lab/assessment-entry-copy.ts` - synchronous title/intro/twist/depth copy used by course entry without importing the full assessment runtime labels.
 - `src/data/sailing-lab/lesson-guide.ts` - цели 13 уроков, результаты четырех модулей и подписи учебного пути на семи языках.
 - `src/data/sailing-lab/learning-path.ts` - шаги урока (разобраться, проверить, на лодке; шаги не засчитывают урок), модули программы курса парусов по порядку уроков, термины урока.
 - `src/data/sailing-lab/assessment-copy.ts` - тексты независимой проверки настройки в Тренажере (скрутка, глубина).
@@ -631,10 +633,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/trainer-controls/sound.ts` - щелчки штурвалов звуком (WebAudio, без файлов), только при включенном звуке.
 - `src/features/trainer-controls/labels.ts` - строки дока, штурвалов и настроек на 7 языках.
 - `src/features/trainer-controls/Wheel.tsx` - один штурвал: жест по кругу, клавиши, `role="slider"`.
-- `src/features/trainer-controls/WheelDeck.tsx` - режим штурвалов: руль по центру, стаксель-шкот и гика-шкот по бокам, обмен местами по нажатию.
+- `src/features/trainer-controls/WheelDeck.tsx` - общий руль/шкоты с50pxрезервом трехстрочной подписи, адаптивным нижним рулем от96px и шкотами64px; в нижнем доке помощь идет после основных controls, desktop column сохраняет ее внутри своей области.
 - `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
-- `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: строка над сценой, закрепленная сцена, показания, док; горизонталь: сцена слева, показания и док справа.
+- `src/features/trainer-controls/TrainerWorkspace.tsx` - закрепленная сцена, показания и док; в короткой горизонтали показания справа прокручиваются с клавиатуры, сохраняя место основным controls и лодке.
 - `src/features/venues/drawVenue.ts` - берег и острова акватории на canvas веб-гонки и мультиплеера (под трассой).
 - `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
 - `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
@@ -1289,13 +1291,13 @@ CoursePreview wind text suppresses the inherited arrow stroke.
 - `src/features/race-hud/RaceOverviewMap.test.tsx` - map labels, actual elements,
   shared-line deduplication and invalid snapshot fallback.
 - `src/features/race-hud/navigation-copy.ts` - all map/wind/style labels in
-  RU/EN/PL/ES/FR/DE/IT. True wind is geographic; air arrows use apparent wind.
-- `src/features/race-hud/RaceWindInstrument.tsx` - compact actual TWD/TWS,
-  north-up compass and detailed true/apparent readings; four visual aid choices.
+  RU/EN/PL/ES/FR/DE/IT: bow-relative true TWA, absolute TWD and distinct apparent air arrows.
+- `src/features/race-hud/RaceWindInstrument.tsx` - bow-up true-wind instrument,
+  signed-side TWA, separate absolute TWD/TWS and detailed apparent speed; all four saved visual aid choices retained.
 - `src/features/race-hud/RaceWindInstrument.module.css` - compact/detailed
   instruments,44px choices and wrapping unknown values on narrow screens.
-- `src/features/race-hud/RaceWindInstrument.test.tsx` - known/unknown readings
-  and complete exclusive four-way controls across all seven languages.
+- `src/features/race-hud/RaceWindInstrument.test.tsx` - bow/arrow/side/wrap/endpoints,
+  true/apparent separation, unknown readings and exclusive four-way controls across all seven languages.
 - `src/lib/race-visual-prefs.ts` - shared finite visual-assist schema with
   compass/arrows/both/off enum, default compass and legacy-safe sanitization.
 - `src/lib/race-visual-prefs.test.ts` - all valid enum values, unknown payloads
@@ -1529,9 +1531,15 @@ history. This boundary is not a new result class or physical writer.
   no raw native journal or personal data.
 - `docs/audits/2026-10-26/independent-product-screens/` - exact accepted PNGs
   captured in this audit, linked in journey order; no generated concept images.
-- `docs/audits/2026-10-28/completion-status.md` - current owner-facing full status: all65IDs, F01-F15, delivered69 versus theme/layout source, nine fresh web states, T04 briefing defect and ordered completion gates.
+- `docs/audits/2026-10-28/cockpit-navigation-harness.md` - ordered P10/T02/T04 source, smaller dock, phase focus/scroll, same-map retap, copy parity/budget and separate candidate70 native/release gates.
+- `docs/audits/2026-10-28/cockpit-screens/` - intermediate and inspected follow-up web screens plus exact first94gate IT/Simple/DE failure screenshots; observations stay separate from product acceptance.
+- `mobile/releases/testflight-1.7.0-70.json` - prepared eight-locale beta notes for day chrome/navigation/scene checkpoint; no delivery or public submission implied.
+- `docs/audits/2026-10-28/checks/cockpit-navigation.json` - exact source/check/artifact hashes, retained rejected regressions and qualified current candidate70 evidence.
+- `docs/audits/2026-10-28/completion-status.md` - current owner-facing full status: all65IDs/F01-F15/feedback, delivered69 versus candidate70 source, five inspected follow-up states, remaining helm/rig/setup/theme gaps and ordered completion gates.
 - `docs/audits/2026-10-28/checks/completion-status.json` - bounded source/screen hashes, check results, exact environment, inherited delivery refs and explicit untested native limits.
-- `docs/audits/2026-10-28/review-screens/` - nine unedited inspected current production-web JPEGs; screenshot07 preserves the actual product clipping, not an artificial crop.
+- `docs/audits/2026-10-28/testflight-feedback-review.md` - actual read-only Apple feedback reconciliation: all11 submissions, chronological builds, qualified text/image scope and remaining radio/relative-wind findings.
+- `docs/audits/2026-10-28/checks/testflight-feedback-review.json` - sanitized feedback evidence and private artifact digests; no tester data, image URLs or user screenshots.
+- `docs/audits/2026-10-28/review-screens/` - nine retained baseline29aa production-web JPEGs; screenshot07 preserves actual T04 clipping before the later source correction.
 - `docs/audits/2026-10-27/completion-reconciliation.md` - owner-facing reconciliation of all65requirements, F01-F15 and delivered69, with reopened cross-surface theme consistency and proposed ordered checkpoints. Source-only physical preparation is not presented as live racing.
 - `docs/audits/2026-10-27/checks/completion-reconciliation.json` - audited refs, eight fresh local web JPEG hashes, theme/canvas/orbit observations and explicit limits; no installed-native acceptance or private journals.
 - `docs/audits/2026-10-27/completion-review-screens/` - eight unedited, inspected screenshots of Light Home/Practice, forced-dark Trainer, Pro briefing/running/Pause/Orbit and OFF radio free entry.

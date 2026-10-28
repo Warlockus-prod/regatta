@@ -1,0 +1,839 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-10-28T15:20:54.650257+00:00",
+  "baseCommit": "29aaaf1571fe5abbc0a28c8aa6236009d2b1b1ce",
+  "candidateVersion": "1.7.0",
+  "candidateBuild": "70",
+  "candidateDelivered": false,
+  "deliveredBuild": "69",
+  "deliveredRuntime": "2ea498bc0fdd975e73d7aa1c393705d550ee7915",
+  "nativeInstalledAcceptance": false,
+  "sourceFrozen": false,
+  "physicalRaceEmissionEnabled": false,
+  "scope": [
+    "P10",
+    "T01",
+    "T02",
+    "T04",
+    "F06",
+    "F12",
+    "F15"
+  ],
+  "retainedRejectedChecks": [
+    {
+      "name": "briefing-before-report.json",
+      "sha256": "0ae4187a2db1c0631c7628d62a829711c07471b6d5bccc6534434ddd085443bc",
+      "stats": {
+        "startTime": "2026-10-28T12:33:27.427Z",
+        "duration": 10682.822999999999,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "qualifiedMeaning": "actual29aa T04redgeometry"
+    },
+    {
+      "name": "cockpit-targeted-browser-report.json",
+      "sha256": "d0e5f8f3997182375afd775bc580e6527a00793549f1c3e026e213980b4944b0",
+      "stats": {
+        "startTime": "2026-10-28T12:39:12.350Z",
+        "duration": 144861.40399999998,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      },
+      "qualifiedMeaning": "first redgeometry; subsequent3fail; then4pass stillinsufficient forsimultaneousprimarycaptions"
+    },
+    {
+      "name": "cockpit-targeted-final-report.json",
+      "sha256": "1f7fd21cc1cd020398a485a4d042b7f24786367d7a29768d0334942253a80467",
+      "stats": {
+        "startTime": "2026-10-28T12:49:31.408Z",
+        "duration": 160948.237,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "qualifiedMeaning": "first redgeometry; subsequent3fail; then4pass stillinsufficient forsimultaneousprimarycaptions"
+    }
+  ],
+  "copyParity": {
+    "labelObjects": 54,
+    "localeValues": 378,
+    "sha256": "373ac2b4d74288bc99a43fad83a91337d254d1324ed8a7710e6b34a8eacccb1f",
+    "unchanged": true,
+    "synchronous": true
+  },
+  "checks": {
+    "webUnit": {
+      "passed": 1827,
+      "files": 175,
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-web-unit.log",
+        "sha256": "17866c4e722bc54750b7da0072a330f445dea06a68b5b1abe4128012fba929d0",
+        "bytes": 17712
+      }
+    },
+    "nativeUnit": {
+      "passed": 608,
+      "suites": 82,
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-native-unit.log",
+        "sha256": "c71b899f7259f38de941912936fac4a37d5621b961d086b88f210f0e3af398d3",
+        "bytes": 10376
+      }
+    },
+    "primaryFullWeb": {
+      "passed": 1818,
+      "files": 175,
+      "log": {
+        "path": "cockpit-primary-web-full.log",
+        "sha256": "93e0c63c4b8fa9821b8bb7f212feb7fc4d89982e33411f6add7cce8a8a835f3f",
+        "bytes": 16083
+      }
+    },
+    "primaryFullNative": {
+      "passed": 608,
+      "suites": 82,
+      "log": {
+        "path": "cockpit-primary-native-full.log",
+        "sha256": "c4e6f8f46c052329f69e58ffcb661af9e25eed4150a41fc2f9d0a65c1ef6ba46",
+        "bytes": 10374
+      }
+    },
+    "primaryTargetedBrowser": {
+      "path": "cockpit-primary-targeted-report.json",
+      "sha256": "fe1325c2a0c76515861343145ca6642fb28331481976cb91c400af7f98c06733",
+      "bytes": 23586,
+      "stats": {
+        "startTime": "2026-10-28T13:08:55.457Z",
+        "duration": 166636.199,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0
+    },
+    "combinedProductionBrowser": {
+      "status": "passed",
+      "name": "caption-wind-full94.json",
+      "sha256": "7306679717b5b5a6ec6cbfd6e396b567066615a44c1ea8f05860838d71666b23",
+      "exitCode": 0,
+      "expectedCases": 94,
+      "files": 8,
+      "workers": 1,
+      "target": "http://localhost:3331",
+      "stats": {
+        "startTime": "2026-10-28T14:55:35.614Z",
+        "duration": 638474.012,
+        "expected": 94,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0,
+      "acceptsCandidateForReleaseByItself": false,
+      "deadlineIncreased": false,
+      "assertionsRemoved": false
+    },
+    "i18n": {
+      "baselineFindings": 12,
+      "newMissingOrEmpty": 0,
+      "localeCopyUnchanged": true,
+      "localeCopyUnchangedScope": "54 extracted copy objects/378 values only; new bow-relative wind copy independently adapted in seven locales"
+    },
+    "verifierUnit": {
+      "passed": 27,
+      "packageVerified": false,
+      "scope": "Simulator70 verifier unit cases only"
+    },
+    "sourceAndDeviceGatesSeparate": true,
+    "briefingSvgBrowser": {
+      "path": "cockpit-chart-briefing-report.json",
+      "sha256": "12237633491472d5373b3cefc6a45d364280d018a523f702db779b5184930a65",
+      "bytes": 3799,
+      "stats": {
+        "startTime": "2026-10-28T13:33:29.395Z",
+        "duration": 4115.588000000001,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0
+    },
+    "contrastBrowser": {
+      "path": "cockpit-contrast-report.json",
+      "sha256": "9fe1cc39fc6e8cba0af76c8fbc55db7c601882fa371338cc9ff222325ccb0b49",
+      "bytes": 2708,
+      "stats": {
+        "startTime": "2026-10-28T13:15:46.730Z",
+        "duration": 2368.984,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "topLevelErrors": 0
+    },
+    "readonlyGeneratedChecks": [
+      {
+        "label": "radio",
+        "command": [
+          "node",
+          "mobile/scripts/build-radio-offline.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:44.315694+00:00",
+        "completedAtUTC": "2026-10-28T13:51:44.970211+00:00",
+        "exitCode": 0,
+        "stdout": "[radio-offline] asset is current (636b981087ba, 6154 KiB)\n",
+        "stderr": ""
+      },
+      {
+        "label": "sailing",
+        "command": [
+          "node",
+          "mobile/scripts/build-sailing-offline.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:44.970237+00:00",
+        "completedAtUTC": "2026-10-28T13:51:45.977449+00:00",
+        "exitCode": 0,
+        "stdout": "Verified offline sailing: 6.27 MiB, fc5f368cb9ef, 236 source files\n",
+        "stderr": ""
+      },
+      {
+        "label": "sternik",
+        "command": [
+          "node",
+          "mobile/scripts/build-sternik-offline.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:45.977487+00:00",
+        "completedAtUTC": "2026-10-28T13:51:46.235778+00:00",
+        "exitCode": 0,
+        "stdout": "Verified offline Sternik: 2.46 MiB, cdef6534874d, 49 source files\n",
+        "stderr": ""
+      },
+      {
+        "label": "server",
+        "command": [
+          "node",
+          "scripts/build-race-server.mjs",
+          "--check"
+        ],
+        "startedAtUTC": "2026-10-28T13:51:46.235814+00:00",
+        "completedAtUTC": "2026-10-28T13:51:46.306006+00:00",
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "readonlySourceProof": {
+      "path": "readonly-source-proof-20261028T135144161797Z.json",
+      "sha256": "bb39edd46893ae5259de7fb3b986e17d720aaea940de5a164fab83e7c5d602a1",
+      "bytes": 23076,
+      "readAtUTC": "2026-10-28T13:51:46.320946+00:00"
+    },
+    "rootTypecheck": {
+      "exitCode": 0,
+      "log": "review-final-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "finalAssetTests": {
+      "passed": 9,
+      "suites": 3,
+      "exitCode": 0,
+      "name": "review-final-assets.log",
+      "sha256": "095a3e703994579fcf08f7fb5f00aebc8c4da9fdfde6b29249a0c7c251670194"
+    },
+    "map": {
+      "passed": true,
+      "atCurrentWorkingTreeBeforeStaging": true
+    },
+    "dash": {
+      "passed": true,
+      "scope": "whole repository"
+    },
+    "latestReadonlyGeneratedChecks": {
+      "readAtUTC": "2026-10-28T15:20:55.603612+00:00",
+      "checks": [
+        {
+          "label": "radio",
+          "command": [
+            "node",
+            "mobile/scripts/build-radio-offline.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "[radio-offline] asset is current (636b981087ba, 6154 KiB)\n",
+          "stderr": ""
+        },
+        {
+          "label": "sailing",
+          "command": [
+            "node",
+            "mobile/scripts/build-sailing-offline.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "Verified offline sailing: 6.28 MiB, 32ee4c0fea92, 236 source files\n",
+          "stderr": ""
+        },
+        {
+          "label": "sternik",
+          "command": [
+            "node",
+            "mobile/scripts/build-sternik-offline.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "Verified offline Sternik: 2.46 MiB, cdef6534874d, 49 source files\n",
+          "stderr": ""
+        },
+        {
+          "label": "server",
+          "command": [
+            "node",
+            "scripts/build-race-server.mjs",
+            "--check"
+          ],
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    "readonlyGeneratedChecksHistorical": true
+  },
+  "applePreflight": {
+    "readAtUTC": "2026-10-28T12:41:43.898Z",
+    "iosTrainBuilds": 23,
+    "maxBuild": 69,
+    "exact70Matches": 0,
+    "remoteWrites": 0,
+    "reserved": false,
+    "publicVersion": "1.6.4",
+    "publicBuild": "48",
+    "publicState": "READY_FOR_SALE",
+    "version170State": "PREPARE_FOR_SUBMISSION"
+  },
+  "nativePlan": {
+    "runtime27": "27.0 24A434",
+    "runtime26": "26.5 23F77",
+    "xcode": "27.1 27A9275",
+    "sdk": "27.1 24A94232",
+    "originalQAPreserved": true,
+    "ownerRadioManualAcceptance": "pending TestFlight",
+    "expectedPackageChecks": 43,
+    "packageChecksNotYetRun": true
+  },
+  "sourceFiles": [
+    {
+      "path": "e2e/race-navigation.spec.ts",
+      "sha256": "c1e457f4ebd8d02e70e2bb0ac019d0125231ef107fede7ebea55448db29a5b5b",
+      "bytes": 51506
+    },
+    {
+      "path": "e2e/smoke.spec.ts",
+      "sha256": "96913fd9267594a211d29cd563ddbbcfa958c0a7b2e18668ceeea74ca667068f",
+      "bytes": 34292
+    },
+    {
+      "path": "e2e/trainer-controls.spec.ts",
+      "sha256": "d8cf8e9c2c843c6ce4efb2d50fae4854788c516a81e8e6e8aa45c336c3dceb8d",
+      "bytes": 15748
+    },
+    {
+      "path": "mobile/__tests__/app-surface.test.tsx",
+      "sha256": "2d98078a79e0b51b118c07eed8be70677e0a67606846c0c4157d460bcc2963b8",
+      "bytes": 3741
+    },
+    {
+      "path": "mobile/app.json",
+      "sha256": "ee8e83e701015eaa84b3259237e13fad55c7eda01ec71f878c5e9ed68b6f820b",
+      "bytes": 6195
+    },
+    {
+      "path": "mobile/assets/sailing-offline.html",
+      "sha256": "a2ee7a757c52f21f097e6c2163d094874f7da312039cb2533765bd801570a69f",
+      "bytes": 6580023
+    },
+    {
+      "path": "mobile/assets/sailing-offline.manifest.json",
+      "sha256": "b494bd8381975682166de20ce6f679dfdb74c978cd4b50820e70d344994f5611",
+      "bytes": 87657
+    },
+    {
+      "path": "src/app/game/GameClient.tsx",
+      "sha256": "a66886dcf53316883e3c9348a9d2728efb4d2223e99c4ef6c05496685094a64c",
+      "bytes": 119142
+    },
+    {
+      "path": "src/app/game/GameMenu.tsx",
+      "sha256": "b883bce32e0ca84956eac95d5cbec34eef2482adf969db281fe87c1bcb87d0e7",
+      "bytes": 23234
+    },
+    {
+      "path": "src/app/game/RaceCockpit.module.css",
+      "sha256": "959d96316c8dd0abe1532a84beef152f9eab91bac747a86cfd9bf2187d30a211",
+      "bytes": 7990
+    },
+    {
+      "path": "src/app/game/RaceCockpit.tsx",
+      "sha256": "1abf3e7cb7e6a58fb5bf67ed5f48cc4b7543f09bc325aa99bf29da0181b53813",
+      "bytes": 12263
+    },
+    {
+      "path": "src/app/multiplayer/MultiplayerCockpit.tsx",
+      "sha256": "acd63528b9e3c25b290113d0104e2fbfdeb1310263051ef1894c8bcfa20541ed",
+      "bytes": 11074
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-copy.ts",
+      "sha256": "ef1422e87c22c9b6db8262e8c797a586767481d1ad2dab15570a19c527033c78",
+      "bytes": 11621
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-entry-copy.ts",
+      "sha256": "3f46a1d4e3219c5fc1b8df4bfcdc2fc4897b275b67ec35f884d01fbf40c3f1fe",
+      "bytes": 2497
+    },
+    {
+      "path": "src/data/sailing-lab/lesson-guide.ts",
+      "sha256": "a86890b33444f2546fc165e5a4b3550505b6463b6d704dec62265257e1e6bae2",
+      "bytes": 10929
+    },
+    {
+      "path": "src/data/sailing-lab/practice-copy.ts",
+      "sha256": "7da8cfb9c25a152573deae11452c271ac2beabbdf0be706d88df9ca5d67e25bb",
+      "bytes": 1714
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.module.css",
+      "sha256": "d706b30b845f99c57345f2338935b3d6a60bc6896cfc5b3d533a6b618fb54723",
+      "bytes": 1834
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.test.tsx",
+      "sha256": "9dae7f665a46947e805d033578dabe4a42fd4589d188cc6b17b6a12a0892e775",
+      "bytes": 6956
+    },
+    {
+      "path": "src/features/race-hud/RaceWindInstrument.tsx",
+      "sha256": "02cb5a675319d4f8bf8a6f26d307e312cf44b068638e98ee36748f060dd56b9e",
+      "bytes": 4196
+    },
+    {
+      "path": "src/features/race-hud/navigation-copy.ts",
+      "sha256": "573c7d48a41c30eb57d8d140f6405e21e745301bbd8c7b43e3a6d1044a843044",
+      "bytes": 6485
+    },
+    {
+      "path": "src/features/sailing-lab/ui/LessonReturn.tsx",
+      "sha256": "a89f733706667f4be0937478c9b746efcde861ec7e9bd69c787af47f8f6468c3",
+      "bytes": 1040
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SailingCourse.tsx",
+      "sha256": "fe0c0ebbc5753e3ac2566e0dc75e201fd0fb60cc4341be13db10468af31f540f",
+      "bytes": 14053
+    },
+    {
+      "path": "src/features/sailing-lab/ui/SavePractice.tsx",
+      "sha256": "0dd4ec1649d4adad5474613b4c946d38d9d54a70ed40654a9f4841a285de8b98",
+      "bytes": 1316
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerControls.module.css",
+      "sha256": "b922b4c9a355d741a0909fb44bf9f8fb3f455c78972c5fb129b06ffb3c968d92",
+      "bytes": 14995
+    },
+    {
+      "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
+      "sha256": "d01e974350a198005a679ce05d8d4aa17dfd2b6fb9d59c0806888940da6f020b",
+      "bytes": 2506
+    },
+    {
+      "path": "src/features/trainer-controls/WheelDeck.tsx",
+      "sha256": "be1edf9e2327444cb359685041338d1260141c7ec81dcbf41d301a5bd1703b94",
+      "bytes": 13760
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/05-briefing-accepted.jpg",
+      "sha256": "7e6de154a2a72f403ebd89363dbeeaa68b05368c55a93a50e08ace6af385faff",
+      "bytes": 30979,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/06-pro-accepted.jpg",
+      "sha256": "9ae302c01c4d413d272366ea807e3e649896bd3ae11eee7108f39bacf4e35e45",
+      "bytes": 49710,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/07-home-current.jpg",
+      "sha256": "c46ee81374ce69e6275076977b53afad6fcec16109d6ed77f288cdf2adbe9761",
+      "bytes": 51674,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/08-trainer-current.jpg",
+      "sha256": "89d5126c1682ad5c69da12be5786148962d944edcecb6472c1ff7ebdf94fecc8",
+      "bytes": 50441,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/09-radio-current.jpg",
+      "sha256": "75af756e7453ee4f16d5493f8d214913e0d0dfa437b1a5d06f9983859867c48e",
+      "bytes": 39539,
+      "acceptedAs": "observed web state, not full product acceptance"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/10-it-short-failure.png",
+      "sha256": "0f8389d36e2eebe542c6e55e039550fef5e12adc7f478b4819b5eec27dd5063a",
+      "bytes": 100986,
+      "acceptedAs": "unmodified inspected failure evidence; product acceptance failed"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/11-simple-deadline.png",
+      "sha256": "614e4cee0d6308b2f38db72fd1567339786dd25d369e07f0496793cb36bf8d68",
+      "bytes": 195911,
+      "acceptedAs": "unmodified inspected failure evidence; product acceptance failed"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/12-de-selector.png",
+      "sha256": "d9b77877f087c06f40e92677413434c74abd84c9cc35ff90886aeae04a0bdfb6",
+      "bytes": 33216,
+      "acceptedAs": "unmodified inspected failure evidence; product acceptance failed"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/15-trainer-caption-final.jpg",
+      "sha256": "44a6d45752b428ee93f099241b93d017726d0c5fdb63caf9e397da699c8de63a",
+      "bytes": 47937,
+      "acceptedAs": "current inspected local web frame; native acceptance remains separate"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/16-trainer-landscape-final.jpg",
+      "sha256": "db0774b905bbc50d7d38c62221aa62610fee45f0a2af2bb348fda7a0ad29143b",
+      "bytes": 40202,
+      "acceptedAs": "current inspected local web frame; native acceptance remains separate"
+    },
+    {
+      "path": "docs/audits/2026-10-28/cockpit-screens/17-it-short-pro-wind-final.jpg",
+      "sha256": "91c49ed5526288a91ead3024a83890ddacc71f9e159dcd41859640cdf6b497ec",
+      "bytes": 29759,
+      "acceptedAs": "current inspected local web frame; native acceptance remains separate"
+    }
+  ],
+  "limitations": [
+    "no current physical iPhone acceptance",
+    "no new binary installed acceptance",
+    "not full accessibility or language QA",
+    "metric fleet unwired; no playable newphysicalcourses orghost",
+    "canonical generated THREE.TSL shader-comment trailingwhitespace kept, generator freshness required"
+  ],
+  "updatedAtUTC": "2026-10-28T15:21:09.583410+00:00",
+  "productionChunks": {
+    "fileCount": 111,
+    "totalBytes": 6790155,
+    "capBytes": 6815744,
+    "headroomBytes": 25589,
+    "allRegularFilesNotOnlyJS": true
+  },
+  "productionBuildId": "Mq-fQfw5QtiSrnfOrjMIv",
+  "offlineVersions": {
+    "radio": "636b981087ba",
+    "sailing": "32ee4c0fea92",
+    "sternik": "cdef6534874d"
+  },
+  "freshVisualObservations": {
+    "viewport": [
+      569,
+      750
+    ],
+    "language": "ru",
+    "theme": "light",
+    "raceSceneHeightPx": 250.21875,
+    "trainerSceneHeightPx": 248.40625,
+    "raceObservedClock": "0:00.7",
+    "radioPower": "off",
+    "microphoneTested": false,
+    "briefingBackVisible": true,
+    "scope": "earlier five-frame source review before caption/wind follow-up; retained as dated observations",
+    "trainerLowerHelmCaptionNeedsReviewAtThatTime": true
+  },
+  "additionalOpenFindings": [
+    "native source day splash corrected; compiled appearance and cold-launch acceptance pending",
+    "native whole-app Light/Dark/Auto unavailable",
+    "repeated setup choices remain original F06",
+    "trainer course-assist versus race rudder defaults",
+    "trainer stepWithRig versus race tick rig gap"
+  ],
+  "reportCoverage": {
+    "requirements": 65,
+    "uniqueRequirements": 65,
+    "sameIdsAs68": true,
+    "findingIds": [
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F05",
+      "F06",
+      "F07",
+      "F08",
+      "F09",
+      "F10",
+      "F11",
+      "F12",
+      "F13",
+      "F14",
+      "F15"
+    ],
+    "independentReviewSlices": [
+      "native/release/offline/radio",
+      "engines/product/strategy",
+      "65-ID/design/feedback"
+    ],
+    "runtimeChangedDuringFollowupReview": false
+  },
+  "releaseHeld": true,
+  "releaseHoldReasons": [
+    "exact native70 compile/package/install/upgrade/visual gates not run"
+  ],
+  "ownerManualRadio": {
+    "status": "pending owner TestFlight walkthrough",
+    "blocksThisBetaByItself": false,
+    "exception": "docs/audits/2026-10-27/release69-owner-beta.md",
+    "doesNotWaiveOtherGates": true
+  },
+  "activeCheckpoint": "caption-wind-followup",
+  "retainedFirst94Proof": {
+    "name": "cockpit-navigation-first94-held.json",
+    "sha256": "cd21bab2ae16d660474fd00ea464a680950b37240b7f81948a49d0453260cf1f",
+    "bytes": 17860
+  },
+  "lastCompleteProductionBrowser": {
+    "status": "passed",
+    "name": "caption-wind-full94.json",
+    "sha256": "7306679717b5b5a6ec6cbfd6e396b567066615a44c1ea8f05860838d71666b23",
+    "exitCode": 0,
+    "expectedCases": 94,
+    "files": 8,
+    "workers": 1,
+    "target": "http://localhost:3331",
+    "stats": {
+      "startTime": "2026-10-28T14:55:35.614Z",
+      "duration": 638474.012,
+      "expected": 94,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "topLevelErrors": 0,
+    "acceptsCandidateForReleaseByItself": false,
+    "deadlineIncreased": false,
+    "assertionsRemoved": false,
+    "bytes": 1109470
+  },
+  "captionWindFollowup": {
+    "atUTC": "2026-10-28T15:03:02.911362+00:00",
+    "firstTargeted": {
+      "name": "caption-followup-targeted.json",
+      "sha256": "c5efa73495982938b9ecf72ac2b15525886b9671833160c79815e3d4f5d3bd65",
+      "bytes": 269350,
+      "stats": {
+        "startTime": "2026-10-28T14:14:31.325Z",
+        "duration": 308130.256,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "errors": 0
+    },
+    "currentTargeted": {
+      "name": "caption-wind-targeted.json",
+      "sha256": "d2cd55f3961342169f0fd2a8f6f8b4bb1dae3183da2f39303b0fb88739e32ee0",
+      "bytes": 38824,
+      "stats": {
+        "startTime": "2026-10-28T14:51:33.120Z",
+        "duration": 87698.371,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": 0
+    },
+    "changes": [
+      "50px shared three-line helm caption reserve",
+      "intrinsic translated race dock floor",
+      "adaptive trainer primary row before secondary help",
+      "short landscape primary row and keyboard-scroll readouts",
+      "day splash source and explicit compiled-color verifier",
+      "bow-up true TWA with separate absolute TWD and unchanged apparent airflow"
+    ],
+    "currentSourceFrozen": false,
+    "candidateInstalled": false,
+    "ownerRadioAccepted": false,
+    "nativeSimulatorVerifierUnit": {
+      "passed": 27,
+      "expectedCandidatePackageChecks": 43,
+      "candidatePackageChecksPassed": false
+    },
+    "web-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-web-types.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "native-types": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-native-types.log",
+        "sha256": "6a5365a7bb40c3ca387f36db78409447c32d44f69ec1737ce498eae83f040589",
+        "bytes": 42
+      }
+    },
+    "native-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-native-lint.log",
+        "sha256": "fe6501c28c86b4ec1dc11a5e13ae456330adc62af2b5ac46f4b2c2ceaa636b94",
+        "bytes": 103
+      }
+    },
+    "web-lint": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-web-lint.log",
+        "sha256": "5d192113edf7e73432906b654a30be8887a13f7fd8e29105b46e3d55fa63a3cc",
+        "bytes": 3160
+      }
+    },
+    "multiplayer": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-multiplayer.log",
+        "sha256": "a89450d6a11129150639530d7380f08ae869061d7699e98bc2ca8b07af2e8abd",
+        "bytes": 454
+      }
+    },
+    "content": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-content.log",
+        "sha256": "6d2f34d6f0cf799034ef18754b719d2fa639590864fd194978803aa01d597446",
+        "bytes": 115
+      }
+    },
+    "i18n": {
+      "exitCode": 0,
+      "log": {
+        "name": "caption-wind-i18n.log",
+        "sha256": "97cd126bc9f16c80355c677350657ab5e86e004003d3fd00a8bce5e5d4a1211b",
+        "bytes": 181
+      }
+    },
+    "sourceGatesPassed": true,
+    "simpleFullJourneyMs": 75925,
+    "proFullJourneyMs": 93596,
+    "landscapeHelmReturnMs": {
+      "simple": 700,
+      "pro": 691
+    },
+    "priorTimeoutSoleCause": "unproven; old failed report retained",
+    "freshProObservation": {
+      "language": "it",
+      "viewport": [
+        320,
+        568
+      ],
+      "startup": "ready",
+      "clock": "0:05.8",
+      "trueAngle": "41°",
+      "absoluteFrom": "4°",
+      "screenshot": "17-it-short-pro-wind-final.jpg"
+    }
+  },
+  "retainedFirst94Browser": {
+    "name": "cockpit-full-browser-first94-red.json",
+    "sha256": "dc90f906b7c6fbdc08a7d9564c9ebe635da8584aa3b2dd0f4875f75a6346d46d",
+    "bytes": 897223,
+    "status": "failed",
+    "exitCode": 1,
+    "expectedCases": 94,
+    "files": 8,
+    "workers": 1,
+    "target": "http://localhost:3331",
+    "stats": {
+      "startTime": "2026-10-28T13:49:12.309Z",
+      "duration": 721445.428,
+      "expected": 91,
+      "skipped": 0,
+      "unexpected": 3,
+      "flaky": 0
+    },
+    "topLevelErrors": 0,
+    "runtimeAssertionsRelaxed": false,
+    "deadlineIncreased": false,
+    "acceptsCandidateForRelease": false,
+    "failureClassification": [
+      {
+        "case": "IT short Pro",
+        "viewport": [
+          320,
+          568
+        ],
+        "type": "product geometry",
+        "observed": "three-line map tab; helm third caption pala clipped; 3 wheels exist; scrollTop 0",
+        "exactOverflowPx": "not recorded"
+      },
+      {
+        "case": "DE short Pro",
+        "viewport": [
+          320,
+          568
+        ],
+        "type": "test selector ambiguity",
+        "observed": "preset and CTA both match /^Erstes Rennen/; Pro flow not reached"
+      },
+      {
+        "case": "Simple controls/utilities",
+        "viewport": [
+          844,
+          390
+        ],
+        "type": "unresolved case deadline",
+        "observed": "120s at Settings to Helm after Diagnostics close; visible stable locator; dispatch not confirmed; clock52.9s",
+        "soleCause": "unknown"
+      }
+    ]
+  },
+  "finalVisualObservations": {
+    "screens": [
+      "docs/audits/2026-10-28/cockpit-screens/15-trainer-caption-final.jpg",
+      "docs/audits/2026-10-28/cockpit-screens/16-trainer-landscape-final.jpg",
+      "docs/audits/2026-10-28/cockpit-screens/17-it-short-pro-wind-final.jpg"
+    ],
+    "actualInspected": true,
+    "shortProClock": "0:05.8",
+    "shortProTWA": "41 degrees port",
+    "shortProTWD": "4 degrees",
+    "primaryCaptionsVisible": true,
+    "installedNative": false
+  }
+}

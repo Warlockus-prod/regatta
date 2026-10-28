@@ -252,6 +252,7 @@ export default function GamePage() {
   const [nativeBestSave, setNativeBestSave] = useState<{ status: "idle" | "saving" | "saved" | "error"; id: string; requestId: string; retryable: boolean }>({ status: "idle", id: "", requestId: "", retryable: false });
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
+  const setupRootRef = useRef<HTMLDivElement>(null);
   const startupGate = useRef(createRaceStartupGate());
   const simulationClockRef = useRef<ReturnType<typeof createFixedClock> | null>(null);
   const [sceneRaceId, setSceneRaceId] = useState("");
@@ -1157,12 +1158,25 @@ export default function GamePage() {
   }, [gameState, difficulty, windStrength, racePrefs.mode]);
   const guidance = racePrefs.guidance ? routeGuidance : null;
 
+  // Setup phases own one internal scroll area below the same site header as
+  // the cockpit. Reset on phase entry, never on a physics/HUD update.
+  const viewportStyle = { height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' };
+  useEffect(() => {
+    const root = setupRootRef.current;
+    if (!root) return;
+    root.scrollTop = 0;
+    const content = root.querySelector<HTMLElement>('[data-race-scroll]');
+    if (content) content.scrollTop = 0;
+    window.scrollTo(0, 0);
+    root.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
+  }, [gameState]);
+
   // =====================================================================
   // MENU SCREEN
   // =====================================================================
   if (gameState === 'menu') {
     return (
-      <div className="h-dvh overflow-y-auto">
+      <div ref={setupRootRef} data-race-phase="menu" className="overflow-y-auto" style={viewportStyle}>
         {nativeRace && <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
           <Link href="/" className="inline-flex items-center min-h-11 py-2 text-sm text-[var(--accent-cyan)]">
             {readRaceSearch().has("fromLesson") ? tl({ ru: "Вернуться к уроку", en: "Back to lesson", pl: "Wróć do lekcji", es: "Volver a la lección", fr: "Retour à la leçon", de: "Zurück zur Lektion", it: "Torna alla lezione" }) : tl({ ru: "Вернуться к гонкам", en: "Back to races", pl: "Wróć do regat", es: "Volver a regatas", fr: "Retour aux courses", de: "Zurück zu den Rennen", it: "Torna alle regate" })}
@@ -1226,8 +1240,8 @@ export default function GamePage() {
   // =====================================================================
   if (gameState === 'briefing') {
     return (
-      <div className="page-enter h-dvh flex flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
+      <div ref={setupRootRef} data-race-phase="briefing" className="page-enter flex flex-col" style={viewportStyle}>
+        <div data-race-scroll className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={backToMenu}
@@ -1253,9 +1267,9 @@ export default function GamePage() {
               </div>
             )}
             <div className="text-xs px-2 py-1 rounded" style={{
-              background: `${DIFFICULTY_CONFIG[difficulty].color}22`,
-              color: DIFFICULTY_CONFIG[difficulty].color,
-              border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
             }}>
               {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl, { es: DIFFICULTY_CONFIG[difficulty].labelEs, fr: DIFFICULTY_CONFIG[difficulty].labelFr, de: DIFFICULTY_CONFIG[difficulty].labelDe, it: DIFFICULTY_CONFIG[difficulty].labelIt })} · {windStrength === 'light'
                 ? tp('слабый ветер', 'light wind', 'słaby wiatr', { es: 'viento flojo', fr: 'vent faible', de: 'leichter Wind', it: 'vento leggero' })
@@ -1266,7 +1280,7 @@ export default function GamePage() {
           </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-semibold mb-1">
+        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold mb-1">
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
         <div className="mb-5"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
@@ -1340,7 +1354,7 @@ export default function GamePage() {
   // RACING / COUNTDOWN / FINISHED SCREENS (Canvas)
   // =====================================================================
   return (
-    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
+    <div className="relative w-full" style={viewportStyle}>
       {(gameState === "countdown" || gameState === "racing") && (
         <RaceCockpit prefs={playingPrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta} setCourse={setCourse} targetHeading={targetHeading}
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
@@ -1878,7 +1892,7 @@ function CoursePreview() {
   const legendDownwind = tp('-- попутно к финишу', '-- downwind to finish', '-- z wiatrem do mety',
     { es: '-- a favor del viento a la llegada', fr: '-- au portant jusqu\'à l\'arrivée', de: '-- mit dem Wind zum Ziel', it: '-- vento in poppa all\'arrivo' });
   return (
-    <svg viewBox="0 0 200 260" className="w-full max-w-[220px] mx-auto block">
+    <svg viewBox="0 0 220 274" className="w-full max-w-[242px] mx-auto block">
       {/* water */}
       <defs>
         <linearGradient id="cpWater" x1="0" x2="0" y1="0" y2="1">
@@ -1886,7 +1900,8 @@ function CoursePreview() {
           <stop offset="100%" stopColor="#0a1f3d" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width="200" height="260" rx="8" fill="url(#cpWater)" />
+      <rect x="0" y="0" width="220" height="274" rx="8" fill="url(#cpWater)" />
+      <g transform="translate(10 0)">
       {/* wind arrow */}
       <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
         <line x1="100" y1="10" x2="100" y2="40" />
@@ -1918,9 +1933,10 @@ function CoursePreview() {
       {/* boat start */}
       <circle cx="100" cy="220" r="3" fill="#00d4ff" />
       {/* legend */}
-      <g fontSize="9" fontFamily="system-ui">
+      <g fontSize="10" fontFamily="system-ui">
         <text x="10" y="250" fill="#00d4ff">{legendUpwind}</text>
         <text x="10" y="260" fill="#44ff88">{legendDownwind}</text>
+      </g>
       </g>
     </svg>
   );

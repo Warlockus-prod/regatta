@@ -57,9 +57,10 @@ export function RaceCockpit(p: {
   type Tab = "helm" | "sails" | "map" | "settings";
   const [tab, setTab] = useState<Tab>("helm");
   const tabRef = useRef<Tab>("helm");
+  const panelRef = useRef<HTMLDivElement>(null);
   const selectTab = (next: Tab) => {
     const previous = tabRef.current;
-    if (next === previous) return;
+    if (next === previous) { panelRef.current?.scrollTo(0, 0); return; }
     tabRef.current = next; setTab(next);
     if (next === "map" || previous === "map") recordControlChange("race", "race-map", next === "map", previous === "map");
   };
@@ -87,7 +88,7 @@ export function RaceCockpit(p: {
           miniMap={p.prefs.miniMap} onOpenMap={() => selectTab("map")} you={c.you} fleet={c.fleet} />
       </div>
       <aside className={styles.dock} aria-label={labels.controlsTitle}>
-        <div className={styles.notice} role="status" aria-live="polite">
+        <div className={styles.notice} role="status" aria-live="polite" tabIndex={0}>
           {p.countdown !== undefined ? <strong>{p.countdown || "START"}</strong> : p.paused ? c.pause : p.message || (p.prefs.guidance && p.guidance ? c.actions[p.guidance.action] : pro ? c.proNote : c.simpleNote)}
           {p.prefs.guidance && <small className={styles.trimAdvice} data-testid="race-route-heading">
             <span className="flex flex-wrap gap-x-3 gap-y-1">
@@ -99,10 +100,10 @@ export function RaceCockpit(p: {
         </div>
         <nav className={styles.tabs} aria-label={labels.controlsTitle}>
           {(["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)}>{t === "settings" && <GearIcon size={16} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.map : c[t]}</span></button>)}
+          <button type="button" aria-pressed={p.autopilot} onClick={p.onAutopilot}><span>{c.auto}</span></button>
         </nav>
-        <div className={styles.panel}>
+        <div key={tab} ref={panelRef} className={styles.panel}>
           {tab === "helm" && <>
-            <div className={styles.controlHeading}><span>{pro ? c.pro : c.simple}</span><button type="button" aria-pressed={p.autopilot} onClick={p.onAutopilot}>{c.auto}</button></div>
             {controls.mode === "wheels" ? <div className={styles.wheels}><WheelDeck hideHint sheetKeysEnabled={false} layout="bottom" helm={helm} prefs={controls} labels={labels}
               main={pro ? { ease: 1 - p.trim.mainSheet, setEase: v => p.setTrim({ mainSheet: 1 - v }) } : null}
               jib={pro ? { ease: 1 - p.trim.jibSheet, setEase: v => p.setTrim({ jibSheet: 1 - v }) } : null}

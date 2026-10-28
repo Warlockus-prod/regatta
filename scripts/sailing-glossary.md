@@ -128,10 +128,14 @@ plural "los winches".
 | boat speed (bs) | скорость лодки (bs) | prędkość jachtu (bs) | velocità della barca (bs) | velocidad del barco (bs) | vitesse du bateau (bs) | Bootsgeschwindigkeit (bs) |
 
 TWD identifies where true wind comes from, clockwise from north: 0 degrees is
-north, 90 degrees is east. The race compass keeps north at the top while the
-boat heading turns independently. The 3D arrows show incoming apparent airflow
-relative to the moving boat, not a cloth-flow simulation. Turning the visual aid
-off hides the compass and arrows while retaining numeric wind readings.
+north, 90 degrees is east. The race wind instrument keeps the boat's bow at the
+top and shows signed true wind angle (TWA) relative to that bow: positive from
+starboard, negative from port. Rounded 0/180 degree readings identify bow/stern
+without assigning a port/starboard side. TWD remains a separate absolute reading.
+The persisted display value `compass` is retained for compatibility; its visible
+label now names a wind instrument. The 3D arrows show incoming apparent airflow
+relative to the moving boat, not true TWA or a cloth-flow simulation. Turning the
+visual aid off hides the instrument dial and arrows while retaining numeric wind readings.
 Unknown wind speed keeps its localized unavailable label, never an assumed
 12 kn. The course map is a local race overview, not a geographic navigation chart.
 The seven-language map, instrument and style labels live in

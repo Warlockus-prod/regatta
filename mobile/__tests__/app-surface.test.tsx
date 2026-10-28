@@ -1,4 +1,6 @@
 import { render } from "@testing-library/react-native";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppSurface, appStackOptions, appSurface, DarkSurface } from "../src/design-system/surface";
@@ -10,7 +12,7 @@ import { Icon } from "../src/design-system/components/Icon";
 
 const metrics = { insets: { top: 47, bottom: 34, left: 0, right: 0 }, frame: { x: 0, y: 0, width: 390, height: 844 } };
 
-it("keeps activity chrome, text and native system icons on the app day surface even under a dark scene boundary", () => {
+it("keeps the native launch background and activity chrome on the app day surface even under a dark scene boundary", () => {
   const view = render(<SafeAreaProvider initialMetrics={metrics}><DarkSurface>
     <Text testID="scene-label">Scene</Text>
     <AppSurface><Screen><Text testID="app-label">Activity</Text><Icon name="unknown-icon" /></Screen></AppSurface>
@@ -20,7 +22,12 @@ it("keeps activity chrome, text and native system icons on the app day surface e
   expect(StyleSheet.flatten(view.getByTestId("scene-label").props.style).color).toBe(darkColors.textPrimary);
   expect(StyleSheet.flatten(view.getByText("?").props.style).color).toBe(lightColors.textPrimary);
   const screen = view.UNSAFE_getByType(Screen);
-  expect(StyleSheet.flatten(screen.findByType(require("react-native").View).props.style)).toMatchObject({ backgroundColor: lightColors.bgPrimary, paddingTop: 47, paddingBottom: 34 });
+  const firstActivityStyle = StyleSheet.flatten(screen.findByType(require("react-native").View).props.style);
+  expect(firstActivityStyle).toMatchObject({ backgroundColor: lightColors.bgPrimary, paddingTop: 47, paddingBottom: 34 });
+  const config = JSON.parse(readFileSync(join(__dirname, "../app.json"), "utf8")).expo;
+  const { getIosSplashConfig } = require("@expo/prebuild-config/build/plugins/unversioned/expo-splash-screen/getIosSplashConfig");
+  expect(config.userInterfaceStyle).toBe(appSurface);
+  expect(getIosSplashConfig(config, null).backgroundColor).toBe(firstActivityStyle.backgroundColor);
   expect(appStackOptions).toMatchObject({ headerStyle: { backgroundColor: lightColors.bgPrimary }, contentStyle: { backgroundColor: lightColors.bgPrimary }, headerTintColor: lightColors.accentCyan, statusBarStyle: "dark" });
 });
 

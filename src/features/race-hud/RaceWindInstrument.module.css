@@ -2,8 +2,11 @@
 .compass { flex:0 0 auto; width:88px; height:88px; }
 .readings { min-width:0; }
 .caption { font-size:12px; line-height:1.4; color:var(--text-secondary); margin-bottom:4px; }
-.bearing { display:block; font-size:22px; line-height:1.15; color:var(--text-primary); font-weight:600; overflow-wrap:anywhere; }
-.speed { font-size:13px; line-height:1.4; color:var(--text-secondary); overflow-wrap:anywhere; }
+.bearing { display:flex; align-items:baseline; gap:4px; font-size:22px; line-height:1.15; color:var(--text-primary); font-weight:600; white-space:nowrap; }
+.kind,.side { font-size:11px; color:var(--text-secondary); }
+.metadata { display:flex; flex-wrap:wrap; gap:0 8px; font-size:13px; line-height:1.4; color:var(--text-secondary); }
+.metadata>span { white-space:nowrap; }
+.speed { font-size:inherit; line-height:inherit; }
 .details { display:grid; gap:5px; margin:8px 0 0; font-size:11px; line-height:1.35; }
 .details>div { display:flex; flex-wrap:wrap; gap:2px 8px; justify-content:space-between; }
 .details dt { color:var(--text-muted); }.details dd { margin:0; color:var(--text-primary); }
@@ -11,7 +14,8 @@
 .instrument[data-compact] .compass { width:28px; height:28px; }
 .instrument[data-compact] .bearing { font-size:18px; }
 .instrument[data-compact][data-available=false] .bearing { font-size:11px; line-height:1.3; }
-.instrument[data-compact] .speed { font-size:12px; }
+.instrument[data-compact] .metadata { column-gap:4px; font-size:10px; line-height:1.68; }
+.instrument[data-compact] .speed { font-size:12px; line-height:1.4; }
 .settings { display:flex; flex-direction:column; gap:8px; min-width:0; border:0; padding:0; margin:0; }
 .settings legend { margin-bottom:8px; font-size:13px; color:var(--text-primary); }
 .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }

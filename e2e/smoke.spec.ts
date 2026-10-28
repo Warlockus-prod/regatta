@@ -515,3 +515,97 @@ test("3D wind instrument stays visible when animated airflow is hidden", async (
   await airflow.click();
   await expect(airflow).toHaveAttribute("aria-pressed", "true");
 });
+
+async function expectBriefingStart(page: import('@playwright/test').Page) {
+  const title = page.getByRole('heading', { name: 'Брифинг', exact: true });
+  const back = page.getByRole('button', { name: '← Назад к выбору', exact: true });
+  const start = page.getByRole('button', { name: /Готов - старт/ });
+  await expect(title).toBeVisible();
+  await expect.poll(async () => {
+    const heading = await title.boundingBox();
+    const exit = await back.boundingBox();
+    const ready = await start.boundingBox();
+    const navigation = page.locator('nav[data-product-navigation]');
+    const nav = await navigation.count() ? await navigation.boundingBox() : null;
+    const viewport = page.viewportSize()!;
+    return Boolean(heading && exit && ready && heading.y >= (nav ? nav.y + nav.height : 0) - 1
+      && exit.y >= (nav ? nav.y + nav.height : 0) - 1 && exit.height >= 44 && exit.width >= 44
+      && ready.y + ready.height <= viewport.height + 1);
+  }).toBe(true);
+  const preview = page.locator('[data-race-phase="briefing"] svg').first();
+  const labelsFit = await preview.evaluate(svg => {
+    const frame = svg.getBoundingClientRect();
+    const labels = Array.from(svg.querySelectorAll('text'));
+    return labels.length === 5 && labels.every(label => {
+      const r = label.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.left >= frame.left - 1 && r.top >= frame.top - 1
+        && r.right <= frame.right + 1 && r.bottom <= frame.bottom + 1;
+    });
+  });
+  expect(labelsFit).toBe(true);
+  await expect(title).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  return { title, back };
+}
+
+async function expectReadableRaceLabel(label: import('@playwright/test').Locator) {
+  const ratio = await label.evaluate(element => {
+    const style = getComputedStyle(element);
+    const luminance = (color: string) => {
+      // These labels have opaque fills. Reject unsupported alpha/layers rather
+      // than treating a transparent background as a meaningful black surface.
+      const channels = color.startsWith('rgb') ? color.match(/[\d.]+/g)?.map(Number) : null;
+      if (!channels || channels.length < 3 || (channels[3] ?? 1) !== 1) throw new Error('Expected an opaque RGB race label');
+      const rgb = channels.slice(0, 3).map(value => {
+        const v = value / 255;
+        return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4;
+      });
+      return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
+    };
+    const a = luminance(style.color), b = luminance(style.backgroundColor);
+    return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+  });
+  expect(ratio).toBeGreaterThanOrEqual(4.5);
+}
+
+test('race briefing keeps Back and heading below site navigation after a scrolled entry', async ({ page }) => {
+  await page.setViewportSize({ width: 569, height: 750 });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/game');
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('nav[data-product-navigation]')).toHaveCount(1);
+  await page.getByRole('radio', { name: 'Pro', exact: true }).check();
+  await expectReadableRaceLabel(page.getByRole('button', { name: /Начать первую гонку/ }));
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.getByRole('button', { name: /Начать первую гонку/ }).click();
+  const { title, back } = await expectBriefingStart(page);
+  await expectReadableRaceLabel(page.getByText('Лёгкий · средний ветер', { exact: true }));
+  // The heading is a programmatic landmark. Back is the preceding keyboard action.
+  await title.press('Shift+Tab');
+  await expect(back).toBeFocused();
+  await back.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeFocused();
+  await expect(page.getByRole('radio', { name: 'Pro', exact: true })).toBeChecked();
+  await page.getByRole('button', { name: /Начать первую гонку/ }).click();
+  await expectBriefingStart(page);
+});
+
+test('short embedded race resumes its actual saved Pro setup at the start of the briefing', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('/game?embed=1');
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole('radio', { name: 'Pro', exact: true }).check();
+  await page.getByRole('button', { name: /Начать первую гонку/ }).click();
+  await expectBriefingStart(page);
+  await page.reload();
+  const resume = page.getByRole('button', { name: 'Продолжить', exact: true });
+  await expect(resume).toBeVisible();
+  await page.locator('[data-race-phase="menu"]').evaluate(element => { element.scrollTop = element.scrollHeight; });
+  await resume.click();
+  const { back } = await expectBriefingStart(page);
+  await expect(page.getByRole('radio', { name: 'Pro', exact: true })).toBeChecked();
+  await back.click();
+  await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeFocused();
+  expect(await page.locator('[data-race-phase="menu"]').evaluate(element => element.scrollTop)).toBe(0);
+  await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
+});

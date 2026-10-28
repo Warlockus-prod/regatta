@@ -1,6 +1,6 @@
 # Sailing learning renders: first comparison pair
 
-Status: P02 packaging candidate for the first Scheme/Picture lesson. Native delivery is pending; these images are not an approved rigging diagram.
+Status updated2026-10-28: the first Scheme/Picture pilot is delivered in TestFlight1.7.0(67) and retained in69. See `docs/design/mobile/testflight67-2026-10-26.md` and `docs/audits/2026-10-26/learning-visuals-harness.md` for the qualified acceptance. The wider illustration collection is unfinished; these images are not an approved rigging diagram.
 Created2026-10-26 using the built-in `image_gen` tool. The second image edits the first reference; no CLI/API fallback was used. Original PNGs remain in the generation output, while these project-local WebP copies preserve1536x1024 composition at quality90.
 
 | Asset | Purpose | SHA256 |

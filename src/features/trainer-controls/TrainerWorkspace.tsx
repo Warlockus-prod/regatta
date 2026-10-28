@@ -7,7 +7,8 @@ import { ReservedPanelContext } from "./ReservedPanel";
 // Phone and tablet layout shared by the trainers: the boat is pinned and
 // never scrolls away, and nothing is drawn over it. Portrait: the scene bar
 // (status, view and help buttons), the scene (all spare height), the
-// readouts, then the control dock; only the dock panel scrolls. Landscape phone: the bar and the scene fill the left column, the
+// readouts, then the control dock. Dock content scrolls independently. Short
+// landscape readouts can also scroll without moving the boat. The bar and scene fill the left column, the
 // readouts and the dock stack in the right one. Desktop layouts stay with
 // each surface.
 
@@ -37,7 +38,7 @@ export function TrainerWorkspace(props: {
         <div className={styles.scene}>{scene}</div>
       </div>
       <div className={styles.sideColumn}>
-        {readouts && <div className={styles.readouts} data-testid="trainer-readouts">{readouts}</div>}
+        {readouts && <div className={styles.readouts} tabIndex={0} data-testid="trainer-readouts">{readouts}</div>}
         <div className={styles.controlArea} data-panel-open={panels.length > 0}>
           {dock}
           <div ref={setHost} className={styles.reservedPanelHost} hidden={panels.length === 0} data-testid="trainer-panel-host" />

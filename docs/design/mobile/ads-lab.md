@@ -66,9 +66,11 @@ checks, not a physical touch-device claim.
 Evidence: `docs/audits/2026-10-27/checks/ads-source.json`; original screenshots
 and logs stay in the private external `regatta-audit/ads-preview` directory.
 The new60s browser case retains its25s scene deadline and still needs the exact
-source cloud run. Installed native Settings/Back/gesture and Apple delivery
-remain pending. Provider-specific callbacks are a later task by owner choice.
-No new TestFlight delivery or real SDK signal is claimed.
+source cloud run at this historical checkpoint. The subsequent corrected local
+preview is delivered in69, with qualified native acceptance and exact Apple
+proof in `docs/design/mobile/testflight69-2026-10-27.md`. This does not certify
+every gesture/device or provider callbacks. SDK/provider and real signals remain
+OFF by owner choice. The observations above retain their original source scope.
 
 ## Native export correction
 

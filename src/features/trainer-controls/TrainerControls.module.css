@@ -43,6 +43,7 @@
    (no empty band under the helm). */
 .dock[data-mode="wheels"] { height: auto; max-height: 46%; }
 .dock[data-mode="wheels"] .deckArea { flex: 0 0 auto; height: clamp(168px, 25dvh, 212px); min-height: 168px; }
+.dock[data-layout="bottom"][data-mode="wheels"] .deckArea { flex: 1 1 auto; }
 
 /* Auxiliary panels borrow the existing dock footprint. The controls stay in
    the flow, so opening a panel never resizes or covers the boat. */
@@ -138,12 +139,15 @@
   .sceneColumn { min-height: 0; min-width: 0; position: relative; }
   .sceneBar { min-height: 44px; padding-top: 0; padding-bottom: 0; }
   .sideColumn { display: flex; flex-direction: column; flex: 0 0 auto; width: min(46%, 380px); min-height: 0; border-left: 1px solid var(--border-subtle); background: var(--bg-secondary); }
-  .readouts { border-bottom: 1px solid var(--border-subtle); }
+  .readouts { max-height: 76px; overflow-y: auto; overscroll-behavior: contain; border-bottom: 1px solid var(--border-subtle); }
+  .readouts:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: -2px; }
   .dock, .dock[data-mode="wheels"] { flex: 1 1 auto; height: auto; max-height: none; border-top: 0; }
   .controlArea, .controlArea:has(> .dock[data-mode="wheels"]) { flex: 1 1 auto; height: auto; max-height: none; }
   .controlArea > .dock[data-mode="wheels"] { flex: 1 1 auto; }
   .reservedPanelHost { border-top: 0; }
   .dock[data-mode="wheels"] .deckArea { flex: 1 1 auto; height: auto; min-height: 150px; }
+  .dock[data-layout="bottom"][data-mode="wheels"] .panelWheels > .deck { min-height: 150px; }
+  .dock .panelWheels { padding-top: 2px; padding-bottom: 2px; }
   .screen { min-height: 0; }
 }
 
@@ -207,15 +211,16 @@
 .panelWheels { overflow-y: auto; padding-top: 4px; padding-bottom: 6px; }
 .card { min-width: 0; }
 .dock[data-layout="bottom"] .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); align-content: start; }
-/* Keep the actual deck at its measured height. Utilities can then scroll
-   beneath it without stretching the wheel row or taking scene space. */
+/* Primary wheels fit the panel before secondary help and utilities. The area
+   may shrink to its minimum rather than keeping a fixed viewport height. */
 .dock[data-layout="bottom"] .panelWheels { display: flex; }
 .panelWheels > .deck { flex: 0 0 auto; height: auto; }
+.dock[data-layout="bottom"] .panelWheels > .deck { flex: 1 1 auto; min-height: 168px; max-height: 100%; }
 
 /* Wheels */
 .deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .deckArea { position: relative; flex: 1 1 auto; min-height: 196px; }
-.deckNote { margin: 0; padding-bottom: 2px; text-align: center; font-size: 12px; line-height: 16px; color: var(--text-muted); }
+.deckNote { flex: 0 0 auto; margin: 0; padding-bottom: 2px; text-align: center; font-size: 12px; line-height: 16px; color: var(--text-muted); }
 .wheel {
   position: absolute;
   touch-action: none;

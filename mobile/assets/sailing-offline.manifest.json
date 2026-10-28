@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "e70083e42a6e",
-  "sha256": "ea545ccb3bdb2a5b8c4c748be3bf7b14a99c0571bdb1fd40c08049724cb1b737",
-  "bytes": 6590386,
+  "version": "32ee4c0fea92",
+  "sha256": "a2ee7a757c52f21f097e6c2163d094874f7da312039cb2533765bd801570a69f",
+  "bytes": 6580023,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -619,12 +619,13 @@
     "src/data/missions.ts",
     "src/data/sailing-data.ts",
     "src/data/sailing-lab/assessment-copy.ts",
+    "src/data/sailing-lab/assessment-entry-copy.ts",
     "src/data/sailing-lab/course.ts",
     "src/data/sailing-lab/halyard-lesson.ts",
     "src/data/sailing-lab/jib-lead-lesson.ts",
-    "src/data/sailing-lab/lesson-guide.ts",
     "src/data/sailing-lab/line-bench-copy.ts",
     "src/data/sailing-lab/mainsheet-lesson.ts",
+    "src/data/sailing-lab/practice-copy.ts",
     "src/data/sailing-lab/reef-lesson.ts",
     "src/data/sailing-lab/shape-lessons.ts",
     "src/data/sailing-lab/slot-lesson.ts",
@@ -855,23 +856,23 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 118411,
-      "sha256": "ac0f49fd877b0bf117312fc9b92e12aa0b4fa3f08c84525dde2afab064ea49be"
+      "bytes": 119142,
+      "sha256": "a66886dcf53316883e3c9348a9d2728efb4d2223e99c4ef6c05496685094a64c"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
-      "bytes": 23210,
-      "sha256": "3030840ee8a65d523a895008eeff4d02fb03872a9267e573fa8e2d552dc63624"
+      "bytes": 23234,
+      "sha256": "b883bce32e0ca84956eac95d5cbec34eef2482adf969db281fe87c1bcb87d0e7"
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 7480,
-      "sha256": "4a39a2c6f1afd81f596befda2bb566801d86f5c3461c4a6b5ec0f673030637cc"
+      "bytes": 7990,
+      "sha256": "959d96316c8dd0abe1532a84beef152f9eab91bac747a86cfd9bf2187d30a211"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 12209,
-      "sha256": "92636b8f8b3f1695af1f87150f274d0546fd8431cac8eebd8641b6f9d62abce9"
+      "bytes": 12263,
+      "sha256": "1abf3e7cb7e6a58fb5bf67ed5f48cc4b7543f09bc325aa99bf29da0181b53813"
     },
     {
       "path": "src/app/game/RaceReplay.tsx",
@@ -985,8 +986,13 @@
     },
     {
       "path": "src/data/sailing-lab/assessment-copy.ts",
-      "bytes": 13674,
-      "sha256": "80f12608902f4ae9fc0ca8a5ce47fbc3808d1c40b70f79c3cda9ffb6ac03a77d"
+      "bytes": 11621,
+      "sha256": "ef1422e87c22c9b6db8262e8c797a586767481d1ad2dab15570a19c527033c78"
+    },
+    {
+      "path": "src/data/sailing-lab/assessment-entry-copy.ts",
+      "bytes": 2497,
+      "sha256": "3f46a1d4e3219c5fc1b8df4bfcdc2fc4897b275b67ec35f884d01fbf40c3f1fe"
     },
     {
       "path": "src/data/sailing-lab/course.ts",
@@ -1004,11 +1010,6 @@
       "sha256": "2b912ea2154d0d3f360bcff8f1ad642edf755ca4e7b2d1a08f6ca4473525b09d"
     },
     {
-      "path": "src/data/sailing-lab/lesson-guide.ts",
-      "bytes": 12207,
-      "sha256": "2184f2db9dd0a1e22c738a1b255797a14384084e6bca535fad93d6e60b24b684"
-    },
-    {
       "path": "src/data/sailing-lab/line-bench-copy.ts",
       "bytes": 24833,
       "sha256": "fce740301bd43b75180c0e16ae15f573f6f8572972979d96103b918ff04caf2d"
@@ -1017,6 +1018,11 @@
       "path": "src/data/sailing-lab/mainsheet-lesson.ts",
       "bytes": 17436,
       "sha256": "389a0c1d1ea13dc370ea6eea4d67bd16357c9985e44ed52e0eb3173b261b3af0"
+    },
+    {
+      "path": "src/data/sailing-lab/practice-copy.ts",
+      "bytes": 1714,
+      "sha256": "7da8cfb9c25a152573deae11452c271ac2beabbdf0be706d88df9ca5d67e25bb"
     },
     {
       "path": "src/data/sailing-lab/reef-lesson.ts",
@@ -1120,13 +1126,13 @@
     },
     {
       "path": "src/features/race-hud/RaceWindInstrument.module.css",
-      "bytes": 1530,
-      "sha256": "540ab176499ae5f9445e2f4decef06c9ea34db615724678f9e98b802dd6118f6"
+      "bytes": 1834,
+      "sha256": "d706b30b845f99c57345f2338935b3d6a60bc6896cfc5b3d533a6b618fb54723"
     },
     {
       "path": "src/features/race-hud/RaceWindInstrument.tsx",
-      "bytes": 3081,
-      "sha256": "44d0e3b7ec79af54f83e8084629671a76f52373fa6eb455e19dfd3609cc4963b"
+      "bytes": 4196,
+      "sha256": "02cb5a675319d4f8bf8a6f26d307e312cf44b068638e98ee36748f060dd56b9e"
     },
     {
       "path": "src/features/race-hud/events.ts",
@@ -1135,8 +1141,8 @@
     },
     {
       "path": "src/features/race-hud/navigation-copy.ts",
-      "bytes": 4904,
-      "sha256": "6cb59943f283b5b44f8619e5dfd31abadcff538bd822e4149b1821cdd5adff11"
+      "bytes": 6485,
+      "sha256": "573c7d48a41c30eb57d8d140f6405e21e745301bbd8c7b43e3a6d1044a843044"
     },
     {
       "path": "src/features/race-hud/navigation-model.ts",
@@ -1330,13 +1336,13 @@
     },
     {
       "path": "src/features/sailing-lab/ui/LessonReturn.tsx",
-      "bytes": 1033,
-      "sha256": "58aba5bcacffd082023c3fc2de41fc70a29472f130eba32526cbecc815bc2a3a"
+      "bytes": 1040,
+      "sha256": "a89f733706667f4be0937478c9b746efcde861ec7e9bd69c787af47f8f6468c3"
     },
     {
       "path": "src/features/sailing-lab/ui/SavePractice.tsx",
-      "bytes": 1303,
-      "sha256": "948227a0080f8fd155965a15d8b4c7cb5d5bbc85943a58d2819cce1f1a731a22"
+      "bytes": 1316,
+      "sha256": "0dd4ec1649d4adad5474613b4c946d38d9d54a70ed40654a9f4841a285de8b98"
     },
     {
       "path": "src/features/simulator-3d/RegattaScene.tsx",
@@ -1695,13 +1701,13 @@
     },
     {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
-      "bytes": 14472,
-      "sha256": "371f5b23a36eb85d2ed32714e11a2dbf7954ebaa174b2631e00cc8634ce0d203"
+      "bytes": 14995,
+      "sha256": "b922b4c9a355d741a0909fb44bf9f8fb3f455c78972c5fb129b06ffb3c968d92"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
-      "bytes": 2438,
-      "sha256": "87530e8f17fdb5f8ec130279dc6896b76dacc1147a5bb8dabbf2f00ffe838bc1"
+      "bytes": 2506,
+      "sha256": "d01e974350a198005a679ce05d8d4aa17dfd2b6fb9d59c0806888940da6f020b"
     },
     {
       "path": "src/features/trainer-controls/Wheel.tsx",
@@ -1710,8 +1716,8 @@
     },
     {
       "path": "src/features/trainer-controls/WheelDeck.tsx",
-      "bytes": 13605,
-      "sha256": "609c63fc73fa0330127cdc8d59bcaf10ffd30bdb88386e5899c7efcad76d7fee"
+      "bytes": 13760,
+      "sha256": "be1edf9e2327444cb359685041338d1260141c7ec81dcbf41d301a5bd1703b94"
     },
     {
       "path": "src/features/trainer-controls/index.ts",

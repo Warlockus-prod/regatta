@@ -36,18 +36,22 @@ brand is not a gate: successful build, actual visual inspection, metadata
 validation and verified submission state are the requirements. EAS and
 Codemagic are alternatives, not required services for this local pipeline.
 
-Since 1.7.0 (v3 design) `app.json` fixes the light interface
-(`userInterfaceStyle: light`); instrument screens paint their own dark surface.
-The app has no system dark or auto mode: verify the paper screens and the dark
-instrument screens as they are, and do not report imaginary native modes. The
-embedded website separately supports its web themes. Retest changed
-screens and the main navigation on the exact release binary, with screenshots.
+`app.json` fixes the native light interface (`userInterfaceStyle: light`).
+The current native contract uses the same day chrome for Home, content,
+activities, loading states and Back navigation, including embedded activities.
+The scene, radio LCD and physical hardware may retain their deliberate colors;
+they do not justify forcing the surrounding activity chrome dark. The app has
+no native dark or auto mode. The standalone website separately supports its
+web themes. Verify the native day contract on the exact installed Release
+binary, with screenshots; do not report imaginary native modes.
 
 ## TestFlight hotfix delivery
 
 TestFlight delivery is separate from App Review submission. A hotfix must pass G0/G1, changed-screen installed Release acceptance and upgrade preservation under G2, an unused increasing build number, exact-source generated/archive/IPA checks, Apple validation and import VALID, matching localized beta notes and an independent GET confirming exact Self membership/readiness. Do not submit the public version or replace store assets as part of this delivery. G3 public-submission cleanup, G4 store metadata and G4b published privacy parity remain explicit public-release gates before G5, not claims implied by a TestFlight upload. A full product/device acceptance matrix remains separately qualified.
 
-For a radio upgrade fix, create real progress in the verified old public Simulator build through its UI; install the candidate over the same container without uninstall or Clear all data. Compare stored progress, open the instrument and exercise lesson/task/save/relaunch/Back. Include retired legitimate storage keys, language priority and classified Retry/Exit regressions. Use a new dedicated QA simulator for clean-install checks; never erase an existing user's or QA device's progress.
+For a radio upgrade fix, create real progress in the verified old public Simulator build through its UI; install the candidate over the same container without uninstall or Clear all data. Compare stored progress, open the instrument and exercise lesson/task/save/relaunch/Back. Include retired legitimate storage keys, language priority and classified Retry/Exit regressions. Preserve retained upgrade and frozen QA devices; use a disposable clone for a new candidate observation when needed. Use a newly created dedicated QA device or a newly created disposable clone reserved for clean-install checks. Erase is allowed only on that disposable clean-install device, never on a retained upgrade/frozen QA device or a device holding user progress.
+
+The [owner-authorized TestFlight69 radio exception](../../audits/2026-10-27/release69-owner-beta.md) transfers manual installed radio entry/controls/Reset/PTT and microphone/model acceptance to the owner's TestFlight walkthrough for that internal beta. These checks remain pending, not passed. This narrow exception does not waive the other source, binary, visual, upgrade, startup or Apple gates, and does not authorize public submission.
 
 ## The gate (run in order; all must be green)
 
@@ -72,11 +76,16 @@ Catch missing / placeholder localizations before Apple does.
   the RN app today.
 - **Gate:** zero missing / empty translations.
 
-### G2 - XcodeBuildMCP: build + SIMULATOR verify   [one-time setup below]
+### G2 - Release build + installed SIMULATOR verification   [one-time setup below]
 Never submit a build no one has looked at.
-- Use the XcodeBuildMCP tools (build -> boot simulator -> install -> launch).
-- Walk the changed screens and the main navigation (paper screens and dark
-  instrument screens); confirm the gallery (2026 album + de-dated 2025) and any
+- Use XcodeBuildMCP or the verified direct `xcodebuild` path above
+  (build -> boot simulator -> install -> launch). A successful compile is not
+  an installed visual pass.
+- Walk the changed screens and the main navigation. Confirm consistent native
+  day chrome across Home, content, activities, loading and Back transitions,
+  while preserving deliberate scene, LCD and hardware colors. Check short
+  screens, landscape and enlarged text for readable controls and reachable
+  Back actions. Confirm the gallery (2026 album + de-dated 2025) and any
   release-specific feature render; no redbox.
 - **Update over the version on sale.** Install the store build's Release
   Simulator app, create progress, install the candidate over it (no uninstall)
@@ -84,16 +93,26 @@ Never submit a build no one has looked at.
   there (build 45: see `BUILDS.md`).
 - Capture screenshots for the record.
 - **Release build on the newest iOS.** Build the Release configuration with the
-  SAME Xcode that archives the store binary, install it fresh (erase the
-  simulator first) on the newest iOS runtime Xcode ships, and launch it. A new
+  SAME Xcode that archives the store binary and install it fresh on a newly
+  created disposable QA device using the newest available iOS runtime for
+  that Xcode. Record the installed runtime separately from the SDK. A
+  disposable clone reserved for this clean-install check may be reset first;
+  never erase or uninstall from a retained upgrade/frozen QA device or a device
+  holding user progress. Launch the exact installed Release package from a
+  cold process. For a changed 3D activity, verify its real first rendered frame,
+  advancing session clock and working exit/Back after cold launch. A new
   Xcode major brings a new SDK with new launch rules: build 43 (1.6.2) was the
   first archive made with Xcode 27 and does not launch on iOS 27 at all, because
   the iOS 27 SDK requires the UIScene life cycle (see `BUILDS.md`). Record the
   Xcode version and SDK build (`sdkBuild` in App Store Connect) in `BUILDS.md`.
-- **Gate:** builds, launches on the newest iOS and on the previous major,
-  visual pass in both themes.
-- Note: the store binary itself is produced by `eas build --profile production`;
-  XcodeBuildMCP is the local build/verify path so we never ship an unseen build.
+- **Gate:** builds and cold-launches on the newest available iOS and on the
+  previous major; exact installed Release visual/navigation acceptance of the
+  native day contract, fresh-install acceptance and retained-progress upgrade
+  checks pass. Source/browser checks do not substitute for installed evidence.
+- The store binary may be produced by the verified direct archive/export path
+  or `eas build --profile production`. Keep exact-source provenance between
+  the verified Simulator package and the archive/IPA; neither build tooling
+  choice nor a successful upload replaces installed acceptance.
 
 The base Info.plist and all seven InfoPlist.strings must contain the exact source microphone, speech-recognition and photo-library purposes. ExpoFileSystem links unused Photos APIs, so Apple still requires NSPhotoLibraryUsageDescription even though Regatta does not request photo access. After upload, inspect altool build-status using the delivery UUID and confirm ASC VALID; upload success alone is insufficient (build59 failed import90683).
 

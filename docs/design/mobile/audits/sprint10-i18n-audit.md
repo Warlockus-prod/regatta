@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-26T19:19:28.059Z
+Generated: 2026-10-28T14:55:06.923Z
 
-Files scanned: 94
+Files scanned: 96
 
 ## Summary
 
@@ -29,7 +29,7 @@ Files scanned: 94
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/app/diagnostics.tsx:33` | non-english-leak |  ×${entry.count} |
+| `mobile/app/diagnostics.tsx:35` | non-english-leak |  ×${entry.count} |
 
 ### `mobile/app/spots/index.tsx` (1)
 
@@ -41,14 +41,14 @@ Files scanned: 94
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/course/LocalCourseWebView.tsx:106` | non-english-leak | Wyjść z egzaminu? |
-| `mobile/src/course/LocalCourseWebView.tsx:106` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
-| `mobile/src/course/LocalCourseWebView.tsx:107` | non-english-leak | Zostań |
-| `mobile/src/course/LocalCourseWebView.tsx:108` | non-english-leak | Wyjdź |
-| `mobile/src/course/LocalCourseWebView.tsx:176` | non-english-leak | Wyjdź z egzaminu |
-| `mobile/src/course/LocalCourseWebView.tsx:179` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
-| `mobile/src/course/LocalCourseWebView.tsx:203` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
-| `mobile/src/course/LocalCourseWebView.tsx:204` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
+| `mobile/src/course/LocalCourseWebView.tsx:107` | non-english-leak | Wyjść z egzaminu? |
+| `mobile/src/course/LocalCourseWebView.tsx:107` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
+| `mobile/src/course/LocalCourseWebView.tsx:108` | non-english-leak | Zostań |
+| `mobile/src/course/LocalCourseWebView.tsx:109` | non-english-leak | Wyjdź |
+| `mobile/src/course/LocalCourseWebView.tsx:177` | non-english-leak | Wyjdź z egzaminu |
+| `mobile/src/course/LocalCourseWebView.tsx:180` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
+| `mobile/src/course/LocalCourseWebView.tsx:205` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
+| `mobile/src/course/LocalCourseWebView.tsx:206` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
 
 ### `mobile/src/design-system/components/WindNowCard.tsx` (1)
 
@@ -60,4 +60,4 @@ Files scanned: 94
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/simulator/SimWebView.tsx:364` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |
+| `mobile/src/simulator/SimWebView.tsx:363` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |

@@ -37,9 +37,10 @@ export function MultiplayerCockpit(p: {
   type Tab = "helm" | "map" | "settings";
   const [tab, setTab] = useState<Tab>("helm");
   const tabRef = useRef<Tab>("helm");
+  const panelRef = useRef<HTMLDivElement>(null);
   const selectTab = (next: Tab) => {
     const previous = tabRef.current;
-    if (next === previous) return;
+    if (next === previous) { panelRef.current?.scrollTo(0, 0); return; }
     tabRef.current = next; setTab(next);
     if (next === "map" || previous === "map") recordControlChange("multiplayer", "race-map", next === "map", previous === "map");
   };
@@ -76,7 +77,7 @@ export function MultiplayerCockpit(p: {
           miniMap={p.miniMap} onOpenMap={() => selectTab("map")} you={c.you} fleet={c.fleet} />
       </div>
       <aside className={styles.dock} aria-label={labels.controlsTitle} data-testid="multiplayer-dock">
-        <div className={styles.notice} role="status" aria-live="polite">
+        <div className={styles.notice} role="status" aria-live="polite" tabIndex={0}>
           {p.reconnecting ? reconnect : p.phase === "countdown" ? <strong>{p.countdown}</strong> : !p.frame ? waiting : <>
             <span>{auto}</span>
             {p.guidanceOn && p.frame.guidance && <small className={styles.trimAdvice} data-testid="multiplayer-guidance">{c.actions[p.frame.guidance.action]} · {Math.round(p.frame.guidance.distance * METRES_PER_UNIT)} m</small>}
@@ -85,7 +86,7 @@ export function MultiplayerCockpit(p: {
         {p.phase !== "finished" && <nav className={`${styles.tabs} ${local.tabs}`} aria-label={labels.controlsTitle}>
           {(["helm", "map", "settings"] as const).map(id => <button key={id} type="button" aria-pressed={tab === id} onClick={() => selectTab(id)}>{id === "settings" && <GearIcon size={16} />}<span>{id === "helm" ? labels.helm : id === "map" ? nav.map : c[id]}</span></button>)}
         </nav>}
-        <div className={styles.panel}>
+        <div key={tab} ref={panelRef} className={styles.panel}>
           {p.phase === "finished" ? <div className={local.results}>{p.results}</div> : tab === "helm" ? <div className={local.controls} inert={p.phase !== "racing" || p.reconnecting || !p.frame}>
             {prefs.mode === "wheels" ? <div className={styles.wheels}><WheelDeck hideHint layout="bottom" helm={helm} prefs={prefs} labels={labels} /></div>
               : <div className={styles.sliders}>{mapping === "course" ? range(labels.course, course, 0, 360, p.setCourse) : range(labels.rudder, p.rudder * 35, -35, 35, v => p.setRudder(v / 35))}</div>}

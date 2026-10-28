@@ -19,6 +19,13 @@ menu/briefing сохраняют внешний scroll под sticky web nav, с
 затем вернуться к P04/P05/P06. Физика и доставка не считаются измененными этим
 аудитом; source-ready и полная приемка остаются разными состояниями.
 
+## P10: следующий источник70
+
+[Текущая проверка](../2026-10-28/cockpit-navigation-harness.md) исправляет T04,
+док гонки и прокрутку Map, освобождает запас без изменения семи языков.
+Candidate70 выбран после GET-only проверки train/exactnumber, еще не поставлен.
+Новые native/binary/Apple gates обязательны; физическая выдача остается OFF.
+
 ## Действующие решения владельца
 
 1. Одна лодка, модель сил и общий опыт управления в тренировке и гонке. Автотрим и ручной трим объясняются явно. Штурвал может задавать курс или перо, но смысл не меняется скрыто между экранами.
@@ -59,7 +66,7 @@ menu/briefing сохраняют внешний scroll под sticky web nav, с
 | P02 | Единый первый урок и двухвидовые иллюстрации | общий первый урок,3Dпрактика и один Scheme/Picture pilot проверены |77browser first-pass, retained26.5/clean27, PL/RU/EN и exact package equivalence; [harness](learning-visuals-harness.md) | checkpoint доставлен67, independent Self/8notes18:53UTC; остальные иллюстрации открыты |
 | P03 | Закрыть надежность PB/результатов до новой физики | exactf7: отдельные ACK/receipt/retry, clear guards и replay route ownership | реальные finishes/History/Personal/Replay/Coach/Back/cold на26.5/27; exact-f7 fresh27; forced failures только tests | доставлен68: independent Self23:23:36.856UTC/8notes23:23:11.300UTC; physical emission OFF |
 | P04 | Согласовать единицы движения и управление общей лодки | metric fleet, coupled actual travel, stable bot turns и metric impact evidence; emission OFF |113targeted,1793web/589native; прежний exacte414:90/90specified fleets; [response harness](../2026-10-27/physical-response-harness.md) | произвольные recoveries, human advice/Pro, judge, recorder/finish-clear и native activation остаются открыты |
-| P05 | Трассы разной длины, затем маршруты вокруг острова | план | каждый маршрут проходим, не пересекает сушу; старые классы сохранены | послеP04 |
+| P05 | Трассы разной длины, затем маршруты вокруг острова | source-реестр120/300/600m и автономные проверки есть; выбора в игре еще нет | каждый маршрут проходим человеком, не пересекает сушу; старые классы сохранены | послеP04, до активации закончить обязательные P06 judge/finish-clear gates |
 | P06 | Общие пресеты свободно/гонка/обучение, автотрим/ручной; независимые помощь и судья | частично в65 | полный Simple/Pro заезд и учебное объяснение, сохраненные настройки | послеP04/P05 |
 | P07 | Радио: видимое распознавание в свободной практике | свободная сессия, выбранная английская локаль, native outcome logs и support export поставлены69 |602native/82browser, generated18/archive36/IPA38, independent Self/8notes11:12UTC; [приемка69](../2026-10-27/acceptance69.md) | реальный микрофон/PTT/Reset и удобство проверяет владелец в TestFlight; это не полная приемка P07 |
 | P08 | Диагностика реальных исходов и единый каталог возвратов | частично в65 | кнопка -> действие -> результат/отмена/ошибка -> ACK записи | по каждому затронутому пути |

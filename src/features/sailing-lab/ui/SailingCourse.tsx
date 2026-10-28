@@ -11,7 +11,7 @@ import { checkSailTheory, nextSailLesson, readSailProgress, SAIL_PROGRESS_KEY, t
 import { diagramCopy, diagramOptions, diagramReadout, sailDiagram } from "../lessons/diagrams";
 import styles from "./SailingCourse.module.css";
 import { courseModules, learningCopy, lessonSteps, lessonTermIds, lessonTerms, type LessonStep } from "../../../data/sailing-lab/learning-path";
-import { assessmentCopy } from "../../../data/sailing-lab/assessment-copy";
+import { assessmentEntryCopy } from "../../../data/sailing-lab/assessment-entry-copy";
 import { LineBench } from "./LineBench";
 import { guideCopy, lessonGoals, moduleGoals } from "../../../data/sailing-lab/lesson-guide";
 import { LESSON_POSITION_KEY, readPositions, visitLesson, type LessonPosition } from "../lessons/lesson-position";
@@ -162,15 +162,15 @@ function CourseContent({ lessonId }: { lessonId?: string }) {
     <div className={styles.actions}><button className={styles.secondary} type="button" onClick={() => moveTo("understand")}>{learningCopy.toTheory[lang]}</button><button className={styles.secondary} type="button" onClick={() => moveTo("try")}>{learningCopy.toTry[lang]} →</button></div>
     </>}
     {step === "try" && <>
-    {lessonPracticeIds(lesson.id).some(id => results.completed[id]) && <section className={styles.resultSummary}><h2>{guideCopy.practice[lang]}</h2>{lessonPracticeIds(lesson.id).filter(id => results.completed[id]).map(id => <p key={id}>✓ {id === "twist" || id === "depth" ? assessmentCopy[id][lang] : lesson.title[lang]}</p>)}<p className={styles.note}>{guideCopy.saved[lang]}</p></section>}
+    {lessonPracticeIds(lesson.id).some(id => results.completed[id]) && <section className={styles.resultSummary}><h2>{guideCopy.practice[lang]}</h2>{lessonPracticeIds(lesson.id).filter(id => results.completed[id]).map(id => <p key={id}>✓ {id === "twist" || id === "depth" ? assessmentEntryCopy[id][lang] : lesson.title[lang]}</p>)}<p className={styles.note}>{guideCopy.saved[lang]}</p></section>}
     {lesson.practice === "line-bench" ? <LineBench lang={lang} /> : <>
     <p className={styles.note}>{learningCopy.observeOnly[lang]}</p>
     <section className={styles.prose}><h2>{sailCourse.observe[lang]}</h2><p>{lesson.observe[lang]}</p><Link className={styles.primary} href={`${destination.web!}?lesson=${lesson.id}${lesson.study ? `&study=${lesson.study}` : ""}`}>{destination.title[lang]} →</Link></section>
     <p className={styles.note}>{guideCopy.returnNote[lang]}</p>
     </>}
     {lesson.id === "outhaul" && <section className={styles.prose}>
-      <h2>{assessmentCopy.title[lang]}</h2><p>{assessmentCopy.intro[lang]}</p>
-      <div className={styles.actions}>{(["twist", "depth"] as const).map(task => <Link className={styles.secondary} key={task} href={`/simulator-v3?lesson=${lesson.id}&assessment=${task}`}>{assessmentCopy[task][lang]} →</Link>)}</div>
+      <h2>{assessmentEntryCopy.title[lang]}</h2><p>{assessmentEntryCopy.intro[lang]}</p>
+      <div className={styles.actions}>{(["twist", "depth"] as const).map(task => <Link className={styles.secondary} key={task} href={`/simulator-v3?lesson=${lesson.id}&assessment=${task}`}>{assessmentEntryCopy[task][lang]} →</Link>)}</div>
 
     </section>}
     <p className={styles.note}>{sailCourse.safety[lang]}</p>
