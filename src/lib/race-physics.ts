@@ -174,6 +174,27 @@ export function raceTurnRate(speed: number, steering: RaceStepOptions["steering"
     : TURN_RATE * authority;
 }
 
+/** The sheets the crew is asked to hold this step: manual trim, or the
+ * automatic solve every half second. Updates boat.trim and boat.trimClock. */
+export function raceCrewTrim(boat: RaceBoat, state: BoatState, input: Pick<InputState, "autoTrim" | "trim">, dt: number): Controls {
+  if (input.autoTrim === false) {
+    boat.trim = raceTrim(input.trim, boat.trim);
+    // Re-entering automatic trim solves it immediately, rather than keeping stale manual trim.
+    boat.trimClock = .5;
+  } else {
+    boat.trimClock = (boat.trimClock ?? 1) + dt;
+    if (!boat.trim || boat.trimClock >= .5) {
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trimClock = 0;
+    }
+    if (input.trim) {
+      // Automatic sheets never silently hoist a lowered main or unfurl the jib.
+      boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
+    }
+  }
+  return boat.trim;
+}
+
 /** Shared force/trim integration after the caller has set the heading.
  * Motion adapters own coordinates, steering and bounds. Legacy input and
  * handicap behavior stay here so physical travel cannot fork the force model. */
@@ -193,22 +214,7 @@ export function stepRaceBoatForces(
   const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust };
-  if (input.autoTrim === false) {
-    boat.trim = raceTrim(input.trim, boat.trim);
-    // Re-entering automatic trim solves it immediately, rather than keeping stale manual trim.
-    boat.trimClock = .5;
-  } else {
-    boat.trimClock = (boat.trimClock ?? 1) + dt;
-    if (!boat.trim || boat.trimClock >= .5) {
-      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
-      boat.trimClock = 0;
-    }
-    if (input.trim) {
-      // Automatic sheets never silently hoist a lowered main or unfurl the jib.
-      boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
-    }
-  }
-  boat.physics = tick(state, boat.trim, params, dt).state;
+  boat.physics = tick(state, raceCrewTrim(boat, state, input, dt), params, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
   return boat.physics;
 }

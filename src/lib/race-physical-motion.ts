@@ -1,10 +1,24 @@
 import { readRaceContext, type PhysicalRaceContext } from "./race-context";
 import { physicalCourseWaterBounds } from "./race-courses";
-import { stepRaceBoatForces, type InputState, type RaceBoat, type RaceStepOptions, type Vec2 } from "./race-physics";
+import { raceCrewTrim, stepRaceBoatForces, type InputState, type RaceBoat, type RaceStepOptions, type Vec2 } from "./race-physics";
 import { advanceSailingHeading, sailingDisplacement, type SailingSteering } from "./sailing-kinematics";
+import { getBoatParams } from "./sailing-physics/boat";
+import { createInitialState } from "./sailing-physics/simulate";
+import type { Controls } from "./sailing-physics/types";
+import { createSharedBoat, stepSharedBoat } from "../features/sailing-lab/runtime/boat-step";
+import type { RigMotion } from "../features/sailing-lab/rig/transfer";
 
 export type PhysicalRaceInput = Omit<InputState, "turn"> & { steering: SailingSteering };
-export type PhysicalRaceStepOptions = Pick<RaceStepOptions, "speedMul" | "windStrengthMul">;
+/** Crew state the physical boat carries between steps (ADR-0014): the sheets
+ * actually held and the sail positions, as in the trainer session. */
+export interface PhysicalRaceCrew {
+  live?: Controls;
+  rig?: RigMotion;
+}
+export type PhysicalRaceStepOptions = Pick<RaceStepOptions, "speedMul" | "windStrengthMul"> & {
+  /** false keeps an instant sail transfer (current bot crews, ADR-0014). */
+  rigTransfer?: boolean;
+};
 /** Propelled movement after boundary recovery and before fleet/hardware
  * collisions. Endpoint copies exclude recovery and later collision pushes. */
 export interface PhysicalRaceMotion {
@@ -28,7 +42,15 @@ export function isPhysicalRaceBoat(boat: RaceBoat): boolean {
     && (boat.physics === undefined || object(boat.physics)
       && ["trueWindDir", "trueWindSpeed", "heading", "boatSpeed", "heel", "leeway"].every(key => finite((boat.physics as unknown as Record<string, unknown>)[key])))
     && (boat.trim === undefined || validTrim(boat.trim, true))
-    && (boat.trimClock === undefined || finite(boat.trimClock) && boat.trimClock >= 0);
+    && (boat.trimClock === undefined || finite(boat.trimClock) && boat.trimClock >= 0)
+    && validCrew(boat as RaceBoat & PhysicalRaceCrew);
+}
+function validCrew(boat: PhysicalRaceCrew): boolean {
+  if (boat.live === undefined && boat.rig === undefined) return true;
+  const rig = boat.rig as unknown;
+  return validTrim(boat.live, true) && object(rig) && (rig.lee === 1 || rig.lee === -1)
+    && finite(rig.main) && finite(rig.jib) && finite(rig.elapsed)
+    && (rig.maneuver === "sailing" || rig.maneuver === "tacking" || rig.maneuver === "gybing");
 }
 export function isPhysicalRaceInput(input: PhysicalRaceInput): boolean {
   if (!object(input) || !object(input.steering)
@@ -56,16 +78,40 @@ export function stepPhysicalBoat(
     || !finite(dt) || dt <= 0 || !finite(windDir) || !finite(gust) || gust < 0
     || !isPhysicalRaceBoat(boat) || !isPhysicalRaceInput(input) || !object(opts)
     || opts.speedMul !== undefined && !finite(opts.speedMul)
-    || opts.windStrengthMul !== undefined && (!finite(opts.windStrengthMul) || opts.windStrengthMul < 0)) return null;
+    || opts.windStrengthMul !== undefined && (!finite(opts.windStrengthMul) || opts.windStrengthMul < 0)
+    || opts.rigTransfer !== undefined && typeof opts.rigTransfer !== "boolean") return null;
 
   const scale = read.context.metresPerUnit;
   const water = physicalCourseWaterBounds(read.context.profile);
   const boundX = (x: number) => Math.max(water.minX, Math.min(water.maxX, x));
   const boundY = (y: number) => Math.max(water.minY, Math.min(water.maxY, y));
   const from = Object.freeze({ x: boundX(boat.pos.x), y: boundY(boat.pos.y) });
-  boat.heading = advanceSailingHeading(boat.heading, boat.speed, input.steering, dt);
-  const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts);
-  const travel = sailingDisplacement(boat.heading, physics.leeway, boat.speed, dt);
+  if (opts.rigTransfer === false) {
+    boat.heading = advanceSailingHeading(boat.heading, boat.speed, input.steering, dt);
+    const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts);
+    return travelBoat(boat, from, sailingDisplacement(boat.heading, physics.leeway, boat.speed, dt), scale, boundX, boundY);
+  }
+  // The trainer's boat step: helm, crew sheet handling, rig transfer, forces.
+  // Bot difficulty (ADR-0007) scales the speed made good, never the model.
+  const crew = boat as RaceBoat & PhysicalRaceCrew;
+  const params = getBoatParams();
+  const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
+  const wind = { speed: 12 * (opts.windStrengthMul ?? 1) * gust, direction: windDir };
+  const state = { ...(boat.physics ?? createInitialState({ tws: 12 })), heading: boat.heading,
+    boatSpeed: boat.speed / mul, trueWindDir: wind.direction, trueWindSpeed: wind.speed };
+  const target = raceCrewTrim(boat, state, input, dt);
+  const prev = crew.live && crew.rig ? { boat: state, live: crew.live, rig: crew.rig } : createSharedBoat(state, { controls: target }, params);
+  const next = stepSharedBoat(prev, { controls: target, steering: input.steering }, wind, params, dt, boat.speed);
+  boat.heading = next.boat.heading;
+  boat.physics = next.boat;
+  boat.speed = next.boat.boatSpeed * mul;
+  crew.live = next.live;
+  crew.rig = next.rig;
+  return travelBoat(boat, from, sailingDisplacement(boat.heading, next.boat.leeway, boat.speed, dt), scale, boundX, boundY);
+}
+
+function travelBoat(boat: RaceBoat, from: Readonly<Vec2>, travel: { east: number; north: number }, scale: number,
+  boundX: (x: number) => number, boundY: (y: number) => number): PhysicalRaceMotion {
   // Keep the same physical hull and clearance in every course profile.
   boat.pos.x = boundX(from.x + travel.east / scale);
   boat.pos.y = boundY(from.y - travel.north / scale);

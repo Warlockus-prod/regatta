@@ -135,7 +135,7 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
       input = { steering: { mode: "helm", rudder: physicalBotRudder(boat.heading, heading), lowSpeedAssist: true }, autoTrim: true };
     } else input = entry.input;
     const motion = stepPhysicalBoat(boat, frame.dt, frame.windDir, frame.gust, input, read.context,
-      { speedMul: entry.speedMul, windStrengthMul: frame.windStrengthMul });
+      { speedMul: entry.speedMul, windStrengthMul: frame.windStrengthMul, rigTransfer: entry.input !== "bot" });
     if (!motion || !isPhysicalRaceBoat(boat)) return null;
     motions.set(boat.id, motion);
   }

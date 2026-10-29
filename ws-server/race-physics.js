@@ -459,16 +459,7 @@ function raceTurnRate(speed, steering = "legacy") {
   const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
   return steering === "responsive" ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority) : TURN_RATE * authority;
 }
-function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}) {
-  const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const params2 = getBoatParams();
-  const state = {
-    ...boat.physics ?? createInitialState({ tws: 12 }),
-    heading: boat.heading,
-    boatSpeed: boat.speed / mul,
-    trueWindDir: windDir,
-    trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust
-  };
+function raceCrewTrim(boat, state, input, dt) {
   if (input.autoTrim === false) {
     boat.trim = raceTrim(input.trim, boat.trim);
     boat.trimClock = 0.5;
@@ -482,7 +473,19 @@ function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}) {
       boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
     }
   }
-  boat.physics = tick(state, boat.trim, params2, dt).state;
+  return boat.trim;
+}
+function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}) {
+  const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
+  const params2 = getBoatParams();
+  const state = {
+    ...boat.physics ?? createInitialState({ tws: 12 }),
+    heading: boat.heading,
+    boatSpeed: boat.speed / mul,
+    trueWindDir: windDir,
+    trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust
+  };
+  boat.physics = tick(state, raceCrewTrim(boat, state, input, dt), params2, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
   return boat.physics;
 }
@@ -770,6 +773,7 @@ export {
   normalizeAngle,
   raceAutopilotPlan,
   raceAutopilotTurn,
+  raceCrewTrim,
   raceTrim,
   raceTurnRate,
   raceWaypoint,

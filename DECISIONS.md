@@ -739,3 +739,55 @@ expanded bot deadline remains open; it cannot authorize emission or delivery.
 `src/lib/race-physical-response.ts`, `src/lib/race-physical-response.test.ts`,
 `docs/audits/2026-10-27/physical-response-harness.md`,
 `docs/audits/2026-10-26/completion-program.md`.
+
+## ADR-0014 - One boat step for the trainer and the physical race
+
+Date: 2026-10-29. Status: accepted (owner decision 1 in the completion
+program: one boat, one force model and one control experience). Supersedes
+the part of ADR-0011 where the physical race reused the race force step.
+
+### Context
+
+ADR-0011 shared the heading and metre laws, but the physical race still
+called `stepRaceBoatForces`: sheets applied instantly, sails crossed the boat
+with no load loss, so a tack cost less in the race than in the trainer. The
+same boat behaved differently on two screens.
+
+### Decision
+
+- `src/features/sailing-lab/runtime/boat-step.ts` owns one boat step:
+  helm, crew sheet handling (`interpolateControls`), rig transfer and sail
+  load (`stepWithRig`), forces and metre travel. The trainer session and the
+  player's physical race boat both call it. Golden VPP constants are unchanged.
+- The trainer session is a pure refactor onto this step: its pre-extraction
+  golden trajectory and full-state digest are byte-identical.
+- The physical race boat carries the crew state (`live` sheets, `rig`)
+  between steps. Simple mode solves the sheet target every half second as
+  before (`raceCrewTrim`); the crew then hauls toward it at trainer rates.
+- Helm meaning in the physical race is the shared law: rudder -1..1 turns
+  at 22 degrees per second times speed authority, course assist at 45. The
+  legacy race keeps its responsive 40 degrees per second (ADR-0009).
+- Rudder authority uses the speed the hull actually makes. With no handicap
+  that is the model speed; a bot handicap (ADR-0007) scales it.
+- Bot crews in the physical fleet keep an instant sail transfer for now
+  (`rigTransfer: false`). Giving them the shared crew produced one hull
+  contact in 4 of 40 fleet scenarios (a bot tacking under another bot's bow
+  in the pre-start, its sails still crossing). Three prediction variants
+  moved contacts to other scenarios instead of removing them. Bot avoidance
+  needs its own tack-loss model before bots share the crew. Open item.
+- Records are unaffected: physical emission stays OFF, no physical record
+  exists, so `physical-cruiser-v1` keeps its id.
+
+### Verification
+
+`src/lib/race-shared-boat.test.ts`: three inputs (fixed close-hauled helm,
+tack under full helm then course assist, bear away with eased sheets) give
+the same heading, speed, heel, leeway, held sheets, sail positions and metres
+on every tick in the trainer and the race, and a race tack enters the rig
+transfer. `session.kinematics.test.ts` keeps the trainer golden. The fleet
+suite keeps all 40 zero-contact scenarios.
+
+### References
+
+`src/features/sailing-lab/runtime/boat-step.ts`, `src/lib/race-physical-motion.ts`,
+`src/lib/race-shared-boat.test.ts`, ADR-0007, ADR-0009, ADR-0011.

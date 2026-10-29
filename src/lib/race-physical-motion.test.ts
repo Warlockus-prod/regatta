@@ -68,14 +68,14 @@ describe("explicit physical race movement", () => {
     expect(boat.heading).toBeCloseTo(next, 12);
   });
 
-  it.each([true, false])("shares forces, trim and the non-compounding handicap with legacy (autoTrim=%s)", autoTrim => {
+  it.each([true, false])("keeps the bot crew's forces, trim and non-compounding handicap equal to legacy (autoTrim=%s)", autoTrim => {
     for (const heading of [45, 90, 150]) {
       const physical = mkBoat(heading, 3), legacy = structuredClone(physical);
       const trim = { mainSheet: .7, jibSheet: .5, mainTwist: .3, jibTwist: .4, reef: .2, jibFurl: .1, jibSide: 1 as const };
       const opts = { speedMul: .85, windStrengthMul: 1.2 };
       for (let i = 0; i < 120; i++) {
         const gust = 1 + .08 * Math.sin(i / 30);
-        stepPhysicalBoat(physical, dt, 8, gust, { ...helm(), autoTrim, trim }, context, opts);
+        stepPhysicalBoat(physical, dt, 8, gust, { ...helm(), autoTrim, trim }, context, { ...opts, rigTransfer: false });
         stepBoat(legacy, dt, 8, gust, { turn: 0, autoTrim, trim }, opts);
         expect(physical.physics).toEqual(legacy.physics);
         expect(physical.trim).toEqual(legacy.trim);

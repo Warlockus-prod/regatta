@@ -480,6 +480,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/sailing-lab/runtime/fixed-clock.ts` - фиксированный шаг интеграции, частота рендера на него не влияет.
 - `src/features/sailing-lab/runtime/fixed-clock.test.ts` - тесты часов.
 - `src/features/sailing-lab/runtime/step-rig.ts` - шаг сессии вместе с механикой рига.
+- `src/features/sailing-lab/runtime/boat-step.ts` - один шаг лодки для Тренажера и физической гонки игрока (ADR-0014): руль, экипаж на шкотах, перенос парусов, силы и метры.
 - `src/features/sailing-lab/runtime/controls.ts` - скорости изменения управляющих органов и интерполяция.
 - `src/features/sailing-lab/runtime/trim-controls.ts` - перевод UI-настроек трима в величины движка.
 - `src/features/sailing-lab/runtime/input.ts` - валидация входа сессии.
@@ -1716,13 +1717,14 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-progress-browser.json` - exact6fcf safe non-main cloud gate, verified artifact digest and78first-attempt browser cases; publication/deploy skipped.
 - `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
 - `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
-- `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter, shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
+- `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter; the player's boat runs the shared trainer boat step with crew and rig (ADR-0014), bot crews keep instant sail transfer; shared trainer heading/metres, fixed metric hull bounds and immutable propelled segment before collision resolution. Currently unwired from live races/results.
 - `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, integer-tick memory, reachable-turn traffic/hardware prediction, canonical gate entry, weak-authority turn-side memory, shared water bounds and endpoint-clear recovery; legacy autopilot and human steering stay separate.
 - `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction, metre-per-knot and stable weak/full-authority turn behavior.
 - `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception of last actual bot commands, unchanged shared forces/helm, coupled impact-truncated travel and recovery-free progress; live emission stays OFF.
 - `src/lib/race-physical-contact.ts` - bounded immutable hull/mark swept-circle observations from actual propelled segments, canonical hardware and explicit physical context; no response, penalty, diagnostic stream or persistence.
 - `src/lib/race-physical-contact.test.ts` - simultaneous versus different-time path crossings, tangency/initial overlap, larger committee hardware, finished exclusion, bounds/ownership and malformed-frame rejection.
 - `src/lib/race-physical-fleet.test.ts` - real five-boat18profile/wind/early-start journeys plus atomic rejection, memory ownership, fixed-clock/countdown, human input and collision-credit contracts.
+- `src/lib/race-shared-boat.test.ts` - ADR-0014 contract: the trainer session and the player's physical race boat give the same heading, speed, heel, leeway, sheets, sail positions and metres on three inputs.
 - `src/lib/race-physical-motion.test.ts` - actual integrated metre travel, helm/course assist, low-speed choice, force/trim/handicap parity, rejected-input atomicity and collision-independent endpoint tests.
 - `src/lib/race-legacy-motion.fixture.json` - twelve pre-extraction legacy/responsive trajectories captured from frozen68 sourcef7, not generated from the new implementation.
 - `src/lib/race-legacy-motion.test.ts` - preserves those independent legacy trajectories after extracting the shared force/trim boundary.
