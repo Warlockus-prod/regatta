@@ -38,8 +38,12 @@ import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules, type RaceRuleEvent } from "@/lib/race-rules";
-import { buildRaceJudgeDebrief, type RaceJudgeDebrief } from "@/lib/race-judge";
-import { RaceJudgeReview } from "./RaceJudgeReview";
+import type { RaceJudgeDebrief } from "@/lib/race-judge";
+
+// Loaded only where used: the judge on the results screen, the physical
+// engine only for a `?race=` trial. Neither belongs in every /game visit.
+const RaceJudgeReview = dynamic(() => import("./RaceJudgeReview").then(m => m.RaceJudgeReview), { ssr: false });
+type PhysicalFleetModule = typeof import("@/lib/race-physical-fleet");
 import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, postNativePersonalBest, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
@@ -58,7 +62,6 @@ import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnaps
 import { createPendingNativeBestCommands, nativeBestFailure, NATIVE_BEST_PENDING_LIMIT } from "@/lib/race-best-command";
 import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext, type PhysicalRaceProfile } from "@/lib/race-context";
 import { makePhysicalRaceCourse, physicalCourseDefinition, physicalFleetSpawns } from "@/lib/race-courses";
-import { stepPhysicalRaceFleet } from "@/lib/race-physical-fleet";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { physicalTrialSteering, readPhysicalTrial } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, makeGhostTrack, readGhostStore, rememberGhost, writeGhostStore, type GhostTrack } from "@/lib/race-ghost";
@@ -337,12 +340,20 @@ export default function GamePage() {
   const [judgeDebrief, setJudgeDebrief] = useState<RaceJudgeDebrief | null>(null);
   const ghostBoatsRef = useRef<RaceBoat[]>([]);
   const [ghostTime, setGhostTime] = useState<number | null>(null);
+  const fleetRef = useRef<PhysicalFleetModule | null>(null);
   useEffect(() => {
     const profile = readPhysicalTrial(window.location.search);
     if (!profile) return;
-    physicalRef.current = profile;
-    courseRef.current = makeCourse(profile);
-    setPhysicalTrial(profile);
+    let live = true;
+    // The trial opens only once its engine is here; until then the race is legacy.
+    void import("@/lib/race-physical-fleet").then(fleet => {
+      if (!live) return;
+      fleetRef.current = fleet;
+      physicalRef.current = profile;
+      courseRef.current = makeCourse(profile);
+      setPhysicalTrial(profile);
+    });
+    return () => { live = false; };
   }, []);
   const guidanceStateRef = useRef<RaceGuidanceState | null>(null);
   const [routeGuidance, setRouteGuidance] = useState<RaceGuidance | null>(null);
@@ -836,7 +847,7 @@ export default function GamePage() {
           ? Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")) : rudderRef.current;
         if (held && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
         const steering = physicalTrialSteering(held, autopilotOnRef.current, autopilotHeadingRef.current);
-        const stepped = player ? stepPhysicalRaceFleet({ context: physicalRaceContext(physical), course, dt,
+        const stepped = player && fleetRef.current ? fleetRef.current.stepPhysicalRaceFleet({ context: physicalRaceContext(physical), course, dt,
           raceTime: raceClockRef.current, racing: isRacing, windDir: windDirRef.current, gust: windGustRef.current,
           windStrengthMul: windStrengthRef.current, navigation: physicalNavRef.current,
           entries: boats.map(boat => ({ boat, speedMul: boat.speedMul,
@@ -1002,8 +1013,13 @@ export default function GamePage() {
           .sort((a, b) => a.time - b.time);
         ended = true;
         setResults(sorted);
-        if (racePrefsRef.current.rules) setJudgeDebrief(buildRaceJudgeDebrief(ruleEventsRef.current, { startedAt: startedAtRef.current,
-          markRoundedAt: markTimesRef.current.get("player"), finishedAt: player.finishTime }));
+        if (racePrefsRef.current.rules) {
+          const events = ruleEventsRef.current, completedRaceId = raceIdRef.current;
+          const options = { startedAt: startedAtRef.current, markRoundedAt: markTimesRef.current.get("player"), finishedAt: player.finishTime };
+          void import("@/lib/race-judge").then(judge => {
+            if (raceIdRef.current === completedRaceId) setJudgeDebrief(judge.buildRaceJudgeDebrief(events, options));
+          });
+        }
         setGameState('finished');
         recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
         // Race ended cleanly - drop the resume offer so the next reload
