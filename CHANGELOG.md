@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Подготовлен разбор «учебного судьи» после гонки: каждый эпизод с этапом гонки, номером правила, правом дороги, штрафом или пометкой «без штрафа: спорно» и советом на следующий раз; повторы одного эпизода сливаются, а список того, что судья не проверяет (место у знака, протесты, штрафные круги, настоящий судья), всегда виден. Блок еще не подключен к экрану финиша.
+
 - Separated race Map/Fleet and wind/Helm browser journeys after the combined case reached its120s deadline with successful real geometry and a running clock. Both journeys keep25s startup,15s clock and120s total budgets, all assertions and five viewport samples. Evidence reuses each validated sample. The same prepublication files now contain69cases; runtime and deployment permissions stay unchanged.
 
 - Fitted the complete course map and legend inside the available cockpit panel, including the native safe area and short/landscape screens. Marks and boats are visible before scrolling; boat space and controls stay reserved.
