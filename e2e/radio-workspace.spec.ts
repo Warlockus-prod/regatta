@@ -366,3 +366,26 @@ test("diagnostics shows actual radio results, survives reload and clears only it
   await expect(panel).toContainText("No events yet");
   expect(await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(key => key.startsWith("sternik.radio.") || key.startsWith("regatta.radio.")).map(key => [key, localStorage.getItem(key)])))).toEqual(progress);
 });
+
+// TestFlight69 TF12: on a fresh course "Start from basics" chose the chapter
+// already shown and scrolled to the page top, so the tap changed nothing.
+// The real button must bring the learner to the chapter text, in the web
+// page and in the app embed.
+for (const embed of [false, true]) {
+  test(`start from basics lands on the first chapter text${embed ? " in the app embed" : ""}`, async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto(`/radio/teoria?lang=ru${embed ? "&embed=1" : ""}`);
+    const chapter = page.getByTestId("theory-chapter");
+    await expect(chapter).toBeAttached();
+    const before = (await chapter.boundingBox())!;
+    expect(before.y).toBeGreaterThan(PHONE.height * 0.5);
+    await page.getByRole("button", { name: "Начать с основ" }).click();
+    await expect(chapter).toBeFocused();
+    await expect(async () => {
+      const after = (await chapter.boundingBox())!;
+      expect(after.y).toBeGreaterThanOrEqual(0);
+      expect(after.y).toBeLessThan(PHONE.height * 0.25);
+    }).toPass({ timeout: 5_000 });
+    await expect(chapter).toContainText("1/");
+  });
+}

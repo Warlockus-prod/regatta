@@ -2,7 +2,7 @@
 
 import { useRadioI18n } from "@/app/radio/localization/context";
 
-import { Component, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Component, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -315,11 +315,27 @@ export default function RadioTheoryCourse() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  // Choosing a chapter lands on its text, not the page top: on a fresh course
+  // "Start from basics" picks the chapter already shown, so scrolling to the
+  // top left the reader exactly where they were (TestFlight69 TF12).
+  const articleRef = useRef<HTMLElement>(null);
+  const pendingChapter = useRef<string | null>(null);
+  const [chapterRequest, setChapterRequest] = useState(0);
+
+  useEffect(() => {
+    if (pendingChapter.current !== chapter.id || !articleRef.current) return;
+    pendingChapter.current = null;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    articleRef.current.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    articleRef.current.focus({ preventScroll: true });
+  }, [chapter.id, chapterRequest]);
+
   const selectChapter = (id: string) => {
+    pendingChapter.current = id;
     if (offlineRadio()) router.replace(`/radio/teoria${radioRuntimeSearch()}#${id}`, { scroll: false });
     else window.history.replaceState(null, "", `#${id}`);
     window.dispatchEvent(new Event(CHAPTER_EVENT));
-    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    setChapterRequest((n) => n + 1);
   };
 
   const markComplete = () => {
@@ -439,7 +455,7 @@ export default function RadioTheoryCourse() {
           </select>
         </div>
 
-        <article key={chapter.id} className="min-w-0 max-w-full">
+        <article key={chapter.id} ref={articleRef} tabIndex={-1} data-testid="theory-chapter" className="min-w-0 max-w-full outline-none">
           <Surface className="overflow-hidden">
             <div className="border-b p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)" }}>
               <div className="flex flex-wrap items-center gap-2">
