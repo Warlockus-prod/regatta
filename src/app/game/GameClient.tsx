@@ -54,7 +54,14 @@ import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { createPendingNativeBestCommands, nativeBestFailure, NATIVE_BEST_PENDING_LIMIT } from "@/lib/race-best-command";
-import { LEGACY_RACE_CONTEXT } from "@/lib/race-context";
+import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext, type PhysicalRaceProfile } from "@/lib/race-context";
+import { makePhysicalRaceCourse, physicalCourseDefinition, physicalFleetSpawns } from "@/lib/race-courses";
+import { stepPhysicalRaceFleet } from "@/lib/race-physical-fleet";
+import type { PhysicalBotState } from "@/lib/race-physical-bot";
+import { physicalTrialSteering, readPhysicalTrial } from "@/lib/race-trial";
+import { ghostClassKey, ghostPose, makeGhostTrack, readGhostStore, rememberGhost, writeGhostStore, type GhostTrack } from "@/lib/race-ghost";
+
+const localStore = () => { try { return window.localStorage; } catch { return null; } };
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -183,8 +190,8 @@ const MARK_LABELS: Omit<CourseMark, 'pos' | 'radius' | 'type'>[] = [
 
 const noSubscribe = () => () => {};
 
-function makeCourse(): Course {
-  const course = makeStandardCourse();
+function makeCourse(profile: PhysicalRaceProfile | null = null): Course {
+  const course = profile ? makePhysicalRaceCourse(profile) : makeStandardCourse();
   return {
     ...course,
     marks: course.marks.map((mark, i) => ({ ...mark, ...MARK_LABELS[i] })),
@@ -313,6 +320,23 @@ export default function GamePage() {
 
   const boatsRef = useRef<Boat[]>([]);
   const courseRef = useRef<Course>(makeCourse());
+  // Opt-in physical trial (ADR-0014, `?race=short|medium|long`): the player's
+  // boat is the trainer's boat in metres. Nothing from it is recorded.
+  const physicalRef = useRef<PhysicalRaceProfile | null>(null);
+  const physicalNavRef = useRef<ReadonlyMap<string, PhysicalBotState> | undefined>(undefined);
+  const [physicalTrial, setPhysicalTrial] = useState<PhysicalRaceProfile | null>(null);
+  // Personal ghost (P09): your best finished race of the same class, drawn
+  // from its own ref, outside the fleet, ranks, collisions and rules.
+  const ghostTrackRef = useRef<GhostTrack | null>(null);
+  const ghostBoatsRef = useRef<RaceBoat[]>([]);
+  const [ghostTime, setGhostTime] = useState<number | null>(null);
+  useEffect(() => {
+    const profile = readPhysicalTrial(window.location.search);
+    if (!profile) return;
+    physicalRef.current = profile;
+    courseRef.current = makeCourse(profile);
+    setPhysicalTrial(profile);
+  }, []);
   const guidanceStateRef = useRef<RaceGuidanceState | null>(null);
   const [routeGuidance, setRouteGuidance] = useState<RaceGuidance | null>(null);
   const keysRef = useRef<Set<string>>(new Set());
@@ -437,6 +461,7 @@ export default function GamePage() {
 
   // Save finished race result to leaderboard (depends on all the state above)
   const saveResult = useCallback((withNickname?: string) => {
+    if (physicalRef.current) return; // A physical trial is never recorded.
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2 || player.finishTime == null) {
       recordDiagnostic({ type: "race.save", surface: "race", outcome: "rejected", action: "request", target: "leaderboard", reason: "not-ready" });
@@ -510,7 +535,7 @@ export default function GamePage() {
   // silently; without one saveResult() flips saveState to 'prompting' and
   // the finish overlay shows a skippable nickname prompt.
   useEffect(() => {
-    if (gameState !== 'finished' || isNativeRace()) return;
+    if (gameState !== 'finished' || isNativeRace() || physicalRef.current) return;
     if (saveAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
@@ -531,7 +556,7 @@ export default function GamePage() {
 
   // Auto-save replay on finish (fire and forget)
   useEffect(() => {
-    if (gameState !== 'finished' || isNativeRace()) return;
+    if (gameState !== 'finished' || isNativeRace() || physicalRef.current) return;
     if (replayAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
@@ -571,13 +596,17 @@ export default function GamePage() {
     const course = courseRef.current;
     const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
     const boats: Boat[] = [];
+    // The physical fleet uses its registered metric spawn slots (max 5 boats).
+    const spawns = physicalRef.current ? physicalFleetSpawns(1 + cfg.opponents) : null;
+    physicalNavRef.current = undefined;
+    ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null);
 
     // Player in the middle
     boats.push({
       id: 'player',
       name: copyRef.current.you,
       color: '#00d4ff',
-      pos: { x: lineCenter.x, y: lineCenter.y + 30 },
+      pos: spawns ? { ...spawns[0] } : { x: lineCenter.x, y: lineCenter.y + 30 },
       heading: 45,
       speed: 0,
       isPlayer: true,
@@ -593,8 +622,8 @@ export default function GamePage() {
         id: `ai${i}`,
         name: AI_NAMES[i] || `AI ${i + 1}`,
         color: AI_COLORS[i] || '#888888',
-        pos: { x: lineCenter.x + t * spread * 0.7, y: lineCenter.y + 30 + (i % 2) * 20 },
-        heading: t > 0 ? 315 : 45,
+        pos: spawns ? { ...spawns[i + 1] } : { x: lineCenter.x + t * spread * 0.7, y: lineCenter.y + 30 + (i % 2) * 20 },
+        heading: spawns ? (spawns[i + 1].x <= lineCenter.x ? 45 : 315) : t > 0 ? 315 : 45,
         speed: 0,
         isPlayer: false,
         lapDone: 0,
@@ -649,7 +678,7 @@ export default function GamePage() {
     // Persist the user's INTENT to localStorage so we can offer to resume
     // after a reload. We refresh on every phase transition so the saved
     // ts stays close to "now".
-    saveRaceSetup({
+    if (!physicalRef.current) saveRaceSetup({
       difficulty,
       windStrength,
       missionId: selectedMission?.id ?? null,
@@ -663,7 +692,7 @@ export default function GamePage() {
   }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode, dailyDay]);
 
   const beginCountdown = useCallback(() => {
-    saveRaceSetup({
+    if (!physicalRef.current) saveRaceSetup({
       difficulty,
       windStrength,
       missionId: selectedMission?.id ?? null,
@@ -673,6 +702,12 @@ export default function GamePage() {
       phase: 'countdown',
     });
     setLockedMode(racePrefs.mode);
+    // Web only for now: the native WebView keeps no durable localStorage.
+    const ghost = physicalRef.current || isNativeRace() ? null : readGhostStore(localStore())[ghostClassKey({
+      raceContext: LEGACY_RACE_CONTEXT, mode: racePrefs.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null })] ?? null;
+    ghostTrackRef.current = ghost;
+    ghostBoatsRef.current = ghost ? [{ id: "ghost", name: "", color: "#9aa7b4", ...ghostPose(ghost, 0) }] : [];
+    setGhostTime(ghost?.finishTimeSec ?? null);
     setCountdown(3);
     setGameState('countdown');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "countdown", mode: racePrefs.mode });
@@ -685,13 +720,13 @@ export default function GamePage() {
     if (gameState !== 'countdown' || paused || !sceneReady) return;
     if (countdown === 0) {
       playStart();
-      postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
+      if (!physicalRef.current) postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
       logEventsRef.current.push({ type: "start", t: 0 });
       const player = boatsRef.current.find(b => b.isPlayer);
       if (player) logSamplesRef.current.push(recordSample(player, 0, windDirRef.current));
       // Mark the saved setup as "racing" so a reload knows the user
       // was actively in a race, not just on the briefing page.
-      saveRaceSetup({
+      if (!physicalRef.current) saveRaceSetup({
         difficulty,
         windStrength,
         missionId: selectedMission?.id ?? null,
@@ -784,7 +819,27 @@ export default function GamePage() {
       // Capture previous positions BEFORE movement - used later for line-cross detection
       const prevPositions = new Map<string, Vec2>();
 
-      for (const boat of boats) {
+      const physical = physicalRef.current;
+      let physicalEvents: ReadonlyMap<string, string | null> | null = null;
+      if (physical) {
+        for (const boat of boats) prevPositions.set(boat.id, { ...boat.pos });
+        const player = boats.find(b => b.isPlayer);
+        const held = keysRef.current.has("arrowright") || keysRef.current.has("arrowleft")
+          ? Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")) : rudderRef.current;
+        if (held && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
+        const steering = physicalTrialSteering(held, autopilotOnRef.current, autopilotHeadingRef.current);
+        const stepped = player ? stepPhysicalRaceFleet({ context: physicalRaceContext(physical), course, dt,
+          raceTime: raceClockRef.current, racing: isRacing, windDir: windDirRef.current, gust: windGustRef.current,
+          windStrengthMul: windStrengthRef.current, navigation: physicalNavRef.current,
+          entries: boats.map(boat => ({ boat, speedMul: boat.speedMul,
+            input: boat.isPlayer ? { steering, autoTrim: racePrefsRef.current.mode !== "pro", trim: trimRef.current } : "bot" as const })) }) : null;
+        if (stepped) {
+          boats = stepped.boats as Boat[]; boatsRef.current = boats;
+          physicalNavRef.current = stepped.navigation;
+          physicalEvents = new Map(stepped.progress.map(p => [p.boatId, p.event]));
+        } else recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "failed", action: "start", reason: "invalid-input" });
+      }
+      for (const boat of physical ? [] : boats) {
         prevPositions.set(boat.id, { ...boat.pos });
         if (boat.lapDone === 2) continue;
 
@@ -810,7 +865,9 @@ export default function GamePage() {
         setRuleNotice({ text: copyRef.current.ruleMessage(important), until: raceClockRef.current + 7 });
         setPenalty(checked.state.penalties.player ?? 0);
       }
-      resolveCollisions(boats, dt);
+      if (!physical) resolveCollisions(boats, dt);
+      const ghost = ghostTrackRef.current, ghostBoat = ghostBoatsRef.current[0];
+      if (ghost && ghostBoat) Object.assign(ghostBoat, ghostPose(ghost, isRacing ? raceClockRef.current : 0));
 
       // Re-process course progression after collision adjustments
       for (const boat of boats) {
@@ -819,7 +876,9 @@ export default function GamePage() {
         // Mark / finish detection only counts once the race is officially on.
         if (!isRacing) continue;
 
-        const event = updateLap(boat, prevPos, course, raceClockRef.current);
+        // The physical fleet already graded its actual travel this tick.
+        const event = physical ? (physicalEvents?.get(boat.id) === "mark" || physicalEvents?.get(boat.id) === "finish" ? physicalEvents.get(boat.id) : null)
+          : updateLap(boat, prevPos, course, raceClockRef.current);
         if (event === "mark") {
           const t = raceClockRef.current;
           markTimesRef.current.set(boat.id, t);
@@ -841,7 +900,7 @@ export default function GamePage() {
       // A completed player's final sample is already fixed. Resolve only the
       // remaining fleet now, so Menu/backgrounding cannot discard this finish
       // during the former 15-second wait and penalty-adjusted places stay true.
-      if (isRacing && boats.some(boat => boat.isPlayer && boat.lapDone === 2)) {
+      if (isRacing && !physical && boats.some(boat => boat.isPlayer && boat.lapDone === 2)) {
         const resolved = resolveFinishedFleet({ boats, course, time: raceClockRef.current,
           windStrengthMul: windStrengthRef.current, rules: ruleStateRef.current,
           rulesEnabled: racePrefsRef.current.rules, penaltiesEnabled: racePrefsRef.current.penalties });
@@ -923,7 +982,8 @@ export default function GamePage() {
       // Check race end: all boats finished OR player finished - only when racing
       const allFinished = boats.every((b) => b.lapDone === 2);
       const playerFinished = player.lapDone === 2;
-      const tooLong = elapsedSec > 300; // 5 minutes max
+      // 5 minutes max; a physical course has its own registered time limit.
+      const tooLong = elapsedSec > (physical ? physicalCourseDefinition(physical).maxRaceSeconds : 300);
 
       if (isRacing && (allFinished || playerFinished || tooLong)) {
         const sorted = [...boats]
@@ -940,14 +1000,21 @@ export default function GamePage() {
         // Save / compare against personal-best for this (difficulty, wind)
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
-        if (player.finishTime != null && !isNativeRace()) {
+        // A physical trial is never recorded (PHYSICAL_RACE_EMISSION_ENABLED).
+        if (player.finishTime != null && !isNativeRace() && !physical) {
+          const track = makeGhostTrack(ghostClassKey({ raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode,
+            difficulty, windStrength, missionId: selectedMission?.id ?? null }),
+            player.finishTime + (ruleStateRef.current.penalties.player ?? 0), logSamplesRef.current);
+          const store = localStore();
+          const remembered = track ? rememberGhost(readGhostStore(store), track) : null;
+          if (remembered?.replaced) writeGhostStore(store, remembered.store);
           const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
         }
 
         // --- Evaluate selected mission ---
-        if (selectedMission) {
+        if (selectedMission && !physical) {
           const tacks = logEventsRef.current.filter((e) => e.type === 'tack').length;
           const noGoEntries = logEventsRef.current.filter((e) => e.type === 'no-go-entered').length;
           const topSpeed = logSamplesRef.current.reduce((m, s) => Math.max(m, s.speed), 0);
@@ -983,7 +1050,7 @@ export default function GamePage() {
         setCoaching(localCoaching);
         // Post within the finish tick, before a result/menu render can replace
         // the active refs. Keep the immutable payload until its own durable ack.
-        if (isNativeRace() && player.finishTime !== undefined && logSamplesRef.current.length >= 2) {
+        if (isNativeRace() && !physical && player.finishTime !== undefined && logSamplesRef.current.length >= 2) {
           const snapshot: NativeRaceSnapshot = { schema: 1, id: raceIdRef.current, mode: racePrefsRef.current.mode,
             difficulty, windStrength, missionId: selectedMission?.id ?? null,
             finishTimeSec: player.finishTime, position: playerRank, totalBoats: sorted.length,
@@ -1238,6 +1305,41 @@ export default function GamePage() {
   // =====================================================================
   // BRIEFING SCREEN - explains the race before countdown
   // =====================================================================
+  const chooseTrialCourse = (profile: PhysicalRaceProfile) => {
+    if (profile === physicalRef.current) return;
+    physicalRef.current = profile;
+    courseRef.current = makeCourse(profile);
+    setPhysicalTrial(profile);
+    const url = new URL(window.location.href);
+    url.searchParams.set("race", profile);
+    window.history.replaceState(window.history.state, "", url);
+    initRace(difficulty);
+  };
+  const trialCourses = physicalTrial ? (
+    <div role="radiogroup" data-testid="physical-trial-course" className="mb-3 flex gap-2"
+      aria-label={tl({ ru: "Длина лавировки", en: "Beat length", pl: "Długość halsówki", es: "Longitud de la ceñida", fr: "Longueur du louvoyage", de: "Länge der Kreuz", it: "Lunghezza della bolina" })}>
+      {PHYSICAL_RACE_PROFILES.map(profile => <button key={profile} type="button" role="radio" aria-checked={physicalTrial === profile}
+        onClick={() => chooseTrialCourse(profile)}
+        className={`min-h-11 flex-1 rounded-lg border px-3 text-sm font-semibold ${physicalTrial === profile
+          ? "border-[var(--accent-cyan)] text-[var(--accent-cyan)]" : "border-[var(--border-subtle)] text-[var(--text-secondary)]"}`}>
+        {tl({ ru: "%d м", en: "%d m", pl: "%d m", es: "%d m", fr: "%d m", de: "%d m", it: "%d m" }).replace("%d", String(physicalCourseDefinition(profile).legMetres))}
+      </button>)}
+    </div>
+  ) : null;
+  const trialNote = physicalTrial ? (
+    <p className="card mb-5 p-3 text-sm text-[var(--text-secondary)]" role="note" data-testid="physical-trial-note">
+      {tl({
+        ru: `Пробная гонка в метрах: лавировка ${physicalCourseDefinition(physicalTrial).legMetres} м, твоя лодка ведет себя как в «Тренажёре трима». Результат, рекорд и запись гонки не сохраняются.`,
+        en: `Trial race in real metres: a ${physicalCourseDefinition(physicalTrial).legMetres} m beat, your boat handles as in the Sail trim trainer. The result, best time and race recording are not saved.`,
+        pl: `Wyścig próbny w metrach: halsówka ${physicalCourseDefinition(physicalTrial).legMetres} m, Twój jacht prowadzi się jak w Trenażerze trymu. Wynik, rekord i zapis wyścigu nie są zapisywane.`,
+        es: `Regata de prueba en metros reales: ceñida de ${physicalCourseDefinition(physicalTrial).legMetres} m, tu barco se comporta como en el Simulador de trimado. El resultado, el récord y la grabación no se guardan.`,
+        fr: `Course d'essai en mètres réels : louvoyage de ${physicalCourseDefinition(physicalTrial).legMetres} m, ton bateau se comporte comme dans Réglage des voiles. Le résultat, le record et l'enregistrement ne sont pas sauvegardés.`,
+        de: `Probewettfahrt in echten Metern: ${physicalCourseDefinition(physicalTrial).legMetres} m Kreuz, dein Boot verhält sich wie im Segeltrimm-Trainer. Ergebnis, Bestzeit und Aufzeichnung werden nicht gespeichert.`,
+        it: `Regata di prova in metri reali: bolina di ${physicalCourseDefinition(physicalTrial).legMetres} m, la tua barca si comporta come in Regolazione delle vele. Risultato, record e registrazione non vengono salvati.`,
+      })}
+    </p>
+  ) : null;
+
   if (gameState === 'briefing') {
     return (
       <div ref={setupRootRef} data-race-phase="briefing" className="page-enter flex flex-col" style={viewportStyle}>
@@ -1284,6 +1386,8 @@ export default function GamePage() {
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
         <div className="mb-5"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
+        {trialCourses}
+        {trialNote}
 
         {/* One card: the course with its four steps, and three rules. */}
         <div className="card p-4 sm:p-5 mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1371,6 +1475,7 @@ export default function GamePage() {
           }} muted={muted} onSound={() => updateControls({ sound: !controlPrefs.sound })} penalty={penalty}
           countdown={gameState === "countdown" ? countdown : undefined}>
           <RaceScene key={sceneRaceId} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
+            ghostRef={ghostBoatsRef} ghostLabel={ghostTime === null ? undefined : `${tl({ ru: "Твой лучший", en: "Your best", pl: "Twój najlepszy", es: "Tu mejor", fr: "Ton meilleur", de: "Deine Bestzeit", it: "Il tuo migliore" })} ${formatRecordTime(ghostTime)}`}
             showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}
             guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />
           {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
@@ -1381,6 +1486,7 @@ export default function GamePage() {
       {gameState === 'finished' && (
         <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
           <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
+            {trialNote}
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
             {nativeRace && nativeBestSave.id === sceneRaceId && nativeBestSave.status !== "idle" && <div className="mb-4 text-sm" role="status" data-testid="native-personal-best-status">
               {nativeBestSave.status === "saved" ? copy.personalBestChecked : nativeBestSave.status === "error" ? copy.personalBestError : copy.personalBestSaving}

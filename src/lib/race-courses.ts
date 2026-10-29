@@ -21,8 +21,8 @@ export interface PhysicalCourseDefinition {
   readonly spawn: { readonly maxBoats: 5; readonly belowLineMetres: number; readonly spacingMetres: number };
 }
 
-// ADR-0011 proposals. This registry is not connected to live race defaults,
-// progression, timeouts or result emission until their compatibility gates.
+// ADR-0011 proposals. Only the opt-in `/game?race=` trial (ADR-0014) sails
+// them; live race defaults and result emission stay off until their gates.
 const bounds = Object.freeze({ widthMetres: 480, heightMetres: 720 });
 const start = Object.freeze({ eastMetres: 240, southMetres: 630, widthMetres: 100 });
 const hardware = Object.freeze({ boatDiameterMetres: 13.2, buoyRadiusMetres: 1.5, committeeRadiusMetres: 4.5, clearanceBufferMetres: 2 });

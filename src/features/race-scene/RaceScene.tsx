@@ -197,7 +197,7 @@ function Quality({ onStats, maxDpr }: { onStats?: (s: RaceSceneStats) => void; m
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -215,6 +215,10 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   guidance?: RaceGuidance | null;
   /** Optional incoming apparent-air arrows from the shared trainer. */
   showWind?: boolean;
+  /** Your recorded ghost (P09). Drawn like a rival from its own ref, so it is
+   * never part of the fleet, ranks, collisions or rules. */
+  ghostRef?: MutableRefObject<Race3DBoat[]>;
+  ghostLabel?: string;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
   useEffect(() => { recordSceneLifecycle("scene", "begin"); }, []);
@@ -268,6 +272,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           <Suspense fallback={null}>
             <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={showWind} />
             {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
+            {ghostRef && ghostLabel && <Rival id="ghost" color="#9aa7b4" label={ghostLabel} boatsRef={ghostRef} windDirRef={windDirRef} originRef={originRef} />}
             <FirstSceneFrame onReady={ready} />
           </Suspense>
           <SailingCameraRig poseForAspect={cameraPose} revision={cameraRevision} />
