@@ -655,9 +655,12 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
 
 // One case per viewport journey. The combined case chained two real race
 // starts and four journeys (79 s locally under software WebGL) and ran out of
-// its 120 s in the slower cloud runner, where a profile shows ~90% of each
-// frame waiting on the software renderer. Every assertion stays; each case
-// keeps 120 s, so the total available time grows from 240 s to 960 s.
+// its 120 s in the cloud runner, where a profile shows ~90% of each frame
+// waiting on the software renderer and DPR or a render throttle does not
+// change it. Locally one journey takes 25-35 s under SwiftShader; the runner
+// is about 4x slower, so run 40798214738 still timed out four journeys at
+// 120 s. Each case gets 240 s; every assertion stays, a real hang still fails.
+// Total available time grows from 240 s to 1920 s.
 // Short and landscape still start in portrait and resize, as a rotation does.
 const COCKPIT_JOURNEYS = [
   { label: "web", embed: false, start: { width: 569, height: 750 }, viewport: null, minimum: 240 },
@@ -668,7 +671,7 @@ const COCKPIT_JOURNEYS = [
 
 for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOURNEYS) {
   test(`${mode} cockpit gives the boat room and keeps actual inputs and utilities reachable (${journey.label})`, async ({ page, context }, testInfo) => {
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
     const evidence = await cockpitEvidence(page, context, testInfo, `race-${mode}-${journey.label}-journey-timing`);
     const samples: unknown[] = [];
     const sample = async (entry: Awaited<ReturnType<typeof startRace>>, label: string, minimumSceneHeight: number) => {
