@@ -14,8 +14,9 @@
   корневой чекаут не трогаем.
 - У владельца TestFlight 1.7.0 (70), откат 69. Сборка, загрузка и доставка в
   группу Self - три разных состояния, доставку подтверждает живой ASC GET.
-- `PHYSICAL_RACE_EMISSION_ENABLED = false`: метрическая физика гонки
-  подготовлена, но не подключена к игре. Включать только по плану в STATUS.
+- `PHYSICAL_RACE_EMISSION_ENABLED = false`: метрическая гонка доступна только
+  пробой за флагом `/game?race=short|medium|long` (ADR-0014), результаты не
+  записываются. Включать запись только по плану в STATUS.
 - Программа P00-P12 и 65 требований: `docs/audits/2026-10-26/completion-program.md`,
   последний полный отчет владельцу: `docs/audits/2026-10-28/completion-status.md`.
 - История прежних строк этого раздела: `docs/audits/2026-10-29/agents-status-before-takeover.md`.
