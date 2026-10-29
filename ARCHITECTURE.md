@@ -812,6 +812,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `postcss.config.mjs` - подключение Tailwind v4 через PostCSS.
 - `vitest.config.ts` - web unit tests use the complete root tsconfig as a string, including pure native adapters without requiring Expo in root-only CI.
 - `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью; CI использует одного worker для независимых тяжелых сцен, локальный default и два реальных клиента внутри multiplayer case сохранены. Retries, trace policy и бюджеты не меняются.
+- `playwright.swiftshader.config.ts` - тот же E2E с программным WebGL (SwiftShader, без GPU) и одним worker: локальное воспроизведение облачного раннера, `npx playwright test -c playwright.swiftshader.config.ts`.
 - `Dockerfile` - образ веб-приложения (node alpine по digest, standalone); код принадлежит root, рантайм-пользователь 1001 пишет только в `/data` и `/app/.next/cache`.
 - `docker-compose.yml` - только локальная разработка (проект `regatta-local`): сервисы `regatta` (172.17.0.1:4500) и `regatta-ws` (172.17.0.1:4502), том `/data`, healthcheck. Прод его не использует (`ops/deploy/compose.yml`).
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.

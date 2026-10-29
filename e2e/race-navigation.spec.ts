@@ -653,10 +653,23 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
 });
 
 
-for (const mode of ["simple", "pro"] as const) {
-  test(`${mode} cockpit gives the boat room and keeps actual inputs and utilities reachable`, async ({ page, context }, testInfo) => {
+// One case per viewport journey. The combined case chained two real race
+// starts and four journeys (79 s locally under software WebGL) and ran out of
+// its 120 s in the slower cloud runner, where a profile shows ~90% of each
+// frame waiting on the software renderer. Every assertion stays; each case
+// keeps 120 s, so the total available time grows from 240 s to 960 s.
+// Short and landscape still start in portrait and resize, as a rotation does.
+const COCKPIT_JOURNEYS = [
+  { label: "web", embed: false, start: { width: 569, height: 750 }, viewport: null, minimum: 240 },
+  { label: "portrait", embed: true, start: { width: 390, height: 844 }, viewport: null, minimum: 300 },
+  { label: "short", embed: true, start: { width: 390, height: 844 }, viewport: { width: 320, height: 568 }, minimum: 160 },
+  { label: "landscape", embed: true, start: { width: 390, height: 844 }, viewport: { width: 844, height: 390 }, minimum: 180 },
+] as const;
+
+for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOURNEYS) {
+  test(`${mode} cockpit gives the boat room and keeps actual inputs and utilities reachable (${journey.label})`, async ({ page, context }, testInfo) => {
     test.setTimeout(120_000);
-    const evidence = await cockpitEvidence(page, context, testInfo, `race-${mode}-journey-timing`);
+    const evidence = await cockpitEvidence(page, context, testInfo, `race-${mode}-${journey.label}-journey-timing`);
     const samples: unknown[] = [];
     const sample = async (entry: Awaited<ReturnType<typeof startRace>>, label: string, minimumSceneHeight: number) => {
       const step = <T,>(name: string, run: () => Promise<T>) => evidence.step(`${label}:${name}`, run);
@@ -810,24 +823,19 @@ for (const mode of ["simple", "pro"] as const) {
     };
 
     try {
-      // The owner's actual web audit gave this canvas only196px, below a350px dock.
-      const web = await evidence.step("web:start", () => startRace(page, context, { mode, embed: false, viewport: { width: 569, height: 750 } }));
-      await evidence.step("web:viewport-journey", () => sample(web, "web", 240));
-      const embedded = await evidence.step("embedded:start", () => startRace(page, context, { mode }));
-      for (const [label, viewport, minimum] of [
-        ["portrait", { width: 390, height: 844 }, 300],
-        ["short", { width: 320, height: 568 }, 160],
-        ["landscape", { width: 844, height: 390 }, 180],
-      ] as const) {
-        await evidence.step(`${label}:resize`, () => page.setViewportSize(viewport));
-        await evidence.step(`${label}:viewport-journey`, () => sample(embedded, label, minimum));
+      // The owner's actual web audit gave the web canvas only196px, below a350px dock.
+      const label = journey.label;
+      const entry = await evidence.step(`${label}:start`, () => startRace(page, context, { mode, embed: journey.embed, viewport: journey.start }));
+      if (journey.viewport) await evidence.step(`${label}:resize`, () => page.setViewportSize(journey.viewport!));
+      await evidence.step(`${label}:viewport-journey`, () => sample(entry, label, journey.minimum));
+      if (journey.embed) {
+        await evidence.step("menu-return", () => entry.cockpit.getByRole("button", { name: "Меню", exact: true }).click());
+        const menu = page.getByRole("heading", { name: "Гонка", exact: true });
+        await expect(menu).toBeFocused();
+        expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(0);
       }
-      await evidence.step("menu-return", () => embedded.cockpit.getByRole("button", { name: "Меню", exact: true }).click());
-      const menu = page.getByRole("heading", { name: "Гонка", exact: true });
-      await expect(menu).toBeFocused();
-      expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(0);
     } finally {
-      await testInfo.attach(`race-${mode}-scene-controls`, { contentType: "application/json", body: JSON.stringify(samples) });
+      await testInfo.attach(`race-${mode}-${journey.label}-scene-controls`, { contentType: "application/json", body: JSON.stringify(samples) });
       await evidence.finish();
     }
   });
