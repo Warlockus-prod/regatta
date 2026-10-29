@@ -31,6 +31,7 @@ import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, us
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
 import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
 import { checkLabel, useTrainerI18n } from './trainerText';
+import { browserStorage, loadProgress as loadStoredProgress, recordAttempt, saveProgress as saveStoredProgress, type ProgressMap, type SaveOutcome } from './progressStore';
 
 const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 'FIVE', 6: 'SIX' };
 
@@ -42,21 +43,12 @@ const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 
 // the Whisper voice grader. See docs/design/sternik-radio.md.
 // ============================================================================
 
-const PROGRESS_KEY = 'sternik.radio.progress.v1';
 const ONBOARD_KEY = 'sternik.radio.onboard.v1';
 const MODEL_KEY = 'sternik.radio.model.v1';
 /** the Practice list's Learn / Exam switch, remembered between visits */
 const MODE_KEY = 'sternik.radio.mode.v1';
 /** simulated coast station answers this fast (real world: up to minutes). */
 const ACK_DELAY_MS = 7000;
-
-interface ScenarioProgress {
-  attempts: number;
-  best: number;
-  lastScore: number;
-  bestTimeSec: number | null;
-}
-type ProgressMap = Record<string, ScenarioProgress>;
 
 interface LogRow { t: number; text: string; kind: 'tx' | 'rx' | 'ui' | 'step' | 'bad' }
 
@@ -73,10 +65,12 @@ const FREE_PRACTICE: Scenario = {
 
 
 function loadProgress(): ProgressMap {
-  try { return JSON.parse(window.localStorage.getItem(PROGRESS_KEY) ?? '{}') as ProgressMap; } catch { return {}; }
+  const storage = browserStorage();
+  return storage ? loadStoredProgress(storage) : {};
 }
-function saveProgress(p: ProgressMap) {
-  try { window.localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+function saveProgress(p: ProgressMap): SaveOutcome {
+  const storage = browserStorage();
+  return storage ? saveStoredProgress(storage, p) : 'failed';
 }
 
 export default function RadioSimulatorPage() {
@@ -137,6 +131,8 @@ function RadioSimulator() {
   const voicePttRef = useRef<VoicePttHandle | null>(null);
   const freePttRef = useRef<FreeSpeechHandle | null>(null);
   const [progress, setProgress] = useState<ProgressMap>({});
+  /** outcome of the last scored attempt's save; null until one is scored. */
+  const [saveStatus, setSaveStatus] = useState<SaveOutcome | null>(null);
   const [onboardStep, setOnboardStep] = useState<number | null>(null);
   /** randomized per-run scenario variant: venue, vessel identity, position, POB. */
   const [variant, setVariant] = useState<Variant & { venueId: VenueId }>({ ...DEFAULT_VARIANT, venueId: 'gdansk' });
@@ -507,6 +503,7 @@ function RadioSimulator() {
     setPracticeSession(n => n + 1);
     setStartedAt(Date.now());
     setFinishedAt(null);
+    setSaveStatus(null);
     setVoiceResult(null);
     stopHold();
     // the scenario replaces the picker at the top of the page (desktop: the
@@ -624,22 +621,14 @@ function RadioSimulator() {
     if (!scenario || scenario.id === FREE_PRACTICE.id || finishedAt === null || startedAt === null) return;
     const timeSec = Math.round((finishedAt - startedAt) / 1000);
     trackRadioTaskComplete(scenario.id, finalScore);
-    setProgress((p) => {
-      const prev = p[scenario.id] ?? { attempts: 0, best: 0, lastScore: 0, bestTimeSec: null };
-      const nextP: ProgressMap = {
-        ...p,
-        [scenario.id]: {
-          attempts: prev.attempts + 1,
-          best: Math.max(prev.best, finalScore),
-          lastScore: finalScore,
-          bestTimeSec: prev.bestTimeSec === null ? timeSec : Math.min(prev.bestTimeSec, timeSec),
-        },
-      };
-      saveProgress(nextP);
-      return nextP;
-    });
+    // Computed outside the state updater so StrictMode cannot write twice; the
+    // outcome is shown in the debrief and a failed write can be retried.
+    const nextP = recordAttempt(progress, scenario.id, finalScore, timeSec);
+    setProgress(nextP);
+    setSaveStatus(saveProgress(nextP));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finishedAt]);
+  const retrySave = () => setSaveStatus(saveProgress(progress));
 
   const elapsedSec = startedAt ? Math.round(((finishedAt ?? Date.now()) - startedAt) / 1000) : 0;
 
@@ -986,6 +975,19 @@ function RadioSimulator() {
                       {voiceResult && <> · {voiceResult.inputMode === 'typed' ? '⌨' : '🎙️'} {radioText(voiceResult.score)}%</>}
                     </span>
                   </div>
+                  {saveStatus === 'saved' && (
+                    <p data-testid="radio-save-status" data-outcome="saved" className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      ✓ {tl({ ru: 'Результат сохранён на этом устройстве.', en: 'Result saved on this device.', pl: 'Wynik zapisany na tym urządzeniu.', es: 'Resultado guardado en este dispositivo.', fr: 'Résultat enregistré sur cet appareil.', de: 'Ergebnis auf diesem Gerät gespeichert.', it: 'Risultato salvato su questo dispositivo.' })}
+                    </p>
+                  )}
+                  {saveStatus === 'failed' && (
+                    <div data-testid="radio-save-status" data-outcome="failed" className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                      <span style={{ color: 'var(--danger, #ff6a5a)' }}>{tl({ ru: 'Не удалось сохранить результат: эта попытка ещё не попала в прогресс.', en: 'Could not save the result: this attempt is not in your progress yet.', pl: 'Nie udało się zapisać wyniku: ta próba nie trafiła jeszcze do postępu.', es: 'No se pudo guardar el resultado: este intento aún no está en tu progreso.', fr: "Impossible d'enregistrer le résultat : cette tentative n'est pas encore dans ta progression.", de: 'Ergebnis konnte nicht gespeichert werden: dieser Versuch fehlt noch im Fortschritt.', it: 'Impossibile salvare il risultato: questo tentativo non è ancora nei tuoi progressi.' })}</span>
+                      <button type="button" onClick={retrySave} className="min-h-[44px] rounded-lg border px-3" style={{ borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }}>
+                        {tl({ ru: 'Сохранить ещё раз', en: 'Try saving again', pl: 'Zapisz ponownie', es: 'Volver a guardar', fr: "Réessayer l'enregistrement", de: 'Erneut speichern', it: 'Riprova a salvare' })}
+                      </button>
+                    </div>
+                  )}
                   {mistakes.length > 0 && (
                     <ul className="mt-2 space-y-1 text-sm">
                       {mistakes.map((m) => (

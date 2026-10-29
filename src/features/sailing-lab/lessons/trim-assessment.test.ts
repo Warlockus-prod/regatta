@@ -3,7 +3,7 @@ import { getBoatParams } from "../../../lib/sailing-physics";
 import { createRuntimeState } from "../../simulator-v3/runtime/create-runtime-state";
 import { DEFAULT_UI } from "../../simulator-v3/ui/shared";
 import { sessionInput, stepSailingSession, type SailingSession } from "../runtime/session";
-import { advanceTrimAssessment, explainTrimAssessment, newTrimAssessment, recordTrimAssessment, trimTasks, type TrimAssessment, type TrimTask } from "./trim-assessment";
+import { advanceTrimAssessment, explainTrimAssessment, newTrimAssessment, recordTrimAssessment, trimAssessmentAttempt, trimTasks, type TrimAssessment, type TrimTask } from "./trim-assessment";
 import type { MainTrimCommand } from "../rig/main-trim";
 
 const params = getBoatParams();
@@ -35,7 +35,13 @@ describe("independent trim transfer in new conditions", () => {
     assessment = recordTrimAssessment(assessment, session);
     expect(assessment.phase).toBe("explain");
     expect(explainTrimAssessment(assessment, false).phase).toBe("explain");
+    expect(trimAssessmentAttempt(assessment, 1)).toBeNull();
+    const done = trimAssessmentAttempt(explainTrimAssessment(assessment, true), 42)!;
     expect(explainTrimAssessment(assessment, true).phase).toBe("complete");
+    // The persisted pair is the measured settled shape, not slider values.
+    expect(done.at).toBe(42);
+    expect(done.result.depth).toBeLessThanOrEqual(done.baseline.depth * .85);
+    expect(Math.abs(done.result.twist - done.baseline.twist)).toBeLessThanOrEqual(.5);
   });
   it("accepts more than one successful sheet/car combination instead of memorized values", () => {
     const initial = sail(start("twist"), newTrimAssessment("twist"));

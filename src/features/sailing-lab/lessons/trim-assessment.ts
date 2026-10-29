@@ -2,6 +2,7 @@ import { outhaulDepthFactor } from "../../../lib/sailing-physics/mainsail-shape"
 import type { SailingSession } from "../runtime/session";
 import { VANG_LIMITS } from "../rig/vang";
 import { getBoatParams, twaFromCompass } from "../../../lib/sailing-physics";
+import type { AssessmentAttempt, ShapeMeasure } from "./practice-results";
 
 export type TrimTask = "twist" | "depth";
 export const trimTasks = {
@@ -100,4 +101,13 @@ export function recordTrimAssessment(state: TrimAssessment, session: SailingSess
 export function explainTrimAssessment(state: TrimAssessment, causal: boolean): TrimAssessment {
   if (state.phase !== "explain") return state;
   return causal ? { ...state, phase: "complete", issue: null } : { ...state, issue: "answer" };
+}
+
+const round = (n: number) => Math.round(n * 10_000) / 10_000;
+const measure = (s: Sample): ShapeMeasure => ({ twist: round(s.twist), depth: round(s.depth), boom: round(Math.abs(s.yaw)) });
+/** Measured before/after pair of a completed assessment, ready to persist.
+ * Rounding only keeps the stored record small. */
+export function trimAssessmentAttempt(state: TrimAssessment, at: number): AssessmentAttempt | null {
+  if (state.phase !== "complete" || !state.baseline || !state.result) return null;
+  return { at, baseline: measure(state.baseline), result: measure(state.result) };
 }

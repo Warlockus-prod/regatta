@@ -9120,6 +9120,19 @@
     }
   },
   {
+    "id": "4ce596b51f78156f",
+    "source": "Wynik zapisany na tym urządzeniu.",
+    "known": {
+      "pl": "Wynik zapisany na tym urządzeniu.",
+      "ru": "Результат сохранён на этом устройстве.",
+      "en": "Result saved on this device.",
+      "es": "Resultado guardado en este dispositivo.",
+      "fr": "Résultat enregistré sur cet appareil.",
+      "de": "Ergebnis auf diesem Gerät gespeichert.",
+      "it": "Risultato salvato su questo dispositivo."
+    }
+  },
+  {
     "id": "4cfb2ca140a0f07f",
     "source": "tylko godzinę nadania fałszywego alarmowania i ostatni port postoju jednostki",
     "known": {
@@ -23491,6 +23504,19 @@
     }
   },
   {
+    "id": "c91da190951189e6",
+    "source": "Nie udało się zapisać wyniku: ta próba nie trafiła jeszcze do postępu.",
+    "known": {
+      "pl": "Nie udało się zapisać wyniku: ta próba nie trafiła jeszcze do postępu.",
+      "ru": "Не удалось сохранить результат: эта попытка ещё не попала в прогресс.",
+      "en": "Could not save the result: this attempt is not in your progress yet.",
+      "es": "No se pudo guardar el resultado: este intento aún no está en tu progreso.",
+      "fr": "Impossible d'enregistrer le résultat : cette tentative n'est pas encore dans ta progression.",
+      "de": "Ergebnis konnte nicht gespeichert werden: dieser Versuch fehlt noch im Fortschritt.",
+      "it": "Impossibile salvare il risultato: questo tentativo non è ancora nei tuoi progressi."
+    }
+  },
+  {
     "id": "c94d5ca9c7944525",
     "source": "19 scenariuszy, ocena głosu, rozmowy, pamięć skanowania, ręczne wprowadzanie pozycji i MMSI oraz omówienie błędów.",
     "known": {
@@ -27610,6 +27636,19 @@
       "pl": "5. Kanał roboczy",
       "ru": "5. Рабочий канал",
       "en": "5. Working channel"
+    }
+  },
+  {
+    "id": "eb18953d4f5eb720",
+    "source": "Zapisz ponownie",
+    "known": {
+      "pl": "Zapisz ponownie",
+      "ru": "Сохранить ещё раз",
+      "en": "Try saving again",
+      "es": "Volver a guardar",
+      "fr": "Réessayer l'enregistrement",
+      "de": "Erneut speichern",
+      "it": "Riprova a salvare"
     }
   },
   {

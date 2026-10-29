@@ -165,6 +165,22 @@ test("independent depth task grades settled geometry, not a click or a theory an
   await panel.getByRole("button", { name: "The outhaul changes lower depth, not twist directly", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText("Task completed in the learning model");
   expect(await page.evaluate(() => localStorage.getItem("regatta.sailing.theory.v1"))).toBeNull();
+  // Confirmed save keeps the measured pair and opens the review right away.
+  await page.getByRole("button", { name: "Save exercise result", exact: true }).click();
+  const review = page.getByTestId("assessment-review-depth");
+  await expect(review).toContainText("Attempts: 1");
+  await expect(review.getByTestId("assessment-trend")).toHaveAttribute("data-trend", "first");
+  await expect(review.getByTestId("assessment-cause")).toContainText("the outhaul tensions the foot");
+  await expect(review.getByRole("button", { name: "Repeat without hints", exact: true })).toBeVisible();
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("regatta.sailing.practice.v1") ?? "null"));
+  expect(stored).toMatchObject({ version: 1, attempts: { depth: { version: 2, count: 1 } } });
+  expect(stored.attempts.depth.last.result.depth).toBeLessThan(stored.attempts.depth.last.baseline.depth);
+  // The lesson page shows the same review and a link to repeat without hints.
+  await page.goto("/learn/sails/outhaul");
+  await page.getByRole("button", { name: "3 On the boat" }).click();
+  await expect(page.getByTestId("assessment-review-depth")).toContainText("Attempts: 1");
+  await expect(page.getByTestId("assessment-review-depth").getByRole("link", { name: /Repeat without hints/ })).toHaveAttribute("href", /assessment=depth/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
 test("equipment bench handles unsafe exploration and a full offline procedure in all locales", async ({ page, context }) => {

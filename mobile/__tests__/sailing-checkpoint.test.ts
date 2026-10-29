@@ -2,7 +2,7 @@ jest.mock("@react-native-async-storage/async-storage", () => require("@react-nat
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { handleCheckpointMessage } from "../src/sailing/checkpoint-storage";
 import { STORAGE_CHANNEL, TRAINER_STORAGE_KEY } from "../../src/features/sailing-lab/runtime/storage-protocol";
-import { PRACTICE_RESULTS_KEY } from "../../src/features/sailing-lab/lessons/practice-results";
+import { PRACTICE_RESULTS_KEY, addAssessmentAttempt, practiceSummary, readPracticeResults } from "../../src/features/sailing-lab/lessons/practice-results";
 
 beforeEach(async () => { await AsyncStorage.clear(); jest.clearAllMocks(); });
 const message = (action: string, raw?: string) => JSON.stringify({ channel: STORAGE_CHANNEL, id: "test-1", action, raw });
@@ -67,4 +67,17 @@ it("merges concurrent practice results without changing the trainer checkpoint",
   await handleCheckpointMessage(request({ mainsheet: 300 }), reply);
   expect(reply).toHaveBeenLastCalledWith(expect.stringContaining('"ok":false'));
   expect(JSON.parse((await AsyncStorage.getItem(PRACTICE_RESULTS_KEY))!).completed).toEqual({ twist: 100, depth: 200 });
+});
+
+it("keeps measured assessment attempts over the unchanged bridge and never double counts a retry", async () => {
+  await AsyncStorage.setItem(PRACTICE_RESULTS_KEY, JSON.stringify({ version: 1, completed: { twist: 100 } }));
+  const reply = jest.fn();
+  const measured = (at: number) => addAssessmentAttempt(readPracticeResults(JSON.stringify({ version: 1, completed: { twist: 100 } })), "twist", { at, baseline: { twist: 4, depth: .2, boom: 10 }, result: { twist: 5.5, depth: .2, boom: 10.2 } });
+  const write = JSON.stringify({ channel: STORAGE_CHANNEL, id: "practice-2", store: "practice", action: "write", raw: JSON.stringify(measured(300)) });
+  await handleCheckpointMessage(write, reply);
+  await handleCheckpointMessage(write, reply);
+  expect(reply).toHaveBeenLastCalledWith(expect.stringContaining('"ok":true'));
+  const stored = readPracticeResults(await AsyncStorage.getItem(PRACTICE_RESULTS_KEY));
+  expect(practiceSummary(stored, "twist")).toMatchObject({ completed: true, attempts: 2, record: { last: { at: 300 } } });
+  expect(stored.completed.twist).toBe(300);
 });

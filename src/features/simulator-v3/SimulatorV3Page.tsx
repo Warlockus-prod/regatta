@@ -17,7 +17,7 @@ import { useSimulatorV3 } from './hooks/use-simulator-v3';
 import { useTrimStudy } from "./hooks/use-trim-study";
 import { useTrimAssessment } from "./hooks/use-trim-assessment";
 import { TrimAssessmentGoal, TrimAssessmentPanel } from "./ui/panels/TrimAssessmentPanel";
-import { trimTasks, type TrimTask } from "../sailing-lab/lessons/trim-assessment";
+import { trimAssessmentAttempt, trimTasks, type TrimTask } from "../sailing-lab/lessons/trim-assessment";
 import { assessmentCopy } from "../../data/sailing-lab/assessment-copy";
 import { TrimStudyGoal, TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
 import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
@@ -434,7 +434,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const studyPanel = <>{trimAssessment.assessment
     ? <TrimAssessmentPanel assessment={trimAssessment.assessment} lang={lang} record={trimAssessment.record} answer={trimAssessment.answer} restart={() => startAssessment(trimAssessment.assessment!.task)} close={trimAssessment.cancel} />
     : <TrimStudyPanel study={trimStudy.study} start={startGuidedStudy} cancel={trimStudy.cancel} record={trimStudy.record} answer={trimStudy.answer} tp={tp} />}
-    {trimAssessment.assessment?.phase === "complete" && <SavePractice key={trimAssessment.assessment.task} id={trimAssessment.assessment.task} lang={lang} />}
+    {trimAssessment.assessment?.phase === "complete" && <SavePractice key={trimAssessment.assessment.task} id={trimAssessment.assessment.task} lang={lang}
+      measure={at => trimAssessment.assessment ? trimAssessmentAttempt(trimAssessment.assessment, at) : null}
+      onRepeat={() => startAssessment(trimAssessment.assessment!.task)} />}
     {trimStudy.study?.phase === "complete" && <SavePractice id="mainsheet" lang={lang} />}
   </>;
   const studyGoal = trimAssessment.assessment

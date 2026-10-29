@@ -361,6 +361,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/app/radio/symulator/stationReply.ts` - правильный ответ станции акватории (береговая, марина, VTS) и ее рабочий канал.
 - `src/app/radio/symulator/stationReaction.ts` - реакция на неверную или неразборчивую передачу.
 - `src/app/radio/symulator/stationReaction.test.ts` - тесты реакций станции.
+- `src/app/radio/symulator/progressStore.ts` - прогресс сценариев (`sternik.radio.progress.v1`, формат прежний): запись с проверкой чтением обратно, итог saved / failed для разбора и повтора.
+- `src/app/radio/symulator/progressStore.test.ts` - ключ и формат не меняются, ошибка записи видна, повтор сохраняет попытку один раз.
 - `src/app/radio/symulator/hints.ts` - подсказки по шагам сценария.
 - `src/app/radio/symulator/inspectData.ts` - режим разбора: любой элемент панели объясняет себя.
 - `src/app/radio/symulator/InspectPanel.tsx` - UI режима разбора.
@@ -504,7 +506,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/sailing-lab/rig/transfer.ts` - перекладка парусов при повороте и перенос нагрузки.
 - `src/features/sailing-lab/lessons/course.test.ts` - целостность курса уроков.
 - `src/features/sailing-lab/lessons/lesson-position.ts` - отдельная версия закладки: шаг и выбранная схема каждого урока, без ответов и оценок.
-- `src/features/sailing-lab/lessons/practice-results.ts` - четыре разрешенных результата упражнений; проверка и объединение, отдельно от теории и снимка сессии.
+- `src/features/sailing-lab/lessons/practice-results.ts` - четыре разрешенных результата упражнений; проверка и объединение, отдельно от теории и снимка сессии. Конверт `version: 1` неизменен (native bridge), измеренные попытки twist/depth лежат в необязательном `attempts` с собственной версией записи 2: до/после, число попыток, прошлая попытка; сохранение подтверждается чтением обратно.
+- `src/features/sailing-lab/lessons/practice-results.test.ts` - старая запись только со временем читается как выполненная, версия записи, счет попыток без двойного счета при повторе записи, подтверждение сохранения.
+- `src/features/sailing-lab/lessons/assessment-review.ts` - разбор последней попытки: целевой и побочный эффект, сравнение с прошлой попыткой (first / better / same / weaker).
+- `src/features/sailing-lab/lessons/assessment-review.test.ts` - выбор строки сравнения и полнота строк разбора на семи языках.
 - `src/features/sailing-lab/lessons/learning-continuity.test.ts` - сохранение места, поврежденные данные, покрытие модулей и языков, границы native bridge.
 - `src/features/sailing-lab/lessons/progress.ts` - прогресс по урокам парусов в localStorage.
 - `src/features/sailing-lab/lessons/diagrams.ts` - схемы урока: подписи, варианты, показания.
@@ -520,7 +525,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/sailing-lab/lessons/trim-study.test.ts` - тесты разбора трима.
 - `src/features/sailing-lab/scene/trim-rig.ts` - построение сцены рига для визуализации трима.
 - `src/features/sailing-lab/scene/trim-rig.test.ts` - тесты сцены рига.
-- `src/features/sailing-lab/ui/SavePractice.tsx` - явное сохранение завершенного упражнения через браузерное хранилище или native bridge, ошибка и повторная попытка.
+- `src/features/sailing-lab/ui/SavePractice.tsx` - явное сохранение завершенного упражнения через браузерное хранилище или native bridge, ошибка и повторная попытка; для twist/depth сохраняет измерения и сразу показывает разбор.
+- `src/features/sailing-lab/ui/AssessmentReview.tsx` - разбор попытки проверки трима: до/после, причинная строка, сравнение с прошлой попыткой и повтор без подсказок (в тренажере и на странице урока outhaul).
 - `src/features/sailing-lab/ui/LessonReturn.tsx` - возврат из тренажера и лодки к известному уроку по разрешенному ID, без произвольного URL.
 - `src/features/sailing-lab/ui/SailingCourse.tsx` - UI курса работы с парусами.
 - `src/features/sailing-lab/ui/SailingCourse.module.css` - стили курса.
