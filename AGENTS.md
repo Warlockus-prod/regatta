@@ -7,27 +7,18 @@
 
 ## Current completion work
 
-- Current frozen source147ac837b98eca3ecbe02b0a55291e31b32bb6ab contains five contextual-return fixes. Generated22/web types+build/native614+types+lint and clean-cache Release43 pass; all121frozen/installed files match. Direct public48->147 on owned fresh iOS27QA preserves6old records before first launch, EN/1of8/quiz3of3 after launch. Foundation1/sail3 real3D->samepractice->nextBackoutline and Foundation2lessonfooter->outline->Learn are observed. FullG2/cloud/upload70 remain open. Do not mutate runtime during exact installed acceptance.
-- Fresh Apple GET18:29:40UTC contains14feedbacks, including3new69comments/imagesTF12-TF14. All3images inspected. The owner separately supplied OWNER-J01 diagnostic tail69:4native nonemptyASR results plus4webmirrors, acceptedpower/PTT/simulatedDISTRESS; no word accuracy/Reset/fullguide acceptance.2239dropped is not failedclick count. TheoryCTA is reproduced on localphoneweb; contextualexplanation/guide and Foundationvisual concerns remain open. `docs/audits/2026-10-28/testflight-feedback-review.md` owns this scope.
-- Exactacf predeploy40741168924 is terminalFAILURE92/94,98attempts: bothcombined Simple/Pro paths hit120s on3attemptseach;92othersfirstpass,0skipped/flaky. Digest verified. Retry1 shows runningclock/changedhelm+main+jib and5.4-5.9sclicks; finalring unavailable5/probe-timeout1. Cause is unproven. Source147pushCI40745580640 andPRCI40745589188 pass separately; no green147predeploy or delivery. Prioracf compile was deliberately stopped before fifthfix; first147copiedcache failed absoluteSwiftShims path, then clean147compile passed. Preserve logs and packages separately.
-- Owner report `docs/audits/2026-10-28/completion-status.md` retains65IDs/F01-F15/all14feedback plusOWNER-J01. Delivered69 has no daytheme. D8negativeT05, current147limitedpositivepaths and older local/cloud/native gates are explicitly separate. P10/Back and bounded radioP07/P08 repair precede P04; metric movement remains unwired/emissionOFF.
-- New P10/N05 followup changes four known contextual returns to dismissTo, preserving ordinary practice push and global ActivityBack. Exact D8 clean27 reproduces T05: sail lesson3 and Foundation lesson1 return to step3, but the next Back reopens Trainer. D8 fails this G2 path. New source passes613native/1827web/types/lints and94/94first-attempt local browser cases in620.659s; a new installed package/cloud are still required. The e2e observer uses bounded passive rings instead of per-stage layout probes, preserving173assertions/53actions/deadlines. This does not prove the cloud delay cause. New private outputs live in native-release70-back-followup; prior D8 evidence stays immutable.
-- Current P10 frozen source d8dbca3 passes1827web/608native/types/lints/sockets,4targeted and94/94first-attempt local browser cases, generated22 and compiled Release Simulator43. All121frozen/installed files match. Direct48->70 on a new owned iOS27 QA preserves all6old records before launch, EN/1of8 after launch and cold return. Day Trainer/Radio/Pro orbit/manual jib/map/Back are observed. Separate clean27 confirms first lesson/real3D/return/cold practice-resume and Simple helm response. Exact cloud40728700280 FAILED92/94: Simple/Pro journeys each time out120s on all3attempts; other92first-pass. Delay cause remains unproven. Full G2/delivery remain open; no70archive/upload/Apple writes. Chunks headroom25423bytes. `docs/audits/2026-10-28/cockpit-navigation-harness.md` owns evidence.
-- Owner report `docs/audits/2026-10-28/completion-status.md` preserves all65IDs/F01-F15 and all14TestFlight feedback themes plus separate OWNER-J01. Ten exact native70 images and ten numbered installed steps separate observed improvements from delivered69 and full acceptance. Different motion/rig/default helm, moving enlarged-control positions, repeated setup, full teaching/outcome logs and phone gates remain open. Physical fleet is unwired/emission OFF. One immediate mode AX lag was not sustained in cold/reverse checks; do not call it proven data loss or a repaired bug.
-- Previous25baff1 is a frozen never-uploaded checkpoint: local94/native43 and directSE26 progress proof stay separate. Exact cloud40715540679 failed90/94 with an ES label clip and three journey timeouts; D8 wraps labels and batches independent reads with unchanged assertions/deadlines. Clone RU26 comparisons were invalid: copied FrontBoard/simctl paths referred to original QA data, where all6records remained. Test actions changed original QA through that alias; do not claim its data unchanged. Mandatory App+Data ownership checks precede reads/launch/UI and follow install; use new direct QA, not clones. Full G2 remains open.
-- Delivered1.7.0(69) is immutable source2ea498b/tagtestflight-1.7.0-69. Independent Apple GET11:12:04.727UTC confirms exact Self VALID/IN_BETA_TESTING;8notes match11:12:07.755UTC, writes0. `docs/design/mobile/testflight69-2026-10-27.md` owns delivery and `docs/audits/2026-10-27/acceptance69.md` the qualified delta to the65-ID baseline. Manual radio/Reset/PTT/microphone acceptance remains with the owner in TestFlight. Physical emission OFF; no website/public submission.
-- `docs/audits/2026-10-26/completion-program.md` owns the ordered P00-P12 work. App completion is primary; Ads/eSail remain background extras. Source checks, installed acceptance, TestFlight and website publication are separate states.
-- Owner instruction2026-10-27 transfers manual radio interaction/Reset/PTT/microphone acceptance from Simulator to the owner's live TestFlight test. Do not block this beta on Device Hub or mark those checks passed. `docs/audits/2026-10-27/release69-owner-beta.md` owns the exception and unchanged build/Apple gates. Native recognition gets independent content-free lifecycle logs; copied support reports include version/build and a canonical `journal`.
-- Rollback1.7.0(68) stays immutable at sourcef7e7ed2/tagtestflight-1.7.0-68, with independent Self VALID/IN_BETA_TESTING and eight-note proof. `docs/design/mobile/testflight68-2026-10-27.md` and `docs/audits/2026-10-26/acceptance68.md` own that delivery and its65-ID baseline.
-- Current P04 local source adds owned metric impact evidence to the copied30Hz fleet, actual circular response and recovery-free progress. `docs/audits/2026-10-27/physical-response-harness.md` and `docs/audits/2026-10-27/checks/physical-impact-evidence-source.json` bind113targeted/1793web/589native checks. The preceding exacte414proof retains90specified full-fleet finishes, zero mark-contact cases and15moving early hard hull-contact cases; it is not a new90-case run. The API is unwired and emission OFF; human advice/Pro, arbitrary recoveries, actual judging, recording/finish-clear phases, consumer and installed gates remain mandatory.
-- Exacte414 passes push/PR CI and82first-attempt predeploy browser cases; `docs/audits/2026-10-27/checks/physical-bot-stability-browser-e414.json` owns the digest-verified report. This preserved-UI gate does not play the unwired physical fleet or authorize delivery.
-- P07 source89has monotonic private-session reset. Frozen916 PL native confirms typed Add/Clear/Exit and unavailable PTT; retained89 confirms nonempty typed Add and Exit, with121matching installed files each. `docs/audits/2026-10-27/radio-free-speech-harness.md` owns the qualified scope. Native89reset and actual microphone/model recognition remain unaccepted; the old manual typing request is superseded.
-- P07b9fdd85 fixes the iOS default-phone-locale capability gate with a checked selected-locale probe.1793web/596native and the exact Release Simulator compile pass;31package checks,121installed hashes and16preserved prior keys pass on retained26.5. Device Hub reads then timed out, so actual new-probe UI response/Reset/microphone remain open. Older binaries fail closed to typing; frozen89/916 are preserved. `docs/audits/2026-10-27/checks/radio-locale-native-b9.json` owns the qualified install proof.
-- Candidate69f4 remains a never-uploaded startup failure. Later installed8e/f3observations produced real frames and asset/decode/model callbacks, not a proven repaired cause or complete release acceptance. `docs/audits/2026-10-27/scene-startup-harness.md` preserves those cold-start limits. Current69 is an owner-authorized beta with explicitly qualified installed acceptance, not a claim that the old cause or full native matrix is resolved.
-- P01local-wind/Skia, limited P02first-lesson/Picture pilot and P03durable PB/replay are delivered66/67/68 checkpoints, not full-program closure. Remaining actual outcome logging is tracked by `docs/audits/2026-10-26/diagnostics-followup.md`; defining event schemas never proves integration coverage.
-- Work in NEXT on codex/app-next-physical. Keep SITE5df0ee5, frozen APP64 and the protected dirty root separate; do not mutate or archive them.50inactive contained local heads have52verified recovery refs;18uncontained/active/remote branches stay preserved. `docs/audits/2026-10-26/checks/local-branch-archive.json` owns the cleanup manifest.
-- Settings Ads is only a local camera/placement preview. No SDK/provider is configured and ad requests stay OFF. `docs/design/mobile/ads-lab.md` owns this scope. eSail observations do not close any main-program gate.
-- Older detailed checkpoint statements live in `docs/audits/2026-10-27/completion-checkpoint-history.md` and `docs/audits/2026-10-26/completion-history-before-program.md`. They remain historical and cannot promote an old source/browser/native observation into current delivery.
+- Текущее состояние, план и красные проверки: `docs/STATUS.md` (один экран,
+  переписывается при каждом шаге). Читать вторым после этого файла.
+- С 2026-10-29 работа идет в ветке `claude/app-next` (от `147ac83`, бывшая
+  `codex/app-next-physical`, draft PR #86). Сайт `main` и защищенный грязный
+  корневой чекаут не трогаем.
+- У владельца TestFlight 1.7.0 (69), откат 68. Сборка, загрузка и доставка в
+  группу Self - три разных состояния, доставку подтверждает живой ASC GET.
+- `PHYSICAL_RACE_EMISSION_ENABLED = false`: метрическая физика гонки
+  подготовлена, но не подключена к игре. Включать только по плану в STATUS.
+- Программа P00-P12 и 65 требований: `docs/audits/2026-10-26/completion-program.md`,
+  последний полный отчет владельцу: `docs/audits/2026-10-28/completion-status.md`.
+- История прежних строк этого раздела: `docs/audits/2026-10-29/agents-status-before-takeover.md`.
 
 ## Что это
 
@@ -40,15 +31,10 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight1.7.0(69), группа Self: source2ea498b,
-  VALID/IN_BETA_TESTING и8notes независимо проверены2026-10-27 11:12UTC;
-  `docs/design/mobile/testflight69-2026-10-27.md`. Публичная1.6.4(48)
+  TestFlight 1.7.0 (69), группа Self: исходник 2ea498b, VALID и
+  IN_BETA_TESTING, восемь заметок проверены 2026-10-27 11:12 UTC
+  (`docs/design/mobile/testflight69-2026-10-27.md`). Публичная 1.6.4 (48)
   остается отдельно от TestFlight.
-  Историческая проверка60:
-  Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
-  Сборка 59 отклонена Apple при импорте, не распространялась. Описание
-  Photos API встроенного Expo file reader исправлено на семи языках.
-  Доказательства: `docs/design/mobile/testflight60-2026-10-24.md`.
   Доставку в Self подтверждают отдельно через живой ASC GET; архив и успешная
   загрузка сами по себе не означают доступность тестировщику. Журнал и история:
   `docs/design/mobile/BUILDS.md`. Выпуск только через обязательный гейт ниже.
@@ -432,6 +418,7 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
 | Документ | На что отвечает | Статус |
 |---|---|---|
 | `AGENTS.md` | точка входа, правила, где что искать | актуален |
+| `docs/STATUS.md` | текущее состояние на один экран: сборки, ветка, красные проверки, план | актуален, переписывается при каждом шаге |
 | `ARCHITECTURE.md` | карта кода и потоков, инфраструктура | актуален |
 | `CHANGELOG.md` | что изменилось, релизы | актуален |
 | `DESIGN.md` | продуктовая оболочка, визуальные и навигационные инварианты | актуален (2026-09-08), ссылка на PRODUCT.md мертвая (файла нет) |
