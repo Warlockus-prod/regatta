@@ -825,7 +825,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.
 - `.dockerignore` - что не попадает в контекст сборки образа.
 - `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
-- `.github/workflows/ci.yml` - CI на ветки и PR: типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет неизменный JS-бюджет и выполняет `e2e/foundation.spec.ts` до публикации.
+- `.github/workflows/ci.yml` - CI на ветки и PR: типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет JS-бюджет 6,6 МБ и выполняет `e2e/foundation.spec.ts` до публикации.
 - `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E включая sailing lessons/replay, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Non-main checks не получают deploy secrets и не публикуют образы. Экшены закреплены по SHA.
 - `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы (digest, без смены мажорной версии Node: она меняется вместе с `node-version` в воркфлоу), GitHub Actions; без автомержа, `mobile/` не входит.
 

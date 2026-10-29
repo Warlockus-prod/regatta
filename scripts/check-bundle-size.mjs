@@ -45,7 +45,15 @@ import path from 'node:path';
 // zero audio files (every sound is synthesized). Baseline after this change:
 // ~5.47 MB. If this creeps again, the answer is to split the section's data out
 // of the client bundle - not to keep nudging the number.
-const BUDGET_MB_TOTAL = 6.5;
+//
+// 2026-10-29: raised 6.5 -> 6.6 MB by the owner's decision. Stages 2-5 added
+// ~114 KB: the shared boat step, the trial race, the ghost, the stage-4 review
+// and the judge. The trial race engine (~33 KB) and the judge (~32 KB) already
+// load lazily, only where used. Inspected before raising: largest single chunk
+// still ~0.94 MB, no new dependency. Baseline after this change: 6,905,257
+// bytes (~6.59 MB), so the headroom is ~15 KB on purpose. Next growth means
+// moving radio and course data out of the client bundle.
+const BUDGET_MB_TOTAL = 6.6;
 
 // Single largest chunk. If one chunk balloons past this, something got
 // bundled into a non-code-split vendor blob (often three.js / drei).

@@ -182,8 +182,8 @@ npm run check:map            # карта проекта актуальна
   `node scripts/build-race-server.mjs --check`, затем `npx vitest run`, плюс
   `npm run test:multiplayer` и `npm run check:map`. Новый тестовый файл где
   угодно в `src` попадает в CI сам.
-- Отдельная джоба CI `Foundation browser flow` собирает web, проверяет прежний
-  JS-бюджет и запускает `e2e/foundation.spec.ts` на локальной production-сборке.
+- Отдельная джоба CI `Foundation browser flow` собирает web, проверяет
+  JS-бюджет (6,6 МБ, `scripts/check-bundle-size.mjs`) и запускает `e2e/foundation.spec.ts` на локальной production-сборке.
   Те же сценарии входят в pre-deploy E2E до публикации образов: настоящий квиз,
   черновик/reload, отказ записи/retry и возврат из практики. Это не приемка
   установленного приложения или всей матрицы устройств/языков.
