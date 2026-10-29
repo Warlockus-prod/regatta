@@ -1,27 +1,33 @@
 {
-  "schema": 2,
+  "schema": 3,
   "recordedAtUTC": "2026-10-28T15:02:31.075749+00:00",
   "readOnly": true,
   "remoteWrites": 0,
-  "scope": "App TestFlight submitted screenshot-feedback texts; no claim of all device crash logs or the local app journal.",
+  "scope": "App TestFlight submitted screenshot-feedback texts and separate owner-provided chat journal analysis; no claim of all device crash logs or complete retained activity history.",
   "requestedBuilds": {
     "64": {
       "screenshotSubmissions": 0,
       "crashSubmissions": 0,
       "screenshotListComplete": true,
-      "crashListComplete": true
+      "crashListComplete": true,
+      "historical": true,
+      "asOfUTC": "2026-10-28T14:20:11.960Z"
     },
     "68": {
       "screenshotSubmissions": 0,
       "crashSubmissions": 0,
       "screenshotListComplete": true,
-      "crashListComplete": true
+      "crashListComplete": true,
+      "historical": true,
+      "asOfUTC": "2026-10-28T14:20:11.960Z"
     },
     "69": {
       "screenshotSubmissions": 0,
       "crashSubmissions": 0,
       "screenshotListComplete": true,
-      "crashListComplete": true
+      "crashListComplete": true,
+      "historical": true,
+      "asOfUTC": "2026-10-28T14:20:11.960Z"
     }
   },
   "requestedBuildGETCompletedAtUTC": "2026-10-28T14:20:11.960Z",
@@ -30,11 +36,11 @@
   "legacyCommentGETCompletedAtUTC": "2026-10-28T14:27:54.963Z",
   "commentReviewCompletedAtUTC": "2026-10-28T14:31:06.868668+00:00",
   "appTotals": {
-    "screenshotSubmissions": 11,
-    "nonemptyComments": 10,
+    "screenshotSubmissions": 14,
+    "nonemptyComments": 13,
     "emptyComments": 1,
     "crashSubmissions": 0,
-    "imagesViewed": 11
+    "imagesViewed": 14
   },
   "countsByBuild": {
     "7": {
@@ -51,6 +57,10 @@
     },
     "66": {
       "screenshots": 1,
+      "crashes": 0
+    },
+    "69": {
+      "screenshots": 3,
       "crashes": 0
     }
   },
@@ -81,10 +91,13 @@
     "candidateBuild": "70",
     "candidateDeliveredByThisReview": false,
     "candidateInstalledAcceptanceClaimed": false,
-    "noFeedback69InCompletedInventory": true,
+    "noFeedback69InCompletedInventory": false,
     "noFeedback68InCompletedInventory": true,
     "noFeedback64InCompletedInventory": true,
-    "changesAfter69AreSourceOnlyCandidate70": true
+    "changesAfter69AreSourceOnlyCandidate70": false,
+    "noFeedback69InHistorical1420Inventory": true,
+    "feedback69NowRead": 3,
+    "changesAfter69Boundary": "Candidate70 includes source and separately qualified partial installed observations; none delivered by this feedback review. These3new reports are delivered69."
   },
   "fixedCategories": [
     "back",
@@ -95,7 +108,10 @@
     "learning-continuity",
     "learning-curve-meaning",
     "map-visibility",
+    "native-navigation-appearance",
+    "radio-contextual-help",
     "radio-entry",
+    "radio-theory-start",
     "real-courses",
     "theme-coherence",
     "wind-readings",
@@ -410,6 +426,105 @@
       "imageArtifactSha256": [
         "d653481823c0b0ed4ed89b102d552c37b6134d410aad82581c6d8f1dd742a8d1"
       ]
+    },
+    {
+      "id": "TF12",
+      "paraphrase": "В SRC/Теория кнопка начала обучения с основ не срабатывает по сообщению пользователя.",
+      "categories": [
+        "radio-theory-start",
+        "learning-continuity"
+      ],
+      "programIds": [
+        "P07",
+        "P08"
+      ],
+      "auditIds": [
+        "F07",
+        "F09"
+      ],
+      "acceptanceIds": [
+        "R02",
+        "N08"
+      ],
+      "imageObservation": "Русский SRC-курс уже открыт на вкладке Теория. Видны вступление полного теоретического курса, прогресс0/18 и кнопка «Начать с основ».",
+      "currentBoundary": "Комментарий сообщает отказ CTA, изображение устанавливает точный учебный путь. Сам тап/результат и причина не видны. Это не старый отказ входа60 и не доказанная ошибка ASR/PTT.",
+      "issueKind": "reported-action-failure",
+      "build": "69",
+      "submittedAtUTC": "2026-10-28T15:18:56.896Z",
+      "historicalClass": "delivered69OwnerFeedback",
+      "commentRead": true,
+      "commentEmpty": false,
+      "imageViewed": true,
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "9a5d8c1e9165142229a07a7b835afe1b8ece61bbe5d527cf51bcc7d46f2862ee"
+      ],
+      "copiedApplicationJournalPresent": false
+    },
+    {
+      "id": "TF13",
+      "paraphrase": "В Справке нужен режим: коснуться элемента рации и автоматически получить пояснение, что он означает и зачем нужен.",
+      "categories": [
+        "radio-contextual-help",
+        "learning-continuity"
+      ],
+      "programIds": [
+        "P07"
+      ],
+      "auditIds": [
+        "F07"
+      ],
+      "acceptanceIds": [
+        "R02",
+        "R04",
+        "R05"
+      ],
+      "imageObservation": "Открыта работающая панель рации в учебном режиме: прибор включен, есть индикация канала иRX. Выбрана Справка, ниже видно пояснение группыINT. Вкладки Журнал и Диагностика видны, но не выбраны.",
+      "currentBoundary": "Кадр подтверждает достигнутый powered-radio/Help экран и контекст пожелания. Он не доказывает выполнение PTT, распознавание,Reset или наличие гладкого пошагового путеводителя; конкретный тап по элементу не показан.",
+      "issueKind": "contextual-learning-request",
+      "build": "69",
+      "submittedAtUTC": "2026-10-28T15:27:32.552Z",
+      "historicalClass": "delivered69OwnerFeedback",
+      "commentRead": true,
+      "commentEmpty": false,
+      "imageViewed": true,
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "04703f9c91aa47fdb87a30c24be6f6fd7a209331d1b1966651cf8e4bf41bf21b"
+      ],
+      "copiedApplicationJournalPresent": false
+    },
+    {
+      "id": "TF14",
+      "paraphrase": "Оформление и стрелка Back воспринимаются искусственными; пользователь хочет более естественный вид. Первый термин комментария неоднозначен.",
+      "categories": [
+        "native-navigation-appearance",
+        "layout-typography"
+      ],
+      "programIds": [
+        "P10"
+      ],
+      "auditIds": [
+        "F12"
+      ],
+      "acceptanceIds": [
+        "V01",
+        "V05"
+      ],
+      "imageObservation": "Светлый русский список Foundation «Парусный спорт с нуля»,0/8, карточки уроков и крупная округлая кнопка Назад в native header.",
+      "currentBoundary": "Это оценка визуального оформления69. Неоднозначный термин не превращается в установленную претензию к конкретному шрифту. Статичный кадр не доказывает функциональную ошибку Back и не показывает новый candidate70.",
+      "issueKind": "visual-feedback-with-ambiguous-term",
+      "build": "69",
+      "submittedAtUTC": "2026-10-28T15:33:00.63Z",
+      "historicalClass": "delivered69OwnerFeedback",
+      "commentRead": true,
+      "commentEmpty": false,
+      "imageViewed": true,
+      "imageContextDetermined": true,
+      "imageArtifactSha256": [
+        "69f64ba361f4c477fe757f35f2c3975c548a82d46430cb80a9ace30655b72186"
+      ],
+      "copiedApplicationJournalPresent": false
     }
   ],
   "privateArtifacts": [
@@ -539,16 +654,70 @@
       "sha256": "d653481823c0b0ed4ed89b102d552c37b6134d410aad82581c6d8f1dd742a8d1",
       "bytes": 248236,
       "location": "private audit workspace, not in Git"
+    },
+    {
+      "name": "fresh-inventory-private.json",
+      "bytes": 16312,
+      "sha256": "96743d4e6401cc0d9a1f7b0d6ec7093c3f841ae0a5c1e807b4541ad5a377c655",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "get-requests-private.json",
+      "bytes": 591,
+      "sha256": "687200cadae7fc9ad361904b7d4f74f53019fd9064230d53ce37871725af6794",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "fresh-images-download-private.json",
+      "bytes": 1834,
+      "sha256": "ad466fba5936019998a82bce4bc0160614156a4dce8dee67dd755abe06c0f4f1",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "fresh-inventory.mjs",
+      "bytes": 3986,
+      "sha256": "eed55a5182fa48d0659acca90256bdaed26ca69282a5c9bc9b7a81a63b6f7648",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "fresh-images-download.mjs",
+      "bytes": 2498,
+      "sha256": "e43b96624b94228ec941a03ef39c3972887172c3e7206b4542137d70d3f21066",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "NEW01-build69-image1.jpg",
+      "bytes": 347806,
+      "sha256": "9a5d8c1e9165142229a07a7b835afe1b8ece61bbe5d527cf51bcc7d46f2862ee",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "NEW02-build69-image1.jpg",
+      "bytes": 430962,
+      "sha256": "04703f9c91aa47fdb87a30c24be6f6fd7a209331d1b1966651cf8e4bf41bf21b",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "NEW03-build69-image1.jpg",
+      "bytes": 319604,
+      "sha256": "69f64ba361f4c477fe757f35f2c3975c548a82d46430cb80a9ace30655b72186",
+      "location": "private fresh feedback workspace, not in Git"
+    },
+    {
+      "name": "fresh-review-sanitized.json",
+      "bytes": 7429,
+      "sha256": "bd8a9b5972889683ecb137de09711f566bcae85530b31538589649a1604b0501",
+      "location": "private fresh feedback workspace, not in Git"
     }
   ],
   "limits": [
-    "All11submitted comment fields were read:10nonempty and1empty. All11attachments were viewed.",
+    "First11submitted comments/images and3new69comments/images were reviewed separately; total14TestFlightitems remainunchanged byOWNER-J01.",
     "Radio60image establishes SRC entry/startup error before instrument display, not its technical cause orASR/DIALfailure.",
     "The66image is a running Pro race. Static pixels do not verify relative-wind behavior or orbit.",
     "TF03image identifies the agreedPL-onlySternikcourse, not a demonstratedSRCtranslationbug.",
     "Legacy49/7images identify old lesson/diagram/Home contexts; old states do not establish current69or70regressions.",
     "The emptyTF11comment has known image context, but no written intent; visible oldwordmark clipping is an audit observation.",
-    "Zero submitted crash feedback is not zero device crashes; no local diagnostic journal or manualPTT/microphone acceptance is provided."
+    "Zero submitted crash feedback is not zero device crashes. Later direct OWNER-J01 chat journal supports4native recognized cycles, not fullPTT/microphone/Reset/guide acceptance or complete activity history."
   ],
   "allImagesReviewed": true,
   "imageReviewCompletedAtUTC": "2026-10-28T15:02:31.075080+00:00",
@@ -563,5 +732,318 @@
     "maxBytes": 104857600,
     "withinBounds": true,
     "allImageContextsDetermined": true
+  },
+  "updatedAtUTC": "2026-10-28T18:49:09.364544+00:00",
+  "requestedBuildInventoryHistorical": true,
+  "requestedBuildInventoryScope": "Historical exact-build GET at14:20:11.960UTC; current complete app-list correlation is under freshReview/currentRequestedBuilds.",
+  "historicalAppTotals": {
+    "screenshotSubmissions": 11,
+    "nonemptyComments": 10,
+    "emptyComments": 1,
+    "crashSubmissions": 0,
+    "imagesViewed": 11
+  },
+  "historicalCountsByBuild": {
+    "7": {
+      "screenshots": 2,
+      "crashes": 0
+    },
+    "49": {
+      "screenshots": 1,
+      "crashes": 0
+    },
+    "60": {
+      "screenshots": 7,
+      "crashes": 0
+    },
+    "66": {
+      "screenshots": 1,
+      "crashes": 0
+    }
+  },
+  "historicalAppMetadataScope": "Metadata GET14:21 and initial11-image review15:02 retained as historical evidence.",
+  "currentRequestedBuilds": {
+    "64": {
+      "screenshotSubmissions": 0,
+      "crashSubmissions": 0,
+      "completeAppListCorrelation": true,
+      "asOfUTC": "2026-10-28T18:29:40.207Z"
+    },
+    "68": {
+      "screenshotSubmissions": 0,
+      "crashSubmissions": 0,
+      "completeAppListCorrelation": true,
+      "asOfUTC": "2026-10-28T18:29:40.207Z"
+    },
+    "69": {
+      "screenshotSubmissions": 3,
+      "crashSubmissions": 0,
+      "completeAppListCorrelation": true,
+      "asOfUTC": "2026-10-28T18:29:40.207Z"
+    }
+  },
+  "freshReview": {
+    "completedUTC": "2026-10-28T18:31:38.153781+00:00",
+    "readOnly": true,
+    "remoteWrites": 0,
+    "inventoryGETCompletedUTC": "2026-10-28T18:29:40.207Z",
+    "downloadGETCompletedUTC": "2026-10-28T18:30:15.050Z",
+    "imagesActuallyViewedViaViewImage": 3,
+    "currentTotals": {
+      "screenshots": 14,
+      "crashes": 0,
+      "images": 14
+    },
+    "currentCountsByBuild": {
+      "7": {
+        "screenshots": 2,
+        "crashes": 0
+      },
+      "49": {
+        "screenshots": 1,
+        "crashes": 0
+      },
+      "60": {
+        "screenshots": 7,
+        "crashes": 0
+      },
+      "66": {
+        "screenshots": 1,
+        "crashes": 0
+      },
+      "69": {
+        "screenshots": 3,
+        "crashes": 0
+      }
+    },
+    "copiedApplicationJournal": {
+      "presentInNewComments": false,
+      "visibleOnNewImages": false,
+      "reason": "New comments are short feedback, not copied reports; NEW02 shows unselected Journal/Diagnostics tabs, no payload."
+    },
+    "manualRadioAcceptance": {
+      "powerOnHelpScreenObserved": true,
+      "fullGuidedPathAccepted": false,
+      "pttMicrophoneResetAccepted": false,
+      "ownerPhysicalTestReportedSeparately": true
+    },
+    "allListsComplete": true,
+    "newItemIds": [
+      "TF12",
+      "TF13",
+      "TF14"
+    ],
+    "newImageBytes": 1098372,
+    "totalReviewedImageBytes": 4486839,
+    "newCommentsNonempty": 3,
+    "newImages": {
+      "downloaded": 3,
+      "actuallyViewed": 3,
+      "allSameSubmittedBuild": "69"
+    }
+  },
+  "ownerJournalReview": {
+    "id": "OWNER-J01",
+    "recordedAtUTC": "2026-10-28T18:49:09.364544+00:00",
+    "source": "Direct owner chat diagnostic export, separate from14TestFlight submissions",
+    "userReportedApp": {
+      "version": "1.7.0",
+      "build": "69",
+      "platform": "ios"
+    },
+    "journalMetadata": {
+      "version": 1,
+      "session": 9,
+      "dropped": 2239,
+      "retainedRows": 200,
+      "sequenceRange": [
+        1109,
+        1308
+      ],
+      "retainedSessions": {
+        "8": 190,
+        "9": 10
+      },
+      "allRetainedCounts": 1
+    },
+    "evidenceMethod": {
+      "rawUserJsonPersisted": false,
+      "noClaimOfExactRawPayloadHash": true,
+      "fullRawParsedByMachine": false,
+      "sequenceClassification": "Manually classified from inherited user message; explicit category sequence sets, other sequences visually checked as navigation; counts checked arithmetically",
+      "sourceSemanticsProbedInMemory": true
+    },
+    "retainedTypeCounts": {
+      "embedded.lifecycle": 16,
+      "learning.visual": 2,
+      "navigation": 107,
+      "radio.command": 17,
+      "radio.gesture": 3,
+      "radio.speech": 38,
+      "storage.operation": 17
+    },
+    "outcomes": {
+      "accepted": 195,
+      "noop": 4,
+      "rejected": 1,
+      "failed": 0,
+      "scope": "Retained tail only, not complete activity history"
+    },
+    "fourRecognitionCycles": [
+      {
+        "nativeRequest": 1113,
+        "nativeStarted": 1114,
+        "nativeRelease": 1118,
+        "nativeRecognized": 1119,
+        "webRecognized": 1123,
+        "pttDown": 1115,
+        "pttUpAccepted": 1120,
+        "pttUpNoop": 1122
+      },
+      {
+        "nativeRequest": 1126,
+        "nativeStarted": 1129,
+        "nativeRelease": 1131,
+        "nativeRecognized": 1132,
+        "webRecognized": 1136,
+        "pttDown": 1127,
+        "pttUpAccepted": 1133,
+        "pttUpNoop": 1135
+      },
+      {
+        "nativeRequest": 1137,
+        "nativeStarted": 1140,
+        "nativeRelease": 1142,
+        "nativeRecognized": 1143,
+        "webRecognized": 1147,
+        "pttDown": 1138,
+        "pttUpAccepted": 1144,
+        "pttUpNoop": 1146
+      },
+      {
+        "nativeRequest": 1148,
+        "nativeStarted": 1151,
+        "nativeRelease": 1153,
+        "nativeRecognized": 1154,
+        "webRecognized": 1158,
+        "pttDown": 1149,
+        "pttUpAccepted": 1155,
+        "pttUpNoop": 1157
+      }
+    ],
+    "speechEventLayers": {
+      "sourceNative": 19,
+      "withoutSourceMatchingWebMirror": 19,
+      "nativeRecognized": 4,
+      "webRecognized": 4,
+      "independentRecognitionCycles": 4
+    },
+    "powerAndDistress": {
+      "dialHoldAcceptedSeq": [
+        1110,
+        1169
+      ],
+      "distressPowerOffRejected": 1167,
+      "distressHoldAccepted": 1171,
+      "distressHeldToSimulatedTx": 1172,
+      "holdObservedMs": 3007,
+      "actualRfEmissionProven": false
+    },
+    "navigation": {
+      "courseBackPairs": [
+        {
+          "backSeq": 1247,
+          "confirmedSeq": 1248,
+          "nativeMsBetweenRecords": 45
+        },
+        {
+          "backSeq": 1251,
+          "confirmedSeq": 1252,
+          "nativeMsBetweenRecords": 48
+        },
+        {
+          "backSeq": 1255,
+          "confirmedSeq": 1256,
+          "nativeMsBetweenRecords": 44
+        },
+        {
+          "backSeq": 1261,
+          "confirmedSeq": 1262,
+          "nativeMsBetweenRecords": 46
+        },
+        {
+          "backSeq": 1273,
+          "confirmedSeq": 1274,
+          "nativeMsBetweenRecords": 51
+        },
+        {
+          "backSeq": 1277,
+          "confirmedSeq": 1278,
+          "nativeMsBetweenRecords": 50
+        },
+        {
+          "backSeq": 1281,
+          "confirmedSeq": 1282,
+          "nativeMsBetweenRecords": 51
+        },
+        {
+          "backSeq": 1285,
+          "confirmedSeq": 1286,
+          "nativeMsBetweenRecords": 54
+        },
+        {
+          "backSeq": 1292,
+          "confirmedSeq": 1293,
+          "nativeMsBetweenRecords": 46
+        },
+        {
+          "backSeq": 1295,
+          "confirmedSeq": 1296,
+          "nativeMsBetweenRecords": 50
+        }
+      ],
+      "courseBackDoesNotProveLoop": true,
+      "reason": "Outline and every bootcamp/courses child map to same fixed course category; confirmed is pathname change, not intended destination acceptance"
+    },
+    "interpretation": {
+      "recognizedMeans": "Native end had a non-whitespace transcript, then web recognized outcome; accuracy and protocol grading not recorded",
+      "doublePttUp": "One accepted release followed by unchanged noop, consistent with safe repeated pointerleave/blur cleanup; exact originating DOM event not recorded",
+      "dropped": "Cumulative omitted inputs, including evicted coalesced count and invalid inputs, bounded by200rows/64KiB and retained across restored sessions; not2239failedactions or necessarily2239evictedrows",
+      "timing": "Native assignsseq/session/time to bridged web inputs at batch receipt;400ms/16event buffer can reorder native/web observations relative to actual action; no same-layer causal latency inference from cross-layerseq",
+      "sessions": "Elapsed time resets for session9; no calendar event time or crash reason in this export"
+    },
+    "notProven": [
+      "Accuracy or content of recognized transmissions",
+      "Full guided learning result or durable guide credit",
+      "Reset/Clear outcome",
+      "DIAL rotation/volume or squelch changes in this retained tail",
+      "TTS playback or audible station response",
+      "Theory CTA actual chapter visibility/focus",
+      "Correct intended Back destination from coarse course category",
+      "All buttons or all errors across evicted history",
+      "Offline network isolation on physical phone"
+    ],
+    "loggingGaps": [
+      "Theory start/chapter article reveal/focus outcome absent",
+      "Inspect pick and explanatory panel reveal outcome absent",
+      "Guide stable step/preparation/completion and saveACK absent",
+      "Navigation category course cannot distinguish outline/lesson/practice without fixed subtype",
+      "Successful navigation107/200 and history-read17/200 consume tail; need bounded activity-specific export/capture strategy, not unlimited journal",
+      "Native/web layer and batch-time semantics should be clear in support report"
+    ],
+    "runtimeSourceChanged": false,
+    "fullP07Accepted": false,
+    "testflightSubmissionCountRemains": 14,
+    "privateDerivedArtifact": {
+      "name": "owner-j01-derived.json",
+      "bytes": 7736,
+      "sha256": "b14b0928f0d38e441f6f00b10330965cd80aa285380e633ef609381d4ec88a10",
+      "hashScope": "Derived review only, not exact raw owner JSON"
+    },
+    "actualSourceProbe": {
+      "name": "source-semantics-probe.json",
+      "bytes": 475,
+      "sha256": "71b19494d197bc1c408f633b5e61365e102713319d6675d8802219505362b4b7"
+    }
   }
 }

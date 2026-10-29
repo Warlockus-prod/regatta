@@ -1440,7 +1440,7 @@
     "testflight70Uploaded": false,
     "radioManual": "owner-deferred live TestFlight",
     "modeObservation": "Initial immediate native AX lagged; cold Pro and reverse Simple return matched. Persistent sync failure not established.",
-    "ownerReportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9",
+    "ownerReportSha256": "273ad4a67ae950eb7461b17e71bc761faae8e5e5d3f7f43e52fe7617639d4b84",
     "afterColdOldKeysUnchanged": 6,
     "allThreeNativeWheelInputsVerified": false,
     "localObservedManualInput": "jib53%->45% only; all3controls visible",
@@ -1503,20 +1503,23 @@
     "g2Passed": false,
     "allThreeProWheelInputsVerified": false,
     "testflight70Uploaded": false,
-    "ownerReportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9"
+    "ownerReportSha256": "273ad4a67ae950eb7461b17e71bc761faae8e5e5d3f7f43e52fe7617639d4b84",
+    "ownerReportSha256AtPriorSnapshot": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9"
   },
   "currentOwnerReportScope": {
-    "recordedAtUTC": "2026-10-28T18:20:42.830200+00:00",
+    "recordedAtUTC": "2026-10-28T19:02:17.766658+00:00",
     "requirements": 65,
     "findings": 15,
-    "testflightFeedbackThemes": 11,
+    "testflightFeedbackThemes": 14,
     "nativeScreenshots": 13,
-    "reportSha256": "7b6d3f57bfe381d8aa6046ac7e9fde3fffc75302969c0fa7b8ceabe75ed987d9",
+    "reportSha256": "273ad4a67ae950eb7461b17e71bc761faae8e5e5d3f7f43e52fe7617639d4b84",
     "historicalProof": "checks/completion-status.json is the unchanged12:19 snapshot, not the current report hash",
     "runtimeEditsDuringThisReconciliation": false,
     "deliveryChanged": false,
     "g2Passed": false,
-    "freshFinalWebScreenshots": 5
+    "freshFinalWebScreenshots": 5,
+    "separateDirectOwnerJournals": 1,
+    "latestPackageSource": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab"
   },
   "nativeBackLoopHold": {
     "recordedAtUTC": "2026-10-28T17:46:17.892878+00:00",
@@ -1761,12 +1764,12 @@
       "predeploy": 40741168924,
       "pushCI": 40741090514,
       "prCI": 40741103322,
-      "status": "in_progress",
+      "status": "completed",
       "accepted": false,
       "lastReadAtUTC": "2026-10-28T18:23:08.454066+00:00",
       "pushCIStatus": "success",
       "prCIStatus": "success",
-      "conclusion": null,
+      "conclusion": "failure",
       "localWatcherStoppedAtUTC": "2026-10-28T18:23:13+00:00",
       "remoteRunChanged": false,
       "remoteWrites": 0,
@@ -1791,7 +1794,25 @@
           "bytes": 208,
           "sha256": "84b74861774377117f538335325eaf394d838c335347d77ffb57c04b639dc372"
         }
-      ]
+      ],
+      "terminalResults": {
+        "cases": 94,
+        "firstPass": 92,
+        "failed": 2,
+        "attempts": 98,
+        "skipped": 0,
+        "flaky": 0,
+        "publishOrDeploy": false,
+        "artifactId": 12840624449,
+        "apiAndDownloadedZipSha256": "6d0eac84bb4392d03a011b1891af005f9d91a2c32724f19289c5fd41178e7de3",
+        "retry1ClockAndHelmMainJibChanged": true,
+        "causeProven": false
+      },
+      "terminalAnalysis": {
+        "name": "cloud40741168924-analysis.json",
+        "bytes": 1398,
+        "sha256": "821c83018e2226ef994bb313aba5107702342c8e6c5da7a43ca4d9dd88c4b885"
+      }
     }
   },
   "finalOwnerReadout": {
@@ -1799,7 +1820,7 @@
     "requirements": 65,
     "sameIdsAndOrderAs68": true,
     "findings": 15,
-    "testflightFeedbackThemes": 11,
+    "testflightFeedbackThemes": 14,
     "sourceRuntimeChangedDuringThisReadout": false,
     "fiveFreshWebScreens": [
       {
@@ -1859,21 +1880,23 @@
     "deliveredBuild": 69,
     "testflight70Uploaded": false,
     "fifthFooter": {
-      "committed": false,
+      "committed": true,
       "targetedTests": 10,
       "fullSuiteAccepted": true,
-      "installedAccepted": false,
+      "installedAccepted": true,
       "nativeTests": 614,
       "nativeSuites": 82,
       "nativeTypesPassed": true,
       "nativeLintPassed": true,
-      "nativeSourceOnly": true,
+      "nativeSourceOnly": false,
       "checkedAtUTC": "2026-10-28T18:21:35+00:00",
       "proof": {
         "name": "native-source-checks-20261028T182108Z.json",
         "bytes": 4976,
         "sha256": "395f755947790687da50c8f75f88289fcdff4fcda30f0ae80b8ae89844b58fdd"
-      }
+      },
+      "sourceCommit": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab",
+      "scope": "bounded two-lesson footer -> outline -> Learn on owned direct48upgrade iOS27; not full G2"
     },
     "offlineExceptionsVerifiedInSource": [
       "Gallery photo/thumbnail/full media and YouTube/Linking",
@@ -1897,7 +1920,127 @@
         }
       ]
     },
-    "releaseStatus": "open"
+    "releaseStatus": "open",
+    "separateDirectOwnerJournals": 1,
+    "currentReportSha256": "273ad4a67ae950eb7461b17e71bc761faae8e5e5d3f7f43e52fe7617639d4b84"
   },
-  "currentWorkingSourceFrozen": false
+  "currentWorkingSourceFrozen": true,
+  "source147BoundedInstalled": {
+    "recordedAtUTC": "2026-10-28T19:01:45.523851+00:00",
+    "sourceCommit": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab",
+    "version": "1.7.0",
+    "build": "70",
+    "runtime": "iOS27.0",
+    "deviceModel": "iPhone18Pro",
+    "directPublic48Upgrade": true,
+    "cloned": false,
+    "sourceCleanDuringAcceptance": true,
+    "generatedChecks": 22,
+    "compiledReleaseChecks": 43,
+    "frozenAndInstalledFilesMatched": 121,
+    "sixOldRecordsByteIdenticalBeforeFirstLaunch": true,
+    "oldQuizUnchanged": true,
+    "oldPassStillVisibleAfterCold": true,
+    "observed": [
+      "EN/Passed1of8/quiz3of3 after upgrade",
+      "Foundation1 real3D -> same step3 -> nextBack existing outline",
+      "Foundation1 -> Nextlesson2 -> Courseoutline -> BackLearn",
+      "Sail3 real3D -> same step3 -> nextBack existing outline -> BackLearn",
+      "Sail3 -> Nextlesson4 -> Backtolessons -> BackLearn",
+      "Foundation8 Solo -> selection -> briefing -> actual3D and clock0:49.2 -> Menu -> Returnlesson8step3 -> Backoutline",
+      "coldlaunch Home retains1of8 and last sail4; Foundation8 restoresstep3; Foundation1quiz3of3 remains"
+    ],
+    "notAccepted": [
+      "full G2 and clean147 installation",
+      "previous-major/short/landscape/large-text matrix",
+      "full Simple/Pro/MP finishes",
+      "physical phone offline/VoiceOver/thermal",
+      "full radio guide/reset/recognition accuracy",
+      "exact147 green cloud/archive/IPA/upload/Apple delivery"
+    ],
+    "g2Passed": false,
+    "testflightUploaded": false,
+    "publicScreens": [
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/31-native70-147-foundation-next-back.jpg",
+        "name": "31-native70-147-foundation-next-back.jpg",
+        "bytes": 231249,
+        "sha256": "9b12fb941fbaea409df077af47d438eea9b84b3c0d876e27943463fc29beffb3",
+        "sourceCommit": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab",
+        "surface": "installed iOS27 Simulator; not TestFlight",
+        "inspected": true
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/32-native70-147-sail-next-back.jpg",
+        "name": "32-native70-147-sail-next-back.jpg",
+        "bytes": 238190,
+        "sha256": "887cec4040e772a63ac2813a61b0e62c0c83798a93ec5cd873a3f94d21b102f6",
+        "sourceCommit": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab",
+        "surface": "installed iOS27 Simulator; not TestFlight",
+        "inspected": true
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/33-native70-147-minirace-next-back.jpg",
+        "name": "33-native70-147-minirace-next-back.jpg",
+        "bytes": 220907,
+        "sha256": "9cf3580ce9cf05a03f4bebc7945e94b20f7455839aff8c947f2e1a668779d88c",
+        "sourceCommit": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab",
+        "surface": "installed iOS27 Simulator; not TestFlight",
+        "inspected": true
+      },
+      {
+        "path": "docs/audits/2026-10-28/cockpit-screens/34-native70-147-cold-preserved-quiz.jpg",
+        "name": "34-native70-147-cold-preserved-quiz.jpg",
+        "bytes": 236321,
+        "sha256": "f42b9966507f9077dc957d56b3364af8ba82f06382136969f53b07b5ca5a4ac6",
+        "sourceCommit": "147ac837b98eca3ecbe02b0a55291e31b32bb6ab",
+        "surface": "installed iOS27 Simulator; not TestFlight",
+        "inspected": true
+      }
+    ],
+    "evidence": [
+      {
+        "name": "source-freeze70.json",
+        "bytes": 1024,
+        "sha256": "0a46c6aa6331d8c88bfac4501ac97cb491fefb66c13ada7e924d4f1a197264d0"
+      },
+      {
+        "name": "simulator-build-result.json",
+        "bytes": 840,
+        "sha256": "f4c6172f91fe3033e29e22051ea97d526c061736dc55a7721dd8b6cc85873cfc"
+      },
+      {
+        "name": "simulator-verification70.json",
+        "bytes": 14252,
+        "sha256": "45bfbfa7698732658b254546033e6823262748edbd444c074ecaa5cc638608bc"
+      },
+      {
+        "name": "frozen-app147-inventory.json",
+        "bytes": 22026,
+        "sha256": "f47d3467a24291386bcfcb20da6864ad0309a74ac788f2895102a9ae0950e19c"
+      },
+      {
+        "name": "installed147-upgrade-beforelaunch.json",
+        "bytes": 495,
+        "sha256": "345ee05db67637f7a8fbe0f00d9dfffdd8cafb641d4745d128f0c44afa130b95"
+      },
+      {
+        "name": "public48-independent-semantic-baseline-20261028T1837.json",
+        "bytes": 5058,
+        "sha256": "14c7684454623402e389a29da71a8c0287fb0014976894e3387ce74e23e0e23a"
+      },
+      {
+        "name": "installed147-after-cold-check-storage-private.json",
+        "bytes": 2167,
+        "sha256": "b306dfaf2b5899c435626f17f9e599a7fa66f9c2bbdff7b1d71752b9ed048791"
+      }
+    ],
+    "privateProof": {
+      "name": "installed147-bounded-acceptance.json",
+      "bytes": 17846,
+      "sha256": "d498aca35257c0c02bea10764def481b591b977690e85ebdbbb8451b82ba1349"
+    },
+    "retainedOldKeysUnchangedAfterCold": 5,
+    "oldKeysChangedByUI": 1
+  }
 }
