@@ -37,7 +37,9 @@ import type { Controls } from "@/lib/sailing-physics/types";
 import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
-import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
+import { createRaceRulesState, evaluateRaceRules, type RaceRuleEvent } from "@/lib/race-rules";
+import { buildRaceJudgeDebrief, type RaceJudgeDebrief } from "@/lib/race-judge";
+import { RaceJudgeReview } from "./RaceJudgeReview";
 import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, postNativePersonalBest, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
@@ -328,6 +330,11 @@ export default function GamePage() {
   // Personal ghost (P09): your best finished race of the same class, drawn
   // from its own ref, outside the fleet, ranks, collisions and rules.
   const ghostTrackRef = useRef<GhostTrack | null>(null);
+  // Training judge (stage 3): every boat's rule events of this race, so the
+  // debrief knows who had right of way; bounded like the other race logs.
+  const ruleEventsRef = useRef<RaceRuleEvent[]>([]);
+  const startedAtRef = useRef<number | undefined>(undefined);
+  const [judgeDebrief, setJudgeDebrief] = useState<RaceJudgeDebrief | null>(null);
   const ghostBoatsRef = useRef<RaceBoat[]>([]);
   const [ghostTime, setGhostTime] = useState<number | null>(null);
   useEffect(() => {
@@ -600,6 +607,7 @@ export default function GamePage() {
     const spawns = physicalRef.current ? physicalFleetSpawns(1 + cfg.opponents) : null;
     physicalNavRef.current = undefined;
     ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null);
+    ruleEventsRef.current = []; startedAtRef.current = undefined; setJudgeDebrief(null);
 
     // Player in the middle
     boats.push({
@@ -859,6 +867,9 @@ export default function GamePage() {
       const checked = evaluateRaceRules(ruleStateRef.current, { boats, course, windDir: windDirRef.current, time: raceClockRef.current,
         racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions) });
       ruleStateRef.current = checked.state;
+      if (checked.events.length && ruleEventsRef.current.length < 600) ruleEventsRef.current.push(...checked.events.slice(0, 600 - ruleEventsRef.current.length));
+      const startedPlayer = boats.find(b => b.isPlayer);
+      if (isRacing && startedAtRef.current === undefined && startedPlayer?.started) startedAtRef.current = raceClockRef.current;
       const playerEvents = checked.events.filter(e => e.boatId === "player");
       if (playerEvents.length) {
         const important = playerEvents.find(e => e.penaltySeconds || e.kind === "early-start" || e.kind === "give-way") ?? playerEvents[0];
@@ -991,6 +1002,8 @@ export default function GamePage() {
           .sort((a, b) => a.time - b.time);
         ended = true;
         setResults(sorted);
+        if (racePrefsRef.current.rules) setJudgeDebrief(buildRaceJudgeDebrief(ruleEventsRef.current, { startedAt: startedAtRef.current,
+          markRoundedAt: markTimesRef.current.get("player"), finishedAt: player.finishTime }));
         setGameState('finished');
         recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
         // Race ended cleanly - drop the resume offer so the next reload
@@ -1487,6 +1500,8 @@ export default function GamePage() {
         <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
           <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
             {trialNote}
+            {judgeDebrief && <div className="mb-5" data-testid="race-judge-review"><RaceJudgeReview debrief={judgeDebrief}
+              boatName={id => boatsRef.current.find(b => b.id === id)?.name ?? id} /></div>}
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
             {nativeRace && nativeBestSave.id === sceneRaceId && nativeBestSave.status !== "idle" && <div className="mb-4 text-sm" role="status" data-testid="native-personal-best-status">
               {nativeBestSave.status === "saved" ? copy.personalBestChecked : nativeBestSave.status === "error" ? copy.personalBestError : copy.personalBestSaving}
