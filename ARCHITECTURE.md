@@ -1001,6 +1001,10 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/lib/race-guidance.ts` retains independent advisory tack/recovery memory at 10Hz, using the shared stadium planner without steering or mutating the boat. Unsupported courses return no route.
 - `src/lib/race-guidance.integration.test.ts` follows the displayed recommendation through real start/mark/finish gates at four input cadences and four wind conditions; preserves legacy bot trajectory exactly.
 - `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
+- `src/lib/race-judge.ts` - чистая функция `buildRaceJudgeDebrief`: события правил одной гонки превращаются в разбор учебного судьи (этап, правило, право дороги, штраф или «без штрафа: спорно», урок), повторы одного эпизода сливаются, список того, что судья не проверяет, всегда в сводке (ADR-0009).
+- `src/lib/race-judge.test.ts` - слияние повторов, спорное без штрафа, ранний старт с возвратом за линию, список непроверяемого, полнота 7 языков и рендер компонента.
+- `src/data/race-judge-copy.ts` - тексты разбора учебного судьи на 7 языках и шаблоны `{s}`, `{rule}`, `{boat}`, `{n}`.
+- `src/app/game/RaceJudgeReview.tsx` - презентационный блок разбора учебного судьи для экрана финиша, без собственных решений.
 - `src/lib/race-physics.ts` accepts explicit manual trim/deployment and opt-in responsive solo steering (ADR-0009), preserving default bot/server behavior. Its additive raceAutopilotPlan exposes route geometry; bots retain radius80/lookahead40, responsive-player advice uses75/30. Neither VPP constants nor accelerated race travel changes.
 
 - `src/features/trainer-controls/ReservedPanel.tsx` portals auxiliary views/settings into the existing controls area. `TrainerWorkspace` preserves the scene rectangle; inline callbacks do not restart focus effects.
