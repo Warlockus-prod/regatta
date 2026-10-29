@@ -536,6 +536,7 @@ export default function InteractiveRadioCourse() {
             />
           )}
           requestedPanel={inspect ? "help" : "task"}
+          onPanelChange={(panel) => { if (panel === "help") { setInspect(true); return "help"; } if (inspect) { setInspect(false); setInspectKey(null); } return "task"; }}
           requestVersion={lessonIndex}
           dockRef={dockRef}
           dock={(

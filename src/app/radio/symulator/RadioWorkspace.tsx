@@ -68,7 +68,7 @@ function tellNativeApp(open: boolean) {
 
 export function RadioWorkspace({
   stacked, onExit, exitTestId, exitTitle, status, actions, radio, onRadioPointerDown, dock, dockRef,
-  testId = 'radio-workspace', requestedPanel, requestVersion,
+  testId = 'radio-workspace', requestedPanel, requestVersion, onPanelChange,
 }: {
   stacked: boolean;
   onExit: () => void;
@@ -85,6 +85,10 @@ export function RadioWorkspace({
   dock: ReactNode;
   dockRef?: Ref<HTMLDivElement>;
   testId?: string; requestedPanel?:string; requestVersion?:number;
+  /** the learner picked a dock tab; returns the requestedPanel the parent will
+   *  pass after reacting (Help turns taps on the radio into explanations), so
+   *  that reaction does not override the learner's own choice */
+  onPanelChange?: (panel: string) => string | void;
 }) {
   const { rt: radioText, tl } = useRadioI18n();
   const { tp } = useTrainerI18n();
@@ -95,7 +99,7 @@ export function RadioWorkspace({
   const [selection, setSelection] = useState({ panel: requestedPanel ?? "task", requestedPanel, requestVersion });
   const activePanel = selection.requestedPanel === requestedPanel && selection.requestVersion === requestVersion
     ? selection.panel : requestedPanel ?? "task";
-  const setActivePanel = (panel: string) => setSelection({ panel, requestedPanel, requestVersion });
+  const setActivePanel = (panel: string) => setSelection({ panel, requestedPanel: onPanelChange?.(panel) ?? requestedPanel, requestVersion });
   const selected = panels.some(panel=>panel.id===activePanel) ? activePanel : panels[0]?.id;
   return (
     <div className={styles.workspace} data-stacked={stacked || undefined} data-testid={testId}>

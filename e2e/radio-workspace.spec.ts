@@ -389,3 +389,36 @@ for (const embed of [false, true]) {
     await expect(chapter).toContainText("1/");
   });
 }
+
+// TestFlight69 TF13: Help said "tap any part of the radio" but a tap only
+// explained it with the separate Explore toggle on; otherwise it pressed the
+// key. Opening Help now makes taps explain, leaving Help makes them work again,
+// in free practice and in the guided Obsługa course.
+for (const surface of [
+  { name: "free practice", url: "/radio/symulator?lang=en&embed=1", start: "start-free-practice", toggle: "inspect-toggle" },
+  { name: "guided course", url: "/radio/obsluga?kurs=1&lang=en&embed=1", start: null, toggle: "course-inspect-toggle" },
+]) {
+  test(`opening Help makes a tap on the radio explain it in ${surface.name}`, async ({ page }) => {
+    await skipTour(page);
+    await page.setViewportSize(PHONE);
+    await page.goto(surface.url);
+    if (surface.start) await page.getByTestId(surface.start).click();
+    const toggle = page.getByTestId(surface.toggle);
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await page.getByRole("tab", { name: "Help", exact: true }).click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    const lcd = await page.getByTestId("lcd").innerText();
+    await page.getByTestId("key-menu").click();
+    await expect(page.getByTestId("inspect-panel")).toContainText("What it is");
+    expect(await page.getByTestId("lcd").innerText()).toBe(lcd);
+    await page.getByRole("tab", { name: "Task", exact: true }).click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByRole("tab", { name: "Task", exact: true })).toHaveAttribute("aria-selected", "true");
+    // leaving Help for any other tab keeps that tab, not a forced Task
+    await page.getByRole("tab", { name: "Help", exact: true }).click();
+    const other = page.getByRole("tab").filter({ hasNotText: /^(Task|Help)$/ }).last();
+    await other.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect(other).toHaveAttribute("aria-selected", "true");
+  });
+}

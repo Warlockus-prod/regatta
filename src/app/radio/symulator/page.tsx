@@ -937,6 +937,7 @@ function RadioSimulator() {
             />
           )}
           requestedPanel={inspect ? "help" : "task"}
+          onPanelChange={(panel) => { if (panel === "help") { setInspect(true); return "help"; } if (inspect) { setInspect(false); setInspectKey(null); } return "task"; }}
           requestVersion={stepIdx}
           dockRef={dockRef}
           dock={(
