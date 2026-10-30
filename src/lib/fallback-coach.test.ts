@@ -89,6 +89,17 @@ describe("local coach (M0-4)", () => {
     expect(finished.score).toBeGreaterThanOrEqual(75);
   });
 
+  it("spans whole-race mistakes over the race actually sailed, also to the time limit", () => {
+    // TestFlight 72: a race that ran to the 5:00 limit showed "0:00-2:00".
+    const slow = samples(300, () => ({ twa: 25, speed: 1.2 }));
+    const dnf = analyseRaceLocally(log(slow, [], null, 3), "en");
+    const wide = dnf.mistakes.filter((m) => m.timeStart === 0);
+    expect(wide.length).toBeGreaterThan(0);
+    for (const m of wide) expect(m.timeEnd).toBe(299.5);
+    const done = analyseRaceLocally(log(slow, [], 250, 3), "en");
+    for (const m of done.mistakes.filter((x) => x.timeStart === 0)) expect(m.timeEnd).toBe(250);
+  });
+
   it("keeps the output shape in all seven languages", () => {
     const s = samples(100, (t) => t >= 20 && t < 50 ? { twa: 10, speed: 0.5 } : cleanBeat(t));
     for (const lang of ["ru", "en", "pl", "es", "fr", "de", "it"] as const) {

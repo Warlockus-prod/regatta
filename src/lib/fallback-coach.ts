@@ -184,6 +184,9 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
   let score = 70;
   const m = measureRaceLog(log);
   const finished = Boolean(log.finishTime);
+  // Whole-race mistakes span the race actually sailed: a race that ran to the
+  // time limit is not cut at 2:00 (TestFlight 72 showed 0:00-2:00 after 5:00).
+  const raceEnd = log.finishTime ?? log.samples[log.samples.length - 1]?.t ?? 120;
 
   // ----- No-go entries (>=2 = problem); one definition, see measureRaceLog -----
   const noGoCount = m.noGoEntries;
@@ -254,7 +257,7 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       lossSec: m.extraTackLossSec,
       goal: 'tacks',
       timeStart: 0,
-      timeEnd: log.finishTime ?? 120,
+      timeEnd: raceEnd,
       severity: 'minor',
       titleRu: pick(
         `Слишком много поворотов (${tackCount})`,
@@ -313,7 +316,7 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       lossSec: m.noGoLossSec,
       goal: 'no-go',
       timeStart: 0,
-      timeEnd: log.finishTime ?? 120,
+      timeEnd: raceEnd,
       severity: 'major',
       titleRu: pick(
         'Много времени в мёртвой зоне',
@@ -373,7 +376,7 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
         lossSec: m.slowCloseHauledLossSec,
         goal: 'close-hauled',
         timeStart: 0,
-        timeEnd: log.finishTime ?? 120,
+        timeEnd: raceEnd,
         severity: 'minor',
         titleRu: pick(
           'Медленно в бейдевинде',

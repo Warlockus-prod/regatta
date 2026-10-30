@@ -140,8 +140,9 @@ export function RaceResults({
                     }}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono w-5" style={{ color: i === 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
-                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
+                      {/* A boat that did not finish gets no place and no medal. */}
+                      <span className="text-xs font-mono w-5" style={{ color: i === 0 && r.time !== Infinity ? 'var(--warning)' : 'var(--text-muted)' }}>
+                        {r.time === Infinity ? '-' : i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                       </span>
                       <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />
                       <span className={`text-xs ${r.isPlayer ? 'font-semibold' : ''}`}>{r.isPlayer ? tp('Ты', 'You', 'Ty', { es: 'Tú', fr: 'Toi', de: 'Du', it: 'Tu' }) : r.name}</span>

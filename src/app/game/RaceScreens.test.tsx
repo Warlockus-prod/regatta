@@ -57,6 +57,10 @@ describe("solo race screens", () => {
     expect(html).toMatch(/>2<span[^>]*> of 3<\/span>/);
     expect(html).toContain("1:41.5");
     expect(html).toContain("DNF");
+    // Two finishers get gold and silver; the third boat did not finish and gets no bronze.
+    expect(html).toContain("🥇");
+    expect(html).toContain("🥈");
+    expect(html).not.toContain("🥉");
     expect(html).toContain("Race debrief");
     expect(html).not.toContain("physical-trial-note");
     expect(results({ trialProfile: "medium" })).toContain('data-testid="physical-trial-note"');
