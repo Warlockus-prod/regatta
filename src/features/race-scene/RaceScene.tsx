@@ -23,7 +23,9 @@ import { initialDpr, nextDpr } from "./quality";
 import { guidancePath } from "./guidance";
 import { calmFactor } from "./materials";
 import { SailingEnvironment } from "./SailingEnvironment";
-import { createSailingRenderer } from "./renderer";
+import { rendererBackend, sailingRenderer } from "./renderer";
+import { INITIAL_GPU_RECOVERY, afterGpuLoss, afterGpuRetry, recordGpuEvent, type GpuRecovery } from "./gpu-loss";
+import { startPerfJournal } from "./perf-journal";
 import { WindFlow } from "@/features/simulator-3d/ocean/WindFlow";
 import { raceWindReading } from "@/features/race-hud/navigation-model";
 import { recordSceneLifecycle } from "@/features/simulator-3d/scene-diagnostics";
@@ -197,7 +199,29 @@ function Quality({ onStats, maxDpr }: { onStats?: (s: RaceSceneStats) => void; m
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel }: {
+/** The on-device performance journal (M0-9), see perf-journal.ts. */
+function PerfJournal({ boatsRef, racingRef, firstFrameRef }: {
+  boatsRef: MutableRefObject<Race3DBoat[]>;
+  racingRef: MutableRefObject<boolean>;
+  firstFrameRef: MutableRefObject<number | null>;
+}) {
+  const gl = useThree((state) => state.gl);
+  useEffect(() => startPerfJournal(gl, {
+    backend: rendererBackend(gl),
+    player: () => playerOf(boatsRef.current),
+    racing: () => racingRef.current,
+    firstFrameMs: () => firstFrameRef.current,
+  }), [gl, boatsRef, racingRef, firstFrameRef]);
+  return null;
+}
+
+/** Inside the failure boundary: a second lost device becomes the scene's error screen. */
+function GpuFailure({ failed }: { failed: boolean }) {
+  if (failed) throw new Error("GPU device lost twice");
+  return null;
+}
+
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -219,9 +243,36 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
    * never part of the fleet, ranks, collisions or rules. */
   ghostRef?: MutableRefObject<Race3DBoat[]>;
   ghostLabel?: string;
+  /** Optional: true only while the race clock runs (not countdown, pause or results).
+   * Without it the performance journal counts the time the fleet is moving. */
+  racing?: boolean;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
-  useEffect(() => { recordSceneLifecycle("scene", "begin"); }, []);
+  const mountedAt = useRef<number | null>(null);
+  const firstFrameRef = useRef<number | null>(null);
+  const racingRef = useRef(racing ?? true);
+  useEffect(() => { racingRef.current = racing ?? true; }, [racing]);
+  useEffect(() => { mountedAt.current = performance.now(); recordSceneLifecycle("scene", "begin"); }, []);
+  const sceneReady = useCallback(() => {
+    if (firstFrameRef.current === null && mountedAt.current !== null) firstFrameRef.current = performance.now() - mountedAt.current;
+    onReady?.();
+  }, [onReady]);
+  // M0-8: one remount on WebGL2 after a lost device, then the failure screen.
+  const [gpu, setGpu] = useState<GpuRecovery>(INITIAL_GPU_RECOVERY);
+  const gl = useMemo(() => {
+    const generation = gpu.generation;
+    return sailingRenderer({ forceWebGL: gpu.forceWebGL, onLost: () => setGpu((state) => afterGpuLoss(state, generation)) });
+  }, [gpu.generation, gpu.forceWebGL]);
+  const retryAfterGpuFailure = useCallback(() => setGpu(afterGpuRetry), []);
+  // The automatic retry and the final failure, once each; the loss itself is
+  // journalled by the renderer with the backend that lost its device.
+  const gpuJournalled = useRef("");
+  useEffect(() => {
+    const key = gpu.failed ? `failed:${gpu.generation}` : gpu.generation === 1 ? "retry" : "";
+    if (!key || gpuJournalled.current === key) return;
+    gpuJournalled.current = key;
+    recordGpuEvent(gpu.failed ? "failed" : "retry", "webgl2", gpu.generation);
+  }, [gpu.failed, gpu.generation]);
   const readState = useCallback(() => {
     const player = playerOf(boatsRef.current);
     return player ? { travel: toWorld(player.pos), wind: { from: windDirRef.current, knots: player.physics?.trueWindSpeed ?? 12 } } : null;
@@ -257,12 +308,14 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   }, [boatsRef, courseRef, metresUnit]);
 
   return (
-    <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={labels.error} retryLabel={labels.retry}>
-      <SceneStartup label={labels.loading} onReady={onReady}>{ready =>
+    <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={labels.error} retryLabel={labels.retry} onRetry={retryAfterGpuFailure}>
+      <GpuFailure failed={gpu.failed} />
+      <SceneStartup label={labels.loading} onReady={sceneReady}>{ready =>
       <div className="relative h-full w-full" data-scene="next">
         <Canvas
+          key={gpu.generation}
           fallback={<span>{labels.scene}</span>}
-          gl={createSailingRenderer}
+          gl={gl}
           dpr={[1, maxDpr]}
           camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
         >
@@ -277,6 +330,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           </Suspense>
           <SailingCameraRig poseForAspect={cameraPose} revision={cameraRevision} />
           <Quality onStats={onStats} maxDpr={maxDpr} />
+          <PerfJournal boatsRef={boatsRef} racingRef={racingRef} firstFrameRef={firstFrameRef} />
         </Canvas>
       </div>
       }</SceneStartup>

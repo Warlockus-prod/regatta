@@ -30,6 +30,22 @@ const pointIsFinite = (p: Vec2 | undefined) => Boolean(p && Number.isFinite(p.x)
 // north, inside their 25..95 limits. A shorter correction lookahead keeps a
 // delayed heading entry from cutting across the far side of the rounding.
 const ADVISORY_ROUTE = { radius: 75, lookahead: 30 };
+// M0-4: the bots' planner tacks inside a corridor 12..60 units either side of
+// the climb, so a player who followed the hint was told to tack 5-7 times on
+// one beat and then criticised by the coach for tacking. Low on the beat the
+// hint plans from a probe whose sideways offset from the climb is shrunk,
+// which widens that corridor by 1 / scale (up to 200 units either side). The
+// last `final` units below the rounding, and any speed shedding for it, stay
+// the planner's own, so the approach to the mark is unchanged. The planner,
+// its constants and the bots are untouched.
+const HINT_CORRIDOR = { minScale: 0.3, final: 300, rise: 100 };
+
+/** Factor applied to the probe's offset from the climb at `rise` units below
+ * the rounding centre: 1 near the top, down to minScale low on the beat. */
+export function hintCorridorScale(rise: number): number {
+  if (!(rise > HINT_CORRIDOR.final)) return 1;
+  return Math.max(HINT_CORRIDOR.minScale, 1 / (1 + (rise - HINT_CORRIDOR.final) / HINT_CORRIDOR.rise));
+}
 
 /** This advisory planner supports the existing horizontal windward/return
  * course only. A different or damaged course gets no misleading route aid. */
@@ -60,8 +76,18 @@ export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: nu
     || boat.speed < 0 || ![0, 1, 2].includes(boat.lapDone) || ![0, 1, 2].includes(boat.roundPhase ?? 0)) return { guidance: null, state: null };
   const mark = course.marks[0];
   const courseKey = JSON.stringify([course.startLine, course.finishLine, mark.pos, mark.radius]);
-  const probe: RaceBoat = { ...boat, autopilot: previous?.courseKey === courseKey && previous.autopilot ? copyMemory(previous.autopilot) : undefined };
-  const plan = raceAutopilotPlan(probe, course, windDir, ADVISORY_ROUTE);
+  const memory = () => previous?.courseKey === courseKey && previous.autopilot ? copyMemory(previous.autopilot) : undefined;
+  let probe: RaceBoat = { ...boat, autopilot: memory() };
+  let plan = raceAutopilotPlan(probe, course, windDir, ADVISORY_ROUTE);
+  // Low on the climb (started, before any rounding, not sailing back down
+  // after a miss, not shedding speed for the rounding) the hint plans again
+  // from a probe nearer the climb line; see HINT_CORRIDOR.
+  const scale = hintCorridorScale(boat.pos.y - plan.rounding.center.y);
+  if (scale < 1 && boat.started && boat.lapDone === 0 && !(boat.roundPhase ?? 0) && plan.path.kind === "vertical" && plan.path.north
+    && !probe.autopilot?.shed && !probe.autopilot?.down) {
+    probe = { ...boat, pos: { x: plan.path.x + (boat.pos.x - plan.path.x) * scale, y: boat.pos.y }, autopilot: memory() };
+    plan = raceAutopilotPlan(probe, course, windDir, ADVISORY_ROUTE);
+  }
   const line = boat.lapDone > 0 ? course.finishLine : course.startLine;
   const cx = (line.a.x + line.b.x) / 2;
   let leg: RaceGuidanceLeg;

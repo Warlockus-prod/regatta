@@ -93,7 +93,12 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 `page.view`, `page.engaged`, `js.uncaught`, `js.rejection` и воронка
 (`src/lib/funnel.ts`): `exam.start`, `exam.finish` (base `sternik` или `src`,
 балл, сдан), `lesson.complete` (курс `bootcamp`, `sails`, `radio-theory`),
-`radio.task.complete`, `app_store.click` (токен `ct` места ссылки).
+`radio.task.complete`, `app_store.click` (токен `ct` места ссылки) и воронка гонки:
+`race.countdown`, `race.first_tack`, `race.first_mark`, `race.end` (finished, место,
+число поворотов) и `race.replay` (source result, saved или shared); каждый шаг не
+чаще раза за гонку, поле `raceNo` - номер гонки на устройстве (1 = первая).
+Серверный `race.finish` - только сохраненное в лидерборд время, в воронку гонки
+не входит.
 Список имен и полей - `src/lib/analytics-events.ts`: `/api/log` молча
 отбрасывает любое другое имя и любое поле, не прошедшее проверку. У
 `page.view` есть `embed` (страница открыта с `?embed=1` в приложении,
@@ -225,7 +230,14 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
-- `src/app/game/GameClient.tsx` - единая 3D-гонка: брифинг, старт, знаки, боты, Simple/Pro, локальный финиш и коуч. Сцена и штурвалы общие с тренажером; SVG брифинга использует локальный Source Sans 3 и переносит длинные подписи без изменения переводов. Нативное меню содержит явную ссылку возврата к выбору гонок через существующий проверенный bridge.
+- `src/app/game/GameClient.tsx` - единая 3D-гонка, оркестратор (M0-1): состояние, refs, подготовка заезда, отсчет, ввод, меню; экраны брифинга и финиша лежат в `src/app/game/RaceBriefing.tsx` и `src/app/game/RaceResults.tsx`, цикл гонки в `src/app/game/useRaceLoop.ts`. Брифинг, старт, знаки, боты, Simple/Pro, локальный финиш и коуч. Сцена и штурвалы общие с тренажером; SVG брифинга использует локальный Source Sans 3 и переносит длинные подписи без изменения переводов. Нативное меню содержит явную ссылку возврата к выбору гонок через существующий проверенный bridge.
+- `src/app/game/useRaceLoop.ts` - цикл одиночной гонки 30 Гц и пересинхронизация часов: шаг лодок, правила, круги и финиш, журнал гонки, тосты поворотов, HUD, конец гонки с коучем, миссиями и событиями воронки; вызывается из GameClient с его refs и сеттерами (тот же порядок эффектов).
+- `src/app/game/race-model.ts` - типы и чистые помощники одиночной гонки (лодка, трасса, журнал, разбор, строка результата), подписи знаков, `soloRaceWind`, `sortRaceResults`, `raceLogTally`, `formatTime`, `localStore`.
+- `src/app/game/race-model.test.ts` - фиксирует формулу ветра, порядок таблицы финиша со штрафами, подсчет журнала, подписи знаков и формат времени.
+- `src/app/game/RaceBriefing.tsx` - экран брифинга `/game`: схема трассы, правила, выбор Simple/Pro, выбор трассы пробной гонки и `PhysicalTrialNote`.
+- `src/app/game/RaceResults.tsx` - экран финиша `/game`: место и время, разбор судьи, таблица флота, миссия, коуч, сохранение в лидерборд, ссылка на повтор.
+- `src/app/game/RaceScreens.test.tsx` - статический рендер брифинга и финиша (testid, тексты, выбор трассы пробной гонки, сход, статус нативного сохранения).
+- `src/app/game/GameClient.loop.test.tsx` - GameClient вызывает `useRaceLoop` один раз за рендер с состоянием гонки и теми же refs, которые пишут команды кабины (руль, курс и автопилот, трим, пауза).
 - `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
 - `src/app/game/GameMenu.tsx` - меню гонки: три режима (первая гонка, свободная, миссия), вид 2D/3D, акватория, кнопка старта.
 - `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
@@ -235,7 +247,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/r/[code]/page.tsx` - страница реплея по 6-символьному коду.
 - `src/app/r/[code]/ReplayViewer.tsx` - проигрыватель реплея с таймлайном.
 - `src/app/stats/page.tsx` - вход в админку, за basic-auth из `src/proxy.ts` и повторной проверкой `checkAdminAuth()` в самой странице (без нее 404).
-- `src/app/stats/StatsDashboard.tsx` - панели: страны, устройства, источники, время на странице.
+- `src/app/stats/StatsDashboard.tsx` - панели: страны, устройства, источники, время на странице, воронка гонки (отсчет, первый поворот, первый знак, конец, финиш, повтор).
 - `src/app/stats/FeedbackAdmin.tsx` - разбор обратной связи со статусами.
 
 ### 4.4 API `src/app/api`
@@ -331,6 +343,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/app/radio/audio/pregenManifest.json` - манифест предгенерированных клипов в `public/radio-audio`.
 - `src/app/radio/sciaga/page.tsx` - страница шпаргалки.
 - `src/app/radio/sciaga/CheatSheet.tsx` - рендер шпаргалки с озвучкой фраз.
+- `src/app/radio/sciaga/scenarioTitles.ts` - польские названия сценариев для сертификата шпаргалки без импорта `src/app/radio/symulator/scenarios.ts` и модели рации; сверяет `src/app/radio/courseIds.test.ts`.
 - `src/app/radio/teoria/page.tsx` - конспект теории по всем 324 вопросам UKE.
 - `src/app/radio/teoria/courseData.ts` - данные теории: главы и параграфы.
 - `src/app/radio/teoria/courseData.test.ts` - проверка целостности данных теории.
@@ -344,8 +357,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/app/radio/symulator/page.tsx` - практика на рации ICOM (M330GE / M323), два экрана: список Практики (уроки управления, 19 сценариев по группам с номерами заданий UKE, голосовые упражнения, один переключатель Nauka / Egzamin, выбор рации в свернутом чипе) и рабочий экран сценария (закрепленная рация, под ней задание, голос, ситуация, журнал).
 - `src/app/radio/symulator/RadioWorkspace.tsx` - общий рабочий экран рации для симулятора, уроков Obsługa и живого разговора: рация закреплена и ничем не закрыта, панель под ней (на десктопе рядом) прокручивается сама; хук раскладки (stacked, compact), блокировка прокрутки страницы, сообщение `radio-workspace` приложению.
 - `src/app/radio/symulator/RadioWorkspace.module.css` - раскладка рабочего экрана: фиксированный экран под навигацией сайта (на телефоне поверх нее), колонки на десктопе, телефон в горизонтали.
-- `src/app/radio/symulator/practiceMenu.ts` - группы списка Практики и номера заданий UKE для каждого сценария (из `zadania/tasks.ts`).
-- `src/app/radio/symulator/practiceMenu.test.ts` - каждый сценарий в списке ровно один раз, ни одно задание UKE со сценарием не потеряно.
+- `src/app/radio/symulator/practiceMenu.ts` - группы списка Практики и номера заданий UKE для каждого сценария (таблица номеров, без импорта текстов `src/app/radio/zadania/tasks.ts`).
+- `src/app/radio/symulator/practiceMenu.test.ts` - каждый сценарий в списке ровно один раз, ни одно задание UKE со сценарием не потеряно, таблица номеров совпадает с `src/app/radio/zadania/tasks.ts`.
 - `src/app/radio/symulator/RadioFront.tsx` - передняя панель станции; `compact` укладывает те же органы управления примерно в 450px высоты (три ряда клавиш, DISTRESS и PTT рядом), чтобы рация помещалась над панелью задания на телефоне.
 - `src/app/radio/symulator/radioModel.ts` - чистый конечный автомат станции по мануалам ICOM; береговая станция (`coast`) и подписи рабочих каналов (`channelLabels`) лежат в состоянии, по умолчанию Гданьский залив.
 - `src/app/radio/symulator/radioModel.test.ts` - тесты автомата станции.
@@ -387,7 +400,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/app/radio/test/page.tsx` - пробный экзамен SRC.
 - `src/app/radio/test/examModel.ts` - модель экзамена: выборка, время, порог.
 - `src/app/radio/test/examModel.test.ts` - тесты модели экзамена.
-- `src/app/radio/courseIds.test.ts` - сверяет списки id из `src/app/radio/courseIds.ts` с банком SRC, сценариями и главами теории.
+- `src/app/radio/courseIds.test.ts` - сверяет списки id из `src/app/radio/courseIds.ts` и названия из `src/app/radio/sciaga/scenarioTitles.ts` с банком SRC, сценариями и главами теории.
 - `src/app/radio/courseIds.ts` - id глав теории, вопросов SRC и сценариев для счетчиков прогресса на /radio без импорта самих данных.
 
 ### 4.6 Курс sternik motorowodny `src/app/sternik`
@@ -436,7 +449,6 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/components/product/Navigation.module.css` - стили навигации оболочки.
 - `src/components/product/ProductMenu.tsx` - веб-меню каталога: группы из `src/lib/product/menu.ts`, поиск, пустой результат, цели 44px.
 - `src/components/product/Home.module.css` - стили главной сайта с иллюстрацией.
-- `src/components/design-v3/DesignStudio.tsx` - сохраненный исторический исходник витрины Claude Design; в release не импортируется.
 - `src/components/design-v3/DesignStudio.module.css` - стили витрины.
 
 ### 4.8 Контент `src/data`
@@ -541,13 +553,13 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 ### 4.10 `src/features/simulator-3d` - Лодка 3D (V2)
 
 - `src/features/simulator-3d/README.md` - назначение и границы самостоятельного 3D-модуля.
-- `src/features/simulator-3d/index.ts` - публичный барель портируемых частей модуля.
 - `src/features/simulator-3d/SimulatorV2.tsx` - обертка под Next.js для `/simulator2`.
 - `src/features/simulator-3d/Simulator3D.tsx` - корневой компонент 3D-вида и панелей; на телефоне под парусом сцена закреплена, панель становится общим доком управления.
 - `src/features/simulator-3d/Simulator3D.module.css` - стили 3D-вида.
 - `src/features/simulator-3d/RegattaScene.tsx` - сцена R3F: свет, камера, вода, яхта.
 - `src/features/simulator-3d/SceneBoundary.tsx` - граница ошибки сцены и отчет о сбое WebGL.
-- `src/features/simulator-3d/Yacht.tsx` - рендер GLB-яхты и парусов.
+- `src/features/simulator-3d/Yacht.tsx` - рендер GLB-яхты и парусов; загрузка без декодеров Draco и meshopt (они тянутся с www.gstatic.com, CSP блокирует).
+- `src/features/simulator-3d/glb-decoders.test.ts` - ни одна модель .glb/.gltf в `public/` не использует Draco или meshopt, и каждый `useGLTF` в `src` отказывается от обоих декодеров.
 - `src/features/simulator-3d/config.ts` - конфиг модуля, URL модели.
 - `src/features/simulator-3d/types.ts` - типы состояния яхты и подписей сцены.
 - `src/features/simulator-3d/camera.ts` - подгонка камер: обзор, грот, шкот.
@@ -562,8 +574,6 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия, подсказка коуча `coachFrom` (называет шкот).
 - `src/features/simulator-3d/physics/coach.test.ts` - контракт: каждая подсказка трима называет шкот (гика-шкот, стаксель-шкот или оба).
 - `src/features/simulator-3d/physics/sailModel.ts` - визуальные и подсказочные помощники (не силы).
-- `src/features/simulator-3d/physics/step.ts` - совместимость: шаг отдан общей сессии.
-- `src/features/simulator-3d/physics/step.test.ts` - тесты шага 3D-сцены.
 - `src/features/simulator-3d/physics/targets.ts` - решатель целевых значений (target speed / angle).
 - `src/features/simulator-3d/physics/targets.test.ts` - тесты решателя.
 - `src/features/simulator-3d/sails/geometry.ts` - геометрия паруса: профиль пуза, точки, меш.
@@ -644,21 +654,25 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
 - `src/features/trainer-controls/TrainerWorkspace.tsx` - закрепленная сцена, показания и док; в короткой горизонтали показания справа прокручиваются с клавиатуры, сохраняя место основным controls и лодке.
-- `src/features/venues/drawVenue.ts` - берег и острова акватории на canvas веб-гонки и мультиплеера (под трассой).
 - `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
 - `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
 - `src/features/race-3d/Race3DView.tsx` - 3D-вид одиночной гонки (ADR-0006): читает refs гонки `GameClient`, игрок в начале координат, мир сдвигается под ним; соперники, знаки, линия старта, берег, камера за кормой или сверху.
 - `src/features/race-3d/pose.ts` - чистое преобразование лодки гонки в позу 3D-яхты (паруса под ветер по триму лодки, заполаскивание в мертвой зоне), масштаб 0.6 м на единицу, следующая цель, места в гонке (`raceRanks`, их же считает HUD веб-гонки).
 - `src/features/race-3d/pose.test.ts` - контракт: паруса под ветер на обоих галсах, травятся при уваливании, лодка там, где ее поставила гонка.
 - `src/features/race-3d/useRaceView.ts` - выбор вида гонки 2D/3D и камеры (localStorage `regatta.race.view.v1`, `regatta.race.camera.v1`, ссылки `?view=3d`, `?camera=high`) и флаги следующего рендера (`?scene=next`, `?fps=1`).
-- `src/features/race-3d/RaceViewPicker.tsx` - выбор «Карта 2D» / «С лодки 3D» в меню веб-гонки.
-- `src/features/race-scene/RaceScene.tsx` - следующий рендер гонки (ADR-0008, вертикальный срез, `/game?view=3d&scene=next`): WebGPURenderer с откатом на WebGL2, вода и небо на TSL, белые следы и тени лодок, своя раскраска берега и сосны, тактическая камера по умолчанию, замер FPS и шаг плотности пикселей (`?fps=1`). Знаки, соперники и стрелки берет из `Race3DView`.
+- `src/features/race-scene/RaceScene.tsx` - следующий рендер гонки (ADR-0008, вертикальный срез, `/game?view=3d&scene=next`): WebGPURenderer с откатом на WebGL2, вода и небо на TSL, белые следы и тени лодок, своя раскраска берега и сосны, тактическая камера по умолчанию, замер FPS и шаг плотности пикселей (`?fps=1`). Знаки, соперники и стрелки берет из `Race3DView`. После потери видеокарты один раз пересоздает холст на WebGL2 (`src/features/race-scene/gpu-loss.ts`); журнал производительности `race.perf` раз в минуту в гонке и при выходе (`src/features/race-scene/perf-journal.ts`); проп `racing`.
 - `src/features/race-scene/materials.ts` - TSL-материалы сцены: вода (общие волны `WAVES`, полосы по ветру, мелководье и пена у берега по полю расстояний), небо с облаками, след, тень под корпусом.
 - `src/features/race-scene/camera.ts` - тактическая камера: с подветра, наклон 54 градуса, наветренная сторона вверху экрана, лодка чуть ниже середины, взгляд вперед к знаку.
 - `src/features/race-scene/shore.ts` - поле расстояний от воды до берега по контурам площадки, раз на акваторию (текстура для воды).
 - `src/features/race-scene/trail.ts` - лента кильватера: точки кормы, расширение в V и затухание с возрастом.
 - `src/features/race-scene/land.ts` - раскраска суши для света гонки: песок только на полосе пляжа, дальше зелень, скала на крутых гранях и вершинах.
 - `src/features/race-scene/quality.ts` - адаптивное качество: плотность пикселей шагами вниз, пока FPS ниже 42.
+- `src/features/race-scene/gpu-loss.ts` - восстановление после потери GPU-устройства или WebGL-контекста (M0-8): один перезапуск на WebGL2, повторная потеря показывает экран ошибки сцены, потери старого холста игнорируются; в журнал `scene.gpu` только фиксированные значения.
+- `src/features/race-scene/gpu-loss.test.ts` - ровно один автоматический повтор, затем отказ без цикла, ручной повтор остается на WebGL2, устаревшие поколения игнорируются; рендерер сохраняет собственную остановку three и пишет события без текста драйвера.
+- `src/features/race-scene/perf.ts` - замер производительности сцены гонки (M0-9): гистограмма FPS (среднее и 5-й процентиль только по кадрам гонки, без паузы, скрытой вкладки и разрывов), средние вызовы отрисовки и треугольники, ограниченное событие `race.perf`.
+- `src/features/race-scene/perf.test.ts` - процентиль и среднее на известных последовательностях кадров, исключение паузы и скрытого времени, ограничения и отказ схемы от свободного текста.
+- `src/features/race-scene/perf-journal.ts` - подключение замера к сцене: событие раз в 60 с во время гонки и последнее при выходе, разрыв интервала кадров при скрытии вкладки, без выделений памяти на кадр.
+- `src/features/race-scene/perf-journal.test.ts` - нет события до 60 с, ровно одно на 60 с, последнее при выходе с бэкендом, плотностью пикселей и вызовами отрисовки; скрытый промежуток не считается кадром.
 - `src/features/race-scene/race-scene.test.ts` - контракты: камера ставит лодку чуть ниже середины экрана телефона и смотрит на ветер, поле берега ноль на суше и растет от пляжа, след расширяется и гаснет, качество только снижается, песок только на пляже.
 - `src/features/race-hud/RaceHud.tsx` - HUD гонки (аудит C2): скорость против цели на этом курсе, компас ветра относительно лодки с сектором мертвой зоны, таблица мест со временем, всплывающее событие.
 - `src/features/race-hud/target.ts` - целевая скорость из поляры движка: таблица через 5 градусов на силу ветра, интерполяция.
@@ -699,10 +713,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/i18n.tsx` - провайдер и хуки `t` / `tp` / `tl`, приоритет источников языка.
 - `src/lib/languages.ts` - список языков, `LANG_SHORTCUT_PATHS`, `pickLocalized`, порядок в пикере.
 - `src/lib/languages.test.ts` - контракт языков: Accept-Language (регион, пропуск неподдержанных, EN как запасной, RU без заголовка), ровно 7 языков и 14 коротких путей, порядок отката `legacyPick`.
-- `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`; индекс `(evt, ts)`; воронка для `/stats`.
+- `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`; индекс `(evt, ts)`; воронка для `/stats`, включая воронку гонки (первая гонка `raceNo = 1` и все гонки).
 - `src/lib/db.funnel.test.ts` - воронка `getMetricsRange()` на настоящем файле SQLite и наличие индекса `(evt, ts)`.
-- `src/lib/analytics-events.ts` - allow-list клиентских событий для `/api/log` и проверка полей воронки по событию.
-- `src/lib/funnel.ts` - клиентские хелперы воронки (экзамен, урок, задание по радио, клик App Store), `detectShell()` (app или web), `appStoreUrl(ct)`.
+- `src/lib/analytics-events.ts` - allow-list клиентских событий для `/api/log` и проверка полей воронки по событию, включая шаги гонки `race.countdown`, `race.first_tack`, `race.first_mark`, `race.end`, `race.replay` и их границы.
+- `src/lib/funnel.ts` - клиентские хелперы воронки (экзамен, урок, задание по радио, клик App Store; гонка `trackRaceCountdown/Tack/Mark/End/Replay`: каждый шаг не чаще раза за гонку, номер гонки устройства `raceNo` в localStorage `regatta.race-count.v1`), `detectShell()` (app или web), `appStoreUrl(ct)`.
 - `src/lib/funnel.test.ts` - контракт воронки: реальные id уроков и сценариев проходят проверку, результат экзамена уходит и в `/api/log`, и в приложение.
 - `src/lib/event-retention.test.ts` - удаление старых событий: dry-run ничего не удаляет, реальный прогон удаляет ровно столько же, окно меньше 30 дней запрещено.
 - `src/lib/net.ts` - усечение клиентского IP перед логом и записью.
@@ -712,7 +726,6 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/rate-limit.test.ts` - контракт: свежая `regatta_sid` на каждый запрос не снимает лимит, отказ не списывает бюджет других слоев, короткое окно не стирает часовые бакеты.
 - `src/lib/race-submission.ts` - общие проверки присланных гонок: санитайзер ника, правдоподобное время финиша, слаг миссии.
 - `src/lib/ws-limits.test.ts` - контракт `ws-server/limits.js`: последний хоп XFF и потолки комнат.
-- `src/lib/storage.ts` - версионированный localStorage в пространстве `regatta.`.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
 - `src/lib/theme.test.ts` - saved/system/native theme resolution и фактическое исполнение prepaint bootstrap, включая theme-color.
 - `src/components/ThemeManager.test.tsx` - route/system/storage/native events, живое применение и очистка listeners без reload.
@@ -723,7 +736,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/race-resume.ts` - восстановление настроек гонки после перезагрузки.
 - `src/lib/best-times.ts` - личные рекорды по бакетам сложности и ветра.
 - `src/lib/mp-client.ts` - WebSocket-клиент мультиплеера с автопереподключением и типизированной шиной.
-- `src/lib/fallback-coach.ts` - эвристический коуч, когда OpenAI недоступен или ключа нет.
+- `src/lib/fallback-coach.ts` - эвристический коуч, когда OpenAI недоступен или ключа нет (M0-4: одно определение мертвой зоны для похвалы и ошибок, повороты без фордевиндов, цель из самой большой измеренной потери вне похваленного, без похвалы при сходе).
+- `src/lib/fallback-coach.test.ts` - локальный коуч: одно определение мертвой зоны, повороты без фордевиндов, цель по самой большой потере и не против похвалы, сход без похвалы, 7 языков.
 - `src/lib/weather/types.ts` - контракт провайдера погоды.
 - `src/lib/weather/open-meteo.ts` - провайдер Open-Meteo (без ключа).
 - `src/lib/weather/index.ts` - выбор провайдера и общий вход.
@@ -1004,13 +1018,20 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 `docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `docs/audits/2026-10-24/audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.
 
-- `src/lib/race-guidance.ts` retains independent advisory tack/recovery memory at 10Hz, using the shared stadium planner without steering or mutating the boat. Unsupported courses return no route.
+- `src/lib/race-guidance.ts` retains independent advisory tack/recovery memory at 10Hz, using the shared stadium planner without steering or mutating the boat. Unsupported courses return no route. Low on the beat the hint plans from a copy of the boat moved toward the climb line (`hintCorridorScale`, M0-4), so it asks for fewer tacks than the bots' corridor; the approach to the mark is unchanged.
 - `src/lib/race-guidance.integration.test.ts` follows the displayed recommendation through real start/mark/finish gates at four input cadences and four wind conditions; preserves legacy bot trajectory exactly.
 - `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
 - `src/lib/race-judge.ts` - чистая функция `buildRaceJudgeDebrief`: события правил одной гонки превращаются в разбор учебного судьи (этап, правило, право дороги, штраф или «без штрафа: спорно», урок), повторы одного эпизода сливаются, список того, что судья не проверяет, всегда в сводке (ADR-0009).
 - `src/lib/race-judge.test.ts` - слияние повторов, спорное без штрафа, ранний старт с возвратом за линию, толкотня на старте, список непроверяемого, полнота 7 языков и рендер компонента.
 - `src/lib/race-start-jostle.ts` - признак «толкотни на старте» (M0-3): безштрафные сближения и касания первых 10 с после сигнала; живая подсказка молчит, разбор судьи собирает их в один пункт без урока. Отдельно от разбора судьи, который грузится только после финиша.
 - `src/lib/race-spawn.ts` - стартовые позиции обычной гонки (M0-2): игрок на прежнем месте, боты тем же галсом «лесенкой» сзади и в стороны, статическая проверка раскладки.
+- `src/lib/race-manoeuvres.ts` - чистый классификатор журнала гонки (M0-4): оверштаг или фордевинд с гистерезисом, без рыскания у линии ветра и у фордевинда, без дрейфа и смены курса, пока лодку держит край акватории; одно определение мертвой зоны (`inNoGoZone`) и `pressedAgainstEdge`.
+- `src/lib/race-manoeuvres.test.ts` - синтетические курсы: оверштаг, фордевинд, рыскание на фордевинде, смена курса у стены, поворот от края, полный круг.
+- `src/lib/race-missed-mark.ts` - M0-5: пересечение финишной линии в сторону финиша до огибания верхнего знака, с порогом отхода от линии и паузой между подсказками.
+- `src/lib/race-missed-mark.test.ts` - треки через `updateLap`: правильный круг, возврат без огибания, рыскание у старта, пауза и повторное взведение.
+- `src/lib/race-ground-speed.ts` - M0-5: скорость в HUD по реально пройденному пути за 0,5 с, лодка у края карты не показывает полную скорость на месте.
+- `src/lib/race-ground-speed.test.ts` - настоящий `stepBoat` на открытой воде, в углу, у борта стены, скольжение вдоль стены и толчок от столкновения.
+- `src/app/game/race-missed-mark-copy.test.ts` - подсказка о пропущенном знаке на 7 языках: термины глоссария, левый борт, без типографской пунктуации, польский с диакритикой.
 - `src/lib/race-spawn.test.ts` - сырые события правил первых 20 с на трех уровнях, трех seed и двух стилях игрока; доказательство, что старая раскладка этот тест не проходит.
 - `src/data/race-judge-copy.ts` - тексты разбора учебного судьи на 7 языках и шаблоны `{s}`, `{rule}`, `{boat}`, `{n}`.
 - `src/app/game/RaceJudgeReview.tsx` - презентационный блок разбора учебного судьи для экрана финиша, без собственных решений.
@@ -1019,7 +1040,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/features/trainer-controls/ReservedPanel.tsx` portals auxiliary views/settings into the existing controls area. `TrainerWorkspace` preserves the scene rectangle; inline callbacks do not restart focus effects.
 - `src/features/race-scene/guidance.ts` builds a pure water-route ribbon and direction markers; RaceScene displays it only when guidance is supplied. The old target-circle and no-go overlays are removed from the race scene.
 
-- `mobile/app/game/index.tsx` is the primary locally bundled shared 3D race. `race-3d` redirects there; the catalog has one solo entry. `mobile/src/navigation/race-entry.ts` validates supported local routes.
+- `mobile/app/game/index.tsx` is the primary locally bundled shared 3D race. `race-3d` redirects there; the catalog has one solo entry. `mobile/src/navigation/race-entry.ts` validates supported local routes and passes `fps=1` through, so the FPS overlay works in the app.
 - `src/lib/race-native.ts` validates the versioned world-coordinate race/Pro-rig snapshot before native persistence. `mobile/src/persistence/race-native.ts` stores it additively, acknowledges only successful durable writes, and keeps legacy history readable. `mobile/src/persistence/race-web-storage.ts` whitelists device preferences; new replay and coach use the same local course.
 - `src/app/game/RaceCockpit.tsx` and its CSS reserve the 3D scene and move controls/settings to a responsive dock. `src/app/game/race-prefs.ts` stores Simple/Pro and assistance preferences. `src/app/game/RaceReplay.tsx` replays actual local recordings in the shared 3D scene. `src/app/game/race-copy.ts` holds seven-language race UI copy.
 - `src/lib/daily-challenge.ts` generates identical date-based settings on server and fresh offline installs. `src/lib/db.ts` consumes it.
@@ -1034,7 +1055,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/lib/race-rules.test.ts` covers conservative right of way, collision/mark time penalties, early starts and rule toggles.
 
 - `src/features/race-scene/SailingEnvironment.tsx` is the common ocean, sky, shore, lighting, local reflections and hull wake/shadow used by RaceScene and RegattaScene. No external HDR is loaded.
-- `src/features/race-scene/renderer.ts` creates the shared WebGPU renderer with WebGL2 fallback and the same tone mapping. The old optional trainer Bloom/Vignette stack is superseded by common light/tone settings.
+- `src/features/race-scene/renderer.ts` creates the shared WebGPU renderer with WebGL2 fallback and the same tone mapping; `sailingRenderer({ forceWebGL, onLost })` wraps three's onDeviceLost to journal a lost device (M0-8), `createSailingRenderer` is the default instance. The old optional trainer Bloom/Vignette stack is superseded by common light/tone settings.
 - `src/features/race-scene/environment-state.ts` adapts trainer and fleet world travel/wind to common environment uniforms; `src/features/race-scene/environment-state.test.ts` verifies unit, origin and wind contracts.
 - `src/features/sailing-lab/runtime/trim-coach.ts` provides pure shared trim advice and quality; `src/features/sailing-lab/runtime/trim-coach.test.ts` checks active-sail masks and downwind behavior.
 - `src/lib/race-trim-coach.ts` reads race force diagnostics without stepping time and returns shared trainer coaching keys; `src/lib/race-trim-coach.test.ts` checks per-sail luff/stall, deployment, downwind and immutable state.
@@ -1090,7 +1111,9 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/router.tsx` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
-- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage; validated sail lesson return dismisses the practice route so the following Back reaches the original outline.
+- `mobile/src/simulator/race-shell.ts` - native shell for race WebViews (M0-7): no back swipe on /game and /multiplayer, left/right safe-area padding for the full-screen race and native overlays (spinner, Retry, memory notice) offset by the same insets, keep-awake through the linked ExpoKeepAwake native module, one automatic reload to the race menu after the web content process is killed.
+- `mobile/__tests__/race-shell.test.tsx` - race shell: landscape side insets, overlay offsets, gestureEnabled false, keep-awake on and off, reload to the race menu after the iOS/Android web process dies, no reload loop.
+- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage; race surfaces use `mobile/src/simulator/race-shell.ts` (onContentProcessDidTerminate on /game reloads once instead of going straight to Retry); validated sail lesson return dismisses the practice route so the following Back reaches the original outline.
 
 Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, sailing learning, shared replay, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. `ops/deploy/test_deploy.py` locks the prepublication suite selection, loopback target, absence of deploy secrets and main-only publication/deployment conditions. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged. The expanded browser gate must still run on the combined source candidate before another publication.
 

@@ -10,6 +10,16 @@
  * Server-side events (`race.finish`, `coach.requested`) are written straight
  * through insertEvent() by their own routes and are deliberately NOT on this
  * list, so a client cannot forge them through /api/log.
+ *
+ * First-race funnel (M0-12, src/lib/funnel.ts trackRace*): `race.countdown`,
+ * `race.first_tack`, `race.first_mark`, `race.end` and `race.replay` fire once
+ * per race (a saved or shared replay once per opening, without race fields),
+ * and every race event of a live race carries `raceNo`,
+ * the count of races this device has started including this one, so
+ * `raceNo = 1` is the device's first race. `race.end` counts every ended race
+ * (finished or timed out); the server's `race.finish` counts only the times a
+ * player saved to the leaderboard. The two never describe the same thing, so
+ * neither is double counted.
  */
 
 export const CLIENT_EVENTS = [
@@ -22,6 +32,11 @@ export const CLIENT_EVENTS = [
   'lesson.complete',
   'radio.task.complete',
   'app_store.click',
+  'race.countdown',
+  'race.first_tack',
+  'race.first_mark',
+  'race.end',
+  'race.replay',
 ] as const;
 
 export type ClientEventName = (typeof CLIENT_EVENTS)[number];
@@ -43,6 +58,11 @@ export const FUNNEL_EVENTS: ReadonlySet<string> = new Set<ClientEventName>([
   'lesson.complete',
   'radio.task.complete',
   'app_store.click',
+  'race.countdown',
+  'race.first_tack',
+  'race.first_mark',
+  'race.end',
+  'race.replay',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -94,10 +114,30 @@ export type ExamBase = 'sternik' | 'src';
 export type LessonCourse = 'bootcamp' | 'sails' | 'radio-theory';
 /** Where the page runs: a normal browser, or a WebView inside the iOS app. */
 export type ClientKind = 'web' | 'app';
+/** Race setup carried by every race funnel event. */
+export type RaceFunnelMode = 'simple' | 'pro';
+export type RaceFunnelDifficulty = 'easy' | 'medium' | 'hard';
+export type RaceFunnelWind = 'light' | 'medium' | 'heavy';
+/**
+ * Where a replay was opened: the finish screen of the race just sailed, a race
+ * saved in the app's history, or a shared replay link (/r/CODE).
+ */
+export type ReplaySource = 'result' | 'saved' | 'shared';
+
+/** Upper bound of raceNo; the client stops counting here. */
+export const RACE_NO_MAX = 1000;
+/** Race clock bound for first_tack / first_mark, in seconds (two hours). */
+export const RACE_AT_SEC_MAX = 7200;
+/** Largest fleet a race can report (player plus bots), with headroom. */
+export const RACE_FLEET_MAX = 64;
 
 const EXAM_BASES: ReadonlySet<string> = new Set<ExamBase>(['sternik', 'src']);
 const LESSON_COURSES: ReadonlySet<string> = new Set<LessonCourse>(['bootcamp', 'sails', 'radio-theory']);
 const CLIENT_KINDS: ReadonlySet<string> = new Set<ClientKind>(['web', 'app']);
+const RACE_MODES: ReadonlySet<string> = new Set<RaceFunnelMode>(['simple', 'pro']);
+const RACE_DIFFICULTIES: ReadonlySet<string> = new Set<RaceFunnelDifficulty>(['easy', 'medium', 'hard']);
+const RACE_WINDS: ReadonlySet<string> = new Set<RaceFunnelWind>(['light', 'medium', 'heavy']);
+const REPLAY_SOURCES: ReadonlySet<string> = new Set<ReplaySource>(['result', 'saved', 'shared']);
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const CT_RE = /^[a-z0-9_]{1,40}$/;
@@ -125,9 +165,23 @@ const FIELD_CHECKS: Record<string, FieldCheck> = {
   ct: (v) => typeof v === 'string' && CT_RE.test(v),
   // Random id of one page view, shared by its page.view and page.engaged.
   viewId: (v) => typeof v === 'string' && VIEW_ID_RE.test(v),
+  // Race funnel: setup, progress and result of one race.
+  raceNo: (v) => isInt(v, 1, RACE_NO_MAX),
+  mode: (v) => typeof v === 'string' && RACE_MODES.has(v),
+  difficulty: (v) => typeof v === 'string' && RACE_DIFFICULTIES.has(v),
+  wind: (v) => typeof v === 'string' && RACE_WINDS.has(v),
+  missionId: (v) => typeof v === 'string' && ID_RE.test(v),
+  daily: (v) => typeof v === 'boolean',
+  atSec: (v) => isInt(v, 0, RACE_AT_SEC_MAX),
+  finished: (v) => typeof v === 'boolean',
+  position: (v) => isInt(v, 1, RACE_FLEET_MAX),
+  totalBoats: (v) => isInt(v, 1, RACE_FLEET_MAX),
+  tacks: (v) => isInt(v, 0, 1000),
+  source: (v) => typeof v === 'string' && REPLAY_SOURCES.has(v),
 };
 
 const SHELL = ['embed', 'client'] as const;
+const RACE = [...SHELL, 'raceNo', 'mode', 'difficulty', 'wind', 'missionId', 'daily'] as const;
 
 const EVENT_FIELDS: Record<ClientEventName, readonly string[]> = {
   'page.view': [...SHELL, 'viewId'],
@@ -139,6 +193,11 @@ const EVENT_FIELDS: Record<ClientEventName, readonly string[]> = {
   'lesson.complete': [...SHELL, 'course', 'lessonId'],
   'radio.task.complete': [...SHELL, 'taskId', 'score'],
   'app_store.click': [...SHELL, 'ct'],
+  'race.countdown': RACE,
+  'race.first_tack': [...RACE, 'atSec'],
+  'race.first_mark': [...RACE, 'atSec'],
+  'race.end': [...RACE, 'finished', 'position', 'totalBoats', 'durationSec', 'tacks'],
+  'race.replay': [...RACE, 'source'],
 };
 
 /**

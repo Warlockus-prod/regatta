@@ -26,7 +26,8 @@ const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
 };
 
 const MODEL_URL = YACHT_MODEL_URL;
-useGLTF.preload(MODEL_URL);
+// No Draco or meshopt decoder: drei fetches them from www.gstatic.com, which the CSP blocks (M0-8).
+useGLTF.preload(MODEL_URL, false, false);
 
 interface MarkerProps {
   position: [number, number, number];
@@ -95,7 +96,7 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
     }
   });
 
-  const { scene: source } = useGLTF(MODEL_URL);
+  const { scene: source } = useGLTF(MODEL_URL, false, false);
   const scene = useMemo(() => source.clone(true), [source]);
 
   return (

@@ -29,14 +29,14 @@ export default function PrivacyPage() {
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
           {tp(
-             "Обновлено: 2026-10-24",
-             "Updated: 2026-10-24",
-             "Aktualizacja: 2026-10-24",
+             "Обновлено: 2026-10-30",
+             "Updated: 2026-10-30",
+             "Aktualizacja: 2026-10-30",
              {
-               es: "Actualizado: 2026-10-24",
-               fr: "Mis à jour : 2026-10-24",
-               de: "Aktualisiert: 2026-10-24",
-               it: "Aggiornato: 2026-10-24",
+               es: "Actualizado: 2026-10-30",
+               fr: "Mis à jour : 2026-10-30",
+               de: "Aktualisiert: 2026-10-30",
+               it: "Aggiornato: 2026-10-30",
              },
            )}
         </p>
@@ -218,14 +218,14 @@ export default function PrivacyPage() {
             </li>
             <li>
               {tp(
-                'Учебные события: пробный экзамен начат и завершен (балл, сдан или нет), пройденные уроки и задания по радио, переход в App Store и то, открыта ли страница внутри приложения. Без имени и без твоих ответов. Сырые события хранятся 180 дней, затем удаляются.',
-                'Learning events: mock exam started and finished (score, passed or not), lessons and radio tasks completed, App Store link clicks, and whether a page was opened inside the app. No name and none of your answers. Raw events are kept for 180 days, then deleted.',
-                'Zdarzenia nauki: rozpoczęcie i ukończenie egzaminu próbnego (wynik, zdany czy nie), ukończone lekcje i zadania radiowe, kliknięcia linku do App Store oraz to, czy strona została otwarta w aplikacji. Bez imienia i bez twoich odpowiedzi. Surowe zdarzenia przechowujemy 180 dni, potem je usuwamy.',
+                'Учебные события: пробный экзамен начат и завершен (балл, сдан или нет), пройденные уроки и задания по радио, переход в App Store и то, открыта ли страница внутри приложения; в гонке: начало отсчета, первый поворот, первый знак, финиш или лимит времени (место, число поворотов), открытие повтора и номер гонки на этом устройстве. Без имени и без твоих ответов. Сырые события хранятся 180 дней, затем удаляются.',
+                'Learning events: mock exam started and finished (score, passed or not), lessons and radio tasks completed, App Store link clicks, and whether a page was opened inside the app; in the race: countdown started, first tack, first mark, finish or time limit (place, number of tacks), replay opened and the number of the race on this device. No name and none of your answers. Raw events are kept for 180 days, then deleted.',
+                'Zdarzenia nauki: rozpoczęcie i ukończenie egzaminu próbnego (wynik, zdany czy nie), ukończone lekcje i zadania radiowe, kliknięcia linku do App Store oraz to, czy strona została otwarta w aplikacji; w wyścigu: początek odliczania, pierwszy zwrot, pierwszy znak, meta lub limit czasu (miejsce, liczba zwrotów), otwarcie powtórki i numer wyścigu na tym urządzeniu. Bez imienia i bez twoich odpowiedzi. Surowe zdarzenia przechowujemy 180 dni, potem je usuwamy.',
                 {
-                  es: 'Eventos de aprendizaje: inicio y fin del examen de prueba (puntuación, aprobado o no), lecciones y tareas de radio completadas, clics en el enlace de la App Store y si la página se abrió dentro de la app. Sin nombre y sin tus respuestas. Los eventos sin procesar se conservan 180 días y después se eliminan.',
-                  fr: "Événements d'apprentissage : début et fin de l'examen blanc (score, réussi ou non), leçons et exercices radio terminés, clics sur le lien App Store et ouverture de la page dans l'application. Sans nom et sans tes réponses. Les événements bruts sont conservés 180 jours, puis supprimés.",
-                  de: 'Lernereignisse: Probeprüfung begonnen und beendet (Punktzahl, bestanden oder nicht), abgeschlossene Lektionen und Funkaufgaben, Klicks auf den App-Store-Link und ob eine Seite in der App geöffnet wurde. Ohne Namen und ohne deine Antworten. Die Rohdaten werden 180 Tage aufbewahrt und dann gelöscht.',
-                  it: "Eventi di apprendimento: inizio e fine dell'esame di prova (punteggio, superato o no), lezioni e compiti radio completati, clic sul link dell'App Store e se la pagina è stata aperta nell'app. Senza nome e senza le tue risposte. Gli eventi grezzi sono conservati per 180 giorni, poi cancellati.",
+                  es: 'Eventos de aprendizaje: inicio y fin del examen de prueba (puntuación, aprobado o no), lecciones y tareas de radio completadas, clics en el enlace de la App Store y si la página se abrió dentro de la app; en la regata: inicio de la cuenta atrás, primera virada, primera baliza, llegada o límite de tiempo (puesto, número de viradas), apertura de la repetición y el número de regata en este dispositivo. Sin nombre y sin tus respuestas. Los eventos sin procesar se conservan 180 días y después se eliminan.',
+                  fr: "Événements d'apprentissage : début et fin de l'examen blanc (score, réussi ou non), leçons et exercices radio terminés, clics sur le lien App Store et ouverture de la page dans l'application ; dans la course : début du compte à rebours, premier virement, première bouée, arrivée ou limite de temps (place, nombre de virements), ouverture du replay et numéro de la course sur cet appareil. Sans nom et sans tes réponses. Les événements bruts sont conservés 180 jours, puis supprimés.",
+                  de: 'Lernereignisse: Probeprüfung begonnen und beendet (Punktzahl, bestanden oder nicht), abgeschlossene Lektionen und Funkaufgaben, Klicks auf den App-Store-Link und ob eine Seite in der App geöffnet wurde; im Rennen: Start des Countdowns, erste Wende, erste Bahnmarke, Zieldurchgang oder Zeitlimit (Platz, Zahl der Wenden), Öffnen der Wiederholung und die Nummer des Rennens auf diesem Gerät. Ohne Namen und ohne deine Antworten. Die Rohdaten werden 180 Tage aufbewahrt und dann gelöscht.',
+                  it: "Eventi di apprendimento: inizio e fine dell'esame di prova (punteggio, superato o no), lezioni e compiti radio completati, clic sul link dell'App Store e se la pagina è stata aperta nell'app; nella regata: inizio del conto alla rovescia, prima virata, prima boa, arrivo o limite di tempo (posizione, numero di virate), apertura del replay e numero della regata su questo dispositivo. Senza nome e senza le tue risposte. Gli eventi grezzi sono conservati per 180 giorni, poi cancellati.",
                 },
               )}
             </li>
@@ -494,6 +494,19 @@ export default function PrivacyPage() {
                 fr: 'Quand la politique change, nous mettons à jour la date en haut de cette page et résumons le changement ici.',
                 de: 'Wenn sich die Richtlinie ändert, aktualisieren wir das Datum oben und fassen die Änderung hier zusammen.',
                 it: "Quando l'informativa cambia, aggiorniamo la data in alto e riassumiamo qui la modifica.",
+              },
+            )}
+          </p>
+          <p className="text-sm mb-2">
+            {tp(
+              "2026-10-30: в учебные события сайта добавлены шаги гонки (отсчет, первый поворот, первый знак, финиш, повтор) и номер гонки на устройстве.",
+              "2026-10-30: website learning events now include race steps (countdown, first tack, first mark, finish, replay) and the race's number on the device.",
+              "2026-10-30: do zdarzeń nauki na stronie dodano etapy wyścigu (odliczanie, pierwszy zwrot, pierwszy znak, meta, powtórka) i numer wyścigu na urządzeniu.",
+              {
+                es: "2026-10-30: los eventos de aprendizaje del sitio incluyen ahora los pasos de la regata (cuenta atrás, primera virada, primera baliza, llegada, repetición) y el número de regata en el dispositivo.",
+                fr: "2026-10-30 : les événements d'apprentissage du site incluent désormais les étapes de la course (compte à rebours, premier virement, première bouée, arrivée, replay) et le numéro de la course sur l'appareil.",
+                de: "2026-10-30: Die Lernereignisse der Website enthalten jetzt die Schritte des Rennens (Countdown, erste Wende, erste Bahnmarke, Zieldurchgang, Wiederholung) und die Nummer des Rennens auf dem Gerät.",
+                it: "2026-10-30: gli eventi di apprendimento del sito includono ora le fasi della regata (conto alla rovescia, prima virata, prima boa, arrivo, replay) e il numero della regata sul dispositivo.",
               },
             )}
           </p>

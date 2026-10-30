@@ -484,6 +484,22 @@ export interface FunnelMetrics {
   lessons: Array<{ course: string; count: number }>;
   radioTasks: number;
   appStoreClicks: Array<{ ct: string; count: number }>;
+  /**
+   * Race funnel (M0-12): the device's first race (raceNo = 1) and all races.
+   * Each step fires at most once per race (src/lib/funnel.ts trackRace*).
+   */
+  races: { first: RaceFunnelSteps; all: RaceFunnelSteps; replaySources: Array<{ source: string; count: number }> };
+}
+
+export interface RaceFunnelSteps {
+  countdown: number;
+  firstTack: number;
+  firstMark: number;
+  /** Races that ended, finished or by the time limit. */
+  ended: number;
+  finished: number;
+  /** Replays opened from the finish screen of the race. */
+  replay: number;
 }
 
 /**
@@ -525,12 +541,35 @@ function getFunnelMetrics(d: Database.Database, fromMs: number, toMs: number): F
     GROUP BY ct ORDER BY count DESC
   `).all(...p) as Array<{ ct: string; count: number }>;
 
+  // Client race.* steps only; the server's race.finish (a saved leaderboard
+  // time) is a different thing and stays out of this funnel.
+  const raceSteps = (firstOnly: boolean): RaceFunnelSteps => {
+    const row = d.prepare(`
+      SELECT COALESCE(SUM(evt = 'race.countdown'), 0) countdown,
+             COALESCE(SUM(evt = 'race.first_tack'), 0) firstTack,
+             COALESCE(SUM(evt = 'race.first_mark'), 0) firstMark,
+             COALESCE(SUM(evt = 'race.end'), 0) ended,
+             COALESCE(SUM(evt = 'race.end' AND json_extract(meta_json, '$.finished') = 1), 0) finished,
+             COALESCE(SUM(evt = 'race.replay' AND json_extract(meta_json, '$.source') = 'result'), 0) replay
+      FROM events
+      WHERE evt IN ('race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay')
+        AND ts >= ? AND ts < ? ${firstOnly ? "AND json_extract(meta_json, '$.raceNo') = 1" : ''}
+    `).get(...p) as RaceFunnelSteps;
+    return { ...row };
+  };
+  const replaySources = d.prepare(`
+    SELECT COALESCE(json_extract(meta_json, '$.source'), 'unknown') source, COUNT(*) count
+    FROM events WHERE evt = 'race.replay' AND ts >= ? AND ts < ?
+    GROUP BY source ORDER BY count DESC
+  `).all(...p) as Array<{ source: string; count: number }>;
+
   return {
     clientSplit,
     exams: examRows.map((r) => ({ ...r, avgScorePct: Math.round(r.avgScorePct ?? 0) })),
     lessons,
     radioTasks,
     appStoreClicks,
+    races: { first: raceSteps(true), all: raceSteps(false), replaySources },
   };
 }
 

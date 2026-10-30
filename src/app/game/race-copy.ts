@@ -1,9 +1,15 @@
 'use client';
 
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n";
 import type { RaceGuidanceAction } from "@/lib/race-guidance";
 import type { RaceRuleEvent } from "@/lib/race-rules";
 import { REPLAY_COPY_RESOURCES } from "./replay-copy";
+
+/** M0-5: said when the boat crosses the finish line before rounding the
+ * windward mark (src/lib/race-missed-mark.ts). A module resource rather than a
+ * useRaceCopy field, so the pinned useRaceCopy field contract stays as it is;
+ * the race loop picks it with pickLocalized(lang, ...). */
+export const MISSED_MARK_NOTICE = { ru: "Финиш не засчитан: сначала обогни верхний знак, оставив его по левому борту.", en: "Finish not counted: round the windward mark first, leaving it to port.", pl: "Meta niezaliczona: najpierw opłyń znak nawietrzny, zostawiając go po lewej burcie.", es: "Llegada no válida: primero rodea la baliza de barlovento dejándola a babor.", fr: "Arrivée non comptée : contourne d'abord la bouée au vent en la laissant à bâbord.", de: "Zieldurchgang zählt nicht: Runde zuerst die Luvtonne und lass sie an Backbord.", it: "Arrivo non valido: prima gira la boa di bolina lasciandola a sinistra." } as const satisfies Record<Lang, string>;
 
 export function useRaceCopy() {
   const { tl } = useI18n();

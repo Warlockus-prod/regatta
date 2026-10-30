@@ -78,7 +78,9 @@ function upgradeSailMaterial(mesh: THREE.Mesh | null, weave: THREE.DataTexture) 
 }
 
 export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<YachtState>; light?: boolean }) {
-  const { scene } = useGLTF(YACHT_MODEL_URL, true, true, observeYachtLoader);
+  // No Draco or meshopt decoder: drei fetches Draco from www.gstatic.com, which
+  // the production CSP blocks. glb-decoders.test.ts keeps every model plain.
+  const { scene } = useGLTF(YACHT_MODEL_URL, false, false, observeYachtLoader);
   const root = useRef<THREE.Group>(null);
   const yawRoot = useRef<THREE.Group>(null);
   const heelLerp = useRef(0);

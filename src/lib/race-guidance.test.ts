@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { guidanceToTarget, raceGuidance } from "./race-guidance";
-import { angleDiff, makeStandardCourse, raceTrim, raceTurnRate, stepBoat, type InputState, type RaceBoat } from "./race-physics";
+import { guidanceToTarget, hintCorridorScale, planRaceGuidance, raceGuidance, type RaceGuidanceState } from "./race-guidance";
+import { angleDiff, calcTWA, makeStandardCourse, raceAutopilotPlan, raceTrim, raceTurnRate, stepBoat, updateLap, windAt, type InputState, type RaceBoat } from "./race-physics";
 
 const boat = (patch: Partial<RaceBoat> = {}): RaceBoat => ({ id: "player", name: "Player", color: "cyan", pos: { x: 400, y: 700 }, heading: 90, speed: 0, lapDone: 0, started: true, ...patch });
 function sail(input: InputState, seconds = 60): RaceBoat {
@@ -99,7 +99,8 @@ describe("read-only race route guidance", () => {
     expect(guidanceToTarget({ ...b, heading: 225 }, { x: 100, y: 100 }, 0).action).toBe("gybe");
   });
   it("commits a sailable upwind course using the shared corridor and leaves the boat unchanged", () => {
-    const b = boat({ heading: 315 });
+    // 185 units below the rounding centre: the shared corridor, not the wider hint one (M0-4).
+    const b = boat({ pos: { x: 400, y: 400 }, heading: 315 });
     const before = structuredClone(b);
     const hint = raceGuidance(b, course, 0)!;
     expect(hint.targetInNoGo).toBe(true);
@@ -127,5 +128,66 @@ describe("read-only race route guidance", () => {
     expect(raceGuidance(b, course, 0)!.leg).toBe("finish");
     b.lapDone = 2;
     expect(raceGuidance(b, course, 0)).toMatchObject({ leg: "complete", distance: 0, action: "hold" });
+  });
+});
+
+describe("route hint hysteresis on the beat (M0-4)", () => {
+  const course = makeStandardCourse();
+  it("widens the tacking corridor only low on the beat", () => {
+    expect(hintCorridorScale(-20)).toBe(1);
+    expect(hintCorridorScale(300)).toBe(1);
+    expect(hintCorridorScale(400)).toBeCloseTo(.5);
+    expect(hintCorridorScale(800)).toBe(.3);
+    // 485 units below the rounding centre and 75 west of the climb: the bots'
+    // planner (60-unit corridor) would tack; the hint holds starboard tack...
+    const inside = boat({ pos: { x: 400, y: 700 }, heading: 315, speed: 5 });
+    expect(raceAutopilotPlan({ ...inside }, course, 0, { radius: 75, lookahead: 30 }).heading).toBe(45);
+    expect(raceGuidance(inside, course, 0)).toMatchObject({ suggestedHeading: 315, action: "hold" });
+    // ...until the boat leaves its own corridor (60 / 0.35 = 171 units).
+    expect(raceGuidance({ ...inside, pos: { x: 290, y: 700 } }, course, 0)).toMatchObject({ suggestedHeading: 45, action: "tack" });
+  });
+
+  // The same start, wind and 0.1 s course entry, followed twice: once by the
+  // bots' planner with the advisory route (the hint before M0-4), once by
+  // the hint. Counted: changes of the advised tack on the climb.
+  const follow = (strength: number, advise: (b: RaceBoat, wind: number) => number) => {
+    const b: RaceBoat = { id: "player", name: "Player", color: "cyan", pos: { x: 400, y: 1080 }, heading: 45, speed: 0, lapDone: 0 };
+    let target = b.heading, side = 0, changes = 0;
+    for (let i = 0; i < 9000 && b.lapDone < 2; i++) {
+      const wind = windAt(i / 30, 0);
+      if (i % 3 === 0) {
+        target = advise(b, wind.dir);
+        const next = Math.sign(calcTWA(target, wind.dir));
+        if (b.started && b.lapDone === 0 && !b.roundPhase && side && next !== side) changes++;
+        side = next;
+      }
+      const previous = { ...b.pos };
+      stepBoat(b, 1 / 30, wind.dir, wind.gust, { turn: Math.max(-1, Math.min(1, angleDiff(b.heading, target) / 12)), autoTrim: true }, { steering: "responsive", windStrengthMul: strength });
+      updateLap(b, previous, course, (i + 1) / 30);
+    }
+    return { changes, finished: b.lapDone === 2 };
+  };
+  it("asks for fewer tacks than the bots' planner on the same beat in light, medium and strong wind", () => {
+    const counts = [.65, 1, 1.3].map((strength) => {
+      let memory: RaceBoat["autopilot"];
+      const planner = follow(strength, (b, wind) => {
+        const probe = { ...b, autopilot: memory };
+        const heading = raceAutopilotPlan(probe, course, wind, { radius: 75, lookahead: 30 }).heading;
+        memory = probe.autopilot;
+        return heading;
+      });
+      let state: RaceGuidanceState | null = null;
+      const hint = follow(strength, (b, wind) => {
+        const advice = planRaceGuidance(b, course, wind, state);
+        state = advice.state;
+        return advice.guidance!.suggestedHeading;
+      });
+      expect(planner.finished && hint.finished).toBe(true);
+      expect(hint.changes, `x${strength}`).toBeLessThanOrEqual(planner.changes);
+      return [planner.changes, hint.changes];
+    });
+    // Measured 2026-10-30: planner 5, 6, 6; hint 5, 4, 2.
+    const total = (k: number) => counts.reduce((sum, c) => sum + c[k], 0);
+    expect(total(1)).toBeLessThanOrEqual(total(0) - 4);
   });
 });

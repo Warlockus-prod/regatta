@@ -10,6 +10,7 @@
  */
 
 import type { Lang } from './languages';
+import { inNoGoZone } from './race-manoeuvres';
 type CoachLang = Lang;
 
 interface LogSample {
@@ -17,7 +18,7 @@ interface LogSample {
 }
 
 interface LogEvent {
-  type: 'start' | 'tack' | 'mark-rounded' | 'finish' | 'no-go-entered';
+  type: 'start' | 'tack' | 'gybe' | 'mark-rounded' | 'finish' | 'no-go-entered';
   t: number;
   note?: string;
 }
@@ -79,6 +80,91 @@ export function coachNextGoal(c: Coaching): string {
   return c.nextGoal ?? c.nextGoalRu;
 }
 
+/** Seconds each sample stands for: the gap to the next sample (the race log
+ * samples every 0.5 s), capped so a hole in the log does not count as time. */
+function sampleWeights(samples: readonly LogSample[]): number[] {
+  return samples.map((s, i) => {
+    const next = samples[i + 1];
+    const dt = next ? next.t - s.t : 0.5;
+    return Number.isFinite(dt) && dt > 0 ? Math.min(dt, 2) : 0;
+  });
+}
+
+/** What the log measures, with one no-go definition (inNoGoZone) for the
+ * entries, the time in the zone and the praise (M0-4). Losses are seconds of
+ * sailing at the reference speed given away; null when the log cannot tell. */
+export interface RaceLogMeasures {
+  noGoEntries: number;
+  noGoSeconds: number;
+  noGoShare: number;
+  noGoLossSec: number | null;
+  tacks: number;
+  /** Loss of the tacks beyond the 4 a standard beat needs. */
+  extraTackLossSec: number | null;
+  closeHauledSamples: number;
+  closeHauledAvgKn: number | null;
+  /** Loss against the 4.5 kn the coach calls good close-hauled speed. */
+  slowCloseHauledLossSec: number | null;
+}
+
+/** Close-hauled speed the coach praises, knots. */
+const GOOD_CLOSE_HAULED_KN = 4.5;
+/** Tacks a standard beat needs; more are criticised above TOO_MANY_TACKS. */
+const ENOUGH_TACKS = 4;
+const TOO_MANY_TACKS = 10;
+
+export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events'>): RaceLogMeasures {
+  const samples = log.samples, w = sampleWeights(samples);
+  const duration = w.reduce((sum, x) => sum + x, 0);
+  // No-go: entries are rising edges of the predicate. The live log catches
+  // every entry at 30 Hz; the 2 Hz samples are the fallback for other logs.
+  let sampleEntries = 0, noGoSeconds = 0, noGoLoss = 0, was = false;
+  const free = samples.filter((s) => !inNoGoZone(s.twa, s.speed));
+  const refKn = free.length ? free.reduce((sum, s) => sum + s.speed, 0) / free.length : 0;
+  samples.forEach((s, i) => {
+    const inside = inNoGoZone(s.twa, s.speed);
+    if (inside && !was) sampleEntries++;
+    if (inside) {
+      noGoSeconds += w[i];
+      if (refKn > 0) noGoLoss += w[i] * Math.max(0, 1 - s.speed / refKn);
+    }
+    was = inside;
+  });
+  const noGoEntries = Math.max(sampleEntries, log.events.filter((e) => e.type === 'no-go-entered').length);
+  // Tacks: the speed given away in the 6 s after each, against the best of the 3 s before.
+  const tackTimes = log.events.filter((e) => e.type === 'tack').map((e) => e.t);
+  let tackLoss = 0, measuredTacks = 0;
+  for (const t of tackTimes) {
+    const before = samples.filter((s) => s.t >= t - 3 && s.t <= t).reduce((mx, s) => Math.max(mx, s.speed), 0);
+    if (!(before > 0)) continue;
+    measuredTacks++;
+    samples.forEach((s, i) => { if (s.t > t && s.t <= t + 6) tackLoss += w[i] * Math.max(0, 1 - s.speed / before); });
+  }
+  const extra = Math.max(0, tackTimes.length - ENOUGH_TACKS);
+  const extraTackLossSec = measuredTacks && extra ? (tackLoss / measuredTacks) * extra : null;
+  // Close-hauled: 35..55 degrees to the wind.
+  let chLoss = 0, chSum = 0, chCount = 0;
+  samples.forEach((s, i) => {
+    if (Math.abs(s.twa) < 35 || Math.abs(s.twa) > 55) return;
+    chCount++; chSum += s.speed;
+    chLoss += w[i] * Math.max(0, 1 - s.speed / GOOD_CLOSE_HAULED_KN);
+  });
+  return {
+    noGoEntries,
+    noGoSeconds,
+    noGoShare: duration > 0 ? noGoSeconds / duration : 0,
+    noGoLossSec: refKn > 0 ? noGoLoss : null,
+    tacks: tackTimes.length,
+    extraTackLossSec,
+    closeHauledSamples: chCount,
+    closeHauledAvgKn: chCount ? chSum / chCount : null,
+    slowCloseHauledLossSec: chCount ? chLoss : null,
+  };
+}
+
+type GoalKind = 'no-go' | 'tacks' | 'close-hauled';
+type RankedMistake = Coaching['mistakes'][number] & { lossSec: number | null; goal: GoalKind };
+
 export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coaching {
   // Pick strategy: RU / EN / PL positional, ES / FR / DE / IT from the 4th
   // argument, so every site language gets its own rule-based coaching.
@@ -91,38 +177,46 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
   // Decimal comma for every language except English.
   const dec = (n: number) => n.toFixed(1).replace('.', ',');
 
-  const mistakes: Coaching['mistakes'] = [];
+  const mistakes: RankedMistake[] = [];
   const strengths: string[] = [];
+  // Areas a strength praises; the next goal never contradicts one of them.
+  const praised = new Set<GoalKind>();
   let score = 70;
+  const m = measureRaceLog(log);
+  const finished = Boolean(log.finishTime);
 
-  // ----- Count no-go entries (>=2 = problem) -----
-  const noGoEntries = log.events.filter((e) => e.type === 'no-go-entered');
-  if (noGoEntries.length >= 2) {
-    const first = noGoEntries[0];
+  // ----- No-go entries (>=2 = problem); one definition, see measureRaceLog -----
+  const noGoCount = m.noGoEntries;
+  if (noGoCount >= 2) {
+    const firstEvent = log.events.find((e) => e.type === 'no-go-entered');
+    const firstSample = log.samples.find((s) => inNoGoZone(s.twa, s.speed));
+    const firstT = firstEvent?.t ?? firstSample?.t ?? 0;
     mistakes.push({
-      timeStart: first.t,
-      timeEnd: first.t + 3,
-      severity: noGoEntries.length >= 4 ? 'major' : 'minor',
+      lossSec: m.noGoLossSec,
+      goal: 'no-go',
+      timeStart: firstT,
+      timeEnd: firstT + 3,
+      severity: noGoCount >= 4 ? 'major' : 'minor',
       titleRu: pick(
-        `Попадания в мёртвую зону (${noGoEntries.length}×)`,
-        `No-go zone entries (${noGoEntries.length}x)`,
-        `Wejścia w kąt martwy (${noGoEntries.length}×)`,
+        `Попадания в мёртвую зону (${noGoCount}×)`,
+        `No-go zone entries (${noGoCount}x)`,
+        `Wejścia w kąt martwy (${noGoCount}×)`,
         {
-          es: `Entradas en la zona muerta (${noGoEntries.length}×)`,
-          fr: `Entrées dans la zone morte (${noGoEntries.length}×)`,
-          de: `Im toten Winkel (${noGoEntries.length}×)`,
-          it: `Ingressi nell'angolo morto (${noGoEntries.length}×)`,
+          es: `Entradas en la zona muerta (${noGoCount}×)`,
+          fr: `Entrées dans la zone morte (${noGoCount}×)`,
+          de: `Im toten Winkel (${noGoCount}×)`,
+          it: `Ingressi nell'angolo morto (${noGoCount}×)`,
         },
       ),
       explanationRu: pick(
-        'Нос яхты заходил в сектор ±30° к ветру несколько раз. В этой зоне паруса заполаскивают и яхта теряет скорость.',
-        'The bow swung into the ±30° sector either side of the wind several times. In this zone the sails luff and the boat loses speed.',
-        'Dziób kilka razy wchodził w sektor ±30° od wiatru. W tej strefie żagle łopoczą, a jacht traci prędkość.',
+        'Несколько раз нос яхты оказывался ближе 30° к ветру, а скорость падала ниже 2 узлов. В этой зоне паруса заполаскивают и яхта теряет ход.',
+        'Several times the bow was within 30° of the wind and the speed fell below 2 knots. In this zone the sails luff and the boat loses way.',
+        'Kilka razy dziób znalazł się bliżej niż 30° od wiatru, a prędkość spadła poniżej 2 węzłów. W tej strefie żagle łopoczą, a jacht traci prędkość.',
         {
-          es: 'La proa entró varias veces en el sector de ±30° respecto al viento. En esa zona las velas flamean y el barco pierde velocidad.',
-          fr: 'L\'étrave est entrée plusieurs fois dans le secteur de ±30° face au vent. Dans cette zone, les voiles faseyent et le bateau perd de la vitesse.',
-          de: 'Der Bug ist mehrmals in den Sektor ±30° zum Wind geraten. Dort killen die Segel und das Boot verliert Fahrt.',
-          it: 'La prua è entrata più volte nel settore di ±30° dal vento. In quella zona le vele fileggiano e la barca perde velocità.',
+          es: 'Varias veces la proa quedó a menos de 30° del viento y la velocidad bajó de 2 nudos. En esa zona las velas flamean y el barco pierde velocidad.',
+          fr: 'Plusieurs fois, l\'étrave était à moins de 30° du vent et la vitesse est tombée sous 2 nœuds. Dans cette zone, les voiles faseyent et le bateau perd de la vitesse.',
+          de: 'Mehrmals stand der Bug weniger als 30° zum Wind und die Fahrt fiel unter 2 Knoten. Dort killen die Segel und das Boot verliert Fahrt.',
+          it: 'Più volte la prua è arrivata a meno di 30° dal vento e la velocità è scesa sotto i 2 nodi. In quella zona le vele fileggiano e la barca perde velocità.',
         },
       ),
       fixRu: pick(
@@ -137,8 +231,9 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
         },
       ),
     });
-    score -= Math.min(20, noGoEntries.length * 4);
-  } else if (noGoEntries.length === 0 && log.samples.length > 20) {
+    score -= Math.min(20, noGoCount * 4);
+  } else if (finished && noGoCount === 0 && log.samples.length > 20) {
+    praised.add('no-go');
     strengths.push(pick(
       'Ни разу не попал в мёртвую зону',
       'Never entered the no-go zone',
@@ -152,10 +247,12 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
     ));
   }
 
-  // ----- Count tacks -----
-  const tackCount = log.events.filter((e) => e.type === 'tack').length;
-  if (tackCount > 10) {
+  // ----- Count tacks (gybes and flips that are not manoeuvres are not tacks) -----
+  const tackCount = m.tacks;
+  if (tackCount > TOO_MANY_TACKS) {
     mistakes.push({
+      lossSec: m.extraTackLossSec,
+      goal: 'tacks',
       timeStart: 0,
       timeEnd: log.finishTime ?? 120,
       severity: 'minor',
@@ -194,7 +291,8 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       ),
     });
     score -= 8;
-  } else if (tackCount <= 4 && log.finishTime) {
+  } else if (finished && tackCount >= 1 && tackCount <= ENOUGH_TACKS) {
+    praised.add('tacks');
     strengths.push(pick(
       `Экономная лавировка: поворотов всего ${tackCount}`,
       `Efficient beat: only ${tackCount} tacks`,
@@ -209,10 +307,11 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
   }
 
   // ----- Time in no-go from samples -----
-  const noGoSamples = log.samples.filter((s) => Math.abs(s.twa) < 30 && s.speed < 2);
-  const noGoFraction = log.samples.length ? noGoSamples.length / log.samples.length : 0;
+  const noGoFraction = m.noGoShare;
   if (noGoFraction > 0.15) {
     mistakes.push({
+      lossSec: m.noGoLossSec,
+      goal: 'no-go',
       timeStart: 0,
       timeEnd: log.finishTime ?? 120,
       severity: 'major',
@@ -254,11 +353,11 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
   }
 
   // ----- Close-hauled speed -----
-  const closeHauledSamples = log.samples.filter((s) => Math.abs(s.twa) >= 35 && Math.abs(s.twa) <= 55);
-  if (closeHauledSamples.length > 5) {
-    const avgSpeed = closeHauledSamples.reduce((sum, s) => sum + s.speed, 0) / closeHauledSamples.length;
-    if (avgSpeed >= 4.5) {
-      strengths.push(pick(
+  if (m.closeHauledSamples > 5 && m.closeHauledAvgKn !== null) {
+    const avgSpeed = m.closeHauledAvgKn;
+    if (avgSpeed >= GOOD_CLOSE_HAULED_KN) {
+      if (finished) praised.add('close-hauled');
+      if (finished) strengths.push(pick(
         `Хорошая скорость в бейдевинде: в среднем ${dec(avgSpeed)} уз`,
         `Good speed close-hauled: ${avgSpeed.toFixed(1)} kts average`,
         `Dobra prędkość na bajdewindzie: średnio ${dec(avgSpeed)} kn`,
@@ -271,6 +370,8 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       ));
     } else if (avgSpeed < 3) {
       mistakes.push({
+        lossSec: m.slowCloseHauledLossSec,
+        goal: 'close-hauled',
         timeStart: 0,
         timeEnd: log.finishTime ?? 120,
         severity: 'minor',
@@ -314,12 +415,14 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
 
   // ----- Position bonus -----
   const places = log.totalBoats || 3;
-  if (log.position === 1) score += 15;
-  else if (log.position === places) score -= 10;
+  if (finished && log.position === 1) score += 15;
+  else if (finished && log.position === places) score -= 10;
+  // A race that did not finish never reads as a good one (M0-4).
+  if (!finished) score = Math.min(score, 30);
   score = Math.max(0, Math.min(100, score));
 
   // ----- Strengths baseline -----
-  if (strengths.length === 0 && log.finishTime) {
+  if (strengths.length === 0 && finished) {
     strengths.push(pick(
       'Гонка пройдена до конца',
       'Race completed',
@@ -333,7 +436,15 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
     ));
   }
 
-  const topMistakes = mistakes.slice(0, 3);
+  // The largest measured loss first; unmeasured ones after, major before minor.
+  const ranked = mistakes
+    .map((mistake, i) => ({ mistake, i }))
+    .sort((a, b) => (b.mistake.lossSec ?? -1) - (a.mistake.lossSec ?? -1)
+      || Number(b.mistake.severity === 'major') - Number(a.mistake.severity === 'major') || a.i - b.i)
+    .map(({ mistake }) => mistake);
+  const topMistakes: Coaching['mistakes'] = ranked.slice(0, 3)
+    .map(({ timeStart, timeEnd, severity, titleRu, explanationRu, fixRu }) => ({ timeStart, timeEnd, severity, titleRu, explanationRu, fixRu }));
+  const focus = ranked[0];
 
   // ----- Overall + next goal -----
   let overall: string;
@@ -397,14 +508,14 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       },
     );
     nextGoal = pick(
-      'Сократи количество поворотов и время в мёртвой зоне - это даст пару секунд.',
-      'Cut down on tacks and time in the no-go zone - that will save a couple of seconds.',
-      'Ogranicz liczbę zwrotów i czas w kącie martwym - to da kilka sekund.',
+      'Повтори гонку и улучши своё время на той же сложности.',
+      'Sail it again and beat your time on the same difficulty.',
+      'Popłyń jeszcze raz i popraw swój czas na tym samym poziomie.',
       {
-        es: 'Reduce las viradas y el tiempo en la zona muerta - así ganarás unos segundos.',
-        fr: 'Réduis le nombre de virements et le temps dans la zone morte - tu gagneras quelques secondes.',
-        de: 'Weniger Wenden und weniger Zeit im toten Winkel - das bringt ein paar Sekunden.',
-        it: 'Riduci le virate e il tempo nell\'angolo morto - guadagnerai qualche secondo.',
+        es: 'Vuelve a navegarla y mejora tu tiempo en la misma dificultad.',
+        fr: 'Refais la course et bats ton temps au même niveau.',
+        de: 'Segle noch einmal und verbessere deine Zeit auf derselben Stufe.',
+        it: 'Rifalla e migliora il tuo tempo allo stesso livello.',
       },
     );
   } else {
@@ -420,16 +531,29 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       },
     );
     nextGoal = pick(
-      'Сконцентрируйся на контроле угла к ветру - большинство потерь времени оттуда.',
-      'Focus on wind-angle control - most time losses come from there.',
-      'Skup się na kontroli kąta do wiatru - stąd bierze się większość strat czasu.',
+      'Повтори гонку и улучши своё время на той же сложности.',
+      'Sail it again and beat your time on the same difficulty.',
+      'Popłyń jeszcze raz i popraw swój czas na tym samym poziomie.',
       {
-        es: 'Céntrate en controlar el ángulo al viento - de ahí viene la mayor parte del tiempo perdido.',
-        fr: 'Concentre-toi sur l\'angle au vent - c\'est là que tu perds le plus de temps.',
-        de: 'Konzentrier dich auf den Winkel zum Wind - dort verlierst du die meiste Zeit.',
-        it: 'Concentrati sul controllo dell\'angolo al vento - è lì che perdi più tempo.',
+        es: 'Vuelve a navegarla y mejora tu tiempo en la misma dificultad.',
+        fr: 'Refais la course et bats ton temps au même niveau.',
+        de: 'Segle noch einmal und verbessere deine Zeit auf derselben Stufe.',
+        it: 'Rifalla e migliora il tuo tempo allo stesso livello.',
       },
     );
+  }
+
+  // Next goal (M0-4): aimed at the largest measured loss, not a fixed order.
+  // A finished race without a criticised mistake still aims at what the log
+  // measured as the largest loss of a second or more, but never at an area a
+  // strength above praises (a fast beat still loses seconds right after each
+  // tack). Not finishing comes first.
+  if (finished && focus) nextGoal = goalFor(focus.goal, focus.lossSec, pick);
+  else if (finished) {
+    const measured = ([['no-go', m.noGoLossSec], ['tacks', m.extraTackLossSec], ['close-hauled', m.slowCloseHauledLossSec]] as [GoalKind, number | null][])
+      .filter(([kind]) => !praised.has(kind));
+    const [kind, loss] = measured.reduce<[GoalKind | null, number | null]>((best, c) => ((c[1] ?? 0) > (best[1] ?? 0) ? c : best), [null, null]);
+    if (kind && loss !== null && loss >= 1) nextGoal = goalFor(kind, loss, pick);
   }
 
   return mirrorCoachKeys({
@@ -459,6 +583,84 @@ export function mirrorCoachKeys(c: Coaching): Coaching {
       fix: m.fix ?? m.fixRu,
     })),
   };
+}
+
+type PickFn = (ru: string, en: string, pl: string, x: { es: string; fr: string; de: string; it: string }) => string;
+
+/** The next goal aimed at the mistake that cost the most, with its measured
+ * cost when the log could measure it (a second or more). */
+function goalFor(kind: GoalKind, lossSec: number | null, pick: PickFn): string {
+  const s = lossSec !== null && lossSec >= 1 ? Math.round(lossSec) : null;
+  if (kind === 'no-go') {
+    const goal = pick(
+      'Держись вне мёртвой зоны: на лавировке не меньше 40° к ветру.',
+      'Stay out of the no-go zone: at least 40° to the wind when beating.',
+      'Trzymaj się poza kątem martwym: na halsówce co najmniej 40° do wiatru.',
+      {
+        es: 'Mantente fuera de la zona muerta: en ceñida, al menos 40° respecto al viento.',
+        fr: 'Reste hors de la zone morte : au louvoyage, au moins 40° du vent.',
+        de: 'Bleib aus dem toten Winkel: beim Kreuzen mindestens 40° zum Wind.',
+        it: 'Resta fuori dall\'angolo morto: di bolina almeno 40° dal vento.',
+      },
+    );
+    return s === null ? goal : `${goal} ${pick(
+      `В этой гонке она стоила около ${s} с.`,
+      `This race it cost about ${s} s.`,
+      `W tym wyścigu kosztował cię około ${s} s.`,
+      {
+        es: `En esta regata te costó unos ${s} s.`,
+        fr: `Dans cette course, elle t'a coûté environ ${s} s.`,
+        de: `In diesem Rennen hat er dich etwa ${s} s gekostet.`,
+        it: `In questa regata ti è costato circa ${s} s.`,
+      },
+    )}`;
+  }
+  if (kind === 'tacks') {
+    const goal = pick(
+      'Меньше поворотов: 2-4 галса до верхнего знака.',
+      'Fewer tacks: 2-4 legs up to the windward mark.',
+      'Mniej zwrotów: 2-4 halsy do znaku nawietrznego.',
+      {
+        es: 'Menos viradas: 2-4 bordos hasta la baliza de barlovento.',
+        fr: 'Moins de virements : 2-4 bords jusqu\'à la bouée au vent.',
+        de: 'Weniger Wenden: 2-4 Schläge bis zur Luvtonne.',
+        it: 'Meno virate: 2-4 bordi fino alla boa di bolina.',
+      },
+    );
+    return s === null ? goal : `${goal} ${pick(
+      `Лишние повороты стоили около ${s} с.`,
+      `The extra tacks cost about ${s} s.`,
+      `Dodatkowe zwroty kosztowały około ${s} s.`,
+      {
+        es: `Las viradas de más costaron unos ${s} s.`,
+        fr: `Les virements en trop ont coûté environ ${s} s.`,
+        de: `Die zusätzlichen Wenden haben etwa ${s} s gekostet.`,
+        it: `Le virate in più sono costate circa ${s} s.`,
+      },
+    )}`;
+  }
+  const goal = pick(
+    'Скорость в бейдевинде: уваливайся на 5-10°, пока не пойдёшь быстрее 4,5 уз.',
+    'Close-hauled speed: bear away 5-10° until you sail faster than 4.5 kn.',
+    'Prędkość na bajdewindzie: odpadnij o 5-10°, aż popłyniesz szybciej niż 4,5 kn.',
+    {
+      es: 'Velocidad en ceñida: arriba 5-10° hasta ir a más de 4,5 kn.',
+      fr: 'Vitesse au près : abats de 5-10° jusqu\'à dépasser 4,5 kn.',
+      de: 'Fahrt hoch am Wind: fall 5-10° ab, bis du schneller als 4,5 kn segelst.',
+      it: 'Velocità di bolina: poggia di 5-10° finché non superi i 4,5 kn.',
+    },
+  );
+  return s === null ? goal : `${goal} ${pick(
+    `Медленный бейдевинд стоил около ${s} с.`,
+    `The slow beat cost about ${s} s.`,
+    `Wolny bajdewind kosztował około ${s} s.`,
+    {
+      es: `La ceñida lenta costó unos ${s} s.`,
+      fr: `Le près trop lent a coûté environ ${s} s.`,
+      de: `Das langsame Kreuzen hat etwa ${s} s gekostet.`,
+      it: `La bolina lenta è costata circa ${s} s.`,
+    },
+  )}`;
 }
 
 function formatTime(s: number): string {

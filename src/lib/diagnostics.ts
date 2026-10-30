@@ -22,7 +22,12 @@ export const RADIO_DIAGNOSTIC_SCREENS = ["off", "standby", "volume", "squelch", 
 export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "ads", "unknown"] as const;
 const SOURCES = ["pointer", "keyboard", "arrow", "slider", "system", "native", "assistive"] as const;
 const CAMERAS = ["orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
+export const RENDER_BACKENDS = ["webgpu", "webgl2"] as const;
+/** Bounds of the race performance journal: frame rates are clamped by the meter,
+ * draw calls and triangles are per-frame averages, seconds are measured racing time. */
+export const PERF_LIMITS = { fps: 240, dpr: 4, drawCalls: 100_000, triangles: 100_000_000, seconds: 86_400, firstFrameMs: 600_000 } as const;
 type Member<T extends readonly string[]> = T[number];
+export type RenderBackend = Member<typeof RENDER_BACKENDS>;
 export type DiagnosticSurface = Member<typeof DIAGNOSTIC_SURFACES>;
 export type DiagnosticOutcome = Member<typeof DIAGNOSTIC_OUTCOMES>;
 export type DiagnosticReason = Member<typeof DIAGNOSTIC_REASONS>;
@@ -63,6 +68,8 @@ export type DiagnosticInput = Common & (
   | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" | "personal-best" | "history" }
   | { type: "learning.visual"; action: "mode" | "frame" | "image-ready" | "image-error"; lesson: "how-sail-works"; mode: "scheme" | "picture"; frame: "filled" | "luffing" }
   | { type: "learning.command"; action: "start" | "answer" | "check" | "next" | "back" | "complete" | "retry"; course: "foundation" | "sails" | "radio" | "sternik"; step?: number }
+  | { type: "scene.gpu"; action: "lost" | "retry" | "failed"; backend: RenderBackend; attempt?: number }
+  | { type: "race.perf"; action: "sample" | "final"; backend: RenderBackend; fpsAvg: number; fpsP5: number; dpr: number; drawCalls: number; seconds: number; triangles?: number; firstFrameMs?: number }
 );
 export interface DiagnosticEntry {
   readonly seq: number;
@@ -126,6 +133,10 @@ const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Rec
   "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics", "personal-best", "history"]) } },
   "learning.visual": { required: ["action", "lesson", "mode", "frame"], fields: { action: enumeration(["mode", "frame", "image-ready", "image-error"]), lesson: enumeration(["how-sail-works"]), mode: enumeration(["scheme", "picture"]), frame: enumeration(["filled", "luffing"]) } },
   "learning.command": { required: ["action", "course"], fields: { action: enumeration(["start", "answer", "check", "next", "back", "complete", "retry"]), course: enumeration(["foundation", "sails", "radio", "sternik"]), step: numeric(0, 10000, true) } },
+  "scene.gpu": { required: ["action", "backend"], fields: { action: enumeration(["lost", "retry", "failed"]), backend: enumeration(RENDER_BACKENDS), attempt } },
+  "race.perf": { required: ["action", "backend", "fpsAvg", "fpsP5", "dpr", "drawCalls", "seconds"], fields: { action: enumeration(["sample", "final"]), backend: enumeration(RENDER_BACKENDS),
+    fpsAvg: numeric(0, PERF_LIMITS.fps), fpsP5: numeric(0, PERF_LIMITS.fps, true), dpr: numeric(0.25, PERF_LIMITS.dpr), drawCalls: numeric(0, PERF_LIMITS.drawCalls, true),
+    seconds: numeric(0, PERF_LIMITS.seconds), triangles: numeric(0, PERF_LIMITS.triangles, true), firstFrameMs: numeric(0, PERF_LIMITS.firstFrameMs, true) } },
 };
 const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const owns = (o: object, key: string) => Object.prototype.hasOwnProperty.call(o, key);

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { sharedReplay, type SharedReplay } from "@/lib/race-replay";
 import { RaceReplay } from "@/app/game/RaceReplay";
+import { trackRaceReplay } from "@/lib/funnel";
 
 export default function ReplayViewer() {
   const { tp } = useI18n();
@@ -23,7 +24,7 @@ export default function ReplayViewer() {
       if (!response.ok) throw new Error("replay-unavailable");
       const replay = sharedReplay(await response.json());
       if (!replay) throw new Error("invalid-replay");
-      if (!cancelled) setData(replay);
+      if (!cancelled) { setData(replay); trackRaceReplay("shared"); }
     }).catch(() => { if (!cancelled) setError(code); });
     return () => { cancelled = true; };
   }, [code]);

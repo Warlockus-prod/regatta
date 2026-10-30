@@ -16,6 +16,11 @@ it("keeps safe mission/replay links and rejects malformed daily or external data
   expect(raceEntryQuery({ camera: "https://example.com" }, "simple")).not.toHaveProperty("camera");
 });
 
+it("passes the on-screen frame counter flag through, and nothing else under its name", () => {
+  expect(raceEntryQuery({ fps: "1" }, "pro")).toMatchObject({ view: "3d", scene: "next", mode: "pro", fps: "1" });
+  for (const fps of ["0", "true", "1&gl=webgl2", ["1"], undefined]) expect(raceEntryQuery({ fps }, "simple")).not.toHaveProperty("fps");
+});
+
 it("confines native navigation to known race destinations", () => {
   expect(raceNativeDestination("/")).toBe("/race");
   expect(raceNativeDestination("/replay/web-race-10")).toBe("/replay/web-race-10");

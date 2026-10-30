@@ -16,7 +16,7 @@ export function lockPortrait() {
 }
 
 // Outside a navigator (unit tests mock expo-router) a plain mount effect stands in for focus.
-const useFocus: (effect: EffectCallback) => void = Router.useFocusEffect ?? ((effect) => useEffect(effect, [effect]));
+export const useFocus: (effect: EffectCallback) => void = Router.useFocusEffect ?? ((effect) => useEffect(effect, [effect]));
 
 export function useLandscapeWhileFocused(enabled: boolean) {
   useFocus(useCallback(() => {

@@ -271,4 +271,18 @@ describe("diagnostic strict transport and privacy", () => {
     expect(serializeDiagnosticPersistence(journal.snapshot(), Infinity)).toBeNull();
     expect(serializeDiagnosticPersistence({ ...journal.snapshot(), entries: [{ ...journal.snapshot().entries[0], event: { ...command, text: "sentinel" } }] } as unknown as DiagnosticSnapshot, now)).toBeNull();
   });
+
+  it("accepts the render events only in their bounded, allow-listed shape and keeps them distinct rows", () => {
+    const lost: DiagnosticInput = { type: "scene.gpu", surface: "race", outcome: "failed", reason: "scene-load", source: "system", action: "lost", backend: "webgpu" };
+    const perf: DiagnosticInput = { type: "race.perf", surface: "race", outcome: "accepted", source: "system", action: "final", backend: "webgl2",
+      fpsAvg: 58.4, fpsP5: 41, dpr: 1.5, drawCalls: 140, seconds: 312.5, triangles: 420_000, firstFrameMs: 2400 };
+    expect(parseDiagnosticBatch({ version: 1, events: [lost, perf] })?.events).toEqual([lost, perf]);
+    const invalid: unknown[] = [{ ...lost, backend: "metal" }, { ...lost, action: "restored" }, { ...lost, message: "driver detail" }, { ...lost, attempt: -1 },
+      { ...perf, fpsP5: 41.5 }, { ...perf, fpsAvg: 241 }, { ...perf, dpr: 0 }, { ...perf, drawCalls: 100_001 }, { ...perf, triangles: 1.5 },
+      { ...perf, seconds: -1 }, { ...perf, firstFrameMs: 600_001 }, { ...perf, gpu: "Apple M2" }, Object.fromEntries(Object.entries(perf).filter(([key]) => key !== "fpsP5"))];
+    for (const event of invalid) expect(parseDiagnosticBatch({ version: 1, events: [event] })).toBeNull();
+    const { journal, advance } = rig();
+    journal.record(perf); advance(10); journal.record(perf); journal.record(lost); journal.record(lost);
+    expect(journal.snapshot().entries.map(e => e.count)).toEqual([1, 1, 1, 1]);
+  });
 });
