@@ -1008,7 +1008,10 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/lib/race-guidance.integration.test.ts` follows the displayed recommendation through real start/mark/finish gates at four input cadences and four wind conditions; preserves legacy bot trajectory exactly.
 - `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
 - `src/lib/race-judge.ts` - чистая функция `buildRaceJudgeDebrief`: события правил одной гонки превращаются в разбор учебного судьи (этап, правило, право дороги, штраф или «без штрафа: спорно», урок), повторы одного эпизода сливаются, список того, что судья не проверяет, всегда в сводке (ADR-0009).
-- `src/lib/race-judge.test.ts` - слияние повторов, спорное без штрафа, ранний старт с возвратом за линию, список непроверяемого, полнота 7 языков и рендер компонента.
+- `src/lib/race-judge.test.ts` - слияние повторов, спорное без штрафа, ранний старт с возвратом за линию, толкотня на старте, список непроверяемого, полнота 7 языков и рендер компонента.
+- `src/lib/race-start-jostle.ts` - признак «толкотни на старте» (M0-3): безштрафные сближения и касания первых 10 с после сигнала; живая подсказка молчит, разбор судьи собирает их в один пункт без урока. Отдельно от разбора судьи, который грузится только после финиша.
+- `src/lib/race-spawn.ts` - стартовые позиции обычной гонки (M0-2): игрок на прежнем месте, боты тем же галсом «лесенкой» сзади и в стороны, статическая проверка раскладки.
+- `src/lib/race-spawn.test.ts` - сырые события правил первых 20 с на трех уровнях, трех seed и двух стилях игрока; доказательство, что старая раскладка этот тест не проходит.
 - `src/data/race-judge-copy.ts` - тексты разбора учебного судьи на 7 языках и шаблоны `{s}`, `{rule}`, `{boat}`, `{n}`.
 - `src/app/game/RaceJudgeReview.tsx` - презентационный блок разбора учебного судьи для экрана финиша, без собственных решений.
 - `src/lib/race-physics.ts` accepts explicit manual trim/deployment and opt-in responsive solo steering (ADR-0009), preserving default bot/server behavior. Its additive raceAutopilotPlan exposes route geometry; bots retain radius80/lookahead40, responsive-player advice uses75/30. Neither VPP constants nor accelerated race travel changes.
@@ -1095,7 +1098,7 @@ Both pre-deploy and production browser report steps use always() with the same p
 
 Completion and installed sailing package:
 
-- `src/lib/race-completion.ts` - immediately resolves the bounded existing fleet finish window with the same 30 Hz engine; completed snapshots wait in an immutable queue for their matching native durable acknowledgment.
+- `src/lib/race-completion.ts` - once the player finishes, immediately sails every remaining bot to its own finish or the 300 s race limit with the same 30 Hz engine (M0-6, was a 15 s window); completed snapshots wait in an immutable queue for their matching native durable acknowledgment.
 - `src/lib/race-completion.test.ts` - actual bot finish, penalty ranking, DNF cutoff, ordinary-step equivalence and isolated pending saves.
 - `src/features/race-3d/Race3DView.test.tsx` - shared World course geometry, replaced course refs and stable-frame rendering.
 - `mobile/__tests__/race-native-history.test.ts` - Installed shared sailing package routing, language or asset regression.

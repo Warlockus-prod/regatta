@@ -183,7 +183,18 @@ export const raceJudgeCopy = {
       "Runde die Bahnmarke an Backbord. Bist du auf der falschen Seite vorbei, fahre zurück und runde sie erneut.",
       "Gira la boa lasciandola a sinistra. Se l'hai passata dal lato sbagliato, torna indietro e girala di nuovo.",
     ),
+    // M0-3: shown as an explanation, not as a "Next time" lesson.
+    "start-jostle": w(
+      "Сразу после сигнала вся флотилия уходит со старта вместе, лодки сходятся близко. Без штрафа судья это не разбирает.",
+      "Right after the signal the whole fleet leaves the line together and boats come close. Without a penalty the judge does not review it.",
+      "Tuż po sygnale cała flota rusza razem z linii i łodzie podchodzą blisko siebie. Bez kary sędzia tego nie ocenia.",
+      "Justo después de la señal toda la flota sale junta de la línea y los barcos se acercan mucho. Si no hay penalización, el juez no lo revisa.",
+      "Juste après le signal, toute la flotte quitte la ligne ensemble et les bateaux se rapprochent. Sans pénalité, le juge ne l'examine pas.",
+      "Direkt nach dem Signal verlässt die ganze Flotte gemeinsam die Linie, und die Boote kommen sich nahe. Ohne Strafe bewertet der Schiedsrichter das nicht.",
+      "Subito dopo il segnale tutta la flotta lascia la linea insieme e le barche si avvicinano. Senza penalità il giudice non lo valuta.",
+    ),
   } satisfies Record<RaceJudgeLesson, JudgeText>,
+  jostle: w("Толкотня на старте", "Crowd at the start", "Tłok na starcie", "Aglomeración en la salida", "Bousculade au départ", "Gedränge am Start", "Ressa alla partenza"),
   notCovered: {
     "mark-room": w(
       "Место у знака (правило 18): нужна история перекрытий и входа в зону, здесь не судится.",

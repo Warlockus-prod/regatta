@@ -59,6 +59,13 @@ export function RaceJudgeReview({ debrief, boatName }: { debrief: RaceJudgeDebri
                 {tl(copy.phase[item.phase])}
                 {item.phaseNote ? ` (${tl(copy.phaseNote[item.phaseNote])})` : ""}
               </p>
+              {item.jostle ? (
+                <>
+                  <h3 className="font-semibold">{tl(copy.jostle)}</h3>
+                  <p>{tl(copy.lesson[item.lesson])}</p>
+                  {item.occurrences > 1 && <p className="text-[var(--text-muted)]">{fillJudgeTemplate(tl(copy.occurrences), { n: item.occurrences })}</p>}
+                </>
+              ) : <>
               <h3 className="font-semibold">
                 {tl(copy.kind[item.kind])}
                 <span className="font-normal text-[var(--text-secondary)]">{" · "}{fillJudgeTemplate(tl(copy.rule), { rule: item.rule })}</span>
@@ -73,6 +80,7 @@ export function RaceJudgeReview({ debrief, boatName }: { debrief: RaceJudgeDebri
               <p className="mt-2">
                 <strong>{tl(copy.nextTime)}</strong> {tl(copy.lesson[item.lesson])}
               </p>
+              </>}
             </li>
           ))}
         </ol>

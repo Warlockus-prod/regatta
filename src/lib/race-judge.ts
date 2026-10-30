@@ -1,4 +1,5 @@
 import { RULE_EVENT_COOLDOWN, type RaceRuleEvent, type RaceRuleEventKind, type RacingRule } from "./race-rules";
+import { isStartJostle } from "./race-start-jostle";
 
 /** Training judge debrief (ADR-0009). Pure: turns the rule events that
  * race-rules.ts emitted during one race into an ordered, explained list of
@@ -30,7 +31,7 @@ export type RaceJudgeIncidentKind = Exclude<RaceRuleEventKind, "mark-rounded">;
 export type RaceJudgeLesson =
   | "keep-clear-port" | "keep-clear-windward" | "keep-clear-astern"
   | "avoid-contact-right-of-way" | "avoid-contact-unclear"
-  | "return-behind-line" | "clean-start" | "mark-clearance" | "round-to-port";
+  | "return-behind-line" | "clean-start" | "mark-clearance" | "round-to-port" | "start-jostle";
 
 /** What this judge deliberately does not do. Always part of the summary. */
 export const RACE_JUDGE_NOT_COVERED = ["mark-room", "tack-and-course-change", "penalty-turns", "protests", "umpire"] as const;
@@ -53,6 +54,8 @@ export interface RaceJudgeItem {
   penalty: RaceJudgePenalty;
   /** Early start only: a later start-clear proves the boat returned behind the line. */
   resolved?: boolean;
+  /** Start jostle (M0-3): several penalty-free events right after the signal, no lesson. */
+  jostle?: true;
   lesson: RaceJudgeLesson;
 }
 
@@ -83,7 +86,7 @@ export interface RaceJudgeOptions {
   finishedAt?: number;
 }
 
-interface Candidate { kind: RaceJudgeIncidentKind; rule: RacingRule; other?: string; standOn: boolean; events: RaceRuleEvent[]; }
+interface Candidate { kind: RaceJudgeIncidentKind; rule: RacingRule; other?: string; standOn: boolean; jostle?: true; events: RaceRuleEvent[]; }
 
 const finite = (n: number | undefined): n is number => typeof n === "number" && Number.isFinite(n);
 const ruleLesson = (rule: RacingRule): RaceJudgeLesson => rule === "10" ? "keep-clear-port" : rule === "11" ? "keep-clear-windward" : "keep-clear-astern";
@@ -113,9 +116,15 @@ export function buildRaceJudgeDebrief(events: readonly RaceRuleEvent[], options:
     groups.push(created); open.set(key, created);
   };
   const earlyTimes = mine.filter(e => e.kind === "early-start").map(e => e.time);
+  let jostle: Candidate | undefined;
   for (const e of all) {
     if (e.boatId === me) {
       if (e.kind === "mark-rounded") continue;
+      if (isStartJostle(e)) {
+        if (jostle) jostle.events.push(e);
+        else groups.push(jostle = { kind: "avoid-contact", rule: "14", standOn: false, jostle: true, events: [e] });
+        continue;
+      }
       // A start-clear closes an early start; only an orphan one becomes its own item.
       if (e.kind === "start-clear" && earlyTimes.some(t => t <= e.time)) continue;
       add(e, e.kind, e.otherBoatId, false);
@@ -131,6 +140,10 @@ export function buildRaceJudgeDebrief(events: readonly RaceRuleEvent[], options:
     const seconds = g.events.reduce((sum, e) => sum + (finite(e.penaltySeconds) && e.penaltySeconds > 0 ? e.penaltySeconds : 0), 0);
     const base = { id: `${g.standOn ? "stand-on:" : ""}${g.kind}:${g.rule}:${g.other ?? ""}:${first.time.toFixed(3)}`, kind: g.kind, rule: g.rule,
       time: first.time, until: lastEvent.time, occurrences: g.events.length, ...(g.other ? { otherBoatId: g.other } : {}) };
+    if (g.jostle) {
+      const { otherBoatId: _ignored, ...withoutBoat } = base;
+      return { ...withoutBoat, id: `jostle:${first.time.toFixed(3)}`, phase: "start", rightOfWay: "not-applicable", penalty: { kind: "advice" }, jostle: true, lesson: "start-jostle" };
+    }
     const { phase, phaseNote } = resolvePhase(g.kind, first.time, { startedAt, markRoundedAt, finishedAt });
     const withPhase = { ...base, phase, ...(phaseNote ? { phaseNote } : {}) };
     switch (g.kind) {

@@ -39,6 +39,7 @@ import { raceTrim } from "@/lib/race-physics";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules, type RaceRuleEvent } from "@/lib/race-rules";
 import type { RaceJudgeDebrief } from "@/lib/race-judge";
+import { isStartJostle } from "@/lib/race-start-jostle";
 
 // Loaded only where used: the judge on the results screen, the physical
 // engine only for a `?race=` trial. Neither belongs in every /game visit.
@@ -62,6 +63,7 @@ import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnaps
 import { createPendingNativeBestCommands, nativeBestFailure, NATIVE_BEST_PENDING_LIMIT } from "@/lib/race-best-command";
 import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext, type PhysicalRaceProfile } from "@/lib/race-context";
 import { makePhysicalRaceCourse, physicalCourseDefinition, physicalFleetSpawns } from "@/lib/race-courses";
+import { legacyRaceSpawns } from "@/lib/race-spawn";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { physicalTrialSteering, readPhysicalTrial } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, makeGhostTrack, readGhostStore, rememberGhost, writeGhostStore, type GhostTrack } from "@/lib/race-ghost";
@@ -612,10 +614,12 @@ export default function GamePage() {
     keysRef.current.clear();
     const cfg = DIFFICULTY_CONFIG[diff];
     const course = courseRef.current;
-    const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
     const boats: Boat[] = [];
-    // The physical fleet uses its registered metric spawn slots (max 5 boats).
+    // The physical fleet uses its registered metric spawn slots (max 5 boats);
+    // the legacy race uses the fair echelon start (M0-2, race-spawn.ts).
     const spawns = physicalRef.current ? physicalFleetSpawns(1 + cfg.opponents) : null;
+    const legacy = spawns ? null : legacyRaceSpawns(course, cfg.opponents);
+    const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
     physicalNavRef.current = undefined;
     ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null);
     ruleEventsRef.current = []; startedAtRef.current = undefined; setJudgeDebrief(null);
@@ -625,24 +629,21 @@ export default function GamePage() {
       id: 'player',
       name: copyRef.current.you,
       color: '#00d4ff',
-      pos: spawns ? { ...spawns[0] } : { x: lineCenter.x, y: lineCenter.y + 30 },
-      heading: 45,
+      pos: spawns ? { ...spawns[0] } : { ...legacy![0].pos },
+      heading: legacy ? legacy[0].heading : 45,
       speed: 0,
       isPlayer: true,
       lapDone: 0,
       speedMul: 1,
     });
 
-    // Opponents spread along the line
-    const spread = 140;
     for (let i = 0; i < cfg.opponents; i++) {
-      const t = cfg.opponents === 1 ? 0 : (i / (cfg.opponents - 1)) * 2 - 1; // -1..1
       boats.push({
         id: `ai${i}`,
         name: AI_NAMES[i] || `AI ${i + 1}`,
         color: AI_COLORS[i] || '#888888',
-        pos: spawns ? { ...spawns[i + 1] } : { x: lineCenter.x + t * spread * 0.7, y: lineCenter.y + 30 + (i % 2) * 20 },
-        heading: spawns ? (spawns[i + 1].x <= lineCenter.x ? 45 : 315) : t > 0 ? 315 : 45,
+        pos: spawns ? { ...spawns[i + 1] } : { ...legacy![i + 1].pos },
+        heading: spawns ? (spawns[i + 1].x <= lineCenter.x ? 45 : 315) : legacy![i + 1].heading,
         speed: 0,
         isPlayer: false,
         lapDone: 0,
@@ -881,7 +882,8 @@ export default function GamePage() {
       if (checked.events.length && ruleEventsRef.current.length < 600) ruleEventsRef.current.push(...checked.events.slice(0, 600 - ruleEventsRef.current.length));
       const startedPlayer = boats.find(b => b.isPlayer);
       if (isRacing && startedAtRef.current === undefined && startedPlayer?.started) startedAtRef.current = raceClockRef.current;
-      const playerEvents = checked.events.filter(e => e.boatId === "player");
+      // M0-3: penalty-free crowding right after the signal is not a lesson; the debrief groups it.
+      const playerEvents = checked.events.filter(e => e.boatId === "player" && !isStartJostle(e));
       if (playerEvents.length) {
         const important = playerEvents.find(e => e.penaltySeconds || e.kind === "early-start" || e.kind === "give-way") ?? playerEvents[0];
         setRuleNotice({ text: copyRef.current.ruleMessage(important), until: raceClockRef.current + 7 });
@@ -921,7 +923,8 @@ export default function GamePage() {
 
       // A completed player's final sample is already fixed. Resolve only the
       // remaining fleet now, so Menu/backgrounding cannot discard this finish
-      // during the former 15-second wait and penalty-adjusted places stay true.
+      // while bots sail on, and penalty-adjusted places stay true. Bots sail to
+      // their own finish or the race time limit (M0-6).
       if (isRacing && !physical && boats.some(boat => boat.isPlayer && boat.lapDone === 2)) {
         const resolved = resolveFinishedFleet({ boats, course, time: raceClockRef.current,
           windStrengthMul: windStrengthRef.current, rules: ruleStateRef.current,

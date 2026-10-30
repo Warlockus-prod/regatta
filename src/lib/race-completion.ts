@@ -4,11 +4,13 @@ import { evaluateRaceRules, type RaceRulesState } from "./race-rules";
 import type { NativeRaceSnapshot } from "./race-native";
 
 const MAX_RACE_SECONDS = 300;
-const FLEET_FINISH_SECONDS = 15;
 
-/** Resolve the existing finish window immediately. Finished boats are frozen;
- * remaining bots still have to sail the course with the same 30 Hz engine.
- * A boat that cannot reach the line before the cutoff remains unfinished. */
+/** Resolve the rest of the race immediately once the player has finished (M0-6).
+ * Finished boats are frozen; remaining bots still have to sail the course with
+ * the same 30 Hz engine until they finish or the race time limit. A boat that
+ * cannot reach the line before the limit remains unfinished. The old 15 s
+ * window left most Easy bots unfinished. Worst case is a few thousand steps,
+ * about 50 ms on a laptop, once per race. */
 export function resolveFinishedFleet<T extends RaceBoat & { speedMul?: number }>(frame: {
   boats: readonly T[]; course: RaceCourse; time: number; windStrengthMul: number;
   rules: RaceRulesState; rulesEnabled: boolean; penaltiesEnabled: boolean;
@@ -20,9 +22,9 @@ export function resolveFinishedFleet<T extends RaceBoat & { speedMul?: number }>
       ...(boat.autopilot.finishLoop ? { finishLoop: { ...boat.autopilot.finishLoop } } : {}) } } : {}) }));
   let time = frame.time, rules = frame.rules, steps = 0;
   const player = boats.find(boat => boat.isPlayer);
-  const cutoff = Math.min(MAX_RACE_SECONDS, (player?.finishTime ?? time) + FLEET_FINISH_SECONDS);
+  const cutoff = MAX_RACE_SECONDS;
   if (player?.lapDone !== 2) return { boats, rules, time, steps };
-  while (steps < FLEET_FINISH_SECONDS / SAILING_STEP_SECONDS && time + SAILING_STEP_SECONDS <= cutoff + 1e-8 && boats.some(boat => boat.lapDone < 2)) {
+  while (time + SAILING_STEP_SECONDS <= cutoff + 1e-8 && boats.some(boat => boat.lapDone < 2)) {
     time += SAILING_STEP_SECONDS; steps += 1;
     const wind = windAt(time);
     const previousPositions = Object.fromEntries(boats.map(boat => [boat.id, { ...boat.pos }]));
