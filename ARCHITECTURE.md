@@ -285,7 +285,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/features/race-hud/useRaceFeedback.ts` - React hook for the bus: state, post, contact, clear, one timer to the next change
 - `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
 - `src/app/game/GameMenu.tsx` - race lobby (M1-6): race frame image (site), presets, free/mission choices, mode picker (site) or read-only mode (app), venue cards, one sticky primary start plus an "i" briefing button
-- `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
+- `src/app/game/config.ts` - реэкспорт уровней сложности из `src/data/race-difficulty.ts` для старых импортов веба.
+- `src/data/race-difficulty.ts` - уровни сложности гонки (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках), общие для веба и раздела Гонка в приложении; лежит в `src/data`, потому что Metro не видит `src/app`.
 - `src/app/multiplayer/page.tsx` - серверная обертка мультиплеера.
 - `src/app/multiplayer/MultiplayerClient.tsx` - лобби, код комнаты, гонка по WebSocket.
 - `src/app/leaderboard/page.tsx` - таблица лучших: Обычный и Pro в отдельных таблицах свободной гонки, результаты без записанного режима отдельным свернутым списком, миссии с пометкой; раскладка на 390 px.
@@ -1159,6 +1160,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/src/simulator/race-shell.ts` - native shell for race WebViews (M0-7): no back swipe on /game and /multiplayer, left/right safe-area padding for the full-screen race and native overlays (spinner, Retry, memory notice) offset by the same insets, keep-awake through the linked ExpoKeepAwake native module, one automatic reload to the race menu after the web content process is killed.
 - `mobile/__tests__/race-shell.test.tsx` - race shell: landscape side insets, overlay offsets, gestureEnabled false, keep-awake on and off, reload to the race menu after the iOS/Android web process dies, no reload loop.
 - `mobile/__tests__/race-hub-setup.test.tsx` - hub start routes, hand-over through raceEntryQuery, presses in the rendered hub
+- `mobile/__tests__/metro-shared-imports.test.ts` - every app import that leaves `mobile/` lands in a Metro watch folder from `mobile/metro.config.js` (an import of `src/app` broke the release bundle of TestFlight 73 while jest and tsc passed).
 - `mobile/__tests__/race-sound-storage.test.ts` - the race sound row crosses the WebView storage bridge and is kept in AsyncStorage between app launches.
 - `mobile/src/navigation/RaceSetupPanel.tsx` - app Race hub setup panel (preset, level and wind, or mission radios, 44 pt targets)
 - `mobile/src/navigation/race-setup.ts` - app Race hub setup: presets, route built for the race (`/game?difficulty&wind` or `?mission`), 7-language labels

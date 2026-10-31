@@ -1,5 +1,5 @@
 import { words } from "../../../src/lib/product/catalog";
-import { DIFFICULTY_CONFIG, type Difficulty } from "../../../src/app/game/config";
+import { DIFFICULTY_CONFIG, type Difficulty } from "../../../src/data/race-difficulty";
 import missionData from "../data/missions.json";
 
 /**

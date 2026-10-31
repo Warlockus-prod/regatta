@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "4fe74c3c4813",
-  "sha256": "376dfe189e85d69a9e27e0a7c887cddfcf884eff55756252b9e64ba6ba594121",
+  "version": "ffd5deea83ba",
+  "sha256": "eb2dd42e15e70af24549f3d7529287a7fc59d3a8c3eda8b11153dc8fdbed5df1",
   "bytes": 6737820,
   "routes": [
     "/simulator",
@@ -634,6 +634,7 @@
     "src/data/foundation-copy.ts",
     "src/data/foundation-practice.ts",
     "src/data/missions.ts",
+    "src/data/race-difficulty.ts",
     "src/data/race-judge-copy.ts",
     "src/data/sailing-data.ts",
     "src/data/sailing-lab/assessment-copy.ts",
@@ -967,8 +968,8 @@
     },
     {
       "path": "src/app/game/config.ts",
-      "bytes": 3817,
-      "sha256": "981d70f75f02303a8239a5042d7ad7a5637ec097a8fff999b052f678623d9fa2"
+      "bytes": 151,
+      "sha256": "0fecd03d9f44f80a8350f3eeda365e0ce24fdbcbff5b8cfaacc3f91421839d48"
     },
     {
       "path": "src/app/game/race-copy.ts",
@@ -1114,6 +1115,11 @@
       "path": "src/data/missions.ts",
       "bytes": 12019,
       "sha256": "f205a840518d9e29bb900ab9f9f96c84663712746c1b42fc9d93b4f4f14da951"
+    },
+    {
+      "path": "src/data/race-difficulty.ts",
+      "bytes": 3940,
+      "sha256": "8bbe141ebd885eaf9a790c71be85e28a60c756acce3d73d6146b4157251c7457"
     },
     {
       "path": "src/data/race-judge-copy.ts",
