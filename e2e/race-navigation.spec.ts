@@ -31,7 +31,8 @@ test("saved Pro briefing keeps its mode and wind after current preferences chang
   }
   await page.getByRole("button", { name: "Продолжить", exact: true }).click();
   await expect(page.getByRole("button", { name: /Готов - старт/ })).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Pro", exact: true })).toBeChecked();
+  // The briefing shows the saved mode as a label; the mode is chosen in the lobby.
+  await expect(page.getByTestId("briefing-mode")).toHaveText("Pro");
   await expect(page.getByText("Лёгкий · слабый ветер", { exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem("regatta.race-resume.v1") ?? "null");
@@ -396,6 +397,8 @@ async function startRace(page: Page, context: BrowserContext, entry: RaceEntry =
       localStorage.setItem("regatta.onboarding.v1", "1");
       localStorage.setItem("regatta.v3.tour.v1", "1");
       localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels", helmReturnToCenter: false }));
+      // The briefing opens by itself only on a course's first start; every journey here walks through it.
+      localStorage.removeItem("regatta.race.briefing-seen.v1");
     } catch { /* Ordinary browser storage may be unavailable. */ }
   });
   await page.setViewportSize(entry.viewport ?? { width: 390, height: 844 });
@@ -832,7 +835,11 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
       if (journey.viewport) await evidence.step(`${label}:resize`, () => page.setViewportSize(journey.viewport!));
       await evidence.step(`${label}:viewport-journey`, () => sample(entry, label, journey.minimum));
       if (journey.embed) {
-        await evidence.step("menu-return", () => entry.cockpit.getByRole("button", { name: "Меню", exact: true }).click());
+        await evidence.step("menu-return", async () => {
+          await entry.cockpit.getByRole("button", { name: "Меню", exact: true }).click();
+          await entry.cockpit.getByRole("button", { name: "Выйти", exact: true }).click();
+          await entry.cockpit.getByRole("button", { name: "Выйти", exact: true }).click();
+        });
         const menu = page.getByRole("heading", { name: "Гонка", exact: true });
         await expect(menu).toBeFocused();
         expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(0);
@@ -879,7 +886,7 @@ for (const localized of localizedProEntries) {
       await evidence.step("pro-select", () => pro.click());
       await expect(pro).toBeChecked();
       await evidence.step("briefing-open", () => page.getByRole("button", { name: localized.start }).click());
-      await expect(page.getByRole("radio", { name: "Pro", exact: true })).toBeChecked();
+      await expect(page.getByTestId("briefing-mode")).toHaveText("Pro");
       const preview = page.locator("svg:has(#cpWater)");
       await expect(preview.locator("text")).toHaveCount(5);
       const previewGeometry = () => preview.evaluate(svg => {

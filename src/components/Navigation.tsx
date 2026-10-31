@@ -15,10 +15,14 @@ import { copy } from "@/lib/product/copy";
 import { bookmarkForPath } from "@/lib/product/learning";
 import { saveLearningBookmark } from "@/lib/product/learning-web";
 import styles from "./product/Navigation.module.css";
+import { useGameLayer } from "./game-layer";
 
 export default function Navigation() {
   const pathname = usePathname();
   const { lang } = useI18n();
+  // M1-2: a running race claims the whole viewport (game-layer.ts). The nav
+  // stays mounted but hidden, so its measured --site-nav-h drops to 0.
+  const gameLayer = useGameLayer();
   const navRef = useRef<HTMLElement>(null);
   const previous = useRef<string | null>(null);
   useEffect(() => {
@@ -47,7 +51,7 @@ export default function Navigation() {
   }, [embed]);
   if (embed) return null;
   const selected = navigationItemForSection(sectionForPath(pathname, "web"));
-  return <nav data-product-navigation ref={navRef} className={styles.nav} aria-label={copy.navigation[lang]}>
+  return <nav data-product-navigation ref={navRef} hidden={gameLayer} className={styles.nav} aria-label={copy.navigation[lang]}>
     <div className={styles.inner}>
       <Link href="/" className={styles.brand} aria-label="Regatta">
         <svg width="26" height="28" viewBox="0 0 26 28" fill="none" aria-hidden="true">

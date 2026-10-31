@@ -13,7 +13,13 @@ function clock(seconds: number): string {
 
 /** Presentational training judge debrief for the finish screen. Pure view of
  * buildRaceJudgeDebrief(); it decides nothing itself. No actions, so no cyan. */
-export function RaceJudgeReview({ debrief, boatName }: { debrief: RaceJudgeDebrief; boatName?: (boatId: string) => string }) {
+export function RaceJudgeReview({ debrief, boatName, titleHidden = false }: {
+  debrief: RaceJudgeDebrief;
+  boatName?: (boatId: string) => string;
+  /** The result screen already shows the same title on its collapsed row, so
+   * the heading stays for screen readers only (no visible duplicate). */
+  titleHidden?: boolean;
+}) {
   const { tl } = useI18n();
   const { items, summary } = debrief;
   const name = (id: string) => boatName?.(id) ?? id;
@@ -27,8 +33,8 @@ export function RaceJudgeReview({ debrief, boatName }: { debrief: RaceJudgeDebri
   return (
     <section aria-labelledby="race-judge-title" data-testid="race-judge-review"
       className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 text-base leading-6 text-[var(--text-primary)]">
-      <h2 id="race-judge-title" className="text-lg font-semibold leading-7">{tl(copy.title)}</h2>
-      <p className="mt-1 text-[var(--text-secondary)]">{tl(copy.intro)}</p>
+      <h2 id="race-judge-title" className={titleHidden ? "sr-only" : "text-lg font-semibold leading-7"}>{tl(copy.title)}</h2>
+      <p className={titleHidden ? "text-[var(--text-secondary)]" : "mt-1 text-[var(--text-secondary)]"}>{tl(copy.intro)}</p>
 
       <dl className="mt-3 grid grid-cols-3 gap-2" data-testid="race-judge-summary">
         <div className="rounded-md bg-[var(--bg-secondary)] p-2">

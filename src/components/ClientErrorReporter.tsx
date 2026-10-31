@@ -2,6 +2,13 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+// Bundle dedupe, not a feature: this component is mounted once in the root
+// layout, so this side-effect import puts the next/dynamic runtime (loadable,
+// preload-chunks, async storage, about 4.4 KB) in the shared layout chunk.
+// Without it Turbopack copied that runtime into each of the ~20 route chunks
+// that call dynamic() (about 80 KB in total, scripts/check-bundle-size.mjs).
+// Pinned by src/components/bundle-dedupe.test.ts.
+import 'next/dynamic';
 import { isBrowserNoise } from '@/lib/analytics-events';
 import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
 import { detectShell } from '@/lib/funnel';

@@ -251,7 +251,7 @@ test.describe('Smoke: critical user flows', () => {
       observations.push(await observeProPage(page, "before-initial-clock"));
       const clock = page.getByText(/^\d+:\d\d\.\d$/);
       await expect(clock).not.toHaveText("0:00.0", { timeout: 15_000 });
-      await page.getByRole("button", { name: "Пауза", exact: true }).click();
+      await page.getByRole("button", { name: "Меню", exact: true }).click();
       const paused = await clock.textContent();
       const scene = (await page.getByTestId("race-3d").boundingBox())!;
       await page.getByRole("button", { name: "Настройки", exact: true }).click();
@@ -285,9 +285,12 @@ test.describe('Smoke: critical user flows', () => {
       // A mode cannot change after starting and recategorize an auto-trim record.
       await expect(page.getByRole("radio", { name: "Обычный", exact: true })).toHaveCount(0);
       await page.getByRole("button", { name: "Меню", exact: true }).click();
+      await page.getByRole("button", { name: "Выйти", exact: true }).click();
+      await page.getByRole("button", { name: "Выйти", exact: true }).click();
       await page.getByRole("radio", { name: "Обычный", exact: true }).click();
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
-      await page.getByRole("button", { name: /Готов - старт/ }).click();
+      // The classic course was briefed on the first start: the second goes straight to the countdown.
+      await expect(page.getByRole("heading", { name: "Брифинг", exact: true })).toHaveCount(0);
       await expect(helm).toBeVisible();
       await expect(page.getByRole("slider", { name: "Гика-шкот", exact: true })).toHaveCount(0);
     } finally {
@@ -603,7 +606,7 @@ test('short embedded race resumes its actual saved Pro setup at the start of the
   await page.locator('[data-race-phase="menu"]').evaluate(element => { element.scrollTop = element.scrollHeight; });
   await resume.click();
   const { back } = await expectBriefingStart(page);
-  await expect(page.getByRole('radio', { name: 'Pro', exact: true })).toBeChecked();
+  await expect(page.getByTestId('briefing-mode')).toHaveText('Pro');
   await back.click();
   await expect(page.getByRole('heading', { name: 'Гонка', exact: true })).toBeFocused();
   expect(await page.locator('[data-race-phase="menu"]').evaluate(element => element.scrollTop)).toBe(0);

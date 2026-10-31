@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeStandardCourse } from "@/lib/race-physics";
 import { RaceOverviewMap, type RaceOverviewLabels } from "./RaceOverviewMap";
 import { createRaceNavigationSnapshot, type RaceNavigationInput } from "./navigation-model";
+import { PLAYER_COLOR } from "./boat-colors";
 
 beforeEach(() => vi.stubGlobal("React", React));
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -119,5 +120,16 @@ describe("race overview SVG", () => {
     expect(empty).toContain("Karte nicht verfügbar");
     expect(empty).not.toContain("<svg");
     expect(render({}, 0, 0)).toContain("Karte nicht verfügbar");
+  });
+
+  it("draws the player in its race colour and keeps cyan for actions only (M1-7)", () => {
+    const html = render();
+    expect(html).toMatch(new RegExp(`data-map-boat="player"[^>]*><title>Du</title><path d="[^"]+" fill="${PLAYER_COLOR}"`));
+    expect(html).toMatch(/data-map-boat="rival"[^>]*><title>Flotte<\/title><path d="[^"]+" fill="#f00"/);
+    expect(html).toContain(`<span class="inline-flex items-center gap-1" data-map-legend="player">`);
+    expect(html).toContain(`fill="${PLAYER_COLOR}"></path></svg>Du</span>`);
+    expect(html).not.toMatch(/accent-cyan|00d4ff|\u25b2/i);
+    const compact = renderToStaticMarkup(<RaceOverviewMap snapshot={createRaceNavigationSnapshot(input())} labels={labels} compact width={128} height={128} />);
+    expect(compact).not.toMatch(/accent-cyan|00d4ff/i);
   });
 });

@@ -4,9 +4,13 @@ import { trimForDrive } from "@/lib/sailing-physics/polar";
 import type { Controls } from "@/lib/sailing-physics/types";
 import type { Race3DBoat } from "@/features/race-3d/pose";
 import { guidanceToTarget, type RaceGuidance } from "@/lib/race-guidance";
+import { FLEET_COLORS as BOAT_FLEET_COLORS } from "@/features/race-hud/boat-colors";
 
 export const MULTIPLAYER_COURSE = makeStandardCourse();
-export const FLEET_COLORS = ["#00d4ff", "#ff6688", "#ffdd44", "#44ff88", "#aa88ff", "#ff8844", "#55ccee", "#ff99cc", "#c6f0a5", "#bb99ff"];
+/** M1-7: the shared race palette (boat-colors.ts), so no boat is the action
+ * cyan. The solo player's violet stays out: here every boat is a person, and a
+ * room of more than six repeats colours, each boat still named on its tag. */
+export const FLEET_COLORS: readonly string[] = [...BOAT_FLEET_COLORS];
 export interface MultiplayerFrame { boats: Race3DBoat[]; windDir: number; windKnots: number; time: number; guidance: RaceGuidance | null }
 export interface MultiplayerHelmInput { left: boolean; right: boolean; rudder: number; course: number | null }
 

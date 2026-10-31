@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { raceMapProjection, type RaceNavigationSnapshot } from "./navigation-model";
+import { PLAYER_COLOR } from "./boat-colors";
 
 export interface RaceOverviewLabels {
   title: string; north: string; start: string; finish: string; marks: string;
@@ -15,7 +16,10 @@ export interface RaceOverviewMapProps {
   compact?: boolean;
 }
 const number = (value: number) => Number(value.toFixed(2));
-const CYAN = "var(--accent-cyan, #00d4ff)", SECONDARY = "var(--text-secondary, #a2b4c4)";
+// Cyan is for actions only (M1-7): the player has its own race colour and the
+// wind arrow is a reading, drawn in the primary text colour.
+const SECONDARY = "var(--text-secondary, #a2b4c4)", WIND = "var(--text-primary, #e8f4f8)";
+const BOAT_PATH = "M0-7 L-4 6 L0 4 L4 6 Z";
 
 /** A north-up schematic of the supplied race, never another game renderer. */
 export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, compact = false }: RaceOverviewMapProps) {
@@ -57,7 +61,7 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, c
           const p = project(boat.pos);
           return <g key={boat.id} data-map-boat={boat.isPlayer ? "player" : "rival"} transform={`translate(${number(p.x)} ${number(p.y)}) rotate(${number(boat.heading)})`}>
             <title>{boat.isPlayer ? labels.you : labels.fleet}</title>
-            <path d="M0-7 L-4 6 L0 4 L4 6 Z" fill={boat.isPlayer ? CYAN : boat.color ?? SECONDARY} stroke="var(--bg-primary, #071923)" strokeWidth={boat.isPlayer ? 1.5 : 1} />
+            <path d={BOAT_PATH} fill={boat.isPlayer ? PLAYER_COLOR : boat.color ?? SECONDARY} stroke="var(--bg-primary, #071923)" strokeWidth={boat.isPlayer ? 1.5 : 1} />
           </g>;
         })}
       </g>
@@ -67,14 +71,17 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, c
       </g>
       {snapshot.windFrom !== null && <g data-map-wind="" transform={`translate(${width - 24} 27)`}>
         <title>{`${labels.windFrom}: ${Math.round(snapshot.windFrom)}°`}</title>
-        <g transform={`rotate(${number(snapshot.windFrom)})`} stroke={CYAN} fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <g transform={`rotate(${number(snapshot.windFrom)})`} stroke={WIND} fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M0-12 V5 M-4 0 L0 5 L4 0" />
         </g>
       </g>}
     </svg>
     {!compact && <figcaption className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: SECONDARY }}>
       <span>{snapshot.sharedLine ? `${labels.start} / ${labels.finish}` : `${labels.start} · ${labels.finish}`}</span>
-      <span style={{ color: CYAN }}>▲ {labels.you}</span>
+      <span className="inline-flex items-center gap-1" data-map-legend="player">
+        <svg width="10" height="14" viewBox="-5 -8 10 15" aria-hidden="true"><path d={BOAT_PATH} fill={PLAYER_COLOR} /></svg>
+        {labels.you}
+      </span>
       <span>{labels.fleet}: {snapshot.boats.filter(boat => !boat.isPlayer).length}</span>
       {snapshot.windFrom !== null && <span>{labels.windFrom}: {Math.round(snapshot.windFrom)}°</span>}
     </figcaption>}

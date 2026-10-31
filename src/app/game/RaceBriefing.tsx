@@ -3,29 +3,36 @@
 // Briefing screen of the solo race (/game): explains the course and three
 // rules before the countdown. GameClient keeps the phase root (scroll ref,
 // data-race-phase, viewport height); this renders what is inside it.
+// M1-1: the mode is chosen once, in the lobby (or the app's Race hub), so the
+// briefing only shows it. It opens by itself the first time on a course and
+// from the lobby's "i" button.
 
 import { useI18n } from '@/lib/i18n';
 import { formatRecordTime, type BestRecord } from '@/lib/best-times';
 import { PHYSICAL_RACE_PROFILES, type PhysicalRaceProfile } from "@/lib/race-context";
 import { physicalCourseDefinition } from "@/lib/race-courses";
-import { RaceModePicker } from "./RaceCockpit";
-import type { RacePrefs } from "./race-prefs";
+import { useRaceCopy } from "./race-copy";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
+import { TrophyIcon } from "@/features/race-hud/RaceIcons";
 
 export function RaceBriefing({
-  onBack, bestRecord, difficulty, windStrength, racePrefs, updateRacePrefs, trialProfile, onChooseTrialCourse, onStart,
+  onBack, bestRecord, difficulty, windStrength, mode, trialProfile, onChooseTrialCourse, onStart, reopenNote = true,
 }: {
   onBack: () => void;
   bestRecord: BestRecord | null;
   difficulty: Difficulty;
   windStrength: 'light' | 'medium' | 'heavy';
-  racePrefs: RacePrefs;
-  updateRacePrefs: (patch: Partial<RacePrefs>) => void;
+  mode: "simple" | "pro";
   trialProfile: PhysicalRaceProfile | null;
   onChooseTrialCourse: (profile: PhysicalRaceProfile) => void;
   onStart: () => void;
+  /** Says how to reopen the briefing; off where no lobby "i" button is on the way. */
+  reopenNote?: boolean;
 }) {
   const { tp, tl } = useI18n();
+  const raceCopy = useRaceCopy();
+  const yourBest = tp('Твой рекорд', 'Your best', 'Twój rekord',
+    { es: 'Tu récord', fr: 'Ton record', de: 'Dein Rekord', it: 'Il tuo record' });
   return (
     <>
         <div data-race-scroll className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
@@ -36,23 +43,30 @@ export function RaceBriefing({
           >
             ← {tp('Назад к выбору', 'Back to menu', 'Wróć do wyboru', { es: 'Volver al menú', fr: 'Retour au menu', de: 'Zurück zum Menü', it: 'Torna al menu' })}
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {/* Personal best for this difficulty + wind bucket. Hidden if
                 the user hasn't finished a race in this combo yet. */}
             {bestRecord && (
               <div
-                className="text-xs px-2 py-1 rounded font-mono"
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded font-mono"
+                data-testid="briefing-record"
                 style={{
                   background: 'rgba(255, 170, 0, 0.12)',
                   color: 'var(--warning)',
                   border: '1px solid rgba(255, 170, 0, 0.3)',
                 }}
-                title={tp('Твой рекорд', 'Your best', 'Twój rekord',
-                  { es: 'Tu récord', fr: 'Ton record', de: 'Dein Rekord', it: 'Il tuo record' })}
+                title={yourBest}
               >
-                🏆 {formatRecordTime(bestRecord.timeSec)}
+                <TrophyIcon className="shrink-0" />
+                <span className="sr-only">{yourBest}: </span>
+                <span>{formatRecordTime(bestRecord.timeSec)}</span>
               </div>
             )}
+            <div data-testid="briefing-mode" className="text-xs px-2 py-1 rounded font-semibold" style={{
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-subtle)',
+            }}>{mode === "pro" ? raceCopy.pro : raceCopy.simple}</div>
             <div className="text-xs px-2 py-1 rounded" style={{
               background: 'var(--bg-secondary)',
               color: 'var(--text-secondary)',
@@ -70,7 +84,7 @@ export function RaceBriefing({
         <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold mb-1">
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
-        <div className="mb-5"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
+        <p className="mb-5 text-base leading-6 text-[var(--text-secondary)]">{mode === "pro" ? raceCopy.proNote : raceCopy.simpleNote}</p>
         {trialProfile ? (
           <div role="radiogroup" data-testid="physical-trial-course" className="mb-3 flex gap-2"
             aria-label={tl({ ru: "Длина лавировки", en: "Beat length", pl: "Długość halsówki", es: "Longitud de la ceñida", fr: "Longueur du louvoyage", de: "Länge der Kreuz", it: "Lunghezza della bolina" })}>
@@ -125,15 +139,35 @@ export function RaceBriefing({
                 de: 'Steuere mit Rad oder Schieberegler. Auch ← → drehen das Boot.',
                 it: 'Governa con la ruota o il cursore. Anche i tasti ← → fanno girare la barca.',
               }) },
+              ...(mode === "pro" ? [{ icon: 'sheets', text: tl({
+                ru: 'В Pro шкоты на тебе: Q/A гика-шкот, W/S стаксель-шкот.',
+                en: 'In Pro you trim the sheets: Q/A mainsheet, W/S jib sheet.',
+                pl: 'W Pro szoty są na tobie: Q/A szot grota, W/S szot foka.',
+                es: 'En Pro trimas tú las escotas: Q/A escota de mayor, W/S escota de foque.',
+                fr: 'En Pro, tu règles les écoutes : Q/A grand-voile, W/S foc.',
+                de: 'In Pro bedienst du die Schoten: Q/A Großschot, W/S Fockschot.',
+                it: 'In Pro regoli tu le scotte: Q/A scotta della randa, W/S scotta del fiocco.',
+              }) }] : []),
             ].map((rule) => (
               <li key={rule.icon} className="flex items-start gap-3">
-                <BriefingIcon kind={rule.icon as 'nogo' | 'tack' | 'steer'} />
+                <BriefingIcon kind={rule.icon as 'nogo' | 'tack' | 'steer' | 'sheets'} />
                 <span className="text-sm leading-relaxed text-[var(--text-secondary)]">{rule.text}</span>
               </li>
             ))}
           </ul>
         </div>
 
+        {reopenNote && <p className="text-sm leading-6 text-[var(--text-muted)]" data-testid="briefing-once-note">
+          {tl({
+            ru: 'Перед следующими стартами брифинг не появится. Открыть его снова можно кнопкой «i» рядом со стартом.',
+            en: 'The briefing will not appear before your next starts. Open it again with the "i" button beside Start.',
+            pl: 'Przed kolejnymi startami odprawa się nie pojawi. Otworzysz ją ponownie przyciskiem "i" obok startu.',
+            es: 'El briefing no aparecerá antes de las próximas salidas. Vuelve a abrirlo con el botón "i" junto a la salida.',
+            fr: 'Le briefing ne s\'affichera plus avant les prochains départs. Rouvre-le avec le bouton "i" à côté du départ.',
+            de: 'Vor den nächsten Starts erscheint das Briefing nicht mehr. Öffne es wieder mit der Taste "i" neben dem Start.',
+            it: 'Il briefing non comparirà prima delle prossime partenze. Riaprilo con il pulsante "i" accanto alla partenza.',
+          })}
+        </p>}
         </div>
         <div className="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] px-4 sm:px-6 py-3">
         <div className="max-w-4xl mx-auto">
@@ -168,10 +202,13 @@ export function PhysicalTrialNote({ profile }: { profile: PhysicalRaceProfile | 
   );
 }
 
-function BriefingIcon({ kind }: { kind: 'nogo' | 'tack' | 'steer' }) {
+function BriefingIcon({ kind }: { kind: 'nogo' | 'tack' | 'steer' | 'sheets' }) {
   const common = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true, className: 'shrink-0 mt-0.5 text-[var(--text-secondary)]' };
   if (kind === 'nogo') return (
     <svg {...common}><path d="M12 13 L7 4 M12 13 L17 4" /><path d="M12 13 v7" /><path d="M9.5 18.5 h5" /><path d="M12 1.5 v3" /></svg>
+  );
+  if (kind === 'sheets') return (
+    <svg {...common}><path d="M6 20 L12 3 L18 20" /><path d="M12 3 v17" /><path d="M4 20 h16" /></svg>
   );
   if (kind === 'tack') return (
     <svg {...common}><path d="M8 21 L15 14 L9 8 L14 3" /><path d="M11.5 3 H14 V5.5" /></svg>

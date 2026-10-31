@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { playBeep, playStart } from '@/lib/sounds';
-import { useControlPrefs } from '@/features/trainer-controls/prefs';
+import { playBeep, playStart, readRaceSound, subscribeRaceSound, writeRaceSound } from '@/lib/sounds';
 import { missions, type Mission } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -20,7 +19,10 @@ import { GameMenu } from './GameMenu';
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 import { useRaceSceneFlags, useRaceView } from '@/features/race-3d/useRaceView';
 import type { RaceSceneStats } from '@/features/race-scene/RaceScene';
-import { type StandingRow, type ToastTone } from '@/features/race-hud/RaceHud';
+import { type StandingRow } from '@/features/race-hud/RaceHud';
+import { raceEventSource, type FeedbackTone } from '@/features/race-hud/feedback';
+import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
+import { polarFor, targetSpeed } from '@/features/race-hud/target';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
 import type { RaceBoat } from "@/lib/race-physics";
@@ -37,6 +39,7 @@ type PhysicalFleetModule = typeof import("@/lib/race-physical-fleet");
 import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, postNativePersonalBest } from "@/lib/race-native";
 import { RaceCockpit } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
+import { RaceSoundToggle } from "@/features/race-hud/RaceSoundToggle";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
@@ -56,10 +59,15 @@ import { legacyRaceSpawns } from "@/lib/race-spawn";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { readPhysicalTrial } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, readGhostStore, type GhostTrack } from "@/lib/race-ghost";
-import { AI_COLORS, AI_NAMES, localStore, makeCourse, raceLogTally, recordSample, formatTime,
+import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, raceLogTally, recordSample, formatTime,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow } from "./race-model";
 import { useRaceLoop } from "./useRaceLoop";
+import { RaceFinishHoldPlate } from "./RaceFinishPlate";
+import { finishHoldActive } from "./race-finish-hold";
+import { claimGameLayer } from "@/components/game-layer";
+import { isRacePauseKey, raceUsesGameLayer, TEXT_ENTRY_SELECTOR } from "./race-layer";
 import { RaceBriefing } from "./RaceBriefing";
+import { briefingCourseId, hasSeenBriefing, hubHandsOffSetup, markBriefingSeen, phaseStartsNewRace, raceEntryStep, type RaceEntryTrigger } from "./race-setup-flow";
 import { RaceResults, type LeaderboardSaveState, type NativeBestSaveState, type NativeSaveStatus } from "./RaceResults";
 
 // three.js loads only when someone opens the race in 3D.
@@ -98,6 +106,12 @@ export default function GamePage() {
   }), [tl, lang]);
   const nativeRace = useSyncExternalStore(noSubscribe, isNativeRace, () => false);
   const { prefs: racePrefs, update: writeRacePrefs } = useRacePrefs();
+  // M1-5 race sound (on by default, separate from the helm click sound): its
+  // switch sits in the status row and in the pause sheet (M1-2). Same store as
+  // useRaceSound() in race-prefs.ts, read here directly so the race-prefs mocks
+  // of the GameClient tests stay valid.
+  const raceSoundOn = useSyncExternalStore(subscribeRaceSound, readRaceSound, () => true);
+  const setRaceSoundOn = useCallback((on: boolean) => writeRaceSound(on, "race"), []);
   const [lockedMode, setLockedMode] = useState<"simple" | "pro" | null>(null);
   const playingPrefs = lockedMode === null ? racePrefs : { ...racePrefs, mode: lockedMode };
   const copy = useRaceCopy();
@@ -119,7 +133,6 @@ export default function GamePage() {
   const raceClockRef = useRef(0);
   const hudRefreshRef = useRef(0);
   const ruleStateRef = useRef(createRaceRulesState());
-  const [ruleNotice, setRuleNotice] = useState<{text: string; until: number} | null>(null);
   const [penalty, setPenalty] = useState(0);
   const raceIdRef = useRef("");
   const [nativeSave, setNativeSave] = useState<NativeSaveStatus>("idle");
@@ -235,20 +248,20 @@ export default function GamePage() {
   // numbers the race measured (a tack's cost, the split at the mark, overtakes).
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const standingsKeyRef = useRef('');
-  const [toast, setToast] = useState<{ id: number; text: string; tone: ToastTone } | null>(null);
   const markTimesRef = useRef<Map<string, number>>(new Map());
   const speedLogRef = useRef<{ t: number; speed: number }[]>([]);
   const turnRef = useRef<{ kind: 'tack' | 'gybe'; t: number; before: number; min: number } | null>(null);
   const shownRankRef = useRef(0);
   const pendingRankRef = useRef<{ rank: number; since: number } | null>(null);
-  const showEvent = useCallback((event: RaceEvent, tone: ToastTone) => {
-    setToast({ id: performance.now(), text: eventText(langRef.current, event), tone });
-  }, []);
-  useEffect(() => {
-    if (!toast) return;
-    const id = window.setTimeout(() => setToast(null), 2600);
-    return () => window.clearTimeout(id);
-  }, [toast]);
+  // M1-3 feedback bus: race events, rule notices and the contact frame share
+  // one queue with priorities, so a rule notice no longer hides an event.
+  const { feedback, post: postFeedback, contact: showContact, clear: clearFeedback } = useRaceFeedback();
+  const showEvent = useCallback((event: RaceEvent, tone: FeedbackTone) => {
+    postFeedback({ source: raceEventSource(event.kind), text: eventText(langRef.current, event), tone });
+  }, [postFeedback]);
+  const showNotice = useCallback((text: string, source: "rule" | "missed-mark", tone: FeedbackTone) => {
+    postFeedback({ source, text, tone });
+  }, [postFeedback]);
 
   // AI coaching state
   const [coachingSource, setCoachingSource] = useState<"local" | "ai">("local");
@@ -279,6 +292,12 @@ export default function GamePage() {
   }, []);
 
   // Daily mode: read URL params and lock difficulty/wind
+  // M1-1: inside the app the Race hub already chose the whole setup and hands
+  // it over in the query, so the race starts without asking again (briefing on
+  // a first visit, otherwise the countdown). Exit then returns to the hub.
+  const [hubHandoff, setHubHandoff] = useState(false);
+  const [handedOff, setHandedOff] = useState(false);
+  const handedSetupRef = useRef(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const setup = linkedRaceSetup(readRaceSearch());
@@ -287,6 +306,10 @@ export default function GamePage() {
     setWindStrength(setup.windStrength);
     setSelectedMission(missions.find(m => m.id === setup.missionId) ?? null);
     setDailyDay(setup.dailyDay);
+    if (hubHandsOffSetup({ native: isNativeRace(), linkedSetup: true, replay: Boolean(readNativeRaceReplay()), trial: Boolean(readPhysicalTrial(window.location.search)) })) {
+      handedSetupRef.current = true;
+      setHubHandoff(true); setHandedOff(true);
+    }
   }, []);
 
   // Autopilot: holds a target heading; any input turns it off
@@ -300,8 +323,8 @@ export default function GamePage() {
   const autopilotOnRef = useRef(false);
   useEffect(() => { autopilotOnRef.current = autopilotOn; }, [autopilotOn]);
 
-  const { prefs: controlPrefs, update: updateControls } = useControlPrefs();
-  const muted = !controlPrefs.sound;
+  // M1-5: the race's Sound switch is the race sound (default on), not the wheel clicks.
+  const muted = !raceSoundOn;
 
   // Existing wind multiplier: 0.65 (light), 1.0 (medium), 1.3 (heavy).
   const [windStrength, setWindStrength] = useState<'light' | 'medium' | 'heavy'>('medium');
@@ -363,6 +386,13 @@ export default function GamePage() {
     }
     const { tacks, noGoEntries, topSpeed } = raceLogTally(logEventsRef.current, logSamplesRef.current);
     const playerRank = results.findIndex((r) => r.isPlayer) + 1;
+    // A free race on the standard course is a classified Simple or Pro result,
+    // so the leaderboard keeps the two modes apart (M1-7). Missions and the
+    // daily race stay unclassified, as the API requires.
+    const classified = !selectedMission && dailyDay === null
+      ? { raceContext: LEGACY_RACE_CONTEXT, mode: lockedMode ?? racePrefsRef.current.mode, course: courseRef.current,
+        rawFinishTimeSec: finishTime, penaltySeconds: completedPenalty }
+      : {};
 
     setSaveState('saving');
     setSaveError(null);
@@ -395,6 +425,7 @@ export default function GamePage() {
             topSpeed: Math.round(topSpeed * 10) / 10,
             score: coaching?.score ?? null,
             nicknameFallback: effectiveNick,
+            ...classified,
           }),
         });
         const d = await res.json();
@@ -409,23 +440,26 @@ export default function GamePage() {
       }
     };
     void doSave();
-  }, [nickname, results, difficulty, windStrength, selectedMission, coaching, tp]);
+  }, [nickname, results, difficulty, windStrength, selectedMission, coaching, tp, dailyDay, lockedMode]);
 
   // Auto-save when finished (once). With a stored nickname this saves
   // silently; without one saveResult() flips saveState to 'prompting' and
   // the finish overlay shows a skippable nickname prompt.
+  // The race is over from the finish tick, also during the 2.5 s finish hold
+  // (M1-4), so leaving in the hold does not lose the save or the replay upload.
+  const raceOver = gameState === 'finished' || (gameState === 'racing' && results.length > 0);
   useEffect(() => {
-    if (gameState !== 'finished' || isNativeRace() || physicalRef.current) return;
+    if (!raceOver || isNativeRace() || physicalRef.current) return;
     if (saveAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
     saveAttemptedRef.current = true;
     saveResult();
-  }, [gameState, saveResult]);
+  }, [raceOver, saveResult]);
 
-  // Reset save state on new race
+  // Reset save state on new race ("Again" goes straight to the countdown)
   useEffect(() => {
-    if (gameState === 'briefing' || gameState === 'menu') {
+    if (phaseStartsNewRace(gameState)) {
       saveAttemptedRef.current = false;
       replayAttemptedRef.current = false;
       setSaveState('idle');
@@ -436,7 +470,7 @@ export default function GamePage() {
 
   // Auto-save replay on finish (fire and forget)
   useEffect(() => {
-    if (gameState !== 'finished' || isNativeRace() || physicalRef.current) return;
+    if (!raceOver || isNativeRace() || physicalRef.current) return;
     if (replayAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
@@ -463,7 +497,7 @@ export default function GamePage() {
       .then((r) => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
       .then((d) => { recordDiagnostic({ type: "race.save", surface: "race", outcome: d?.code ? "accepted" : "failed", action: d?.code ? "ack" : "error", target: "share", ...(d?.code ? {} : { reason: "invalid-message" }) }); if (raceIdRef.current === completedRaceId && d?.code) setReplayCode(d.code); })
       .catch(() => { recordDiagnostic({ type: "race.save", surface: "race", outcome: "failed", action: "error", target: "share", reason: "connection" }); });
-  }, [gameState, difficulty, windStrength, selectedMission, nickname]);
+  }, [raceOver, difficulty, windStrength, selectedMission, nickname]);
 
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
@@ -488,7 +522,7 @@ export default function GamePage() {
     boats.push({
       id: 'player',
       name: copyRef.current.you,
-      color: '#00d4ff',
+      color: PLAYER_COLOR,
       pos: spawns ? { ...spawns[0] } : { ...legacy![0].pos },
       heading: legacy ? legacy[0].heading : 45,
       speed: 0,
@@ -524,7 +558,7 @@ export default function GamePage() {
     ruleStateRef.current = createRaceRulesState();
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
-    setRuleNotice(null); setPenalty(0); setNativeSave("idle");
+    clearFeedback(); setPenalty(0); setNativeSave("idle");
     setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
     setElapsed(0);
@@ -541,12 +575,12 @@ export default function GamePage() {
     lastSampleTimeRef.current = 0;
     wasInNoGoRef.current = false;
     lastTackSignRef.current = 0;
-  }, []);
+  }, [clearFeedback]);
 
   // -----------------------------------------------------------------------
   // Start race flow
   // -----------------------------------------------------------------------
-  const openBriefing = useCallback(() => {
+  const prepareRace = useCallback(() => {
     setupContextRef.current = undefined;
     windStrengthRef.current = raceSetupWindMultiplier(windStrength);
     initRace(difficulty);
@@ -567,9 +601,13 @@ export default function GamePage() {
       phase: 'briefing',
     }, { replaceUnsupported: true });
     setResumeOffer(null);
+  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode, dailyDay]);
+
+  const openBriefing = useCallback(() => {
+    prepareRace();
     setGameState('briefing');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode: racePrefs.mode });
-  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode, dailyDay]);
+  }, [prepareRace, racePrefs.mode]);
 
   const beginCountdown = useCallback(() => {
     if (!physicalRef.current) saveRaceSetup({
@@ -596,7 +634,24 @@ export default function GamePage() {
       missionId: selectedMission?.id ?? null, daily: dailyDay !== null });
   }, [difficulty, windStrength, selectedMission, racePrefs.mode, dailyDay]);
 
-  // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
+  // M1-1: one entry for every start request. The lobby's start opens the
+  // briefing only the first time on this course; "i" always opens it;
+  // "Again" and "Restart" keep the same setup and go straight to the countdown.
+  const startRace = useCallback((trigger: RaceEntryTrigger) => {
+    const step = raceEntryStep(trigger, hasSeenBriefing(briefingCourseId(physicalRef.current)));
+    if (step === "briefing") { openBriefing(); return; }
+    prepareRace();
+    beginCountdown();
+  }, [openBriefing, prepareRace, beginCountdown]);
+  const startFromBriefing = useCallback(() => {
+    markBriefingSeen(briefingCourseId(physicalRef.current));
+    beginCountdown();
+  }, [beginCountdown]);
+  useEffect(() => {
+    if (!hubHandoff || gameState !== "menu") return;
+    setHubHandoff(false);
+    startRace("start");
+  }, [hubHandoff, gameState, startRace]);
 
   // Countdown
   useEffect(() => {
@@ -630,11 +685,22 @@ export default function GamePage() {
   // -----------------------------------------------------------------------
   // Keyboard input
   // -----------------------------------------------------------------------
+  // The Menu button, Continue, Esc and P all toggle the same pause; the pause
+  // sheet is open exactly while the race is paused (M1-2).
+  const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: pausedRef.current ? "pause" : "resume" }); }, []);
   useEffect(() => {
     if (gameState !== "racing" && gameState !== "countdown") return;
     const onDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
+      // M1-2: Esc and P pause and resume on a desktop keyboard, also from a slider.
+      if (isRacePauseKey(e, Boolean(target?.closest?.(TEXT_ENTRY_SELECTOR)))) {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
       if (target?.closest("input,textarea,select,[contenteditable=true],[role=slider]") || e.metaKey || e.ctrlKey || e.altKey) return;
+      // M1-4: during the finish hold the boat is no longer raced.
+      if (finishHoldActive(raceIdRef.current)) return;
       const key = e.key.toLowerCase();
       const sheet = key === "q" || key === "a" ? "mainSheet" : key === "w" || key === "s" ? "jibSheet" : null;
       if (sheet && racePrefsRef.current.mode === "pro") {
@@ -662,19 +728,19 @@ export default function GamePage() {
       window.removeEventListener("blur", clear);
       clear();
     };
-  }, [gameState, setTrim]);
+  }, [gameState, setTrim, togglePause]);
 
   // -----------------------------------------------------------------------
   // Game loop (useRaceLoop) - also runs during countdown so boats can sail
   // freely before the race starts. Then the clock resynchronisation effect.
   // -----------------------------------------------------------------------
-  useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, requestNativeBest,
+  useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest,
     refs: { boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
       racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
       startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
       wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
       pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef },
-    set: { setAutopilotOn, setRuleNotice, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
+    set: { setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
       setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setNativeSave,
       setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed } });
 
@@ -683,9 +749,11 @@ export default function GamePage() {
   // -----------------------------------------------------------------------
   const backToMenu = useCallback(() => {
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "exit" });
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    // A setup handed over by the app's Race hub returns there, not to a second menu.
+    if (handedSetupRef.current && navigateNativeRace("/race")) return;
     setLockedMode(null);
     setGameState('menu');
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
   }, []);
 
   const hudPlayer = boatsRef.current.find((b) => b.isPlayer);
@@ -709,7 +777,6 @@ export default function GamePage() {
     const player = boatsRef.current.find(b => b.isPlayer);
     if (player) setCourse((autopilotOnRef.current ? autopilotHeadingRef.current : player.heading) + degrees);
   }, [setCourse]);
-  const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: pausedRef.current ? "pause" : "resume" }); }, []);
   useEffect(() => {
     const hide = () => { if (document.hidden && !pausedRef.current && (gameState === "racing" || gameState === "countdown")) { pausedRef.current = true; setPaused(true); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "pause", reason: "hidden", source: "system" }); } };
     document.addEventListener("visibilitychange", hide);
@@ -764,10 +831,24 @@ export default function GamePage() {
     if (gameState === "briefing") setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
   }, [gameState, difficulty, windStrength, racePrefs.mode]);
   const guidance = racePrefs.guidance ? routeGuidance : null;
+  // M1-3: speed against the polar target at this wind angle (the race's own
+  // force model, solved once per wind strength). Not for the physical trial,
+  // whose wind is its own.
+  const racePolar = useMemo(() => (gameState === "racing" || gameState === "countdown") && !physicalTrial ? polarFor(12 * windStrengthMul) : null,
+    [gameState, physicalTrial, windStrengthMul]);
+  const raceTarget = racePolar ? targetSpeed(racePolar, playerTWA) : null;
 
-  // Setup phases own one internal scroll area below the same site header as
-  // the cockpit. Reset on phase entry, never on a physics/HUD update.
-  const viewportStyle = { height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' };
+  // M1-2 game layer (owner decision C1): countdown, race and replay hide the
+  // site header and take the whole viewport. Menu, briefing and results stay
+  // pages below the header. The native app has no site header either way.
+  const gameLayer = raceUsesGameLayer(gameState);
+  useEffect(() => {
+    if (!gameLayer) return;
+    return claimGameLayer();
+  }, [gameLayer]);
+  // Setup phases own one internal scroll area below the site header. Reset on
+  // phase entry, never on a physics/HUD update.
+  const viewportStyle = { height: embed || gameLayer ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' };
   useEffect(() => {
     const root = setupRootRef.current;
     if (!root) return;
@@ -781,6 +862,10 @@ export default function GamePage() {
   // =====================================================================
   // MENU SCREEN
   // =====================================================================
+  if (gameState === 'menu' && hubHandoff) {
+    // One frame while the handed-over setup starts: no second menu flashes up.
+    return <div ref={setupRootRef} data-race-phase="menu" aria-busy="true" style={viewportStyle} />;
+  }
   if (gameState === 'menu') {
     return (
       <div ref={setupRootRef} data-race-phase="menu" className="overflow-y-auto" style={viewportStyle}>
@@ -834,9 +919,11 @@ export default function GamePage() {
           setWindStrength={setWindStrength}
           selectedMission={selectedMission}
           pickMission={pickMission}
-          openBriefing={openBriefing}
+          onStart={() => startRace("start")}
+          onShowBriefing={() => startRace("info")}
           dailyDay={dailyDay}
           racePrefs={racePrefs} updateRacePrefs={updateRacePrefs}
+          native={nativeRace}
         />
       </div>
     );
@@ -860,8 +947,8 @@ export default function GamePage() {
     return (
       <div ref={setupRootRef} data-race-phase="briefing" className="page-enter flex flex-col" style={viewportStyle}>
         <RaceBriefing onBack={backToMenu} bestRecord={bestRecord} difficulty={difficulty} windStrength={windStrength}
-          racePrefs={racePrefs} updateRacePrefs={updateRacePrefs} trialProfile={physicalTrial} onChooseTrialCourse={chooseTrialCourse}
-          onStart={beginCountdown} />
+          mode={racePrefs.mode} trialProfile={physicalTrial} onChooseTrialCourse={chooseTrialCourse}
+          onStart={startFromBriefing} reopenNote={!handedOff} />
       </div>
     );
   }
@@ -876,27 +963,31 @@ export default function GamePage() {
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
           windReading={windReading} navigation={navigation}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
-          trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
+          trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance}
+          feedback={{ toasts: feedback.visible, contact: feedback.contact }} targetSpeed={raceTarget}
           camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu}
+          onRestart={() => startRace("restart")} raceId={sceneRaceId} fullscreenOffer={!embed}
+          raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
           autopilot={autopilotOn} onAutopilot={() => {
             autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
             setTargetHeading(autopilotHeadingRef.current);
             rudderRef.current = 0; setRudderState(0);
             autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
             recordControlChange("race", "course-assist", autopilotOnRef.current, !autopilotOnRef.current);
-          }} muted={muted} onSound={() => updateControls({ sound: !controlPrefs.sound })} penalty={penalty}
+          }} muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
           countdown={gameState === "countdown" ? countdown : undefined}>
           <RaceScene key={sceneRaceId} racing={gameState === "racing" && !paused} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
             ghostRef={ghostBoatsRef} ghostLabel={ghostTime === null ? undefined : `${tl({ ru: "Твой лучший", en: "Your best", pl: "Twój najlepszy", es: "Tu mejor", fr: "Ton meilleur", de: "Deine Bestzeit", it: "Il tuo migliore" })} ${formatRecordTime(ghostTime)}`}
             showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}
             guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />
+          <RaceFinishHoldPlate raceId={sceneRaceId} />
           {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
         </RaceCockpit>
       )}
 
       {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (
-        <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef}
+        <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef} playerLapDone={hudPlayer?.lapDone}
           nativeRace={nativeRace} nativeSave={nativeSave} retryNativeSave={retryNativeSave} nativeBestSave={nativeBestSave}
           sceneRaceId={sceneRaceId} requestNativeBest={requestNativeBest} results={results} isNewRecord={isNewRecord}
           bestRecord={bestRecord} missionResult={missionResult} coachingSource={coachingSource} coaching={coaching}
@@ -904,7 +995,7 @@ export default function GamePage() {
           saveError={saveError} saveResult={saveResult} nicknameInput={nicknameInput} setNicknameInput={setNicknameInput}
           replayCode={replayCode} nickname={nickname} difficulty={difficulty} windStrength={windStrength}
           selectedMission={selectedMission} replayDisabled={logSamplesRef.current.length < 5}
-          onMenu={backToMenu} onReplay={() => { trackRaceReplay('result', raceIdRef.current); setGameState('replay'); }} onAgain={openBriefing} />
+          onMenu={backToMenu} onReplay={() => { trackRaceReplay('result', raceIdRef.current); setGameState('replay'); }} onAgain={() => startRace("again")} />
       )}
 
       {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current} onClose={() => {

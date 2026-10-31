@@ -13,7 +13,7 @@ import type { useI18n } from '@/lib/i18n';
 import { tryUpdateBestRecord, type BestRecord } from '@/lib/best-times';
 import { clearRaceSetup } from '@/lib/race-resume';
 import {
-  stepBoat, resolveCollisions, updateLap, raceAutopilotTurn,
+  stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, MIN_BOAT_SEPARATION,
   WIND_DIRECTION_BASE as WIND_DIRECTION,
   calcTWA,
   angleDiff,
@@ -23,7 +23,9 @@ import {
 import { classifyManoeuvre, createManoeuvreState, inNoGoZone, pressedAgainstEdge } from '@/lib/race-manoeuvres';
 import type { Controls } from "@/lib/sailing-physics/types";
 import { raceRanks } from '@/features/race-3d/pose';
-import type { StandingRow, ToastTone } from '@/features/race-hud/RaceHud';
+import type { StandingRow } from '@/features/race-hud/RaceHud';
+import type { FeedbackTone } from '@/features/race-hud/feedback';
+import { TURN_COST, contactCue, createContactCueState, playerTouching, watchTurn } from '@/features/race-hud/race-cues';
 import type { RaceEvent } from '@/features/race-hud/events';
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { evaluateRaceRules, type RaceRuleEvent, type RaceRulesState } from "@/lib/race-rules";
@@ -50,6 +52,7 @@ import { createMissedMarkState, detectMissedMark } from "@/lib/race-missed-mark"
 import { createGroundSpeedWindow, displayedBoatSpeed, recordGroundStep } from "@/lib/race-ground-speed";
 import { pickLocalized } from "@/lib/languages";
 import type { NativeBestSaveState, NativeSaveStatus } from './RaceResults';
+import { finishHoldActive, scheduleFinishedScreen } from './race-finish-hold';
 import {
   localStore, raceLogTally, recordSample, soloRaceWind, sortRaceResults,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type Vec2,
@@ -109,7 +112,6 @@ export interface RaceLoopRefs {
 /** The state setters the loop publishes to; all owned by GameClient. */
 export interface RaceLoopSetters {
   setAutopilotOn: SetState<boolean>;
-  setRuleNotice: SetState<{ text: string; until: number } | null>;
   setPenalty: SetState<number>;
   setStandings: SetState<StandingRow[]>;
   setResults: SetState<RaceResultRow[]>;
@@ -141,13 +143,17 @@ export interface RaceLoopInput {
   tp: I18n["tp"];
   paused: boolean;
   sceneReady: boolean;
-  showEvent: (event: RaceEvent, tone: ToastTone) => void;
+  showEvent: (event: RaceEvent, tone: FeedbackTone) => void;
+  /** M1-3 feedback bus: a rule notice or the missed-mark notice; it no longer hides the race events. */
+  showNotice: (text: string, source: "rule" | "missed-mark", tone: FeedbackTone) => void;
+  /** M1-3: the player's hull touched another boat (the red frame round the scene). */
+  showContact: () => void;
   requestNativeBest: (raceId: string, action?: "request" | "retry") => void;
   refs: RaceLoopRefs;
   set: RaceLoopSetters;
 }
 
-export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, requestNativeBest, refs, set }: RaceLoopInput) {
+export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, refs, set }: RaceLoopInput) {
   const {
     boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
     racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
@@ -156,7 +162,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef,
   } = refs;
   const {
-    setAutopilotOn, setRuleNotice, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
+    setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
     setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setNativeSave,
     setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed,
   } = set;
@@ -177,6 +183,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     // M0-5: per-race memory for the missed-mark notice and the HUD speed at the world edge.
     let missedMark = createMissedMarkState();
     let groundSpeed = createGroundSpeedWindow();
+    // M1-3: per-race memory of the contact frame (edge, cooldown, start jostle).
+    let contact = createContactCueState();
     // M0-4: tacks and gybes are told apart, and wobbles and flips at the edge
     // are not logged. The committed side survives an effect restart via
     // lastTackSignRef, which GameClient resets for each race.
@@ -185,6 +193,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       const refreshHud = now - hudRefreshRef.current >= 100;
       const advanced = clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
       if (ended) return;
+      // A loop restarted during this race's finish hold (M1-4) must not move the boats or the clock.
+      if (isRacing && finishHoldActive(raceIdRef.current)) { ended = true; return; }
       if (isRacing) raceClockRef.current += dt;
 
       const course = courseRef.current;
@@ -245,10 +255,16 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       const playerEvents = checked.events.filter(e => e.boatId === "player" && !isStartJostle(e));
       if (playerEvents.length) {
         const important = playerEvents.find(e => e.penaltySeconds || e.kind === "early-start" || e.kind === "give-way") ?? playerEvents[0];
-        setRuleNotice({ text: copyRef.current.ruleMessage(important), until: raceClockRef.current + 7 });
+        showNotice(copyRef.current.ruleMessage(important), "rule", important.penaltySeconds ? "danger" : "info");
         setPenalty(checked.state.penalties.player ?? 0);
       }
-      if (!physical) resolveCollisions(boats, dt);
+      if (!physical) {
+        // M1-3: a contact begins while the hulls still overlap, before they are pushed apart.
+        const cue = contactCue(contact, { touching: playerTouching(boats, MIN_BOAT_SEPARATION), t: raceClockRef.current, racing: isRacing });
+        contact = cue.state;
+        if (cue.cue) showContact();
+        resolveCollisions(boats, dt);
+      }
       const ghost = ghostTrackRef.current, ghostBoat = ghostBoatsRef.current[0];
       if (ghost && ghostBoat) Object.assign(ghostBoat, ghostPose(ghost, isRacing ? raceClockRef.current : 0));
 
@@ -264,7 +280,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         if (boat.isPlayer && !physical) {
           const missed = detectMissedMark(missedMark, { prevPos, pos: boat.pos, lapDone: boat.lapDone, started: boat.started, course, time: raceClockRef.current });
           missedMark = missed.state;
-          if (missed.missed) setRuleNotice({ text: pickLocalized(langRef.current, MISSED_MARK_NOTICE), until: raceClockRef.current + 7 });
+          if (missed.missed) showNotice(pickLocalized(langRef.current, MISSED_MARK_NOTICE), "missed-mark", "danger");
         }
 
         // The physical fleet already graded its actual travel this tick.
@@ -275,7 +291,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           markTimesRef.current.set(boat.id, t);
           if (boat.isPlayer) {
             const times = [...markTimesRef.current.values()];
-            showEvent({ kind: 'mark', place: times.filter((x) => x <= t).length, gapSec: t - Math.min(...times) }, 'info');
+            const place = times.filter((x) => x <= t).length;
+            showEvent({ kind: 'mark', place, gapSec: t - Math.min(...times) }, place === 1 ? 'success' : 'info');
           }
         }
         if (boat.isPlayer && event === "mark") {
@@ -333,20 +350,18 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           // First-race funnel: the first real tack or gybe.
           if (!physical) trackRaceTack(raceIdRef.current, t);
           playTack();
-          // Its cost: the best speed of the last 3 s against the slowest of the
-          // next 4 s. The boat settles up to a second after it crossed the
-          // wind, so that second counts towards the slowest too.
+          // Its cost: the best speed of the last 3 s against the slowest
+          // after it. The boat settles up to a second after it crossed the
+          // wind, so that second counts towards the slowest too. M1-3: the
+          // cost is told as soon as the slowest is behind the boat (it picks
+          // up again), at most 4 s later (race-cues.ts watchTurn).
           turnRef.current = { kind, t, before: Math.max(...speedLog.map((s) => s.speed)),
             min: Math.min(...speedLog.filter((s) => s.t >= t - 1).map((s) => s.speed)) };
         }
-        const turn = turnRef.current;
-        if (turn) {
-          turn.min = Math.min(turn.min, playerBoat.speed);
-          if (t - turn.t >= 4) {
-            turnRef.current = null;
-            const loss = turn.before - turn.min;
-            if (loss >= 0.2) showEvent({ kind: turn.kind, lossKn: loss }, loss > 1.5 ? 'bad' : 'info');
-          }
+        if (turnRef.current) {
+          const watched = watchTurn(turnRef.current, t, playerBoat.speed);
+          turnRef.current = watched.turn;
+          if (watched.cost) showEvent(watched.cost, watched.cost.lossKn > TURN_COST.bigLossKn ? 'danger' : 'info');
         }
       }
 
@@ -375,7 +390,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         if (rank === shownRankRef.current) pendingRankRef.current = null;
         else if (pendingRankRef.current?.rank !== rank) pendingRankRef.current = { rank, since: elapsedSec };
         else if (elapsedSec - pendingRankRef.current.since >= 1) {
-          showEvent({ kind: rank < shownRankRef.current ? 'gained' : 'lost', place: rank }, rank < shownRankRef.current ? 'good' : 'bad');
+          showEvent({ kind: rank < shownRankRef.current ? 'gained' : 'lost', place: rank }, rank < shownRankRef.current ? 'success' : 'danger');
           shownRankRef.current = rank;
           pendingRankRef.current = null;
         }
@@ -389,6 +404,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       const tooLong = elapsedSec > (physical ? physicalCourseDefinition(physical).maxRaceSeconds : 300);
 
       if (isRacing && (allFinished || playerFinished || tooLong)) {
+        // A loop restarted during this race's finish hold must not end it twice.
+        if (finishHoldActive(raceIdRef.current)) { ended = true; return; }
         const sorted = sortRaceResults(boats, ruleStateRef.current.penalties);
         ended = true;
         setResults(sorted);
@@ -399,7 +416,12 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
             if (raceIdRef.current === completedRaceId) setJudgeDebrief(judge.buildRaceJudgeDebrief(events, options));
           });
         }
-        setGameState('finished');
+        // M1-4: a finish holds the scene with the place plate before the
+        // results replace it; a timeout shows them at once. Everything below
+        // (records, coach, native save, analytics) still runs in this tick.
+        const endedRaceId = raceIdRef.current;
+        scheduleFinishedScreen({ playerFinished, place: sorted.findIndex((r) => r.isPlayer) + 1, total: sorted.length,
+          raceId: endedRaceId, isCurrentRace: () => raceIdRef.current === endedRaceId, setGameState });
         recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
         if (!physical) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
           totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length });

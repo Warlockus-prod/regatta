@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { Children, isValidElement, type ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { findVenue } from "@/data/venues/venues";
@@ -25,7 +26,7 @@ vi.mock("@/features/simulator-3d/Yacht", () => ({ Yacht: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Ocean", () => ({ Ocean: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Wake", () => ({ Wake: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Backdrop", () => ({ terrainGeometry: () => null }));
-import { STANDARD_COURSE, World } from "./Race3DView";
+import { GUIDANCE_COLOR, LOADING_COLOR, STANDARD_COURSE, World } from "./Race3DView";
 
 const customCourse = (): Race3DCourse => ({
   marks: [{ pos: { x: 91, y: 30 }, type: "start" }, { pos: { x: 131, y: 30 }, type: "start" }, { pos: { x: 75, y: -330 }, type: "windward" }],
@@ -80,5 +81,15 @@ describe("live course world geometry", () => {
     hooks.frames[0]();
     expect(geometry(renderWorld(nextRef)).lines).toHaveLength(2);
     expect(hooks.updates).toBe(3);
+  });
+});
+
+// M1-7: cyan marks actions only; the next-mark pointer and the loading ring are guidance.
+describe("race 3D colours", () => {
+  it("draws the next-mark pointer and the loading ring without the action cyan", () => {
+    const source = readFileSync(new URL("./Race3DView.tsx", import.meta.url), "utf8");
+    expect(source).not.toMatch(/#00d4ff|0, ?212, ?255/i);
+    expect(GUIDANCE_COLOR).toBe("#76c9e9");
+    expect(LOADING_COLOR.toLowerCase()).not.toBe("#00d4ff");
   });
 });

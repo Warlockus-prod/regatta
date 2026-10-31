@@ -1,0 +1,40 @@
+/* M1-3 feedback layer over the race scene. Stacking inside the scene: corner
+   instruments 2, floating portrait notice 4, this layer 6, pause sheet 8,
+   status row 9. It never takes a tap, so it cannot cover a control. */
+.layer { position:absolute; inset:0; z-index:6; pointer-events:none; }
+
+/* Toasts sit near the boat: the race camera keeps the boat just below the
+   middle (src/features/race-scene/camera.ts), so the stack starts under the
+   status row and the corner instruments and grows down towards the boat. */
+.toasts { position:absolute; left:50%; transform:translateX(-50%); top:max(calc(var(--race-status-h,52px) + 16px + clamp(64px,32cqh,112px)), 26%); width:min(360px, calc(100% - 32px)); display:flex; flex-direction:column; align-items:center; gap:8px; }
+/* A short landscape scene: the stack goes up between the two top corners. */
+@container (max-height:480px) { .toasts { top:calc(var(--race-status-h,52px) + 8px); width:max(200px, min(320px, calc(100% - 272px))); } }
+.toast { margin:0; max-width:100%; padding:10px 14px; border:1px solid var(--border-subtle); border-left-width:4px; border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); font-size:16px; line-height:24px; font-weight:600; text-align:center; overflow-wrap:anywhere; box-shadow:0 6px 18px rgb(0 0 0 / .3); }
+/* Tones are success and danger, never cyan (cyan means an action). */
+.toast[data-tone=success] { border-left-color:var(--success); }
+.toast[data-tone=danger] { border-left-color:var(--danger); }
+.toast[data-tone=info] { border-left-color:var(--text-muted); }
+
+/* The big start countdown in the middle of the scene, white over the water in
+   both themes (the 3D scene is not themed). No animation. */
+.countdown { position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.countdown span { min-width:1.4em; padding:0 .2em; font-size:clamp(64px,24cqmin,128px); line-height:1; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; color:#fff; text-shadow:0 2px 12px rgb(0 0 0 / .55); }
+
+/* Contact: a red frame round the scene. It flashes out only when motion is
+   allowed; under prefers-reduced-motion it is a static frame for its time. */
+.contact { position:absolute; inset:0; border:4px solid var(--danger); }
+@media (prefers-reduced-motion:no-preference) {
+  .contact[data-motion=flash] { animation:contactFlash .9s ease-out forwards; }
+}
+@keyframes contactFlash { from { opacity:1; } to { opacity:0; } }
+
+/* Speed against the polar target in the status row: green on the polar,
+   amber when clearly slow; the plain text colour in between. */
+.speedValue[data-target=on] { color:var(--success); }
+.speedValue[data-target=below] { color:var(--warning); }
+.target { font-size:12px; color:var(--text-secondary); }
+/* Under 420 px of scene the status row has no room for "/ 6.0" (measured: the
+   sound switch was cut at 320 and 375 px). The colour still tells on/below
+   target; the number stays for screen readers. The scene is the container. */
+@container (max-width:419px) { .target { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; } }
+.srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }

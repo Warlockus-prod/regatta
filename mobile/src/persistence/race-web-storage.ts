@@ -10,6 +10,10 @@ export const RACE_WEB_STORAGE_KEYS = [
   "regatta.race.camera.v1", "regatta.race.mode.v1", "regatta.race.assists.v1",
   "regatta.venue.v1", "regatta.shore.v1",
   "regatta.muted.v1",
+  // M1-1: the race remembers which course briefings this device has seen.
+  "regatta.race.briefing-seen.v1",
+  // M1-5: race sound on/off, separate from the trainer wheel clicks (src/lib/sounds.ts).
+  "regatta.race.sound.v1",
 ] as const;
 export type RaceWebStorage = Record<string, string | null>;
 

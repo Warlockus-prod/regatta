@@ -2,6 +2,7 @@
 // cost of a tack or gybe, the split at the windward mark, an overtake.
 
 import type { Lang as Language } from "@/lib/languages";
+import { gapText, knotsText } from "./units";
 
 export type RaceEvent =
   | { kind: "tack" | "gybe"; lossKn: number }
@@ -32,16 +33,15 @@ const T = {
   lost: { ru: "Тебя обошли: ты", en: "Passed: you're", pl: "Wyprzedzili cię: jesteś", es: "Te han adelantado: vas", fr: "Doublé : tu es", de: "Überholt worden: Du bist", it: "Ti hanno superato: sei" },
 } as const;
 
-const sec = (lang: Language) => (lang === "ru" ? "с" : "s");
 const colon = (lang: Language) => (lang === "fr" ? " :" : ":");
 
 export function eventText(lang: Language, e: RaceEvent): string {
   switch (e.kind) {
     case "tack":
     case "gybe":
-      return `${T[e.kind][lang]}${colon(lang)} -${e.lossKn.toFixed(1)} kn`;
+      return `${T[e.kind][lang]}${colon(lang)} -${knotsText(lang, e.lossKn)}`;
     case "mark":
-      return e.place === 1 ? T.markFirst[lang] : `${T.mark[lang]}${colon(lang)} ${ordinal(lang, e.place)}, +${e.gapSec.toFixed(1)} ${sec(lang)}`;
+      return e.place === 1 ? T.markFirst[lang] : `${T.mark[lang]}${colon(lang)} ${ordinal(lang, e.place)}, ${gapText(lang, e.gapSec)}`;
     case "gained":
     case "lost":
       return `${T[e.kind][lang]} ${ordinal(lang, e.place)}`;

@@ -238,12 +238,57 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/game/RaceResults.tsx` - экран финиша `/game`: место и время, разбор судьи, таблица флота, миссия, коуч, сохранение в лидерборд, ссылка на повтор.
 - `src/app/game/RaceScreens.test.tsx` - статический рендер брифинга и финиша (testid, тексты, выбор трассы пробной гонки, сход, статус нативного сохранения).
 - `src/app/game/GameClient.loop.test.tsx` - GameClient вызывает `useRaceLoop` один раз за рендер с состоянием гонки и теми же refs, которые пишут команды кабины (руль, курс и автопилот, трим, пауза).
+- `src/app/game/race-mode-labels.ts` - подписи Обычный / Pro на 7 языках, отдельным модулем, чтобы таблица лучших не тянула все тексты гонки; `src/app/game/race-copy.ts` реэкспортирует их.
+- `src/components/bundle-dedupe.test.ts` - стережет дедупликацию клиентского бандла: рантайм next/dynamic остается в корневом layout через `src/components/ClientErrorReporter.tsx`, таблица лучших не импортирует `src/app/game/race-copy.ts`.
+- `src/app/game/GameClient.feedback.test.tsx` - GameClient sends loop events, rule and missed-mark notices and contacts into the bus and the bus into the cockpit
+- `src/app/game/GameClient.layer.test.tsx` - the actual GameClient: 100dvh in countdown/race/replay, header-height layout elsewhere, Restart wired to a new countdown
+- `src/app/game/GameClient.setup.test.tsx` - actual race page wiring: lobby start, "i", briefing start marking the course seen, "Again" straight to the countdown
+- `src/app/game/GameMenu.test.tsx` - lobby static render on the site and in the app: one primary start, "i" button, no duplicate mode/venue in the app
+- `src/app/game/LobbyVenues.tsx` - race lobby venue cards (shore palette strip, name, place) and shore switch on the site, same storage as useVenue
+- `src/app/game/RaceCockpit.feedback.test.tsx` - cockpit: countdown over the scene and not in the dock notice, bus in the scene, speed against target in 3 languages, CSS motion and colour rules
+- `src/app/game/RaceFinishPlate.tsx` - the small place plate over the 3D scene during the finish hold (RaceFinishHoldPlate is mounted by GameClient)
+- `src/app/game/RaceFinishSlots.tsx` - empty slots on the result screen for M4 (skill bars, Watch, Practise); render nothing today
+- `src/app/game/RacePauseSheet.tsx` - pause sheet over the dimmed scene: Continue, Restart, Race settings, Full screen, Exit with confirmation
+- `src/app/game/race-finish-hold.test.ts` - tests of the finish hold: the scene holds after a finish, no hold after a timeout, an exit or a new race is never undone
+- `src/app/game/race-finish-hold.ts` - M1-4 finish hold: FINISH_HOLD_MS (2.5 s), the plate store and scheduleFinishedScreen(), which the race loop calls instead of setGameState('finished') (a timeout shows the results at once)
+- `src/app/game/race-finish-summary.test.ts` - tests of the result numbers, gap and place formatting, and that every text exists in 7 languages
+- `src/app/game/race-finish-summary.ts` - result screen numbers and 7-language texts: place, gap to the winner, difference to the record, place ordinals, DNF texts and tips
+- `src/app/game/race-fullscreen.test.ts` - full-screen support detection and the offered-once flag
+- `src/app/game/race-fullscreen.ts` - desktop full-screen offer: support check, click-only request, offered-once flag `regatta.race.fullscreen-offer.v1`
+- `src/app/game/race-layer.test.ts` - game-layer phases and pause keys
+- `src/app/game/race-layer.ts` - which race phases use the game layer (countdown, racing, replay) and the desktop Esc/P pause-key rule
+- `src/app/game/race-pause-copy.ts` - 7-language texts of the race status row and the pause sheet (kept outside the pinned useRaceCopy)
+- `src/app/game/race-prefs.ts` - Simple/Pro and assistance preferences of the race, plus the `useRaceSound()` hook for race sound (M1-5).
+- `src/app/game/race-setup-flow.test.ts` - routing table for start/info/again/restart/resume, per-course seen storage, malformed and throwing storage, hand-off rule
+- `src/app/game/race-setup-flow.ts` - one race setup (M1-1): where a start request goes (briefing or countdown), the per-device seen-briefing record (`regatta.race.briefing-seen.v1`, try/catch plus session memory) and the app hub hand-off rule
+- `src/app/leaderboard/LeaderboardTable.tsx` - один список мест: медали вместо эмодзи, переносимые ники, своя строка без циана, штраф в единицах языка.
+- `src/app/leaderboard/leaderboard-copy.ts` - тексты таблицы лучших на 7 языках (tl).
+- `src/app/leaderboard/leaderboard-model.ts` - запросы таблицы лучших (классифицированный режим, результаты без режима, миссия) и формат времени.
+- `src/app/leaderboard/leaderboard.test.tsx` - режимы не смешиваются в одной таблице, 7 языков, цели 44 px, без обрезки, эмодзи и циана.
+- `src/components/game-layer.test.tsx` - game layer claim/release and the header hidden only while claimed
+- `src/components/game-layer.ts` - M1-2 game-layer store: the race claims the viewport (claimGameLayer), Navigation hides the site header (useGameLayer), mirrored as `data-game-layer` on <body>
+- `src/features/race-hud/RaceFeedbackLayer.module.css` - feedback layer styles: toast stack position and tones, big start countdown, contact frame (flash only with prefers-reduced-motion: no-preference), speed against target colours
+- `src/features/race-hud/RaceFeedbackLayer.tsx` - layer over the race scene: toasts near the boat (live region) and the red contact frame; no hooks, no taps
+- `src/features/race-hud/RaceHud.test.tsx` - SpeedCard пишет знак узлов на языке игрока (уз, w., nd, kn).
+- `src/features/race-hud/RaceIcons.test.tsx` - иконки локальные, в currentColor, скрыты от экранного диктора; медаль с локализованным названием места.
+- `src/features/race-hud/RaceIcons.tsx` - line SVG icons for the race screens instead of emoji (trophy, check, alert, hint, compass, share, replay, flag, target, numbered medal), aria-hidden, currentColor; now used by RaceResults, RaceBriefing and GameMenu
+- `src/features/race-hud/RaceSoundToggle.test.tsx` - static render test of the race sound toggle: languages, aria-pressed, 44 px, cyan only while on.
+- `src/features/race-hud/RaceSoundToggle.tsx` - race sound toggle: 44 px button with a speaker icon, name in 7 languages, aria-pressed, cyan only while on; icon-only for the status row, a row with text for the pause sheet.
+- `src/features/race-hud/boat-colors.test.ts` - проверка цветов лодок по токенам globals.css: не акцент, контраст 3:1, различимость игрока при протанопии, дейтеранопии и тританопии.
+- `src/features/race-hud/boat-colors.ts` - цвета лодок гонки: фиолетовый игрока PLAYER_COLOR и шесть цветов флота FLEET_COLORS; не циан, контраст 3:1 на темной и светлой теме, игрок отличим от флота и при дальтонизме (M1-7).
+- `src/features/race-hud/feedback.test.ts` - bus contract: ordering, priorities, queue and expiry, same-source replacement, reduced motion
+- `src/features/race-hud/feedback.ts` - race feedback bus (M1-3): toasts with source, priority, tone and duration; up to 2 on screen in priority order, a short queue, the contact frame (flash or still under reduced motion); pure
+- `src/features/race-hud/race-cues.test.ts` - tack cost reported at the minimum in a real stepBoat tack; contact once per contact, not in the start jostle
+- `src/features/race-hud/race-cues.ts` - when the solo race raises a cue: the cost of a tack at the speed minimum (watchTurn), the contact frame (playerTouching, contactCue with cooldown and start jostle silence)
+- `src/features/race-hud/speed-target.ts` - speed against the polar target (on, near, below, none) and the translated target speed label
+- `src/features/race-hud/units.ts` - знаки единиц гонки на 7 языках (уз / w. / nd / kn, с / s, м / m) и форматтеры скорости, дистанции, штрафа и отрыва; единый источник для race-copy, navigation-copy и текстов событий (M1-7).
+- `src/features/race-hud/useRaceFeedback.ts` - React hook for the bus: state, post, contact, clear, one timer to the next change
 - `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
-- `src/app/game/GameMenu.tsx` - меню гонки: три режима (первая гонка, свободная, миссия), вид 2D/3D, акватория, кнопка старта.
+- `src/app/game/GameMenu.tsx` - race lobby (M1-6): race frame image (site), presets, free/mission choices, mode picker (site) or read-only mode (app), venue cards, one sticky primary start plus an "i" briefing button
 - `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
 - `src/app/multiplayer/page.tsx` - серверная обертка мультиплеера.
 - `src/app/multiplayer/MultiplayerClient.tsx` - лобби, код комнаты, гонка по WebSocket.
-- `src/app/leaderboard/page.tsx` - лучшие времена по бакетам и дневной вызов.
+- `src/app/leaderboard/page.tsx` - таблица лучших: Обычный и Pro в отдельных таблицах свободной гонки, результаты без записанного режима отдельным свернутым списком, миссии с пометкой; раскладка на 390 px.
 - `src/app/r/[code]/page.tsx` - страница реплея по 6-символьному коду.
 - `src/app/r/[code]/ReplayViewer.tsx` - проигрыватель реплея с таймлайном.
 - `src/app/stats/page.tsx` - вход в админку, за basic-auth из `src/proxy.ts` и повторной проверкой `checkAdminAuth()` в самой странице (без нее 404).
@@ -729,7 +774,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
 - `src/lib/theme.test.ts` - saved/system/native theme resolution и фактическое исполнение prepaint bootstrap, включая theme-color.
 - `src/components/ThemeManager.test.tsx` - route/system/storage/native events, живое применение и очистка listeners без reload.
-- `src/lib/sounds.ts` - процедурные звуки на WebAudio, уважают общий mute.
+- `src/lib/sounds.ts` - race sound signals on Web Audio (no files) and the race sound setting `regatta.race.sound.v1`, separate from the wheel clicks: on by default, an old race mute stays muted, AudioContext only from a user gesture and only while sound is on, master volume 0.5, ambient audio session where supported (silent switch).
 - `src/lib/race-physics.ts` - гонка `/game`, мультиплеера и мобильного AI: шаг лодки через движок, ворота огибания (`updateLap`), подсказка игроку (`raceWaypoint`) автопилот ботов (`raceAutopilotTurn`: петли по дистанции, сброс скорости перед знаком, повторный круг при промахе; `DECISIONS.md` ADR-0003) и столкновения (`resolveCollisions`: расталкивают всегда, скорость гасят только при сближении, финишировавшие не участвуют; ADR-0004); сложность ботов через `speedMul` в `stepBoat` (ADR-0007). Остатки аркадной модели (`speedFactorFromTWA`, `MAX_SPEED`) - долг Phase 3.
 - `src/lib/race-physics.drift.test.ts` - паритет `ws-server/race-physics.js` и `src/lib/race-physics.ts`: константы, ветер, шаг лодки, курс и огибание знаков совпадают.
 - `src/lib/race-course.test.ts` - тесты дистанции гонки (знаки, линия) и автопилота: все 19 стартовых мест сервера вовремя и с фальстартом, 120 разных стартов, заход ветра в слабый, обычный и сильный ветер с отсечкой 300 с, повторная гонка той же лодкой; столкновения: касание бортами, таран, финишировавшие, флот из 8 ботов до отсечки 300 с; сложность ботов (легкий заметно медленнее среднего, средний медленнее сложного).
@@ -1065,7 +1110,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `mobile/plugins/with-local-radio-speech.js` applies version/assertion-checked SDK54 native volume and local recognition patches, including the selected-locale probe. All recognition anchors are checked before either native source is written. Fresh prebuild and binary are required. `mobile/__tests__/local-radio-speech.test.ts` and `mobile/__tests__/local-radio-speech-plugin.test.ts` protect permission hydration, cancellation, bounds, capability/dialect gates and patch idempotence/atomic rejection.
 
 - `src/app/multiplayer/MultiplayerCockpit.tsx` and `src/app/multiplayer/MultiplayerCockpit.module.css` reserve server-driven race scenery and common helm controls. Online sailing remains automatically trimmed because the authoritative protocol accepts helm input only.
-- `src/app/multiplayer/presentation.ts` adapts server snapshots to shared scene poses without client-side stepping; `src/app/multiplayer/presentation.test.ts` protects identity, coordinates, input and render immutability.
+- `src/app/multiplayer/presentation.ts` adapts server snapshots to shared scene poses without client-side stepping; its FLEET_COLORS is the shared race palette from `src/features/race-hud/boat-colors.ts` (no cyan, M1-7). `src/app/multiplayer/presentation.test.ts` protects identity, coordinates, input and render immutability.
 - `src/lib/best-times.test.ts` separates manual Pro records from existing auto-trim records while keeping old saved buckets readable.
 - `src/lib/race-clock.test.ts` verifies identical solo integration at 10/15/30/60/120 FPS and pause/background handling through the shared fixed clock.
 - `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options and plans saved briefing restarts with recorded mode and known mission conditions. Explicit activity links suppress stale offers; unknown missions stay unavailable. `src/lib/race-setup.test.ts` protects these contracts and the unchanged wind multipliers.
@@ -1113,6 +1158,10 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
 - `mobile/src/simulator/race-shell.ts` - native shell for race WebViews (M0-7): no back swipe on /game and /multiplayer, left/right safe-area padding for the full-screen race and native overlays (spinner, Retry, memory notice) offset by the same insets, keep-awake through the linked ExpoKeepAwake native module, one automatic reload to the race menu after the web content process is killed.
 - `mobile/__tests__/race-shell.test.tsx` - race shell: landscape side insets, overlay offsets, gestureEnabled false, keep-awake on and off, reload to the race menu after the iOS/Android web process dies, no reload loop.
+- `mobile/__tests__/race-hub-setup.test.tsx` - hub start routes, hand-over through raceEntryQuery, presses in the rendered hub
+- `mobile/__tests__/race-sound-storage.test.ts` - the race sound row crosses the WebView storage bridge and is kept in AsyncStorage between app launches.
+- `mobile/src/navigation/RaceSetupPanel.tsx` - app Race hub setup panel (preset, level and wind, or mission radios, 44 pt targets)
+- `mobile/src/navigation/race-setup.ts` - app Race hub setup: presets, route built for the race (`/game?difficulty&wind` or `?mission`), 7-language labels
 - `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage; race surfaces use `mobile/src/simulator/race-shell.ts` (onContentProcessDidTerminate on /game reloads once instead of going straight to Retry); validated sail lesson return dismisses the practice route so the following Back reaches the original outline.
 
 Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, sailing learning, shared replay, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. `ops/deploy/test_deploy.py` locks the prepublication suite selection, loopback target, absence of deploy secrets and main-only publication/deployment conditions. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged. The expanded browser gate must still run on the combined source candidate before another publication.
@@ -1183,7 +1232,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/lib/learning/foundation-drawings.ts` - исходная чистая геометрия учебных схем для обеих платформ.
 - `src/lib/learning/foundation-progress.ts` - новое ограниченное web evidence; старое completed означает просмотр, не сдачу.
 - `src/lib/product/learning-web.test.ts` - продолжение и честные счетчики сайта с сохранением legacy данных.
-- `src/lib/sounds.test.ts` - одна настройка звука управления/гонки, legacy migration и native injection.
+- `src/lib/sounds.test.ts` - race sound tests: on by default, old muted users stay muted, separate from the wheel clicks, persistence, nothing before a gesture, nothing while muted.
 
 - `src/lib/race-startup.ts` - готовность относится к конкретной гонке; до первого отправленного кадра нет отсчета или движения.
 - `src/lib/race-startup.test.ts` - загрузка не превращается во время simulation, устаревший callback не запускает новую гонку.

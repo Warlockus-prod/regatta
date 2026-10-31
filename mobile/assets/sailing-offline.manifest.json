@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "89f068ffc1ae",
-  "sha256": "d53b1c450bfb75cc17567636b0d7766dd598f41b6cbaa31c1748e611c3733d57",
-  "bytes": 6693465,
+  "version": "b386cc04eaea",
+  "sha256": "7b52de1dc60e9d35e65e29d796cd3dd95676b3355d73aaf3677865c5d045c587",
+  "bytes": 6737810,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -595,16 +595,27 @@
     "src/app/anatomy/page.tsx",
     "src/app/game/GameClient.tsx",
     "src/app/game/GameMenu.tsx",
+    "src/app/game/LobbyVenues.tsx",
     "src/app/game/RaceBriefing.tsx",
     "src/app/game/RaceCockpit.module.css",
     "src/app/game/RaceCockpit.tsx",
+    "src/app/game/RaceFinishPlate.tsx",
+    "src/app/game/RaceFinishSlots.tsx",
     "src/app/game/RaceJudgeReview.tsx",
+    "src/app/game/RacePauseSheet.tsx",
     "src/app/game/RaceReplay.tsx",
     "src/app/game/RaceResults.tsx",
     "src/app/game/config.ts",
     "src/app/game/race-copy.ts",
+    "src/app/game/race-finish-hold.ts",
+    "src/app/game/race-finish-summary.ts",
+    "src/app/game/race-fullscreen.ts",
+    "src/app/game/race-layer.ts",
+    "src/app/game/race-mode-labels.ts",
     "src/app/game/race-model.ts",
+    "src/app/game/race-pause-copy.ts",
     "src/app/game/race-prefs.ts",
+    "src/app/game/race-setup-flow.ts",
     "src/app/game/replay-copy.ts",
     "src/app/game/useRaceLoop.ts",
     "src/app/simulator/page.tsx",
@@ -616,6 +627,7 @@
     "src/components/diagnostics/DiagnosticAccess.tsx",
     "src/components/diagnostics/DiagnosticPanel.tsx",
     "src/components/diagnostics/DiagnosticPanelLoader.tsx",
+    "src/components/game-layer.ts",
     "src/data/anatomy.ts",
     "src/data/bootcamp.ts",
     "src/data/drills.ts",
@@ -651,12 +663,23 @@
     "src/features/race-3d/useRaceView.ts",
     "src/features/race-hud/RaceCornerInstruments.module.css",
     "src/features/race-hud/RaceCornerInstruments.tsx",
+    "src/features/race-hud/RaceFeedbackLayer.module.css",
+    "src/features/race-hud/RaceFeedbackLayer.tsx",
+    "src/features/race-hud/RaceIcons.tsx",
     "src/features/race-hud/RaceOverviewMap.tsx",
+    "src/features/race-hud/RaceSoundToggle.tsx",
     "src/features/race-hud/RaceWindInstrument.module.css",
     "src/features/race-hud/RaceWindInstrument.tsx",
+    "src/features/race-hud/boat-colors.ts",
     "src/features/race-hud/events.ts",
+    "src/features/race-hud/feedback.ts",
     "src/features/race-hud/navigation-copy.ts",
     "src/features/race-hud/navigation-model.ts",
+    "src/features/race-hud/race-cues.ts",
+    "src/features/race-hud/speed-target.ts",
+    "src/features/race-hud/target.ts",
+    "src/features/race-hud/units.ts",
+    "src/features/race-hud/useRaceFeedback.ts",
     "src/features/race-scene/RaceScene.tsx",
     "src/features/race-scene/SailingEnvironment.tsx",
     "src/features/race-scene/camera.ts",
@@ -783,7 +806,6 @@
     "src/features/trainer-controls/prefs.ts",
     "src/features/trainer-controls/sound-copy.ts",
     "src/features/trainer-controls/sound.ts",
-    "src/features/venues/VenuePicker.tsx",
     "src/features/venues/useVenue.ts",
     "src/lib/ads-copy.ts",
     "src/lib/ads-preview.ts",
@@ -885,43 +907,63 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 57613,
-      "sha256": "20d71aa3ee404201fbe8c1668cec88e117f3d1d31c93ebfaa650f0f46f8205ab"
+      "bytes": 63332,
+      "sha256": "f9fc5c5cc8547ff1ef99cbac8a9d4022a059df5126ee05be288375c5d17e873d"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
-      "bytes": 23234,
-      "sha256": "b883bce32e0ca84956eac95d5cbec34eef2482adf969db281fe87c1bcb87d0e7"
+      "bytes": 21969,
+      "sha256": "afddaf3c8aa04d245777620ee38f7a38a77672213a9e642de4d6335bacbb996d"
+    },
+    {
+      "path": "src/app/game/LobbyVenues.tsx",
+      "bytes": 2600,
+      "sha256": "be10d2932e684d0b0826d6630af045301a9eb96ae7f49155515a6908a6dc998d"
     },
     {
       "path": "src/app/game/RaceBriefing.tsx",
-      "bytes": 18553,
-      "sha256": "95dc3423fb5a61247a1af2a69930f3dd449559fa093ee73758a02d7d928f3c50"
+      "bytes": 21458,
+      "sha256": "0888c0e764dbbf29436e3a101fcd16523951ac4f9c730650d9ba1d0be0befe8c"
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 7990,
-      "sha256": "959d96316c8dd0abe1532a84beef152f9eab91bac747a86cfd9bf2187d30a211"
+      "bytes": 13391,
+      "sha256": "fef0a042b1a7d106034618f58e7d0910a2a6028106d7703ca54bc65f1cd363e4"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 12263,
-      "sha256": "1abf3e7cb7e6a58fb5bf67ed5f48cc4b7543f09bc325aa99bf29da0181b53813"
+      "bytes": 17696,
+      "sha256": "a130d75a72f6fed5a86a52dd8e660b7d7798bb985dc459cc761e3f2d60a47230"
+    },
+    {
+      "path": "src/app/game/RaceFinishPlate.tsx",
+      "bytes": 1958,
+      "sha256": "47aca75222a1444fbdda066257a1c14c361bd3662fe05bfc61596e720b086354"
+    },
+    {
+      "path": "src/app/game/RaceFinishSlots.tsx",
+      "bytes": 661,
+      "sha256": "2fbc9eb9c5e86eff4bc49699b182833e496691463d27813b424e2d115f0ec914"
     },
     {
       "path": "src/app/game/RaceJudgeReview.tsx",
-      "bytes": 5122,
-      "sha256": "85e4c04dbc1f8c8c5d2c4cbd023fa57b9edfb41624e3808f82cada58653261ce"
+      "bytes": 5402,
+      "sha256": "889d66318d44893c1a07208edfabc74f1be27c43c4edb2bdf5579d3d1a019218"
+    },
+    {
+      "path": "src/app/game/RacePauseSheet.tsx",
+      "bytes": 2948,
+      "sha256": "df731fe2a07ab6000c19a5272fcfaf266c34c82de89c2ee33f797a86cf0e9890"
     },
     {
       "path": "src/app/game/RaceReplay.tsx",
-      "bytes": 6324,
-      "sha256": "4577f63502e07b468c9fd24903aa9bab7d81af4e27faec9ece32b0d4370029c7"
+      "bytes": 6260,
+      "sha256": "83b26ec434c4865a9bee6a5169e35f98b2230df67852ca098b6991bfd4115533"
     },
     {
       "path": "src/app/game/RaceResults.tsx",
-      "bytes": 34069,
-      "sha256": "130101439b026fc65eb6857b0e7d4ccf8dff47137754272e99cbe3e08e90d528"
+      "bytes": 39412,
+      "sha256": "558d61462a316ff0758b874cd8dde575b92db5b29c20619d9a9d65574ea29a7e"
     },
     {
       "path": "src/app/game/config.ts",
@@ -930,28 +972,63 @@
     },
     {
       "path": "src/app/game/race-copy.ts",
-      "bytes": 18429,
-      "sha256": "a2cfa7622fcb1fe7e245b912d4ce9f1d184a2fd6fec31bb3c33aa1a03f55e80f"
+      "bytes": 19688,
+      "sha256": "e455a0383ac33aba8dedd75184c1ff629991567977599c8acc6fbdb44c0f4f7e"
+    },
+    {
+      "path": "src/app/game/race-finish-hold.ts",
+      "bytes": 3250,
+      "sha256": "e95d369fc33976c6fd58b89b0caa7be49314b838cb34d88483c9671d401c8705"
+    },
+    {
+      "path": "src/app/game/race-finish-summary.ts",
+      "bytes": 13678,
+      "sha256": "261fe1a0531d0fb46cd9ecb642e30e4f4257d6669de7e0c6a933665289ec36b2"
+    },
+    {
+      "path": "src/app/game/race-fullscreen.ts",
+      "bytes": 2235,
+      "sha256": "1f38f17135197eb20db9728dfd16fc4d438ee57681f6490d8342d0b4c59bd4e7"
+    },
+    {
+      "path": "src/app/game/race-layer.ts",
+      "bytes": 1370,
+      "sha256": "4a9cedaaf48cd5b1bb6a2f2a5898089932311068ea299262c473066d04bc6be0"
+    },
+    {
+      "path": "src/app/game/race-mode-labels.ts",
+      "bytes": 589,
+      "sha256": "3d4392f0e2bfc368220d25c64c7f3a4cdf39a7ccc0e10214d56a3d73f49ca06d"
     },
     {
       "path": "src/app/game/race-model.ts",
-      "bytes": 7880,
-      "sha256": "dcc0a3b3c0ff1affccb43496b4aa7a8ef347b995ea9e2321d5cf32ab0b70a40e"
+      "bytes": 8111,
+      "sha256": "e070badc4f46098bde9474b4adade3bcf57756a6f0f810c345d0a2c204710505"
+    },
+    {
+      "path": "src/app/game/race-pause-copy.ts",
+      "bytes": 2868,
+      "sha256": "d86d667e13d5f17be9220dde1a7be3e50fb75620686ddc3b92efcbc41d166dcf"
     },
     {
       "path": "src/app/game/race-prefs.ts",
-      "bytes": 3406,
-      "sha256": "b1f2e1506d32114d3e2ca31cfef55c3213571be3ce6b31f3497b5ed6810d5aea"
+      "bytes": 4051,
+      "sha256": "79a24ade99526a40d12e391d9762ddd4a8b14df609543c3f1ecf338dd86e85bc"
+    },
+    {
+      "path": "src/app/game/race-setup-flow.ts",
+      "bytes": 3149,
+      "sha256": "04d517ea53a1687dd2743aa245cd9dd90dcb6a401599acf652756e00fb48958e"
     },
     {
       "path": "src/app/game/replay-copy.ts",
-      "bytes": 1999,
-      "sha256": "ee6370f126a3e70a085d55f54bcf87e4fa219a5efe2037a61eabf022961e880f"
+      "bytes": 2370,
+      "sha256": "2f62c389f706a1a627e8296b281381b5115c6bf5da52cebe30da1636d4762bf5"
     },
     {
       "path": "src/app/game/useRaceLoop.ts",
-      "bytes": 32887,
-      "sha256": "971c5d78cef36e900202ccd3c5e302b4f5bd73bac29209407b82d175a615accd"
+      "bytes": 34779,
+      "sha256": "cceaa214a6fe78307813184f9b5bb905f133076f0d6b7b53e4bacb63ceebbccf"
     },
     {
       "path": "src/app/globals.css",
@@ -1002,6 +1079,11 @@
       "path": "src/components/diagnostics/DiagnosticPanelLoader.tsx",
       "bytes": 348,
       "sha256": "0e6896f34ecc469c873ce813d8f3ff4c48c5a18866db8c862e58e09639882b8c"
+    },
+    {
+      "path": "src/components/game-layer.ts",
+      "bytes": 1769,
+      "sha256": "982337dc0e69c3567e6a09056bb274b321e74aa6761e40b32ccd947cad97c748"
     },
     {
       "path": "src/data/anatomy.ts",
@@ -1155,8 +1237,8 @@
     },
     {
       "path": "src/features/race-3d/Race3DView.tsx",
-      "bytes": 29045,
-      "sha256": "9ecbe40dfc305e86535fbdfa45b70ecb160b19b8c30e81cdf7e1e9a81e71a139"
+      "bytes": 29373,
+      "sha256": "e1a028ccf82eb8150a74b47a95918cf342d3ef8c55e9e5a70410aef3087dc137"
     },
     {
       "path": "src/features/race-3d/pose.ts",
@@ -1179,9 +1261,29 @@
       "sha256": "a759e2d1356d9ad2a36e4d4ebb353b15ddfab67d317013916dd1192cbcd1a140"
     },
     {
+      "path": "src/features/race-hud/RaceFeedbackLayer.module.css",
+      "bytes": 3317,
+      "sha256": "47684cdfab6954d19986a0bae16650ed4a5313d4337202d30eed3337bba93cd6"
+    },
+    {
+      "path": "src/features/race-hud/RaceFeedbackLayer.tsx",
+      "bytes": 1175,
+      "sha256": "6ebe8f53c1285f2efea839a8417638366360259feb62bd0c234f0c24ca5069cb"
+    },
+    {
+      "path": "src/features/race-hud/RaceIcons.tsx",
+      "bytes": 3242,
+      "sha256": "50e61ebae25a830e745608f1556c95ce58c6d1cc594367e0904c600bf15714d7"
+    },
+    {
       "path": "src/features/race-hud/RaceOverviewMap.tsx",
-      "bytes": 5480,
-      "sha256": "1e330084b02b4470ae1ae2da8763eb5590ae7f26bca8ea4753873b2d382e2d07"
+      "bytes": 5889,
+      "sha256": "68dbc1fed937b9975e08a15a21c50822cd1f94fae12cfca0adc874d65cc12f03"
+    },
+    {
+      "path": "src/features/race-hud/RaceSoundToggle.tsx",
+      "bytes": 2648,
+      "sha256": "efbbb683ae257692d5c65cb70f9fa115e4febfc2453afde69b5ab64266e85cb6"
     },
     {
       "path": "src/features/race-hud/RaceWindInstrument.module.css",
@@ -1190,23 +1292,58 @@
     },
     {
       "path": "src/features/race-hud/RaceWindInstrument.tsx",
-      "bytes": 4196,
-      "sha256": "02cb5a675319d4f8bf8a6f26d307e312cf44b068638e98ee36748f060dd56b9e"
+      "bytes": 4197,
+      "sha256": "7df47143eb21acd49a3ae67bcc771df8e822a945df38f646d5c609fadf4f3051"
+    },
+    {
+      "path": "src/features/race-hud/boat-colors.ts",
+      "bytes": 1135,
+      "sha256": "44a8c2d6f4e07d959dffa59c0f8d0ef1885237c2d914edcfe869d5f956c12bc8"
     },
     {
       "path": "src/features/race-hud/events.ts",
-      "bytes": 2481,
-      "sha256": "6d7da75dd673514085705f8ac4bf1b1aa267c2dd7cdc904f65a7cb88c14bd692"
+      "bytes": 2458,
+      "sha256": "5c45cfdfedda31a8d34ee3a5980da731eb39a13df8eb00f97a3514e07549663b"
+    },
+    {
+      "path": "src/features/race-hud/feedback.ts",
+      "bytes": 7869,
+      "sha256": "7efd554f1ac45a685942deecbb81a0ccb3c1401be5069a94019ae213ce59aa07"
     },
     {
       "path": "src/features/race-hud/navigation-copy.ts",
-      "bytes": 6485,
-      "sha256": "573c7d48a41c30eb57d8d140f6405e21e745301bbd8c7b43e3a6d1044a843044"
+      "bytes": 6465,
+      "sha256": "2f884c70e89012cf40df17baf295d6bfc4a72042d321f7a43edb2c19663a8c71"
     },
     {
       "path": "src/features/race-hud/navigation-model.ts",
       "bytes": 8166,
       "sha256": "832a417c9995ccf9ca1897b00c839dad871f415e1f8554a2f34017b787aa3c53"
+    },
+    {
+      "path": "src/features/race-hud/race-cues.ts",
+      "bytes": 3576,
+      "sha256": "113554368e34d89ddc9a5f6664b64a8de4ca2d259f4d618e0f1fe2c8e863f98c"
+    },
+    {
+      "path": "src/features/race-hud/speed-target.ts",
+      "bytes": 1656,
+      "sha256": "f9194cbc7b102032f1faf33c5384328eec129884138843537a23ed42d497ef5f"
+    },
+    {
+      "path": "src/features/race-hud/target.ts",
+      "bytes": 1416,
+      "sha256": "9b3958f2f424d53330ea4a07f9d7f9c1a2c4e0e2b9f17322cd29de6d593f8517"
+    },
+    {
+      "path": "src/features/race-hud/units.ts",
+      "bytes": 1613,
+      "sha256": "893b5ada3f06e17c143c7f737bcbadb1ee32936ba8e062aa071afb75c59c50fa"
+    },
+    {
+      "path": "src/features/race-hud/useRaceFeedback.ts",
+      "bytes": 1349,
+      "sha256": "90b6a4d3c5e54ff92daef022cc01dc05926c6030f9e9ff085fd5e3affb6978a8"
     },
     {
       "path": "src/features/race-scene/RaceScene.tsx",
@@ -1830,18 +1967,13 @@
     },
     {
       "path": "src/features/trainer-controls/sound-copy.ts",
-      "bytes": 1187,
-      "sha256": "eb0b9e901627e7c53665158f58b51d5c0844429fce966b7b7b634a12cb1fab50"
+      "bytes": 1633,
+      "sha256": "21717a3acdba6a14b1907a5e863d9dd52b27f9eff4b8654d7e96625f9a968e05"
     },
     {
       "path": "src/features/trainer-controls/sound.ts",
       "bytes": 1780,
       "sha256": "3387e38d6789b9506c3a8f8c0a7b9d65aaf23aa902fa8faf3997dc60a9c51880"
-    },
-    {
-      "path": "src/features/venues/VenuePicker.tsx",
-      "bytes": 2142,
-      "sha256": "97d14b410a3e6136d27e41a94e221386e9a52ad2e3fa2726b9c28fcf52442cf1"
     },
     {
       "path": "src/features/venues/useVenue.ts",
@@ -1915,8 +2047,8 @@
     },
     {
       "path": "src/lib/fallback-coach.ts",
-      "bytes": 33730,
-      "sha256": "3f21edd17f725f3b10e117038acbb3e75689b0d01420abc2113bda47605f068f"
+      "bytes": 33930,
+      "sha256": "435cad08c17f4390eba98e75cd8fb77093ac2d99608e4e8b405b863f6da644f0"
     },
     {
       "path": "src/lib/funnel.ts",
@@ -2170,8 +2302,8 @@
     },
     {
       "path": "src/lib/sounds.ts",
-      "bytes": 3966,
-      "sha256": "7da6f07f5dc969ae1c604112dbd1ed098a79f264d93bebe141d77a7ee8bdf3b8"
+      "bytes": 9621,
+      "sha256": "5ec8a886d4bad41f5cf427711463abef53fb5e3128576ed8354d8244cdf3c580"
     },
     {
       "path": "src/lib/theme.ts",

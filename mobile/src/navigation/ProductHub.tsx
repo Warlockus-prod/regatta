@@ -15,6 +15,8 @@ import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
 import { passedLessonIds } from "../bootcamp/status";
 import { bootcampLessons } from "../data";
 import { VenuePicker } from "../game/VenuePicker";
+import { RaceSetupPanel } from "./RaceSetupPanel";
+import { DEFAULT_HUB_SETUP, hubRaceHref, hubSetupCopy, type HubRaceSetup } from "./race-setup";
 
 const racePhoto = require("../../assets/design/race-card.jpg");
 
@@ -27,11 +29,19 @@ const racePhoto = require("../../assets/design/race-card.jpg");
  *
  * The status bar area stays a fixed paper strip (Screen pads it, outside the
  * scroll view), so rows never scroll under the clock and the system icons.
+ *
+ * The Race hub is the race lobby of the app (M1-1, M1-6): the race frame, the
+ * one race setup (preset, level and wind or mission, then mode and venue) and
+ * one primary start. The setup goes to the race in the route, so the race's
+ * own menu and briefing never ask for it again.
  */
 export function ProductHub({ section }: { section: Exclude<Section, "home">; menu?: boolean }) {
   const { lang } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [raceSetup, setRaceSetup] = useState<HubRaceSetup>(DEFAULT_HUB_SETUP);
+  const startRace = () => router.push(hubRaceHref(raceSetup) as Href);
+  const startLabel = raceSetup.preset === "learn" ? hubSetupCopy.startFirst[lang] : raceSetup.preset === "mission" ? hubSetupCopy.startMission[lang] : hubSetupCopy.start[lang];
   const daily = dailySettings(new Date().toISOString().slice(0, 10));
   const isMenu = section === "library";
   const current = sections.find(s => s.id === section)!;
@@ -58,8 +68,10 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
-      {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={() => router.push(solo.native as Href)} />}
+      {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={startRace} />}
+      {section === "race" && <RaceSetupPanel value={raceSetup} onChange={setRaceSetup} />}
       {section === "race" && <VenuePicker />}
+      {section === "race" && <Button size="large" onPress={startRace}>{startLabel}</Button>}
       {isMenu && <View style={styles.search}>
         <View style={styles.field}>
           <Svg width={18} height={18} viewBox="0 0 18 18" accessibilityElementsHidden importantForAccessibility="no">

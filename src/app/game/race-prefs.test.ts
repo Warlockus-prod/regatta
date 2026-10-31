@@ -1,3 +1,5 @@
+import * as React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WindDisplay } from "@/lib/race-visual-prefs";
 import type { RacePrefs } from "./race-prefs";
@@ -85,5 +87,24 @@ describe("shared race preference storage", () => {
     expect(() => writeRacePrefs({ windDisplay: "off" as WindDisplay })).not.toThrow();
     expect(readRacePrefs().windDisplay).toBe("off");
     expect(JSON.parse(h.postMessage.mock.calls[0][0]).assists.windDisplay).toBe("off");
+  });
+
+  it("keeps the race sound choice in its own row, apart from mode, assists and the wheel clicks (M1-5)", async () => {
+    const h = host(); Object.assign(h.windowHost, { localStorage: h.storage });
+    const prefs = await import("./race-prefs");
+    expect(prefs.RACE_SOUND_KEY).toBe("regatta.race.sound.v1");
+    let setSound: ((on: boolean) => void) | undefined;
+    let seen: boolean | undefined;
+    function Probe() { const { soundOn, setSoundOn } = prefs.useRaceSound("multiplayer"); seen = soundOn; setSound = setSoundOn; return null; }
+    renderToStaticMarkup(React.createElement(Probe));
+    expect(seen).toBe(true);
+    setSound!(false);
+    expect(h.values.get("regatta.race.sound.v1")).toBe("off");
+    expect(mocks.record).toHaveBeenCalledWith({ type: "control.preferences", surface: "multiplayer", preference: "sound", value: false, previous: true, outcome: "accepted" });
+    prefs.writeRacePrefs({ mode: "pro", guidance: false });
+    expect(h.values.get("regatta.race.sound.v1")).toBe("off");
+    expect(JSON.parse(h.values.get("regatta.race.assists.v1")!)).not.toHaveProperty("sound");
+    expect(h.values.has("regatta.controls.v1")).toBe(false);
+    expect(h.postMessage.mock.calls.some(([m]) => String(m).includes("sound"))).toBe(false);
   });
 });

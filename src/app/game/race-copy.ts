@@ -4,6 +4,8 @@ import { useI18n, type Lang } from "@/lib/i18n";
 import type { RaceGuidanceAction } from "@/lib/race-guidance";
 import type { RaceRuleEvent } from "@/lib/race-rules";
 import { REPLAY_COPY_RESOURCES } from "./replay-copy";
+import { RACE_UNITS } from "@/features/race-hud/units";
+import { RACE_MODE_LABELS } from "./race-mode-labels";
 
 /** M0-5: said when the boat crosses the finish line before rounding the
  * windward mark (src/lib/race-missed-mark.ts). A module resource rather than a
@@ -11,11 +13,20 @@ import { REPLAY_COPY_RESOURCES } from "./replay-copy";
  * the race loop picks it with pickLocalized(lang, ...). */
 export const MISSED_MARK_NOTICE = { ru: "Финиш не засчитан: сначала обогни верхний знак, оставив его по левому борту.", en: "Finish not counted: round the windward mark first, leaving it to port.", pl: "Meta niezaliczona: najpierw opłyń znak nawietrzny, zostawiając go po lewej burcie.", es: "Llegada no válida: primero rodea la baliza de barlovento dejándola a babor.", fr: "Arrivée non comptée : contourne d'abord la bouée au vent en la laissant à bâbord.", de: "Zieldurchgang zählt nicht: Runde zuerst die Luvtonne und lass sie an Backbord.", it: "Arrivo non valido: prima gira la boa di bolina lasciandola a sinistra." } as const satisfies Record<Lang, string>;
 
+/** The two control modes live in race-mode-labels.ts so the leaderboard can
+ * use them without bundling this whole copy module. */
+export { RACE_MODE_LABELS };
+
 export function useRaceCopy() {
   const { tl } = useI18n();
+  // M1-7: unit signs from one resource (src/features/race-hud/units.ts), so
+  // the race never writes " m", "+N s" or "kn" by hand in Russian.
+  const metresUnit = tl(RACE_UNITS.metres);
+  const secondsUnit = tl(RACE_UNITS.seconds);
+  const penalty = (seconds: number) => `+${seconds} ${secondsUnit}`;
   return {
     you: tl({ ru: "Ты", en: "You", pl: "Ty", es: "Tú", fr: "Toi", de: "Du", it: "Tu" }),
-    simple: tl({ ru: "Обычный", en: "Simple", pl: "Prosty", es: "Sencillo", fr: "Simple", de: "Einfach", it: "Semplice" }),
+    simple: tl(RACE_MODE_LABELS.simple),
     pro: "Pro",
     simpleNote: tl({ ru: "Ты рулишь, паруса настраиваются автоматически.", en: "You steer; the sails trim automatically.", pl: "Ty sterujesz, żagle trymują się automatycznie.", es: "Tú gobiernas; las velas se ajustan solas.", fr: "Tu barres, les voiles se règlent seules.", de: "Du steuerst, die Segel trimmen sich automatisch.", it: "Tu governi, le vele si regolano da sole." }),
     proNote: tl({ ru: "Ты управляешь рулем и обоими шкотами. Трим влияет на тягу и скорость.", en: "You control the helm and both sheets. Trim changes drive and speed.", pl: "Sterujesz i obsługujesz oba szoty. Trym wpływa na siłę napędową i prędkość.", es: "Controlas el timón y ambas escotas. El trimado cambia el empuje y la velocidad.", fr: "Tu contrôles la barre et les deux écoutes. Le réglage agit sur la propulsion et la vitesse.", de: "Du bedienst Steuer und beide Schoten. Der Trimm beeinflusst Vortrieb und Tempo.", it: "Controlli il timone e le due scotte. Il trim modifica spinta e velocità." }),
@@ -37,7 +48,7 @@ export function useRaceCopy() {
     high: tl(REPLAY_COPY_RESOURCES.high),
     stern: tl(REPLAY_COPY_RESOURCES.stern),
     speed: tl({ ru: "Скорость", en: "Speed", pl: "Prędkość", es: "Velocidad", fr: "Vitesse", de: "Tempo", it: "Velocità" }),
-    knots: tl({ ru: "уз", en: "kn", pl: "w.", es: "kn", fr: "nd", de: "kn", it: "kn" }),
+    knots: tl(RACE_UNITS.knots),
     time: tl({ ru: "Время", en: "Time", pl: "Czas", es: "Tiempo", fr: "Temps", de: "Zeit", it: "Tempo" }),
     wind: tl({ ru: "К ветру", en: "To wind", pl: "Do wiatru", es: "Al viento", fr: "Au vent", de: "Zum Wind", it: "Al vento" }),
     position: tl({ ru: "Позиция", en: "Position", pl: "Pozycja", es: "Posición", fr: "Position", de: "Platz", it: "Posizione" }),
@@ -77,8 +88,18 @@ export function useRaceCopy() {
       : kind === "give-way" && event.rule === "10" ? tl({ ru: "Левый галс уступает правому. Пройди за кормой другой лодки.", en: "Port tack gives way to starboard. Pass astern of the other boat.", pl: "Lewy hals ustępuje prawemu. Przejdź za rufą drugiej łodzi.", es: "Amurado a babor cedes a estribor. Pasa por la popa del otro barco.", fr: "Bâbord amures s'écarte de tribord amures. Passe derrière l'autre bateau.", de: "Backbordbug weicht Steuerbordbug. Hinter dem anderen Boot passieren.", it: "Mure a sinistra lascia spazio a mure a dritta. Passa dietro l'altra barca." })
       : kind === "give-way" ? tl({ ru: "Уступи дорогу: на одном галсе наветренная или идущая позади лодка держится в стороне.", en: "Keep clear: on the same tack, the windward or clear-astern boat gives way.", pl: "Ustąp: na tym samym halsie łódź nawietrzna lub swobodna z tyłu utrzymuje się z dala.", es: "Mantente separado: en la misma amura cede barlovento o el barco claramente a popa.", fr: "Écarte-toi : sur la même amure, le bateau au vent ou en route libre derrière s'écarte.", de: "Freihalten: auf gleichem Bug weicht das Luvboot oder das klar achteraus liegende Boot.", it: "Tieniti discosto: sulle stesse mure cede la barca sopravvento o libera dalla poppa." })
       : tl({ ru: "Участок пройден правильно", en: "Section completed correctly", pl: "Odcinek wykonany poprawnie", es: "Tramo completado correctamente", fr: "Étape effectuée correctement", de: "Abschnitt korrekt absolviert", it: "Tratto completato correttamente" });
-      return `${text}${event.penaltySeconds ? ` +${event.penaltySeconds} s` : ""}`;
+      return `${text}${event.penaltySeconds ? ` ${penalty(event.penaltySeconds)}` : ""}`;
     },
+    // M1-7 additions (replay-copy.test.ts pins the field count).
+    /** "+5 с" / "+5 s": a time penalty next to the race clock. */
+    penalty,
+    /** "120 м" / "120 m": a distance on the route hint. */
+    metres: (value: number) => `${Math.round(value)} ${metresUnit}`,
+    raceReplay: tl(REPLAY_COPY_RESOURCES.raceReplay),
+    /** Accessible name of the Simple / Pro choice (was the generic "Settings"). */
+    controlMode: tl({ ru: "Режим управления", en: "Control mode", pl: "Tryb sterowania", es: "Modo de control", fr: "Mode de pilotage", de: "Steuermodus", it: "Modalità di controllo" }),
+    /** The start signal at the end of the countdown (was the English "START"). */
+    startSignal: tl({ ru: "Старт", en: "Start", pl: "Start", es: "Salida", fr: "Départ", de: "Start", it: "Via" }),
   };
 }
 export type RaceCopy = ReturnType<typeof useRaceCopy>;

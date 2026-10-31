@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WIND_DIRECTION_BASE } from "@/lib/race-physics";
+import { LEGACY_RACE_CONTEXT } from "@/lib/race-context";
+import { readClassifiedRaceResult } from "@/lib/race-result-eligibility";
 import { formatTime, makeCourse, raceLogTally, recordSample, soloRaceWind, sortRaceResults, type Boat } from "./race-model";
 
 // The solo race wind exactly as GameClient's loop computed it inline before
@@ -58,5 +60,16 @@ describe("solo race model", () => {
     expect(formatTime(87.46)).toBe("1:27.4");
     expect(formatTime(5)).toBe("0:05.0");
     expect(formatTime(Infinity)).toBe("-");
+  });
+});
+
+describe("leaderboard save of a free race (M1-7)", () => {
+  it("the course the race screen sends passes the server's classified check in both modes", () => {
+    // GameClient.saveResult sends the translated course; labels must not break the geometry match.
+    for (const mode of ["simple", "pro"] as const) {
+      const read = readClassifiedRaceResult({ difficulty: "easy", windStrength: "medium", missionId: null, finishTimeSec: 95.5,
+        raceContext: LEGACY_RACE_CONTEXT, mode, course: makeCourse(), rawFinishTimeSec: 90.5, penaltySeconds: 5 });
+      expect(read.ok, mode).toBe(true);
+    }
   });
 });

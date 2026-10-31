@@ -7,6 +7,7 @@ import type { RaceBoat } from "@/lib/race-physics";
 import { makeStandardCourse, calcTWA, WIND_DIRECTION_BASE as WIND_DIRECTION } from "@/lib/race-physics";
 import { makePhysicalRaceCourse } from "@/lib/race-courses";
 import type { PhysicalRaceProfile } from "@/lib/race-context";
+import { FLEET_COLORS, PLAYER_COLOR } from "@/features/race-hud/boat-colors";
 
 // ============================================================================
 // TYPES
@@ -113,7 +114,10 @@ export function recordSample(boat: Boat, t: number, windDir: number): LogSample 
 // imported from '@/lib/race-physics' - do not redefine here.
 
 export const AI_NAMES = ['Nautilus', 'Mistral', 'Trident', 'Aurora', 'Kraken', 'Borealis'];
-export const AI_COLORS = ['#ff6688', '#88ddff', '#ffdd44', '#aa88ff', '#ff8844', '#66ffbb'];
+// Boat colours (M1-7): not cyan, 3:1 on both themes, the player distinct from
+// the fleet for colour-blind vision too. Source: src/features/race-hud/boat-colors.ts.
+export const AI_COLORS: string[] = [...FLEET_COLORS];
+export { PLAYER_COLOR };
 
 // ============================================================================
 // COURSE SETUP

@@ -105,3 +105,19 @@ it("keeps true TWA distinct from apparent air and never replaces unknown data wi
   const calm = raceWindReading({ heading: 90, windFrom: 0, boatSpeedKn: 5, windKnots: 0 })!;
   expect(renderToStaticMarkup(<RaceWindInstrument reading={calm} display="off" compact />)).toContain('data-testid="race-true-wind-speed">0.0 kn');
 });
+
+it("draws the wind arrow as a reading, not in the action cyan (M1-7)", () => {
+  const reading = raceWindReading({ heading: 90, boatSpeedKn: 5, windFrom: 0, windKnots: 12 })!;
+  const html = renderToStaticMarkup(<RaceWindInstrument reading={reading} display="compass" />);
+  expect(html).toContain('data-testid="race-relative-wind-arrow"');
+  expect(html).toMatch(/data-testid="race-relative-wind-arrow"[^>]*stroke="var\(--text-primary\)"/);
+  expect(html).not.toContain("accent-cyan");
+});
+
+it("writes the wind speed with the language's own knot sign", () => {
+  const reading = raceWindReading({ heading: 90, boatSpeedKn: 5, windFrom: 0, windKnots: 12 })!;
+  for (const [lang, unit] of [["ru", "уз"], ["pl", "w."], ["fr", "nd"], ["de", "kn"]] as const) {
+    locale.value = lang;
+    expect(renderToStaticMarkup(<RaceWindInstrument reading={reading} display="off" />)).toContain(`data-testid="race-true-wind-speed">12.0 ${unit}`);
+  }
+});
