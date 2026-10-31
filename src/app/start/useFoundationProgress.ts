@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { emptyFoundation, FOUNDATION_EVENT, FOUNDATION_KEY, LEGACY_FOUNDATION_KEY, loadFoundation, readLegacyFoundation, saveFoundation, type FoundationProgress } from "@/lib/learning/foundation-progress";
 
-import { saveLearningBookmark } from "@/lib/product/learning-web";
+import { saveLearningBookmark } from "@/lib/product/learning-bookmark";
 
 interface Snapshot { ready: boolean; readError: boolean; progress: FoundationProgress; visited: string[]; legacyCurrent: string | null; legacyVisits: number; lesson: string | null; step: string | null }
 const server: Snapshot = { ready: false, readError: false, progress: emptyFoundation(), visited: [], legacyCurrent: null, legacyVisits: 0, lesson: null, step: null };

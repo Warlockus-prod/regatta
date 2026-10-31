@@ -18,6 +18,15 @@ const cloudPhotos = Object.fromEntries(readdirSync(join(root, "public/sternik/cl
   embeddedAssets.push({ path, bytes: bytes.length, sha256: digest(bytes) });
   return [name.slice(0, -4), `data:image/jpeg;base64,${bytes.toString("base64")}`];
 }));
+// The website fetches the question bank at run time; this package has no
+// network, so it bundles the SAME generated JSON file and preloads it. The
+// TS source (src/data/sternik.ts) must not be bundled as well: one copy only.
+const bankModule = readFileSync(join(root, "src/data/sternik-bank-file.generated.ts"), "utf8");
+const bankUrl = /url: '(\/sternik-bank\/bank\.[0-9a-f]{12}\.json)'/.exec(bankModule)?.[1];
+if (!bankUrl) throw new Error("No sternik bank url in src/data/sternik-bank-file.generated.ts");
+const bankJson = join(root, "public", bankUrl);
+if (!existsSync(bankJson)) throw new Error(`Missing ${bankUrl}: run node scripts/build-sternik-bank.mjs`);
+const bankFileImport = `import file from ${JSON.stringify(bankJson)};`;
 const exactAliases = new Map([
   ["@/lib/i18n", join(source, "i18n.tsx")], ["@/lib/funnel", join(source, "funnel.ts")],
   ["next/dynamic", join(here, "offline-radio/next-dynamic.tsx")],
@@ -36,6 +45,10 @@ const result = await build({
       if (/\/?OralTrainer$/.test(args.path)) return { path: join(source, "OfflineOralTrainer.tsx") };
       if (args.path.endsWith("radio/symulator/trainerText")) return { path: "polish-trainer-i18n", namespace: "sternik-next" };
       if (args.path === "offline-sternik-clouds") return { path: args.path, namespace: "sternik-clouds" };
+      // src/app/sternik/bank.ts reads the bank through ./bank-source; the hub
+      // page (a server component on the website) reads @/data/sternik.
+      if (/\/bank-source$/.test(args.path) && args.importer.endsWith(join("src/app/sternik/bank.ts"))) return { path: "bank-source", namespace: "sternik-bank" };
+      if (args.path === "@/data/sternik") return { path: "sternik-data", namespace: "sternik-bank" };
       if (args.path.startsWith("@/")) return { path: fileSource(join(root, "src", args.path.slice(2))) };
       return null;
     });
@@ -43,6 +56,10 @@ const result = await build({
       ? `export {usePathname,useSearchParams} from ${JSON.stringify(join(source, "router.tsx"))};`
       : args.path === "next/link" ? `export {OfflineLink as default} from ${JSON.stringify(join(source, "router.tsx"))};`
       : `export {useI18n as useTrainerI18n} from ${JSON.stringify(join(source, "i18n.tsx"))};`, loader: "tsx", resolveDir: root }));
+    api.onLoad({ filter: /.*/, namespace: "sternik-bank" }, args => ({ contents: args.path === "bank-source"
+      ? `${bankFileImport}export const PRELOADED_STERNIK_BANK_FILE=file;export function readSternikBankFile(){return Promise.resolve(file);}`
+      : `${bankFileImport}export * from ${JSON.stringify(join(root, "src/data/sternik-core.ts"))};export const STERNIK_BANK=file.questions;`,
+      loader: "js", resolveDir: root }));
     api.onLoad({ filter: /.*/, namespace: "sternik-clouds" }, () => ({ contents: `const photos=${JSON.stringify(cloudPhotos)};export const offlineCloudPhoto=name=>photos[name]??"";`, loader: "js" }));
     // Same shared components; only root-relative asset URLs change in this file-origin build.
     api.onLoad({ filter: /sternik\/(QuestionFigure|teoria\/SignsWeather)\.tsx$/ }, args => {
@@ -57,6 +74,8 @@ const result = await build({
 const js = result.outputFiles.find(file => file.path.endsWith(".js"))?.text;
 if (!js) throw new Error("No Sternik JavaScript generated");
 if (Object.keys(result.metafile.inputs).some(name => /(?:lib\/db|better-sqlite|SternikChat|\/usePushToTalk)/.test(name))) throw new Error("Offline Sternik pulled a server or online-only module");
+if (Object.keys(result.metafile.inputs).some(name => name === "src/data/sternik.ts")) throw new Error("Offline Sternik bundled the TS bank next to the JSON bank");
+if (!Object.keys(result.metafile.inputs).includes(relative(root, bankJson))) throw new Error("Offline Sternik did not bundle the generated bank JSON");
 const globalsPath = join(root, "src/app/globals.css");
 const globals = readFileSync(globalsPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "./sternik";\n@source "../../../mobile/scripts/offline-sternik";');
 const cssResult = await postcss([tailwindcss()]).process(globals + "\n" + readFileSync(join(source, "offline.css"), "utf8"), { from: globalsPath });

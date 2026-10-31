@@ -16,12 +16,17 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), canGoBack: () => true, back: jest.fn() }),
   usePathname: () => "/game",
 }));
-jest.mock("expo-modules-core", () => ({
-  ...jest.requireActual("expo-modules-core"),
-  requireOptionalNativeModule: (name: string) => name === "ExpoKeepAwake"
-    ? { activate: (tag: string) => mockActivate(tag), deactivate: (tag: string) => mockDeactivate(tag) }
-    : null,
-}));
+// The native module is replaced, not the expo-keep-awake package, so the test
+// runs through the declared package's real activate/deactivate wrappers.
+jest.mock("expo-modules-core", () => {
+  const actual = jest.requireActual("expo-modules-core");
+  return {
+    ...actual,
+    requireNativeModule: (name: string) => name === "ExpoKeepAwake"
+      ? { activate: (tag: string) => mockActivate(tag), deactivate: (tag: string) => mockDeactivate(tag) }
+      : actual.requireNativeModule(name),
+  };
+});
 jest.mock("../src/i18n/context", () => ({
   useI18n: () => ({ lang: "en", tp: (_ru: string, en: string) => en, tl: (values: { en: string }) => values.en }),
 }));
@@ -158,6 +163,12 @@ it("keeps Retry for a process loss outside the local race", async () => {
   fireEvent(view.getByTestId("webview"), "contentProcessDidTerminate", { nativeEvent: {} });
   expect(view.getByText("Retry")).toBeTruthy();
   expect(lifecycle()).toEqual(["process-terminated:webview-process"]);
+});
+
+it("declares expo-keep-awake itself instead of borrowing the copy nested in expo", () => {
+  // A future Expo could drop its own dependency; the app's declaration keeps the pod autolinked.
+  expect(require("../package.json").dependencies["expo-keep-awake"]).toBeDefined();
+  expect(require.resolve("expo-keep-awake/package.json")).not.toMatch(/node_modules\/expo\/node_modules/);
 });
 
 it("computes the shell policy without a rendered screen", () => {

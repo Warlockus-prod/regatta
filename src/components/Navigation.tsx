@@ -12,8 +12,7 @@ import { useI18n } from "@/lib/i18n";
 import { sectionForPath } from "@/lib/product/catalog";
 import { menuEntry, navigationItemForSection, primarySections } from "@/lib/product/menu";
 import { copy } from "@/lib/product/copy";
-import { bookmarkForPath } from "@/lib/product/learning";
-import { saveLearningBookmark } from "@/lib/product/learning-web";
+import { bookmarkForPath, saveLearningBookmark } from "@/lib/product/learning-bookmark";
 import styles from "./product/Navigation.module.css";
 import { useGameLayer } from "./game-layer";
 

@@ -458,8 +458,14 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/app/sternik/page.tsx` - серверный вход в курс: считает из банка числа и карту id -> категория для `src/app/sternik/SternikHub.tsx`, банк вопросов в клиент не уходит.
 - `src/app/sternik/layout.tsx` - layout курса.
 - `src/app/sternik/SternikSubnav.tsx` - подраздельная навигация.
-- `src/app/sternik/test/page.tsx` - тренажер по банку вопросов.
-- `src/app/sternik/egzamin/page.tsx` - пробный экзамен: 75 вопросов, 90 минут, порог 65.
+- `src/app/sternik/test/page.tsx` - тренажер по банку вопросов; банк получает через `SternikBankGate`, в JS страницы его нет.
+- `src/app/sternik/egzamin/page.tsx` - пробный экзамен: 75 вопросов, 90 минут, порог 65; банк тоже через `SternikBankGate`.
+- `src/app/sternik/bank.ts` - загрузчик банка вопросов во время работы: один запрос на загрузку страницы, проверка формы и версии, ошибка не кешируется (Retry идет в сеть заново).
+- `src/app/sternik/bank.test.ts` - тесты загрузчика: адрес версионного файла, повтор после ошибки, битый или чужой файл, один запрос на несколько экранов.
+- `src/app/sternik/bank-source.ts` - откуда берется файл банка: на сайте fetch версионного JSON; офлайн-пакет iOS подменяет модуль и вшивает тот же JSON.
+- `src/app/sternik/SternikBankGate.tsx` - состояния загрузки банка: загрузка, ошибка с кнопкой "Повторить" (7 языков, 44 px), затем экран с банком; хук `useSternikBank`.
+- `src/app/sternik/SternikBankGate.test.tsx` - тесты разметки: загрузка, готовность, тихий режим, ошибка и кнопка Retry.
+- `src/app/sternik/SternikBankGate.retry.test.ts` - тест хука: ошибка, Retry, второй настоящий запрос, готово.
 - `src/app/sternik/quiz-utils.ts` - общие помощники тренажера и экзамена.
 - `src/app/sternik/analysis.ts` - персональный разбор: слабые категории из прогресса.
 - `src/app/sternik/PersonalReport.tsx` - отчет по ошибкам.
@@ -483,7 +489,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/components/Navigation.tsx` - основная навигация по пяти разделам (владеет Shared-лейн).
 - `src/components/SiteFooter.tsx` - подвал с брендовой строкой.
 - `src/components/ContentFooterNav.tsx` - переходы между контентными страницами.
-- `src/components/BootcampFooterNav.tsx` - нижняя панель на страницах уроков буткемпа.
+- `src/components/BootcampFooterNav.tsx` - нижняя панель на страницах уроков буткемпа; стоит в корневом layout, поэтому читает только `src/data/bootcamp-index.ts` и ключ ответов, не тексты уроков.
 - `src/components/LanguageToggle.tsx` - переключатель языка, пишет localStorage и cookie.
 - `src/components/ThemeToggle.tsx` - переключатель темы.
 - `src/components/ThemeManager.tsx` - применение темы и подписка на системную.
@@ -506,7 +512,11 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/data/sailing-data.ts` - курсы относительно ветра (5), галсы, маневры (6; у оверштага и фордевинда необязательные массивы `commands*`, `steps*`, `mistakes*` для `/courses#turns`, читаются `legacyPickArray`), глоссарий (51 термин), категории, правила гонок, стратегии.
 - `src/data/rules.ts` - сценарии расхождения и правил, 21 карточка (сцена, вопрос, ответ, почему).
 - `src/data/anatomy.ts` - части яхты с координатами в SVG 1000x500 и подписями.
-- `src/data/bootcamp.ts` - 8 уроков буткемпа по ~5 минут.
+- `src/data/bootcamp.ts` - 8 уроков буткемпа по ~5 минут; голова каждого урока (id, порядок, эмодзи, название) берется из `src/data/bootcamp-index.ts`.
+- `src/data/bootcamp-index.ts` - головы уроков буткемпа (источник названий на 7 языках) и копия маршрута и длины урока: их читают закладка, нижняя панель и возврат к уроку на каждой странице без текста уроков.
+- `src/data/bootcamp-index.test.ts` - сверяет головы, порядок ключей (bootcamp.json приложения) и маршруты с `bootcampLessons`.
+- `src/data/bootcamp-quiz-key.ts` - ключ ответов квизов буткемпа (id вопросов и вариантов, верный вариант) и порог сдачи: по нему проверяется сохраненный прогресс без текста квизов.
+- `src/data/bootcamp-quiz-key.test.ts` - сверяет ключ ответов с `BOOTCAMP_QUIZZES` и один порог сдачи.
 - `src/data/onboard.ts` - "первая неделя на борту", 12 разделов, в том числе выход из гавани, возвращение, типы швартовки, газ и пожар.
 - `src/data/checklist.ts` - чек-лист перед выходом, 9 разделов, в том числе готовность яхты у причала.
 - `src/data/missions.ts` - миссии гонки, оцениваются после финиша по логу.
@@ -517,9 +527,14 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/data/gallery.ts` - видео и фото галереи.
 - `src/data/gallery-2026.generated.ts` - автогенерация `scripts/build-gallery-year.mjs`, руками не править.
 - `src/data/src-radio.ts` - официальный банк 324 вопросов UKE SRC.
-- `src/data/sternik.ts` - банк sternik motorowodny: 879 вопросов, категории, конфиг экзамена (75 вопросов, 90 минут, порог 65). Id вопросов стабильны, не перенумеровывать.
+- `src/data/sternik.ts` - банк sternik motorowodny: 879 вопросов, единственный редактируемый источник; реэкспортирует `src/data/sternik-core.ts`. Только сервер, скрипты и тесты: клиент получает банк из `public/sternik-bank/`. Id вопросов стабильны, не перенумеровывать.
+- `src/data/sternik-core.ts` - все о банке, кроме самих вопросов: типы, категории, формат экзамена (75 вопросов, 90 минут, порог 65), индекс по id, пул экзамена, счетчики баз, проверка файла банка. Это импортирует клиент.
+- `src/data/sternik-bank-file.generated.ts` - автогенерация `scripts/build-sternik-bank.mjs`: адрес, версия и число вопросов файла банка, руками не править.
+- `src/data/sternik-bank-file.test.ts` - контракт файла банка: `--check` генератора, совпадение с `src/data/sternik.ts` по id и порядку, единственный файл, отказ на битом файле, запрет value-импорта банка в клиентских модулях курса.
 - `src/data/polishDiacritics.test.ts` - страж правила 2 из `AGENTS.md`: польский текст банков sternik и SRC и данных радиокурса не содержит снятых диакритик (`sie`, `moze`, `ktory` и подобных).
 - `src/data/sailing-lab/course.ts` - структура курса работы с парусами.
+- `src/data/sailing-lab/lesson-ids.ts` - id уроков курса парусов по порядку для закладки в навигации без импорта курса (около 250 КБ чанка).
+- `src/data/sailing-lab/lesson-ids.test.ts` - сверяет `src/data/sailing-lab/lesson-ids.ts` с `sailLessons`.
 - `src/data/sailing-lab/mainsheet-lesson.ts` - урок по гика-шкоту.
 - `src/data/sailing-lab/shape-lessons.ts` - уроки по форме паруса (оттяжка, шкаторины).
 - `src/data/sailing-lab/sources.ts` - печатные источники книжных уроков (Дедекам, Das и von Krause, RYA) со ссылками; отдельно от `src/data/sailing-lab/course.ts`, чтобы не было цикла импорта.
@@ -797,7 +812,9 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/sternik-progress.ts` - прогресс курса sternik в localStorage.
 - `src/lib/db.leaderboard.test.ts` - SQL лидербордов на настоящем файле SQLite: одна настоящая лучшая строка на sid, миссии не попадают в свободные бакеты, полуоткрытое окно дня.
 - `src/lib/product/menu.ts` - общий контракт меню: группы каталога для сайта и приложения, пункт навигации раздела; оболочки у сайта и приложения свои.
-- `src/lib/product/learning.ts` - продолжение обучения и закладка для сайта (формат сайта в localStorage, не формат приложения).
+- `src/lib/product/learning.ts` - продолжение обучения для сайта (карточка Home); закладку реэкспортирует из `src/lib/product/learning-bookmark.ts`.
+- `src/lib/product/learning-bookmark.ts` - закладка обучения (формат сайта в localStorage, не формат приложения): чтение, путь в закладку и запись, только по id уроков, потому что ее импортирует навигация на каждой странице.
+- `src/lib/product/learning-bookmark.test.ts` - обход статических импортов корневого layout: навигация, нижняя панель и возврат к уроку не тянут тексты уроков и квизов; закладка по всем урокам.
 - `src/lib/product/learning-web.ts` - чтение и запись закладки и снимка обучения в localStorage сайта.
 - `src/lib/product/learning.test.ts` - тесты продолжения и закладки сайта.
 
@@ -816,6 +833,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `scripts/check-no-dash.mjs` - гейт типографики (em/en-dash), тот же запрет, что в хуке.
 - `scripts/check-bundle-size.mjs` - бюджет размера бандла.
 - `scripts/build-race-server.mjs` - генерация `ws-server/race-physics.js` из TS-движка, режим `--check`.
+- `scripts/build-sternik-bank.mjs` - генерация банка sternik для браузера: файл с хешем содержимого в `public/sternik-bank/`, `src/data/sternik-bank-file.generated.ts` и строка `STERNIK_BANK_URL` в `public/sw.js`; режим `--check` (запускается тестом).
 - `scripts/test-multiplayer.mjs` - регрессия жизненного цикла сокета на локальном сервере; с `--full` еще полная гонка двух сокетных яхтсменов и бота (яхтсменов ведет тот же автопилот, флаги старта и огибания восстанавливаются из подсказки `target`) и реванш.
 - `scripts/stress-mp.js` - нагрузочный тест мультиплеера (см. раздел 5).
 - `scripts/cyrillic-scan.mjs` - поиск утечек кириллицы в PL/EN/ES/FR/DE/IT на контентных маршрутах и в курсе `/learn/sails` (уроки берутся со страницы курса).
@@ -1119,7 +1137,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/lib/best-times.test.ts` separates manual Pro records from existing auto-trim records while keeping old saved buckets readable.
 - `src/lib/race-clock.test.ts` verifies identical solo integration at 10/15/30/60/120 FPS and pause/background handling through the shared fixed clock.
 - `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options and plans saved briefing restarts with recorded mode and known mission conditions. Explicit activity links suppress stale offers; unknown missions stay unavailable. `src/lib/race-setup.test.ts` protects these contracts and the unchanged wind multipliers.
-- `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
+- `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching plus the content-hashed sternik bank from `public/sternik-bank/` (cache-first as immutable) and the `/sternik/egzamin` document; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
 
 - `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
 - `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer and actual first rendered frame, exact end-time scrubbing, camera select/high preference and reserved playback controls within its own120s case budget. The corrected camera value passed at58.888s before the old60s deadline interrupted storage verification; assertions and global defaults remain unchanged.
@@ -1161,8 +1179,8 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/router.tsx` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
-- `mobile/src/simulator/race-shell.ts` - native shell for race WebViews (M0-7): no back swipe on /game and /multiplayer, left/right safe-area padding for the full-screen race and native overlays (spinner, Retry, memory notice) offset by the same insets, keep-awake through the linked ExpoKeepAwake native module, one automatic reload to the race menu after the web content process is killed.
-- `mobile/__tests__/race-shell.test.tsx` - race shell: landscape side insets, overlay offsets, gestureEnabled false, keep-awake on and off, reload to the race menu after the iOS/Android web process dies, no reload loop.
+- `mobile/src/simulator/race-shell.ts` - native shell for race WebViews (M0-7): no back swipe on /game and /multiplayer, left/right safe-area padding for the full-screen race and native overlays (spinner, Retry, memory notice) offset by the same insets, keep-awake through the declared expo-keep-awake package (activateKeepAwakeAsync / deactivateKeepAwake with a per-screen tag), one automatic reload to the race menu after the web content process is killed.
+- `mobile/__tests__/race-shell.test.tsx` - race shell: landscape side insets, overlay offsets, gestureEnabled false, keep-awake on and off through the real package wrappers, expo-keep-awake declared by the app (not the copy nested in expo), reload to the race menu after the iOS/Android web process dies, no reload loop.
 - `mobile/__tests__/race-hub-setup.test.tsx` - hub start routes, hand-over through raceEntryQuery, presses in the rendered hub
 - `mobile/__tests__/metro-shared-imports.test.ts` - every app import that leaves `mobile/` lands in a Metro watch folder from `mobile/metro.config.js` (an import of `src/app` broke the release bundle of TestFlight 73 while jest and tsc passed).
 - `mobile/__tests__/race-diagnostics-bridge.test.ts` - race.summary and the M1 race.lifecycle rows cross the WebView bridge, the native journal, AsyncStorage restore and Copy journal unchanged; ten minutes of helm input cannot evict them.
@@ -1219,7 +1237,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/app/start/foundation-progress.test.ts` - сохранение проверок, черновика, места и повторной записи без ложного зачета.
 - `src/app/start/start.module.css` - адаптивный учебный экран на бумажной теме, доступные цели и контраст.
 - `src/app/start/useFoundationProgress.ts` - загрузка и последовательная запись учебных свидетельств с retry.
-- `src/data/bootcamp-quiz.ts` - единый исходный банк 19 вопросов для сайта и native.
+- `src/data/bootcamp-quiz.ts` - единый исходный банк 19 вопросов для сайта и native; порог сдачи реэкспортирует из `src/data/bootcamp-quiz-key.ts`.
 - `src/data/foundation-guide.ts` - общие цели, модули, шаги и семь языков курса из восьми уроков.
 - `src/features/race-3d/useRaceView.test.ts` - сохраненные camera presets и безопасный default orbit.
 - `src/features/race-scene/orbit-camera.ts` - начальные игровые ракурсы с тем же fit яхты, что в тренажере.
@@ -1237,7 +1255,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/features/trainer-controls/WheelDeck.test.tsx` - штурвал реального гика-шкота использует метры и нужный шаг.
 - `src/features/trainer-controls/sound-copy.ts` - общие семь языков настройки звука, отдельно от громкости рации.
 - `src/lib/learning/foundation-drawings.ts` - исходная чистая геометрия учебных схем для обеих платформ.
-- `src/lib/learning/foundation-progress.ts` - новое ограниченное web evidence; старое completed означает просмотр, не сдачу.
+- `src/lib/learning/foundation-progress.ts` - новое ограниченное web evidence; старое completed означает просмотр, не сдачу. Проверяет и оценивает ответы по `src/data/bootcamp-quiz-key.ts`.
 - `src/lib/product/learning-web.test.ts` - продолжение и честные счетчики сайта с сохранением legacy данных.
 - `src/lib/sounds.test.ts` - race sound tests: on by default, old muted users stay muted, separate from the wheel clicks, persistence, nothing before a gesture, nothing while muted.
 

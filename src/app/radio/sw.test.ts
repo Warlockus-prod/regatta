@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import { STERNIK_BANK_FILE } from '@/data/sternik-bank-file.generated';
 
 // ============================================================================
 // The service worker cannot be imported (it is a classic worker that references
@@ -44,7 +45,7 @@ const u = (path: string) => new URL(`https://weektoregatta.com${path}`);
 
 describe('the service worker never caches what it must not', () => {
   it('caches course documents', () => {
-    for (const p of ['/radio', '/radio/teoria', '/radio/pozycja', '/radio/symulator', '/sternik', '/sternik/ustny', '/offline']) {
+    for (const p of ['/radio', '/radio/teoria', '/radio/pozycja', '/radio/symulator', '/sternik', '/sternik/egzamin', '/sternik/ustny', '/offline']) {
       expect(`${p}: ${isCacheableDoc(u(p))}`).toBe(`${p}: true`);
     }
   });
@@ -66,6 +67,11 @@ describe('the service worker never caches what it must not', () => {
     expect(isImmutableAsset(u('/fonts/geist.woff2'))).toBe(true);
     // a corrected exam diagram in /public is NOT immutable - it must be re-fetchable
     expect(isImmutableAsset(u('/sternik/diagram.png'))).toBe(false);
+    // the question bank is content-hashed: a corrected answer is a new file name
+    expect(isImmutableAsset(u(STERNIK_BANK_FILE.url))).toBe(true);
+    for (const p of ['/sternik-bank/bank.json', '/sternik-bank/bank.latest.json', '/sternik-bank/other.json']) {
+      expect(`${p}: ${isImmutableAsset(u(p))}`).toBe(`${p}: false`);
+    }
   });
 
   it('the precache list holds no authenticated or dynamic route', () => {
@@ -74,13 +80,25 @@ describe('the service worker never caches what it must not', () => {
     const list = m![1];
     expect(list).not.toMatch(/stats|api|multiplayer|leaderboard/);
     expect(list).toContain("'/radio/teoria'");
+    // both pages that need the question bank, so the exam opens offline too
+    expect(list).toContain("'/sternik/test'");
+    expect(list).toContain("'/sternik/egzamin'");
+  });
+
+  it('precaches the sternik question bank the pages fetch, as required course data', () => {
+    // The trainer and the exam load their questions at run time. Without this
+    // file in the cache a stored /sternik/test opens offline to a load error.
+    expect(src).toContain(`const STERNIK_BANK_URL = '${STERNIK_BANK_FILE.url}';`);
+    expect(src).toContain('const COURSE_DATA = [...RADIO_CATALOGS, STERNIK_BANK_URL];');
   });
 
   it("caches the seven public locale packs without widening to private JSON", () => {
     for (const locale of ["aliases", "ru", "en", "pl", "es", "fr", "de", "it"]) expect(isAsset(u(`/radio-locales/${locale}.json`))).toBe(true);
     for (const path of ["/stats.json", "/api/player.json", "/radio-locales/private.json", "/other/en.json"]) expect(isAsset(u(path))).toBe(false);
-    expect(src).toContain("Promise.allSettled(RADIO_CATALOGS.map");
-    expect(src).toContain("catalogStored === RADIO_CATALOGS.length");
+    // radio catalogs and the sternik bank are stored together; one missing file
+    // keeps the precache unmarked so the next course page retries it
+    expect(src).toContain("Promise.allSettled(COURSE_DATA.map");
+    expect(src).toContain("catalogStored === COURSE_DATA.length");
   });
 
   it('bails out of /api before any cache logic', () => {

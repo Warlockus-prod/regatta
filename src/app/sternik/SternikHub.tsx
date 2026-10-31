@@ -4,9 +4,9 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-// Types only: a value import from '@/data/sternik' would pull the whole bank
-// back into this chunk, which is what page.tsx exists to prevent.
-import type { SternikCatId, SternikCategory } from '@/data/sternik';
+// Types only, from the bank-free module: the questions never ride in this
+// chunk (page.tsx computes the counts on the server).
+import type { SternikCatId, SternikCategory } from '@/data/sternik-core';
 import {
   loadSternikProgress,
   sternikWeakIds,

@@ -1,5 +1,5 @@
-import { bootcampLessons } from "../../data/bootcamp";
-import { getQuizForLesson, isQuizPassed } from "../../data/bootcamp-quiz";
+import { BOOTCAMP_LESSON_IDS } from "../../data/bootcamp-index";
+import { isQuizPassed, quizKeyForLesson } from "../../data/bootcamp-quiz-key";
 import { isFoundationLesson } from "./foundation-navigation";
 export { isFoundationLesson, foundationHref, foundationPracticeHref, foundationReturnForSearch } from "./foundation-navigation";
 
@@ -21,24 +21,24 @@ export interface FoundationProgress {
 export interface FoundationStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
 export const emptyFoundation = (): FoundationProgress => ({ version: 1, current: null, visited: [], positions: {}, checks: {}, practiceOpened: [], drafts: {} });
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
-const ids = (value: unknown): string[] => bootcampLessons.filter(lesson => Array.isArray(value) && value.includes(lesson.id)).map(lesson => lesson.id);
+const ids = (value: unknown): string[] => BOOTCAMP_LESSON_IDS.filter(id => Array.isArray(value) && value.includes(id));
 function partialAnswers(id: string, raw: unknown): FoundationAnswers | null {
   if (!isFoundationLesson(id) || !object(raw)) return null;
-  return Object.fromEntries(getQuizForLesson(id).filter(question => question.options.some(option => option.id === raw[question.id])).map(question => [question.id, raw[question.id] as string]));
+  return Object.fromEntries(quizKeyForLesson(id).filter(question => question.options.includes(raw[question.id] as string)).map(question => [question.id, raw[question.id] as string]));
 }
 export function validAnswers(id: string, raw: unknown): FoundationAnswers | null {
   if (!isFoundationLesson(id) || !object(raw)) return null;
-  const questions = getQuizForLesson(id);
-  if (!questions.length || questions.some(question => !question.options.some(option => option.id === raw[question.id]))) return null;
+  const questions = quizKeyForLesson(id);
+  if (!questions.length || questions.some(question => !question.options.includes(raw[question.id] as string))) return null;
   return Object.fromEntries(questions.map(question => [question.id, raw[question.id] as string]));
 }
 export function theoryResult(progress: FoundationProgress, id: string) {
-  const questions = getQuizForLesson(id);
+  const questions = quizKeyForLesson(id);
   const answers = validAnswers(id, progress.checks[id]?.answers);
-  const score = answers ? questions.filter(question => question.options.some(option => option.id === answers[question.id] && option.correct)).length : 0;
+  const score = answers ? questions.filter(question => answers[question.id] === question.correct).length : 0;
   return { answered: Boolean(answers), score, total: questions.length, passed: Boolean(answers) && isQuizPassed(score, questions.length) };
 }
-export const passedFoundationIds = (progress: FoundationProgress) => bootcampLessons.filter(lesson => theoryResult(progress, lesson.id).passed).map(lesson => lesson.id);
+export const passedFoundationIds = (progress: FoundationProgress) => BOOTCAMP_LESSON_IDS.filter(id => theoryResult(progress, id).passed);
 
 /** A legacy completed marker is a visit, never evidence of answering a check. */
 export function readLegacyFoundation(raw: string | null): { visited: string[]; current: string | null } {
@@ -57,18 +57,18 @@ export function readFoundationProgress(raw: string | null): FoundationProgress |
     const result = emptyFoundation();
     result.current = isFoundationLesson(value.current) ? value.current : null;
     result.visited = ids(value.visited); result.practiceOpened = ids(value.practiceOpened);
-    for (const lesson of bootcampLessons) {
-      const draft = partialAnswers(lesson.id, object(value.drafts) ? value.drafts[lesson.id] : null);
-      if (draft && Object.keys(draft).length) result.drafts[lesson.id] = draft;
-      const position = object(value.positions) ? value.positions[lesson.id] : null;
-      if (object(position)) result.positions[lesson.id] = {
+    for (const id of BOOTCAMP_LESSON_IDS) {
+      const draft = partialAnswers(id, object(value.drafts) ? value.drafts[id] : null);
+      if (draft && Object.keys(draft).length) result.drafts[id] = draft;
+      const position = object(value.positions) ? value.positions[id] : null;
+      if (object(position)) result.positions[id] = {
         step: foundationSteps.includes(position.step as FoundationStep) ? position.step as FoundationStep : "understand",
         diagram: position.diagram === 1 || position.diagram === 2 ? position.diagram : 0,
       };
-      const check = object(value.checks) ? value.checks[lesson.id] : null;
+      const check = object(value.checks) ? value.checks[id] : null;
       if (object(check) && typeof check.answeredAt === "number" && Number.isFinite(check.answeredAt) && check.answeredAt >= 0) {
-        const answers = validAnswers(lesson.id, check.answers);
-        if (answers) result.checks[lesson.id] = { answers, answeredAt: check.answeredAt };
+        const answers = validAnswers(id, check.answers);
+        if (answers) result.checks[id] = { answers, answeredAt: check.answeredAt };
       }
     }
     return result;
