@@ -12,7 +12,7 @@
 - С 2026-10-29 работа идет в ветке `claude/app-next` (от `147ac83`, бывшая
   `codex/app-next-physical`, draft PR #86). Сайт `main` и защищенный грязный
   корневой чекаут не трогаем.
-- У владельца TestFlight 1.7.0 (73), откат 72. Сборка, загрузка и доставка в
+- У владельца TestFlight 1.7.0 (74), откат 73. Сборка, загрузка и доставка в
   группу Self - три разных состояния, доставку подтверждает живой ASC GET.
 - `PHYSICAL_RACE_EMISSION_ENABLED = false`: метрическая гонка доступна только
   пробой за флагом `/game?race=short|medium|long` (ADR-0014), результаты не
@@ -32,9 +32,9 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight 1.7.0 (73), группа Self: исходник ede3e2b2 (этапы M0 и M1), VALID и
-  IN_BETA_TESTING, восемь заметок проверены 2026-10-31 11:19 UTC
-  (`docs/design/mobile/testflight73-2026-10-31.md`). Публичная 1.6.4 (48)
+  TestFlight 1.7.0 (74), группа Self: исходник 9b061c06 (M0, M1 и журнал гонки), VALID и
+  IN_BETA_TESTING, восемь заметок проверены 2026-10-31 12:10 UTC
+  (`docs/design/mobile/testflight74-2026-10-31.md`). Публичная 1.6.4 (48)
   остается отдельно от TestFlight.
   Доставку в Self подтверждают отдельно через живой ASC GET; архив и успешная
   загрузка сами по себе не означают доступность тестировщику. Журнал и история:
