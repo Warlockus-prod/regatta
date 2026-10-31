@@ -19,6 +19,8 @@ export interface RacePauseSheetProps {
   onRestart: () => void;
   onSettings: () => void;
   onExit: () => void;
+  /** Diagnostics only: "ask" when the exit question opens, "stay" when the player keeps racing. */
+  onExitPrompt?: (step: "ask" | "stay") => void;
   /** False during the finish hold: nothing is lost by leaving. */
   confirmExit: boolean;
   /** Desktop keyboard hint (Esc or P). */
@@ -33,14 +35,15 @@ export interface RacePauseSheetProps {
 
 export function RacePauseSheet(p: RacePauseSheetProps) {
   const [confirming, setConfirming] = useState(false);
-  const exit = () => { if (p.confirmExit) setConfirming(true); else p.onExit(); };
+  const exit = () => { if (p.confirmExit) { setConfirming(true); p.onExitPrompt?.("ask"); } else p.onExit(); };
+  const stay = () => { setConfirming(false); p.onExitPrompt?.("stay"); };
   return <div className={styles.pauseLayer} data-testid="race-pause">
     <div className={styles.pauseSheet} role="dialog" aria-modal="false" aria-labelledby="race-pause-title">
       {confirming ? <>
         <h2 id="race-pause-title">{p.pauseCopy.exitQuestion}</h2>
         <p>{p.pauseCopy.exitNote}</p>
         <div className={styles.pauseActions}>
-          <button type="button" autoFocus className={styles.pausePrimary} onClick={() => setConfirming(false)}>{p.pauseCopy.stay}</button>
+          <button type="button" autoFocus className={styles.pausePrimary} onClick={stay}>{p.pauseCopy.stay}</button>
           <button type="button" onClick={p.onExit} data-testid="race-exit-confirm">{p.pauseCopy.exit}</button>
         </div>
       </> : <>

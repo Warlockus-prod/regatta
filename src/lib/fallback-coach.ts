@@ -162,10 +162,18 @@ export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events'>): RaceLo
   };
 }
 
-type GoalKind = 'no-go' | 'tacks' | 'close-hauled';
+/** What a coach mistake is about; the next goal is aimed at one of these. */
+export type CoachGoalKind = 'no-go' | 'tacks' | 'close-hauled';
+type GoalKind = CoachGoalKind;
 type RankedMistake = Coaching['mistakes'][number] & { lossSec: number | null; goal: GoalKind };
 
 export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coaching {
+  return analyseRaceLocallyWithFocus(log, lang).coaching;
+}
+
+/** The same analysis plus the kind of the mistake ranked first (the one the
+ * results screen lists first), or null when the coach found none. */
+export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'): { coaching: Coaching; mainMistake: CoachGoalKind | null } {
   // Pick strategy: RU / EN / PL positional, ES / FR / DE / IT from the 4th
   // argument, so every site language gets its own rule-based coaching.
   const pick = (ru: string, en: string, pl: string, x: { es: string; fr: string; de: string; it: string }) => {
@@ -559,13 +567,14 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
     if (kind && loss !== null && loss >= 1) nextGoal = goalFor(kind, loss, pick);
   }
 
-  return mirrorCoachKeys({
+  const coaching = mirrorCoachKeys({
     overall,
     score,
     mistakes: topMistakes,
     strengths,
     nextGoalRu: nextGoal,
   });
+  return { coaching, mainMistake: focus?.goal ?? null };
 }
 
 /**

@@ -69,6 +69,7 @@ import { isRacePauseKey, raceUsesGameLayer, TEXT_ENTRY_SELECTOR } from "./race-l
 import { RaceBriefing } from "./RaceBriefing";
 import { briefingCourseId, hasSeenBriefing, hubHandsOffSetup, markBriefingSeen, phaseStartsNewRace, raceEntryStep, type RaceEntryTrigger } from "./race-setup-flow";
 import { RaceResults, type LeaderboardSaveState, type NativeBestSaveState, type NativeSaveStatus } from "./RaceResults";
+import type { RaceSetupRecord, RaceSetupSource, RaceTally } from "./race-diagnostic-summary";
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -141,6 +142,11 @@ export default function GamePage() {
   const [nativeBestSave, setNativeBestSave] = useState<NativeBestSaveState>({ status: "idle", id: "", requestId: "", retryable: false });
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
+  const gameStateRef = useRef(gameState); gameStateRef.current = gameState;
+  // Diagnostics only (race.summary, race.lifecycle restart): how this race was
+  // entered and its per-race counts. Never read by the race itself.
+  const raceSetupRef = useRef<RaceSetupRecord>({ source: "lobby", briefingShown: false, race: "free" });
+  const raceTallyRef = useRef<RaceTally>({ missedMarkNotices: 0, contacts: 0 });
   const setupRootRef = useRef<HTMLDivElement>(null);
   const startupGate = useRef(createRaceStartupGate());
   const simulationClockRef = useRef<ReturnType<typeof createFixedClock> | null>(null);
@@ -517,6 +523,7 @@ export default function GamePage() {
     physicalNavRef.current = undefined;
     ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null);
     ruleEventsRef.current = []; startedAtRef.current = undefined; setJudgeDebrief(null);
+    raceTallyRef.current = { missedMarkNotices: 0, contacts: 0 };
 
     // Player in the middle
     boats.push({
@@ -621,6 +628,8 @@ export default function GamePage() {
       phase: 'countdown',
     });
     setLockedMode(racePrefs.mode);
+    raceSetupRef.current = { ...raceSetupRef.current,
+      race: physicalRef.current ? "trial" : selectedMission ? "mission" : dailyDay !== null ? "daily" : "free" };
     // Web only for now: the native WebView keeps no durable localStorage.
     const ghost = physicalRef.current || isNativeRace() ? null : readGhostStore(localStore())[ghostClassKey({
       raceContext: LEGACY_RACE_CONTEXT, mode: racePrefs.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null })] ?? null;
@@ -640,6 +649,10 @@ export default function GamePage() {
   // "Again" and "Restart" keep the same setup and go straight to the countdown.
   const startRace = useCallback((trigger: RaceEntryTrigger) => {
     const step = raceEntryStep(trigger, hasSeenBriefing(briefingCourseId(physicalRef.current)));
+    const source: RaceSetupSource = trigger === "start" ? handedSetupRef.current ? "hub" : "lobby" : trigger;
+    if (trigger === "again" || trigger === "restart") recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "restart",
+      setupSource: source, phase: gameStateRef.current, mode: racePrefsRef.current.mode });
+    raceSetupRef.current = { ...raceSetupRef.current, source, briefingShown: step === "briefing" };
     if (step === "briefing") { openBriefing(); return; }
     prepareRace();
     beginCountdown();
@@ -688,7 +701,8 @@ export default function GamePage() {
   // -----------------------------------------------------------------------
   // The Menu button, Continue, Esc and P all toggle the same pause; the pause
   // sheet is open exactly while the race is paused (M1-2).
-  const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: pausedRef.current ? "pause" : "resume" }); }, []);
+  // The cockpit passes its click event; only the keyboard handler says "keyboard".
+  const togglePause = useCallback((how?: unknown) => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: pausedRef.current ? "pause" : "resume", source: how === "keyboard" ? "keyboard" : "pointer", phase: gameStateRef.current }); }, []);
   useEffect(() => {
     if (gameState !== "racing" && gameState !== "countdown") return;
     const onDown = (e: KeyboardEvent) => {
@@ -696,7 +710,7 @@ export default function GamePage() {
       // M1-2: Esc and P pause and resume on a desktop keyboard, also from a slider.
       if (isRacePauseKey(e, Boolean(target?.closest?.(TEXT_ENTRY_SELECTOR)))) {
         e.preventDefault();
-        togglePause();
+        togglePause("keyboard");
         return;
       }
       if (target?.closest("input,textarea,select,[contenteditable=true],[role=slider]") || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -740,7 +754,7 @@ export default function GamePage() {
       racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
       startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
       wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
-      pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef },
+      pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef, raceSetupRef, raceTallyRef },
     set: { setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
       setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setNativeSave,
       setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed } });
@@ -749,7 +763,7 @@ export default function GamePage() {
   // Reset
   // -----------------------------------------------------------------------
   const backToMenu = useCallback(() => {
-    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "exit" });
+    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "exit", phase: gameStateRef.current });
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     // A setup handed over by the app's Race hub returns there, not to a second menu.
     if (handedSetupRef.current && navigateNativeRace("/race")) return;
@@ -778,6 +792,14 @@ export default function GamePage() {
     const player = boatsRef.current.find(b => b.isPlayer);
     if (player) setCourse((autopilotOnRef.current ? autopilotHeadingRef.current : player.heading) + degrees);
   }, [setCourse]);
+  // The results screen is on (after the finish hold, or back from the replay).
+  useEffect(() => {
+    if (gameState === "finished") recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "results", mode: racePrefsRef.current.mode });
+  }, [gameState]);
+  // The pause sheet's Exit asked "Leave the race?" or the player chose Stay.
+  const exitPrompt = useCallback((step: "ask" | "stay") => {
+    recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: step === "ask" ? "accepted" : "noop", action: step === "ask" ? "exit-ask" : "exit-stay", phase: gameStateRef.current });
+  }, []);
   useEffect(() => {
     const hide = () => { if (document.hidden && !pausedRef.current && (gameState === "racing" || gameState === "countdown")) { pausedRef.current = true; setPaused(true); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "pause", reason: "hidden", source: "system" }); } };
     document.addEventListener("visibilitychange", hide);
@@ -899,6 +921,7 @@ export default function GamePage() {
                 setSelectedMission(null);
               }
               setResumeOffer(null);
+              raceSetupRef.current = { ...raceSetupRef.current, source: "resume", briefingShown: true };
               initRace(resumeOffer.difficulty);
               setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, mode));
               setIsNewRecord(false);
@@ -966,7 +989,7 @@ export default function GamePage() {
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance}
           feedback={{ toasts: feedback.visible, contact: feedback.contact }} targetSpeed={raceTarget}
-          camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu}
+          camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu} onExitPrompt={exitPrompt}
           onRestart={() => startRace("restart")} raceId={sceneRaceId} fullscreenOffer={!embed}
           raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
           autopilot={autopilotOn} onAutopilot={() => {

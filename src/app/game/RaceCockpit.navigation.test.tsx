@@ -238,17 +238,21 @@ describe("solo game layer: status row and pause sheet", () => {
   });
 
   it("asks before leaving a race in progress and leaves only on the confirmation", () => {
-    const props = { ...soloProps(), paused: true };
+    const props = { ...soloProps(), paused: true, onExitPrompt: vi.fn() };
     const draw = sheet(render(props));
     click(button(draw(), "Exit"));
     expect(props.onExit).not.toHaveBeenCalled();
+    // The diagnostics journal hears the question and the answer (race.lifecycle exit-ask / exit-stay).
+    expect(props.onExitPrompt.mock.calls).toEqual([["ask"]]);
     const confirm = draw();
     expect(text(confirm)).toContain("Leave the race?");
     click(button(confirm, "Stay"));
     expect(props.onExit).not.toHaveBeenCalled();
+    expect(props.onExitPrompt.mock.calls).toEqual([["ask"], ["stay"]]);
     click(button(draw(), "Exit"));
     click(button(draw(), "Exit"));
     expect(props.onExit).toHaveBeenCalledTimes(1);
+    expect(props.onExitPrompt.mock.calls).toEqual([["ask"], ["stay"], ["ask"]]);
   });
 
   it("dims and disables steering and trim during this race's finish hold, then leaves without asking", () => {
@@ -266,10 +270,11 @@ describe("solo game layer: status row and pause sheet", () => {
     // Map and Settings stay usable while the plate shows.
     click(button(held, "Course map"));
     expect(panel(render(props)).props.inert).toBeUndefined();
-    const paused = { ...props, paused: true };
+    const paused = { ...props, paused: true, onExitPrompt: vi.fn() };
     const draw = sheet(render(paused));
     click(button(draw(), "Exit"));
     expect(paused.onExit).toHaveBeenCalledTimes(1);
+    expect(paused.onExitPrompt).not.toHaveBeenCalled();
   });
 
   it("names the fleet in the text colour with a boat-colour dot", () => {

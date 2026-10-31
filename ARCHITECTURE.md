@@ -238,6 +238,10 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/game/RaceResults.tsx` - экран финиша `/game`: место и время, разбор судьи, таблица флота, миссия, коуч, сохранение в лидерборд, ссылка на повтор.
 - `src/app/game/RaceScreens.test.tsx` - статический рендер брифинга и финиша (testid, тексты, выбор трассы пробной гонки, сход, статус нативного сохранения).
 - `src/app/game/GameClient.loop.test.tsx` - GameClient вызывает `useRaceLoop` один раз за рендер с состоянием гонки и теми же refs, которые пишут команды кабины (руль, курс и автопилот, трим, пауза).
+- `src/app/game/race-diagnostic-summary.ts` - race.summary для журнала диагностики: `raceSummaryDiagnostics()` превращает конец гонки в две ограниченные строки (result: источник настройки, режим, уровень, ветер, место, финишировавшие боты, время, штрафы, удержание финиша, звук, ориентация; debrief: повороты, фордевинды, мертвая зона, пропущенный знак, контакты, толкотня, нарушения по судье, оценка и главная ошибка тренера), `withJudgeIncidents()` берет число пунктов разбора судьи; без имен и свободного текста.
+- `src/app/game/race-diagnostic-summary.test.ts` - строки race.summary: счет по настоящему журналу и событиям правил, число судьи с ограничением, пробная гонка без контактов и пропущенного знака, принимаются строгим кодеком.
+- `src/app/game/useRaceLoop.summary.test.ts` - конец гонки (лимит и финиш) пишет race.lifecycle timeout или finish, finish-hold и обе строки race.summary, результаты, тренер и экран результата не меняются.
+- `src/app/game/GameClient.diagnostics.test.tsx` - страница гонки: пауза и «Продолжить» с источником и фазой, вопрос о выходе, «Остаться» и подтвержденный выход, «Заново» с источником настройки.
 - `src/app/game/race-mode-labels.ts` - подписи Обычный / Pro на 7 языках, отдельным модулем, чтобы таблица лучших не тянула все тексты гонки; `src/app/game/race-copy.ts` реэкспортирует их.
 - `src/components/bundle-dedupe.test.ts` - стережет дедупликацию клиентского бандла: рантайм next/dynamic остается в корневом layout через `src/components/ClientErrorReporter.tsx`, таблица лучших не импортирует `src/app/game/race-copy.ts`.
 - `src/app/game/GameClient.feedback.test.tsx` - GameClient sends loop events, rule and missed-mark notices and contacts into the bus and the bus into the cockpit
@@ -1161,6 +1165,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/__tests__/race-shell.test.tsx` - race shell: landscape side insets, overlay offsets, gestureEnabled false, keep-awake on and off, reload to the race menu after the iOS/Android web process dies, no reload loop.
 - `mobile/__tests__/race-hub-setup.test.tsx` - hub start routes, hand-over through raceEntryQuery, presses in the rendered hub
 - `mobile/__tests__/metro-shared-imports.test.ts` - every app import that leaves `mobile/` lands in a Metro watch folder from `mobile/metro.config.js` (an import of `src/app` broke the release bundle of TestFlight 73 while jest and tsc passed).
+- `mobile/__tests__/race-diagnostics-bridge.test.ts` - race.summary and the M1 race.lifecycle rows cross the WebView bridge, the native journal, AsyncStorage restore and Copy journal unchanged; ten minutes of helm input cannot evict them.
 - `mobile/__tests__/race-sound-storage.test.ts` - the race sound row crosses the WebView storage bridge and is kept in AsyncStorage between app launches.
 - `mobile/src/navigation/RaceSetupPanel.tsx` - app Race hub setup panel (preset, level and wind, or mission radios, 44 pt targets)
 - `mobile/src/navigation/race-setup.ts` - app Race hub setup: presets, route built for the race (`/game?difficulty&wind` or `?mission`), 7-language labels
@@ -1342,7 +1347,7 @@ product acceptance item has passed.
 - `src/lib/diagnostics-web.test.ts` - SSR isolation, persistence failures, original-input subscription and native memory-only regression.
 - `src/lib/diagnostics-web.ts` - per-window browser journal and memory-only native WebView adapter.
 - `src/lib/diagnostics.test.ts` - privacy, event ranges, byte/entry bounds, coalescing and expiry regressions.
-- `src/lib/diagnostics.ts` - pure bounded journal, exact event schemas and validated persistence/transport codecs.
+- `src/lib/diagnostics.ts` - pure bounded journal, exact event schemas and validated persistence/transport codecs; when full it evicts by retention class (`diagnosticRetention`: continuous control.change, dial, scan and seek first; lifecycle, save, perf, gpu, race.summary, startup and failures last); race.summary schema and race.lifecycle restart/results/finish-hold/exit-ask/exit-stay.
 
 The shared radio hardware stage disables text selection and iOS touch callouts
 for its faceplate/captions and cancels contextmenu. The DIAL button alone was

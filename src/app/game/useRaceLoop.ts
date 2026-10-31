@@ -6,8 +6,8 @@
 // the effect order, the dependency lists and the refs' semantics are the same.
 
 import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
-import { playTack, playMarkRound, playFinish, playNoGo } from '@/lib/sounds';
-import { analyseRaceLocally } from '@/lib/fallback-coach';
+import { playTack, playMarkRound, playFinish, playNoGo, readRaceSound } from '@/lib/sounds';
+import { analyseRaceLocally, analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
 import { evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import type { useI18n } from '@/lib/i18n';
 import { tryUpdateBestRecord, type BestRecord } from '@/lib/best-times';
@@ -53,6 +53,7 @@ import { createGroundSpeedWindow, displayedBoatSpeed, recordGroundStep } from "@
 import { pickLocalized } from "@/lib/languages";
 import type { NativeBestSaveState, NativeSaveStatus } from './RaceResults';
 import { finishHoldActive, scheduleFinishedScreen } from './race-finish-hold';
+import { raceOrientation, raceSummaryDiagnostics, withJudgeIncidents, type RaceSetupRecord, type RaceTally } from './race-diagnostic-summary';
 import {
   localStore, raceLogTally, recordSample, soloRaceWind, sortRaceResults,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type Vec2,
@@ -107,6 +108,10 @@ export interface RaceLoopRefs {
   startupGate: RefObject<ReturnType<typeof createRaceStartupGate>>;
   pausedRef: RefObject<boolean>;
   langRef: RefObject<I18n["lang"]>;
+  /** How this race was entered (diagnostics race.summary only). */
+  raceSetupRef: RefObject<RaceSetupRecord>;
+  /** Missed-mark notices and contact frames of this race (diagnostics only). */
+  raceTallyRef: RefObject<RaceTally>;
 }
 
 /** The state setters the loop publishes to; all owned by GameClient. */
@@ -160,6 +165,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
     wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
     pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef,
+    raceSetupRef, raceTallyRef,
   } = refs;
   const {
     setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
@@ -262,7 +268,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         // M1-3: a contact begins while the hulls still overlap, before they are pushed apart.
         const cue = contactCue(contact, { touching: playerTouching(boats, MIN_BOAT_SEPARATION), t: raceClockRef.current, racing: isRacing });
         contact = cue.state;
-        if (cue.cue) showContact();
+        if (cue.cue) { showContact(); raceTallyRef.current.contacts++; }
         resolveCollisions(boats, dt);
       }
       const ghost = ghostTrackRef.current, ghostBoat = ghostBoatsRef.current[0];
@@ -280,7 +286,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         if (boat.isPlayer && !physical) {
           const missed = detectMissedMark(missedMark, { prevPos, pos: boat.pos, lapDone: boat.lapDone, started: boat.started, course, time: raceClockRef.current });
           missedMark = missed.state;
-          if (missed.missed) showNotice(pickLocalized(langRef.current, MISSED_MARK_NOTICE), "missed-mark", "danger");
+          if (missed.missed) { showNotice(pickLocalized(langRef.current, MISSED_MARK_NOTICE), "missed-mark", "danger"); raceTallyRef.current.missedMarkNotices++; }
         }
 
         // The physical fleet already graded its actual travel this tick.
@@ -409,12 +415,16 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         const sorted = sortRaceResults(boats, ruleStateRef.current.penalties);
         ended = true;
         setResults(sorted);
+        // Diagnostics only (race.summary debrief): the incidents the judge debrief lists.
+        let judgedIncidents: Promise<number> | null = null;
         if (racePrefsRef.current.rules) {
           const events = ruleEventsRef.current, completedRaceId = raceIdRef.current;
           const options = { startedAt: startedAtRef.current, markRoundedAt: markTimesRef.current.get("player"), finishedAt: player.finishTime };
-          void import("@/lib/race-judge").then(judge => {
+          const judgeModule = import("@/lib/race-judge");
+          void judgeModule.then(judge => {
             if (raceIdRef.current === completedRaceId) setJudgeDebrief(judge.buildRaceJudgeDebrief(events, options));
           });
+          judgedIncidents = judgeModule.then(judge => judge.buildRaceJudgeDebrief(events, options).items.filter(item => !item.jostle).length);
         }
         // M1-4: a finish holds the scene with the place plate before the
         // results replace it; a timeout shows them at once. Everything below
@@ -423,6 +433,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         scheduleFinishedScreen({ playerFinished, place: sorted.findIndex((r) => r.isPlayer) + 1, total: sorted.length,
           raceId: endedRaceId, isCurrentRace: () => raceIdRef.current === endedRaceId, setGameState });
         recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
+        const finishHoldShown = finishHoldActive(endedRaceId);
+        if (finishHoldShown) recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "finish-hold", mode: racePrefsRef.current.mode });
         if (!physical) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
           totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length });
         // Race ended cleanly - drop the resume offer so the next reload
@@ -476,8 +488,23 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           events: logEventsRef.current,
           lang,
         };
-        const localCoaching = analyseRaceLocally(payload, langRef.current);
+        const { coaching: localCoaching, mainMistake } = analyseRaceLocallyWithFocus(payload, langRef.current);
         setCoaching(localCoaching);
+        // Diagnostics only (race.summary): a failure here never touches the race end.
+        try {
+          const [resultRow, debriefRow] = raceSummaryDiagnostics({ mode: racePrefsRef.current.mode, difficulty, wind: windStrength, setup: raceSetupRef.current,
+            finished: player.finishTime != null, place: playerRank, total: sorted.length,
+            botsFinished: boats.filter((b) => !b.isPlayer && b.lapDone === 2).length, raceSeconds: elapsedSec,
+            penaltySeconds: ruleStateRef.current.penalties.player ?? 0, finishHoldShown, soundOn: readRaceSound(), orientation: raceOrientation(),
+            events: logEventsRef.current, samples: logSamplesRef.current, ruleEvents: ruleEventsRef.current,
+            tally: physical ? null : raceTallyRef.current, coachScore: localCoaching.score, mainMistake });
+          recordDiagnostic(resultRow);
+          // With rules on, the debrief waits for the judge (loaded after the finish)
+          // so judgeIncidents is the count the results screen lists, not a recount.
+          if (!judgedIncidents) recordDiagnostic(debriefRow);
+          else void judgedIncidents.then(n => withJudgeIncidents(debriefRow, n), () => debriefRow)
+            .then(row => { try { recordDiagnostic(row); } catch { /* optional journal */ } });
+        } catch { /* The journal is optional; the race result is not. */ }
         // Post within the finish tick, before a result/menu render can replace
         // the active refs. Keep the immutable payload until its own durable ack.
         if (isNativeRace() && !physical && player.finishTime !== undefined && logSamplesRef.current.length >= 2) {

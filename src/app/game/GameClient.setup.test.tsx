@@ -85,7 +85,9 @@ describe("one race setup on the actual race page", () => {
     capture.phase = "finished";
     await renderPage();
     capture.results!.onAgain();
-    expect(lifecycle()).toEqual(["init", "countdown"]);
+    // The journal names the restart and where it came from before the new race (diagnostics).
+    expect(lifecycle()).toEqual(["restart", "init", "countdown"]);
+    expect(vi.mocked(recordWebDiagnostic).mock.calls[0][0]).toMatchObject({ type: "race.lifecycle", action: "restart", setupSource: "again", phase: "finished" });
     expect(values.has(RACE_BRIEFING_SEEN_KEY)).toBe(false);
   });
 });

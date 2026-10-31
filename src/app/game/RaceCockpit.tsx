@@ -61,6 +61,8 @@ export function RaceCockpit(p: {
   /** onPause toggles the pause (the Menu button, Continue, Esc and P);
    * onExit leaves for the menu and is called only after the confirmation. */
   paused: boolean; onPause: () => void; onExit: () => void; onRestart: () => void;
+  /** Diagnostics only: the pause sheet asked before leaving, or the player stayed. */
+  onExitPrompt?: (step: "ask" | "stay") => void;
   autopilot: boolean; onAutopilot: () => void;
   muted: boolean; onSound: () => void; penalty: number; countdown?: number;
   /** The live race id: steering and trim are held during its finish hold. */
@@ -159,7 +161,7 @@ export function RaceCockpit(p: {
           </span>
         </header>
         {p.paused && <RacePauseSheet copy={c} pauseCopy={pc} onContinue={resume} onRestart={p.onRestart}
-          onSettings={() => selectTab("settings")} onExit={p.onExit} confirmExit={!holding}
+          onSettings={() => selectTab("settings")} onExit={p.onExit} onExitPrompt={p.onExitPrompt} confirmExit={!holding}
           showKeys={screen !== "unsupported"} onFullscreen={canFullscreen ? goFullscreen : null}
           sound={sound?.("pause")} lessonReturn={foundationLesson ? <FoundationReturn compact /> : undefined} />}
       </div>

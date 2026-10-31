@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "ffd5deea83ba",
-  "sha256": "eb2dd42e15e70af24549f3d7529287a7fc59d3a8c3eda8b11153dc8fdbed5df1",
-  "bytes": 6737820,
+  "version": "2babddc8b6a2",
+  "sha256": "28707ea67fb586ac0a9152096d65c702cb7d234659711ba67f480c96e200a34c",
+  "bytes": 6743725,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -607,6 +607,7 @@
     "src/app/game/RaceResults.tsx",
     "src/app/game/config.ts",
     "src/app/game/race-copy.ts",
+    "src/app/game/race-diagnostic-summary.ts",
     "src/app/game/race-finish-hold.ts",
     "src/app/game/race-finish-summary.ts",
     "src/app/game/race-fullscreen.ts",
@@ -908,8 +909,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 63520,
-      "sha256": "fdf476efac75900374e9cfdde4264d7e2d58901a4a1fbb16a3b09a6f59de5da7"
+      "bytes": 65724,
+      "sha256": "4268ff4308c5d62f32e1d6efa2f7e3f3dbbe4f1dd9d4b9e5a26bd024e26117bc"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -933,8 +934,8 @@
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 17696,
-      "sha256": "a130d75a72f6fed5a86a52dd8e660b7d7798bb985dc459cc761e3f2d60a47230"
+      "bytes": 17862,
+      "sha256": "ec60abc0b7169df2f9bd3c9aa53003b3bb79893fa5a22bbcb09c129b2927ac5f"
     },
     {
       "path": "src/app/game/RaceFinishPlate.tsx",
@@ -953,8 +954,8 @@
     },
     {
       "path": "src/app/game/RacePauseSheet.tsx",
-      "bytes": 2948,
-      "sha256": "df731fe2a07ab6000c19a5272fcfaf266c34c82de89c2ee33f797a86cf0e9890"
+      "bytes": 3178,
+      "sha256": "5a8b487a1ce93e449a809a81319f64eb6b6f9c7a295168c267bcb54ea2bcaa36"
     },
     {
       "path": "src/app/game/RaceReplay.tsx",
@@ -975,6 +976,11 @@
       "path": "src/app/game/race-copy.ts",
       "bytes": 19688,
       "sha256": "e455a0383ac33aba8dedd75184c1ff629991567977599c8acc6fbdb44c0f4f7e"
+    },
+    {
+      "path": "src/app/game/race-diagnostic-summary.ts",
+      "bytes": 5062,
+      "sha256": "a326eba7c3d391e7a9fc5a26a5bf1bc5cb87dd16c3b0663eb422771111f94ef6"
     },
     {
       "path": "src/app/game/race-finish-hold.ts",
@@ -1028,8 +1034,8 @@
     },
     {
       "path": "src/app/game/useRaceLoop.ts",
-      "bytes": 34779,
-      "sha256": "cceaa214a6fe78307813184f9b5bb905f133076f0d6b7b53e4bacb63ceebbccf"
+      "bytes": 37285,
+      "sha256": "6dd6a62599cff52682e7a85c0b7f2a3d34a1cfa857058293def8d20565a4c9a5"
     },
     {
       "path": "src/app/globals.css",
@@ -2048,13 +2054,13 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 28561,
-      "sha256": "30212820b96669255eb52fc0f6997b348e92168efd1af136dc08113a91c2606a"
+      "bytes": 34215,
+      "sha256": "710543f4e78458626a2b9c20e444bf00c5a2dbdb05ad2144766d5968f573f9c4"
     },
     {
       "path": "src/lib/fallback-coach.ts",
-      "bytes": 33930,
-      "sha256": "435cad08c17f4390eba98e75cd8fb77093ac2d99608e4e8b405b863f6da644f0"
+      "bytes": 34469,
+      "sha256": "759ba6ffbbb45d0b089bf52794e692993cde173aed6b0641ac4350e4a705aa92"
     },
     {
       "path": "src/lib/funnel.ts",

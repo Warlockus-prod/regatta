@@ -286,3 +286,100 @@ describe("diagnostic strict transport and privacy", () => {
     expect(journal.snapshot().entries.map(e => e.count)).toEqual([1, 1, 1, 1]);
   });
 });
+
+// Contract (TestFlight journal): when the journal is full it gives up the
+// continuous helm and sheet samples before the rows that explain a race, so a
+// 5-10 minute race keeps its start, every perf sample, its summary and finish.
+describe("diagnostic eviction keeps what explains a race", () => {
+  const lifecycle = (action: Extract<DiagnosticInput, { type: "race.lifecycle" }>["action"]): DiagnosticInput => ({ type: "race.lifecycle", surface: "race", outcome: "accepted", action, mode: "pro" });
+  const perf = (seconds: number): DiagnosticInput => ({ type: "race.perf", surface: "race", outcome: "accepted", source: "system", action: "sample", backend: "webgl2", fpsAvg: 58.5, fpsP5: 41, dpr: 2, drawCalls: 120, seconds });
+  const result: DiagnosticInput = { type: "race.summary", surface: "race", outcome: "accepted", source: "system", action: "result", mode: "pro", difficulty: "hard", wind: "heavy",
+    setupSource: "restart", race: "mission", briefingShown: false, finished: true, place: 3, total: 6, botsFinished: 5, raceSeconds: 598.4, penaltySeconds: 20,
+    finishHoldShown: true, soundOn: true, orientation: "landscape" };
+  const debrief: DiagnosticInput = { type: "race.summary", surface: "race", outcome: "accepted", source: "system", action: "debrief", tacks: 14, gybes: 3, noGoEntries: 4,
+    missedMarkNotices: 1, contacts: 2, startJostleEvents: 1, judgeIncidents: 3, coachScore: 64, mainMistake: "no-go" };
+  const helm = (i: number): DiagnosticInput => ({ type: "control.change", surface: "race", outcome: "accepted", control: i % 2 ? "rudder" : "mainsheet", value: i % 2 ? .3 : .6 });
+
+  it("keeps start, every perf sample, the summary and the finish of a synthetic 10-minute race", () => {
+    const { journal, advance } = rig();
+    for (const action of ["briefing", "init", "scene-ready", "countdown", "start"] as const) journal.record(lifecycle(action));
+    let controls = 0;
+    // 10 minutes of helm and sheet input every 300 ms (never coalesced: two controls alternate), a perf sample a minute.
+    for (let ms = 0; ms < 600_000; ms += 300) {
+      advance(300); journal.record(helm(controls++));
+      if (ms % 60_000 === 0 && ms > 0) journal.record(perf(ms / 1000));
+    }
+    journal.record(lifecycle("finish")); journal.record(lifecycle("finish-hold"));
+    journal.record(result); journal.record(debrief);
+    journal.record(perf(600)); journal.record(lifecycle("results"));
+    const { entries, dropped } = journal.snapshot();
+    expect(entries.length).toBe(200);
+    expect(entries.reduce((sum, e) => sum + e.count, 0) + dropped).toBe(controls + 5 + 9 + 6);
+    const kept = entries.map(e => e.event);
+    for (const action of ["briefing", "init", "scene-ready", "countdown", "start", "finish", "finish-hold", "results"]) expect(kept.some(e => e.type === "race.lifecycle" && e.action === action), action).toBe(true);
+    expect(kept.filter(e => e.type === "race.perf")).toHaveLength(10);
+    expect(kept.filter(e => e.type === "race.summary").map(e => e.action)).toEqual(["result", "debrief"]);
+    expect(kept.filter(e => e.type === "control.change").length).toBe(200 - 5 - 3 - 10 - 2);
+    // The newest controls survive, still in order; the sequence stays increasing for persistence.
+    expect(entries.map(e => e.seq)).toEqual([...entries.map(e => e.seq)].sort((a, b) => a - b));
+    expect(parseDiagnosticPersistence(serializeDiagnosticPersistence(journal.snapshot(), 1_000), 1_001)?.entries).toEqual(entries);
+  });
+
+  it("drops ordinary commands before lifecycle and failures, and never the row just recorded", () => {
+    const small = rig(3);
+    small.journal.record(lifecycle("start")); small.journal.record(nav); small.journal.record({ ...command, outcome: "failed", reason: "disabled" });
+    small.journal.record(command);
+    expect(small.journal.snapshot()).toMatchObject({ dropped: 1, entries: [{ event: { action: "start" } }, { event: { outcome: "failed" } }, { event: command }] });
+    const full = rig(2);
+    full.journal.record(lifecycle("start")); full.journal.record(lifecycle("finish")); full.journal.record(helm(0));
+    expect(full.journal.snapshot().entries.map(e => e.event.type)).toEqual(["race.lifecycle", "control.change"]);
+    // Continuous helm input goes before an older ordinary command.
+    const mixed = rig(3);
+    mixed.journal.record(nav); mixed.journal.record(helm(0)); mixed.journal.record(lifecycle("start")); mixed.journal.record(helm(1));
+    expect(mixed.journal.snapshot().entries.map(e => e.event)).toEqual([nav, lifecycle("start"), helm(1)]);
+  });
+});
+
+describe("race.summary and the M1 lifecycle actions", () => {
+  const result = { type: "race.summary", surface: "race", outcome: "accepted", source: "system", action: "result", mode: "simple", difficulty: "medium", wind: "medium",
+    setupSource: "lobby", race: "free", briefingShown: true, finished: true, place: 2, total: 6, botsFinished: 5, raceSeconds: 301.2, penaltySeconds: 0,
+    finishHoldShown: true, soundOn: false, orientation: "portrait" } as const;
+  const debrief = { type: "race.summary", surface: "race", outcome: "accepted", source: "system", action: "debrief", tacks: 9, gybes: 2, noGoEntries: 1,
+    missedMarkNotices: 0, contacts: 1, startJostleEvents: 2, judgeIncidents: 0, coachScore: 78, mainMistake: "none" } as const;
+
+  it("accepts both rows at their widest values inside one batch and the per-row byte budget", () => {
+    const widest = [{ ...result, setupSource: "restart", race: "mission", briefingShown: false, place: 64, total: 64, botsFinished: 63, raceSeconds: 7199.9, penaltySeconds: 7199.9, finishHoldShown: false, orientation: "landscape" },
+      { ...debrief, tacks: 10_000, gybes: 10_000, noGoEntries: 10_000, missedMarkNotices: 10_000, contacts: 10_000, startJostleEvents: 10_000, judgeIncidents: 10_000, coachScore: 100, mainMistake: "close-hauled" }];
+    const batch = parseDiagnosticBatch({ version: 1, events: [...widest, ...Array.from({ length: 14 }, () => widest[0])] });
+    expect(batch?.events).toHaveLength(16);
+    expect(serializeDiagnosticBatch(batch!.events)).not.toBeNull();
+    const journal = rig().journal;
+    for (const row of widest) expect(journal.record(row as DiagnosticInput)).not.toBeNull();
+    expect(journal.snapshot().entries.every(e => bytes(e) <= DIAGNOSTIC_ENTRY_MAX_BYTES)).toBe(true);
+  });
+
+  it("refuses free text, unknown enums, out-of-range numbers and fields of the other row", () => {
+    expect(parseDiagnosticBatch({ version: 1, events: [result, debrief] })?.events).toEqual([result, debrief]);
+    const bad: unknown[] = [
+      { ...result, nickname: "Ala" }, { ...result, mainMistake: "none" }, { ...debrief, place: 1 }, { ...result, setupSource: "share" },
+      { ...result, race: "online" }, { ...result, place: 7 }, { ...result, botsFinished: 6 }, { ...result, total: 65, place: 1 },
+      { ...result, raceSeconds: 7201 }, { ...result, raceSeconds: NaN }, { ...debrief, tacks: 1.5 }, { ...debrief, tacks: -1 },
+      { ...debrief, coachScore: 101 }, { ...debrief, mainMistake: "pinching" }, { ...debrief, note: "PRIVATE" },
+      Object.fromEntries(Object.entries(result).filter(([key]) => key !== "finished")),
+      Object.fromEntries(Object.entries(debrief).filter(([key]) => key !== "mainMistake")),
+      { ...result, action: "both" },
+    ];
+    for (const event of bad) expect(parseDiagnosticBatch({ version: 1, events: [event] }), JSON.stringify(event)).toBeNull();
+    // The trial does not measure missed marks or contacts: those fields are optional.
+    const { missedMarkNotices: _m, contacts: _c, ...trial } = debrief;
+    expect(parseDiagnosticBatch({ version: 1, events: [trial] })).not.toBeNull();
+  });
+
+  it("knows restart with its setup source, results, the finish hold and the exit question", () => {
+    for (const action of ["restart", "results", "finish-hold", "exit-ask", "exit-stay"]) {
+      expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action, setupSource: "again", phase: "finished" }] }), action).not.toBeNull();
+    }
+    expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "restart", setupSource: "button" }] })).toBeNull();
+    expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "restarted" }] })).toBeNull();
+  });
+});
