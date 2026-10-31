@@ -105,7 +105,7 @@ export function RaceBriefing({
             <CoursePreview />
             <ol className="text-sm text-[var(--text-secondary)] mt-4 space-y-1.5 list-decimal list-inside leading-relaxed">
               <li>{tp('Старт от оранжевой линии внизу.', 'Start from the orange line at the bottom.', 'Start z pomarańczowej linii na dole.', { es: 'La salida es desde la línea naranja de abajo.', fr:'Départ depuis la ligne orange en bas.', de: 'Start an der orangen Linie unten.', it: 'Partenza dalla linea arancione in basso.' })}</li>
-              <li>{tp('Идёшь', 'Work', 'Płyniesz', { es: 'Sube', fr: 'Remonte', de: 'Segle', it: 'Risali' })} <span className="text-[var(--accent-cyan)] font-semibold">{tp('галсами', 'upwind in tacks', 'halsami', { es: 'dando bordos', fr: 'en louvoyant', de: 'in Kreuzschlägen', it: 'bordeggiando' })}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t sail straight into the wind.', 'do znaku nawietrznego - prosto pod wiatr się nie da.', { es: 'hasta la baliza de barlovento - directo contra el viento no se puede.', fr: 'jusqu\'à la bouée au vent - impossible d\'aller droit contre le vent.', de: 'zur Luvtonne - direkt gegen den Wind geht es nicht.', it: 'fino alla boa di bolina - dritti controvento non si può.' })}</li>
+              <li>{tp('Идёшь', 'Work', 'Płyniesz', { es: 'Sube', fr: 'Remonte', de: 'Segle', it: 'Risali' })} <span className="text-[var(--text-primary)] font-semibold">{tp('галсами', 'upwind in tacks', 'halsami', { es: 'dando bordos', fr: 'en louvoyant', de: 'in Kreuzschlägen', it: 'bordeggiando' })}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t sail straight into the wind.', 'do znaku nawietrznego - prosto pod wiatr się nie da.', { es: 'hasta la baliza de barlovento - directo contra el viento no se puede.', fr: 'jusqu\'à la bouée au vent - impossible d\'aller droit contre le vent.', de: 'zur Luvtonne - direkt gegen den Wind geht es nicht.', it: 'fino alla boa di bolina - dritti controvento non si può.' })}</li>
               <li>{tp('Обогни верхний знак, оставив его по левому борту.', 'Round the windward mark, leaving it to port.', 'Okrąż znak nawietrzny, zostawiając go po lewej burcie.', { es: 'Rodea la baliza de barlovento dejándola a babor.', fr: 'Contourne la bouée au vent en la laissant à bâbord.', de: 'Runde die Luvtonne und lasse sie an Backbord.', it: 'Gira la boa di bolina lasciandola a sinistra.' })}</li>
               <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
@@ -113,7 +113,7 @@ export function RaceBriefing({
           <ul className="space-y-4 self-center">
             {[
               { icon: 'nogo', text: tl({
-                ru: '±30° к ветру - мёртвая зона: паруса не тянут. Встал - отверни градусов на 50.',
+                ru: '±30° к ветру - мёртвая зона: паруса не тянут. Если лодка встала, уваливайся примерно на 50°.',
                 en: 'Within 30° of the wind is the no-go zone: the sails do not pull. If you stop, bear away about 50°.',
                 pl: '±30° od wiatru to kąt martwy: żagle nie pracują. Jeśli staniesz, odpadnij o jakieś 50°.',
                 es: 'A ±30° del viento está la zona muerta: las velas no tiran. Si te paras, arriba unos 50°.',
@@ -142,9 +142,9 @@ export function RaceBriefing({
               ...(mode === "pro" ? [{ icon: 'sheets', text: tl({
                 ru: 'В Pro шкоты на тебе: Q/A гика-шкот, W/S стаксель-шкот.',
                 en: 'In Pro you trim the sheets: Q/A mainsheet, W/S jib sheet.',
-                pl: 'W Pro szoty są na tobie: Q/A szot grota, W/S szot foka.',
+                pl: 'W Pro obsługujesz szoty: Q/A szot grota, W/S szot foka.',
                 es: 'En Pro trimas tú las escotas: Q/A escota de mayor, W/S escota de foque.',
-                fr: 'En Pro, tu règles les écoutes : Q/A grand-voile, W/S foc.',
+                fr: 'En Pro, tu règles les écoutes : Q/A écoute de grand-voile, W/S écoute de foc.',
                 de: 'In Pro bedienst du die Schoten: Q/A Großschot, W/S Fockschot.',
                 it: 'In Pro regoli tu le scotte: Q/A scotta della randa, W/S scotta del fiocco.',
               }) }] : []),
@@ -162,10 +162,10 @@ export function RaceBriefing({
             ru: 'Перед следующими стартами брифинг не появится. Открыть его снова можно кнопкой «i» рядом со стартом.',
             en: 'The briefing will not appear before your next starts. Open it again with the "i" button beside Start.',
             pl: 'Przed kolejnymi startami odprawa się nie pojawi. Otworzysz ją ponownie przyciskiem "i" obok startu.',
-            es: 'El briefing no aparecerá antes de las próximas salidas. Vuelve a abrirlo con el botón "i" junto a la salida.',
+            es: 'El briefing no aparecerá antes de las próximas salidas. Vuelve a abrirlo con el botón "i" junto al botón Empezar.',
             fr: 'Le briefing ne s\'affichera plus avant les prochains départs. Rouvre-le avec le bouton "i" à côté du départ.',
             de: 'Vor den nächsten Starts erscheint das Briefing nicht mehr. Öffne es wieder mit der Taste "i" neben dem Start.',
-            it: 'Il briefing non comparirà prima delle prossime partenze. Riaprilo con il pulsante "i" accanto alla partenza.',
+            it: 'Il briefing non comparirà prima delle prossime partenze. Riaprilo con il pulsante "i" accanto al pulsante Inizia.',
           })}
         </p>}
         </div>
@@ -190,9 +190,9 @@ export function PhysicalTrialNote({ profile }: { profile: PhysicalRaceProfile | 
   return (
     <p className="card mb-5 p-3 text-sm text-[var(--text-secondary)]" role="note" data-testid="physical-trial-note">
       {tl({
-        ru: `Пробная гонка в метрах: лавировка ${physicalCourseDefinition(profile).legMetres} м, твоя лодка ведет себя как в «Тренажёре трима». Результат, рекорд и запись гонки не сохраняются.`,
+        ru: `Пробная гонка в метрах: лавировка ${physicalCourseDefinition(profile).legMetres} м, твоя лодка ведёт себя как в «Тренажёре трима». Результат, рекорд и запись гонки не сохраняются.`,
         en: `Trial race in real metres: a ${physicalCourseDefinition(profile).legMetres} m beat, your boat handles as in the Sail trim trainer. The result, best time and race recording are not saved.`,
-        pl: `Wyścig próbny w metrach: halsówka ${physicalCourseDefinition(profile).legMetres} m, Twój jacht prowadzi się jak w Trenażerze trymu. Wynik, rekord i zapis wyścigu nie są zapisywane.`,
+        pl: `Wyścig próbny w metrach: halsówka ${physicalCourseDefinition(profile).legMetres} m, twój jacht prowadzi się jak w Trenażerze trymu. Wynik, rekord i nagranie wyścigu nie są zapisywane.`,
         es: `Regata de prueba en metros reales: ceñida de ${physicalCourseDefinition(profile).legMetres} m, tu barco se comporta como en el Simulador de trimado. El resultado, el récord y la grabación no se guardan.`,
         fr: `Course d'essai en mètres réels : louvoyage de ${physicalCourseDefinition(profile).legMetres} m, ton bateau se comporte comme dans Réglage des voiles. Le résultat, le record et l'enregistrement ne sont pas sauvegardés.`,
         de: `Probewettfahrt in echten Metern: ${physicalCourseDefinition(profile).legMetres} m Kreuz, dein Boot verhält sich wie im Segeltrimm-Trainer. Ergebnis, Bestzeit und Aufzeichnung werden nicht gespeichert.`,
@@ -221,6 +221,14 @@ function BriefingIcon({ kind }: { kind: 'nogo' | 'tack' | 'steer' | 'sheets' }) 
 // ============================================================================
 // Small SVG preview of the windward/leeward course (briefing screen)
 // ============================================================================
+
+// The chart is drawn on its own fixed dark water in both themes, so its inks are
+// fixed too. Cyan means an action, the selected section or an active control
+// (DESIGN.md), and nothing on this chart is pressed: the wind is the light
+// neutral ink of the race overview map, the upwind route a muted neutral, the
+// marks and the start line the warning amber and the run home the success
+// green. Contrast on the darkest water: 16.5, 11.0, 9.7 and 14.0 to 1.
+export const COURSE_PREVIEW_INK = { wind: "#e8f4f8", upwind: "#b8cad6" } as const;
 
 function CoursePreview() {
   const { tp } = useI18n();
@@ -256,10 +264,10 @@ function CoursePreview() {
       <rect x="0" y="0" width="220" height="274" rx="8" fill="url(#cpWater)" />
       <g transform="translate(10 0)">
       {/* wind arrow */}
-      <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
+      <g stroke={COURSE_PREVIEW_INK.wind} strokeWidth="1.4" fill={COURSE_PREVIEW_INK.wind}>
         <line x1="100" y1="10" x2="100" y2="40" />
         <polygon points="96,38 100,48 104,38" />
-        <text x="108" y="28" fill="#00d4ff" stroke="none" fontSize="11">{labelWind}</text>
+        <text x="108" y="28" fill={COURSE_PREVIEW_INK.wind} stroke="none" fontSize="11">{labelWind}</text>
       </g>
       {/* windward mark */}
       <circle cx="100" cy="60" r="7" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
@@ -274,7 +282,7 @@ function CoursePreview() {
       {/* route */}
       <polyline
         fill="none"
-        stroke="#00d4ff"
+        stroke={COURSE_PREVIEW_INK.upwind}
         strokeWidth="1.5"
         strokeDasharray="3 3"
         points="100,220 75,170 120,130 90,95 100,65"
@@ -286,10 +294,10 @@ function CoursePreview() {
         points="100,65 115,120 95,180 100,220"
       />
       {/* boat start */}
-      <circle cx="100" cy="220" r="3" fill="#00d4ff" />
+      <circle cx="100" cy="220" r="3" fill={COURSE_PREVIEW_INK.wind} />
       {/* legend */}
       <g fontSize="10">
-        <text x="10" y="250" fill="#00d4ff">{legendUpwind}</text>
+        <text x="10" y="250" fill={COURSE_PREVIEW_INK.upwind}>{legendUpwind}</text>
         <text x="10" y="260" fill="#44ff88">{legendDownwind}</text>
       </g>
       </g>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import type { Lang } from '@/lib/languages';
 
@@ -158,25 +158,43 @@ function pickL(obj: ShortcutItem | ShortcutGroup, lang: Lang): string {
   }
 }
 
+/** The overlay listens in the capture phase on window, so it hears a key
+ * before any page handler (the solo race toggles its pause on Escape). */
+export const HELP_KEY_LISTENER_OPTIONS = { capture: true } as const;
+
+type HelpKey = Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'target' | 'preventDefault' | 'stopPropagation' | 'stopImmediatePropagation'>;
+
+/** "?" toggles the overlay. Escape closes it only while it is open, and that
+ * Escape is the overlay's alone: it stops there, so the race behind does not
+ * also pause or resume. A closed overlay leaves Escape to the page. */
+export function createHelpKeyListener(isOpen: () => boolean, setOpen: (next: boolean | ((open: boolean) => boolean)) => void) {
+  return (e: HelpKey) => {
+    // Don't trigger when typing in an input
+    const target = e.target as HTMLElement | null;
+    if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+
+    if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+      setOpen((o) => !o);
+      e.preventDefault();
+    } else if (e.key === 'Escape' && isOpen()) {
+      setOpen(false);
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
+  };
+}
+
 export default function HelpOverlay() {
   const { lang, tp } = useI18n();
   const [open, setOpen] = useState(false);
+  const openRef = useRef(open);
+  useEffect(() => { openRef.current = open; }, [open]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // Don't trigger when typing in an input
-      const target = e.target as HTMLElement | null;
-      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
-
-      if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
-        setOpen((o) => !o);
-        e.preventDefault();
-      } else if (e.key === 'Escape') {
-        setOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const onKey = createHelpKeyListener(() => openRef.current, setOpen);
+    window.addEventListener('keydown', onKey, HELP_KEY_LISTENER_OPTIONS);
+    return () => window.removeEventListener('keydown', onKey, HELP_KEY_LISTENER_OPTIONS);
   }, []);
 
   // Expose a global opener so nav button can trigger it
@@ -203,14 +221,14 @@ export default function HelpOverlay() {
       <div
         className="card max-w-lg w-full max-w-[100vw] p-6 max-h-[80vh] overflow-y-auto min-w-0"
         onClick={(e) => e.stopPropagation()}
-        style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}
+        style={{ border: '1px solid var(--border-subtle)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{title}</h2>
           <button
             onClick={() => setOpen(false)}
             aria-label={closeLabel}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           >
             ✕
           </button>
@@ -219,7 +237,7 @@ export default function HelpOverlay() {
         <div className="space-y-5">
           {SHORTCUTS.map((group, gi) => (
             <div key={gi}>
-              <div className="text-xs font-semibold tracking-wider text-[var(--accent-cyan)] mb-2">
+              <div className="text-xs font-semibold tracking-wider text-[var(--text-secondary)] mb-2">
                 {pickL(group, lang).toUpperCase()}
               </div>
               <div className="space-y-1.5">
@@ -228,7 +246,7 @@ export default function HelpOverlay() {
                     <span className="text-sm text-[var(--text-secondary)]">{pickL(it, lang)}</span>
                     <div className="flex gap-1 flex-wrap justify-end">
                       {it.keys.map((k, j) => (
-                        <kbd key={j} className="px-2 py-0.5 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono text-[var(--text-primary)]">
+                        <kbd key={j} className="px-2 py-0.5 rounded border border-[var(--border-subtle)] bg-[var(--bg-secondary)] text-xs font-mono text-[var(--text-primary)]">
                           {k}
                         </kbd>
                       ))}

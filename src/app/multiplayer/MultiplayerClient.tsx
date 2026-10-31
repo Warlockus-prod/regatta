@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage, type MissionReason } from '@/lib/mp-client';
-import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
 import { useVenue } from '@/features/venues/useVenue';
 import { sanitizeNickname } from '@/lib/race-submission';
@@ -15,12 +14,13 @@ import { MultiplayerCockpit } from "./MultiplayerCockpit";
 import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse, FLEET_COLORS, MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { useRacePrefs } from "../game/race-prefs";
+import { MultiplayerMenu, MultiplayerRoom, type LobbyPlayer } from "./MultiplayerLobby";
+import { canShareNatively, createLobbyBlocker, createTapAction, defaultSailorName, shareRoomInvite, type ShareOutcome } from "./lobby";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
 
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
 
-interface LobbyPlayer { id: string; nickname: string; ready: boolean; isBot: boolean; connected: boolean }
 interface Results { id: string; nickname: string; isBot: boolean; time: number | null; mission: { passed: boolean; reasons: MissionReason[] } | null }
 
 const COLORS = FLEET_COLORS;
@@ -66,7 +66,7 @@ function missionReasonText(
 
 export default function MultiplayerClient() {
   useEffect(() => { initializeDiagnosticBridge(); }, []);
-  const { tp, tl } = useI18n();
+  const { tp, tl, lang } = useI18n();
   const { prefs: visualPrefs, update: updateVisualPrefs } = useRacePrefs("multiplayer");
   // Scenery around the race area: each player sees the venue they picked (cosmetic, not synced).
   const { venue } = useVenue();
@@ -77,7 +77,7 @@ export default function MultiplayerClient() {
   const [joinCode, setJoinCode] = useState('');
   const [sid, setSid] = useState<string | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const [shareOutcome, setShareOutcome] = useState<ShareOutcome | null>(null);
   const [connecting, setConnecting] = useState(false);
 
   const [room, setRoom] = useState<{
@@ -138,12 +138,23 @@ export default function MultiplayerClient() {
 
   useEffect(() => () => { clientRef.current?.close(); clientRef.current = null; }, []);
 
-  // Load session info
+  // Load session info. M2-8: a first-time player (no stored nickname) gets a
+  // ready name, so "Create lobby" works on the first tap; typing replaces it.
+  const langRef = useRef(lang);
+  useEffect(() => { langRef.current = lang; }, [lang]);
+  // A Create tap made before the session arrived (see createLobby) runs here,
+  // with the new session id, as soon as it is known.
+  const pendingCreateRef = useRef(false);
+  const createLobbyRef = useRef<((sessionId: string | null) => Promise<void>) | null>(null);
   useEffect(() => {
+    const fallback = (id: string) => setNickname(current => current || defaultSailorName(langRef.current, id));
+    const sessionReady = (id: string) => { setSid(id); if (pendingCreateRef.current) void createLobbyRef.current?.(id); };
     fetch('/api/player').then((r) => r.json()).then((d) => {
-      setSid(typeof d?.sid === "string" ? d.sid : crypto.randomUUID());
+      const id = typeof d?.sid === "string" ? d.sid : crypto.randomUUID();
       if (d?.nickname) setNickname(d.nickname);
-    }).catch(() => { setSid(crypto.randomUUID()); });
+      else fallback(id);
+      sessionReady(id);
+    }).catch(() => { const id = crypto.randomUUID(); fallback(id); sessionReady(id); });
   }, []);
 
   // URL code prefill (e.g. /multiplayer?code=ABCD). One-time read of
@@ -251,20 +262,27 @@ export default function MultiplayerClient() {
     it: 'Nickname: almeno 2 lettere o cifre, niente emoji',
   });
 
-  const createLobby = useCallback(async () => {
-    if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj nick', { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Gib einen Nickname ein', it: 'Inserisci un nickname' })); return; }
-    if (!cleanNickname) { setError(nicknameHint); return; }
+  // M2-8: Create is never disabled; while something is missing the lobby names
+  // it under the button. A tap before the session has loaded is remembered and
+  // creates the lobby once the session arrives (the disabled button used to
+  // hold that tap back until then).
+  const createBlocker = createLobbyBlocker({ nickname, sid });
+  const createLobby = useCallback(async (sessionId: string | null) => {
+    const tap = createTapAction({ blocker: createLobbyBlocker({ nickname, sid: sessionId }), connecting });
+    pendingCreateRef.current = tap === "wait-for-session";
+    if (tap !== "create" || !cleanNickname) return;
     setError(null);
     setConnecting(true);
     try {
       const c = await ensureClient();
-      c.send({ type: 'create', nickname: cleanNickname, sid });
+      c.send({ type: 'create', nickname: cleanNickname, sid: sessionId });
     } catch {
       setConnecting(false);
       setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udało się połączyć z serwerem', { es: 'No se pudo conectar con el servidor', fr: 'Impossible de se connecter au serveur', de: 'Keine Verbindung zum Server', it: 'Impossibile connettersi al server' }));
       setPhase('error');
     }
-  }, [nickname, cleanNickname, nicknameHint, sid, ensureClient, tp]);
+  }, [connecting, nickname, cleanNickname, ensureClient, tp]);
+  useEffect(() => { createLobbyRef.current = createLobby; }, [createLobby]);
 
   const joinLobby = useCallback(async () => {
     if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj nick', { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Gib einen Nickname ein', it: 'Inserisci un nickname' })); return; }
@@ -316,7 +334,19 @@ export default function MultiplayerClient() {
     setResults([]);
     setPhase('menu');
     setError(null);
+    setShareOutcome(null);
   }, [releaseInput]);
+
+  // M2-8: the system share sheet where there is one, the clipboard otherwise;
+  // if both fail the link is shown so it can be copied by hand.
+  const shareCode = useCallback(async () => {
+    if (!room) return;
+    const url = `${window.location.origin}/multiplayer?code=${room.code}`;
+    const outcome = await shareRoomInvite(navigator, { title: "Week to Regatta", url,
+      text: tl({ ru: `Гонка с друзьями: код ${room.code}`, en: `Race with friends: code ${room.code}`, pl: `Regaty ze znajomymi: kod ${room.code}`, es: `Regata con amigos: código ${room.code}`, fr: `Course entre amis : code ${room.code}`, de: `Rennen mit Freunden: Code ${room.code}`, it: `Regata con amici: codice ${room.code}` }) });
+    setShareOutcome(outcome);
+    if (outcome === "failed") setError(url);
+  }, [room, tl]);
 
   // Input capture + 20Hz send
   useEffect(() => {
@@ -383,233 +413,17 @@ export default function MultiplayerClient() {
   // --- UI ---
 
   if (phase === 'menu' || phase === 'error') {
-    return (
-      <div className="page-enter max-w-lg mx-auto px-4 py-10">
-        {!embed && <Link href="/game" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-          ← {tp('Одиночная гонка', 'Single race', 'Wyścig solo', { es: 'Regata en solitario', fr: 'Course en solo', de: 'Solo-Rennen', it: 'Regata in solitario' })}
-        </Link>}
-        <h1 className="text-3xl font-bold mt-4 mb-2">{tp('Мультиплеер', 'Multiplayer', 'Multiplayer', { es: 'Multijugador', fr: 'Multijoueur', de: 'Mehrspieler', it: 'Multigiocatore' })}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mb-6">
-          {tp(
-            'До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. Можно добавить ботов.',
-            'Up to 10 players on one course. The host creates a lobby and shares the 4-character code. Bots can be added.',
-            'Do 10 graczy na jednej trasie. Host tworzy lobby i udostępnia 4-znakowy kod. Można dodać boty.',
-            {
-              es: 'Hasta 10 jugadores en el mismo recorrido. El anfitrión crea una sala y comparte el código de 4 caracteres. Se pueden añadir bots.',
-              fr: 'Jusqu\'à 10 joueurs sur le même parcours. L\'hôte crée un salon et partage le code à 4 caractères. Tu peux ajouter des bots.',
-              de: 'Bis zu 10 Spieler auf einer Bahn. Der Host erstellt eine Lobby und teilt den 4-stelligen Code. Bots lassen sich hinzufügen.',
-              it: 'Fino a 10 giocatori sullo stesso percorso. L\'host crea una lobby e condivide il codice di 4 caratteri. Puoi aggiungere dei bot.',
-            },
-          )}
-        </p>
-        <div className="card p-4 mb-4">
-          <label className="text-xs text-[var(--text-muted)] block mb-1">{tp('Твой ник', 'Your nickname', 'Twój nick', { es: 'Tu apodo', fr: 'Ton pseudo', de: 'Dein Nickname', it: 'Il tuo nickname' })}</label>
-          <input
-            aria-label={tp("Твой ник", "Your nickname", "Twój nick", { es: "Tu apodo", fr: "Ton pseudo", de: "Dein Nickname", it: "Il tuo nickname" })}
-            type="text" value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            maxLength={20}
-            aria-invalid={nicknameInvalid || undefined}
-            aria-describedby={nicknameInvalid ? 'mp-nickname-hint' : undefined}
-            className="w-full px-3 py-2 rounded text-sm"
-            style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
-            placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick', { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
-          />
-          {nicknameInvalid && (
-            <p id="mp-nickname-hint" className="text-xs mt-1" style={{ color: 'var(--warning)' }}>
-              {nicknameHint}
-            </p>
-          )}
-        </div>
-        <button disabled={connecting || !cleanNickname || !sid} onClick={createLobby}
-          className="w-full py-3 rounded-lg font-semibold text-sm mb-3 disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)', color: '#0a1628' }}>
-          {tp('Создать лобби', 'Create lobby', 'Utwórz lobby', { es: 'Crear sala', fr: 'Créer un salon', de: 'Lobby erstellen', it: 'Crea lobby' })}
-        </button>
-        <div className="card p-4 mb-3">
-          <div className="text-xs text-[var(--text-muted)] mb-2">{tp('Присоединиться по коду', 'Join by code', 'Dołącz z kodem', { es: 'Unirse con un código', fr: 'Rejoindre avec un code', de: 'Mit Code beitreten', it: 'Entra con un codice' })}</div>
-          <div className="flex gap-2">
-            <input
-              type="text" value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
-              maxLength={4}
-              aria-label={tp("Код комнаты", "Room code", "Kod pokoju", { es: "Código de sala", fr: "Code du salon", de: "Raumcode", it: "Codice stanza" })}
-              className="min-w-0 flex-1 px-3 py-2 rounded text-base font-mono text-center tracking-widest"
-              style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
-              placeholder="XXXX"
-            />
-            <button onClick={joinLobby} disabled={connecting || joinCode.length !== 4 || !cleanNickname || !sid}
-              className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
-              style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}>
-              {tp('Войти', 'Join', 'Dołącz', { es: 'Unirse', fr: 'Rejoindre', de: 'Beitreten', it: 'Entra' })}
-            </button>
-          </div>
-        </div>
-        {error && (
-          <div className="text-sm px-3 py-2 rounded" style={{ background: 'rgba(255,68,68,0.1)', color: 'var(--danger)' }}>
-            {error}
-          </div>
-        )}
-        <div className="text-[10px] text-[var(--text-muted)] mt-6 leading-relaxed">
-          {tp(
-            'При обрыве связи твоё место сохраняется на 20 секунд. Управляй штурвалом, ползунком или стрелками.',
-            "Your place is held for 20 seconds if you disconnect. Steer with the wheel, slider or arrow keys.",
-            'Po zerwaniu połączenia twoje miejsce czeka 20 sekund. Steruj kołem, suwakiem lub strzałkami.',
-            {
-              es: 'Si se corta la conexión, tu plaza se guarda 20 segundos. Gobierna con la rueda, el deslizador o las flechas.',
-              fr: 'En cas de déconnexion, ta place est gardée 20 secondes. Barre avec la roue, le curseur ou les flèches.',
-              de: 'Bei Verbindungsabbruch bleibt dein Platz 20 Sekunden reserviert. Steuere mit dem Rad, dem Regler oder den Pfeiltasten.',
-              it: 'Se cade la connessione, il tuo posto resta riservato per 20 secondi. Timona con la ruota, il cursore o le frecce.',
-            },
-          )}
-        </div>
-      </div>
-    );
+    return <MultiplayerMenu embed={embed} nickname={nickname} setNickname={setNickname}
+      nicknameInvalid={nicknameInvalid} nicknameHint={nicknameHint} joinCode={joinCode} setJoinCode={setJoinCode}
+      createBlocker={createBlocker} connecting={connecting} onCreate={() => void createLobby(sid)} onJoin={joinLobby}
+      joinDisabled={connecting || joinCode.length !== 4 || !cleanNickname || !sid} error={error} />;
   }
 
   if (phase === 'lobby' && room) {
-    const iAmHost = room.hostId === room.myId;
-    const me = lobbyPlayers.find((p) => p.id === room.myId);
-    const allReady = lobbyPlayers.every((p) => p.isBot || (p.connected && (p.id === room.hostId || p.ready)));
-    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/multiplayer?code=${room.code}` : '';
-    const activeMission = room.missionId ? missions.find((m) => m.id === room.missionId) : null;
-    const botCount = lobbyPlayers.filter((p) => p.isBot).length;
-    const humanCount = lobbyPlayers.filter((p) => !p.isBot).length;
-    const totalCount = lobbyPlayers.length;
-    return (
-      <div className="page-enter max-w-lg mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={leaveLobby} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-            ← {tp('Выйти', 'Leave', 'Wyjdź', { es: 'Salir', fr: 'Quitter', de: 'Verlassen', it: 'Esci' })}
-          </button>
-          <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(0,212,255,0.15)', color: 'var(--accent-cyan)' }}>
-            {iAmHost ? tp('Ты хост', 'You are host', 'Jesteś hostem', { es: 'Eres el anfitrión', fr: 'Tu es l\'hôte', de: 'Du bist Host', it: 'Sei l\'host' }) : tp('Игрок', 'Player', 'Gracz', { es: 'Jugador', fr: 'Joueur', de: 'Spieler', it: 'Giocatore' })}
-          </span>
-        </div>
-        <div className="card p-5 text-center mb-4" style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.3)' }}>
-          <div className="text-xs text-[var(--text-muted)] mb-1">{tp('КОД ЛОББИ', 'LOBBY CODE', 'KOD LOBBY', { es: 'CÓDIGO DE SALA', fr: 'CODE DU SALON', de: 'LOBBY-CODE', it: 'CODICE LOBBY' })}</div>
-          <div className="text-5xl font-bold font-mono tracking-[0.2em]" style={{ color: 'var(--accent-cyan)' }}>
-            {room.code}
-          </div>
-          <button onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setLinkCopied(true); } catch { setError(shareUrl); } }}
-            className="text-[11px] text-[var(--text-muted)] hover:text-[var(--accent-cyan)] mt-2">
-            {linkCopied ? tp("Ссылка скопирована", "Link copied", "Link skopiowany", { es: "Enlace copiado", fr: "Lien copié", de: "Link kopiert", it: "Link copiato" }) : tp('Копировать ссылку', 'Copy link', 'Kopiuj link', { es: 'Copiar enlace', fr: 'Copier le lien', de: 'Link kopieren', it: 'Copia link' })}
-          </button>
-        </div>
-
-        <p className="mb-4 text-sm text-[var(--text-secondary)]">
-          {activeMission ? tp(activeMission.descRu, activeMission.descEn, activeMission.descPl, { es: activeMission.descEs, fr: activeMission.descFr, de: activeMission.descDe, it: activeMission.descIt }) : tp("Обычная регата: старт, знак слева, финиш.", "Standard race: start, leave the mark to port, finish.", "Zwykła regata: start, znak zostawiasz lewą burtą, meta.", { es: "Regata normal: salida, baliza por babor, llegada.", fr: "Course standard : départ, bouée à bâbord, arrivée.", de: "Normales Rennen: Start, Bahnmarke an Backbord, Ziel.", it: "Regata standard: partenza, boa lasciata a sinistra, arrivo." })}
-        </p>
-        {iAmHost && (
-          <details className="mb-4 border-y border-[var(--border-subtle)]">
-            <summary className="cursor-pointer py-3 text-sm text-[var(--text-secondary)]">
-              {tp("Условия гонки", "Race settings", "Ustawienia wyścigu", { es: "Ajustes de la regata", fr: "Réglages de la course", de: "Renneinstellungen", it: "Impostazioni regata" })}
-            </summary>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-              <button
-                onClick={() => pickMission(null)}
-                className="p-2 rounded-lg text-xs transition border"
-                style={{
-                  borderColor: !room.missionId ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                  background: !room.missionId ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                }}
-              >
-                🏁 {tp('Свободная', 'Free', 'Wolny', { es: 'Libre', fr: 'Libre', de: 'Frei', it: 'Libera' })}
-              </button>
-              {missions.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => pickMission(m.id)}
-                  className="p-2 rounded-lg text-xs transition border text-left"
-                  style={{
-                    borderColor: room.missionId === m.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: room.missionId === m.id ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                  }}
-                  title={tp(m.descRu, m.descEn, m.descPl, { es: m.descEs, fr: m.descFr, de: m.descDe, it: m.descIt })}
-                >
-                  {m.emoji} {tp(m.titleRu, m.titleEn, m.titlePl, { es: m.titleEs, fr: m.titleFr, de: m.titleDe, it: m.titleIt })}
-                </button>
-              ))}
-            </div>
-            {activeMission && (
-              <div className="mt-2 text-[10px] text-[var(--text-secondary)]">
-                💡 {tp(activeMission.hintRu, activeMission.hintEn, activeMission.hintPl, { es: activeMission.hintEs, fr: activeMission.hintFr, de: activeMission.hintDe, it: activeMission.hintIt })}
-              </div>
-            )}
-          </details>
-        )}
-
-        <div className="card p-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs text-[var(--text-muted)]">{tp('ИГРОКИ', 'PLAYERS', 'GRACZE', { es: 'JUGADORES', fr: 'JOUEURS', de: 'SPIELER', it: 'GIOCATORI' })} · {totalCount} / {room.maxPlayers}</div>
-            {iAmHost && (
-              <div className="flex gap-1">
-                <button onClick={removeBot} disabled={botCount === 0}
-                  aria-label={tp('Убрать бота', 'Remove bot', 'Usuń bota', { es: 'Quitar un bot', fr: 'Retirer un bot', de: 'Bot entfernen', it: 'Rimuovi un bot' })}
-                  className="text-xs px-3 rounded disabled:opacity-30 min-h-[40px] min-w-[44px]"
-                  style={{ border: '1px solid rgba(139, 167, 184, 0.3)' }}>- {tp('бот', 'bot', 'bot', { es: 'bot', fr: 'bot', de: 'Bot', it: 'bot' })}</button>
-                <button onClick={addBot} disabled={totalCount >= room.maxPlayers}
-                  aria-label={tp('Добавить бота', 'Add bot', 'Dodaj bota', { es: 'Añadir un bot', fr: 'Ajouter un bot', de: 'Bot hinzufügen', it: 'Aggiungi un bot' })}
-                  className="text-xs px-3 rounded disabled:opacity-30 min-h-[40px] min-w-[44px]"
-                  style={{ border: '1px solid rgba(0, 212, 255, 0.35)', color: 'var(--accent-cyan)' }}>+ {tp('бот', 'bot', 'bot', { es: 'bot', fr: 'bot', de: 'Bot', it: 'bot' })}</button>
-              </div>
-            )}
-          </div>
-          <div className="space-y-1.5 max-h-[40vh] overflow-y-auto">
-            {lobbyPlayers.map((p, i) => (
-              <div key={p.id} className="flex items-center gap-2 text-sm">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                <span className="flex-1 text-[var(--text-primary)]">
-                  {p.nickname}
-                  {p.isBot && <span className="text-[9px] text-[var(--text-muted)] ml-2">AI</span>}
-                  {!p.connected && !p.isBot && <span className="text-[9px] text-[var(--warning)] ml-2">{tp('разрыв', 'disconnected', 'rozłączony', { es: 'desconectado', fr: 'déconnecté', de: 'getrennt', it: 'disconnesso' })}</span>}
-                </span>
-                {p.id === room.hostId && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,170,0,0.15)', color: 'var(--warning)' }}>{tp('хост', 'host', 'host', { es: 'anfitrión', fr: 'hôte', de: 'Host', it: 'host' })}</span>}
-                {!p.isBot && p.id !== room.hostId && <span className="text-xs text-[var(--text-secondary)]">{p.ready ? tp("Готов", "Ready", "Gotowy", { es: "Listo", fr: "Prêt", de: "Bereit", it: "Pronto" }) : tp("Не готов", "Not ready", "Niegotowy", { es: "No está listo", fr: "Pas prêt", de: "Nicht bereit", it: "Non pronto" })}</span>}
-                {p.id === room.myId && <span className="text-[10px] text-[var(--accent-cyan)]">{tp('ты', 'you', 'ty', { es: 'tú', fr: 'toi', de: 'du', it: 'tu' })}</span>}
-              </div>
-            ))}
-          </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-2">
-            {tp('людей', 'humans', 'ludzi', { es: 'personas', fr: 'humains', de: 'Menschen', it: 'umani' })}: {humanCount} · {tp('ботов', 'bots', 'botów', { es: 'bots', fr: 'bots', de: 'Bots', it: 'bot' })}: {botCount}
-          </div>
-        </div>
-
-        {iAmHost ? (
-          <button onClick={startRace} disabled={totalCount < 1 || !allReady || reconnecting}
-            className="w-full py-3 rounded-lg font-semibold text-base disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #44ff88, #22cc66)', color: '#0a1628' }}>
-            {tp('Старт гонки', 'Start race', 'Rozpocznij wyścig', { es: 'Empezar la regata', fr: 'Lancer la course', de: 'Rennen starten', it: 'Avvia la regata' })} · {totalCount} {
-              tp(
-                totalCount === 1 ? 'лодка' : totalCount < 5 ? 'лодки' : 'лодок',
-                totalCount === 1 ? 'boat' : 'boats',
-                totalCount === 1 ? 'łódź' : totalCount < 5 ? 'łodzie' : 'łodzi',
-                {
-                  es: totalCount === 1 ? 'barco' : 'barcos',
-                  fr: totalCount === 1 ? 'bateau' : 'bateaux',
-                  de: totalCount === 1 ? 'Boot' : 'Boote',
-                  it: totalCount === 1 ? 'barca' : 'barche',
-                },
-              )
-            }
-          </button>
-        ) : (
-          <div className="text-center text-sm text-[var(--text-muted)] py-3">
-            <button className="w-full min-h-11 rounded-lg border px-4 py-3 text-[var(--accent-cyan)]" aria-pressed={!!me?.ready} disabled={reconnecting} onClick={() => clientRef.current?.send({ type: "ready", ready: !me?.ready })}>
-              {me?.ready ? tp("Готов, жду старта", "Ready, waiting for start", "Gotowy, czekam na start", { es: "Listo, esperando la salida", fr: "Prêt, j'attends le départ", de: "Bereit, warte auf den Start", it: "Pronto, attendo la partenza" }) : tp("Я готов", "I'm ready", "Jestem gotowy", { es: "Estoy listo", fr: "Je suis prêt", de: "Ich bin bereit", it: "Sono pronto" })}
-            </button>
-          </div>
-        )}
-
-        {error && <p role="alert" className="mt-3 break-all text-sm text-[var(--warning)]">{error}</p>}
-        {iAmHost && !allReady && <p role="status" className="mt-3 text-sm text-[var(--text-secondary)]">{tp("Ждём готовности игроков", "Waiting for players to be ready", "Czekamy, aż gracze będą gotowi", { es: "Esperando a que los jugadores estén listos", fr: "En attente des joueurs", de: "Warten, bis alle bereit sind", it: "In attesa dei giocatori" })}</p>}
-        {reconnecting && (
-          <div className="mt-3 text-xs text-center px-3 py-2 rounded" style={{ background: 'rgba(255, 170, 0, 0.1)', color: 'var(--warning)' }}>
-            {tp('Переподключаюсь...', 'Reconnecting...', 'Łączę ponownie...', { es: 'Reconectando...', fr: 'Reconnexion...', de: 'Verbinde neu...', it: 'Riconnessione...' })}
-          </div>
-        )}
-      </div>
-    );
+    return <MultiplayerRoom room={room} players={lobbyPlayers} colors={COLORS} reconnecting={reconnecting} error={error}
+      canShare={canShareNatively(typeof navigator === 'undefined' ? undefined : navigator)} share={shareOutcome} onShare={shareCode}
+      onLeave={leaveLobby} onPickMission={missionId => pickMission(missionId)} onAddBot={addBot} onRemoveBot={removeBot}
+      onStart={startRace} onReady={ready => clientRef.current?.send({ type: "ready", ready })} />;
   }
 
   if (phase === "lobby") return null;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three/webgpu";
 import { Yacht } from "@/features/simulator-3d/Yacht";
@@ -17,13 +17,19 @@ import {
 import { METRES_PER_UNIT, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "@/features/race-3d/pose";
 import { distance } from "@/lib/race-physics";
 import type { RaceGuidance } from "@/lib/race-guidance";
-import { raceCameraPose } from "./orbit-camera";
+import { chaseCameraPose, createChasePose, raceCameraPose } from "./orbit-camera";
+import { CHASE_START, chaseStep, type ChaseState } from "./camera";
+import type { OrbitControls } from "three-stdlib";
+import { prefersReducedMotion } from "@/features/race-hud/feedback";
 import { SailingCameraRig } from "@/features/simulator-3d/SailingCameraRig";
-import { initialDpr, nextDpr } from "./quality";
-import { guidancePath } from "./guidance";
+import { VIEW_SIGNATURE_LENGTH, createQualityGovernor, createRenderGate, createSceneDraw, initialDpr, loadQualityStep, qualityAt, saveQualityStep, settle, type RenderGate } from "./quality";
+import { guidancePath, nextTurnIndex } from "./guidance";
+import { raceTacticsModel, tacticalSizes, type RaceTacticsModel } from "./tactics";
+import { TacticalOverlay, TacticalScreenLayer } from "./TacticalOverlay";
+import type { PhysicalRaceProfile } from "@/lib/race-context";
 import { calmFactor } from "./materials";
 import { SailingEnvironment } from "./SailingEnvironment";
-import { rendererBackend, sailingRenderer } from "./renderer";
+import { rendererBackend, sailingRenderer, warmUpShaders } from "./renderer";
 import { INITIAL_GPU_RECOVERY, afterGpuLoss, afterGpuRetry, recordGpuEvent, type GpuRecovery } from "./gpu-loss";
 import { startPerfJournal } from "./perf-journal";
 import { WindFlow } from "@/features/simulator-3d/ocean/WindFlow";
@@ -37,76 +43,111 @@ import { recordSceneLifecycle } from "@/features/simulator-3d/scene-diagnostics"
 // its course and rivals), drawn by WebGPURenderer with TSL materials:
 // WebGPU where the browser has it, WebGL2 otherwise. Stylized: water that
 // shows the wind and the shallows, white wakes that keep every tack, soft
-// shadows under the hulls, trees on the shore. The tactical camera (the
-// optional preset) keeps upwind at the top like the race map. The default
-// is a close, freely rotatable view fitted exactly like the trainer.
+// shadows under the hulls, trees on the shore. Three cameras (M2-1, a tap on
+// the scene steps through them): the default is a close, freely rotatable
+// view fitted exactly like the trainer (owner decision #5 after TestFlight
+// TF07); "Behind" follows the course and comes back behind the stern after a
+// manual orbit (ChaseCamera); "Above" is the tactical camera that keeps
+// upwind at the top like the race map.
+// Performance (M2-5..M2-7): one quality ladder (pixel ratio, then the scene
+// profile) chosen from the measured frame time and remembered on the device,
+// a few frames a second while the race is held, rivals merged and drawn as
+// far boats when small on screen, shaders compiled behind the loading screen.
 // ============================================================================
 
 const GUIDANCE_POINTS = 80;
 const GUIDANCE_MARKERS = 14;
+/** One index buffer for both route ribbons: two triangles per segment. */
+const GUIDANCE_INDICES = Array.from({ length: (GUIDANCE_POINTS - 1) * 6 }, (_, k) => {
+  const v = Math.floor(k / 6) * 2;
+  return [v, v + 1, v + 2, v + 1, v + 3, v + 2][k % 6];
+});
+/** Route colours (M2-2): high contrast on water, never the action cyan. */
+const GUIDANCE_LEG = "#f4f7fa";
+const GUIDANCE_TURN = "#ffd23f";
+const GUIDANCE_OUTLINE = "#0a1a2a";
 
 export interface RaceSceneStats { backend: string; fps: number; dpr: number }
 
 /** Optional teaching route, painted on the water rather than over the yacht.
- * Blue is a sailing leg; the rounded yellow part is the next change of course. */
-function WaterGuidance({ boatsRef, windDirRef, originRef, guidance }: {
+ * A bright core over a dark outline reads on any water (M2-2): white for a
+ * sailing leg, yellow for a change of course, a yellow turn point where the
+ * next one starts and a white ring at the end. Sizes from the race model. */
+function WaterGuidance({ boatsRef, windDirRef, originRef, guidance, model }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
   originRef: OriginRef;
   guidance?: RaceGuidance | null;
+  model: RaceTacticsModel;
 }) {
   const resources = useMemo(() => {
-    const positions = new Float32Array(GUIDANCE_POINTS * 6);
-    const colors = new Float32Array(GUIDANCE_POINTS * 6);
-    const indices: number[] = [];
-    for (let i = 0; i < GUIDANCE_POINTS - 1; i++) {
-      const v = i * 2;
-      indices.push(v, v + 1, v + 2, v + 1, v + 3, v + 2);
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage));
-    geometry.setIndex(indices);
-    const material = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
-    const ribbon = new THREE.Mesh(geometry, material);
-    ribbon.frustumCulled = false;
-    ribbon.renderOrder = 2;
+    const sizes = tacticalSizes(model);
+    const ribbon = (opacity: number, order: number, vertexColors: boolean, color?: string) => {
+      const positions = new Float32Array(GUIDANCE_POINTS * 6);
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
+      const colors = vertexColors ? new Float32Array(GUIDANCE_POINTS * 6) : null;
+      if (colors) geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage));
+      geometry.setIndex(GUIDANCE_INDICES);
+      const material = new THREE.MeshBasicMaterial({ vertexColors, ...(color ? { color } : {}), transparent: true, opacity, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      mesh.renderOrder = order;
+      return { mesh, geometry, material, positions, colors };
+    };
+    const outline = ribbon(0.55, 2, false, GUIDANCE_OUTLINE);
+    const core = ribbon(0.92, 3, true);
+    const c = sizes.chevronHalfWidth;
     const chevron = new THREE.BufferGeometry();
     chevron.setAttribute("position", new THREE.Float32BufferAttribute([
-      -1.8, 0, 1.4, 0, 0, -1.4, -0.85, 0, 1.4,
-      0, 0, -1.4, 1.8, 0, 1.4, 0.85, 0, 1.4,
+      -c, 0, c * 0.8, 0, 0, -c * 0.8, -c * 0.45, 0, c * 0.8,
+      0, 0, -c * 0.8, c, 0, c * 0.8, c * 0.45, 0, c * 0.8,
     ], 3));
-    const markerMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.68, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const markerMaterial = new THREE.MeshBasicMaterial({ color: GUIDANCE_OUTLINE, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
     const markers = new THREE.InstancedMesh(chevron, markerMaterial, GUIDANCE_MARKERS);
-    markers.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(GUIDANCE_MARKERS * 3), 3);
     markers.frustumCulled = false;
-    markers.renderOrder = 3;
-    const targetGeometry = new THREE.RingGeometry(3.4, 3.9, 32);
-    targetGeometry.rotateX(-Math.PI / 2);
-    const targetMaterial = new THREE.MeshBasicMaterial({ color: "#76c9e9", transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
-    const target = new THREE.Mesh(targetGeometry, targetMaterial);
+    markers.renderOrder = 4;
+    const ringGeometry = new THREE.RingGeometry(sizes.targetRingRadius * 0.86, sizes.targetRingRadius, 32);
+    ringGeometry.rotateX(-Math.PI / 2);
+    const targetMaterial = new THREE.MeshBasicMaterial({ color: GUIDANCE_LEG, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const target = new THREE.Mesh(ringGeometry, targetMaterial);
     target.frustumCulled = false;
-    return { geometry, material, ribbon, positions, colors, chevron, markerMaterial, markers, targetGeometry, targetMaterial, target,
-      dummy: new THREE.Object3D(), blue: new THREE.Color("#76c9e9"), yellow: new THREE.Color("#ecd47b") };
-  }, []);
+    target.renderOrder = 4;
+    const turnGeometry = new THREE.RingGeometry(sizes.turnPointRadius * 0.45, sizes.turnPointRadius, 24);
+    turnGeometry.rotateX(-Math.PI / 2);
+    const turnMaterial = new THREE.MeshBasicMaterial({ color: GUIDANCE_TURN, transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const turn = new THREE.Mesh(turnGeometry, turnMaterial);
+    turn.frustumCulled = false;
+    turn.renderOrder = 5;
+    return { sizes, outline, core, chevron, markerMaterial, markers, ringGeometry, targetMaterial, target, turnGeometry, turnMaterial, turn,
+      dummy: new THREE.Object3D(), leg: new THREE.Color(GUIDANCE_LEG), turning: new THREE.Color(GUIDANCE_TURN) };
+  }, [model]);
   const resourceRef = useRef(resources);
-  useEffect(() => () => {
-    resources.geometry.dispose(); resources.material.dispose();
-    resources.chevron.dispose(); resources.markerMaterial.dispose(); resources.markers.dispose();
-    resources.targetGeometry.dispose(); resources.targetMaterial.dispose();
+  useEffect(() => {
+    resourceRef.current = resources;
+    return () => {
+      resources.outline.geometry.dispose(); resources.outline.material.dispose();
+      resources.core.geometry.dispose(); resources.core.material.dispose();
+      resources.chevron.dispose(); resources.markerMaterial.dispose(); resources.markers.dispose();
+      resources.ringGeometry.dispose(); resources.targetMaterial.dispose();
+      resources.turnGeometry.dispose(); resources.turnMaterial.dispose();
+    };
   }, [resources]);
   useFrame(({ clock }) => {
     const r = resourceRef.current;
     const player = playerOf(boatsRef.current);
     const points = player && guidance ? guidancePath(player.pos, player.heading, windDirRef.current, guidance) : [];
     const count = Math.min(GUIDANCE_POINTS, points.length);
-    r.ribbon.visible = r.markers.visible = r.target.visible = count >= 2;
+    r.outline.mesh.visible = r.core.mesh.visible = r.markers.visible = r.target.visible = count >= 2;
+    const turnAt = count >= 2 ? nextTurnIndex(points, count) : -1;
+    r.turn.visible = turnAt >= 0;
     if (count < 2) return;
     const origin = originRef.current;
     const now = clock.elapsedTime;
     const height = (x: number, z: number) => sampleWave(x, z, now).y * calmFactor(Math.hypot(x - origin.x, z - origin.z)) + 0.2;
+    const core = r.sizes.routeHalfWidth, edge = r.sizes.routeOutlineHalfWidth;
     let travelled = 0;
-    let nextMarker = 16;
+    let nextMarker = r.sizes.chevronFirst;
     let markerCount = 0;
     for (let i = 0; i < count; i++) {
       const point = points[i];
@@ -115,43 +156,48 @@ function WaterGuidance({ boatsRef, windDirRef, originRef, guidance }: {
       const dx = after.x - before.x;
       const dz = after.y - before.y;
       const norm = Math.hypot(dx, dz) || 1;
-      const sideX = -dz / norm * 0.9;
-      const sideZ = dx / norm * 0.9;
-      const x = point.x * METRES_PER_UNIT;
-      const z = point.y * METRES_PER_UNIT;
-      const y = height(x, z);
-      const color = point.turning ? r.yellow : r.blue;
-      for (let edge = 0; edge < 2; edge++) {
-        const offset = i * 6 + edge * 3;
-        const sign = edge === 0 ? -1 : 1;
-        r.positions[offset] = x - origin.x + sideX * sign;
-        r.positions[offset + 1] = y;
-        r.positions[offset + 2] = z - origin.z + sideZ * sign;
-        r.colors[offset] = color.r; r.colors[offset + 1] = color.g; r.colors[offset + 2] = color.b;
+      const sideX = -dz / norm;
+      const sideZ = dx / norm;
+      const wx = point.x * METRES_PER_UNIT, wz = point.y * METRES_PER_UNIT;
+      const y = height(wx, wz);
+      const color = point.turning ? r.turning : r.leg;
+      for (let e = 0; e < 2; e++) {
+        const offset = i * 6 + e * 3;
+        const sign = e === 0 ? -1 : 1;
+        r.core.positions[offset] = wx - origin.x + sideX * core * sign;
+        r.core.positions[offset + 1] = y + 0.02;
+        r.core.positions[offset + 2] = wz - origin.z + sideZ * core * sign;
+        r.outline.positions[offset] = wx - origin.x + sideX * edge * sign;
+        r.outline.positions[offset + 1] = y;
+        r.outline.positions[offset + 2] = wz - origin.z + sideZ * edge * sign;
+        const colors = r.core.colors!;
+        colors[offset] = color.r; colors[offset + 1] = color.g; colors[offset + 2] = color.b;
       }
       travelled += Math.hypot(point.x - before.x, point.y - before.y) * METRES_PER_UNIT;
       if (travelled >= nextMarker && markerCount < GUIDANCE_MARKERS) {
-        r.dummy.position.set(x - origin.x, y + 0.04, z - origin.z);
+        r.dummy.position.set(wx - origin.x, y + 0.05, wz - origin.z);
         r.dummy.rotation.y = Math.atan2(-dx, -dz);
         r.dummy.updateMatrix();
         r.markers.setMatrixAt(markerCount, r.dummy.matrix);
-        r.markers.setColorAt(markerCount, color);
         markerCount++;
-        nextMarker = travelled + 28;
+        nextMarker = travelled + r.sizes.chevronSpacing;
       }
+      if (i === turnAt) r.turn.position.set(wx - origin.x, y + 0.06, wz - origin.z);
     }
-    r.geometry.setDrawRange(0, (count - 1) * 6);
-    r.geometry.getAttribute("position").needsUpdate = true;
-    r.geometry.getAttribute("color").needsUpdate = true;
+    r.outline.geometry.setDrawRange(0, (count - 1) * 6);
+    r.outline.geometry.getAttribute("position").needsUpdate = true;
+    r.core.geometry.setDrawRange(0, (count - 1) * 6);
+    r.core.geometry.getAttribute("position").needsUpdate = true;
+    r.core.geometry.getAttribute("color").needsUpdate = true;
     r.markers.count = markerCount;
     r.markers.instanceMatrix.needsUpdate = true;
-    if (r.markers.instanceColor) r.markers.instanceColor.needsUpdate = true;
-    const end = points[count - 1];
-    const endX = end.x * METRES_PER_UNIT;
-    const endZ = end.y * METRES_PER_UNIT;
-    r.target.position.set(endX - origin.x, height(endX, endZ), endZ - origin.z);
+    const endX = points[count - 1].x * METRES_PER_UNIT, endZ = points[count - 1].y * METRES_PER_UNIT;
+    r.target.position.set(endX - origin.x, height(endX, endZ) + 0.06, endZ - origin.z);
   });
-  return <group><primitive object={resources.ribbon} /><primitive object={resources.markers} /><primitive object={resources.target} /></group>;
+  return <group>
+    <primitive object={resources.outline.mesh} /><primitive object={resources.core.mesh} />
+    <primitive object={resources.markers} /><primitive object={resources.target} /><primitive object={resources.turn} />
+  </group>;
 }
 
 /** The player's yacht, its pose shared with the camera and the water. */
@@ -172,31 +218,138 @@ function Player({ boatsRef, windDirRef, showWind }: {
   return <><Yacht stateRef={state} />{showWind && <WindFlow stateRef={state} readWind={readWind} />}</>;
 }
 
-/** Frame rate and backend, measured over 2 s windows; steps the pixel ratio down while slow. */
-function Quality({ onStats, maxDpr }: { onStats?: (s: RaceSceneStats) => void; maxDpr: number }) {
-  const { gl, setDpr } = useThree();
-  const window_ = useRef({ frames: 0, start: -1, warm: 0 });
-  const dpr = useRef(initialDpr(typeof window === "undefined" ? 1 : window.devicePixelRatio));
-  const backend = (gl as unknown as { backend?: { isWebGPUBackend?: boolean } }).backend?.isWebGPUBackend ? "WebGPU" : "WebGL2";
-  useEffect(() => { setDpr(Math.min(dpr.current, maxDpr)); }, [setDpr, maxDpr]);
-  useFrame(({ clock }) => {
-    const w = window_.current;
-    const t = clock.elapsedTime;
-    if (w.start < 0) { w.start = t; w.frames = 0; return; }
-    w.frames++;
-    if (t - w.start < 2) return;
-    const fps = w.frames / (t - w.start);
-    w.start = t;
-    w.frames = 0;
-    w.warm++;
-    // The first window includes shader compiles: report it, act from the second.
-    if (w.warm > 1) {
-      const next = nextDpr(dpr.current, fps, { min: 1, max: maxDpr });
-      if (next !== dpr.current) { dpr.current = next; setDpr(next); }
-    }
-    onStats?.({ backend, fps: Math.round(fps), dpr: dpr.current });
+/**
+ * M2-1 chase camera ("Behind"): every frame it moves the shared orbit camera
+ * part of the way to the stern view of the boat's current course (chaseStep
+ * in camera.ts). While the player orbits or pinches the camera is theirs; a
+ * moment after the gesture ends it comes back behind the boat at the zoom the
+ * player chose. A refit (camera switch, "Reset view") forgets that zoom.
+ * Runs after SailingCameraRig's controls update, so it sets the final pose.
+ */
+function ChaseCamera({ boatsRef, revision }: { boatsRef: MutableRefObject<Race3DBoat[]>; revision: number }) {
+  const controls = useThree((state) => state.controls) as OrbitControls | null;
+  const camera = useThree((state) => state.camera);
+  const size = useThree((state) => state.size);
+  const chase = useRef<ChaseState>(CHASE_START);
+  const held = useRef(false);
+  const zoom = useRef<number | null>(null);
+  const reduced = useRef(false);
+  const pose = useMemo(() => createChasePose(), []);
+  useEffect(() => { chase.current = CHASE_START; zoom.current = null; }, [revision]);
+  useEffect(() => {
+    reduced.current = prefersReducedMotion();
+    let query: MediaQueryList | null = null;
+    try { query = window.matchMedia("(prefers-reduced-motion: reduce)"); } catch { return; }
+    const changed = () => { reduced.current = prefersReducedMotion(); };
+    query.addEventListener?.("change", changed);
+    return () => query?.removeEventListener?.("change", changed);
+  }, []);
+  useEffect(() => {
+    if (!controls) return;
+    const start = () => { held.current = true; };
+    const end = () => {
+      held.current = false;
+      zoom.current = camera.position.distanceTo(controls.target);
+      chase.current = { ...chase.current, idle: 0 };
+    };
+    controls.addEventListener("start", start);
+    controls.addEventListener("end", end);
+    return () => { controls.removeEventListener("start", start); controls.removeEventListener("end", end); held.current = false; };
+  }, [controls, camera]);
+  useFrame((_, dt) => {
+    const player = playerOf(boatsRef.current);
+    if (!controls || !player) return;
+    const step = chaseStep(chase.current, { heading: player.heading, dt, held: held.current, reducedMotion: reduced.current });
+    chase.current = step.state;
+    if (step.blend <= 0 || step.state.yaw === null) return;
+    chaseCameraPose(step.state.yaw, size.width / Math.max(1, size.height), zoom.current, pose);
+    camera.position.lerp(pose.position, step.blend);
+    controls.target.lerp(pose.target, step.blend);
+    camera.lookAt(controls.target);
   });
   return null;
+}
+
+/** Frame rate and backend over 2 s windows (quality.ts): steps the quality
+ * ladder down while slow, remembers the step on the device. Held, hidden and
+ * warm-up frames are not measured. */
+function Quality({ onStats, cap, start, onStep, gateRef, heldRef }: {
+  onStats?: (s: RaceSceneStats) => void;
+  cap: number;
+  start: number;
+  onStep: (index: number) => void;
+  gateRef: MutableRefObject<RenderGate>;
+  heldRef: MutableRefObject<boolean>;
+}) {
+  const gl = useThree((state) => state.gl);
+  // Built once per mount from the step drawn now: a Canvas rebuilt after a
+  // lost GPU (key={gpu.generation}) keeps the reached step instead of going
+  // back to the race's start step, which would step the quality up mid-race.
+  const [governor] = useState(() => createQualityGovernor(start, cap));
+  const windows = useRef(0);
+  const backend = rendererBackend(gl) === "webgpu" ? "WebGPU" : "WebGL2";
+  // The step the next race on this device starts at, kept when the scene leaves.
+  useEffect(() => () => saveQualityStep(governor.remembered()), [governor]);
+  useFrame(({ clock }) => {
+    const counted = !gateRef.current.warming && !heldRef.current && document.visibilityState !== "hidden";
+    const changed = governor.frame(clock.elapsedTime, counted);
+    if (changed !== null) { saveQualityStep(changed); onStep(changed); }
+    if (governor.windows !== windows.current && governor.fps !== null) {
+      windows.current = governor.windows;
+      onStats?.({ backend, fps: Math.round(governor.fps), dpr: qualityAt(governor.index, cap).dpr });
+    }
+  });
+  return null;
+}
+
+/**
+ * The scene draws itself (M2-5): while the race is held (paused: the race
+ * clock stopped and the whole fleet still) it draws IDLE_FPS frames a second,
+ * and at once when the camera, the canvas size or the pixel ratio changes.
+ * The loop, the clock and the controls run as before, so nothing jumps on
+ * resume. While shaders warm up behind the loading screen it draws nothing.
+ */
+function GatedRender({ gateRef, heldRef, racingRef, boatsRef, firstFrameRef }: {
+  gateRef: MutableRefObject<RenderGate>;
+  heldRef: MutableRefObject<boolean>;
+  racingRef: MutableRefObject<boolean>;
+  boatsRef: MutableRefObject<Race3DBoat[]>;
+  firstFrameRef: MutableRefObject<number | null>;
+}) {
+  const draw = useMemo(() => createSceneDraw(), []);
+  const viewRef = useRef(new Float64Array(VIEW_SIGNATURE_LENGTH));
+  useFrame((state) => {
+    const now = performance.now();
+    const { camera, size, viewport } = state;
+    const view = viewRef.current;
+    const p = camera.position, q = camera.quaternion, m = camera.projectionMatrix.elements;
+    view[0] = p.x; view[1] = p.y; view[2] = p.z; view[3] = q.x; view[4] = q.y; view[5] = q.z; view[6] = q.w;
+    view[7] = m[0]; view[8] = m[5]; view[9] = size.width; view[10] = size.height; view[11] = viewport.dpr;
+    const render = draw.frame(gateRef.current, now, racingRef.current, firstFrameRef.current !== null, boatsRef.current, view);
+    heldRef.current = draw.held;
+    if (render) state.gl.render(state.scene, state.camera);
+  }, 1);
+  return null;
+}
+
+/** Holds the first-frame report until the shaders are compiled (warmUpShaders, M2-7). */
+function WarmShaders({ gateRef, children }: { gateRef: MutableRefObject<RenderGate>; children: ReactNode }) {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    const gate = gateRef.current;
+    let live = true;
+    gate.warming = true;
+    void warmUpShaders(gl, scene, camera).then(() => {
+      if (!live) return;
+      gate.warming = false;
+      setWarm(true);
+    });
+    return () => { live = false; gate.warming = false; };
+  }, [gl, scene, camera, gateRef]);
+  return warm ? <>{children}</> : null;
 }
 
 /** The on-device performance journal (M0-9), see perf-journal.ts. */
@@ -221,12 +374,13 @@ function GpuFailure({ failed }: { failed: boolean }) {
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
   venue: Venue;
-  /** All three presets support free orbit and pinch/scroll zoom. */
+  /** All three presets support free orbit and pinch/scroll zoom; "stern"
+   * (Behind) also follows the course and returns after a manual orbit. */
   camera?: RaceCamera;
   /** Increment to refit the selected preset after a manual camera gesture. */
   cameraRevision?: number;
@@ -246,12 +400,29 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   /** Optional: true only while the race clock runs (not countdown, pause or results).
    * Without it the performance journal counts the time the fleet is moving. */
   racing?: boolean;
+  /** The physical trial being sailed (ADR-0014), or null for the legacy race.
+   * The tactical overlays take their sizes and the course boundary from it. */
+  raceProfile?: PhysicalRaceProfile | null;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
+  const tactics = useMemo(() => raceTacticsModel(raceProfile), [raceProfile]);
+  const arrowRef = useRef<HTMLDivElement | null>(null);
+  const hintRef = useRef<HTMLDivElement | null>(null);
   const mountedAt = useRef<number | null>(null);
   const firstFrameRef = useRef<number | null>(null);
   const racingRef = useRef(racing ?? true);
   useEffect(() => { racingRef.current = racing ?? true; }, [racing]);
+  // M2-5 quality: one ladder step for pixel ratio and scene profile, from the
+  // device memory, then measured (quality.ts). The Canvas takes the step's
+  // pixel ratio as a number: a range would be re-applied on every re-render.
+  const cap = useMemo(() => Math.min(maxDpr, initialDpr(typeof window === "undefined" ? 1 : window.devicePixelRatio)), [maxDpr]);
+  const [qualityStart] = useState(loadQualityStep);
+  const [qualityStep, setQualityStep] = useState(() => settle(qualityStart, cap));
+  const { dpr, profile } = qualityAt(qualityStep, cap);
+  const farPxRef = useRef(profile.rivalFarPx);
+  useEffect(() => { farPxRef.current = profile.rivalFarPx; }, [profile]);
+  const gateRef = useRef<RenderGate>(createRenderGate());
+  const heldRef = useRef(false);
   useEffect(() => { mountedAt.current = performance.now(); recordSceneLifecycle("scene", "begin"); }, []);
   const sceneReady = useCallback(() => {
     if (firstFrameRef.current === null && mountedAt.current !== null) firstFrameRef.current = performance.now() - mountedAt.current;
@@ -316,22 +487,26 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           key={gpu.generation}
           fallback={<span>{labels.scene}</span>}
           gl={gl}
-          dpr={[1, maxDpr]}
+          dpr={dpr}
           camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
         >
-          <SailingEnvironment venue={venue} readState={readState} readBoats={readBoats} originRef={originRef} />
+          <SailingEnvironment venue={venue} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
           <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} />
-          {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} />}
+          {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} model={tactics} />}
+          <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} />
           <Suspense fallback={null}>
             <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={showWind} />
-            {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
-            {ghostRef && ghostLabel && <Rival id="ghost" color="#9aa7b4" label={ghostLabel} boatsRef={ghostRef} windDirRef={windDirRef} originRef={originRef} />}
-            <FirstSceneFrame onReady={ready} />
+            {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />)}
+            {ghostRef && ghostLabel && <Rival id="ghost" color="#9aa7b4" label={ghostLabel} boatsRef={ghostRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />}
+            <WarmShaders gateRef={gateRef}><FirstSceneFrame onReady={ready} /></WarmShaders>
           </Suspense>
           <SailingCameraRig poseForAspect={cameraPose} revision={cameraRevision} />
-          <Quality onStats={onStats} maxDpr={maxDpr} />
+          {camera === "stern" && <ChaseCamera boatsRef={boatsRef} revision={cameraRevision} />}
+          <Quality key={cap} onStats={onStats} cap={cap} start={qualityStep} onStep={setQualityStep} gateRef={gateRef} heldRef={heldRef} />
+          <GatedRender gateRef={gateRef} heldRef={heldRef} racingRef={racingRef} boatsRef={boatsRef} firstFrameRef={firstFrameRef} />
           <PerfJournal boatsRef={boatsRef} racingRef={racingRef} firstFrameRef={firstFrameRef} />
         </Canvas>
+        <TacticalScreenLayer arrowRef={arrowRef} hintRef={hintRef} />
       </div>
       }</SceneStartup>
     </SceneBoundary>

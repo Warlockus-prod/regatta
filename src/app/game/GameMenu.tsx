@@ -96,7 +96,7 @@ export function GameMenu({
           it: `Vai alla missione: ${selectedMission.titleIt ?? selectedMission.titleEn}`,
         })
       : tp('Выбери миссию', 'Pick a mission', 'Wybierz misję', { es: 'Elige una misión', fr: 'Choisis une mission', de: 'Wähle eine Mission', it: 'Scegli una missione' })) :
-    tl({ ru: `Старт · ${level}`, en: `Start · ${level}`, pl: `Start · ${level}`, es: `Salida · ${level}`, fr: `Départ · ${level}`, de: `Start · ${level}`, it: `Partenza · ${level}` });
+    tl({ ru: `Старт · ${level}`, en: `Start · ${level}`, pl: `Start · ${level}`, es: `Empezar · ${level}`, fr: `Départ · ${level}`, de: `Start · ${level}`, it: `Inizia · ${level}` });
 
   const ctaDisabled = tab === 'mission' && !selectedMission && !dailyDay;
   const briefingLabel = tl({ ru: 'Брифинг: трасса и правила', en: 'Briefing: course and rules', pl: 'Odprawa: trasa i zasady', es: 'Briefing: recorrido y reglas', fr: 'Briefing : parcours et règles', de: 'Briefing: Bahn und Regeln', it: 'Briefing: percorso e regole' });
@@ -144,7 +144,7 @@ export function GameMenu({
           active={tab === 'free'}
           onClick={() => setTab('free')}
           icon="free"
-          title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
+          title={tp('Свободная гонка', 'Free race', 'Wyścig swobodny', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
           subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
           desc={tp(
             'Выбирай сложность и ветер. Без конкретной задачи.',

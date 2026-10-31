@@ -53,3 +53,35 @@ export function sailingRenderer(options: SailingRendererOptions = {}): GLProps {
 }
 
 export const createSailingRenderer = sailingRenderer();
+
+/** Longest the loading screen waits for shader warm-up; the first frame compiles whatever is left. */
+export const WARMUP_MAX_MS = 4000;
+
+type Compiler = { compileAsync?: (scene: unknown, camera: unknown) => Promise<unknown> };
+
+/**
+ * M2-7: compile every pipeline the first frame will need while the loading
+ * screen still covers the scene, so the race does not open on a stalled
+ * frame. Resolves true when compiled, false when the renderer cannot, fails
+ * or takes longer than `maxMs`; it never rejects, so startup cannot hang on it.
+ */
+export function warmUpShaders(gl: unknown, scene: unknown, camera: unknown, maxMs = WARMUP_MAX_MS,
+  // Wrapped, not `{ set: setTimeout }`: a browser throws "Illegal invocation"
+  // when setTimeout is called as a method of another object.
+  timers: { set: typeof setTimeout; clear: typeof clearTimeout } = {
+    set: ((fn: () => void, ms?: number) => setTimeout(fn, ms)) as typeof setTimeout,
+    clear: ((id?: ReturnType<typeof setTimeout>) => clearTimeout(id)) as typeof clearTimeout,
+  }): Promise<boolean> {
+  const compile = (gl as Compiler | null)?.compileAsync;
+  if (typeof compile !== "function") return Promise.resolve(false);
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+    const done = (ok: boolean) => { if (settled) return; settled = true; timers.clear(timer); resolve(ok); };
+    const timer = timers.set(() => done(false), maxMs);
+    try {
+      Promise.resolve(compile.call(gl, scene, camera)).then(() => done(true), () => done(false));
+    } catch {
+      done(false);
+    }
+  });
+}

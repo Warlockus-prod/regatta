@@ -2,5 +2,5 @@
 .wind,.instruments .map { position:absolute; top:8px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); }
 .wind { left:8px; padding:5px 7px; max-width:calc(45% - 8px); }
 .label { display:block; font-size:11px; line-height:1.2; color:var(--text-secondary); margin-bottom:2px; }
-.instruments .map { right:8px; width:clamp(72px,24cqw,112px); height:clamp(64px,32cqh,112px); padding:0; pointer-events:auto; --race-map-height:100%; }
+.instruments .map { right:8px; width:clamp(72px,24cqw,112px); height:clamp(64px,32cqh,112px); padding:0; pointer-events:auto; --race-map-height:100%; background:transparent; }
 .map>span { display:block; height:100%; }

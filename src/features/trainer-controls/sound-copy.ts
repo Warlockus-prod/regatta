@@ -7,7 +7,7 @@ export const controlSoundCopy = {
   note: words(
     "Щелчки при повороте штурвала. Без вибрации. Звук гонки включается отдельно, в самой гонке. Громкость рации регулируется на самой рации.",
     "Clicks when you turn a wheel. No vibration. Race sound has its own switch in the race. Set radio volume on the radio itself.",
-    "Kliknięcia przy obracaniu koła. Bez wibracji. Dźwięk regat włączasz osobno, w samych regatach. Głośność radia ustawiasz na samym radiu.",
+    "Kliknięcia przy obracaniu koła. Bez wibracji. Dźwięk wyścigu włączasz osobno, w samym wyścigu. Głośność radia ustawiasz na samym radiu.",
     "Clics al girar una rueda. Sin vibración. El sonido de la regata tiene su propio interruptor en la regata. El volumen de la radio se ajusta en la propia radio.",
     "Clics quand tu tournes une roue. Sans vibration. Le son de la course a son propre interrupteur dans la course. Le volume radio se règle sur la radio elle-même.",
     "Klicks beim Drehen eines Rads. Keine Vibration. Der Rennton hat im Rennen einen eigenen Schalter. Die Funklautstärke stellst du am Funkgerät ein.",

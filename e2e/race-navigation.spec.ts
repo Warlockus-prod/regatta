@@ -954,6 +954,22 @@ for (const localized of localizedProEntries) {
       expect(water.height).toBeGreaterThanOrEqual(160);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
       await testInfo.attach(`race-${localized.lang}-short-primary`, { contentType: "application/json", body: JSON.stringify({ lang: localized.lang, viewport: page.viewportSize(), briefingPreview, scene: water, primary, actions }) });
+
+      // Landscape phone (M2 leftovers): no dock tab label breaks inside a word
+      // (never more lines than words), and every tab stays a 44 px target.
+      await evidence.step("landscape:resize", () => page.setViewportSize({ width: 844, height: 390 }));
+      const tabFit = () => reserved.getByRole("button").evaluateAll(tabs => tabs.map(tab => {
+        const label = Array.from(tab.querySelectorAll("span")).find(span => !span.querySelector("svg") && (span.textContent ?? "").trim());
+        const box = tab.getBoundingClientRect();
+        if (!label || getComputedStyle(label).position === "absolute") return { ok: box.width >= 44 && box.height >= 44 };
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        const lines = new Set(Array.from(range.getClientRects()).filter(rect => rect.width > 0).map(rect => Math.round(rect.top))).size;
+        const words = (label.textContent ?? "").trim().split(/\s+/).length;
+        return { text: label.textContent, lines, words, ok: lines <= words && box.width >= 44 && box.height >= 44 };
+      }));
+      await evidence.step("landscape:tabs-fit", () => expect.poll(async () => (await tabFit()).every(tab => tab.ok)).toBe(true));
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     } finally {
       await evidence.finish();
     }

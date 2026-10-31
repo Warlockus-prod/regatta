@@ -178,6 +178,54 @@ The seven-language map, instrument and style labels live in
   "homme à la mer" / "Mensch über Bord". Use "MOB" as the visible abbreviation after the first
   full mention.
 
+## Race UI terms (language pass 2026-10-31)
+
+Decisions for the race (`/game`, `/multiplayer`, the app's Race hub). One name
+per thing across the toast, the HUD, the map, the result screen and the judge
+debrief. `src/app/game/race-terms.test.ts` pins the mark terms.
+
+- Mark, French: "bouée" everywhere ("Bouée touchée", "Laisse la bouée à
+  bâbord", map legend "Bouée"). The RCV word "marque" stays only in the
+  official term "place à la marque".
+- Mark, German: "Bahnmarke" for a mark in general ("Bahnmarke berührt",
+  "Bahnmarke an Backbord lassen", map legend and event chip "Bahnmarke");
+  "Luvtonne", "Leetonne", "Starttonne" for the named marks. Never a bare
+  "Tonne".
+- Finish line, German: "die Ziellinie überqueren" or "durchs Ziel", never
+  "kreuzen" (kreuzen is beating upwind).
+- Touched mark: the in-race toast starts with the judge's incident name in
+  every language (RU "Касание знака", EN "Mark touched", PL "Dotknięcie znaku",
+  ES "Baliza tocada", FR "Bouée touchée", DE "Bahnmarke berührt", IT "Boa
+  toccata").
+- Polish race words: one race is "wyścig" ("Omówienie wyścigu", "Dźwięk
+  wyścigu", "Ustawienia wyścigu"); the section and the saved list keep
+  "Regaty" ("zakładka Regaty", "Historia regat", "Do regat"). Free race is
+  "Wyścig swobodny" (short "Swobodny"), never "Wolny wyścig", which reads as
+  "slow race". The training toggles are "Przepisy treningowe", "Kary
+  treningowe", "Sędzia treningowy".
+- Keep clear, Polish: "Ustąp drogi" (glossary "ustąpić drogi"), not "utrzymuje
+  się z dala".
+- Wind levels: EN "Light / Medium / Strong" in the lobby, the app hub and the
+  leaderboard filter (not "Heavy").
+- Start button of the lobby ("Start · Easy"): ES "Empezar", IT "Inizia" (a
+  verb; "Salida" on a button reads as "Exit"), FR "Départ", PL / DE "Start",
+  RU "Старт". The start signal itself stays a noun (ES "Salida", IT "Via").
+- Race settings: RU "Настройки гонки" (pause sheet, multiplayer) and "Настройка
+  гонки" (the app hub heading), never "Заезд" or "Условия гонки"; ES "Ajustes
+  de la regata", DE "Renneinstellungen", IT "Impostazioni della regata".
+- Replay: RU "Повтор гонки", PL "Powtórka wyścigu", ES "Repetición de la
+  regata", DE "Rennwiederholung" / "Wiederholung teilen", IT "Replay della
+  regata"; FR keeps the title "Revoir la course" and the noun "replay" ("Partager
+  le replay"). Russian never writes "replay" in Latin letters.
+- Russian "ё": optional in Russian. The race dictionaries do not write it
+  ("Еще раз", "пересек", "развернут"), and the TestFlight notes quote the
+  buttons the same way, so the result button stays "Еще раз". Fixed names keep
+  it ("Тренажёр трима", the difficulty "Лёгкий"), and so does the briefing,
+  which was written with it ("мёртвая зона", "Идёшь", "ведёт"). Inside one
+  string use one spelling only.
+- Sheets in key hints always named in full (FR "Q/A écoute de grand-voile, W/S
+  écoute de foc"), per the sheet rule above.
+
 ## General style rules for translation
 
 1. **Adapt, do not transliterate.** Write what a native sailing instructor would say to a

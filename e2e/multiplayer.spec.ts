@@ -19,6 +19,17 @@ test.describe('Multiplayer smoke', () => {
     await expect(page.getByRole('button', { name: 'Создать лобби' })).toBeVisible();
     await expect(page.getByPlaceholder('XXXX')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Войти' })).toBeVisible();
+    // M2-8: a way back to the race hub, and Create is never a dead grey button:
+    // with an empty nickname a tap explains why and moves focus to the field.
+    await expect(page.getByTestId('mp-back-to-race')).toHaveAttribute('href', '/race');
+    // Clear the prefilled default name only after it arrives with the session.
+    await expect(page.getByLabel('Твой ник')).not.toHaveValue('');
+    await page.getByLabel('Твой ник').fill('');
+    const create = page.getByTestId('mp-create');
+    await expect(create).toBeEnabled();
+    await create.click();
+    await expect(page.locator('#mp-create-hint')).toHaveText('Чтобы создать лобби, введи ник.');
+    await expect(page.getByLabel('Твой ник')).toBeFocused();
   });
 
   test('WS upgrade via nginx /ws', async ({ request }) => {
@@ -66,6 +77,9 @@ test.describe('Multiplayer smoke', () => {
     await h.goto('/multiplayer');
     await expect(h.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
     const hostNick = 'Host_' + Date.now().toString(36);
+    // A fresh context has no stored nickname: the prefilled default name shows
+    // that hydration and the session are ready before we type.
+    await expect(h.getByPlaceholder('Введи ник')).not.toHaveValue('');
     await h.getByPlaceholder('Введи ник').fill(hostNick);
     await h.getByRole('button', { name: 'Создать лобби' }).click();
 
@@ -81,6 +95,7 @@ test.describe('Multiplayer smoke', () => {
     await g.goto('/multiplayer?embed=1');
     await expect(g.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
     const guestNick = 'Guest_' + Date.now().toString(36);
+    await expect(g.getByPlaceholder('Введи ник')).not.toHaveValue('');
     await g.getByPlaceholder('Введи ник').fill(guestNick);
     await g.getByPlaceholder('XXXX').fill(code);
     // Wait for the join button to become enabled (requires 4 chars)
@@ -132,8 +147,11 @@ test.describe('Multiplayer smoke', () => {
     await g.getByRole("button", { name: "Руль", exact: true }).click();
     await expect(g.getByRole("slider", { name: /^Перо руля/ })).toBeVisible();
     await g.getByRole("button", { name: "Карта трассы", exact: true }).click();
-    await expect(g.getByText(hostNick, { exact: true })).toBeVisible();
-    await expect(g.getByText(guestNick, { exact: true })).toBeVisible();
+    // The fleet list names rivals by nickname and the player as "Ты" (MultiplayerCockpit).
+    const fleetList = g.locator('ol').filter({ hasText: hostNick });
+    await expect(fleetList.getByText(hostNick, { exact: true })).toBeVisible();
+    await expect(fleetList.getByText('Ты', { exact: true })).toBeVisible();
+    await expect(g.getByText(guestNick, { exact: true })).toHaveCount(0);
 
     await host.close();
     await guest.close();

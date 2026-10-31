@@ -27,7 +27,7 @@ import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
 import type { RaceBoat } from "@/lib/race-physics";
 import type { Controls } from "@/lib/sailing-physics/types";
-import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
+import { raceStartTrim } from "./race-start-trim";
 import { raceTrim } from "@/lib/race-physics";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { createRaceRulesState, type RaceRuleEvent } from "@/lib/race-rules";
@@ -552,7 +552,8 @@ export default function GamePage() {
       });
     }
 
-    const startingTrim = raceTrim({ ...trimForDrive(createInitialState({ tws: 12 * windStrengthRef.current, trueWindDir: WIND_DIRECTION, heading: 45, boatSpeed: 0 }), raceTrim({})), mainHoisted: true, jibFurl: 0, reef: 0 });
+    // Pro sheets the player has not touched yet: close-hauled trim that gets the boat going (race-start-trim.ts).
+    const startingTrim = raceStartTrim(windStrengthRef.current, boats[0].heading);
     trimRef.current = startingTrim; setTrimState(startingTrim);
     boatsRef.current = boats;
     setWindReading(raceWindReading({ heading: boats[0].heading, boatSpeedKn: boats[0].speed, windFrom: WIND_DIRECTION, windKnots: 12 * windStrengthRef.current }));
@@ -1001,7 +1002,7 @@ export default function GamePage() {
           }} muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
           // The count waits for the first frame (startup gate), so it only shows over a ready scene.
           countdown={gameState === "countdown" && sceneReady ? countdown : undefined}>
-          <RaceScene key={sceneRaceId} racing={gameState === "racing" && !paused} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
+          <RaceScene key={sceneRaceId} raceProfile={physicalTrial} racing={gameState === "racing" && !paused} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
             ghostRef={ghostBoatsRef} ghostLabel={ghostTime === null ? undefined : `${tl({ ru: "Твой лучший", en: "Your best", pl: "Twój najlepszy", es: "Tu mejor", fr: "Ton meilleur", de: "Deine Bestzeit", it: "Il tuo migliore" })} ${formatRecordTime(ghostTime)}`}
             showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}
             guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />

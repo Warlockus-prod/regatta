@@ -41,10 +41,10 @@ export function difficultyLabel(d: Difficulty, lang: keyof ReturnType<typeof wor
 }
 
 export const hubSetupCopy = {
-  setup: words("Заезд", "Race setup", "Ustawienia wyścigu", "Configuración de la regata", "Réglages de la course", "Renn-Einstellungen", "Impostazioni della regata"),
+  setup: words("Настройка гонки", "Race setup", "Ustawienia wyścigu", "Ajustes de la regata", "Réglages de la course", "Renneinstellungen", "Impostazioni della regata"),
   learn: words("Первая гонка", "First race", "Pierwszy wyścig", "Primera regata", "Première course", "Erstes Rennen", "Prima regata"),
   learnNote: words("Лёгкий уровень, средний ветер", "Easy level, medium wind", "Łatwy poziom, średni wiatr", "Nivel fácil, viento medio", "Niveau facile, vent moyen", "Leichte Stufe, mittlerer Wind", "Livello facile, vento medio"),
-  free: words("Свободная", "Free race", "Wolny wyścig", "Regata libre", "Course libre", "Freies Rennen", "Regata libera"),
+  free: words("Свободная", "Free race", "Wyścig swobodny", "Regata libre", "Course libre", "Freies Rennen", "Regata libera"),
   mission: words("Миссия", "Mission", "Misja", "Misión", "Mission", "Mission", "Missione"),
   level: words("Сложность", "Difficulty", "Poziom", "Dificultad", "Difficulté", "Schwierigkeit", "Difficoltà"),
   wind: words("Сила ветра", "Wind strength", "Siła wiatru", "Fuerza del viento", "Force du vent", "Windstärke", "Forza del vento"),

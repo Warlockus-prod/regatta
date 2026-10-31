@@ -15,6 +15,9 @@ import { NEUTRAL_YACHT, type YachtState } from "@/features/simulator-3d/types";
 import { raceTerrain } from "@/data/venues/geometry";
 import { distance, makeStandardCourse } from "@/lib/race-physics";
 import type { Venue } from "@/data/venues/venues";
+import { FORESTAY_AXIS } from "@/features/simulator-3d/sails/geometry";
+import { QUALITY_PROFILES, hullScreenPx } from "@/features/race-scene/quality";
+import { FAR_JIB, FAR_JIB_RIG, FAR_MAIN, FAR_MAIN_RIG, farHullGeometry, farSailGeometry, mergeRivalStatics, switchRivalLod } from "./rival-lod";
 import { METRES_PER_UNIT, NO_GO_DEG, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
 
 // ============================================================================
@@ -43,9 +46,10 @@ const MARK_COLOR = "#ff7a1a";
 const PIN_COLOR = "#ffd23f";
 /** The start line, orange dashes as on the map. */
 const LINE_COLOR = "#ffaa00";
-/** Where to sail next: the soft guidance blue of the race scene's target ring
- * (RaceScene), not the action cyan (M1-7, DESIGN.md: cyan is for actions). */
-export const GUIDANCE_COLOR = "#76c9e9";
+/** Where to sail next: the warm yellow of the route's turn points (RaceScene),
+ * high contrast on water and never the action cyan (M1-7, M2-2; DESIGN.md:
+ * cyan is for actions). The pointer over the mark and the screen-edge arrow. */
+export const GUIDANCE_COLOR = "#ffd23f";
 /** The loading ring: neutral, it is a state and not an action. */
 export const LOADING_COLOR = "#c7d2da";
 export const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
@@ -148,23 +152,53 @@ export function NameTag({ text, color, y = 22 }: { text: string; color?: string;
   );
 }
 
-export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
+/** Shared by every far boat: the hull carries its colours per vertex, the sails are plain cloth. */
+let farShared: { main: THREE.BufferGeometry; jib: THREE.BufferGeometry; hull: THREE.MeshStandardMaterial; sail: THREE.MeshStandardMaterial } | null = null;
+function farBoatShared() {
+  farShared ??= {
+    main: farSailGeometry(FAR_MAIN),
+    jib: farSailGeometry(FAR_JIB),
+    hull: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0 }),
+    sail: new THREE.MeshStandardMaterial({ color: "#f4f2ec", roughness: 0.7, metalness: 0, side: THREE.DoubleSide }),
+  };
+  return farShared;
+}
+
+/**
+ * A rival or the ghost. Near, the full yacht with its static parts merged
+ * into one mesh per material (M2-6, rival-lod.ts); once its hull is shorter
+ * on screen than `farPxRef` (the quality profile, quality.ts), the far boat:
+ * the same colours, heel, heave and sail sides in three draw calls.
+ */
+export function Rival({ id, color, label, boatsRef, windDirRef, originRef, farPxRef }: {
   id: string;
   color: string;
   label: string;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
   originRef: OriginRef;
+  /** On-screen hull length (CSS px) below which the far boat is drawn. */
+  farPxRef?: MutableRefObject<number>;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, id);
   const group = useRef<THREE.Group>(null);
+  const near = useRef<THREE.Group>(null);
+  const farYaw = useRef<THREE.Group>(null);
+  const farRoot = useRef<THREE.Group>(null);
+  const farMain = useRef<THREE.Group>(null);
+  const farJib = useRef<THREE.Group>(null);
+  const isFar = useRef(false);
+  const shared = farBoatShared();
+  const farHull = useMemo(() => farHullGeometry(new THREE.Color(color).multiplyScalar(0.82)), [color]);
+  useEffect(() => () => farHull.dispose(), [farHull]);
   // The rival's race colour on its hull, the same colour as its dot on the 2D
   // map and its name tag. The GLB's gelcoat is shared by every yacht, so each
   // rival paints its own copy and puts the shared one back when it leaves.
+  // Then its static parts are merged with the paint they now wear.
   useEffect(() => {
     const tint = new THREE.Color(color);
     const painted: { mesh: THREE.Mesh; original: THREE.Material | THREE.Material[]; copies: THREE.Material[] }[] = [];
-    group.current?.traverse((o) => {
+    near.current?.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh) return;
       const original = mesh.material;
@@ -180,15 +214,19 @@ export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
       if (copies.length) painted.push({ mesh, original, copies });
       else mesh.material = original;
     });
+    const model = near.current?.getObjectByName("Hull")?.parent ?? null;
+    const unmerge = model ? mergeRivalStatics(model) : () => {};
     return () => {
+      unmerge();
       for (const p of painted) {
         p.mesh.material = p.original;
         p.copies.forEach((m) => m.dispose());
       }
     };
   }, [color]);
-  useFrame(({ camera }) => {
-    const travel = state.current.travel;
+  useFrame(({ camera, size, clock }) => {
+    const pose = state.current;
+    const travel = pose.travel;
     if (!group.current || !travel) return;
     const x = travel.x - originRef.current.x;
     const z = travel.z - originRef.current.z;
@@ -203,10 +241,27 @@ export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
     // From high above, the sight line clears a rival's masthead (21 m) until near the player.
     const sightHeight = camera.position.y * (1 - t) + 6 * t;
     group.current.visible = !(t > 0 && t < 1.05 && side < 9 && sightHeight < 21);
+    const fov = (camera as THREE.PerspectiveCamera).fov ?? 50;
+    const screen = hullScreenPx(Math.hypot(x - cx, camera.position.y, z - cz), fov, size.height);
+    isFar.current = switchRivalLod(isFar.current, screen, farPxRef?.current ?? QUALITY_PROFILES.high.rivalFarPx, near.current, farYaw.current);
+    if (!isFar.current || !farYaw.current) return;
+    // The pose Yacht gives the full model, without its smoothing: too small to see it.
+    farYaw.current.rotation.y = pose.heading === undefined ? 0 : (90 - pose.heading) * DEG;
+    farYaw.current.position.y = sampleWave(travel.x, travel.z, clock.elapsedTime).y;
+    if (farRoot.current) farRoot.current.rotation.x = pose.heel * DEG;
+    if (farMain.current) farMain.current.rotation.y = pose.boomAngle * DEG;
+    farJib.current?.quaternion.setFromAxisAngle(FORESTAY_AXIS, pose.jibAngle * DEG);
   });
   return (
     <group ref={group}>
-      <Yacht stateRef={state} light />
+      <group ref={near}><Yacht stateRef={state} light /></group>
+      <group ref={farYaw}>
+        <group ref={farRoot}>
+          <mesh geometry={farHull} material={shared.hull} />
+          <group ref={farMain} position={FAR_MAIN_RIG as [number, number, number]}><mesh geometry={shared.main} material={shared.sail} /></group>
+          <group ref={farJib} position={FAR_JIB_RIG as [number, number, number]}><mesh geometry={shared.jib} material={shared.sail} /></group>
+        </group>
+      </group>
       <NameTag text={label} color={color} />
     </group>
   );

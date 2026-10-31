@@ -115,7 +115,7 @@ export const FINISH_COPY = {
     es: "Igual que tu récord ({record})", fr: "Pile ton record ({record})", de: "Genau dein Rekord ({record})", it: "Esattamente il tuo record ({record})",
   },
   mainMistake: {
-    ru: "Главное, что исправить", en: "The one thing to fix", pl: "Najważniejsze do poprawy", es: "Lo principal a corregir",
+    ru: "Главное, что исправить", en: "The one thing to fix", pl: "Najważniejsze do poprawy", es: "Lo principal que corregir",
     fr: "Le point à corriger", de: "Das Wichtigste zum Verbessern", it: "La cosa principale da correggere",
   },
   aiCaption: {
@@ -126,7 +126,7 @@ export const FINISH_COPY = {
   again: { ru: "Еще раз", en: "Again", pl: "Jeszcze raz", es: "Otra vez", fr: "Rejouer", de: "Noch mal", it: "Di nuovo" },
   judge: { ru: "Судья", en: "Judge", pl: "Sędzia", es: "Juez", fr: "Juge", de: "Schiedsrichter", it: "Giudice" },
   fleet: { ru: "Результаты флота", en: "Fleet results", pl: "Wyniki floty", es: "Resultados de la flota", fr: "Résultats de la flotte", de: "Ergebnisse der Flotte", it: "Risultati della flotta" },
-  share: { ru: "Поделиться повтором", en: "Share the replay", pl: "Udostępnij powtórkę", es: "Compartir la repetición", fr: "Partager le replay", de: "Replay teilen", it: "Condividi il replay" },
+  share: { ru: "Поделиться повтором", en: "Share the replay", pl: "Udostępnij powtórkę", es: "Compartir la repetición", fr: "Partager le replay", de: "Wiederholung teilen", it: "Condividi il replay" },
   // Did not finish: what happened and one thing to try, without blame.
   dnfTitle: { ru: "Время вышло", en: "Time ran out", pl: "Czas minął", es: "Se acabó el tiempo", fr: "Temps écoulé", de: "Zeit abgelaufen", it: "Tempo scaduto" },
   dnfBeforeMark: {
@@ -143,8 +143,8 @@ export const FINISH_COPY = {
   },
   dnfGeneric: {
     ru: "Гонка закрылась до того, как ты пересек финиш.", en: "The race closed before you crossed the finish line.",
-    pl: "Wyścig zamknięto, zanim przekroczyłeś linię mety.", es: "La regata se cerró antes de que cruzaras la línea de llegada.",
-    fr: "La course s'est terminée avant que tu franchisses la ligne d'arrivée.", de: "Das Rennen wurde beendet, bevor du die Ziellinie gekreuzt hattest.",
+    pl: "Wyścig zamknięto przed przekroczeniem linii mety.", es: "La regata se cerró antes de que cruzaras la línea de llegada.",
+    fr: "La course s'est terminée avant que tu franchisses la ligne d'arrivée.", de: "Das Rennen wurde beendet, bevor du die Ziellinie überquert hattest.",
     it: "La regata si è chiusa prima che tagliassi il traguardo.",
   },
   dnfEncourage: {
@@ -156,14 +156,14 @@ export const FINISH_COPY = {
     de: "So enden viele erste Rennen. Für den nächsten Versuch reicht eine Änderung.",
     it: "Molte prime regate finiscono così. Per il prossimo tentativo basta una modifica.",
   },
-  dnfTry: { ru: "Попробуй в следующий раз", en: "One thing to try", pl: "Spróbuj następnym razem", es: "Una cosa para probar", fr: "Une chose à essayer", de: "Probier beim nächsten Mal", it: "Una cosa da provare" },
+  dnfTry: { ru: "Попробуй в следующий раз", en: "One thing to try", pl: "Spróbuj następnym razem", es: "Una cosa que probar", fr: "Une chose à essayer", de: "Probier beim nächsten Mal", it: "Una cosa da provare" },
   dnfTipBeforeMark: {
     ru: "Иди в бейдевинд, примерно 45 градусов к ветру, и делай поворот оверштаг, когда знак окажется на траверзе.",
     en: "Sail close-hauled, about 45 degrees off the wind, and tack when the mark is abeam.",
     pl: "Płyń bajdewindem, około 45 stopni do wiatru, i zrób zwrot przez sztag, gdy znak będzie na trawersie.",
     es: "Navega en ceñida, a unos 45 grados del viento, y vira por avante cuando la baliza esté por el través.",
     fr: "Navigue au près, à environ 45 degrés du vent, et vire de bord quand la bouée est par le travers.",
-    de: "Segle hoch am Wind, etwa 45 Grad zum Wind, und wende, wenn die Tonne querab ist.",
+    de: "Segle hoch am Wind, etwa 45 Grad zum Wind, und wende, wenn die Bahnmarke querab ist.",
     it: "Naviga di bolina, a circa 45 gradi dal vento, e vira quando la boa è al traverso.",
   },
   dnfTipAfterMark: {
@@ -172,7 +172,7 @@ export const FINISH_COPY = {
     pl: "Po znaku odpadnij do baksztagu i trzymaj dziób na linię mety.",
     es: "Después de la baliza, arriba hasta un largo y apunta la proa a la línea de llegada.",
     fr: "Après la bouée, abats jusqu'au grand largue et pointe l'étrave vers la ligne d'arrivée.",
-    de: "Fall nach der Tonne auf Raumschotskurs ab und halte den Bug auf die Ziellinie.",
+    de: "Fall nach der Bahnmarke auf Raumschotskurs ab und halte den Bug auf die Ziellinie.",
     it: "Dopo la boa, poggia fino al lasco e punta la prua verso il traguardo.",
   },
   dnfTipGeneric: {
@@ -180,8 +180,8 @@ export const FINISH_COPY = {
     en: "Keep the sails full: if the boat slows, bear away until it picks up speed, then head for the next mark.",
     pl: "Trzymaj żagle pełne: gdy łódź zwalnia, odpadnij, aż nabierze prędkości, i dopiero wtedy płyń do następnego znaku.",
     es: "Mantén las velas llenas: si el barco frena, arriba hasta que coja velocidad y luego ve a la siguiente baliza.",
-    fr: "Garde les voiles pleines : si le bateau ralentit, abats jusqu'à ce qu'il reprenne de la vitesse, puis va vers la marque suivante.",
-    de: "Halte die Segel voll: Wird das Boot langsamer, fall ab, bis es wieder Fahrt aufnimmt, und steuere dann die nächste Tonne an.",
+    fr: "Garde les voiles pleines : si le bateau ralentit, abats jusqu'à ce qu'il reprenne de la vitesse, puis va vers la bouée suivante.",
+    de: "Halte die Segel voll: Wird das Boot langsamer, fall ab, bis es wieder Fahrt aufnimmt, und steuere dann die nächste Bahnmarke an.",
     it: "Tieni le vele piene: se la barca rallenta, poggia finché riprende velocità, poi dirigi verso la boa successiva.",
   },
 } as const satisfies Record<string, Copy>;

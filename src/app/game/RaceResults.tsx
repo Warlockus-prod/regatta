@@ -34,6 +34,10 @@ export type NativeSaveStatus = "idle" | "saving" | "saved" | "error";
 export interface NativeBestSaveState { status: "idle" | "saving" | "saved" | "error"; id: string; requestId: string; retryable: boolean }
 export type LeaderboardSaveState = 'idle' | 'prompting' | 'saving' | 'saved' | 'error';
 
+/** M1-7 leftover: the nickname prompt and the replay share card are neutral
+ * panels. Cyan is kept for what is pressed (Save, Share, Open), not for the
+ * box around them or its heading. */
+const NEUTRAL_PANEL = { background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' } as const;
 /** M1-7: the accessible name of a podium medal in the fleet table. */
 const MEDAL_PLACE = { ru: "Место {n}", en: "Place {n}", pl: "Miejsce {n}", es: "Puesto {n}", fr: "Place {n}", de: "Platz {n}", it: "Posizione {n}" } as const;
 
@@ -266,8 +270,8 @@ export function RaceResults({
                 (same flow /multiplayer uses), API validates 2-20 chars.
                 Non-blocking: "skip" dismisses without saving. */}
             {!nativeRace && saveState === 'prompting' && (
-              <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
-                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
+              <div className="mb-4 p-3 rounded-lg" data-testid="race-results-nickname-prompt" style={NEUTRAL_PANEL}>
+                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                   {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisać wynik w rankingu?',
                     { es: '¿Guardar tu resultado en la clasificación?', fr: 'Enregistrer ton résultat au classement ?', de: 'Ergebnis in die Bestenliste eintragen?', it: 'Salvare il risultato in classifica?' })}
                 </div>
@@ -283,7 +287,7 @@ export function RaceResults({
                     onKeyDown={(e) => { if (e.key === 'Enter' && nicknameInput.trim().length >= 2) saveResult(nicknameInput); }}
                     maxLength={20}
                     className="min-h-11 flex-1 min-w-0 px-3 py-2 rounded text-sm"
-                    style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
+                    style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
                     placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick',
                       { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
                   />
@@ -493,18 +497,18 @@ function ShareBlock({
   const timePart = finishTime ? `${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''}` : '';
   const shareText = finishTime
     ? tp(
-        `Прошёл регату за ${timePart} на weektoregatta.com - смотри replay`,
+        `Гонка пройдена за ${timePart} на weektoregatta.com - смотри повтор`,
         `Finished the race in ${timePart} at weektoregatta.com - check the replay`,
         `Wyścig ukończony w ${timePart} na weektoregatta.com - zobacz powtórkę`,
         {
           es: `Terminé la regata en ${timePart} en weektoregatta.com - mira la repetición`,
           fr: `Course terminée en ${timePart} sur weektoregatta.com - regarde le replay`,
-          de: `Rennen auf weektoregatta.com in ${timePart} beendet - schau dir das Replay an`,
+          de: `Rennen auf weektoregatta.com in ${timePart} beendet - schau dir die Wiederholung an`,
           it: `Regata conclusa in ${timePart} su weektoregatta.com - guarda il replay`,
         },
       )
-    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moja powtórka na weektoregatta.com',
-        { es: 'Mi repetición en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Mein Replay auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
+    : tp('Мой повтор гонки на weektoregatta.com', 'My replay at weektoregatta.com', 'Moja powtórka na weektoregatta.com',
+        { es: 'Mi repetición en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Meine Wiederholung auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
 
   const onShare = async () => {
     if (navigator.share) {
@@ -525,13 +529,12 @@ function ShareBlock({
     : null;
 
   return (
-    <div className="mb-4 p-3 rounded-lg"
-         style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
+    <div className="mb-4 p-3 rounded-lg" data-testid="race-results-share-card" style={NEUTRAL_PANEL}>
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-            {tp('ПОДЕЛИТЬСЯ REPLAY', 'SHARE REPLAY', 'UDOSTĘPNIJ POWTÓRKĘ',
-              { es: 'COMPARTIR REPETICIÓN', fr: 'PARTAGER LE REPLAY', de: 'REPLAY TEILEN', it: 'CONDIVIDI IL REPLAY' })}
+          <div className="text-sm uppercase tracking-wider text-[var(--text-muted)]">
+            {tp('ПОДЕЛИТЬСЯ ПОВТОРОМ', 'SHARE REPLAY', 'UDOSTĘPNIJ POWTÓRKĘ',
+              { es: 'COMPARTIR REPETICIÓN', fr: 'PARTAGER LE REPLAY', de: 'WIEDERHOLUNG TEILEN', it: 'CONDIVIDI IL REPLAY' })}
           </div>
           <div className="text-sm font-mono font-semibold text-[var(--text-primary)] mt-0.5">
             {code}
@@ -540,7 +543,7 @@ function ShareBlock({
         <div className="flex gap-2">
           <button
             onClick={onShare}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold"
+            className="inline-flex min-h-11 items-center gap-1 px-3 py-1.5 rounded text-sm font-semibold"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
             data-testid="race-results-share-button"
           >
@@ -553,8 +556,8 @@ function ShareBlock({
           </button>
           <Link
             href={`/r/${code}`}
-            className="inline-flex min-h-11 items-center px-3 py-1.5 rounded text-xs font-semibold border"
-            style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
+            className="inline-flex min-h-11 items-center px-3 py-1.5 rounded text-sm font-semibold border"
+            style={{ borderColor: 'var(--border-subtle)', color: 'var(--accent-cyan)' }}
           >
             {tp('Открыть', 'Open', 'Otwórz',
               { es: 'Abrir', fr: 'Ouvrir', de: 'Öffnen', it: 'Apri' })}

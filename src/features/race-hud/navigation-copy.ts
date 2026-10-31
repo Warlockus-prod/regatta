@@ -13,7 +13,7 @@ export function useRaceNavigationCopy() {
     northShort: tl({ ru: "С", en: "N", pl: "N", es: "N", fr: "N", de: "N", it: "N" }),
     start: tl({ ru: "Старт", en: "Start", pl: "Start", es: "Salida", fr: "Départ", de: "Start", it: "Partenza" }),
     finish: tl({ ru: "Финиш", en: "Finish", pl: "Meta", es: "Llegada", fr: "Arrivée", de: "Ziel", it: "Arrivo" }),
-    marks: tl({ ru: "Знак", en: "Mark", pl: "Znak", es: "Baliza", fr: "Marque", de: "Tonne", it: "Boa" }),
+    marks: tl({ ru: "Знак", en: "Mark", pl: "Znak", es: "Baliza", fr: "Bouée", de: "Bahnmarke", it: "Boa" }),
     windFrom: tl({ ru: "Откуда ветер", en: "Wind from", pl: "Wiatr z", es: "Viento desde", fr: "Vent venant de", de: "Wind aus", it: "Vento da" }),
     empty: tl({ ru: "Карта появится, когда будут доступны данные трассы.", en: "The map appears when course data is available.", pl: "Mapa pojawi się, gdy będą dostępne dane trasy.", es: "El mapa aparecerá cuando haya datos del recorrido.", fr: "La carte apparaît lorsque les données du parcours sont disponibles.", de: "Die Karte erscheint, sobald Kursdaten vorliegen.", it: "La mappa appare quando i dati del percorso sono disponibili." }),
     wind: tl({ ru: "Ветер", en: "Wind", pl: "Wiatr", es: "Viento", fr: "Vent", de: "Wind", it: "Vento" }),

@@ -1,5 +1,41 @@
 # i18n audit - 7-language status across the app
 
+2026-10-31 race language pass (M0, M1, M2 copy). Reviewed in all seven
+languages; the decisions are in `scripts/sailing-glossary.md`, "Race UI terms".
+Where the race text lives:
+- Race dictionary and toasts: `src/app/game/race-copy.ts` (`useRaceCopy`, its
+  field count and original bytes pinned by `replay-copy.test.ts`, which undoes
+  the listed language-pass rewrites before hashing), the missed-mark notice
+  `MISSED_MARK_NOTICE` in the same file, control modes
+  `src/app/game/race-mode-labels.ts`, replay labels `src/app/game/replay-copy.ts`.
+- Status row and pause sheet: `src/app/game/race-pause-copy.ts`; sound switch
+  `src/features/race-hud/RaceSoundToggle.tsx`, wheel clicks
+  `src/features/trainer-controls/sound-copy.ts`.
+- Units and target speed: `src/features/race-hud/units.ts`,
+  `src/features/race-hud/speed-target.ts`; map and wind labels
+  `src/features/race-hud/navigation-copy.ts`; event chips
+  `src/features/race-hud/events.ts`.
+- Result screen: `src/app/game/race-finish-summary.ts` (`FINISH_COPY`) plus the
+  inline nickname and share-card strings in `src/app/game/RaceResults.tsx`;
+  judge debrief `src/data/race-judge-copy.ts`.
+- Lobby and briefing: inline `tl()` / `tp()` in `src/app/game/GameMenu.tsx`,
+  `src/app/game/RaceBriefing.tsx`; difficulty labels `src/data/race-difficulty.ts`.
+- Multiplayer lobby: inline `tp()` / `tl()` in
+  `src/app/multiplayer/MultiplayerLobby.tsx`, the default sailor name in
+  `src/app/multiplayer/lobby.ts`.
+- Leaderboard: `src/app/leaderboard/leaderboard-copy.ts`; the app's Race hub:
+  `mobile/src/navigation/race-setup.ts` (`hubSetupCopy`).
+- Privacy page race events: `src/app/privacy/page.tsx`.
+Fixed: FR mark "marque" to "bouée" and DE bare "Tonne" to "Bahnmarke" in the
+toasts, map, event chip and result tips; DE "Ziellinie gekreuzt" (a false
+friend) to "überquert"; PL "Wolny wyścig" to "Wyścig swobodny", one race as
+"wyścig"; ES/IT lobby start button as a verb; RU hub "Заезд" and multiplayer
+"Условия гонки" / "Обычная регата" to the race's own words. Open: the
+leaderboard has three names in Russian ("Результаты гонок" in the catalog,
+"Таблица лучших" on the page, "Лидерборд" on the result screen) and two in
+German ("Rangliste", "Bestenliste"); RaceResults still writes "replay" in
+Latin letters in Russian. Not render-checked in a browser in this pass.
+
 2026-10-26 corner instruments: `src/features/race-hud/navigation-copy.ts`
 adds two resources/14explicit values for the mini-map visibility setting and
 Open course map action. The compact map and wind reuse the existing canonical

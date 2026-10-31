@@ -89,7 +89,12 @@ describe("race 3D colours", () => {
   it("draws the next-mark pointer and the loading ring without the action cyan", () => {
     const source = readFileSync(new URL("./Race3DView.tsx", import.meta.url), "utf8");
     expect(source).not.toMatch(/#00d4ff|0, ?212, ?255/i);
-    expect(GUIDANCE_COLOR).toBe("#76c9e9");
+    expect(GUIDANCE_COLOR).toBe("#ffd23f");
+    // M2-2: not a cyan-ish blue either; the hue sits well away from cyan (180-200).
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(GUIDANCE_COLOR.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const hue = max === r ? 60 * (((g - b) / (max - min)) % 6) : max === g ? 60 * ((b - r) / (max - min) + 2) : 60 * ((r - g) / (max - min) + 4);
+    expect(Math.abs(((hue + 360) % 360) - 190)).toBeGreaterThan(60);
     expect(LOADING_COLOR.toLowerCase()).not.toBe("#00d4ff");
   });
 });

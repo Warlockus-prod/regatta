@@ -12,6 +12,10 @@ import { TRAIL_POINTS, buildRibbon, pushTrail, ribbonIndices, type TrailPoint } 
 import { BEACH_ROWS, landGeometry } from "./land";
 import { PALETTE, calmFactor, shadowMaterial, shoreTexture, skyMaterial, wakeMaterial, waterMaterial, waterUniforms, type WaterUniforms } from "./materials";
 import { SAILING_SUN, sailingEnvironmentFrame, sailingHull, type SailingHull, type SailingState, type WorldPoint } from "./environment-state";
+import { QUALITY_PROFILES, type SceneQuality } from "./quality";
+
+/** The parts of a quality profile (quality.ts, M2-5) the environment draws. */
+export type EnvironmentQuality = Pick<SceneQuality, "waterSegments" | "waterDetail" | "clouds" | "treeShare">;
 
 type OriginRef = MutableRefObject<WorldPoint>;
 const DEG = Math.PI / 180;
@@ -113,17 +117,17 @@ function HullMarks({ readBoats, originRef, travel }: {
 }
 
 /** The shared sailing water: dense round the hull, with waves and wind in TSL. */
-function Water({ venue, uniforms, chartOrigin }: { venue?: Venue; uniforms: WaterUniforms; chartOrigin: WorldPoint }) {
+function Water({ venue, uniforms, chartOrigin, segments, detail }: { venue?: Venue; uniforms: WaterUniforms; chartOrigin: WorldPoint; segments: number; detail: boolean }) {
   const geometry = useMemo(() => {
     const size = 2800;
-    const g = new THREE.PlaneGeometry(size, size, 200, 200);
+    const g = new THREE.PlaneGeometry(size, size, segments, segments);
     const pos = g.attributes.position;
     // Dense round the boat (about 0.8 m), sparse towards the fog.
     const spread = (v: number) => (size / 2) * Math.sinh((4 * v) / (size / 2)) / Math.sinh(4);
     for (let i = 0; i < pos.count; i++) pos.setXY(i, spread(pos.getX(i)), spread(pos.getY(i)));
     g.rotateX(-Math.PI / 2);
     return g;
-  }, []);
+  }, [segments]);
   const shore = useMemo(() => {
     const m = METRES_PER_UNIT;
     const polys = (venue?.lands ?? []).map((l) => landPolygon(l, RACE_AREA).map((p) => ({ x: p.x * m - chartOrigin.x, z: p.y * m - chartOrigin.z })));
@@ -132,7 +136,7 @@ function Water({ venue, uniforms, chartOrigin }: { venue?: Venue; uniforms: Wate
     const field = shoreField(polys, bounds, { cols: 224, rows: 256, maxDist: 70 });
     return { texture: shoreTexture(field), min: field.min, size: field.size };
   }, [venue, chartOrigin.x, chartOrigin.z]);
-  const material = useMemo(() => waterMaterial(uniforms, shore), [uniforms, shore]);
+  const material = useMemo(() => waterMaterial(uniforms, shore, detail), [uniforms, shore, detail]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => () => { material.dispose(); shore.texture.dispose(); }, [material, shore]);
   return <mesh geometry={geometry} material={material} />;
@@ -149,7 +153,7 @@ const Land = memo(function Land({ venue }: { venue: Venue }) {
 });
 
 /** Low-poly pines behind the beach: scale and a sense of place from high above. */
-const Trees = memo(function Trees({ venue }: { venue: Venue }) {
+const Trees = memo(function Trees({ venue, share = 1 }: { venue: Venue; share?: number }) {
   // Built whole, colours included, before the first frame: an instance colour
   // added after the pipeline is compiled is ignored and the trees render white.
   const mesh = useMemo(() => {
@@ -178,26 +182,28 @@ const Trees = memo(function Trees({ venue }: { venue: Venue }) {
         }
       }
     });
-    const count = Math.min(2400, matrices.length);
+    // A cheaper profile keeps an even subset (golden-ratio spacing): fewer trees, the same coast.
+    const kept = matrices.map((_, i) => i).filter((i) => share >= 1 || (i * 0.6180339887) % 1 < share);
+    const count = Math.min(2400, kept.length);
     const geometry = new THREE.ConeGeometry(1, 1, 6);
     geometry.translate(0, 0.5, 0);
     const material = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.95, metalness: 0 });
     const m = new THREE.InstancedMesh(geometry, material, Math.max(1, count));
     m.count = count;
     m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, count) * 3), 3);
-    for (let i = 0; i < count; i++) { m.setMatrixAt(i, matrices[i]); m.setColorAt(i, colors[i]); }
+    for (let i = 0; i < count; i++) { m.setMatrixAt(i, matrices[kept[i]]); m.setColorAt(i, colors[kept[i]]); }
     m.frustumCulled = false;
     return m;
-  }, [venue]);
+  }, [venue, share]);
   useEffect(() => () => { mesh.geometry.dispose(); (mesh.material as THREE.Material).dispose(); mesh.dispose(); }, [mesh]);
   return <primitive object={mesh} />;
 });
 
 /** The land and its trees, shifted with the world (the player stays at the origin). */
-function Dressing({ venue, originRef, chartOrigin }: { venue: Venue; originRef: OriginRef; chartOrigin: WorldPoint }) {
+function Dressing({ venue, originRef, chartOrigin, treeShare }: { venue: Venue; originRef: OriginRef; chartOrigin: WorldPoint; treeShare: number }) {
   const group = useRef<THREE.Group>(null);
   useFrame(() => { group.current?.position.set(-originRef.current.x - chartOrigin.x, 0, -originRef.current.z - chartOrigin.z); });
-  return <group ref={group}><Land venue={venue} /><Trees venue={venue} /></group>;
+  return <group ref={group}><Land venue={venue} /><Trees venue={venue} share={treeShare} /></group>;
 }
 
 /** A small local reflection map for gelcoat, stainless and sail cloth.
@@ -239,8 +245,10 @@ function Reflections() {
 /** One environment for the solo race, replay and trainers. Call inside the
  * shared renderer's Canvas. Cameras, rig state and lesson UI stay with the
  * consumer; only the sea, scenery, light and world-space wakes live here. */
-export function SailingEnvironment({ venue, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN }: {
+export function SailingEnvironment({ venue, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN, quality = QUALITY_PROFILES.high }: {
   venue?: Venue;
+  /** The race scene's quality profile (M2-5); trainers keep the full picture. */
+  quality?: EnvironmentQuality;
   readState: () => SailingState | null;
   readBoats?: () => readonly SailingHull[];
   originRef: OriginRef;
@@ -248,7 +256,7 @@ export function SailingEnvironment({ venue, readState, readBoats, originRef, cha
 }) {
   const uniforms = useMemo(() => waterUniforms(), []);
   const uniformsRef = useRef(uniforms);
-  const sky = useMemo(() => skyMaterial(SUN_DIR, uniforms.time), [uniforms]);
+  const sky = useMemo(() => skyMaterial(SUN_DIR, uniforms.time, quality.clouds), [uniforms, quality.clouds]);
   const singleHull = useCallback(() => [sailingHull(readState())], [readState]);
   useEffect(() => () => sky.dispose(), [sky]);
   // Update travel before the meshes, wakes, course markers and cameras read
@@ -269,11 +277,11 @@ export function SailingEnvironment({ venue, readState, readBoats, originRef, cha
     <directionalLight position={SAILING_SUN} intensity={2.4} color="#fff0d8" />
     <Reflections />
     <mesh renderOrder={-100} material={sky}><sphereGeometry args={[3600, 32, 16]} /></mesh>
-    <Water venue={venue} uniforms={uniforms} chartOrigin={chartOrigin} />
+    <Water venue={venue} uniforms={uniforms} chartOrigin={chartOrigin} segments={quality.waterSegments} detail={quality.waterDetail} />
     <mesh rotation-x={-Math.PI / 2} position={[0, -1.6, 0]}>
       <planeGeometry args={[9000, 9000]} /><meshBasicMaterial color={PALETTE.deep} />
     </mesh>
-    {venue && <Dressing venue={venue} originRef={originRef} chartOrigin={chartOrigin} />}
+    {venue && <Dressing venue={venue} originRef={originRef} chartOrigin={chartOrigin} treeShare={quality.treeShare} />}
     <HullMarks readBoats={readBoats ?? singleHull} originRef={originRef} travel={uniforms.travel} />
   </>;
 }

@@ -11,7 +11,13 @@
 .scene { --race-status-h:52px; position:relative; min-height:0; overflow:hidden; isolation:isolate; container-type:size; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
 .dock { position:relative; min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border-subtle); background:var(--bg-primary,#071923); }
 .notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:12px; line-height:1.45; color:var(--text-primary); }.notice strong { font-size:28px; }
-.tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { min-width:0; overflow-wrap:anywhere; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }
+/* Tab labels break only between words ("Kurs / halten"), never inside one: at
+   844x390 the 290 px dock split "Держат / ь курс" in five equal columns with
+   overflow-wrap:anywhere. A flex row shares the width but never squeezes a tab
+   below its longest word (the automatic flex minimum); the icon-only Settings
+   tab and the label boxes keep the 44 px target; a row that cannot fit wraps
+   whole tabs instead of letters. */
+.tabs { display:flex; flex-wrap:wrap; flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { flex:1 1 0; min-width:auto; overflow-wrap:normal; word-break:normal; hyphens:manual; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }.tabs button:not(:has(svg))>span { min-width:36px; text-align:center; }.tabs button:has(svg) { padding-inline:14px; }
 .mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:13px; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
 .panel:has(.mapPanel) { container-type:size; }
 .tabs button:has(svg)>span { position:absolute; clip-path:inset(50%); width:1px; height:1px; overflow:hidden; white-space:nowrap; }

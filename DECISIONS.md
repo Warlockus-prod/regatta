@@ -534,9 +534,25 @@ Babylon React Native, Unity as a Library, Godot, PlayCanvas).
 
 ### Decision
 - One race, rendered by one three.js scene for the website and the app. The
-  "map" becomes the same scene with a high tilted camera ("tactical", the
-  default); the view from the stern is the second camera. The Skia race goes
-  once the 3D race works offline in the app.
+  "map" becomes the same scene with a high tilted camera ("tactical"); the
+  view from the stern is a second camera. The Skia race goes once the 3D race
+  works offline in the app.
+- Default camera, revised 2026-10-31 (owner decision #5 of
+  `docs/audits/2026-10-30-game-roadmap.md`, M2-1): the default is the free
+  orbit around the yacht, fitted exactly like the trainer, not the tactical
+  view this ADR first named. TestFlight feedback TF07
+  (`docs/audits/2026-10-28/testflight-feedback-review.md`) came from a race
+  seen in the distant view from above: the player missed the wind direction
+  and the boat's angle to it and could not find the free rotation known from
+  the trainer; the close orbit gives that rotation and shows the sails and the
+  boat's angle to the wind.
+  Three cameras live in the one scene and a tap on it steps through them:
+  around the boat (default) -> behind (a chase camera that follows the
+  course and comes back behind the stern 1.5 s after a manual orbit or zoom;
+  one cut instead of an eased return under reduced motion) -> above (the
+  tactical camera, upwind at the top). The choice is remembered
+  (`regatta.race.camera.v1`). Math: `src/features/race-scene/camera.ts`,
+  `src/features/race-scene/orbit-camera.ts`.
 - The scene renders with `WebGPURenderer` and TSL node materials: WebGPU where
   the browser has it (Safari and WKWebView from iOS 26), WebGL2 otherwise
   (the iOS Simulator, older devices), with the same shaders.

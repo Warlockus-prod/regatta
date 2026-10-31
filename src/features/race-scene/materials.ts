@@ -90,7 +90,8 @@ export function shoreTexture(field: ShoreField): THREE.DataTexture {
   return t;
 }
 
-export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture; min: { x: number; z: number }; size: { x: number; z: number } }): THREE.MeshBasicNodeMaterial {
+/** `detail` false (the "low" quality profile, quality.ts) drops the wind streaks and ripples, the costliest noise. */
+export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture; min: { x: number; z: number }; size: { x: number; z: number } }, detail = true): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial();
   const U = u as unknown as Record<keyof WaterUniforms, N>;
   const t = U.time;
@@ -111,12 +112,13 @@ export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture;
   const along = dot(race, flow);
   const side = dot(race, across);
   // Wind streaks: noise stretched along the wind and drifting downwind.
-  const streakNoise = mx_noise_float(vec3(side.mul(0.05), along.mul(0.007).sub(t.mul(0.05)), t.mul(0.04)));
-  const streak: N = smoothstep(0.12, 0.55, streakNoise).mul(U.windiness).mul(float(1).sub(calm.mul(0.6)));
+  const streak: N = detail
+    ? smoothstep(0.12, 0.55, mx_noise_float(vec3(side.mul(0.05), along.mul(0.007).sub(t.mul(0.05)), t.mul(0.04)))).mul(U.windiness).mul(float(1).sub(calm.mul(0.6)))
+    : float(0);
   // Fine ripples moving with the wind, a small tilt of the normal.
   const rippleP = race.mul(0.32).sub(flow.mul(t.mul(1.6)));
-  const rx = mx_noise_float(vec3(rippleP, t.mul(0.5))).mul(0.06);
-  const rz = mx_noise_float(vec3(rippleP.add(17.3), t.mul(0.5))).mul(0.06);
+  const rx: N = detail ? mx_noise_float(vec3(rippleP, t.mul(0.5))).mul(0.06) : float(0);
+  const rz: N = detail ? mx_noise_float(vec3(rippleP.add(17.3), t.mul(0.5))).mul(0.06) : float(0);
   const slope = float(1).sub(calm.mul(0.85));
   const normal = normalize(vec3(wave.y.mul(slope).add(rx), 1, wave.z.mul(slope).add(rz)));
 
@@ -151,8 +153,8 @@ export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture;
   return m;
 }
 
-/** A sky dome: gradient, a warm glow round the sun, a band of haze on the horizon, soft clouds. */
-export function skyMaterial(sunDir: THREE.Vector3, time: { value: number }): THREE.MeshBasicNodeMaterial {
+/** A sky dome: gradient, a warm glow round the sun, a band of haze on the horizon, soft clouds (`clouds` false in the "low" profile). */
+export function skyMaterial(sunDir: THREE.Vector3, time: { value: number }, clouds = true): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, fog: false });
   const dir: N = normalize(positionLocal);
   const sun = vec3(sunDir.x, sunDir.y, sunDir.z);
@@ -163,9 +165,11 @@ export function skyMaterial(sunDir: THREE.Vector3, time: { value: number }): THR
   const facing: N = max(dot(dir, sun), 0);
   sky = sky.add(vec3(0.3, 0.22, 0.1).mul(pow(facing, 12)));
   // Clouds on a flat layer overhead, thinning towards the horizon haze.
-  const layer = dir.xz.div(dir.y.add(0.12)).mul(1.4).add(vec2((time as unknown as N).mul(0.004), 0));
-  const cloud = smoothstep(0.05, 0.45, mx_fractal_noise_float(vec3(layer, 0.5), 3, 2.0, 0.5, 1.0));
-  sky = mix(sky, vec3(0.96, 0.97, 0.98), cloud.mul(smoothstep(0.03, 0.25, dir.y)).mul(0.75));
+  if (clouds) {
+    const layer = dir.xz.div(dir.y.add(0.12)).mul(1.4).add(vec2((time as unknown as N).mul(0.004), 0));
+    const cloud = smoothstep(0.05, 0.45, mx_fractal_noise_float(vec3(layer, 0.5), 3, 2.0, 0.5, 1.0));
+    sky = mix(sky, vec3(0.96, 0.97, 0.98), cloud.mul(smoothstep(0.03, 0.25, dir.y)).mul(0.75));
+  }
   const disc = smoothstep(0.9993, 0.9997, facing);
   m.colorNode = mix(sky, vec3(1.0, 0.95, 0.82), disc);
   return m;

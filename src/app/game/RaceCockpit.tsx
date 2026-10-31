@@ -30,6 +30,7 @@ import { RaceFeedbackLayer } from "@/features/race-hud/RaceFeedbackLayer";
 import fx from "@/features/race-hud/RaceFeedbackLayer.module.css";
 import type { ContactFrame, FeedbackToast } from "@/features/race-hud/feedback";
 import { TARGET_SPEED_LABEL, speedVersusTarget } from "@/features/race-hud/speed-target";
+import { createTapTracker, nextRaceCamera, type TapTracker } from "@/features/race-scene/camera";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -43,6 +44,44 @@ export function RaceModePicker({ prefs, update }: { prefs: RacePrefs; update: (p
     </div>
     <p>{prefs.mode === "pro" ? c.proNote : c.simpleNote}</p>
   </div>;
+}
+
+/** M2-1 camera switch copy: the status-row button's name and the tap hint in Settings. */
+export const RACE_CAMERA_SWITCH = {
+  ru: "Сменить камеру", en: "Switch camera", pl: "Zmień kamerę", es: "Cambiar cámara",
+  fr: "Changer de caméra", de: "Kamera wechseln", it: "Cambia inquadratura",
+} as const;
+export const RACE_CAMERA_TAP_HINT = {
+  ru: "Коснись сцены, чтобы сменить камеру: вокруг лодки, за кормой, сверху. За кормой камера идет за курсом и сама возвращается за лодку.",
+  en: "Tap the scene to switch camera: around the boat, behind, above. Behind follows your course and comes back behind the boat by itself.",
+  pl: "Dotknij sceny, żeby zmienić kamerę: wokół łodzi, za rufą, z góry. Kamera za rufą podąża za kursem i sama wraca za łódź.",
+  es: "Toca la escena para cambiar de cámara: alrededor del barco, tras la popa, desde arriba. Tras la popa sigue tu rumbo y vuelve sola detrás del barco.",
+  fr: "Touche la scène pour changer de caméra : autour du bateau, derrière, en hauteur. Derrière suit ton cap et revient seule dans l'axe du bateau.",
+  de: "Tippe auf die Szene, um die Kamera zu wechseln: um das Boot, am Heck, von oben. Am Heck folgt sie deinem Kurs und kehrt von selbst hinter das Boot zurück.",
+  it: "Tocca la scena per cambiare inquadratura: attorno alla barca, da poppa, dall'alto. Da poppa segue la rotta e torna da sola dietro la barca.",
+} as const;
+
+function CameraIcon() {
+  return <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M4 8h3l2-2.5h6L17 8h3v11H4z" /><circle cx="12" cy="13.5" r="3.2" />
+  </svg>;
+}
+
+/**
+ * M2-1: a tap on the scene steps to the next camera; a drag (orbit) or a
+ * pinch (zoom) that starts the same way does not. Only pointers that land on
+ * the scene's canvas count, so the HUD buttons over it never switch cameras.
+ */
+export function sceneTapHandlers(tracker: () => TapTracker, onTap: () => void) {
+  const onCanvas = (e: { target: unknown }) => typeof HTMLCanvasElement !== "undefined" && e.target instanceof HTMLCanvasElement;
+  type P = { target: unknown; pointerId: number; clientX: number; clientY: number; timeStamp: number; isPrimary: boolean; button: number };
+  return {
+    onPointerDown: (e: P) => { if (onCanvas(e)) tracker().down(e.pointerId, e.clientX, e.clientY, e.timeStamp, e.isPrimary && e.button === 0); },
+    onPointerMove: (e: P) => tracker().move(e.pointerId, e.clientX, e.clientY),
+    onPointerUp: (e: P) => { if (tracker().up(e.pointerId, e.clientX, e.clientY, e.timeStamp) && onCanvas(e)) onTap(); },
+    onPointerCancel: (e: P) => tracker().cancel(e.pointerId),
+  };
 }
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (on: boolean) => void }) {
@@ -95,6 +134,9 @@ export function RaceCockpit(p: {
     if (next === "map" || previous === "map") recordControlChange("race", "race-map", next === "map", previous === "map");
   };
   const menuRef = useRef<HTMLButtonElement>(null);
+  const tapRef = useRef<TapTracker | null>(null);
+  const cycleCamera = () => p.setCamera(nextRaceCamera(p.camera));
+  const sceneTap = sceneTapHandlers(() => (tapRef.current ??= createTapTracker()), cycleCamera);
   // M1-4 finish hold: the scene stays for 2.5 s with the place plate; the
   // boat is no longer raced, so steering and trim are dimmed and inert.
   const holding = useSyncExternalStore(finishHoldStore.subscribe, () => finishHoldActive(p.raceId ?? ""), () => false);
@@ -124,7 +166,7 @@ export function RaceCockpit(p: {
   const held = holding && (tab === "helm" || tab === "sails");
   return <div className={`${styles.cockpit} ${styles.gameLayer}`} data-testid="race-cockpit" data-paused={p.paused || undefined}>
     <div className={styles.workspace}>
-      <div className={styles.scene} data-testid="race-3d">{p.children}
+      <div className={styles.scene} data-testid="race-3d" {...sceneTap}>{p.children}
         <div className={styles.instrumentsArea}>
           <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.prefs.windDisplay}
             miniMap={p.prefs.miniMap} onOpenMap={() => selectTab("map")} you={c.you} fleet={c.fleet} />
@@ -156,6 +198,13 @@ export function RaceCockpit(p: {
             <small>{c.knots}</small>
           </span>
           <span className={styles.statusEnd}>
+            {/* M2-1: the camera switch for keyboard and screen readers; on a narrow
+                phone the row has no room, a tap on the scene does the same. */}
+            <button type="button" onClick={cycleCamera} data-testid="race-camera-cycle"
+              aria-label={`${tl(RACE_CAMERA_SWITCH)}: ${c[p.camera]}`} title={`${tl(RACE_CAMERA_SWITCH)}: ${c[p.camera]}`}
+              className="hidden min-h-11 min-w-11 items-center justify-center @min-[480px]:inline-flex">
+              <span className="inline-flex" aria-hidden="true"><CameraIcon /></span>
+            </button>
             {sound?.("status")}
             {offerFullscreen && <button type="button" className={styles.statusAction} onClick={goFullscreen} data-testid="race-fullscreen-offer">{pc.fullscreen}</button>}
           </span>
@@ -215,7 +264,7 @@ export function RaceCockpit(p: {
             <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={controls.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
             <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
-            <p>{c.cameraGesture}</p>
+            <p>{c.cameraGesture} {tl(RACE_CAMERA_TAP_HINT)}</p>
             <RaceWindSettings display={p.prefs.windDisplay} onChange={windDisplay => p.updatePrefs({ windDisplay })} />
             <Toggle label={nav.miniMapSetting} checked={p.prefs.miniMap} onChange={miniMap => p.updatePrefs({ miniMap })} />
             <Toggle label={c.guidance} checked={p.prefs.guidance} onChange={guidance => p.updatePrefs({ guidance })} />

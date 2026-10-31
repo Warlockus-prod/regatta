@@ -27,8 +27,8 @@ export function ordinal(lang: Language, n: number): string {
 const T = {
   tack: { ru: "Оверштаг", en: "Tack", pl: "Zwrot przez sztag", es: "Virada", fr: "Virement", de: "Wende", it: "Virata" },
   gybe: { ru: "Фордевинд", en: "Gybe", pl: "Zwrot przez rufę", es: "Trasluchada", fr: "Empannage", de: "Halse", it: "Strambata" },
-  markFirst: { ru: "Знак пройден первым", en: "First round the mark", pl: "Pierwszy na znaku", es: "Primero en la baliza", fr: "Premier à la bouée", de: "Als Erster an der Tonne", it: "Primo alla boa" },
-  mark: { ru: "Знак", en: "Mark", pl: "Znak", es: "Baliza", fr: "Bouée", de: "Tonne", it: "Boa" },
+  markFirst: { ru: "Знак пройден первым", en: "First to round the mark", pl: "Pierwszy na znaku", es: "Primero en la baliza", fr: "Premier à la bouée", de: "Als Erster an der Bahnmarke", it: "Primo alla boa" },
+  mark: { ru: "Знак", en: "Mark", pl: "Znak", es: "Baliza", fr: "Bouée", de: "Bahnmarke", it: "Boa" },
   gained: { ru: "Обгон! Ты", en: "Overtake! You're", pl: "Wyprzedzenie! Jesteś", es: "¡Adelantamiento! Vas", fr: "Dépassement ! Tu es", de: "Überholt! Du bist", it: "Sorpasso! Sei" },
   lost: { ru: "Тебя обошли: ты", en: "Passed: you're", pl: "Wyprzedzili cię: jesteś", es: "Te han adelantado: vas", fr: "Doublé : tu es", de: "Überholt worden: Du bist", it: "Ti hanno superato: sei" },
 } as const;
