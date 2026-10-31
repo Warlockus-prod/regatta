@@ -21,6 +21,8 @@
     "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs",
     "build:race-server": "node scripts/build-race-server.mjs",
     "test:multiplayer": "npm ci --prefix ws-server --no-audit --no-fund && node scripts/test-multiplayer.mjs",
+    "build:sternik-bank": "node scripts/build-sternik-bank.mjs",
+    "build:sternik-bank:check": "node scripts/build-sternik-bank.mjs --check",
     "build:sternik-offline": "node mobile/scripts/build-sternik-offline.mjs",
     "build:sternik-offline:check": "node mobile/scripts/build-sternik-offline.mjs --check"
   },

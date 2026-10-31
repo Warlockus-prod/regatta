@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "302a3a4bf99d",
+  "version": "8c22de951450",
   "lang": "pl",
-  "sha256": "cb9ce9cf099651082454c78b074ea93740afc66225c07e6e00e381287f9f369c",
-  "bytes": 2584016,
+  "sha256": "416f68da5b68909acb8773720b21db3da34d6a4521b245f6555e3bc996d1f8dd",
+  "bytes": 2590002,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -32,13 +32,17 @@
     "mobile/scripts/offline-sternik/model.ts",
     "mobile/scripts/offline-sternik/oral.ts",
     "mobile/scripts/offline-sternik/router.tsx",
+    "public/sternik-bank/bank.44178fdbf49e.json",
     "src/app/radio/rozmowa/dialogueGrading.ts",
     "src/app/radio/weakSpots.ts",
     "src/app/sternik/PersonalReport.tsx",
     "src/app/sternik/QuestionFigure.tsx",
+    "src/app/sternik/SternikBankGate.tsx",
     "src/app/sternik/SternikHub.tsx",
     "src/app/sternik/SternikSubnav.tsx",
     "src/app/sternik/analysis.ts",
+    "src/app/sternik/bank-reload.ts",
+    "src/app/sternik/bank.ts",
     "src/app/sternik/egzamin/page.tsx",
     "src/app/sternik/page.tsx",
     "src/app/sternik/plOnly.ts",
@@ -52,13 +56,16 @@
     "src/app/sternik/useFocusTrap.ts",
     "src/app/sternik/ustny/oralPrompts.ts",
     "src/app/sternik/ustny/page.tsx",
-    "src/data/sternik.ts",
+    "src/data/sternik-bank-file.generated.ts",
+    "src/data/sternik-core.ts",
     "src/lib/ads-preview.ts",
     "src/lib/diagnostics-bridge.ts",
     "src/lib/diagnostics-web.ts",
     "src/lib/diagnostics.ts",
     "src/lib/race-visual-prefs.ts",
     "src/lib/sternik-progress.ts",
+    "sternik-bank:bank-source",
+    "sternik-bank:sternik-data",
     "sternik-clouds:offline-sternik-clouds",
     "sternik-next:next/link",
     "sternik-next:next/navigation",
@@ -117,8 +124,8 @@
     },
     {
       "path": "mobile/scripts/build-sternik-offline.mjs",
-      "bytes": 7989,
-      "sha256": "7b01e7a6601787c347b492d010f5380dd494b2aa0a58000e401c88b85f5d203a"
+      "bytes": 9895,
+      "sha256": "921029ec2e0b756793b4e7d76ba6b3d8f509634507bf2f0d8eb46beddbc4d7dd"
     },
     {
       "path": "mobile/scripts/offline-radio/next-dynamic.tsx",
@@ -171,6 +178,11 @@
       "sha256": "04bb2fdb06d048bb4608b31038676d9c03e7fe98352818efec3b3b176bbbefb0"
     },
     {
+      "path": "public/sternik-bank/bank.44178fdbf49e.json",
+      "bytes": 571683,
+      "sha256": "ce6affdb2b98f183e92ee20d1faef082c86ec58ce77782fd1b86a6bcc84d7967"
+    },
+    {
       "path": "src/app/globals.css",
       "bytes": 16039,
       "sha256": "e07959258ecc94b4653969170f7e37f673dbb31d6802d74f570109f56d283731"
@@ -187,18 +199,23 @@
     },
     {
       "path": "src/app/sternik/PersonalReport.tsx",
-      "bytes": 9001,
-      "sha256": "68801b7a5260410b6dd238e5dfdb0894f7ae8fdb28f852bc0e309d33f9e3ac02"
+      "bytes": 9703,
+      "sha256": "79b443983bc233b6045363d2215de410a15c06918e23c9063c4a525767a80133"
     },
     {
       "path": "src/app/sternik/QuestionFigure.tsx",
-      "bytes": 6537,
-      "sha256": "8759147ae852bf226afee0eb832557d23f0650d9177f2704a059de094c1959ea"
+      "bytes": 6542,
+      "sha256": "0259530e03fcaecf75dd9407d9a36212f54fb17d3f0b4294b2aa61a1fe825bd6"
+    },
+    {
+      "path": "src/app/sternik/SternikBankGate.tsx",
+      "bytes": 5393,
+      "sha256": "838b32aa66f7c41a59a9f9231b0ebbac19b1906e8ea33ceaa2aeafcdeaa90ea3"
     },
     {
       "path": "src/app/sternik/SternikHub.tsx",
-      "bytes": 19876,
-      "sha256": "a5f8b08f11acbdc0ff3101d99c13a53cccf4ffc9cfbb67555699f742c9357ffc"
+      "bytes": 19866,
+      "sha256": "dd22e93cfa5cb2fb91f264929a361dad3f5987b496f35571a78eccc719991ad1"
     },
     {
       "path": "src/app/sternik/SternikSubnav.tsx",
@@ -207,18 +224,28 @@
     },
     {
       "path": "src/app/sternik/analysis.ts",
-      "bytes": 5909,
-      "sha256": "e94e48ca97c379549260975115b8a34ce47e6f6d18ba7195d4de3228440ed26e"
+      "bytes": 6007,
+      "sha256": "5eb6d5c1fc1bea750781220c9799c9d0b9c3a0f692fb8e4aa3dc1060fa454781"
+    },
+    {
+      "path": "src/app/sternik/bank-reload.ts",
+      "bytes": 1504,
+      "sha256": "53d900ff5798ef84844ceff1772ac90a5504c556f88f4ad01ca1fa2043d3b487"
+    },
+    {
+      "path": "src/app/sternik/bank.ts",
+      "bytes": 1731,
+      "sha256": "5ade51628df3d2988a1afb30a7cadf1a4a8d80500d2516cc43546b8881e28518"
     },
     {
       "path": "src/app/sternik/egzamin/page.tsx",
-      "bytes": 28404,
-      "sha256": "f3be796fc58d5982ae90beb3f9f14efb541fcf4941302d42b63a0df6e9fafd5a"
+      "bytes": 28742,
+      "sha256": "6e15109508b5768e8980d509ce9db36b5abcabab3b40803f48273af964b041d6"
     },
     {
       "path": "src/app/sternik/page.tsx",
-      "bytes": 1490,
-      "sha256": "28216489baf93fec31849c59f83891e80a5f4b6481442d3c013e02d018d11efe"
+      "bytes": 1557,
+      "sha256": "9be53e9cb31a8278b0afb2d8bed02459f5470af648a32ee28749cdf59888770a"
     },
     {
       "path": "src/app/sternik/plOnly.ts",
@@ -232,8 +259,8 @@
     },
     {
       "path": "src/app/sternik/quiz-utils.ts",
-      "bytes": 1501,
-      "sha256": "5e4f2af5bb0f5d6e7f751e970ae7b3265ddd0bcfad082ef547fc3dd6b00e346c"
+      "bytes": 1506,
+      "sha256": "fbedaab1d384d93a51b6f7c9efe550672492ff1c4ad63f31e68dc82f196881d4"
     },
     {
       "path": "src/app/sternik/teoria/SignsWeather.tsx",
@@ -257,8 +284,8 @@
     },
     {
       "path": "src/app/sternik/test/page.tsx",
-      "bytes": 32972,
-      "sha256": "ec70d409306f615427a01b194fc6b64cb02995d706f8f6667df8441c4ad96cba"
+      "bytes": 33308,
+      "sha256": "9514b513d2a62974cd1219dbb5659127d25a379d9ee79980364a6c4d98382e1e"
     },
     {
       "path": "src/app/sternik/useFocusTrap.ts",
@@ -276,9 +303,14 @@
       "sha256": "a793718609b2da51fa22b9bb4f8ecc85f189d81301680176a14bef10a4a60c9c"
     },
     {
-      "path": "src/data/sternik.ts",
-      "bytes": 612997,
-      "sha256": "3ea47032c641735330ea25092bb7f923daebf5d062c1033c2c02f11a255194b0"
+      "path": "src/data/sternik-bank-file.generated.ts",
+      "bytes": 309,
+      "sha256": "44aaba82300d53c5ec2800ffa51e0aeee6993d67fff5a45fb501c23328dad9cf"
+    },
+    {
+      "path": "src/data/sternik-core.ts",
+      "bytes": 9873,
+      "sha256": "06021c31d63f0fde2f78203cdb7e55868212ef11103fa6772e3ee506ca837377"
     },
     {
       "path": "src/lib/ads-preview.ts",

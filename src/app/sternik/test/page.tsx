@@ -5,14 +5,13 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import {
-  STERNIK_BANK,
-  STERNIK_BANK_BY_ID,
-  STERNIK_BASE_COUNTS,
   STERNIK_CATEGORIES,
   STERNIK_CATEGORY_BY_ID,
   filterByBase,
+  type SternikBank,
   type SternikCatId,
-} from '@/data/sternik';
+  type SternikQuestion,
+} from '@/data/sternik-core';
 import {
   addSternikPracticeTime,
   loadSternikProgress,
@@ -23,6 +22,7 @@ import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQu
 import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
 import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
+import SternikBankGate from '../SternikBankGate';
 import { useFocusTrap } from '../useFocusTrap';
 
 /** teoria section anchor per category - "read the theory" deep links. */
@@ -45,11 +45,11 @@ interface SessionResult {
   ok: boolean;
 }
 
-function TrainerInner() {
+function TrainerInner({ sternikBank }: { sternikBank: SternikBank }) {
   const { tp, lang } = useI18n();
   const { explLang, examBase, prefsLoaded } = useSternikPrefs();
   // The pool the whole trainer works from, honoring the selected base.
-  const bank = filterByBase(STERNIK_BANK, examBase);
+  const bank = filterByBase(sternikBank.questions, examBase);
   const params = useSearchParams();
   const catParam = params.get('cat');
   const modeParam = params.get('mode');
@@ -103,7 +103,7 @@ function TrainerInner() {
   // are never silently dropped. flushPracticeTime is stable, so this runs once.
   useEffect(() => flushPracticeTime, [flushPracticeTime]);
 
-  const begin = (questions: typeof STERNIK_BANK, label: string) => {
+  const begin = (questions: SternikQuestion[], label: string) => {
     if (questions.length === 0) return;
     setQueue(shuffled(questions).map(prepareQuestion));
     setPos(0);
@@ -126,7 +126,7 @@ function TrainerInner() {
     );
   const startErrors = () => {
     const ids = sternikWeakIds(loadSternikProgress());
-    const qs = ids.map((id) => STERNIK_BANK_BY_ID[id]).filter(Boolean);
+    const qs = ids.map((id) => sternikBank.byId[id]).filter(Boolean);
     begin(qs, tp('Работа над ошибками', 'Error review', 'Powtórka błędów'));
   };
   // Hard mode: questions flagged 'hard' by the source, plus the learner's own
@@ -166,7 +166,7 @@ function TrainerInner() {
       (q) => weakCats.has(q.cat) && !weakSet.has(q.id) && p.q[q.id],
     );
     const seen = new Set<string>();
-    const pick = (qs: typeof STERNIK_BANK, n: number) =>
+    const pick = (qs: SternikQuestion[], n: number) =>
       shuffled(qs).filter((q) => !seen.has(q.id)).slice(0, n).map((q) => {
         seen.add(q.id);
         return q;
@@ -282,7 +282,7 @@ function TrainerInner() {
         </p>
 
         <div className="mb-6">
-          <BaseToggle counts={STERNIK_BASE_COUNTS} />
+          <BaseToggle counts={sternikBank.baseCounts} />
         </div>
 
         <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -447,7 +447,7 @@ function TrainerInner() {
             {wrongResults.length > 0 && (
               <button
                 type="button"
-                onClick={() => begin(wrongResults.map((r) => STERNIK_BANK_BY_ID[r.q.id]).filter(Boolean), tp('Повтор ошибок', 'Retry mistakes', 'Powtórka błędów'))}
+                onClick={() => begin(wrongResults.map((r) => sternikBank.byId[r.q.id]).filter(Boolean), tp('Повтор ошибок', 'Retry mistakes', 'Powtórka błędów'))}
                 className="rounded-xl px-4 py-2 text-sm font-semibold"
                 style={{ background: 'var(--warning)', color: '#221a04' }}
               >
@@ -743,10 +743,16 @@ function TrainerInner() {
   );
 }
 
+// The 879 questions are not in this page's JavaScript: the gate loads the
+// versioned bank file (loading, error with Retry, then the trainer).
 export default function SternikTestPage() {
   return (
-    <Suspense fallback={null}>
-      <TrainerInner />
-    </Suspense>
+    <SternikBankGate>
+      {(bank) => (
+        <Suspense fallback={null}>
+          <TrainerInner sternikBank={bank} />
+        </Suspense>
+      )}
+    </SternikBankGate>
   );
 }

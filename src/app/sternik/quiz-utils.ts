@@ -1,6 +1,6 @@
 // Shared helpers for the sternik trainer and mock-exam pages.
 
-import type { SternikQuestion } from '@/data/sternik';
+import type { SternikQuestion } from '@/data/sternik-core';
 
 export interface PreparedOption {
   text: string;

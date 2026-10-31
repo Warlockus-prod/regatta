@@ -11,6 +11,8 @@ import {
   type SternikAnalysis,
 } from './analysis';
 import type { SternikProgress } from '@/lib/sternik-progress';
+import type { SternikQuestion } from '@/data/sternik-core';
+import SternikBankGate from './SternikBankGate';
 
 // ============================================================================
 // Personalized error analysis block: shows weak topics, stubborn questions and
@@ -80,16 +82,32 @@ function CatRow({ c, onAskAI }: { c: CatAnalysis; onAskAI: (catId: string) => vo
   );
 }
 
-export default function PersonalReport({
-  progress,
-  compact = false,
-}: {
+interface ReportProps {
   progress: SternikProgress;
   compact?: boolean;
-}) {
+}
+
+/** Answers recorded in total: an upper bound of what the analysis can count. */
+function answersRecorded(progress: SternikProgress): number {
+  let n = 0;
+  for (const s of Object.values(progress.q)) n += s.seen;
+  return n;
+}
+
+export default function PersonalReport(props: ReportProps) {
+  // Under 3 answers the report shows nothing, so the bank is not loaded for it.
+  if (answersRecorded(props.progress) < 3) return null;
+  return <SternikBankGate quiet>{(bank) => <Report {...props} bank={bank.questions} />}</SternikBankGate>;
+}
+
+function Report({
+  progress,
+  compact = false,
+  bank,
+}: ReportProps & { bank: SternikQuestion[] }) {
   const { tp } = useI18n();
   const { explLang } = useSternikPrefs();
-  const a: SternikAnalysis = analyzeSternik(progress);
+  const a: SternikAnalysis = analyzeSternik(progress, bank);
 
   if (a.answered < 3) {
     return null; // not enough data yet

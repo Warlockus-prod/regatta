@@ -1295,11 +1295,6 @@ export function hasQuiz(lessonId: string): boolean {
   return getQuizForLesson(lessonId).length > 0;
 }
 
-/** Pass threshold: >=70% correct counts as a passed quiz. */
-export const QUIZ_PASS_THRESHOLD = 0.7 as const;
-
-/** True when a recorded score (correct, total) is at or above the pass mark. */
-export function isQuizPassed(score: number, total: number): boolean {
-  if (total <= 0) return false;
-  return score / total >= QUIZ_PASS_THRESHOLD;
-}
+// The pass mark lives with the answer key, which grades saved progress without
+// this file's text.
+export { QUIZ_PASS_THRESHOLD, isQuizPassed } from "./bootcamp-quiz-key";

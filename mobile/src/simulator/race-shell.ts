@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import type { EdgeInsets } from "react-native-safe-area-context";
 import { useFocus } from "./orientation";
 
@@ -52,15 +52,10 @@ export function raceProcessRecovery(lastAutoReloadAt: number | null, now: number
   return lastAutoReloadAt !== null && now - lastAutoReloadAt < RACE_PROCESS_RELOAD_WINDOW_MS ? "fail" : "reload";
 }
 
-// expo-keep-awake is linked through the `expo` package (ExpoKeepAwake pod),
-// but it is not a declared dependency of the app, so the JS package does not
-// resolve. The native module is reached directly, as useLocalRadioSpeech does
-// for speech; a build without it simply keeps the system idle timer.
-interface KeepAwakeModule {
-  activate(tag: string): Promise<boolean>;
-  deactivate(tag: string): Promise<boolean>;
-}
-const keepAwake = requireOptionalNativeModule<KeepAwakeModule>("ExpoKeepAwake");
+// expo-keep-awake is a declared dependency (SDK 54 pins ~15.0.x), so the
+// ExpoKeepAwake pod is autolinked from the app itself rather than reached
+// through the `expo` package's own copy. Each race screen holds its own tag,
+// so two stacked race screens release only their own lock.
 let nextKeepAwakeTag = 0;
 
 /** Keep the display on while this screen is focused; the native module releases it in the background. */
@@ -69,8 +64,8 @@ export function useKeepAwakeWhileFocused(enabled: boolean) {
   if (tag.current === null) tag.current = `regatta-race-${nextKeepAwakeTag++}`;
   useFocus(useCallback(() => {
     const id = tag.current;
-    if (!enabled || !keepAwake || !id) return undefined;
-    void keepAwake.activate(id).catch(() => undefined);
-    return () => { void keepAwake.deactivate(id).catch(() => undefined); };
+    if (!enabled || !id) return undefined;
+    void activateKeepAwakeAsync(id).catch(() => undefined);
+    return () => { void deactivateKeepAwake(id).catch(() => undefined); };
   }, [enabled]));
 }

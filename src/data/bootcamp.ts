@@ -7,6 +7,7 @@ import { windDirectionPractice } from "./foundation-practice";
 // ============================================================================
 
 import type { LegacyLocalized } from "../lib/languages";
+import { bootcampLessonHeads } from "./bootcamp-index";
 
 export type BootcampLesson =
   & LegacyLocalized<'title'>
@@ -21,18 +22,17 @@ export type BootcampLesson =
     route: string;
   };
 
+// id, order, emoji and title of each lesson live in bootcamp-index.ts, so the
+// root layout can name the current lesson without this file's lesson text.
+const lessonHead = (id: string) => {
+  const head = bootcampLessonHeads.find(lesson => lesson.id === id);
+  if (!head) throw new Error(`Missing lesson head ${id}`);
+  return head;
+};
+
 export const bootcampLessons: BootcampLesson[] = [
   {
-    id: 'wind-direction',
-    order: 1,
-    emoji: '🌬',
-    titleRu: 'Ветер и направление',
-    titleEn: 'Wind & direction',
-    titlePl: 'Wiatr i kierunek',
-    titleEs: 'Viento y dirección',
-    titleFr: 'Vent et direction',
-    titleDe: 'Wind und Richtung',
-    titleIt: 'Vento e direzione',
+    ...lessonHead('wind-direction'),
     summaryRu: 'Откуда дует, куда направлен. «Неходовая зона» - почему нельзя в лоб.',
     summaryEn: 'Where the wind comes from and where it goes. The no-go zone - why you can\'t sail straight at it.',
     summaryPl: 'Skąd wieje wiatr i dokąd. Kąt martwy: dlaczego nie da się płynąć prosto pod wiatr.',
@@ -51,16 +51,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: windDirectionPractice.task.it,
   },
   {
-    id: 'points-of-sail',
-    order: 2,
-    emoji: '🧭',
-    titleRu: 'Курсы относительно ветра',
-    titleEn: 'Points of sail',
-    titlePl: 'Kursy względem wiatru',
-    titleEs: 'Rumbos respecto al viento',
-    titleFr: 'Les allures',
-    titleDe: 'Kurse zum Wind',
-    titleIt: 'Le andature',
+    ...lessonHead('points-of-sail'),
     summaryRu: 'Левентик, бейдевинд, галфвинд, бакштаг, фордевинд. Твои 5 рабочих курсов.',
     summaryEn: 'In irons, close-hauled, beam reach, broad reach, running. Your 5 working points of sail.',
     summaryPl: 'Łopot, bajdewind, półwiatr, baksztag, fordewind. Twoich 5 podstawowych kursów.',
@@ -79,16 +70,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: 'Apri il simulatore "Basi" e porta la barca attraverso tutte e cinque le andature. Osserva come cambiano il nome dell\'andatura e l\'angolo delle vele, e memorizza ogni nome con il suo equivalente inglese.',
   },
   {
-    id: 'how-sail-works',
-    order: 3,
-    emoji: '⛵',
-    titleRu: 'Как работает парус',
-    titleEn: 'How a sail works',
-    titlePl: 'Jak działa żagiel',
-    titleEs: 'Cómo funciona una vela',
-    titleFr: 'Comment fonctionne une voile',
-    titleDe: 'Wie ein Segel funktioniert',
-    titleIt: 'Come funziona una vela',
+    ...lessonHead('how-sail-works'),
     summaryRu: "От формы паруса и ветра зависит сила. Разделим тягу вперед, боковую силу и роль киля.",
     summaryEn: "Sail shape and wind determine the force. Separate forward drive, sideways force and the keel's role.",
     summaryPl: "Kształt żagla i wiatr wpływają na siłę. Rozróżnij napęd do przodu, siłę boczną i rolę kila.",
@@ -107,16 +89,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: 'Prima pratica nel simulatore "Regolazione delle vele": l\'esercizio "Tieni il trim" parte da solo. Regola randa e fiocco finché il trim arriva all\'85% e tienilo per dieci secondi. Senti come l\'angolo della vela trasforma il flusso d\'aria in spinta.',
   },
   {
-    id: 'tacking',
-    order: 4,
-    emoji: '↰',
-    titleRu: 'Поворот оверштаг',
-    titleEn: 'Tacking',
-    titlePl: 'Zwrot przez sztag',
-    titleEs: 'Virar por avante',
-    titleFr: 'Virer de bord',
-    titleDe: 'Wenden',
-    titleIt: 'Virare di bordo',
+    ...lessonHead('tacking'),
     summaryRu: 'Поворот через нос: нос проходит через линию ветра. Безопасный, но медленный.',
     summaryEn: 'Turn through the bow: the bow crosses the wind line. Safe but slow.',
     summaryPl: 'Zwrot dziobem: dziób przechodzi przez linię wiatru. Bezpieczny, ale wolny.',
@@ -135,16 +108,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: 'Trova la sezione sulle virate. Leggi la coreografia dell\'equipaggio: cosa dice lo skipper, quando abbassi la testa, cosa fanno le scotte durante la virata.',
   },
   {
-    id: 'jibing',
-    order: 5,
-    emoji: '↱',
-    titleRu: 'Поворот фордевинд',
-    titleEn: 'Jibing (gybing)',
-    titlePl: 'Zwrot przez rufę',
-    titleEs: 'Trasluchar',
-    titleFr: 'Empanner',
-    titleDe: 'Halsen',
-    titleIt: 'Strambare',
+    ...lessonHead('jibing'),
     summaryRu: 'Поворот через корму: гик резко перелетает. Быстрый, но опасный.',
     summaryEn: 'Turn through the stern: the boom swings across violently. Fast but dangerous.',
     summaryPl: 'Zwrot rufą: bom gwałtownie przelatuje na drugą burtę. Szybki, ale niebezpieczny.',
@@ -163,16 +127,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: 'La stessa sezione sulle virate. Confronta virata e strambata: perché strambare è più pericoloso, perché si grida "Strambo!" in anticipo, perché la testa deve stare sotto il boma.',
   },
   {
-    id: 'vmg-beating',
-    order: 6,
-    emoji: '🎯',
-    titleRu: 'Лавировка и VMG',
-    titleEn: 'Beating and VMG',
-    titlePl: 'Halsowanie i VMG',
-    titleEs: 'Dar bordos y VMG',
-    titleFr: 'Louvoyer et VMG',
-    titleDe: 'Kreuzen und VMG',
-    titleIt: 'Bordeggiare e VMG',
+    ...lessonHead('vmg-beating'),
     summaryRu: 'Чтобы дойти против ветра - идёшь галсами под ~45°. VMG = скорость в нужную сторону, а не просто скорость по воде. Под ветер - то же самое: бакштаг (чуть острее фордевинда) часто быстрее к знаку, чем курс прямо по ветру.',
     summaryEn: 'To go upwind you zigzag at ~45°. VMG = speed toward your goal, not speed through water. Downwind it is the same: a broad reach (a bit hotter than a dead run) often reaches the mark faster than heading dead downwind.',
     summaryPl: 'Żeby dopłynąć pod wiatr, halsujesz pod kątem ~45°. VMG = prędkość w stronę celu, a nie sama prędkość po wodzie. Z wiatrem jest tak samo: baksztag (trochę ostrzej niż fordewind) często szybciej dowozi do znaku niż kurs prosto z wiatrem.',
@@ -191,16 +146,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: 'Guarda la sezione "Bordeggiare" e il blocco VMG. Spiegano perché andare dritti controvento non è la strada più veloce. La stessa regola vale nelle andature portanti: esiste un VMG ottimale sia di bolina sia in poppa.',
   },
   {
-    id: 'simple-rules',
-    order: 7,
-    emoji: '📖',
-    titleRu: 'Простые правила',
-    titleEn: 'Simple rules',
-    titlePl: 'Proste zasady',
-    titleEs: 'Reglas sencillas',
-    titleFr: 'Règles simples',
-    titleDe: 'Einfache Regeln',
-    titleIt: 'Regole semplici',
+    ...lessonHead('simple-rules'),
     summaryRu: '13 базовых ситуаций RRS + 8 сценариев МППСС-72. Галсы, обгон, знаки, столкновения.',
     summaryEn: '13 core RRS situations + 8 COLREGS scenarios. Tacks, overtaking, marks, collisions.',
     summaryPl: '13 podstawowych sytuacji z RRS + 8 scenariuszy MPZZM (COLREG). Halsy, wyprzedzanie, znaki, kolizje.',
@@ -219,16 +165,7 @@ export const bootcampLessons: BootcampLesson[] = [
     focusIt: 'Leggi tutte le schede. Dopo ognuna prova a ripeterti "chi dà la precedenza a chi e perché".',
   },
   {
-    id: 'mini-race',
-    order: 8,
-    emoji: '🏁',
-    titleRu: 'Мини-гонка',
-    titleEn: 'Mini race',
-    titlePl: 'Miniwyścig',
-    titleEs: 'Minirregata',
-    titleFr: 'Mini-régate',
-    titleDe: 'Mini-Regatta',
-    titleIt: 'Mini-regata',
+    ...lessonHead('mini-race'),
     summaryRu: 'Всё вместе на практике. Попробуй на «Лёгком» уровне.',
     summaryEn: 'Everything together in practice. Try it on "Easy" level.',
     summaryPl: 'Wszystko razem w praktyce. Spróbuj na poziomie "Łatwy".',

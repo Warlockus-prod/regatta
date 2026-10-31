@@ -13,101 +13,25 @@
 // rozporządzenie MSiT z 9.04.2013 w sprawie uprawiania turystyki wodnej,
 // ustawa o rejestracji jachtów (2020), przepisy żeglugowe na śródlądowych
 // drogach wodnych, COLREG/IALA region A.
+//
+// THIS FILE IS THE EDITABLE SOURCE OF THE BANK, NOT A CLIENT MODULE.
+// Browsers get the questions from public/sternik-bank/bank.<hash>.json, which
+// scripts/build-sternik-bank.mjs generates from this file (--check in the
+// test suite keeps them identical). Client components import types and
+// helpers from ./sternik-core and load the bank with src/app/sternik/bank.ts;
+// a value import of this file from a client component would put the whole
+// bank back into the page JavaScript. Server components, scripts and tests
+// may import it.
 // ============================================================================
 
-export type SternikCatId =
-  | 'przepisy'
-  | 'sygnaly'
-  | 'znaki'
-  | 'budowa'
-  | 'silniki'
-  | 'manewry'
-  | 'locja'
-  | 'meteo'
-  | 'ratownictwo'
-  | 'srodowisko'
-  | 'prawo';
+import {
+  sternikBaseCounts,
+  sternikExamPool,
+  type SternikCatId,
+  type SternikQuestion,
+} from './sternik-core';
 
-export interface SternikCategory {
-  id: SternikCatId;
-  /** Polish name - shown as the primary label (exam language). */
-  pl: string;
-  /** Russian name - shown as the secondary label. */
-  ru: string;
-  /** CSS color var name from globals.css, e.g. 'var(--cat-cyan)'. */
-  color: string;
-  /** Emoji icon for cards/lists. */
-  icon: string;
-}
-
-export const STERNIK_CATEGORIES: SternikCategory[] = [
-  { id: 'przepisy', pl: 'Przepisy i prawo drogi', ru: 'Правила расхождения', color: 'var(--cat-cyan)', icon: '🚦' },
-  { id: 'sygnaly', pl: 'Sygnały dźwiękowe i światła', ru: 'Сигналы и огни', color: 'var(--cat-amber)', icon: '📢' },
-  { id: 'znaki', pl: 'Znaki nawigacyjne', ru: 'Навигационные знаки', color: 'var(--cat-green)', icon: '🚩' },
-  { id: 'budowa', pl: 'Budowa jachtu', ru: 'Устройство лодки', color: 'var(--cat-blue)', icon: '🛥️' },
-  { id: 'silniki', pl: 'Silniki', ru: 'Двигатели', color: 'var(--cat-orange)', icon: '⚙️' },
-  { id: 'manewry', pl: 'Manewrowanie i cumowanie', ru: 'Манёвры и швартовка', color: 'var(--cat-teal)', icon: '🧭' },
-  { id: 'locja', pl: 'Locja i nawigacja', ru: 'Лоция и навигация', color: 'var(--cat-purple)', icon: '🗺️' },
-  { id: 'meteo', pl: 'Meteorologia', ru: 'Метеорология', color: 'var(--cat-cyan)', icon: '🌤️' },
-  { id: 'ratownictwo', pl: 'Ratownictwo i pierwsza pomoc', ru: 'Спасание и первая помощь', color: 'var(--cat-red)', icon: '🛟' },
-  { id: 'srodowisko', pl: 'Ochrona środowiska', ru: 'Экология', color: 'var(--cat-green)', icon: '🌿' },
-  { id: 'prawo', pl: 'Patent i przepisy prawne', ru: 'Патент и закон', color: 'var(--cat-amber)', icon: '📜' },
-];
-
-export const STERNIK_CATEGORY_BY_ID: Record<SternikCatId, SternikCategory> = Object.fromEntries(
-  STERNIK_CATEGORIES.map((c) => [c.id, c]),
-) as Record<SternikCatId, SternikCategory>;
-
-/** Ids of small figures rendered above a question (see QuestionFigure.tsx). */
-export type SternikFigureId =
-  | 'cardinal-n' | 'cardinal-e' | 'cardinal-s' | 'cardinal-w'
-  | 'lateral-red' | 'lateral-green'
-  | 'isolated-danger' | 'safe-water'
-  | 'flag-a';
-
-export interface SternikQuestion {
-  /** Stable id - localStorage stats key. Never renumber existing ids. */
-  id: string;
-  cat: SternikCatId;
-  /** Question text, Polish (exam language). */
-  q: string;
-  /**
-   * 3 or 4 options. The circulating PZMWiNW-derived base (337 questions) is
-   * a/b/c/d; freshly authored questions are A/B/C. The engine handles both.
-   */
-  options: string[];
-  /** Index of the correct option BEFORE shuffling. */
-  correct: number;
-  /** Russian explanation shown after answering. */
-  whyRu: string;
-  /** Polish explanation shown after answering (exam language), above whyRu. */
-  whyPl?: string;
-  /** Provenance, e.g. 'baza CZ #12' for questions from the open bank PDF. */
-  source?: string;
-  /** Optional figure shown above the question (znaki recognition etc). */
-  figure?: SternikFigureId;
-  /**
-   * Optional real photo shown above the question, basename of a file in
-   * /public/sternik/clouds (e.g. 'cumulonimbus'). Used for weather questions.
-   */
-  photo?: string;
-  /** Difficulty where the source provides it (akademiasternika). */
-  difficulty?: 'easy' | 'medium' | 'hard';
-  /**
-   * Which base this question belongs to. 'materialy' = the original uploaded
-   * konspekt bank; anything without a base is treated as 'internet' (harvested
-   * from open web sources). Lets the user pick a base to train/exam on.
-   */
-  base?: 'materialy' | 'internet';
-}
-
-/** Real exam format: rozporzadzenie MSiT z 9.04.2013 (Dz.U. 2013 poz. 460). */
-export const STERNIK_EXAM = {
-  questions: 75,
-  minutes: 90,
-  passCorrect: 65,
-  passPct: Math.round((65 / 75) * 100), // 87
-};
+export * from './sternik-core';
 
 // ---------------------------------------------------------------------------
 // Question bank. Prefix per category, two-digit counter, ids are stable.
@@ -8095,51 +8019,21 @@ export const STERNIK_BANK: SternikQuestion[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Derived views of the bank (server, scripts and tests; see the header)
 // ---------------------------------------------------------------------------
 
 export function sternikQuestionsByCat(cat: SternikCatId): SternikQuestion[] {
   return STERNIK_BANK.filter((q) => q.cat === cat);
 }
 
-/**
- * Exam-realistic pool: the state exam uses single-choice A/B/C (3 options).
- * The 4-option Centrum bank is extended study material, so the mock exam
- * draws only from 3-option questions to mirror the real test. Falls back to
- * the whole bank if the 3-option pool is ever too small.
- */
-export const STERNIK_EXAM_POOL: SternikQuestion[] =
-  STERNIK_BANK.filter((q) => q.options.length === 3).length >= STERNIK_EXAM.questions
-    ? STERNIK_BANK.filter((q) => q.options.length === 3)
-    : STERNIK_BANK;
-
-/** Questions without an explicit base are the internet-harvested set. */
-export function questionBase(q: SternikQuestion): 'materialy' | 'internet' {
-  return q.base ?? 'internet';
-}
-
-/** Filter a question list by the selected base ('all' keeps everything). */
-export function filterByBase<T extends SternikQuestion>(
-  questions: T[],
-  base: 'all' | 'materialy' | 'internet',
-): T[] {
-  if (base === 'all') return questions;
-  return questions.filter((q) => questionBase(q) === base);
-}
+/** The mock exam's pool: 3-option questions (see sternikExamPool). */
+export const STERNIK_EXAM_POOL: SternikQuestion[] = sternikExamPool(STERNIK_BANK);
 
 /** Counts per base, for labelling the selector (whole trainer bank). */
-export const STERNIK_BASE_COUNTS = {
-  all: STERNIK_BANK.length,
-  materialy: STERNIK_BANK.filter((q) => questionBase(q) === 'materialy').length,
-  internet: STERNIK_BANK.filter((q) => questionBase(q) === 'internet').length,
-};
+export const STERNIK_BASE_COUNTS = sternikBaseCounts(STERNIK_BANK);
 
 /** Exam-pool counts per base (3-option only), so the exam selector is honest. */
-export const STERNIK_EXAM_BASE_COUNTS = {
-  all: STERNIK_EXAM_POOL.length,
-  materialy: STERNIK_EXAM_POOL.filter((q) => questionBase(q) === 'materialy').length,
-  internet: STERNIK_EXAM_POOL.filter((q) => questionBase(q) === 'internet').length,
-};
+export const STERNIK_EXAM_BASE_COUNTS = sternikBaseCounts(STERNIK_EXAM_POOL);
 
 export const STERNIK_BANK_BY_ID: Record<string, SternikQuestion> = Object.fromEntries(
   STERNIK_BANK.map((q) => [q.id, q]),

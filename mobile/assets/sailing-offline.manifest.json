@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "6a0b37582e00",
-  "sha256": "6df626f602bf717e1a4deb3cec01d11fc84813faf5475813135ee9f4ec9e826e",
-  "bytes": 6569726,
+  "version": "70a4f9c12efc",
+  "sha256": "dbc11ca999628b79452c9a0657c37d23a4cb08cebd8bd80ba5f05f227fd30174",
+  "bytes": 6536310,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -631,10 +631,9 @@
     "src/components/diagnostics/DiagnosticPanelLoader.tsx",
     "src/components/game-layer.ts",
     "src/data/anatomy.ts",
-    "src/data/bootcamp.ts",
+    "src/data/bootcamp-index.ts",
     "src/data/drills.ts",
     "src/data/foundation-copy.ts",
-    "src/data/foundation-practice.ts",
     "src/data/missions.ts",
     "src/data/race-difficulty.ts",
     "src/data/race-judge-copy.ts",
@@ -1075,8 +1074,8 @@
     },
     {
       "path": "src/components/FoundationReturn.tsx",
-      "bytes": 2002,
-      "sha256": "391f334b86ff1e68cc1d658543ada1853526c6a6ecd08643c1bf026dedf9d9e7"
+      "bytes": 2016,
+      "sha256": "dfc48b851be89678d5e4f0b5ae96c376883f4c5e253eeb7d18b9ab5edc89e414"
     },
     {
       "path": "src/components/YachtViewer3D.tsx",
@@ -1109,9 +1108,9 @@
       "sha256": "964d8db482b5fff2cecb70e4946e5ad0fb5cc03a9ed2572a6229ec3e991ba80f"
     },
     {
-      "path": "src/data/bootcamp.ts",
-      "bytes": 27619,
-      "sha256": "908bd9414f217d2ca294c05d42fbfdad165d606c32ec7a7d5199af1f96b211ef"
+      "path": "src/data/bootcamp-index.ts",
+      "bytes": 4196,
+      "sha256": "d7bc0aa6d3f8eec91a8d4194a117b19bc9f781fd36c383579c361a86d5a58100"
     },
     {
       "path": "src/data/drills.ts",
@@ -1122,11 +1121,6 @@
       "path": "src/data/foundation-copy.ts",
       "bytes": 2506,
       "sha256": "cc1a48ebc711eebe08f6de17f0e3bc59b9d714f3f637b140fa57ab19c50c1c23"
-    },
-    {
-      "path": "src/data/foundation-practice.ts",
-      "bytes": 2951,
-      "sha256": "72552cc393793b2c2cbe171d1112d70990ad7600e8e369ba56d3cd3aaa925ecc"
     },
     {
       "path": "src/data/missions.ts",
@@ -2110,8 +2104,8 @@
     },
     {
       "path": "src/lib/learning/foundation-navigation.ts",
-      "bytes": 1214,
-      "sha256": "fa65b266df44aead1cc5461ad57b51f5617fc4b4663f37bcc5dfc9abfcf155c6"
+      "bytes": 1235,
+      "sha256": "74f7234775c482d5aabef018d9d4446cc38372715cb11cb636be3475bd79c381"
     },
     {
       "path": "src/lib/physical-race-record.ts",
