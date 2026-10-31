@@ -562,6 +562,7 @@ export default function GamePage() {
     setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
     setElapsed(0);
+    setPlayerSpeed(0); // a restart must not show the last race's speed
     setCoaching(null); setCoachingSource("local");
     setCoachingError(null);
     logSamplesRef.current = [];
@@ -975,7 +976,8 @@ export default function GamePage() {
             autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
             recordControlChange("race", "course-assist", autopilotOnRef.current, !autopilotOnRef.current);
           }} muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
-          countdown={gameState === "countdown" ? countdown : undefined}>
+          // The count waits for the first frame (startup gate), so it only shows over a ready scene.
+          countdown={gameState === "countdown" && sceneReady ? countdown : undefined}>
           <RaceScene key={sceneRaceId} racing={gameState === "racing" && !paused} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
             ghostRef={ghostBoatsRef} ghostLabel={ghostTime === null ? undefined : `${tl({ ru: "Твой лучший", en: "Your best", pl: "Twój najlepszy", es: "Tu mejor", fr: "Ton meilleur", de: "Deine Bestzeit", it: "Il tuo migliore" })} ${formatRecordTime(ghostTime)}`}
             showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}

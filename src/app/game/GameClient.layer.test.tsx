@@ -41,6 +41,12 @@ describe("solo race game layer", () => {
     expect(rootHeight(renderToStaticMarkup(<GameClient />))).toBe("calc(100dvh - var(--site-nav-h, 56px))");
   });
 
+  it("shows no countdown number before the scene's first frame (it covered the loading label)", () => {
+    capture.phase = "countdown";
+    renderToStaticMarkup(<GameClient />);
+    expect(capture.cockpit!.countdown).toBeUndefined();
+  });
+
   it("passes the race id, the desktop full-screen offer and a Restart that starts a new countdown", () => {
     renderToStaticMarkup(<GameClient />);
     const cockpit = capture.cockpit!;
