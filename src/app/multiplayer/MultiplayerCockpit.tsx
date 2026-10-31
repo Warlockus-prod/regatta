@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useControlLabels } from "@/features/trainer-controls/labels";
 import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/prefs";
@@ -18,6 +18,11 @@ import type { WindDisplay } from "@/lib/race-visual-prefs";
 import { GearIcon } from "@/features/trainer-controls/GearIcon";
 import { recordControlChange } from "@/lib/diagnostics-controls";
 import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
+import { RaceStartFlags } from "@/features/race-hud/RaceStartFlags";
+import { useRaceSoundCopy } from "@/features/race-hud/RaceSoundToggle";
+import { useRaceHaptics, useRaceHapticsCopy } from "@/features/race-hud/RaceHapticsToggle";
+import { SERVER_COUNTDOWN_FROM, startFlags } from "@/lib/race-start-signals";
+import { readRaceSound, subscribeRaceSound, writeRaceSound } from "@/lib/sounds";
 
 export function MultiplayerCockpit(p: {
   children: ReactNode; results?: ReactNode; frame: MultiplayerFrame | null;
@@ -34,6 +39,12 @@ export function MultiplayerCockpit(p: {
   const labels = useControlLabels();
   const { tl } = useI18n();
   const { prefs, update } = useControlPrefs();
+  // M3-3: the start signals play here too, so the race sound switch is here as well.
+  const raceSoundOn = useSyncExternalStore(subscribeRaceSound, readRaceSound, () => true);
+  const raceSound = useRaceSoundCopy();
+  // M3-4: the vibration switch beside race sound, only where the device can vibrate.
+  const raceHaptics = useRaceHaptics("multiplayer");
+  const hapticsCopy = useRaceHapticsCopy();
   type Tab = "helm" | "map" | "settings";
   const [tab, setTab] = useState<Tab>("helm");
   const tabRef = useRef<Tab>("helm");
@@ -75,6 +86,8 @@ export function MultiplayerCockpit(p: {
       <div className={styles.scene} data-testid="multiplayer-scene">{p.children}
         <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.windDisplay}
           miniMap={p.miniMap} onOpenMap={() => selectTab("map")} you={c.you} fleet={c.fleet} />
+        {/* M3-3: class flag and P over the server countdown in RRS 26 order, down at the start. */}
+        <RaceStartFlags flags={startFlags(p.phase === "countdown" && !p.reconnecting ? p.countdown : null, false, SERVER_COUNTDOWN_FROM)} />
       </div>
       <aside className={styles.dock} aria-label={labels.controlsTitle} data-testid="multiplayer-dock">
         <div className={styles.notice} role="status" aria-live="polite" tabIndex={0}>
@@ -111,6 +124,9 @@ export function MultiplayerCockpit(p: {
             <label className={styles.toggle}><span>{nav.miniMapSetting}</span><input type="checkbox" role="switch" checked={p.miniMap} onChange={e => p.setMiniMap(e.target.checked)} /></label>
             <label className={styles.toggle}><span>{c.guidance}</span><input type="checkbox" role="switch" checked={p.guidanceOn} onChange={e => p.setGuidanceOn(e.target.checked)} /></label>
             <label className={styles.toggle}><span>{labels.sound}</span><input type="checkbox" role="switch" checked={prefs.sound} onChange={e => update({ sound: e.target.checked })} /></label>
+            {/* Same switch row as the settings around it; the change is the gesture that may unlock audio. */}
+            <label className={styles.toggle}><span>{raceSound.label}</span><input type="checkbox" role="switch" checked={raceSoundOn} onChange={e => writeRaceSound(e.target.checked, "multiplayer")} data-testid="race-sound-switch" /></label>
+            {raceHaptics.available && <label className={styles.toggle}><span>{hapticsCopy.label}</span><input type="checkbox" role="switch" checked={raceHaptics.on} onChange={e => raceHaptics.setOn(e.target.checked)} data-testid="race-haptics-switch" /></label>}
             <p>{auto}</p>
           </div>}
         </div>

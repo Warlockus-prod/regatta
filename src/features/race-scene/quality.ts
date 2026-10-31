@@ -43,13 +43,19 @@ export interface SceneQuality {
   treeShare: number;
   /** A rival or the ghost whose hull is shorter than this on screen (CSS px) is drawn as the simple far boat. */
   rivalFarPx: number;
+  /** Share of the bow spray drawn at the player's bow (M3-5, effects.ts), 0 draws none. */
+  spray: number;
+  /** The short camera shake on a contact and at the start gun (M3-5). */
+  cameraShake: boolean;
+  /** Glow on sun glints and foam (M3-6, materials.ts), 0 builds none: no bloom pass on any profile. */
+  glow: number;
 }
 
 /** "high" is the picture the scene had before profiles existed. */
 export const QUALITY_PROFILES: Readonly<Record<QualityId, SceneQuality>> = {
-  high: { id: "high", waterSegments: 200, waterDetail: true, clouds: true, treeShare: 1, rivalFarPx: 36 },
-  medium: { id: "medium", waterSegments: 150, waterDetail: true, clouds: true, treeShare: 0.6, rivalFarPx: 60 },
-  low: { id: "low", waterSegments: 110, waterDetail: false, clouds: false, treeShare: 0.35, rivalFarPx: 96 },
+  high: { id: "high", waterSegments: 200, waterDetail: true, clouds: true, treeShare: 1, rivalFarPx: 36, spray: 1, cameraShake: true, glow: 1 },
+  medium: { id: "medium", waterSegments: 150, waterDetail: true, clouds: true, treeShare: 0.6, rivalFarPx: 60, spray: 0.6, cameraShake: true, glow: 0.6 },
+  low: { id: "low", waterSegments: 110, waterDetail: false, clouds: false, treeShare: 0.35, rivalFarPx: 96, spray: 0, cameraShake: false, glow: 0 },
 };
 
 export interface QualityStep { quality: QualityId; dpr: number }

@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { playBeep, playStart, readRaceSound, subscribeRaceSound, writeRaceSound } from '@/lib/sounds';
+import { playStartSignal, readRaceSound, subscribeRaceSound, writeRaceSound } from '@/lib/sounds';
+import { useStartSignals } from '@/features/race-hud/useStartSignals';
+import { SOLO_COUNTDOWN_FROM } from '@/lib/race-start-signals';
 import { missions, type Mission } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -40,13 +42,16 @@ import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay,
 import { RaceCockpit } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
 import { RaceSoundToggle } from "@/features/race-hud/RaceSoundToggle";
+import { useRaceHaptics } from "@/features/race-hud/RaceHapticsToggle";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
+import { createRaceSoundscape } from "@/lib/race-soundscape-audio";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
 import { RaceReplay } from "./RaceReplay";
+import { useRaceSoundscapeLifecycle } from "./useRaceSoundscape";
 import { createPendingRaceSaves } from "@/lib/race-completion";
 import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
 import { trackRaceCountdown, trackRaceReplay } from "@/lib/funnel";
@@ -113,6 +118,8 @@ export default function GamePage() {
   // of the GameClient tests stay valid.
   const raceSoundOn = useSyncExternalStore(subscribeRaceSound, readRaceSound, () => true);
   const setRaceSoundOn = useCallback((on: boolean) => writeRaceSound(on, "race"), []);
+  // M3-4: vibration on race events, its switch beside race sound where the device can vibrate.
+  const raceHaptics = useRaceHaptics("race");
   const [lockedMode, setLockedMode] = useState<"simple" | "pro" | null>(null);
   const playingPrefs = lockedMode === null ? racePrefs : { ...racePrefs, mode: lockedMode };
   const copy = useRaceCopy();
@@ -123,12 +130,19 @@ export default function GamePage() {
   const rudderRef = useRef(0);
   const [trim, setTrimState] = useState<Controls>(() => raceTrim({ mainHoisted: true }));
   const trimRef = useRef(trim);
-  const setTrim = useCallback((patch: Partial<Controls>) => {
+  // M3-2 race soundscape on the shared race AudioContext (ADR-0019); it never creates one.
+  const [soundscape] = useState(() => createRaceSoundscape());
+  // `byPlayer` is false when the race adopts the crew's trim (switch to Pro): no winch then.
+  const applyTrim = useCallback((patch: Partial<Controls>, byPlayer: boolean) => {
     const previous = trimRef.current, next = raceTrim(patch, previous);
     trimRef.current = next; setTrimState(next);
+    // A sheet the player moved: the winch ratchet (silent unless the soundscape is live).
+    const hauled = Math.abs(next.mainSheet - previous.mainSheet) + Math.abs(next.jibSheet - previous.jibSheet);
+    if (byPlayer && hauled > 0) soundscape.winch(hauled);
     for (const [key, control] of [["mainSheet", "mainsheet"], ["jibSheet", "jibsheet"], ["mainTwist", "main-twist"], ["jibTwist", "jib-twist"], ["reef", "reef"], ["jibFurl", "jib-furl"]] as const) if (key in patch) recordControlChange("race", control, next[key], previous[key]);
     if ("mainHoisted" in patch) recordControlChange("race", "main-hoisted", next.mainHoisted !== false, previous.mainHoisted !== false);
-  }, []);
+  }, [soundscape]);
+  const setTrim = useCallback((patch: Partial<Controls>) => applyTrim(patch, true), [applyTrim]);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const raceClockRef = useRef(0);
@@ -161,7 +175,11 @@ export default function GamePage() {
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(SOLO_COUNTDOWN_FROM);
+  // M3-3: flag X while the race's own early-start detection holds the player over the line.
+  // Shown only while Rules are on: with Rules off the race emits no start-clear, so X would stick.
+  const [recall, setRecall] = useState(false);
+  const onStartRecall = useCallback((over: boolean) => { setRecall(over); if (over) playStartSignal("recall"); }, []);
   const [elapsed, setElapsed] = useState(0);
   const [results, setResults] = useState<RaceResultRow[]>([]);
   // Personal-best record for the current difficulty + wind bucket. Updated
@@ -566,7 +584,7 @@ export default function GamePage() {
     ruleStateRef.current = createRaceRulesState();
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
-    clearFeedback(); setPenalty(0); setNativeSave("idle");
+    clearFeedback(); setPenalty(0); setRecall(false); setNativeSave("idle");
     setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
     setElapsed(0);
@@ -637,7 +655,7 @@ export default function GamePage() {
     ghostTrackRef.current = ghost;
     ghostBoatsRef.current = ghost ? [{ id: "ghost", name: "", color: "#9aa7b4", ...ghostPose(ghost, 0) }] : [];
     setGhostTime(ghost?.finishTimeSec ?? null);
-    setCountdown(3);
+    setCountdown(SOLO_COUNTDOWN_FROM);
     setGameState('countdown');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "countdown", mode: racePrefs.mode });
     // M0-12 first-race funnel; the metric trial is not a counted race.
@@ -672,7 +690,6 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState !== 'countdown' || paused || !sceneReady) return;
     if (countdown === 0) {
-      playStart();
       if (!physicalRef.current) postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
       logEventsRef.current.push({ type: "start", t: 0 });
       const player = boatsRef.current.find(b => b.isPlayer);
@@ -692,10 +709,13 @@ export default function GamePage() {
       recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "start", mode: racePrefsRef.current.mode });
       return;
     }
-    playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
   }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady, dailyDay]);
+  // M3-3 start signals over this countdown (its length is unchanged): the horn
+  // on the first second, a short signal on each later one, the gun at zero.
+  // The count waits for the first frame like the number does; a pause holds it.
+  useStartSignals(gameState === "countdown" && sceneReady && !paused ? countdown : gameState === "racing" ? 0 : null, sceneRaceId);
 
   // -----------------------------------------------------------------------
   // Keyboard input
@@ -750,7 +770,10 @@ export default function GamePage() {
   // Game loop (useRaceLoop) - also runs during countdown so boats can sail
   // freely before the race starts. Then the clock resynchronisation effect.
   // -----------------------------------------------------------------------
-  useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest,
+  // The soundscape plays only while the boat is raced: silent on pause, at the
+  // end of the finish hold (results), in the replay, when muted and on unmount.
+  useRaceSoundscapeLifecycle(soundscape, gameState, paused, raceSoundOn);
+  useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall,
     refs: { boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
       racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
       startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
@@ -845,11 +868,11 @@ export default function GamePage() {
   const updateRacePrefs = useCallback((patch: Partial<typeof racePrefs>) => {
     if (patch.mode === "pro" && racePrefsRef.current.mode !== "pro") {
       const player = boatsRef.current.find(b => b.isPlayer);
-      if (player?.trim) setTrim(player.trim);
+      if (player?.trim) applyTrim(player.trim, false);
     }
     writeRacePrefs(patch);
     for (const [key, preference] of [["guidance", "guidance"], ["trimHints", "trim-hints"], ["rules", "rules"], ["penalties", "penalties"]] as const) if (patch[key] !== undefined) recordPreferenceChange("race", preference, patch[key]!, racePrefsRef.current[key]);
-  }, [writeRacePrefs, setTrim]);
+  }, [writeRacePrefs, applyTrim]);
   const trimCoach = hudPlayer && playingPrefs.mode === "pro" && playingPrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
   useEffect(() => {
     if (gameState === "briefing") setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
@@ -993,6 +1016,7 @@ export default function GamePage() {
           camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu} onExitPrompt={exitPrompt}
           onRestart={() => startRace("restart")} raceId={sceneRaceId} fullscreenOffer={!embed}
           raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
+          haptics={raceHaptics.available ? { on: raceHaptics.on, setOn: raceHaptics.setOn } : undefined}
           autopilot={autopilotOn} onAutopilot={() => {
             autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
             setTargetHeading(autopilotHeadingRef.current);
@@ -1001,8 +1025,8 @@ export default function GamePage() {
             recordControlChange("race", "course-assist", autopilotOnRef.current, !autopilotOnRef.current);
           }} muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
           // The count waits for the first frame (startup gate), so it only shows over a ready scene.
-          countdown={gameState === "countdown" && sceneReady ? countdown : undefined}>
-          <RaceScene key={sceneRaceId} raceProfile={physicalTrial} racing={gameState === "racing" && !paused} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
+          countdown={gameState === "countdown" && sceneReady ? countdown : undefined} recall={gameState === "racing" && playingPrefs.rules && recall}>
+          <RaceScene key={sceneRaceId} raceProfile={physicalTrial} racing={gameState === "racing" && !paused} started={gameState === "racing"} contactId={feedback.contact?.id} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
             ghostRef={ghostBoatsRef} ghostLabel={ghostTime === null ? undefined : `${tl({ ru: "Твой лучший", en: "Your best", pl: "Twój najlepszy", es: "Tu mejor", fr: "Ton meilleur", de: "Deine Bestzeit", it: "Il tuo migliore" })} ${formatRecordTime(ghostTime)}`}
             showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}
             guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />

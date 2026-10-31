@@ -96,8 +96,32 @@ build script. The paragraph above describes builds before 1.6.2.
   sound, set in Settings > Trainers. `SimWebView` injects the record as
   `window.__REGATTA_CONTROLS__` before the page runs (it does not wait for the
   read: a later value is injected live) and stores what the page posts back as
-  `{"type":"controls-prefs"}`. No vibration (owner decision 2026-10-19). Tests:
+  `{"type":"controls-prefs"}`. No vibration on the controls (owner decision
+  2026-10-19, kept by decision 4 of 2026-10-31). Tests:
   `mobile/__tests__/controls-prefs.test.ts`, `mobile/__tests__/sim-webview.test.tsx`.
+- **Race haptics** (M3-4, owner decision 4 of 2026-10-31,
+  `mobile/src/simulator/race-haptics.ts`): the race page posts
+  `{"type":"race-haptic","event":"start"|"mark"|"contact"|"finish"}` for the
+  start gun, a mark rounding, a contact and the finish (never for steering,
+  wheels or sheets; web side `src/lib/race-haptics.ts`). `SimWebView` handles it
+  right after the diagnostic batches and never passes it on: exactly those two
+  keys and one of the four events, only from `/game` or `/multiplayer`, at most
+  one per 300 ms, mapped to expo-haptics (start `impactAsync(Heavy)`, mark
+  `impactAsync(Medium)`, contact `notificationAsync(Warning)`, finish
+  `notificationAsync(Success)`). `SimWebView` announces the handler with
+  `window.__REGATTA_RACE_HAPTICS__ = true` in its language script on the race
+  screens only (false elsewhere); the page offers the switch and posts the
+  message only when it sees that flag, so an older installed build that loads
+  the live `/multiplayer` page (1.6.4 (48), 1.7.0 (74)) shows no switch that
+  does nothing and never sends a "haptics" diagnostics row its older parser
+  would reject. The "Vibration" switch lives in the race page
+  (`regatta.race.haptics.v1`, default on). On `/game` (bundled offline page) it
+  crosses the race storage bridge into AsyncStorage like race sound. The live
+  `/multiplayer` page has no storage bridge, so its choice (like its race
+  sound) stays in that WKWebView's own localStorage: solo and multiplayer keep
+  separate values on purpose for now, because injecting stored rows into an
+  online origin is a separate decision. Test:
+  `mobile/__tests__/race-haptics.test.tsx`.
 - **Radio work screen** (owner 2026-10-24): the SRC simulator, the controls
   lessons and the live conversation open a fixed work screen with the radio
   pinned and the task panel scrolling under it

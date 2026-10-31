@@ -28,6 +28,7 @@ import { ActivityBack } from '../navigation/ActivityBack';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
 import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from '../diagnostics/journal';
+import { nativeRaceHaptics } from './race-haptics';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -234,7 +235,9 @@ export function SimWebView({
   const developmentOrigin = __DEV__ && bundledUri?.startsWith("http") ? new URL(bundledUri).origin : null;
   const hasCheckpointBridge = Boolean(offlineSource && path === "/simulator-v3");
   const diagnosticSurface = path === "/game" ? raceReplay ? "replay" : "race" : path === "/anatomy" ? "anatomy" : tier === "boat3d" ? "boat" : tier === "basics" ? "basics" : "trainer";
-  const languageScript = `window.__REGATTA_SAILING_STORAGE__ = ${hasCheckpointBridge}; window.__REGATTA_LANGUAGE__ = ${JSON.stringify(lang)}; window.__REGATTA_EMBED__ = ${JSON.stringify({ path, query: new URLSearchParams(query ?? {}).toString() })}; window.dispatchEvent(new Event("regatta-language")); window.dispatchEvent(new Event("regatta-embed")); true;`;
+  // M3-4: __REGATTA_RACE_HAPTICS__ tells the race page this app plays race-haptic messages (race screens only);
+  // without it the page offers no Vibration switch, so an older build never shows one that does nothing.
+  const languageScript = `window.__REGATTA_SAILING_STORAGE__ = ${hasCheckpointBridge}; window.__REGATTA_RACE_HAPTICS__ = ${isRaceShell(path)}; window.__REGATTA_LANGUAGE__ = ${JSON.stringify(lang)}; window.__REGATTA_EMBED__ = ${JSON.stringify({ path, query: new URLSearchParams(query ?? {}).toString() })}; window.dispatchEvent(new Event("regatta-language")); window.dispatchEvent(new Event("regatta-embed")); true;`;
   useEffect(() => {
     if (offlineSource) webRef.current?.injectJavaScript(languageScript);
   }, [offlineSource, languageScript]);
@@ -358,6 +361,8 @@ export function SimWebView({
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
           if (handleNativeDiagnosticMessage(status, diagnosticSurface)) return;
+          // M3-4: race events vibrate through expo-haptics; only race screens may ask, never passed on.
+          if (nativeRaceHaptics.handle(path, status) !== null) return;
           if (offlineSource && status.startsWith("{")) {
             const owner = webRef.current;
             onOfflineMessage?.(status, script => { if (owner && webRef.current === owner) owner.injectJavaScript(script); });

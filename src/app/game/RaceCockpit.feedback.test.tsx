@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { raceTrim, makeStandardCourse } from "@/lib/race-physics";
 import { createRaceNavigationSnapshot, raceWindReading } from "@/features/race-hud/navigation-model";
 import { RaceFeedbackLayer } from "@/features/race-hud/RaceFeedbackLayer";
+import { RaceStartFlags } from "@/features/race-hud/RaceStartFlags";
 import { createFeedbackState, postContact, postFeedback } from "@/features/race-hud/feedback";
 
 // M1-3 contract: the start countdown is big over the scene (not a line in the
@@ -71,6 +72,17 @@ describe("race cockpit feedback (M1-3)", () => {
     expect(nodes(dockNotice(tree).props.children as ReactNode).some(node => node.type === "strong")).toBe(false);
     expect(byTestId(render(props()), "race-countdown")).toBeUndefined();
   });
+
+  // M3-3: the class flag goes up with the countdown horn, P on the next second
+  // and down on the last (RRS 26), all gone at the start; flag X shows in the
+  // race while the player is recalled.
+  it.each([[3, false, ["class"]], [2, false, ["class", "preparatory"]], [1, true, ["class"]], [undefined, true, ["recall"]], [undefined, false, []], [0, false, []]] as const)(
+    "with countdown %s and recall %s shows the start flags %j over the scene", (n, recall, flags) => {
+      const scene = byTestId(render({ ...props(), countdown: n, recall }), "race-3d")!;
+      const shown = nodes(scene.props.children as ReactNode).find(node => node.type === RaceStartFlags);
+      expect(shown, "flags inside the scene").toBeDefined();
+      expect(shown!.props.flags).toEqual(flags);
+    });
 
   it("puts the bus toasts and the contact frame into the scene", () => {
     let bus = postFeedback(createFeedbackState(), { source: "rule", text: "Keep clear.", tone: "danger" }, 0);

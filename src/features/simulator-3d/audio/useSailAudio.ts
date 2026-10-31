@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { pinRaceSound, readRaceSound, subscribeRaceSound, writeRaceSound } from '@/lib/race-sound-pref';
 
 // ============================================================================
 // useSailAudio - procedural ambience via WebAudio (ported from the 3dnew
@@ -11,9 +12,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 //
 // Off by default. The AudioContext is created on the first user gesture
 // (toggle), per browser autoplay policy, and closed on unmount.
+//
+// M3-2 (ADR-0019): it follows the shared race sound setting. While race
+// sound is off the ambience stays off, no AudioContext is created, and a
+// running ambience goes silent. Pressing Sound asks for sound, so it turns
+// race sound on as well; turning the ambience off leaves race sound alone.
+// This screen still has its own context; moving it onto the race context of
+// src/lib/sounds.ts is an open ADR item.
 // ============================================================================
 
-interface AudioNodes {
+export interface AudioNodes {
   ctx: AudioContext;
   master: GainNode;
   windG: GainNode;
@@ -69,22 +77,59 @@ function build(): AudioNodes {
   };
 }
 
-export function useSailAudio() {
-  const [enabled, setEnabled] = useState(false);
-  const ref = useRef<AudioNodes | null>(null);
+/** The toggle's next state. It never turns on (nor builds a context) while race sound is off. */
+export function toggleSailAudio(prev: boolean, ref: { current: AudioNodes | null }, raceSoundOn: boolean, create: () => AudioNodes = build): boolean {
+  const next = !prev && raceSoundOn;
+  if (next && !ref.current) ref.current = create();
+  const n = ref.current;
+  if (n) {
+    n.master.gain.setTargetAtTime(next ? 0.9 : 0.0, n.ctx.currentTime, 0.05);
+    if (next && n.ctx.state === 'suspended') void n.ctx.resume();
+  }
+  return next;
+}
 
-  const toggle = useCallback(() => {
-    setEnabled((prev) => {
-      const next = !prev;
-      if (next && !ref.current) ref.current = build();
-      const n = ref.current;
-      if (n) {
-        n.master.gain.setTargetAtTime(next ? 0.9 : 0.0, n.ctx.currentTime, 0.05);
-        if (next && n.ctx.state === 'suspended') void n.ctx.resume();
-      }
-      return next;
-    });
+/**
+ * One press of the Boat 3D Sound button; returns the ambience state it
+ * applied. The race sound in force is saved as an explicit choice first, so
+ * the trainer `sound` preference the screen writes next (mirrored into the
+ * old race key) can never switch the race silent. A press that asks for
+ * sound while race sound is off turns race sound on: the button never does
+ * nothing.
+ */
+export function pressSailSound(current: boolean, ref: { current: AudioNodes | null }, create: () => AudioNodes = build): boolean {
+  if (!current && !readRaceSound()) writeRaceSound(true, 'boat');
+  else pinRaceSound();
+  return toggleSailAudio(current, ref, readRaceSound(), create);
+}
+
+/** Race sound switched off elsewhere (another tab): the ambience goes silent and its context sleeps. */
+export function silenceSailAudio(ref: { current: AudioNodes | null }): void {
+  const n = ref.current;
+  if (!n) return;
+  n.master.gain.setTargetAtTime(0, n.ctx.currentTime, 0.05);
+  if (n.ctx.state === 'running') void n.ctx.suspend().catch(() => undefined);
+}
+
+export function useSailAudio() {
+  const [wanted, setWanted] = useState(false);
+  const wantedRef = useRef(false);
+  const ref = useRef<AudioNodes | null>(null);
+  const raceSoundOn = useSyncExternalStore(subscribeRaceSound, readRaceSound, () => false);
+  const enabled = wanted && raceSoundOn;
+
+  /** Returns the state it applied, for the screen's own preference write. */
+  const toggle = useCallback((): boolean => {
+    const next = pressSailSound(wantedRef.current && readRaceSound(), ref);
+    wantedRef.current = next;
+    setWanted(next);
+    return next;
   }, []);
+  useEffect(() => {
+    if (!raceSoundOn) { silenceSailAudio(ref); return; }
+    const n = ref.current;
+    if (wanted && n && n.ctx.state === 'suspended') void n.ctx.resume().catch(() => undefined);
+  }, [raceSoundOn, wanted]);
 
   const update = useCallback(
     (awsKn: number, twsKn: number, speedKn: number, luffing: boolean, t: number) => {

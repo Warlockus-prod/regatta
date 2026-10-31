@@ -16,6 +16,8 @@ export const RACE_WEB_STORAGE_KEYS = [
   "regatta.race.sound.v1",
   // M2-5: the race scene's quality step reached on this device (src/features/race-scene/quality.ts).
   "regatta.race.quality.v1",
+  // M3-4: vibration on race events on/off (src/lib/race-haptics.ts).
+  "regatta.race.haptics.v1",
 ] as const;
 export type RaceWebStorage = Record<string, string | null>;
 

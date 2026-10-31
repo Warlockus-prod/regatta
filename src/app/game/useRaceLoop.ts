@@ -7,6 +7,7 @@
 
 import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { playTack, playMarkRound, playFinish, playNoGo, readRaceSound } from '@/lib/sounds';
+import { raceHaptic } from '@/lib/race-haptics';
 import { analyseRaceLocally, analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
 import { evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import type { useI18n } from '@/lib/i18n';
@@ -20,7 +21,10 @@ import {
   WORLD,
   type RaceBoat,
 } from '@/lib/race-physics';
-import { classifyManoeuvre, createManoeuvreState, inNoGoZone, pressedAgainstEdge } from '@/lib/race-manoeuvres';
+import { classifyManoeuvre, createManoeuvreState, inNoGoZone, pressedAgainstEdge, NO_GO } from '@/lib/race-manoeuvres';
+import { coachLuffing, createSilentTargets, mapRaceSoundscape, type RaceSoundscapeInput } from '@/lib/race-soundscape';
+import type { RaceSoundscape } from '@/lib/race-soundscape-audio';
+import { raceTrimCoach } from '@/lib/race-trim-coach';
 import type { Controls } from "@/lib/sailing-physics/types";
 import { raceRanks } from '@/features/race-3d/pose';
 import type { StandingRow } from '@/features/race-hud/RaceHud';
@@ -29,6 +33,7 @@ import { TURN_COST, contactCue, createContactCueState, playerTouching, watchTurn
 import type { RaceEvent } from '@/features/race-hud/events';
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { evaluateRaceRules, type RaceRuleEvent, type RaceRulesState } from "@/lib/race-rules";
+import { playerRecallChange } from "@/lib/race-start-signals";
 import type { RaceJudgeDebrief } from "@/lib/race-judge";
 import { isStartJostle } from "@/lib/race-start-jostle";
 import { isNativeRace, postNativeRace, type NativeRaceSnapshot } from "@/lib/race-native";
@@ -154,11 +159,15 @@ export interface RaceLoopInput {
   /** M1-3: the player's hull touched another boat (the red frame round the scene). */
   showContact: () => void;
   requestNativeBest: (raceId: string, action?: "request" | "retry") => void;
+  /** M3-2 race soundscape (ADR-0019); fed at the HUD cadence, at most ten times per second. */
+  soundscape?: RaceSoundscape;
+  /** M3-3: the race detected the player's premature start (true) or the player cleared it (false); the page shows flag X and sounds the recall. */
+  onStartRecall?: (over: boolean) => void;
   refs: RaceLoopRefs;
   set: RaceLoopSetters;
 }
 
-export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, refs, set }: RaceLoopInput) {
+export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall, refs, set }: RaceLoopInput) {
   const {
     boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
     racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
@@ -195,6 +204,9 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     // are not logged. The committed side survives an effect restart via
     // lastTackSignRef, which GameClient resets for each race.
     let manoeuvres = createManoeuvreState(Math.sign(lastTackSignRef.current) as -1 | 0 | 1);
+    // M3-2: one input and one target object per race loop, reused every HUD tick.
+    const soundIn: RaceSoundscapeInput = { apparentWindKn: 0, boatSpeedKn: 0, heelDeg: 0, luffing: false, inIrons: false, mode: "simple", paused: false, muted: false };
+    const soundOut = createSilentTargets();
     const step = (now: number) => {
       const refreshHud = now - hudRefreshRef.current >= 100;
       const advanced = clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
@@ -255,6 +267,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions) });
       ruleStateRef.current = checked.state;
       if (checked.events.length && ruleEventsRef.current.length < 600) ruleEventsRef.current.push(...checked.events.slice(0, 600 - ruleEventsRef.current.length));
+      const recall = playerRecallChange(checked.events);
+      if (recall !== null) onStartRecall?.(recall);
       const startedPlayer = boats.find(b => b.isPlayer);
       if (isRacing && startedAtRef.current === undefined && startedPlayer?.started) startedAtRef.current = raceClockRef.current;
       // M0-3: penalty-free crowding right after the signal is not a lesson; the debrief groups it.
@@ -268,7 +282,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         // M1-3: a contact begins while the hulls still overlap, before they are pushed apart.
         const cue = contactCue(contact, { touching: playerTouching(boats, MIN_BOAT_SEPARATION), t: raceClockRef.current, racing: isRacing });
         contact = cue.state;
-        if (cue.cue) { showContact(); raceTallyRef.current.contacts++; }
+        if (cue.cue) { showContact(); soundscape?.thud(); raceHaptic('contact'); raceTallyRef.current.contacts++; }
         resolveCollisions(boats, dt);
       }
       const ghost = ghostTrackRef.current, ghostBoat = ghostBoatsRef.current[0];
@@ -305,10 +319,12 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           logEventsRef.current.push({ type: "mark-rounded", t: raceClockRef.current, note: "windward-port" });
           if (!physical) trackRaceMark(raceIdRef.current, raceClockRef.current);
           playMarkRound();
+          raceHaptic('mark');
         } else if (boat.isPlayer && event === "finish") {
           logEventsRef.current.push({ type: "finish", t: boat.finishTime! });
           logSamplesRef.current.push(recordSample(boat, boat.finishTime!, windDirRef.current));
           playFinish();
+          raceHaptic('finish');
         }
       }
 
@@ -571,9 +587,22 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         const player = boatsRef.current.find(boat => boat.isPlayer);
         if (player) {
           hudRefreshRef.current = now;
-          setPlayerTWA(calcTWA(player.heading, windDirRef.current)); setPlayerSpeed(physicalRef.current ? player.speed : displayedBoatSpeed(groundSpeed, player.speed));
-          setWindReading(raceWindReading({ heading: player.heading, boatSpeedKn: player.speed, windFrom: windDirRef.current,
-            windKnots: player.physics?.trueWindSpeed, leeway: player.physics?.leeway }));
+          const twa = calcTWA(player.heading, windDirRef.current);
+          setPlayerTWA(twa); setPlayerSpeed(physicalRef.current ? player.speed : displayedBoatSpeed(groundSpeed, player.speed));
+          const reading = raceWindReading({ heading: player.heading, boatSpeedKn: player.speed, windFrom: windDirRef.current,
+            windKnots: player.physics?.trueWindSpeed, leeway: player.physics?.leeway });
+          setWindReading(reading);
+          if (soundscape) {
+            // Sails flog in the no-go zone in both modes; a luff counts only in Pro, where the player holds the sheets.
+            const mode = racePrefsRef.current.mode;
+            soundIn.apparentWindKn = reading?.apparentKnots ?? player.physics?.trueWindSpeed ?? 0;
+            soundIn.boatSpeedKn = player.speed; soundIn.heelDeg = player.physics?.heel ?? 0;
+            soundIn.inIrons = Math.abs(twa) < NO_GO.angleDeg;
+            soundIn.luffing = mode === "pro" && !soundIn.inIrons && coachLuffing(raceTrimCoach(player));
+            soundIn.mode = mode; soundIn.paused = pausedRef.current || document.hidden;
+            soundIn.muted = !readRaceSound();
+            soundscape.update(mapRaceSoundscape(soundIn, soundOut));
+          }
           setNavigation(createRaceNavigationSnapshot({ course: courseRef.current, boats: boatsRef.current, windFrom: windDirRef.current }));
           const advisory = planRaceGuidance(player, courseRef.current, windDirRef.current, guidanceStateRef.current);
           guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);

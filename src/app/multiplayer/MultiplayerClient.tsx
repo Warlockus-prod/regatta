@@ -11,6 +11,10 @@ import { useVenue } from '@/features/venues/useVenue';
 import { sanitizeNickname } from '@/lib/race-submission';
 import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
 import { MultiplayerCockpit } from "./MultiplayerCockpit";
+import { createServerStartSignals } from "./start-signals";
+import { playerHapticEvents, playerSoundEvents } from "./haptics";
+import { playMarkRound, playFinish, playNoGo } from "@/lib/sounds";
+import { raceHaptic } from "@/lib/race-haptics";
 import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse, FLEET_COLORS, MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { useRacePrefs } from "../game/race-prefs";
@@ -88,9 +92,12 @@ export default function MultiplayerClient() {
   } | null>(null);
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayer[]>([]);
   const [countdown, setCountdown] = useState(5);
+  const [startSignals] = useState(createServerStartSignals);
   const [results, setResults] = useState<Results[]>([]);
 
   const clientRef = useRef<MPClient | null>(null);
+  // M3-4: the player's own id for the mark and finish vibrations of server state events.
+  const myIdRef = useRef("");
   const bufferRef = useRef<SnapshotBuffer>(new SnapshotBuffer());
   const presentationRef = useRef(createMultiplayerPresentation());
   const boatsRef = useRef<Race3DBoat[]>([]);
@@ -169,8 +176,11 @@ export default function MultiplayerClient() {
   }, []);
 
   const handleServerMsg = useCallback((msg: MPMessage) => {
+    // M3-3: the horn, the short signals and the gun from the server's countdown events.
+    startSignals.onMessage(msg);
     switch (msg.type) {
       case 'joined':
+        myIdRef.current = msg.id;
         setConnecting(false);
         setError(null);
         // msg.id is the server-assigned OPAQUE player id (never our sid). We
@@ -207,6 +217,13 @@ export default function MultiplayerClient() {
         break;
       case 'state':
         bufferRef.current.push({ t: msg.t, wind: msg.wind, boats: msg.boats });
+        for (const event of playerHapticEvents(msg.events, myIdRef.current)) raceHaptic(event);
+        // M3-3: the solo race sounds for our own mark, finish and no-go entry.
+        for (const sound of playerSoundEvents(msg.events, myIdRef.current)) {
+          if (sound === "mark") playMarkRound();
+          else if (sound === "finish") playFinish();
+          else playNoGo();
+        }
         break;
       case 'finished':
         setResults(msg.results);
@@ -231,7 +248,7 @@ export default function MultiplayerClient() {
         setPhase((p) => p === 'menu' ? 'error' : p);
         break;
     }
-  }, [tp, tl, releaseInput]);
+  }, [tp, tl, releaseInput, startSignals]);
 
   const ensureClient = useCallback(async (): Promise<MPClient> => {
     if (clientRef.current?.isOpen) return clientRef.current;
@@ -327,7 +344,7 @@ export default function MultiplayerClient() {
     clientRef.current?.send({ type: 'leave' });
     clientRef.current?.close();
     clientRef.current = null;
-    bufferRef.current.reset();
+    bufferRef.current.reset(); startSignals.reset(); myIdRef.current = "";
     presentationRef.current.reset(); boatsRef.current = []; setFrame(null); setWindReading(null); setNavigation(null); releaseInput();
     setRoom(null);
     setLobbyPlayers([]);
@@ -335,7 +352,7 @@ export default function MultiplayerClient() {
     setPhase('menu');
     setError(null);
     setShareOutcome(null);
-  }, [releaseInput]);
+  }, [releaseInput, startSignals]);
 
   // M2-8: the system share sheet where there is one, the clipboard otherwise;
   // if both fail the link is shown so it can be copied by hand.
@@ -495,7 +512,7 @@ export default function MultiplayerClient() {
         miniMap={visualPrefs.miniMap} setMiniMap={miniMap => updateVisualPrefs({ miniMap })}
         rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
         camera={camera} setCamera={view => { setCamera(view); recordControlChange("multiplayer", "camera", view, camera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("multiplayer", "camera", camera); }} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={value => { setGuidanceOn(value); recordPreferenceChange("multiplayer", "guidance", value, guidanceOn); }}>
-        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null}
+        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} started={phase === "racing"}
           showWind={visualPrefs.windDisplay === "arrows" || visualPrefs.windDisplay === "both"} />
       </MultiplayerCockpit>
     </div>

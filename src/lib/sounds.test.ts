@@ -225,3 +225,47 @@ describe("race audio playback", () => {
     expect(FakeContext.made[0].resume).toHaveBeenCalledTimes(1);
   });
 });
+
+// Contract (M3-3): the start signals are procedural on the one race context:
+// the horn when the countdown begins is a held two-voice tone, the short
+// signal one voice, the gun a noise crack with a low thump, the recall one
+// horn; none of them plays or creates a context while race sound is off.
+describe("start signals", () => {
+  const unlocked = async () => { const s = await load(); gesture(); await flush(); const c = FakeContext.made[0]; c.primes = 0; return { s, c }; };
+  it("sounds a two-voice horn for the warning, one voice for a short signal and one horn for a recall", async () => {
+    const { s, c } = await unlocked();
+    s.playStartSignal("warning");
+    expect(c.oscillators).toHaveLength(2);
+    expect(c.primes).toBe(0);
+    s.playStartSignal("tick");
+    expect(c.oscillators).toHaveLength(3);
+    s.playStartSignal("recall");
+    expect(c.oscillators).toHaveLength(5);
+    expect(c.primes).toBe(0);
+  });
+
+  it("fires the gun as a noise burst plus a low thump", async () => {
+    const { s, c } = await unlocked();
+    s.playStartSignal("start");
+    expect(c.primes).toBe(1);
+    expect(c.oscillators).toHaveLength(1);
+  });
+
+  it("plays no start signal and creates no context for a muted player", async () => {
+    data.set(RACE_KEY, "off");
+    const s = await load();
+    gesture();
+    for (const signal of ["warning", "tick", "start", "recall"] as const) s.playStartSignal(signal);
+    expect(FakeContext.made).toHaveLength(0);
+  });
+
+  it("goes silent at once when muted mid-countdown", async () => {
+    const { s, c } = await unlocked();
+    s.playStartSignal("warning");
+    s.writeRaceSound(false);
+    for (const signal of ["tick", "start", "recall"] as const) s.playStartSignal(signal);
+    expect(c.oscillators).toHaveLength(2);
+    expect(c.primes).toBe(0);
+    expect(c.suspend).toHaveBeenCalled();
+  });
+});

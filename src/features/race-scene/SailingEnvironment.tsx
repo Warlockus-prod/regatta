@@ -1,36 +1,46 @@
 'use client';
 
 import { memo, useCallback, useEffect, useMemo, useRef, type MutableRefObject } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three/webgpu";
 import { sampleWave } from "@/features/simulator-3d/ocean/waves";
 import { METRES_PER_UNIT } from "@/features/race-3d/pose";
 import { landPolygon, raceTerrain, noise1, RACE_AREA } from "@/data/venues/geometry";
 import type { Venue } from "@/data/venues/venues";
+import { sceneColors, sunDirection, sunIntensity, type SceneColors, type VenueLook } from "@/data/venues/look";
 import { shoreField } from "./shore";
 import { TRAIL_POINTS, buildRibbon, pushTrail, ribbonIndices, type TrailPoint } from "./trail";
 import { BEACH_ROWS, landGeometry } from "./land";
-import { PALETTE, calmFactor, shadowMaterial, shoreTexture, skyMaterial, wakeMaterial, waterMaterial, waterUniforms, type WaterUniforms } from "./materials";
+import { TRAINER_COLORS, calmFactor, shadowMaterial, shoreTexture, skyMaterial, wakeMaterial, waterMaterial, waterUniforms, type WaterLook, type WaterUniforms } from "./materials";
 import { SAILING_SUN, sailingEnvironmentFrame, sailingHull, type SailingHull, type SailingState, type WorldPoint } from "./environment-state";
 import { QUALITY_PROFILES, type SceneQuality } from "./quality";
 
 /** The parts of a quality profile (quality.ts, M2-5) the environment draws. */
-export type EnvironmentQuality = Pick<SceneQuality, "waterSegments" | "waterDetail" | "clouds" | "treeShare">;
+export type EnvironmentQuality = Pick<SceneQuality, "waterSegments" | "waterDetail" | "clouds" | "treeShare" | "glow">;
+
+/** The trainers keep the full picture of the race before M3-6: no glow. */
+const TRAINER_QUALITY: EnvironmentQuality = { ...QUALITY_PROFILES.high, glow: 0 };
 
 type OriginRef = MutableRefObject<WorldPoint>;
 const DEG = Math.PI / 180;
 const STERN = 6.3;
 const LAND_HEIGHT = 1.8;
-const SUN_DIR = new THREE.Vector3(...SAILING_SUN).normalize();
+const TRAINER_SUN = new THREE.Vector3(...SAILING_SUN).normalize();
 const CHART_ORIGIN: WorldPoint = { x: 0, z: 0 };
 
-/** One world-space wake and soft hull shadow per sailing boat. */
-function HullMarks({ readBoats, originRef, travel }: {
+/** One world-space wake and soft hull shadow per sailing boat. A new wake
+ * material (another venue look, glow switched on or off) is swapped onto the
+ * wakes already on the water: the meshes and their trails stay. */
+export function HullMarks({ readBoats, originRef, travel, colors, glow, sunDir }: {
   readBoats: () => readonly SailingHull[];
   originRef: OriginRef;
   travel: { value: THREE.Vector2 };
+  colors: SceneColors;
+  /** The shared glow uniform when the profile glows, none on "low" and in the trainers. */
+  glow?: { value: number };
+  sunDir: THREE.Vector3;
 }) {
-  const wake = useMemo(() => wakeMaterial(travel), [travel]);
+  const wake = useMemo(() => wakeMaterial(travel, colors, glow), [travel, colors, glow]);
   const shadow = useMemo(() => shadowMaterial(), []);
   const plane = useMemo(() => {
     const g = new THREE.PlaneGeometry(1, 1);
@@ -41,17 +51,22 @@ function HullMarks({ readBoats, originRef, travel }: {
   const shadows = useRef(new Map<string, THREE.Mesh>());
   const group = useRef<THREE.Group>(null);
   useEffect(() => {
+    ribbons.current.forEach((r) => { r.mesh.material = wake; });
+    return () => wake.dispose();
+  }, [wake]);
+  useEffect(() => {
     const live = ribbons.current;
     const shades = shadows.current;
+    const root = group.current;
     return () => {
-      live.forEach((r) => r.geometry.dispose());
+      live.forEach((r) => { root?.remove(r.mesh); r.geometry.dispose(); });
+      shades.forEach((s) => root?.remove(s));
       live.clear();
       shades.clear();
-      wake.dispose();
       shadow.dispose();
       plane.dispose();
     };
-  }, [wake, shadow, plane]);
+  }, [shadow, plane]);
 
   useFrame(({ clock }) => {
     const root = group.current;
@@ -97,8 +112,8 @@ function HullMarks({ readBoats, originRef, travel }: {
         shadows.current.set(boat.id, s);
       }
       // Cast away from the sun, along the hull.
-      const x = c.x - origin.x - SUN_DIR.x * 2.5;
-      const z = c.z - origin.z - SUN_DIR.z * 2.5;
+      const x = c.x - origin.x - sunDir.x * 2.5;
+      const z = c.z - origin.z - sunDir.z * 2.5;
       s.position.set(x, sampleWave(c.x, c.z, now).y * calmFactor(Math.hypot(c.x - origin.x, c.z - origin.z)) + 0.5, z);
       s.rotation.y = (90 - boat.heading) * DEG;
       s.scale.set(15, 1, 5);
@@ -117,7 +132,7 @@ function HullMarks({ readBoats, originRef, travel }: {
 }
 
 /** The shared sailing water: dense round the hull, with waves and wind in TSL. */
-function Water({ venue, uniforms, chartOrigin, segments, detail }: { venue?: Venue; uniforms: WaterUniforms; chartOrigin: WorldPoint; segments: number; detail: boolean }) {
+function Water({ venue, uniforms, chartOrigin, segments, detail, look }: { venue?: Venue; uniforms: WaterUniforms; chartOrigin: WorldPoint; segments: number; detail: boolean; look: WaterLook }) {
   const geometry = useMemo(() => {
     const size = 2800;
     const g = new THREE.PlaneGeometry(size, size, segments, segments);
@@ -136,9 +151,11 @@ function Water({ venue, uniforms, chartOrigin, segments, detail }: { venue?: Ven
     const field = shoreField(polys, bounds, { cols: 224, rows: 256, maxDist: 70 });
     return { texture: shoreTexture(field), min: field.min, size: field.size };
   }, [venue, chartOrigin.x, chartOrigin.z]);
-  const material = useMemo(() => waterMaterial(uniforms, shore, detail), [uniforms, shore, detail]);
+  const material = useMemo(() => waterMaterial(uniforms, shore, detail, look), [uniforms, shore, detail, look]);
   useEffect(() => () => geometry.dispose(), [geometry]);
-  useEffect(() => () => { material.dispose(); shore.texture.dispose(); }, [material, shore]);
+  // The material may be rebuilt (detail on a profile step) over the same shore texture.
+  useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => () => shore.texture.dispose(), [shore]);
   return <mesh geometry={geometry} material={material} />;
 }
 
@@ -209,14 +226,14 @@ function Dressing({ venue, originRef, chartOrigin, treeShare }: { venue: Venue; 
 /** A small local reflection map for gelcoat, stainless and sail cloth.
  * WebGPURenderer prefilters it once; there is no HDR download or extra
  * per-frame cube render. The same sky colours light both products. */
-function Reflections() {
+function Reflections({ colors, sunDir }: { colors: SceneColors; sunDir: THREE.Vector3 }) {
   const environment = useMemo(() => {
     const width = 128, height = 64;
     const data = new Uint8Array(width * height * 4);
-    const horizon = new THREE.Color(PALETTE.horizon);
-    const zenith = new THREE.Color(PALETTE.zenith);
-    const ground = new THREE.Color(PALETTE.deep).multiplyScalar(0.45);
-    const warm = new THREE.Color(PALETTE.sun);
+    const horizon = new THREE.Color(colors.horizon);
+    const zenith = new THREE.Color(colors.zenith);
+    const ground = new THREE.Color(colors.deep).multiplyScalar(0.45);
+    const warm = new THREE.Color(colors.sun);
     const color = new THREE.Color();
     const direction = new THREE.Vector3();
     for (let row = 0; row < height; row++) {
@@ -226,7 +243,7 @@ function Reflections() {
         const longitude = col / width * Math.PI * 2;
         direction.set(Math.cos(latitude) * Math.cos(longitude), y, Math.cos(latitude) * Math.sin(longitude));
         color.copy(horizon).lerp(y >= 0 ? zenith : ground, Math.pow(Math.abs(y), 0.45));
-        color.lerp(warm, Math.pow(Math.max(0, direction.dot(SUN_DIR)), 180) * 0.9);
+        color.lerp(warm, Math.pow(Math.max(0, direction.dot(sunDir)), 180) * 0.9);
         const i = (row * width + col) * 4;
         data[i] = Math.round(color.r * 255); data[i + 1] = Math.round(color.g * 255); data[i + 2] = Math.round(color.b * 255); data[i + 3] = 255;
       }
@@ -237,16 +254,40 @@ function Reflections() {
     texture.minFilter = texture.magFilter = THREE.LinearFilter;
     texture.needsUpdate = true;
     return texture;
-  }, []);
+  }, [colors, sunDir]);
   useEffect(() => () => environment.dispose(), [environment]);
   return <primitive object={environment} attach="environment" />;
+}
+
+/** Sets the venue look's tone mapping exposure on the renderer; returns what gives the previous one back. No value leaves it alone. */
+export function applyExposure(gl: { toneMappingExposure: number }, value: number | undefined): (() => void) | undefined {
+  if (value === undefined) return undefined;
+  const before = gl.toneMappingExposure;
+  gl.toneMappingExposure = value;
+  return () => { gl.toneMappingExposure = before; };
+}
+
+/** The venue look's tone mapping exposure on the shared renderer, given back on unmount. */
+function Exposure({ value }: { value?: number }) {
+  const gl = useThree((state) => state.gl) as unknown as { toneMappingExposure: number };
+  useEffect(() => applyExposure(gl, value), [gl, value]);
+  return null;
+}
+
+/** What the environment draws from a venue look (M3-6), or the trainers' light without one. */
+export function environmentLight(look?: VenueLook) {
+  if (!look) return { colors: TRAINER_COLORS, sun: SAILING_SUN, intensity: 2.4, exposure: undefined, nearCalm: false };
+  const [x, y, z] = sunDirection(look);
+  return { colors: sceneColors(look), sun: [x * 80, y * 80, z * 80] as [number, number, number], intensity: sunIntensity(look), exposure: look.exposure, nearCalm: true };
 }
 
 /** One environment for the solo race, replay and trainers. Call inside the
  * shared renderer's Canvas. Cameras, rig state and lesson UI stay with the
  * consumer; only the sea, scenery, light and world-space wakes live here. */
-export function SailingEnvironment({ venue, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN, quality = QUALITY_PROFILES.high }: {
+export function SailingEnvironment({ venue, look, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN, quality = TRAINER_QUALITY }: {
   venue?: Venue;
+  /** The venue's light and colour (M3-6, src/data/venues/look.ts); trainers pass none and keep their light. */
+  look?: VenueLook;
   /** The race scene's quality profile (M2-5); trainers keep the full picture. */
   quality?: EnvironmentQuality;
   readState: () => SailingState | null;
@@ -256,7 +297,15 @@ export function SailingEnvironment({ venue, readState, readBoats, originRef, cha
 }) {
   const uniforms = useMemo(() => waterUniforms(), []);
   const uniformsRef = useRef(uniforms);
-  const sky = useMemo(() => skyMaterial(SUN_DIR, uniforms.time, quality.clouds), [uniforms, quality.clouds]);
+  const light = useMemo(() => environmentLight(look), [look]);
+  const sunDir = useMemo(() => look ? new THREE.Vector3(...light.sun).normalize() : TRAINER_SUN, [look, light]);
+  // The glints follow the sun of the look (the trainers keep the water's own default).
+  useEffect(() => { if (look) uniforms.sunDir.value.copy(sunDir); }, [look, sunDir, uniforms]);
+  // The glow's strength is a uniform: "high" to "medium" changes a value, only glow on or off builds new materials.
+  const glowing = quality.glow > 0;
+  useEffect(() => { uniformsRef.current.glow.value = quality.glow; }, [quality.glow]);
+  const waterLook = useMemo<WaterLook>(() => ({ colors: light.colors, glow: glowing, nearCalm: light.nearCalm }), [light, glowing]);
+  const sky = useMemo(() => skyMaterial(sunDir, uniforms.time, quality.clouds, light.colors), [sunDir, uniforms, quality.clouds, light]);
   const singleHull = useCallback(() => [sailingHull(readState())], [readState]);
   useEffect(() => () => sky.dispose(), [sky]);
   // Update travel before the meshes, wakes, course markers and cameras read
@@ -271,17 +320,18 @@ export function SailingEnvironment({ venue, readState, readBoats, originRef, cha
     u.windiness.value = frame.windiness;
   }, -2);
   return <>
-    <color attach="background" args={[PALETTE.horizon]} />
-    <fog attach="fog" args={[PALETTE.horizon, 420, 1900]} />
-    <hemisphereLight args={["#d6ecff", "#3a5560", 0.9]} />
-    <directionalLight position={SAILING_SUN} intensity={2.4} color="#fff0d8" />
-    <Reflections />
+    <color attach="background" args={[light.colors.horizon]} />
+    <fog attach="fog" args={[light.colors.fog, 420, 1900]} />
+    <hemisphereLight args={[light.colors.hemiSky, light.colors.hemiGround, 0.9]} />
+    <directionalLight position={light.sun} intensity={light.intensity} color={look ? light.colors.sun : "#fff0d8"} />
+    <Exposure value={light.exposure} />
+    <Reflections colors={light.colors} sunDir={sunDir} />
     <mesh renderOrder={-100} material={sky}><sphereGeometry args={[3600, 32, 16]} /></mesh>
-    <Water venue={venue} uniforms={uniforms} chartOrigin={chartOrigin} segments={quality.waterSegments} detail={quality.waterDetail} />
+    <Water venue={venue} uniforms={uniforms} chartOrigin={chartOrigin} segments={quality.waterSegments} detail={quality.waterDetail} look={waterLook} />
     <mesh rotation-x={-Math.PI / 2} position={[0, -1.6, 0]}>
-      <planeGeometry args={[9000, 9000]} /><meshBasicMaterial color={PALETTE.deep} />
+      <planeGeometry args={[9000, 9000]} /><meshBasicMaterial color={light.colors.deep} />
     </mesh>
     {venue && <Dressing venue={venue} originRef={originRef} chartOrigin={chartOrigin} treeShare={quality.treeShare} />}
-    <HullMarks readBoats={readBoats ?? singleHull} originRef={originRef} travel={uniforms.travel} />
+    <HullMarks readBoats={readBoats ?? singleHull} originRef={originRef} travel={uniforms.travel} colors={light.colors} glow={glowing ? uniforms.glow : undefined} sunDir={sunDir} />
   </>;
 }

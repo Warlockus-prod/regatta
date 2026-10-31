@@ -31,6 +31,26 @@ describe("quality ladder", () => {
     expect(QUALITY_PROFILES.high).toMatchObject({ waterSegments: 200, waterDetail: true, clouds: true, treeShare: 1 });
   });
 
+  it("has no bow spray and no camera shake on the low profile (M3-5)", () => {
+    expect(QUALITY_PROFILES.low).toMatchObject({ spray: 0, cameraShake: false });
+    expect(QUALITY_PROFILES.medium.cameraShake).toBe(true);
+    expect(QUALITY_PROFILES.high.cameraShake).toBe(true);
+  });
+
+  it("glows only on medium and high, and no profile adds a render pass (M3-6)", () => {
+    expect(QUALITY_PROFILES.low.glow).toBe(0);
+    expect(QUALITY_PROFILES.medium.glow).toBeGreaterThan(0);
+    expect(QUALITY_PROFILES.high.glow).toBeGreaterThanOrEqual(QUALITY_PROFILES.medium.glow);
+    // The glow is emissive in the water and wake shaders (venue-look.test.tsx), never a
+    // post-processing pass: the scene draws once per frame on every profile.
+    for (const file of ["RaceScene.tsx", "SailingEnvironment.tsx", "materials.ts"]) {
+      const text = readFileSync(new URL(`./${file}`, import.meta.url), "utf8");
+      expect(text, file).not.toMatch(/PostProcessing|EffectComposer|bloom\(|pass\(|RenderTarget/);
+    }
+    const scene = readFileSync(new URL("./RaceScene.tsx", import.meta.url), "utf8");
+    expect(scene.match(/\.render\(/g)).toHaveLength(1);
+  });
+
   it("gets cheaper at every step and never trades a lever back", () => {
     for (let i = 1; i < QUALITY_LADDER.length; i++) {
       const a = qualityAt(i - 1, 2), b = qualityAt(i, 2);
@@ -38,6 +58,7 @@ describe("quality ladder", () => {
       expect(b.profile.waterSegments).toBeLessThanOrEqual(a.profile.waterSegments);
       expect(b.profile.treeShare).toBeLessThanOrEqual(a.profile.treeShare);
       expect(b.profile.rivalFarPx).toBeGreaterThanOrEqual(a.profile.rivalFarPx);
+      expect(b.profile.glow).toBeLessThanOrEqual(a.profile.glow);
       expect(b.dpr < a.dpr || b.profile !== a.profile).toBe(true);
     }
   });
@@ -242,10 +263,21 @@ describe("race scene wiring", () => {
   });
 
   it("draws through the gate (a priority frame callback) and warms shaders before the first frame", () => {
-    expect(source).toMatch(/state\.gl\.render\(state\.scene, state\.camera\);\n\s+\}, 1\);/);
+    // The M3-5 shake offset is taken back right after the draw, in the same priority callback.
+    expect(source).toMatch(/state\.gl\.render\(state\.scene, state\.camera\);\n\s+\} finally \{\n\s+if \(shaking\) endShakenFrame\(camera\.position, offset\);\n\s+\}\n\s+\}, 1\);/);
     // The decision is createSceneDraw (tested above) fed the live race clock and first-frame state.
     expect(source).toMatch(/draw\.frame\(gateRef\.current, now, racingRef\.current, firstFrameRef\.current !== null, boatsRef\.current, view\);\n\s+heldRef\.current = draw\.held;\n\s+if \(render\) state\.gl\.render/);
     expect(source).toMatch(/<WarmShaders gateRef=\{gateRef\}><FirstSceneFrame onReady=\{ready\} \/><\/WarmShaders>/);
     expect(source.match(/farPxRef=\{farPxRef\}/g)).toHaveLength(2);
+  });
+
+  it("feeds contact and start gun into the shake that the live profile and reduced motion gate (M3-5)", () => {
+    // The gate and the event conversion are createSceneShake (effects.test.ts); here only that the scene uses them.
+    expect(source).toMatch(/const \[shakeControl\] = useState\(\(\) => createSceneShake\(profileRef, reducedMotion\)\);/);
+    expect(source).toMatch(/useEffect\(\(\) => \{ profileRef\.current = profile; \}, \[profile\]\);/);
+    expect(source).toMatch(/const reducedMotion = useReducedMotionRef\(\);/);
+    expect(source).toMatch(/useEffect\(\(\) => \{ shakeControl\.feed\(contactId, started\); \}, \[contactId, started, shakeControl\]\);/);
+    expect(source).toMatch(/const shakeRef = useRef<ShakeControl>\(shakeControl\);/);
+    expect(source).toMatch(/<GatedRender [^>]*shakeRef=\{shakeRef\} \/>/);
   });
 });

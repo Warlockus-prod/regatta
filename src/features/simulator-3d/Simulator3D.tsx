@@ -263,7 +263,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} kn / ${degrees(t.awaDeg)}`} />
             <Readout label={L.bestVmg} value={degrees(t.vmgTargetAngle)} />
           </div>;
-  const toggleSound = () => { toggle(); updatePrefs({ sound: !enabled }); };
+  // toggle() saves the race sound choice first, so this trainer write cannot mute the race (M3-2).
+  const toggleSound = () => { updatePrefs({ sound: toggle() }); };
   const extras = <div className="mt-2 flex flex-wrap gap-1">
           <button className={styles.button} aria-pressed={light} onClick={() => { setLight(!light); recordControlChange("boat", "light-renderer", !light, light); }}>{L.scene.light}</button>
           {mode === "sail" && <button className={styles.button} aria-pressed={enabled} onClick={toggleSound}>{L.sound}</button>}

@@ -807,3 +807,99 @@ suite keeps all 40 zero-contact scenarios.
 
 `src/features/sailing-lab/runtime/boat-step.ts`, `src/lib/race-physical-motion.ts`,
 `src/lib/race-shared-boat.test.ts`, ADR-0007, ADR-0009, ADR-0011.
+
+## ADR-0019 - Procedural race sound on the one race AudioContext
+
+Date: 2026-10-31. Status: accepted (game roadmap M3-1, owner decisions 3 and
+10 of `docs/audits/2026-10-30-game-roadmap.md` section 6, adopted by
+recommendation on 2026-10-31 and reversible). Numbers 0015-0018 are taken or
+reserved by other entries.
+
+### Context
+
+M1-5 gave the race short signals (start, tack, mark, finish) on one Web Audio
+context in `src/lib/sounds.ts`: created or resumed only inside a user gesture
+and only while race sound is on, the "ambient" audio session where the
+browser has the Audio Session API, mute suspends the context. M3 wants the
+race to sound alive (wind, water, sails, winches, contact). The page runs
+under a CSP that allows only our own origin, ships offline inside the iOS app
+and keeps a 6.6 MB JS budget. Boat 3D (`/simulator2`) already had a
+procedural ambience with its own context and its own off-by-default toggle.
+
+### Decision
+
+- Race sound stays procedural: filtered noise beds and envelopes built in
+  code, no audio files. The mapping from the boat to the sound is pure and
+  tested (`src/lib/race-soundscape.ts`: apparent wind -> wind bed level and
+  brightness, boat speed and heel -> water rush and hull slaps, no-go zone in
+  both modes or a luff in Pro -> sail flogging); the runtime
+  (`src/lib/race-soundscape-audio.ts`) plays it.
+- There is ONE race AudioContext, the one of `src/lib/sounds.ts`, and one
+  master gain. The soundscape gets it through `raceAudioOutput()`, which never
+  creates or resumes a context, so the gesture rule and the mute rule hold for
+  it: a muted player never gets a context.
+- The beds are built once per race screen on that context; slaps, flogging,
+  winch clicks and the contact thud are envelopes on persistent gains, so an
+  update or a race event creates no audio node. Updates are applied at most
+  about ten times per second with `setTargetAtTime`, throttled on the page
+  clock (the audio clock moves in hardware-buffer steps). Pause, the end of
+  the finish hold (results), the replay, mute and a hidden page fade it out
+  at once; after half a second of silence the sources are stopped until the
+  next live update (no idle rendering on those screens); unmount stops and
+  disconnects it. Only the solo race (`/game`) is wired; multiplayer is not
+  yet.
+- Race sound is on by default at a moderate level (decision 3): the master
+  stays 0.5 and the soundscape bus 0.7 under it, below the signals. The
+  "ambient" session makes the iPhone silent switch silence it and lets it mix
+  with the player's own music.
+- No music in the race (decision 10).
+- Any future sample is CC0 only, served from our own origin (in the
+  repository and in the offline bundle), at most 300 KB for all race samples
+  together. The licence and source of each file are written next to it.
+- Boat 3D follows the same race sound setting: while race sound is off its
+  ambience stays off and builds no context, and a running ambience goes
+  silent when race sound goes off. Pressing its Sound button asks for sound,
+  so while race sound is off that press turns race sound on as well (the
+  button never does nothing); turning the ambience off leaves race sound as
+  it is. Each press first saves the race sound in force as an explicit
+  choice, so the trainer `sound` preference the screen writes next (which
+  `writeControlPrefs` mirrors into the old race key) cannot switch the race
+  silent. It reads the setting from `src/lib/race-sound-pref.ts`, which has
+  no audio code, so `/simulator2` never installs the race gesture listeners.
+
+### Rejected
+
+- Music in the race: it competes with the signals and the wind, the cue the
+  sailor actually needs, and was not asked for.
+- Samples from an external CDN or sound library: blocked by the CSP (one
+  domain cost an incident already), absent offline, and of unclear licence.
+- A second AudioContext for the soundscape: two contexts would split the
+  mute, the gesture unlock and the audio session, and iOS limits live
+  contexts. Open item: Boat 3D still owns its legacy context
+  (`src/features/simulator-3d/audio/useSailAudio.ts`); moving it onto the race
+  context belongs to the Boat 3D lane.
+
+### Verification
+
+`src/lib/race-soundscape.test.ts` (three inputs: calm drift, upwind in a
+breeze, in irons; monotonic wind and water; silence when paused, muted or
+without a reading; luff only in Pro), `src/lib/race-soundscape-audio.test.ts`
+(shared context and master, no context for a muted player, beds built once,
+no node per update, ten updates per second, silence on pause, mute, hidden
+page, dispose), `src/app/game/useRaceLoop.soundscape.test.ts` (the actual
+race loop feeds it at the HUD cadence, thud on contact),
+`src/app/game/useRaceSoundscape.test.ts` (live only in countdown and race,
+off on pause, mute, results, replay, menu; disposed on unmount),
+`src/features/simulator-3d/audio/useSailAudio.test.ts` (Boat 3D presses
+through the real race and trainer settings). Still owed: hearing it on the
+owner's iPhone, normal mode and silent switch (M3 done criterion), FPS on the
+phone, multiplayer. Known older gap (M1-5, not changed here): any other
+trainer settings write by a player with no race sound choice yet mirrors
+`sound: false` into the old race key and so mutes the race.
+
+### References
+
+`src/lib/sounds.ts`, `src/lib/race-sound-pref.ts`, `src/lib/race-soundscape.ts`,
+`src/lib/race-soundscape-audio.ts`, `src/app/game/useRaceLoop.ts`,
+`src/app/game/useRaceSoundscape.ts`, `src/app/game/GameClient.tsx`, `docs/audits/2026-10-30-game-roadmap.md` (M3),
+ADR-0008.

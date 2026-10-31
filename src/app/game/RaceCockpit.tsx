@@ -27,10 +27,13 @@ import { useRacePauseCopy } from "./race-pause-copy";
 import { fullscreenOfferAnswered, fullscreenServerState, fullscreenState, markFullscreenOfferAnswered, requestRaceFullscreen, subscribeFullscreen } from "./race-fullscreen";
 import { useI18n } from "@/lib/i18n";
 import { RaceFeedbackLayer } from "@/features/race-hud/RaceFeedbackLayer";
+import { RaceStartFlags } from "@/features/race-hud/RaceStartFlags";
+import { startFlags } from "@/lib/race-start-signals";
 import fx from "@/features/race-hud/RaceFeedbackLayer.module.css";
 import type { ContactFrame, FeedbackToast } from "@/features/race-hud/feedback";
 import { TARGET_SPEED_LABEL, speedVersusTarget } from "@/features/race-hud/speed-target";
 import { createTapTracker, nextRaceCamera, type TapTracker } from "@/features/race-scene/camera";
+import { RaceHapticsToggle, useRaceHapticsCopy } from "@/features/race-hud/RaceHapticsToggle";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -104,6 +107,8 @@ export function RaceCockpit(p: {
   onExitPrompt?: (step: "ask" | "stay") => void;
   autopilot: boolean; onAutopilot: () => void;
   muted: boolean; onSound: () => void; penalty: number; countdown?: number;
+  /** M3-3: the player is over the line early (race-rules early-start): flag X shows until cleared. */
+  recall?: boolean;
   /** The live race id: steering and trim are held during its finish hold. */
   raceId?: string;
   /** Desktop browser only: offer full screen once (never in the native app). */
@@ -111,6 +116,8 @@ export function RaceCockpit(p: {
   /** SLOT for the race sound switch of M1-5 (sound lane). Rendered in the
    * status row and in the pause sheet; empty until that switch is wired. */
   raceSoundToggle?: (placement: RaceSoundPlacement) => ReactNode;
+  /** M3-4: the vibration switch beside race sound (pause sheet and Settings), only where the device can vibrate. */
+  haptics?: { on: boolean; setOn: (on: boolean) => void };
   /** M1-3 feedback bus: the toasts near the boat and the contact frame. */
   feedback?: { toasts: readonly FeedbackToast[]; contact: ContactFrame | null };
   /** M1-3: the polar target speed at this wind angle, knots; omitted when unknown. */
@@ -119,6 +126,7 @@ export function RaceCockpit(p: {
   const c = useRaceCopy();
   const { tl } = useI18n();
   const pc = useRacePauseCopy();
+  const haptics = useRaceHapticsCopy();
   const nav = useRaceNavigationCopy();
   const foundationLesson = useFoundationReturnId();
   const labels = useControlLabels();
@@ -177,6 +185,8 @@ export function RaceCockpit(p: {
         {p.countdown !== undefined && <div className={fx.countdown} data-testid="race-countdown" aria-live="polite" aria-atomic="true">
           <span>{p.countdown || c.startSignal}</span>
         </div>}
+        {/* M3-3: class flag and P with the countdown, X on the player's early start. */}
+        <RaceStartFlags flags={startFlags(p.countdown, p.recall)} />
         {/* M1-2: one thin status row over the scene; the only Menu control. */}
         <header className={styles.status} role="group" aria-label={pc.status} data-testid="race-status-row">
           <button ref={menuRef} type="button" className={styles.menuButton} onClick={p.onPause}
@@ -212,7 +222,7 @@ export function RaceCockpit(p: {
         {p.paused && <RacePauseSheet copy={c} pauseCopy={pc} onContinue={resume} onRestart={p.onRestart}
           onSettings={() => selectTab("settings")} onExit={p.onExit} onExitPrompt={p.onExitPrompt} confirmExit={!holding}
           showKeys={screen !== "unsupported"} onFullscreen={canFullscreen ? goFullscreen : null}
-          sound={sound?.("pause")} lessonReturn={foundationLesson ? <FoundationReturn compact /> : undefined} />}
+          sound={p.haptics ? <>{sound?.("pause")}<RaceHapticsToggle on={p.haptics.on} onChange={p.haptics.setOn} /></> : sound?.("pause")} lessonReturn={foundationLesson ? <FoundationReturn compact /> : undefined} />}
       </div>
       <aside className={styles.dock} aria-label={labels.controlsTitle}>
         <div className={styles.notice} role="status" aria-live="polite" tabIndex={0}>
@@ -272,6 +282,7 @@ export function RaceCockpit(p: {
             <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />
             <Toggle label={c.penalties} checked={p.prefs.penalties} onChange={penalties => p.updatePrefs({ penalties })} />
             <Toggle label={c.sound} checked={!p.muted} onChange={p.onSound} />
+            {p.haptics && <Toggle label={haptics.label} checked={p.haptics.on} onChange={p.haptics.setOn} />}
             <Toggle label={labels.sound} checked={controls.sound} onChange={sound => update({ sound })} />
             <p>{c.rulesNote}</p>
             <DiagnosticAccess />

@@ -10,6 +10,7 @@ import { FirstSceneFrame, SceneStartup } from "@/features/simulator-3d/SceneStar
 import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
 import { NEUTRAL_YACHT } from "@/features/simulator-3d/types";
 import type { Venue } from "@/data/venues/venues";
+import { venueLook } from "@/data/venues/look";
 import {
   Rival, World,
   playerOf, useBoatPose, type OriginRef, type Race3DLabels,
@@ -35,6 +36,9 @@ import { startPerfJournal } from "./perf-journal";
 import { WindFlow } from "@/features/simulator-3d/ocean/WindFlow";
 import { raceWindReading } from "@/features/race-hud/navigation-model";
 import { recordSceneLifecycle } from "@/features/simulator-3d/scene-diagnostics";
+import { BowSpray, useReducedMotionRef } from "./BowSpray";
+import { beginShakenFrame, createSceneShake, endShakenFrame, type ShakeControl } from "./effects";
+import type { SceneQuality } from "./quality";
 
 // ============================================================================
 // RaceScene - the race presentation using the shared sailing renderer.
@@ -53,6 +57,12 @@ import { recordSceneLifecycle } from "@/features/simulator-3d/scene-diagnostics"
 // profile) chosen from the measured frame time and remembered on the device,
 // a few frames a second while the race is held, rivals merged and drawn as
 // far boats when small on screen, shaders compiled behind the loading screen.
+// Event feedback (M3-5, effects.ts): spray at the player's bow from speed and
+// heel, and a short camera shake on a contact and at the start gun, both off
+// on the "low" profile and with reduced motion.
+// Light by venue (M3-6, src/data/venues/look.ts): sun, sky, fog, water,
+// exposure and warmth come from the venue's look; glow only on glints and
+// foam, built only on "medium" and "high", no bloom pass on any profile.
 // ============================================================================
 
 const GUIDANCE_POINTS = 80;
@@ -309,25 +319,37 @@ function Quality({ onStats, cap, start, onStep, gateRef, heldRef }: {
  * The loop, the clock and the controls run as before, so nothing jumps on
  * resume. While shaders warm up behind the loading screen it draws nothing.
  */
-function GatedRender({ gateRef, heldRef, racingRef, boatsRef, firstFrameRef }: {
+function GatedRender({ gateRef, heldRef, racingRef, boatsRef, firstFrameRef, shakeRef }: {
   gateRef: MutableRefObject<RenderGate>;
   heldRef: MutableRefObject<boolean>;
   racingRef: MutableRefObject<boolean>;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   firstFrameRef: MutableRefObject<number | null>;
+  shakeRef: MutableRefObject<ShakeControl>;
 }) {
   const draw = useMemo(() => createSceneDraw(), []);
   const viewRef = useRef(new Float64Array(VIEW_SIGNATURE_LENGTH));
+  const offset = useMemo(() => new THREE.Vector3(), []);
+  const controls = useThree((state) => state.controls) as OrbitControls | null;
   useFrame((state) => {
     const now = performance.now();
     const { camera, size, viewport } = state;
-    const view = viewRef.current;
-    const p = camera.position, q = camera.quaternion, m = camera.projectionMatrix.elements;
-    view[0] = p.x; view[1] = p.y; view[2] = p.z; view[3] = q.x; view[4] = q.y; view[5] = q.z; view[6] = q.w;
-    view[7] = m[0]; view[8] = m[5]; view[9] = size.width; view[10] = size.height; view[11] = viewport.dpr;
-    const render = draw.frame(gateRef.current, now, racingRef.current, firstFrameRef.current !== null, boatsRef.current, view);
-    heldRef.current = draw.held;
-    if (render) state.gl.render(state.scene, state.camera);
+    // M3-5 shake: an offset added for this drawn frame only and taken back
+    // after it, so the controls, the chase camera and the orbit target never
+    // see it. Scaled by the camera's distance, so every camera shakes alike.
+    const reach = controls ? camera.position.distanceTo(controls.target) : camera.position.length();
+    const shaking = beginShakenFrame(shakeRef.current, state.clock.elapsedTime, reach, camera.position, offset);
+    try {
+      const view = viewRef.current;
+      const p = camera.position, q = camera.quaternion, m = camera.projectionMatrix.elements;
+      view[0] = p.x; view[1] = p.y; view[2] = p.z; view[3] = q.x; view[4] = q.y; view[5] = q.z; view[6] = q.w;
+      view[7] = m[0]; view[8] = m[5]; view[9] = size.width; view[10] = size.height; view[11] = viewport.dpr;
+      const render = draw.frame(gateRef.current, now, racingRef.current, firstFrameRef.current !== null, boatsRef.current, view);
+      heldRef.current = draw.held;
+      if (render) state.gl.render(state.scene, state.camera);
+    } finally {
+      if (shaking) endShakenFrame(camera.position, offset);
+    }
   }, 1);
   return null;
 }
@@ -374,7 +396,7 @@ function GpuFailure({ failed }: { failed: boolean }) {
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -403,6 +425,10 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   /** The physical trial being sailed (ADR-0014), or null for the legacy race.
    * The tactical overlays take their sizes and the course boundary from it. */
   raceProfile?: PhysicalRaceProfile | null;
+  /** M3-5: id of the current contact frame (the race feedback bus); a new id shakes the camera. */
+  contactId?: number | null;
+  /** M3-5: false through the countdown, true from the start gun; the change shakes the camera once. */
+  started?: boolean;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
   const tactics = useMemo(() => raceTacticsModel(raceProfile), [raceProfile]);
@@ -421,6 +447,13 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   const { dpr, profile } = qualityAt(qualityStep, cap);
   const farPxRef = useRef(profile.rivalFarPx);
   useEffect(() => { farPxRef.current = profile.rivalFarPx; }, [profile]);
+  const profileRef = useRef<SceneQuality>(profile);
+  useEffect(() => { profileRef.current = profile; }, [profile]);
+  // M3-5: contact and start gun become a camera shake on the next drawn frame.
+  const reducedMotion = useReducedMotionRef();
+  const [shakeControl] = useState(() => createSceneShake(profileRef, reducedMotion));
+  const shakeRef = useRef<ShakeControl>(shakeControl);
+  useEffect(() => { shakeControl.feed(contactId, started); }, [contactId, started, shakeControl]);
   const gateRef = useRef<RenderGate>(createRenderGate());
   const heldRef = useRef(false);
   useEffect(() => { mountedAt.current = performance.now(); recordSceneLifecycle("scene", "begin"); }, []);
@@ -490,12 +523,13 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           dpr={dpr}
           camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
         >
-          <SailingEnvironment venue={venue} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
+          <SailingEnvironment venue={venue} look={venueLook(venue.id)} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
           <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} />
           {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} model={tactics} />}
           <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} />
           <Suspense fallback={null}>
             <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={showWind} />
+            <BowSpray boatsRef={boatsRef} profileRef={profileRef} />
             {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />)}
             {ghostRef && ghostLabel && <Rival id="ghost" color="#9aa7b4" label={ghostLabel} boatsRef={ghostRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />}
             <WarmShaders gateRef={gateRef}><FirstSceneFrame onReady={ready} /></WarmShaders>
@@ -503,7 +537,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           <SailingCameraRig poseForAspect={cameraPose} revision={cameraRevision} />
           {camera === "stern" && <ChaseCamera boatsRef={boatsRef} revision={cameraRevision} />}
           <Quality key={cap} onStats={onStats} cap={cap} start={qualityStep} onStep={setQualityStep} gateRef={gateRef} heldRef={heldRef} />
-          <GatedRender gateRef={gateRef} heldRef={heldRef} racingRef={racingRef} boatsRef={boatsRef} firstFrameRef={firstFrameRef} />
+          <GatedRender gateRef={gateRef} heldRef={heldRef} racingRef={racingRef} boatsRef={boatsRef} firstFrameRef={firstFrameRef} shakeRef={shakeRef} />
           <PerfJournal boatsRef={boatsRef} racingRef={racingRef} firstFrameRef={firstFrameRef} />
         </Canvas>
         <TacticalScreenLayer arrowRef={arrowRef} hintRef={hintRef} />

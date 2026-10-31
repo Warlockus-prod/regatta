@@ -12,6 +12,7 @@ import {
 } from "three/tsl";
 import { WAVES } from "@/features/simulator-3d/ocean/waves";
 import type { ShoreField } from "./shore";
+import type { SceneColors } from "@/data/venues/look";
 
 // TSL nodes are typed per operator chain; the builders below pass them around loosely.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,6 +33,48 @@ export const PALETTE = {
   zenith: "#2a628c",
   sun: "#fff2d6",
 } as const;
+
+/** The scene colours the trainers draw (no venue look): the race light before M3-6. */
+export const TRAINER_COLORS: SceneColors = {
+  sun: PALETTE.sun, zenith: PALETTE.zenith, horizon: PALETTE.horizon, reflection: PALETTE.horizon, fog: PALETTE.horizon,
+  deep: PALETTE.deep, shallow: PALETTE.shallow, streak: PALETTE.streak, foam: PALETTE.foam,
+  cloud: "#fafcfd", hemiSky: "#d6ecff", hemiGround: "#3a5560",
+};
+
+/** M3-6, art board rule 4: the water is calmer near the camera, so the
+ * player's boat does not drown in glints. Up to NEAR_CALM[0] metres the fine
+ * ripples keep NEAR_RIPPLE of their strength and the swell tilts the normal
+ * NEAR_SWELL as much (the wave heights, so hulls and wakes, stay the same);
+ * beyond NEAR_CALM[1] everything is full. Far water stays alive. */
+export const NEAR_CALM: [number, number] = [8, 30];
+export const NEAR_RIPPLE = 0.35;
+export const NEAR_SWELL = 0.7;
+
+function nearCurve(distance: number, floor: number): number {
+  const t = Math.min(1, Math.max(0, (distance - NEAR_CALM[0]) / (NEAR_CALM[1] - NEAR_CALM[0])));
+  return floor + (1 - floor) * t * t * (3 - 2 * t);
+}
+
+/** Ripple strength (0..1 of full) at `distance` metres from the camera; the shader uses the same curve. */
+export function rippleStrength(distance: number, nearCalm = true): number {
+  return nearCalm ? nearCurve(distance, NEAR_RIPPLE) : 1;
+}
+
+/** Share of the swell's tilt of the water normal at `distance` metres from the camera (the shading, not the height). */
+export function swellShading(distance: number, nearCalm = true): number {
+  return nearCalm ? nearCurve(distance, NEAR_SWELL) : 1;
+}
+
+/** Options of the race look for the water (M3-6). */
+export interface WaterLook {
+  colors?: SceneColors;
+  /** Build the glow on sun glints and beach foam ("medium" and "high", quality.ts); false (the "low"
+   * profile) adds no glow terms at all. Its strength is the `glow` uniform, so a step between
+   * "high" and "medium" changes a value and compiles no new shader. */
+  glow?: boolean;
+  /** Calmer ripples near the camera (NEAR_CALM). */
+  nearCalm?: boolean;
+}
 
 /** Height and slope of the shared wave field at race position `p` (x, z): vec3(h, dh/dx, dh/dz) negated as in waves.ts. */
 function waveField(p: N, t: N): N {
@@ -63,6 +106,8 @@ export interface WaterUniforms {
   /** Wind strength 0..1, scales how busy the streaks are. */
   windiness: { value: number };
   sunDir: { value: THREE.Vector3 };
+  /** Strength of the glow (quality.ts `glow`), read only by materials built with glow. */
+  glow: { value: number };
 }
 
 export function waterUniforms(): WaterUniforms {
@@ -72,6 +117,7 @@ export function waterUniforms(): WaterUniforms {
     flow: uniform(new THREE.Vector2(0, 1)),
     windiness: uniform(0.6),
     sunDir: uniform(new THREE.Vector3(0.6, 0.7, 0.3).normalize()),
+    glow: uniform(0),
   } as unknown as WaterUniforms;
 }
 
@@ -91,8 +137,10 @@ export function shoreTexture(field: ShoreField): THREE.DataTexture {
 }
 
 /** `detail` false (the "low" quality profile, quality.ts) drops the wind streaks and ripples, the costliest noise. */
-export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture; min: { x: number; z: number }; size: { x: number; z: number } }, detail = true): THREE.MeshBasicNodeMaterial {
+export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture; min: { x: number; z: number }; size: { x: number; z: number } }, detail = true,
+  look: WaterLook = {}): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial();
+  const colors = look.colors ?? TRAINER_COLORS;
   const U = u as unknown as Record<keyof WaterUniforms, N>;
   const t = U.time;
 
@@ -117,19 +165,25 @@ export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture;
     : float(0);
   // Fine ripples moving with the wind, a small tilt of the normal.
   const rippleP = race.mul(0.32).sub(flow.mul(t.mul(1.6)));
-  const rx: N = detail ? mx_noise_float(vec3(rippleP, t.mul(0.5))).mul(0.06) : float(0);
-  const rz: N = detail ? mx_noise_float(vec3(rippleP.add(17.3), t.mul(0.5))).mul(0.06) : float(0);
-  const slope = float(1).sub(calm.mul(0.85));
+  // Calmer near the camera (rippleStrength and swellShading on the CPU are the same curves).
+  const near: N = look.nearCalm ? smoothstep(NEAR_CALM[0], NEAR_CALM[1], length(cameraPosition.sub(world))) : null;
+  const ripple: N = near ? mix(float(NEAR_RIPPLE), float(1), near).mul(0.06) : float(0.06);
+  const rx: N = detail ? mx_noise_float(vec3(rippleP, t.mul(0.5))).mul(ripple) : float(0);
+  const rz: N = detail ? mx_noise_float(vec3(rippleP.add(17.3), t.mul(0.5))).mul(ripple) : float(0);
+  const slope: N = near ? float(1).sub(calm.mul(0.85)).mul(mix(float(NEAR_SWELL), float(1), near)) : float(1).sub(calm.mul(0.85));
   const normal = normalize(vec3(wave.y.mul(slope).add(rx), 1, wave.z.mul(slope).add(rz)));
 
   const view = normalize(cameraPosition.sub(world));
   const facing: N = max(dot(normal, view), 0);
   const fresnel: N = pow(float(1).sub(facing), 4).mul(0.85).add(0.04);
   const r = reflect(view.negate(), normal);
-  const horizon = tone(PALETTE.horizon);
-  const zenith = tone(PALETTE.zenith);
+  // The water reflects the sky's horizon toned towards its own depth (look.ts `reflection`), so a
+  // bright horizon does not wash the water out at grazing angles (the stern camera) round the marks.
+  const horizon = tone(colors.reflection);
+  const zenith = tone(colors.zenith);
   const sky = mix(horizon, zenith, pow(max(r.y, 0), 0.5));
-  const glint: N = pow(max(dot(r, U.sunDir), 0), 220).mul(1.6).mul(float(1).sub(calm));
+  const toSun: N = max(dot(r, U.sunDir), 0);
+  const glint: N = pow(toSun, 220).mul(1.6).mul(float(1).sub(calm));
 
   // Shallows and beach foam from the shore field (0 at the beach, 1 at maxDist and beyond).
   const shoreUv = race.sub(vec2(shore.min.x, shore.min.z)).div(vec2(shore.size.x, shore.size.z));
@@ -138,28 +192,40 @@ export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture;
   const surf: N = mx_noise_float(vec3(race.mul(0.12), t.mul(0.35))).mul(0.5).add(0.5);
   const beachFoam: N = smoothstep(0.16, 0.03, toShore).mul(mix(0.45, 1, surf));
 
-  const deep = tone(PALETTE.deep);
-  const shallowC = tone(PALETTE.shallow);
-  const streakC = tone(PALETTE.streak);
+  const deep = tone(colors.deep);
+  const shallowC = tone(colors.shallow);
+  const streakC = tone(colors.streak);
   let col: N = mix(deep, shallowC, shallow.mul(0.85));
   // Troughs a touch darker, crests a touch lighter: the swell reads from above.
   col = col.mul(wave.x.mul(float(1).sub(calm)).mul(0.35).add(1));
   col = mix(col, streakC, streak.mul(0.55));
   col = mix(col, sky, fresnel);
-  col = col.add(tone(PALETTE.sun).mul(glint));
-  col = mix(col, tone(PALETTE.foam), beachFoam);
+  const sunC = tone(colors.sun);
+  const foamC = tone(colors.foam);
+  col = col.add(sunC.mul(glint));
+  col = mix(col, foamC, beachFoam);
+  // M3-6 glow, the cheap replacement for a bloom pass (no extra render pass):
+  // the glints and the beach foam go above white, which the AgX tone mapping
+  // rolls off into a soft bright core, and a wide faint halo rings the sun's
+  // path. Only these two terms glow; on the "low" profile they are not built.
+  if (look.glow) {
+    const g: N = U.glow;
+    const halo: N = pow(toSun, 36).mul(g.mul(0.18)).mul(float(1).sub(calm));
+    col = col.add(sunC.mul(glint.mul(g).add(halo)));
+    col = col.add(foamC.mul(beachFoam.mul(g.mul(0.35))));
+  }
   m.colorNode = col;
   m.fog = true;
   return m;
 }
 
 /** A sky dome: gradient, a warm glow round the sun, a band of haze on the horizon, soft clouds (`clouds` false in the "low" profile). */
-export function skyMaterial(sunDir: THREE.Vector3, time: { value: number }, clouds = true): THREE.MeshBasicNodeMaterial {
+export function skyMaterial(sunDir: THREE.Vector3, time: { value: number }, clouds = true, colors: SceneColors = TRAINER_COLORS): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, fog: false });
   const dir: N = normalize(positionLocal);
   const sun = vec3(sunDir.x, sunDir.y, sunDir.z);
-  const horizon = tone(PALETTE.horizon);
-  const zenith = tone(PALETTE.zenith);
+  const horizon = tone(colors.horizon);
+  const zenith = tone(colors.zenith);
   let sky: N = mix(horizon, zenith, pow(max(dir.y, 0), 0.45));
   sky = sky.add(vec3(0.1, 0.1, 0.08).mul(exp(abs(dir.y).mul(-16))));
   const facing: N = max(dot(dir, sun), 0);
@@ -168,15 +234,16 @@ export function skyMaterial(sunDir: THREE.Vector3, time: { value: number }, clou
   if (clouds) {
     const layer = dir.xz.div(dir.y.add(0.12)).mul(1.4).add(vec2((time as unknown as N).mul(0.004), 0));
     const cloud = smoothstep(0.05, 0.45, mx_fractal_noise_float(vec3(layer, 0.5), 3, 2.0, 0.5, 1.0));
-    sky = mix(sky, vec3(0.96, 0.97, 0.98), cloud.mul(smoothstep(0.03, 0.25, dir.y)).mul(0.75));
+    sky = mix(sky, tone(colors.cloud), cloud.mul(smoothstep(0.03, 0.25, dir.y)).mul(0.75));
   }
   const disc = smoothstep(0.9993, 0.9997, facing);
   m.colorNode = mix(sky, vec3(1.0, 0.95, 0.82), disc);
   return m;
 }
 
-/** The wake: white edges of the V and churned foam near the stern, breaking up and fading with age. */
-export function wakeMaterial(travel: { value: THREE.Vector2 }): THREE.MeshBasicNodeMaterial {
+/** The wake: white edges of the V and churned foam near the stern, breaking up and fading with age.
+ * `glow` (the shared uniform, see waterUniforms) builds the glow term; without it there is none. */
+export function wakeMaterial(travel: { value: THREE.Vector2 }, colors: SceneColors = TRAINER_COLORS, glow?: { value: number }): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
   const T = travel as unknown as N;
   const across: N = abs(uv().x.sub(0.5)).mul(2);
@@ -186,7 +253,8 @@ export function wakeMaterial(travel: { value: THREE.Vector2 }): THREE.MeshBasicN
   const race = (positionWorld as N).xz.add(T);
   const breakup: N = mx_noise_float(vec3(race.mul(0.3), 0.0)).mul(0.5).add(0.5);
   const alpha: N = edge.mul(0.62).add(core.mul(0.85)).mul(pow(float(1).sub(age), 1.6)).mul(mix(0.3, 1.0, breakup));
-  m.colorNode = tone(PALETTE.foam);
+  // M3-6 glow: the white wake edges and stern foam a little above white (see waterMaterial).
+  m.colorNode = glow ? tone(colors.foam).mul(float(1).add((glow as unknown as N).mul(0.3))) : tone(colors.foam);
   m.opacityNode = alpha;
   m.fog = true;
   return m;
