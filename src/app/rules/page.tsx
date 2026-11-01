@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { RaceReturn } from '@/components/RaceReturn';
+import { ruleFromSearch } from './rule-from-search';
 import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
 import { useI18n } from '@/lib/i18n';
@@ -167,6 +169,16 @@ const SVG_MAP: Record<RuleScenario['svg'], () => React.ReactElement> = {
 export default function RulesPage() {
   const { lang, tp } = useI18n();
   const [openId, setOpenId] = useState<string | null>(ruleScenarios[0].id);
+  const [linkedId, setLinkedId] = useState<string | null>(null);
+  // M4-2: the race debrief links one card (?rule=<id>); open it and bring it
+  // into view after mount, so the server render stays the default.
+  useEffect(() => {
+    const id = ruleFromSearch(window.location.search);
+    if (!id) return;
+    setOpenId(id);
+    setLinkedId(id);
+    requestAnimationFrame(() => document.getElementById(`rule-${id}`)?.scrollIntoView({ block: 'start' }));
+  }, []);
 
   // Pick field per lang. EN stays as the international subtitle.
   const pickTitle = (r: RuleScenario) => legacyPick(r, 'title', lang);
@@ -178,6 +190,7 @@ export default function RulesPage() {
 
   return (
     <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <RaceReturn />
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
@@ -240,7 +253,8 @@ export default function RulesPage() {
           return (
             <div
               key={r.id}
-              className="card overflow-hidden transition-all"
+              id={`rule-${r.id}`}
+              className="card overflow-hidden transition-all scroll-mt-20"
               style={{ borderColor: isOpen ? 'rgba(255, 170, 0, 0.3)' : undefined }}
             >
               <button
@@ -324,6 +338,8 @@ export default function RulesPage() {
                       </div>
                     </details>
                     )}
+                    {/* M4-2: the card a race debrief opened offers the way back right here. */}
+                    {linkedId === r.id && <RaceReturn />}
                   </div>
                 </div>
               )}
@@ -373,7 +389,8 @@ export default function RulesPage() {
           return (
             <div
               key={r.id}
-              className="card overflow-hidden transition-all"
+              id={`rule-${r.id}`}
+              className="card overflow-hidden transition-all scroll-mt-20"
               style={{ borderColor: isOpen ? 'rgba(0, 212, 255, 0.3)' : undefined }}
             >
               <button

@@ -200,8 +200,10 @@ describe("solo race screens", () => {
     expect(unknown).toContain("Keep the sails full: if the boat slows, bear away until it picks up speed, then head for the next mark.");
   });
 
-  it("the M4 slots render nothing today, and the finish plate states the place without cyan (M1-4)", () => {
-    for (const Slot of [RaceFinishWatchSlot, RaceFinishPractiseSlot]) expect(renderToStaticMarkup(<Slot />)).toBe("");
+  it("the empty M4 slots render nothing, and the finish plate states the place without cyan (M1-4)", () => {
+    expect(renderToStaticMarkup(<RaceFinishWatchSlot />)).toBe("");
+    // M4-2: "Practise" stays empty without a main mistake that has a practice.
+    expect(renderToStaticMarkup(<RaceFinishPractiseSlot target={null} ret={null} native={false} />)).toBe("");
     const plate = renderToStaticMarkup(<RaceFinishPlate place={2} total={6} />);
     expect(plate).toContain('data-testid="race-finish-plate"');
     expect(plate).toContain('role="status"');

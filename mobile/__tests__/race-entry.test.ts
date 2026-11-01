@@ -38,5 +38,16 @@ it("preserves only the eight real lesson return IDs and keeps history and replay
     expect(raceEntryQuery({ fromLesson: id }, "pro")).not.toHaveProperty("fromLesson");
     expect(raceNativeDestination("/race", id)).toBe("/race");
   }
-  expect(raceNativeDestination("/bootcamp/mini-race", "mini-race")).toBeNull();
+  // M4-2: a lesson the finish screen links (practice or next lesson) is a known destination now.
+  expect(raceNativeDestination("/bootcamp/mini-race", "mini-race")).toBe("/bootcamp/mini-race");
+});
+
+it("opens only the shared debrief practices, the next lesson and the sails course from the finish screen (M4-2)", () => {
+  expect(raceNativeDestination("/rules/start-line")).toBe("/rules/start-line");
+  expect(raceNativeDestination("/rules/port-vs-starboard", "mini-race")).toBe("/rules/port-vs-starboard");
+  expect(raceNativeDestination("/bootcamp/wind-direction")).toBe("/bootcamp/wind-direction");
+  expect(raceNativeDestination("/learn/sails", "mini-race")).toBe("/learn/sails");
+  for (const href of ["/rules/no-such-card", "/rules/colregs-fishing", "/bootcamp/unknown", "/learn/sails/../settings", "/simulator-v3?drill=noGo", "/simulator?drill=noGoRecovery"]) {
+    expect(raceNativeDestination(href)).toBeNull();
+  }
 });

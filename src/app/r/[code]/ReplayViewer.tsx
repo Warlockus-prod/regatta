@@ -16,7 +16,6 @@ export default function ReplayViewer() {
   const code = typeof rawCode === "string" ? rawCode.toUpperCase() : "";
   const [data, setData] = useState<SharedReplay | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [speed, setSpeed] = useState(1);
   useEffect(() => {
     let cancelled = false;
     if (!code) return;
@@ -46,13 +45,11 @@ export default function ReplayViewer() {
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--text-muted)]">
         <span>{date} · {data.metadata.mode === "pro" ? "Pro" : tp("Обычный", "Simple", "Prosty", { es: "Sencillo", fr: "Simple", de: "Einfach", it: "Semplice" })}</span>
         {result !== null && <span>{tp("Результат", "Result", "Wynik", { es: "Resultado", fr: "Résultat", de: "Ergebnis", it: "Risultato" })} {formatTime(result)}{data.metadata.penaltySeconds ? ` (+${data.metadata.penaltySeconds} s)` : ""}</span>}
-        <div className="flex items-center gap-1" role="group" aria-label={tp("Скорость повтора", "Playback speed", "Prędkość odtwarzania", { es: "Velocidad de reproducción", fr: "Vitesse de lecture", de: "Wiedergabegeschwindigkeit", it: "Velocità di riproduzione" })}>
-          {[.5, 1, 2, 4].map(rate => <button type="button" key={rate} aria-pressed={speed === rate} onClick={() => setSpeed(rate)} className="min-h-11 min-w-11 rounded px-1" style={{ color: speed === rate ? "var(--accent-cyan)" : undefined }}>{rate}×</button>)}
-        </div>
       </div>
     </div>
     <div className="relative min-h-0 flex-1" data-testid="shared-replay-3d">
-      <RaceReplay key={data.code} samples={data.samples} course={data.course} playbackRate={speed} onClose={() => router.push("/game")} />
+      {/* M4-3: the replay owns its speeds (0.5x-4x) and the event ribbon from the shared log. */}
+      <RaceReplay key={data.code} samples={data.samples} course={data.course} events={data.events} onClose={() => router.push("/game")} />
     </div>
   </div>;
 }

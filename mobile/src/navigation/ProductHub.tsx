@@ -16,6 +16,10 @@ import { passedLessonIds } from "../bootcamp/status";
 import { bootcampLessons } from "../data";
 import { VenuePicker } from "../game/VenuePicker";
 import { RaceSetupPanel } from "./RaceSetupPanel";
+import { RaceHubMedal, hubMedalCourse } from "./RaceHubMedal";
+import { RaceHubNextStep, useRaceHubRows } from "./RaceHubNextStep";
+import { raceHomeView } from "../../../src/lib/race-next-step";
+import { useVenue } from "../persistence/venue";
 import { DEFAULT_HUB_SETUP, hubRaceHref, hubSetupCopy, type HubRaceSetup } from "./race-setup";
 
 const racePhoto = require("../../assets/design/race-card.jpg");
@@ -43,6 +47,10 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
   const startRace = () => router.push(hubRaceHref(raceSetup) as Href);
   const startLabel = raceSetup.preset === "learn" ? hubSetupCopy.startFirst[lang] : raceSetup.preset === "mission" ? hubSetupCopy.startMission[lang] : hubSetupCopy.start[lang];
   const daily = dailySettings(new Date().toISOString().slice(0, 10));
+  // M4-6: the one next-step card of the Race hub, the record and the progress.
+  const { mode } = useVenue();
+  const rows = useRaceHubRows(section === "race");
+  const home = section === "race" ? raceHomeView({ ...rows, course: hubMedalCourse(raceSetup), mode, now: new Date(), inDaily: false }) : null;
   const isMenu = section === "library";
   const current = sections.find(s => s.id === section)!;
   const title = isMenu ? copy.menu[lang] : current.title[lang];
@@ -68,8 +76,10 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
+      {home && <RaceHubNextStep view={home} setup={raceSetup} onOpen={href => router.push(href as Href)} />}
       {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={startRace} />}
       {section === "race" && <RaceSetupPanel value={raceSetup} onChange={setRaceSetup} />}
+      {section === "race" && home?.step?.kind !== "medal" && <RaceHubMedal setup={raceSetup} />}
       {section === "race" && <VenuePicker />}
       {section === "race" && <Button size="large" onPress={startRace}>{startLabel}</Button>}
       {isMenu && <View style={styles.search}>
@@ -87,7 +97,7 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       </Group>)}
       {isMenu && !query.trim() && <MyProgress />}
       {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
-      {section === "race" && <Group title="">
+      {section === "race" && home?.step?.kind !== "daily" && <Group title="">
         <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />
       </Group>}
     </ScrollView>

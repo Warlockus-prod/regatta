@@ -122,3 +122,30 @@ describe('POST /api/coach - hostile input', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+// M4-2: every coach mistake may name its kind, so the finish screen links it
+// to one practice (src/data/race-practice.ts). The answer keeps only a known kind.
+describe('POST /api/coach - mistake kind', () => {
+  const body = (lang: string) => ({ lang, courseInfo: { windDirection: 0, windwardMark: { x: 0, y: -500 }, startY: 0 },
+    samples: [{ t: 0, x: 0, y: 0, heading: 0, twa: 45, speed: 5, lap: 0 }], events: [] });
+
+  it('asks for the kind in every language', async () => {
+    for (const lang of ['ru', 'en', 'pl', 'es', 'fr', 'de', 'it']) {
+      fetchMock.mockClear();
+      __resetRateLimitsForTests();
+      await POST(makeReq(body(lang)));
+      const system = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string).messages[0].content as string;
+      expect(system, lang).toContain('"kind": "no-go" | "tacks" | "close-hauled" | "other"');
+    }
+  });
+
+  it('keeps a known kind and drops an unknown one', async () => {
+    const m = { timeStart: 1, timeEnd: 2, severity: 'minor', titleRu: 't', explanationRu: 'e', fixRu: 'f' };
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ usage: {}, choices: [{ message: { content: JSON.stringify({
+      overall: 'ok', score: 50, strengths: [], nextGoalRu: 'x', mistakes: [{ ...m, kind: 'no-go' }, { ...m, kind: 'other' }, { ...m, kind: 'javascript:alert(1)' }],
+    }) } }] }) });
+    const res = await POST(makeReq(body('en')));
+    const data = await res.json();
+    expect(data.coaching.mistakes.map((x: { kind?: string }) => x.kind)).toEqual(['no-go', undefined, undefined]);
+  });
+});

@@ -1,13 +1,17 @@
 // Texts of the race events the HUD shows for a moment (game audit F2): the
-// cost of a tack or gybe, the split at the windward mark, an overtake.
+// cost of a tack or gybe, the split at the windward mark, an overtake, and
+// (M4-4) the split against your best race at the mark.
 
 import type { Lang as Language } from "@/lib/languages";
+import type { SplitVerdict } from "@/lib/race-ghost-splits";
+import { ghostSplitToast } from "@/data/race-ghost-copy";
 import { gapText, knotsText } from "./units";
 
 export type RaceEvent =
   | { kind: "tack" | "gybe"; lossKn: number }
   | { kind: "mark"; place: number; gapSec: number }
-  | { kind: "gained" | "lost"; place: number };
+  | { kind: "gained" | "lost"; place: number }
+  | { kind: "split"; deltaSec: number; verdict: SplitVerdict };
 
 /** "2nd", "2-й", "2." ... as each language writes a place. */
 export function ordinal(lang: Language, n: number): string {
@@ -45,5 +49,7 @@ export function eventText(lang: Language, e: RaceEvent): string {
     case "gained":
     case "lost":
       return `${T[e.kind][lang]} ${ordinal(lang, e.place)}`;
+    case "split":
+      return ghostSplitToast(lang, e);
   }
 }

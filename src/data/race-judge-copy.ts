@@ -1,10 +1,12 @@
-import type { Lang } from "@/lib/languages";
-import type { RaceJudgeIncidentKind, RaceJudgeLesson, RaceJudgeNotCovered, RaceJudgePenalty, RaceJudgePhase, RaceJudgePhaseNote, RaceJudgeRightOfWay } from "@/lib/race-judge";
+import type { RaceJudgeLesson, RaceJudgeNotCovered, RaceJudgePenalty, RaceJudgePhase, RaceJudgePhaseNote, RaceJudgeRightOfWay } from "@/lib/race-judge";
+import { raceJudgeJostleLabel, raceJudgeKindLabels, type JudgeText } from "./race-judge-labels";
 
 /** Seven-language copy of the training judge debrief (src/lib/race-judge.ts).
  * Terms follow scripts/sailing-glossary.md. Templates use {s} for seconds,
- * {n} for a count, {rule} for a rule number and {boat} for a boat name. */
-export type JudgeText = Record<Lang, string>;
+ * {n} for a count, {rule} for a rule number and {boat} for a boat name. The
+ * item names (`kind`) and the start crowd label (`jostle`) live in
+ * race-judge-labels.ts, so the replay ribbon can read them alone. */
+export type { JudgeText } from "./race-judge-labels";
 const w = (ru: string, en: string, pl: string, es: string, fr: string, de: string, it: string): JudgeText => ({ ru, en, pl, es, fr, de, it });
 
 export const raceJudgeCopy = {
@@ -77,15 +79,7 @@ export const raceJudgeCopy = {
       "il giro della boa di bolina non è registrato",
     ),
   } satisfies Record<RaceJudgePhaseNote, JudgeText>,
-  kind: {
-    "early-start": w("Ранний старт", "Early start", "Falstart", "Salida anticipada", "Départ prématuré", "Frühstart", "Partenza anticipata"),
-    "start-clear": w("Чистый старт", "Clean start", "Czysty start", "Salida limpia", "Départ propre", "Sauberer Start", "Partenza pulita"),
-    "give-way": w("Нужно было уступить", "You had to keep clear", "Trzeba było ustąpić drogi", "Debías mantenerte separado", "Tu devais te maintenir à l'écart", "Du musstest dich freihalten", "Dovevi tenerti discosto"),
-    "avoid-contact": w("Опасное сближение", "Close approach", "Niebezpieczne zbliżenie", "Aproximación peligrosa", "Rapprochement dangereux", "Gefährliche Annäherung", "Avvicinamento pericoloso"),
-    contact: w("Столкновение", "Contact", "Kontakt", "Contacto", "Contact", "Kontakt", "Contatto"),
-    "mark-touch": w("Касание знака", "Mark touched", "Dotknięcie znaku", "Baliza tocada", "Bouée touchée", "Bahnmarke berührt", "Boa toccata"),
-    "wrong-rounding": w("Знак пройден неверно", "Wrong rounding", "Błędne okrążenie znaku", "Paso incorrecto de la baliza", "Bouée mal contournée", "Bahnmarke falsch gerundet", "Boa girata in modo errato"),
-  } satisfies Record<RaceJudgeIncidentKind, JudgeText>,
+  kind: raceJudgeKindLabels,
   rightOfWay: {
     you: w("Право дороги: у тебя", "Right of way: you", "Prawo drogi: ty", "Derecho de paso: tú", "Priorité : toi", "Wegerecht: du", "Diritto di rotta: tu"),
     other: w("Право дороги: у другой лодки", "Right of way: the other boat", "Prawo drogi: druga łódź", "Derecho de paso: el otro barco", "Priorité : l'autre bateau", "Wegerecht: das andere Boot", "Diritto di rotta: l'altra barca"),
@@ -194,7 +188,7 @@ export const raceJudgeCopy = {
       "Subito dopo il segnale tutta la flotta lascia la linea insieme e le barche si avvicinano. Senza penalità il giudice non lo valuta.",
     ),
   } satisfies Record<RaceJudgeLesson, JudgeText>,
-  jostle: w("Толкотня на старте", "Crowd at the start", "Tłok na starcie", "Aglomeración en la salida", "Bousculade au départ", "Gedränge am Start", "Ressa alla partenza"),
+  jostle: raceJudgeJostleLabel,
   notCovered: {
     "mark-room": w(
       "Место у знака (правило 18): нужна история перекрытий и входа в зону, здесь не судится.",

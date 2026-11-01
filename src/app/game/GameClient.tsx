@@ -24,6 +24,7 @@ import type { RaceSceneStats } from '@/features/race-scene/RaceScene';
 import { type StandingRow } from '@/features/race-hud/RaceHud';
 import { raceEventSource, type FeedbackTone } from '@/features/race-hud/feedback';
 import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
+import { useFirstRaceHints } from '@/features/race-hud/useFirstRaceHints';
 import { polarFor, targetSpeed } from '@/features/race-hud/target';
 import { measureRaceSkills, raceSkillBars } from '@/lib/race-skill-metrics';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
@@ -47,6 +48,7 @@ import { useRaceHaptics } from "@/features/race-hud/RaceHapticsToggle";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
+import { raceReturnFor } from "@/lib/race-return";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
 import { createRaceSoundscape } from "@/lib/race-soundscape-audio";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
@@ -65,6 +67,8 @@ import { legacyRaceSpawns } from "@/lib/race-spawn";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { readPhysicalTrial } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, readGhostStore, type GhostTrack } from "@/lib/race-ghost";
+import type { MedalAward } from "@/lib/race-medals";
+import type { GhostSplit } from "@/lib/race-ghost-splits";
 import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, raceLogTally, recordSample, formatTime,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow } from "./race-model";
 import { useRaceLoop } from "./useRaceLoop";
@@ -81,6 +85,10 @@ import type { RaceSetupRecord, RaceSetupSource, RaceTally } from "./race-diagnos
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
 
 const noSubscribe = () => () => {};
+
+/** M4-3: how the replay opens (openReplay in GamePage). */
+interface ReplayOpen { at: number | null; autoplay: boolean }
+const REPLAY_PAUSED_AT_START: ReplayOpen = { at: null, autoplay: false };
 
 // ============================================================================
 // GAME COMPONENT
@@ -242,6 +250,13 @@ export default function GamePage() {
   const [judgeDebrief, setJudgeDebrief] = useState<RaceJudgeDebrief | null>(null);
   const ghostBoatsRef = useRef<RaceBoat[]>([]);
   const [ghostTime, setGhostTime] = useState<number | null>(null);
+  // M4-4: splits against that ghost at the mark and the finish, for the results.
+  const [ghostSplits, setGhostSplits] = useState<GhostSplit[]>([]);
+  // M4-5: the course medal of this race (race-medals.ts) and whether route or
+  // trim hints were on at any moment of the countdown or the race, paused
+  // included (set by the loop, reset per race in initRace).
+  const [medalAward, setMedalAward] = useState<MedalAward | null>(null);
+  const raceHintsRef = useRef(false);
   const fleetRef = useRef<PhysicalFleetModule | null>(null);
   useEffect(() => {
     const profile = readPhysicalTrial(window.location.search);
@@ -287,6 +302,8 @@ export default function GamePage() {
   const showNotice = useCallback((text: string, source: "rule" | "missed-mark", tone: FeedbackTone) => {
     postFeedback({ source, text, tone });
   }, [postFeedback]);
+  // M4-7: first race hints in the moment, once per device, on the same bus.
+  const { hintsRef: firstHintsRef, showHint, reload: reloadFirstHints, showAgain: showHintsAgain } = useFirstRaceHints(postFeedback, feedback.visible, langRef, paused);
 
   // AI coaching state
   const [coachingSource, setCoachingSource] = useState<"local" | "ai">("local");
@@ -303,6 +320,16 @@ export default function GamePage() {
   const [saveState, setSaveState] = useState<LeaderboardSaveState>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
   const saveAttemptedRef = useRef(false);
+
+  // M4-3: how the replay opens. From the results it plays on open, from a
+  // judge item or a coach mistake at that moment (5 s before it); the native
+  // history replay opens paused at the start (the initial value).
+  const [replayOpen, setReplayOpen] = useState<ReplayOpen>(REPLAY_PAUSED_AT_START);
+  const openReplay = (at: number | null) => {
+    trackRaceReplay('result', raceIdRef.current);
+    setReplayOpen({ at, autoplay: true });
+    setGameState('replay');
+  };
 
   // Shareable replay code
   const [replayCode, setReplayCode] = useState<string | null>(null);
@@ -529,6 +556,7 @@ export default function GamePage() {
   // -----------------------------------------------------------------------
   const initRace = useCallback((diff: Difficulty) => {
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "init" });
+    reloadFirstHints();
     setLockedMode(null);
     keysRef.current.clear();
     const cfg = DIFFICULTY_CONFIG[diff];
@@ -540,9 +568,10 @@ export default function GamePage() {
     const legacy = spawns ? null : legacyRaceSpawns(course, cfg.opponents);
     const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
     physicalNavRef.current = undefined;
-    ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null);
+    ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null); setGhostSplits([]);
     ruleEventsRef.current = []; startedAtRef.current = undefined; setJudgeDebrief(null);
     raceTallyRef.current = { missedMarkNotices: 0, contacts: 0 };
+    raceHintsRef.current = false; setMedalAward(null);
 
     // Player in the middle
     boats.push({
@@ -603,7 +632,7 @@ export default function GamePage() {
     lastSampleTimeRef.current = 0;
     wasInNoGoRef.current = false;
     lastTackSignRef.current = 0;
-  }, [clearFeedback]);
+  }, [clearFeedback, reloadFirstHints]);
 
   // -----------------------------------------------------------------------
   // Start race flow
@@ -650,8 +679,9 @@ export default function GamePage() {
     setLockedMode(racePrefs.mode);
     raceSetupRef.current = { ...raceSetupRef.current,
       race: physicalRef.current ? "trial" : selectedMission ? "mission" : dailyDay !== null ? "daily" : "free" };
-    // Web only for now: the native WebView keeps no durable localStorage.
-    const ghost = physicalRef.current || isNativeRace() ? null : readGhostStore(localStore())[ghostClassKey({
+    // M4-4: in the iOS app too; its race bridge injects the native ghost row
+    // into this page's localStorage before it loads (race-web-storage.ts).
+    const ghost = physicalRef.current ? null : readGhostStore(localStore())[ghostClassKey({
       raceContext: LEGACY_RACE_CONTEXT, mode: racePrefs.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null })] ?? null;
     ghostTrackRef.current = ghost;
     ghostBoatsRef.current = ghost ? [{ id: "ghost", name: "", color: "#9aa7b4", ...ghostPose(ghost, 0) }] : [];
@@ -774,15 +804,15 @@ export default function GamePage() {
   // The soundscape plays only while the boat is raced: silent on pause, at the
   // end of the finish hold (results), in the replay, when muted and on unmount.
   useRaceSoundscapeLifecycle(soundscape, gameState, paused, raceSoundOn);
-  useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall,
+  useRaceLoop({ gameState, difficulty, windStrength, selectedMission, dailyDay, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall, showHint,
     refs: { boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
       racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
       startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
       wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
-      pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef, raceSetupRef, raceTallyRef },
+      pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef, raceSetupRef, raceTallyRef, raceHintsRef, firstHintsRef },
     set: { setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
       setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setNativeSave,
-      setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed } });
+      setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed, setGhostSplits, setMedalAward } });
 
   // -----------------------------------------------------------------------
   // Reset
@@ -894,6 +924,9 @@ export default function GamePage() {
       course: { windwardMark: course.marks[0].pos, startLine: course.startLine }, targetKn: (twa) => targetSpeed(polar, twa),
       startedAt: startedAtRef.current ?? null }));
   }, [gameState, physicalTrial, results, windStrengthMul]);
+  // M4-5: the medal course of the setup (class, level, wind); none for the physical trial.
+  const medalCourse = useMemo(() => physicalTrial ? null : { raceContext: LEGACY_RACE_CONTEXT, difficulty, windStrength },
+    [physicalTrial, difficulty, windStrength]);
 
   // M1-2 game layer (owner decision C1): countdown, race and replay hide the
   // site header and take the whole viewport. Menu, briefing and results stay
@@ -981,7 +1014,7 @@ export default function GamePage() {
           onShowBriefing={() => startRace("info")}
           dailyDay={dailyDay}
           racePrefs={racePrefs} updateRacePrefs={updateRacePrefs}
-          native={nativeRace}
+          native={nativeRace} medalCourse={medalCourse}
         />
       </div>
     );
@@ -1024,7 +1057,7 @@ export default function GamePage() {
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance}
           feedback={{ toasts: feedback.visible, contact: feedback.contact }} targetSpeed={raceTarget}
           camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu} onExitPrompt={exitPrompt}
-          onRestart={() => startRace("restart")} raceId={sceneRaceId} fullscreenOffer={!embed}
+          onRestart={() => startRace("restart")} onShowHintsAgain={showHintsAgain} raceId={sceneRaceId} fullscreenOffer={!embed}
           raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
           haptics={raceHaptics.available ? { on: raceHaptics.on, setOn: raceHaptics.setOn } : undefined}
           autopilot={autopilotOn} onAutopilot={() => {
@@ -1047,7 +1080,8 @@ export default function GamePage() {
 
       {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (
-        <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef} playerLapDone={hudPlayer?.lapDone} skillBars={skillBars}
+        <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef} playerLapDone={hudPlayer?.lapDone} skillBars={skillBars} ghostSplits={ghostSplits}
+          medal={medalCourse && { award: medalAward, course: medalCourse, mode: lockedMode ?? racePrefs.mode, hintsUsed: raceHintsRef.current }}
           nativeRace={nativeRace} nativeSave={nativeSave} retryNativeSave={retryNativeSave} nativeBestSave={nativeBestSave}
           sceneRaceId={sceneRaceId} requestNativeBest={requestNativeBest} results={results} isNewRecord={isNewRecord}
           bestRecord={bestRecord} missionResult={missionResult} coachingSource={coachingSource} coaching={coaching}
@@ -1055,10 +1089,14 @@ export default function GamePage() {
           saveError={saveError} saveResult={saveResult} nicknameInput={nicknameInput} setNicknameInput={setNicknameInput}
           replayCode={replayCode} nickname={nickname} difficulty={difficulty} windStrength={windStrength}
           selectedMission={selectedMission} replayDisabled={logSamplesRef.current.length < 5}
-          onMenu={backToMenu} onReplay={() => { trackRaceReplay('result', raceIdRef.current); setGameState('replay'); }} onAgain={() => startRace("again")} />
+          onMenu={backToMenu} onReplay={() => openReplay(null)} onWatch={logSamplesRef.current.length < 5 ? undefined : openReplay} onAgain={() => startRace("again")}
+          // M4-2: a physical trial is never a return target: its links would lead
+          // to an ordinary, recorded race (PHYSICAL_RACE_EMISSION_ENABLED).
+          practiceReturn={physicalTrial ? null : raceReturnFor({ difficulty, windStrength, missionId: selectedMission?.id, dailyDay, fromLesson: readRaceSearch().get("fromLesson") })} />
       )}
 
-      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current} onClose={() => {
+      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current}
+        autoplay={replayOpen.autoplay} startAt={replayOpen.at} events={logEventsRef.current} judgeItems={judgeDebrief?.items} onClose={() => {
         if (!nativeReplayHydrated.current) setGameState("finished");
         else if (!navigateNativeRace("/history")) backToMenu();
       }} />}

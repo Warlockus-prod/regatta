@@ -38,6 +38,7 @@ const SYSTEM_BY_LANG: Record<CoachLang, string> = {
       "timeStart": число (секунды от старта),
       "timeEnd": число,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Короткое название ошибки (3-6 слов)",
       "explanationRu": "Что пошло не так и почему (2-3 предложения)",
       "fixRu": "Как нужно было сделать (1-2 предложения)"
@@ -49,6 +50,7 @@ const SYSTEM_BY_LANG: Record<CoachLang, string> = {
 
 Правила:
 - mistakes: максимум 3 самых важных
+- kind: "no-go" для мёртвой зоны, "tacks" для поворотов, "close-hauled" для скорости в бейдевинде, иначе "other"
 - Говори конкретно, с цифрами из лога (углы, время, расстояния)
 - Русский язык, дружелюбный но профессиональный тон
 - Если игрок играл хорошо - скажи об этом прямо, не выдумывай ошибки
@@ -67,6 +69,7 @@ Your job: analyse the race and give concrete advice. Respond ONLY with valid JSO
       "timeStart": number (seconds from start),
       "timeEnd": number,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Short name of mistake (3-6 words, in English)",
       "explanationRu": "What went wrong and why (2-3 sentences, in English)",
       "fixRu": "What should have been done (1-2 sentences, in English)"
@@ -80,6 +83,7 @@ Your job: analyse the race and give concrete advice. Respond ONLY with valid JSO
 
 Rules:
 - mistakes: at most 3 most important
+- kind: "no-go" for the no-go zone, "tacks" for tacks, "close-hauled" for close-hauled speed, otherwise "other"
 - Be concrete, with numbers from the log (angles, times, distances)
 - Friendly but professional tone
 - If the player sailed well - say it directly, don't invent mistakes
@@ -98,6 +102,7 @@ Twoje zadanie: przeanalizuj regaty i daj konkretne rady. Odpowiadaj WYLACZNIE po
       "timeStart": liczba (sekundy od startu),
       "timeEnd": liczba,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Krotka nazwa bledu (3-6 slow, po polsku)",
       "explanationRu": "Co poszlo nie tak i dlaczego (2-3 zdania, po polsku)",
       "fixRu": "Jak nalezalo zrobic (1-2 zdania, po polsku)"
@@ -111,6 +116,7 @@ Twoje zadanie: przeanalizuj regaty i daj konkretne rady. Odpowiadaj WYLACZNIE po
 
 Zasady:
 - mistakes: maksymalnie 3 najwazniejsze
+- kind: "no-go" dla kąta martwego, "tacks" dla zwrotów, "close-hauled" dla prędkości na bajdewindzie, w innym razie "other"
 - Mow konkretnie, z liczbami z logu (katy, czasy, odleglosci)
 - Ton przyjazny ale profesjonalny
 - Jesli gracz plynal dobrze - powiedz to wprost, nie wymyslaj bledow
@@ -129,6 +135,7 @@ Tu tarea: analizar la regata y dar consejos concretos. Responde SOLO con JSON va
       "timeStart": numero (segundos desde la salida),
       "timeEnd": numero,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Nombre breve del error (3-6 palabras, en espanol)",
       "explanationRu": "Que salio mal y por que (2-3 frases, en espanol)",
       "fixRu": "Como deberia haberse hecho (1-2 frases, en espanol)"
@@ -142,6 +149,7 @@ Tu tarea: analizar la regata y dar consejos concretos. Responde SOLO con JSON va
 
 Reglas:
 - mistakes: maximo 3, los mas importantes
+- kind: "no-go" para la zona muerta, "tacks" para las viradas, "close-hauled" para la velocidad en ceñida, si no "other"
 - Se concreto, con numeros del log (angulos, tiempos, distancias)
 - Tono amistoso pero profesional
 - Si el jugador navego bien, dilo directamente, no inventes errores
@@ -160,6 +168,7 @@ Ta tache : analyser la regate et donner des conseils concrets. Reponds UNIQUEMEN
       "timeStart": nombre (secondes depuis le depart),
       "timeEnd": nombre,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Nom court de l'erreur (3-6 mots, en francais)",
       "explanationRu": "Ce qui n'a pas marche et pourquoi (2-3 phrases, en francais)",
       "fixRu": "Ce qu'il aurait fallu faire (1-2 phrases, en francais)"
@@ -173,6 +182,7 @@ Ta tache : analyser la regate et donner des conseils concrets. Reponds UNIQUEMEN
 
 Regles :
 - mistakes : 3 maximum, les plus importants
+- kind : "no-go" pour la zone morte, "tacks" pour les virements de bord, "close-hauled" pour la vitesse au près, sinon "other"
 - Sois concret, avec les chiffres du log (angles, temps, distances)
 - Ton amical mais professionnel
 - Si le joueur a bien navigue, dis-le directement, n'invente pas d'erreurs
@@ -191,6 +201,7 @@ Deine Aufgabe: die Regatta analysieren und konkrete Ratschlaege geben. Antworte 
       "timeStart": Zahl (Sekunden ab Start),
       "timeEnd": Zahl,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Kurzer Name des Fehlers (3-6 Worte, auf Deutsch)",
       "explanationRu": "Was schiefging und warum (2-3 Saetze, auf Deutsch)",
       "fixRu": "Wie man es haette machen sollen (1-2 Saetze, auf Deutsch)"
@@ -204,6 +215,7 @@ Deine Aufgabe: die Regatta analysieren und konkrete Ratschlaege geben. Antworte 
 
 Regeln:
 - mistakes: maximal 3, die wichtigsten
+- kind: "no-go" für die Totzone, "tacks" für Wenden, "close-hauled" für die Fahrt hoch am Wind, sonst "other"
 - Sei konkret, mit Zahlen aus dem Log (Winkel, Zeiten, Entfernungen)
 - Freundlicher, aber professioneller Ton
 - Wenn der Spieler gut gesegelt ist, sag das direkt, erfinde keine Fehler
@@ -222,6 +234,7 @@ Il tuo compito: analizzare la regata e dare consigli concreti. Rispondi SOLO con
       "timeStart": numero (secondi dalla partenza),
       "timeEnd": numero,
       "severity": "minor" | "major",
+      "kind": "no-go" | "tacks" | "close-hauled" | "other",
       "titleRu": "Nome breve dell'errore (3-6 parole, in italiano)",
       "explanationRu": "Cosa e andato storto e perche (2-3 frasi, in italiano)",
       "fixRu": "Cosa si sarebbe dovuto fare (1-2 frasi, in italiano)"
@@ -235,6 +248,7 @@ Il tuo compito: analizzare la regata e dare consigli concreti. Rispondi SOLO con
 
 Regole:
 - mistakes: massimo 3, i piu importanti
+- kind: "no-go" per la zona morta, "tacks" per le virate, "close-hauled" per la velocità di bolina, altrimenti "other"
 - Sii concreto, con numeri dal log (angoli, tempi, distanze)
 - Tono amichevole ma professionale
 - Se il giocatore ha navigato bene, dillo direttamente, non inventare errori

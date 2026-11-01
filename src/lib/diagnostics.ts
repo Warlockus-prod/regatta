@@ -84,7 +84,7 @@ export type DiagnosticInput = Common & (
   | { type: "race.replay"; action: "open" | "play" | "pause" | "seek" | "rate" | "close" | "error"; timeSeconds?: number; rate?: 0.25 | 0.5 | 1 | 2 | 4 }
   | { type: "trainer.lifecycle"; action: "reset" | "restore" | "pause" | "resume" | "preset" | "ready" | "error" | "assessment"; mode?: "free" | "sail" | "drill" | "scenario" | "lesson"; attempt?: number }
   | { type: "trainer.checkpoint"; action: "save" | "restore" | "clear" | "error"; attempt?: number }
-  | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" | "personal-best" | "history" }
+  | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" | "personal-best" | "history" | "ghost" }
   | { type: "learning.visual"; action: "mode" | "frame" | "image-ready" | "image-error"; lesson: "how-sail-works"; mode: "scheme" | "picture"; frame: "filled" | "luffing" }
   | { type: "learning.command"; action: "start" | "answer" | "check" | "next" | "back" | "complete" | "retry"; course: "foundation" | "sails" | "radio" | "sternik"; step?: number }
   | { type: "scene.gpu"; action: "lost" | "retry" | "failed"; backend: RenderBackend; attempt?: number }
@@ -162,7 +162,7 @@ const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Rec
   "race.replay": { required: ["action"], fields: { action: enumeration(["open", "play", "pause", "seek", "rate", "close", "error"]), timeSeconds: numeric(0, 86400), rate: enumeration([.25, .5, 1, 2, 4]) } },
   "trainer.lifecycle": { required: ["action"], fields: { action: enumeration(["reset", "restore", "pause", "resume", "preset", "ready", "error", "assessment"]), mode: enumeration(["free", "sail", "drill", "scenario", "lesson"]), attempt } },
   "trainer.checkpoint": { required: ["action"], fields: { action: enumeration(["save", "restore", "clear", "error"]), attempt } },
-  "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics", "personal-best", "history"]) } },
+  "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics", "personal-best", "history", "ghost"]) } },
   "learning.visual": { required: ["action", "lesson", "mode", "frame"], fields: { action: enumeration(["mode", "frame", "image-ready", "image-error"]), lesson: enumeration(["how-sail-works"]), mode: enumeration(["scheme", "picture"]), frame: enumeration(["filled", "luffing"]) } },
   "learning.command": { required: ["action", "course"], fields: { action: enumeration(["start", "answer", "check", "next", "back", "complete", "retry"]), course: enumeration(["foundation", "sails", "radio", "sternik"]), step: numeric(0, 10000, true) } },
   "scene.gpu": { required: ["action", "backend"], fields: { action: enumeration(["lost", "retry", "failed"]), backend: enumeration(RENDER_BACKENDS), attempt } },

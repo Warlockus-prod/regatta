@@ -23,3 +23,14 @@ export function navigateNativeRace(href: "/race" | "/history"): boolean {
   bridge.postMessage(JSON.stringify({ type: "native-navigate", href }));
   return true;
 }
+
+/** M4-2: a practice or lesson link of the finish screen inside the app. The
+ * app opens only destinations it knows (isRaceFinishNativeHref in
+ * src/lib/race-practice.ts, checked by mobile/src/navigation/race-entry.ts). */
+export function navigateNativeRaceFinish(href: string): boolean {
+  if (!isNativeRace()) return false;
+  const bridge = (window as NativeRaceEnvironment).ReactNativeWebView;
+  if (!bridge) return false;
+  bridge.postMessage(JSON.stringify({ type: "native-navigate", href }));
+  return true;
+}

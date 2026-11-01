@@ -13,6 +13,7 @@ import { getQuizForLesson, isQuizPassed, pickPrompt } from "@/data/bootcamp-quiz
 import { foundationCopy, foundationModules } from "@/data/foundation-copy";
 import type { FoundationGuide } from "@/data/foundation-guide";
 import { useI18n } from "@/lib/i18n";
+import { RaceReturn } from "@/components/RaceReturn";
 import { legacyPick } from "@/lib/languages";
 import { renderScene, SCENE_HEIGHT, SCENE_WIDTH, type SceneId } from "@/lib/learning/foundation-drawings";
 import { foundationPracticeHref, foundationSteps, isFoundationLesson, passedFoundationIds, theoryResult, updateFoundationCheck, updateFoundationDraft, type FoundationAnswers, type FoundationStep } from "@/lib/learning/foundation-progress";
@@ -60,6 +61,7 @@ export default function FoundationClient({ guides, shapeCopy }: { guides: Record
   const checked = passedFoundationIds(state.progress);
   return <div className={styles.page}>
     <header className={styles.header}>
+      <RaceReturn />
       <h1>{copy.title[lang]}</h1>
       <p>{copy.intro[lang]}</p>
       <div className={styles.metrics} aria-live="polite">

@@ -232,6 +232,7 @@ describe("diagnostic strict transport and privacy", () => {
       { type: "learning.command", surface: "learn", outcome: "accepted", action: "answer", course: "foundation", step: 5 },
       { type: "storage.operation", surface: "app", outcome: "failed", action: "write", target: "progress", reason: "storage-unavailable" },
       { type: "storage.operation", surface: "race", outcome: "failed", action: "write", target: "personal-best", reason: "storage-write" },
+      { type: "storage.operation", surface: "race", outcome: "rejected", action: "write", target: "ghost", reason: "invalid-message" },
       { type: "storage.operation", surface: "app", outcome: "accepted", action: "clear", target: "history", source: "native" },
       { type: "learning.visual", surface: "learn", outcome: "accepted", action: "mode", lesson: "how-sail-works", mode: "picture", frame: "filled" },
     ];

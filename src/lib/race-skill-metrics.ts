@@ -22,14 +22,13 @@
 // tack metric reports the speed lost, never time or distance lost.
 
 import { measureRaceLog } from "./fallback-coach";
+import { TACK_WINDOWS, finite, mean, measureTacks, usableSkillSamples, type SkillEvent, type SkillSample, type TackMetric } from "./race-tack-metrics";
+
+// The tack measurement lives in race-tack-metrics.ts (M4-3: the replay ribbon
+// reads it without the coach); these re-exports keep one import for the bars.
+export { measureTacks, type SkillEvent, type SkillSample, type TackMetric };
 
 export interface SkillVec { x: number; y: number }
-
-export interface SkillSample {
-  t: number; x: number; y: number; heading: number; twa: number; speed: number; lap: number; windDir?: number;
-}
-
-export interface SkillEvent { type: string; t: number }
 
 export interface RaceSkillInput {
   samples: readonly SkillSample[];
@@ -39,14 +38,6 @@ export interface RaceSkillInput {
   targetKn: (absTwa: number) => number;
   /** Race seconds after the gun when the player crossed the start line; null if never. */
   startedAt: number | null;
-}
-
-export interface TackMetric {
-  t: number;
-  /** Heading change through the wind, degrees; null when the log is too thin. */
-  angleDeg: number | null;
-  /** Best speed going in minus the slowest coming out, knots. */
-  speedLossKn: number | null;
 }
 
 export interface VmgMetric {
@@ -69,6 +60,8 @@ export interface RaceSkillMetrics {
   laylineOverstandSec: null;
 }
 
+const rad = (d: number) => d * Math.PI / 180;
+
 export const SKILL_WINDOWS = {
   /** Samples this close to the windward mark belong to the rounding, not to a leg. */
   markZone: 60,
@@ -76,18 +69,10 @@ export const SKILL_WINDOWS = {
   roundingSec: 6,
   /** A VMG figure needs at least this much sailing on the leg, seconds. */
   minLegSec: 10,
-  /** Best speed going into a tack: samples in [t - this, t] (the cue's 3 s). */
-  tackBeforeSec: 3,
-  /** The boat settles up to this long before it crosses the wind (the cue's 1 s). */
-  tackSettleSec: 1,
-  /** Slowest speed coming out of a tack: samples in [t - settle, t + this]
-   * (the cue's TURN_COST.timeoutSec). */
-  tackAfterSec: 4,
+  /** The tack windows (race-tack-metrics.ts). */
+  ...TACK_WINDOWS,
 } as const;
 
-const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
-const rad = (d: number) => d * Math.PI / 180;
-const mean = (xs: readonly number[]) => xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null;
 
 /** Seconds each sample stands for, as the coach weighs them (gap to the next, at most 2 s). */
 function weights(samples: readonly SkillSample[]): number[] {
@@ -123,23 +108,6 @@ function legVmg(samples: readonly SkillSample[], w: readonly number[], pick: (s:
   return { ratio: player / (best * seconds), playerKn: player / seconds, bestKn: best, seconds };
 }
 
-function tackMetric(samples: readonly SkillSample[], t: number): TackMetric {
-  const W = SKILL_WINDOWS;
-  const after = samples.find((s) => s.t >= t);
-  const side = after ? Math.sign(after.twa) : 0;
-  const into = samples.filter((s) => s.t >= t - W.tackBeforeSec && s.t <= t);
-  const out = samples.filter((s) => s.t >= t - W.tackSettleSec && s.t <= t + W.tackAfterSec);
-  const before = into.length ? Math.max(...into.map((s) => s.speed)) : null;
-  const slowest = out.length ? Math.min(...out.map((s) => s.speed)) : null;
-  const oldSide = mean(samples.filter((s) => s.t >= t - 8 && s.t <= t - 3 && side !== 0 && Math.sign(s.twa) === -side).map((s) => Math.abs(s.twa)));
-  const newSide = mean(samples.filter((s) => s.t >= t + 2 && s.t <= t + 6 && side !== 0 && Math.sign(s.twa) === side).map((s) => Math.abs(s.twa)));
-  return {
-    t,
-    angleDeg: oldSide === null || newSide === null ? null : oldSide + newSide,
-    speedLossKn: before === null || slowest === null ? null : Math.max(0, before - slowest),
-  };
-}
-
 /** Start line crossing upwards after the gun, interpolated between samples. */
 function crossingFromSamples(samples: readonly SkillSample[], line: { a: SkillVec; b: SkillVec }): number | null {
   const y = (line.a.y + line.b.y) / 2, minX = Math.min(line.a.x, line.b.x), maxX = Math.max(line.a.x, line.b.x);
@@ -154,7 +122,7 @@ function crossingFromSamples(samples: readonly SkillSample[], line: { a: SkillVe
 }
 
 export function measureRaceSkills(input: RaceSkillInput): RaceSkillMetrics {
-  const samples = input.samples.filter((s) => finite(s.t) && finite(s.x) && finite(s.y) && finite(s.heading) && finite(s.twa) && finite(s.speed));
+  const samples = usableSkillSamples(input.samples);
   const w = weights(samples);
   const table = Array.from({ length: 181 }, (_, a) => {
     const v = input.targetKn(a);
@@ -171,7 +139,7 @@ export function measureRaceSkills(input: RaceSkillInput): RaceSkillMetrics {
   const downwind = roundedAt === undefined ? null
     : legVmg(samples, w, (s) => s.lap === 1 && s.t > roundedAt + R && far(s), -1, table);
 
-  const tackList = input.events.filter((e) => e.type === "tack" && finite(e.t)).map((e) => tackMetric(samples, e.t));
+  const tackList = measureTacks(samples, input.events);
   const angles = tackList.map((m) => m.angleDeg).filter(finite);
   const losses = tackList.map((m) => m.speedLossKn).filter(finite);
 

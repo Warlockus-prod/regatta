@@ -1,6 +1,7 @@
 'use client';
 
 import { FoundationReturn } from "@/components/FoundationReturn";
+import { RaceReturn } from "@/components/RaceReturn";
 
 import styles from "./SimulatorV3.module.css";
 import { SavePractice } from "../sailing-lab/ui/SavePractice";
@@ -769,6 +770,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       style={{ background: 'var(--bg-primary)' }}
     >
       <FoundationReturn bar initialSearch={initialSearch} />
+      <RaceReturn bar initialSearch={initialSearch} />
       <LessonReturn lang={lang} initialSearch={initialSearch} />
       {/* Desktop keeps its utility toolbar. Compact screens keep the tour in
           SceneBar and the web-only Share/course/tier links in More. Embedded

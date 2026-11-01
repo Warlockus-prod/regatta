@@ -103,6 +103,24 @@ export function replayRecordMetadata(raw: unknown): ReplayMetadata | null {
 export interface SharedReplay {
   code: string; ts: number; nickname: string | null; difficulty: string | null; windStrength: string | null;
   finishTimeSec: number | null; views: number; samples: ReplaySample[]; course: ReplayCourse; metadata: ReplayMetadata;
+  /** M4-3: the logged events the replay ribbon reads (start, tacks, the mark rounding). */
+  events: ReplayEvent[];
+}
+
+export interface ReplayEvent { type: "start" | "tack" | "mark-rounded"; t: number }
+const RIBBON_EVENTS: readonly string[] = ["start", "tack", "mark-rounded"];
+
+/** The ribbon's events of a stored replay. Lenient: an old row without events,
+ * or an entry that is not one of them, only leaves the ribbon shorter. */
+export function replayEvents(raw: unknown): ReplayEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ReplayEvent[] = [];
+  for (const item of raw.slice(0, 2000)) {
+    if (record(item) && typeof item.type === "string" && RIBBON_EVENTS.includes(item.type) && finite(item.t, 0, MAX_TIME)) {
+      out.push({ type: item.type as ReplayEvent["type"], t: item.t });
+    }
+  }
+  return out;
 }
 
 /** Read both old rows and new rows. Bad legacy scenery cannot block the track. */
@@ -126,5 +144,5 @@ export function sharedReplay(raw: unknown): SharedReplay | null {
     windStrength: typeof raw.windStrength === "string" ? raw.windStrength.slice(0, 20) : null,
     finishTimeSec: finite(raw.finishTimeSec, 0, MAX_TIME) ? raw.finishTimeSec : null,
     views: finite(raw.views, 0, Number.MAX_SAFE_INTEGER) ? raw.views : 0,
-    samples, course: course ?? defaultReplayCourse(), metadata };
+    samples, course: course ?? defaultReplayCourse(), metadata, events: replayEvents(raw.events) };
 }

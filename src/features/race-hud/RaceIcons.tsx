@@ -30,6 +30,8 @@ export const AlertIcon = (p: IconProps) => <Icon {...p}><path d="M12 3l9.5 17h-1
 export const ShareIcon = (p: IconProps) => <Icon {...p}><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></Icon>;
 /** A hint or a fix. */
 export const HintIcon = (p: IconProps) => <Icon {...p}><path d="M9 18h6M10 21h4" /><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.9.7-1.5 1.6-1.5 2.5h-4c0-.9-.6-1.8-1.5-2.5z" /></Icon>;
+/** Switch the race or replay camera (M2-1, M4-3). */
+export const CameraIcon = (p: IconProps) => <Icon {...p}><path d="M4 8h3l2-2.5h6L17 8h3v11H4z" /><circle cx="12" cy="13.5" r="3.2" /></Icon>;
 /** The coach's course advice. */
 export const CompassIcon = (p: IconProps) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></Icon>;
 

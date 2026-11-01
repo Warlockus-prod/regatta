@@ -7,6 +7,7 @@ import type { RaceBoat } from "@/lib/race-physics";
 import { makeStandardCourse, calcTWA, WIND_DIRECTION_BASE as WIND_DIRECTION } from "@/lib/race-physics";
 import { makePhysicalRaceCourse } from "@/lib/race-courses";
 import type { PhysicalRaceProfile } from "@/lib/race-context";
+import type { CoachGoalKind } from "@/lib/fallback-coach";
 import { FLEET_COLORS, PLAYER_COLOR } from "@/features/race-hud/boat-colors";
 
 // ============================================================================
@@ -87,6 +88,7 @@ export interface Coaching {
     title?: string;
     explanation?: string;
     fix?: string;
+    kind?: CoachGoalKind;
   }>;
   strengths: string[];
   nextGoalRu: string;

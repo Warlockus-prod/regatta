@@ -69,6 +69,13 @@ const SEEN_FLAGS = [
   // first time the 3D tier opened in the app.
   'regatta.3d.tour.v1',
 ];
+/** Set while native rows are written into the page, so a storage bridge
+ * (mobile/src/persistence/race-web-storage.ts) does not post them back. */
+export const NATIVE_STORAGE_SYNC_FLAG = "__REGATTA_NATIVE_STORAGE_SYNC__";
+export function nativeStorageSyncScript(entriesJson: string): string {
+  return `try { window.${NATIVE_STORAGE_SYNC_FLAG} = true; var s = ${entriesJson}; for (var k in s) { if(s[k] === null) localStorage.removeItem(k); else localStorage.setItem(k, s[k]); } } catch (e) {} finally { window.${NATIVE_STORAGE_SYNC_FLAG} = false; } true;`;
+}
+
 const SET_FLAGS = SEEN_FLAGS.map((k) => `localStorage.setItem('${k}', '1');`).join(' ');
 
 // Runs before hydration. Also repeated in AFTER_LOAD because
@@ -182,7 +189,7 @@ export function SimWebView({
   const controlsJson = JSON.stringify(controlPrefs);
   const controlsScript = `window.__REGATTA_CONTROLS__ = ${controlsJson}; true;`;
   const storageJson = JSON.stringify(pageStorage ?? {});
-  const storageScript = `try { var s = ${storageJson}; for (var k in s) { if(s[k] === null) localStorage.removeItem(k); else localStorage.setItem(k, s[k]); } } catch (e) {} true;`;
+  const storageScript = nativeStorageSyncScript(storageJson);
   const raceScript = path === "/game" && offlineSource
     ? `window.__REGATTA_RACE_NATIVE__ = true; window.__REGATTA_RACE_REPLAY__ = ${JSON.stringify(raceReplay ?? null)}; true;`
     : "";
@@ -246,9 +253,18 @@ export function SimWebView({
     webRef.current?.injectJavaScript(`window.__REGATTA_CONTROLS__ = ${controlsJson}; window.dispatchEvent(new CustomEvent("regatta:controls-prefs")); true;`);
   }, [controlsJson]);
 
+  // Only rows that changed since the page was last given them are sent, and the
+  // page's storage bridge does not echo them back (NATIVE_STORAGE_SYNC_FLAG).
+  // Re-sending every row let a row the page had just written be overwritten
+  // with the native copy from before that write arrived, and the two copies
+  // then kept overwriting each other (two race-end writes back to back).
+  const givenStorage = useRef<Record<string, string | null>>(pageStorage ?? {});
   useEffect(() => {
-    if (storageJson !== "{}") webRef.current?.injectJavaScript(`${storageScript} window.dispatchEvent(new Event("storage")); true;`);
-  }, [storageJson, storageScript]);
+    const next = JSON.parse(storageJson) as Record<string, string | null>;
+    const changed = Object.fromEntries(Object.entries(next).filter(([key, value]) => givenStorage.current[key] !== value));
+    givenStorage.current = next;
+    if (Object.keys(changed).length) webRef.current?.injectJavaScript(`${nativeStorageSyncScript(JSON.stringify(changed))} window.dispatchEvent(new Event("storage")); true;`);
+  }, [storageJson]);
 
   // Watchdog: if the page never signals ready (dead network, blocked load),
   // surface the error state instead of a blank chromeless screen.

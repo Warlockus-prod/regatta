@@ -11,21 +11,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // A direct call (no renderer) to read the lobby's real click handlers: while
 // it runs, useState returns its initial value and effects do not run;
 // `tab` stands in for the lobby's preset tab ("learn" on a first render).
-const direct = vi.hoisted(() => ({ on: false, tab: null as string | null }));
+const direct = vi.hoisted(() => ({ on: false, tab: null as string | null, effects: null as Array<() => void> | null }));
 vi.mock("react", async original => {
   const actual = await original<typeof import("react")>();
   return {
     ...actual,
     useState: (initial: unknown) => direct.on
-      ? [direct.tab && initial === "learn" ? direct.tab : typeof initial === "function" ? (initial as () => unknown)() : initial, () => {}]
+      ? (() => { const value = typeof initial === "function" ? (initial as () => unknown)() : initial; return [direct.tab && value === "learn" ? direct.tab : value, () => {}]; })()
       : actual.useState(initial),
-    useEffect: (effect: () => void, deps?: unknown[]) => direct.on ? undefined : actual.useEffect(effect, deps),
+    // A direct call collects the effects (when asked), so a test can run them as one commit.
+    useEffect: (effect: () => void, deps?: unknown[]) => direct.on ? void direct.effects?.push(effect) : actual.useEffect(effect, deps),
   };
 });
 vi.mock("./RaceCockpit", () => ({ RaceModePicker: () => <div data-testid="mode-picker" /> }));
 vi.mock("@/components/FoundationReturn", () => ({ FoundationReturn: () => null }));
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (text: Record<string, string>) => text.en, tp: (_ru: string, en: string) => en }) }));
-import { GameMenu, LOBBY_HERO_SRC } from "./GameMenu";
+import { GameMenu, LOBBY_HERO_SRC, linkedMenuTab } from "./GameMenu";
 import { missions } from "@/data/missions";
 
 const noop = () => {};
@@ -105,6 +106,57 @@ describe("race lobby", () => {
       expect(byTestId(tree, "race-lobby-start")!.onClick).toBe(onStart);
       expect(byTestId(tree, "race-lobby-briefing")!.onClick).toBe(onShowBriefing);
       expect(byTestId(tree, "race-lobby-start")!.disabled).toBe(false);
+    }
+  });
+});
+
+// Contract (M4-2): "Back to the race" from a practice links /game with its
+// level and wind; the lobby opens on "Free race" with them on every mount
+// (also after a race, through Menu), and never resets them to the "First
+// race" defaults. A mission, a daily race or a bare lesson link keep their tab.
+describe("race lobby opened by a linked setup (M4-2)", () => {
+  it("picks the tab from the link", () => {
+    expect(linkedMenuTab(new URLSearchParams("?difficulty=hard&wind=heavy"))).toBe("free");
+    expect(linkedMenuTab(new URLSearchParams("?difficulty=easy&wind=medium&fromLesson=mini-race"))).toBe("free");
+    expect(linkedMenuTab(new URLSearchParams("?fromLesson=mini-race"))).toBe("learn");
+    expect(linkedMenuTab(new URLSearchParams(`?mission=${missions[0].id}`))).toBe("learn");
+    expect(linkedMenuTab(new URLSearchParams("?daily=2026-10-30"))).toBe("learn");
+    expect(linkedMenuTab(new URLSearchParams(""))).toBe("learn");
+  });
+
+  /** Mount the lobby and run its mount effects as one commit (the tab is
+   * still the initial one there, as in React), recording what the lobby asks
+   * the race to set. */
+  function mount(search: string, difficulty: "easy" | "hard" = "hard") {
+    vi.stubGlobal("window", { location: { search } });
+    const calls: string[] = [];
+    direct.on = true; direct.effects = [];
+    let tree: Node;
+    try {
+      tree = GameMenu(lobbyProps({ difficulty, windStrength: "light",
+        setDifficulty: d => calls.push(`difficulty:${d}`), setWindStrength: w => calls.push(`wind:${w}`),
+        pickMission: m => calls.push(`mission:${m?.id ?? "none"}`) })) as Node;
+      for (const effect of direct.effects) effect();
+    } finally { direct.on = false; direct.effects = null; }
+    const start = byTestId(tree, "race-lobby-start")!;
+    return { calls, cta: (start.children as unknown[]).join("") };
+  }
+
+  it("opens on Free race for a linked level and wind and keeps them, on every mount", () => {
+    // The first mount and a later one (Menu after a race) behave the same.
+    for (let mountNo = 0; mountNo < 2; mountNo++) {
+      const { calls, cta } = mount("?difficulty=hard&wind=light");
+      expect(cta).toBe("Start · Hard →");
+      expect(calls).not.toContain("difficulty:easy");
+      expect(calls).not.toContain("wind:medium");
+    }
+  });
+
+  it("a bare lesson link or no link opens First race with its defaults", () => {
+    for (const search of ["?fromLesson=mini-race", ""]) {
+      const { calls, cta } = mount(search, "easy");
+      expect(cta).toBe("Start your first race →");
+      expect(calls).toEqual(expect.arrayContaining(["difficulty:easy", "wind:medium"]));
     }
   });
 });

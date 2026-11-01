@@ -5,8 +5,12 @@
 // coach's top one) and "Again" as the only primary button; the judge, the
 // coach's details, the fleet table and the share block are collapsed below.
 // A did-not-finish gets its own calm layout: what happened and one thing to
-// try. M4-1 skill bars (RaceSkillBars.tsx) sit under the place and time;
-// empty M4 slots (RaceFinishSlots.tsx) mark where "Watch" and "Practise" go.
+// try. M4-1 skill bars (RaceSkillBars.tsx) sit under the place and time,
+// the M4-4 splits against your best race (RaceGhostSplits.tsx) under them;
+// M4 slots (RaceFinishSlots.tsx): "Practise" opens the main mistake's
+// practice (M4-2), "Watch the mistake" its moment in the replay (M4-3). M4-2
+// also links every judge item and coach mistake to its practice and gives a
+// lesson race its way back; M4-3 adds "Watch the moment" to each of them.
 // Presentational: GameClient owns every state and action.
 
 import Link from 'next/link';
@@ -26,6 +30,15 @@ import { formatTime, type Boat, type Coaching, type RaceResultRow } from "./race
 import { FINISH_COPY, dnfStage, fillFinish, formatGapSeconds, summariseFinish, type FinishSummary } from "./race-finish-summary";
 import { RaceFinishPractiseSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
 import { RaceSkillBars } from "./RaceSkillBars";
+import { RaceGhostSplits } from "./RaceGhostSplits";
+import { RaceMedalResult } from "./RaceMedal";
+import type { MedalAward, MedalCourse } from "@/lib/race-medals";
+import type { GhostSplit } from "@/lib/race-ghost-splits";
+import { RaceLessonReturn, RacePracticeLink } from "./RacePracticeLink";
+import { practiceForCoachMistake } from "@/lib/race-practice";
+import { coachMistakeMoment } from "@/lib/race-replay-teaching";
+import { WatchMomentButton } from "./WatchMomentButton";
+import type { RaceReturn } from "@/lib/race-return";
 import type { SkillBar } from "@/lib/race-skill-metrics";
 import { REPLAY_COPY_RESOURCES } from "./replay-copy";
 import { AlertIcon, CheckIcon, HintIcon, MedalIcon, ReplayIcon, ShareIcon, TargetIcon } from "@/features/race-hud/RaceIcons";
@@ -142,7 +155,7 @@ export function RaceResults({
   copy, trialProfile, judgeDebrief, boatsRef, nativeRace, nativeSave, retryNativeSave, nativeBestSave, sceneRaceId, requestNativeBest,
   results, isNewRecord, bestRecord, missionResult, coachingSource, coaching, coachingLoading, coachingError,
   saveState, setSaveState, saveError, saveResult, nicknameInput, setNicknameInput, replayCode, nickname,
-  difficulty, windStrength, selectedMission, replayDisabled, onMenu, onReplay, onAgain, playerLapDone, skillBars,
+  difficulty, windStrength, selectedMission, replayDisabled, onMenu, onReplay, onWatch, onAgain, playerLapDone, skillBars, ghostSplits, practiceReturn = null, medal = null,
 }: {
   copy: ReturnType<typeof useRaceCopy>;
   trialProfile: PhysicalRaceProfile | null;
@@ -176,18 +189,29 @@ export function RaceResults({
   replayDisabled: boolean;
   onMenu: () => void;
   onReplay: () => void;
+  /** M4-3: open the replay at a race moment (5 s before it); none without a replay. */
+  onWatch?: (at: number) => void;
   onAgain: () => void;
   /** The player boat's lapDone at the race end (0 before the windward mark, 1 after it):
    * tells a did-not-finish what happened. Unknown when omitted. */
   playerLapDone?: number;
   /** M4-1 skill bars of this race (race-skill-metrics.ts); none for the physical trial. */
   skillBars?: readonly SkillBar[] | null;
+  /** M4-4 splits against your best race of this class (race-ghost-splits.ts); none without a ghost. */
+  ghostSplits?: readonly GhostSplit[] | null;
+  /** M4-2: the race the practice links return to (src/lib/race-return.ts);
+   * without it the screen shows no practice links. Its lesson, when the race
+   * was opened from a foundation lesson, adds the lesson return. */
+  practiceReturn?: RaceReturn | null;
+  /** M4-5: the course medal of this race (race-medals.ts) and how to read its next goal; none for the physical trial. */
+  medal?: { award: MedalAward | null; course: MedalCourse; mode: "simple" | "pro"; hintsUsed: boolean } | null;
 }) {
   const { tp, tl } = useI18n();
   const summary = summariseFinish(results, bestRecord, isNewRecord);
   const playerRank = summary.place;
   const ai = coachingSource === "ai";
   const stage = summary.finished ? null : dnfStage(playerLapDone);
+  const practice = (mistake: Coaching['mistakes'][number] | undefined) => practiceReturn ? practiceForCoachMistake(mistake) : null;
   const coachLabel = coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
     { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' });
   return (
@@ -199,7 +223,10 @@ export function RaceResults({
             {summary.finished
               ? <FinishedSummary summary={summary} />
               : <DnfSummary stage={stage} coaching={coaching} ai={ai} />}
+            {summary.finished && medal && <RaceMedalResult award={medal.award} course={medal.course} mode={medal.mode}
+              hintsUsed={medal.hintsUsed} finishSec={summary.time} />}
             <RaceSkillBars bars={skillBars} />
+            <RaceGhostSplits splits={ghostSplits} />
 
             {/* Mission result card */}
             {missionResult && (
@@ -242,8 +269,8 @@ export function RaceResults({
                 {tl(FINISH_COPY.again)}
               </button>
               <div className="flex flex-wrap gap-2">
-                <RaceFinishWatchSlot />
-                <RaceFinishPractiseSlot />
+                <RaceFinishWatchSlot moment={coachMistakeMoment(coaching?.mistakes[0])} onWatch={replayDisabled ? undefined : onWatch} />
+                <RaceFinishPractiseSlot target={practice(coaching?.mistakes[0])} ret={practiceReturn} native={nativeRace} />
                 <button
                   type="button"
                   onClick={onReplay}
@@ -263,6 +290,9 @@ export function RaceResults({
                 </button>
               </div>
             </div>
+
+            {/* M4-2: a race opened from a foundation lesson returns to it. */}
+            <RaceLessonReturn lessonId={practiceReturn?.lesson ?? null} native={nativeRace} />
 
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
             {nativeRace && nativeBestSave.id === sceneRaceId && nativeBestSave.status !== "idle" && <div className="mb-4 text-sm" role="status" data-testid="native-personal-best-status">
@@ -346,7 +376,7 @@ export function RaceResults({
             {/* 4. Details, collapsed: judge, coach, fleet table, share. */}
             <div className="mb-5 border-b border-[var(--border-subtle)]" data-testid="race-results-details">
               {judgeDebrief && <Collapsed title={tl(raceJudgeCopy.title)} testId="race-results-judge">
-                <div data-testid="race-judge-review"><RaceJudgeReview debrief={judgeDebrief} titleHidden
+                <div data-testid="race-judge-review"><RaceJudgeReview debrief={judgeDebrief} titleHidden practiceReturn={practiceReturn} native={nativeRace} onWatch={replayDisabled ? undefined : onWatch}
                   boatName={id => boatsRef.current.find(b => b.id === id)?.name ?? id} /></div>
               </Collapsed>}
 
@@ -402,6 +432,8 @@ export function RaceResults({
                               </div>
                               <p className="text-[var(--text-secondary)] leading-relaxed mb-1">{coachExplanation(m)}</p>
                               <p className="flex items-start gap-1 text-[var(--success)] leading-relaxed"><HintIcon className="mt-0.5 shrink-0" /><span>{coachFix(m)}</span></p>
+                              <RacePracticeLink target={practice(m)} ret={practiceReturn} native={nativeRace} />
+                              {(() => { const at = coachMistakeMoment(m); return at !== null && onWatch && !replayDisabled ? <div><WatchMomentButton at={at} onWatch={onWatch} /></div> : null; })()}
                             </div>
                           ))}
                         </div>

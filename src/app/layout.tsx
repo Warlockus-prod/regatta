@@ -12,6 +12,7 @@ import ThemeManager from "@/components/ThemeManager";
 import { BROWSER_THEME_COLORS, THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import { I18nProvider } from "@/lib/i18n";
+import { FEEDBACK_HIDDEN_ROUTES } from "@/lib/feedback-routes";
 import {
   ENABLED_LANGUAGES,
   isLang,
@@ -267,8 +268,10 @@ export default async function RootLayout({
               fullscreen immersive surfaces (game HUD, V3 canvas) where the
               floating bubble would compete with touch controls. Per audit
               2026-04-20: root layout previously mounted this without any
-              hideOn prop so the bubble could overlap critical controls. */}
-          <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator', '/sternik']} />
+              hideOn prop so the bubble could overlap critical controls.
+              The list (src/lib/feedback-routes.ts) also holds the shared
+              replay /r/ since M4-3, where it covered the event ribbon. */}
+          <FeedbackWidget hideOn={FEEDBACK_HIDDEN_ROUTES} />
           {/* BootcampFooterNav: sticky bottom bar that auto-shows on
               lesson-destination pages when the user is mid-bootcamp.
               Client-only, reads localStorage; silent on all other routes. */}

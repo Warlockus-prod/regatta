@@ -1,5 +1,6 @@
 import { dailySettings } from "../../../src/lib/daily-challenge";
 import { bootcampLessons } from "../../../src/data/bootcamp";
+import { isRaceFinishNativeHref } from "../../../src/lib/race-practice";
 
 const knownLesson = (id: unknown): id is string => typeof id === "string" && bootcampLessons.some(lesson => lesson.id === id);
 
@@ -31,5 +32,8 @@ export function raceNativeDestination(href: unknown, fromLesson?: unknown): stri
   if (href === "/" || href === "/race") return knownLesson(fromLesson) ? `/bootcamp/${fromLesson}` : "/race";
   if (href === "/history" || href === "/leaderboard") return href;
   if (typeof href === "string" && /^\/replay\/[a-zA-Z0-9_-]{1,100}$/.test(href)) return href;
+  // M4-2: the practice of a debrief mistake, the next lesson or the sails
+  // course, only from the shared list (src/data/race-practice.ts).
+  if (isRaceFinishNativeHref(href)) return href;
   return null;
 }

@@ -60,6 +60,10 @@ export interface Coaching {
     title?: string;
     explanation?: string;
     fix?: string;
+    /** What the mistake is about (M4-2): picks its practice on the finish
+     * screen (src/data/race-practice.ts). The local coach always sets it; the
+     * AI coach is asked for it; older replays and caches have none. */
+    kind?: CoachGoalKind;
   }>;
   strengths: string[];
   nextGoalRu: string;
@@ -164,6 +168,13 @@ export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events'>): RaceLo
 
 /** What a coach mistake is about; the next goal is aimed at one of these. */
 export type CoachGoalKind = 'no-go' | 'tacks' | 'close-hauled';
+export const COACH_GOAL_KINDS: readonly CoachGoalKind[] = ['no-go', 'tacks', 'close-hauled'];
+
+/** A mistake's kind when it is one the race knows, else null (an AI answer
+ * may say "other" or anything else). */
+export function coachMistakeKind(m: { kind?: unknown }): CoachGoalKind | null {
+  return COACH_GOAL_KINDS.find((kind) => kind === m.kind) ?? null;
+}
 type GoalKind = CoachGoalKind;
 type RankedMistake = Coaching['mistakes'][number] & { lossSec: number | null; goal: GoalKind };
 
@@ -454,7 +465,7 @@ export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'
       || Number(b.mistake.severity === 'major') - Number(a.mistake.severity === 'major') || a.i - b.i)
     .map(({ mistake }) => mistake);
   const topMistakes: Coaching['mistakes'] = ranked.slice(0, 3)
-    .map(({ timeStart, timeEnd, severity, titleRu, explanationRu, fixRu }) => ({ timeStart, timeEnd, severity, titleRu, explanationRu, fixRu }));
+    .map(({ timeStart, timeEnd, severity, titleRu, explanationRu, fixRu, goal }) => ({ timeStart, timeEnd, severity, titleRu, explanationRu, fixRu, kind: goal }));
   const focus = ranked[0];
 
   // ----- Overall + next goal -----
@@ -588,12 +599,17 @@ export function mirrorCoachKeys(c: Coaching): Coaching {
   return {
     ...c,
     nextGoal: c.nextGoal ?? c.nextGoalRu,
-    mistakes: c.mistakes.map((m) => ({
-      ...m,
-      title: m.title ?? m.titleRu,
-      explanation: m.explanation ?? m.explanationRu,
-      fix: m.fix ?? m.fixRu,
-    })),
+    mistakes: c.mistakes.map((m) => {
+      const { kind: rawKind, ...rest } = m;
+      const kind = coachMistakeKind({ kind: rawKind });
+      return {
+        ...rest,
+        title: m.title ?? m.titleRu,
+        explanation: m.explanation ?? m.explanationRu,
+        fix: m.fix ?? m.fixRu,
+        ...(kind ? { kind } : {}),
+      };
+    }),
   };
 }
 

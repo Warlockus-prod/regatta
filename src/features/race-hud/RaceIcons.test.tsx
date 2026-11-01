@@ -12,7 +12,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 it("draws every line icon locally, in currentColor and hidden from screen readers", () => {
   const icons = Object.entries(Icons).filter(([name]) => name !== "MedalIcon");
-  expect(icons.map(([name]) => name).sort()).toEqual(["AlertIcon", "CheckIcon", "CompassIcon", "FlagIcon", "HintIcon", "ReplayIcon", "ShareIcon", "TargetIcon", "TrophyIcon"]);
+  expect(icons.map(([name]) => name).sort()).toEqual(["AlertIcon", "CameraIcon", "CheckIcon", "CompassIcon", "FlagIcon", "HintIcon", "ReplayIcon", "ShareIcon", "TargetIcon", "TrophyIcon"]);
   for (const [name, Icon] of icons) {
     const html = renderToStaticMarkup(React.createElement(Icon as (p: { size?: number }) => React.ReactElement, { size: 20 }));
     expect(html, name).toMatch(/^<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"/);

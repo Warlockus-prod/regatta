@@ -11,6 +11,14 @@ import type { RacePrefs } from "./race-prefs";
 import { LobbyVenues } from "./LobbyVenues";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 import { TargetIcon } from "@/features/race-hud/RaceIcons";
+import { linkedRaceSetup } from "@/lib/race-setup";
+import { readRaceSearch } from "@/lib/race-native-env";
+import type { MedalCourse } from "@/lib/race-medals";
+import { RaceMedalLine } from "./RaceMedal";
+import { RaceDailyEntry, RaceNextStepCard, readLobbyHome } from "./RaceNextStep";
+import { localStore } from "./race-model";
+import { dailyRaceDay } from "@/lib/race-next-step";
+import { raceReturnFor } from "@/lib/race-return";
 
 // ============================================================================
 // GameMenu - the race lobby (M1-1, M1-6). One setup screen: a race frame, three
@@ -23,6 +31,15 @@ import { TargetIcon } from "@/features/race-hud/RaceIcons";
 
 type MenuTab = 'learn' | 'free' | 'mission';
 
+/** M4-2: a link with its own level and wind (the way back from a practice of
+ * the race debrief) opens on "Free race" with them, not on "First race",
+ * whose easy/medium defaults would replace the linked conditions. A mission
+ * or a daily link owns its own presets; any other link opens "First race". */
+export function linkedMenuTab(query: URLSearchParams): MenuTab {
+  const linked = linkedRaceSetup(query);
+  return linked && !linked.missionId && !linked.dailyDay ? 'free' : 'learn';
+}
+
 /** The race frame: an existing editorial still, not a new asset (site only). */
 export const LOBBY_HERO_SRC = "/design-v3/sailing-editorial.webp";
 
@@ -30,7 +47,7 @@ export function GameMenu({
   difficulty, setDifficulty,
   windStrength, setWindStrength,
   selectedMission, pickMission,
-  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false,
+  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false, medalCourse = null,
 }: {
   dailyDay: string | null;
   racePrefs: RacePrefs; updateRacePrefs: (patch: Partial<RacePrefs>) => void;
@@ -46,10 +63,14 @@ export function GameMenu({
   onShowBriefing: () => void;
   /** Inside the app: the hub owns the mode and the venue. */
   native?: boolean;
+  /** M4-5: the course whose medal and next goal the lobby shows; none for the physical trial. */
+  medalCourse?: MedalCourse | null;
 }) {
   const { tp, tl } = useI18n();
   const raceCopy = useRaceCopy();
-  const [tab, setTab] = useState<MenuTab>('learn');
+  // The initial tab comes from the link, on every mount: /game is client-only
+  // (page.tsx, ssr: false), so no server render disagrees with it.
+  const [tab, setTab] = useState<MenuTab>(() => linkedMenuTab(readRaceSearch()));
 
   useEffect(() => { if (selectedMission) setTab("mission"); }, [selectedMission]);
 
@@ -99,6 +120,13 @@ export function GameMenu({
     tl({ ru: `Старт · ${level}`, en: `Start · ${level}`, pl: `Start · ${level}`, es: `Empezar · ${level}`, fr: `Départ · ${level}`, de: `Start · ${level}`, it: `Inizia · ${level}` });
 
   const ctaDisabled = tab === 'mission' && !selectedMission && !dailyDay;
+  // M4-6: the one next-step card, the record and the progress (site only: in
+  // the app the native Race hub shows them). None for the physical trial.
+  const medalShown = tab !== 'mission' || Boolean(selectedMission) || Boolean(dailyDay);
+  const home = medalCourse && !native
+    // Only today's daily lobby is "in the daily race": an old daily link still offers today's.
+    ? readLobbyHome(localStore(), medalCourse, racePrefs.mode, { inDaily: dailyDay !== null && dailyDay === dailyRaceDay(new Date()), courseChosen: medalShown })
+    : null;
   const briefingLabel = tl({ ru: 'Брифинг: трасса и правила', en: 'Briefing: course and rules', pl: 'Odprawa: trasa i zasady', es: 'Briefing: recorrido y reglas', fr: 'Briefing : parcours et règles', de: 'Briefing: Bahn und Regeln', it: 'Briefing: percorso e regole' });
 
   return (
@@ -118,6 +146,9 @@ export function GameMenu({
           {tl({ ru: 'Выбери режим гонки', en: 'Pick a race mode', pl: 'Wybierz tryb wyścigu', es: 'Elige un modo de regata', fr: 'Choisis un mode de course', de: 'Wähle einen Rennmodus', it: 'Scegli una modalità di regata' })}
         </p>
       </div>
+
+      {home && <RaceNextStepCard view={home} mode={racePrefs.mode}
+        practiceReturn={raceReturnFor({ difficulty, windStrength, missionId: selectedMission?.id ?? null, dailyDay, fromLesson: readRaceSearch().get("fromLesson") })} />}
 
       {dailyDay && <p className="mb-4 text-base font-semibold text-[var(--text-primary)]" data-testid="race-lobby-daily">{dailyDay}</p>}
       {/* Compact presets keep the start action visible on a phone. */}
@@ -177,6 +208,9 @@ export function GameMenu({
           )}
         />
       </div>
+
+      {/* M4-6: the website's entry to today's daily race, unless the card above is it. */}
+      {home && dailyDay !== home.daily.day && home.step?.kind !== 'daily' && <RaceDailyEntry view={home} />}
 
       {/* Tab-specific controls */}
       {tab === 'mission' && !dailyDay && (
@@ -269,6 +303,8 @@ export function GameMenu({
           </div>
         </div>
       )}
+
+      {medalCourse && medalShown && home?.step?.kind !== 'medal' && <RaceMedalLine course={medalCourse} mode={racePrefs.mode} />}
 
       {native ? (
         <p className="mb-4 text-base leading-6 text-[var(--text-secondary)]" data-testid="race-lobby-mode">

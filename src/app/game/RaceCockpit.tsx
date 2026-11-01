@@ -33,7 +33,10 @@ import fx from "@/features/race-hud/RaceFeedbackLayer.module.css";
 import type { ContactFrame, FeedbackToast } from "@/features/race-hud/feedback";
 import { TARGET_SPEED_LABEL, speedVersusTarget } from "@/features/race-hud/speed-target";
 import { createTapTracker, nextRaceCamera, type TapTracker } from "@/features/race-scene/camera";
+import { RACE_CAMERA_SWITCH, sceneTapHandlers } from "@/features/race-scene/camera-tap";
+import { CameraIcon } from "@/features/race-hud/RaceIcons";
 import { RaceHapticsToggle, useRaceHapticsCopy } from "@/features/race-hud/RaceHapticsToggle";
+import { FIRST_RACE_HINT_COPY } from "@/data/race-first-hints-copy";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -49,11 +52,9 @@ export function RaceModePicker({ prefs, update }: { prefs: RacePrefs; update: (p
   </div>;
 }
 
-/** M2-1 camera switch copy: the status-row button's name and the tap hint in Settings. */
-export const RACE_CAMERA_SWITCH = {
-  ru: "Сменить камеру", en: "Switch camera", pl: "Zmień kamerę", es: "Cambiar cámara",
-  fr: "Changer de caméra", de: "Kamera wechseln", it: "Cambia inquadratura",
-} as const;
+/** M2-1 camera switch copy: the status-row button's name (shared with the
+ * replay, features/race-scene/camera-tap.ts) and the tap hint in Settings. */
+export { RACE_CAMERA_SWITCH, sceneTapHandlers };
 export const RACE_CAMERA_TAP_HINT = {
   ru: "Коснись сцены, чтобы сменить камеру: вокруг лодки, за кормой, сверху. За кормой камера идет за курсом и сама возвращается за лодку.",
   en: "Tap the scene to switch camera: around the boat, behind, above. Behind follows your course and comes back behind the boat by itself.",
@@ -63,29 +64,6 @@ export const RACE_CAMERA_TAP_HINT = {
   de: "Tippe auf die Szene, um die Kamera zu wechseln: um das Boot, am Heck, von oben. Am Heck folgt sie deinem Kurs und kehrt von selbst hinter das Boot zurück.",
   it: "Tocca la scena per cambiare inquadratura: attorno alla barca, da poppa, dall'alto. Da poppa segue la rotta e torna da sola dietro la barca.",
 } as const;
-
-function CameraIcon() {
-  return <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-    <path d="M4 8h3l2-2.5h6L17 8h3v11H4z" /><circle cx="12" cy="13.5" r="3.2" />
-  </svg>;
-}
-
-/**
- * M2-1: a tap on the scene steps to the next camera; a drag (orbit) or a
- * pinch (zoom) that starts the same way does not. Only pointers that land on
- * the scene's canvas count, so the HUD buttons over it never switch cameras.
- */
-export function sceneTapHandlers(tracker: () => TapTracker, onTap: () => void) {
-  const onCanvas = (e: { target: unknown }) => typeof HTMLCanvasElement !== "undefined" && e.target instanceof HTMLCanvasElement;
-  type P = { target: unknown; pointerId: number; clientX: number; clientY: number; timeStamp: number; isPrimary: boolean; button: number };
-  return {
-    onPointerDown: (e: P) => { if (onCanvas(e)) tracker().down(e.pointerId, e.clientX, e.clientY, e.timeStamp, e.isPrimary && e.button === 0); },
-    onPointerMove: (e: P) => tracker().move(e.pointerId, e.clientX, e.clientY),
-    onPointerUp: (e: P) => { if (tracker().up(e.pointerId, e.clientX, e.clientY, e.timeStamp) && onCanvas(e)) onTap(); },
-    onPointerCancel: (e: P) => tracker().cancel(e.pointerId),
-  };
-}
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (on: boolean) => void }) {
   return <label className={styles.toggle}><span>{label}</span><input type="checkbox" role="switch" checked={checked} onChange={e => onChange(e.target.checked)} /></label>;
@@ -122,6 +100,8 @@ export function RaceCockpit(p: {
   feedback?: { toasts: readonly FeedbackToast[]; contact: ContactFrame | null };
   /** M1-3: the polar target speed at this wind angle, knots; omitted when unknown. */
   targetSpeed?: number | null;
+  /** M4-7: "Show hints again" in Settings: the first race hints are due again. */
+  onShowHintsAgain?: () => void;
 }) {
   const c = useRaceCopy();
   const { tl } = useI18n();
@@ -134,6 +114,7 @@ export function RaceCockpit(p: {
   type Tab = "helm" | "sails" | "map" | "settings";
   const [tab, setTab] = useState<Tab>("helm");
   const tabRef = useRef<Tab>("helm");
+  const [hintsAgain, setHintsAgain] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const selectTab = (next: Tab) => {
     const previous = tabRef.current;
@@ -213,7 +194,7 @@ export function RaceCockpit(p: {
             <button type="button" onClick={cycleCamera} data-testid="race-camera-cycle"
               aria-label={`${tl(RACE_CAMERA_SWITCH)}: ${c[p.camera]}`} title={`${tl(RACE_CAMERA_SWITCH)}: ${c[p.camera]}`}
               className="hidden min-h-11 min-w-11 items-center justify-center @min-[480px]:inline-flex">
-              <span className="inline-flex" aria-hidden="true"><CameraIcon /></span>
+              <span className="inline-flex" aria-hidden="true"><CameraIcon size={22} /></span>
             </button>
             {sound?.("status")}
             {offerFullscreen && <button type="button" className={styles.statusAction} onClick={goFullscreen} data-testid="race-fullscreen-offer">{pc.fullscreen}</button>}
@@ -279,6 +260,10 @@ export function RaceCockpit(p: {
             <Toggle label={nav.miniMapSetting} checked={p.prefs.miniMap} onChange={miniMap => p.updatePrefs({ miniMap })} />
             <Toggle label={c.guidance} checked={p.prefs.guidance} onChange={guidance => p.updatePrefs({ guidance })} />
             <Toggle label={c.trimHints} checked={p.prefs.trimHints} onChange={trimHints => p.updatePrefs({ trimHints })} />
+            {p.onShowHintsAgain && <div data-testid="race-hints-again">
+              <button type="button" className="min-h-11" onClick={() => { p.onShowHintsAgain?.(); setHintsAgain(true); }}>{tl(FIRST_RACE_HINT_COPY.again)}</button>
+              <p role="status" aria-live="polite">{hintsAgain ? tl(FIRST_RACE_HINT_COPY.againDone) : tl(FIRST_RACE_HINT_COPY.againNote)}</p>
+            </div>}
             <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />
             <Toggle label={c.penalties} checked={p.prefs.penalties} onChange={penalties => p.updatePrefs({ penalties })} />
             <Toggle label={c.sound} checked={!p.muted} onChange={p.onSound} />
