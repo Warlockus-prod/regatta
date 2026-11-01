@@ -23,7 +23,7 @@ import { RaceResults } from "./RaceResults";
 import { RaceFinishPlate } from "./RaceFinishPlate";
 import { RaceJudgeReview } from "./RaceJudgeReview";
 import { buildRaceJudgeDebrief } from "@/lib/race-judge";
-import { RaceFinishPractiseSlot, RaceFinishSkillBarsSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
+import { RaceFinishPractiseSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
 import type { Boat, Coaching } from "./race-model";
 
 const noop = () => {};
@@ -201,7 +201,7 @@ describe("solo race screens", () => {
   });
 
   it("the M4 slots render nothing today, and the finish plate states the place without cyan (M1-4)", () => {
-    for (const Slot of [RaceFinishSkillBarsSlot, RaceFinishWatchSlot, RaceFinishPractiseSlot]) expect(renderToStaticMarkup(<Slot />)).toBe("");
+    for (const Slot of [RaceFinishWatchSlot, RaceFinishPractiseSlot]) expect(renderToStaticMarkup(<Slot />)).toBe("");
     const plate = renderToStaticMarkup(<RaceFinishPlate place={2} total={6} />);
     expect(plate).toContain('data-testid="race-finish-plate"');
     expect(plate).toContain('role="status"');

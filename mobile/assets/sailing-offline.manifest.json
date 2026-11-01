@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "258cfbf895a1",
-  "sha256": "6faa5c2faaa6e31e14951b55f05781e5c711ae9a3a9b05e2f534f88c9862a473",
-  "bytes": 6561542,
+  "version": "4f9b78436686",
+  "sha256": "4286ce21375d81a4857486769a1f5c0c37ab0f96c7944547e251454f82df3e0f",
+  "bytes": 6569680,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -605,6 +605,7 @@
     "src/app/game/RacePauseSheet.tsx",
     "src/app/game/RaceReplay.tsx",
     "src/app/game/RaceResults.tsx",
+    "src/app/game/RaceSkillBars.tsx",
     "src/app/game/config.ts",
     "src/app/game/race-copy.ts",
     "src/app/game/race-diagnostic-summary.ts",
@@ -638,6 +639,7 @@
     "src/data/missions.ts",
     "src/data/race-difficulty.ts",
     "src/data/race-judge-copy.ts",
+    "src/data/race-skill-copy.ts",
     "src/data/sailing-data.ts",
     "src/data/sailing-lab/assessment-copy.ts",
     "src/data/sailing-lab/assessment-entry-copy.ts",
@@ -866,6 +868,7 @@
     "src/lib/race-resume.ts",
     "src/lib/race-rules.ts",
     "src/lib/race-setup.ts",
+    "src/lib/race-skill-metrics.ts",
     "src/lib/race-sound-pref.ts",
     "src/lib/race-soundscape-audio.ts",
     "src/lib/race-soundscape.ts",
@@ -926,8 +929,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 68076,
-      "sha256": "a17c5ae1dfc3a06bda658b928e914b2b17a2dfbb0bce512bbd20caeacea5e426"
+      "bytes": 68852,
+      "sha256": "edf1b64d5897714906420afd08a8dddeb6ecd5ce095671ad3959532ab3fb3a3b"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -961,8 +964,8 @@
     },
     {
       "path": "src/app/game/RaceFinishSlots.tsx",
-      "bytes": 661,
-      "sha256": "2fbc9eb9c5e86eff4bc49699b182833e496691463d27813b424e2d115f0ec914"
+      "bytes": 548,
+      "sha256": "a96754df956b4ae53730d2571370a80c57beb9314cf7676744cb270caed22d62"
     },
     {
       "path": "src/app/game/RaceJudgeReview.tsx",
@@ -981,8 +984,13 @@
     },
     {
       "path": "src/app/game/RaceResults.tsx",
-      "bytes": 39701,
-      "sha256": "2365709415573e4872690f6675813e77dd7c3d377b9f5e135f318a7308af9657"
+      "bytes": 39992,
+      "sha256": "10a8876c737feabd014886fa73ddcddce03ba4bf883642ab0a55720104f9fdd9"
+    },
+    {
+      "path": "src/app/game/RaceSkillBars.tsx",
+      "bytes": 2398,
+      "sha256": "51d9b8cba510edb7b3fddbd51bcf95ad3bb343ee0fc1a99a7a11ac42ffedbc77"
     },
     {
       "path": "src/app/game/config.ts",
@@ -1153,6 +1161,11 @@
       "path": "src/data/race-judge-copy.ts",
       "bytes": 28312,
       "sha256": "14bc02699b9518edee65bc175c27b067c9130d2ae2b7b3f3baf0b4c96aad467a"
+    },
+    {
+      "path": "src/data/race-skill-copy.ts",
+      "bytes": 3935,
+      "sha256": "f44ed44d5f256b05cb10d4ed56f3679bc8809e927f2378997ac31e9cffce3f5c"
     },
     {
       "path": "src/data/sailing-data.ts",
@@ -2293,6 +2306,11 @@
       "path": "src/lib/race-setup.ts",
       "bytes": 2159,
       "sha256": "146dd5d8391b0c3a88e86f841713e95f6a33f7763ffb0e17ced9c3dedb76d28a"
+    },
+    {
+      "path": "src/lib/race-skill-metrics.ts",
+      "bytes": 12064,
+      "sha256": "48b7b3a317c61e11b44aeb5d357b44a52828bff267385d6f37ee8a9f7cad3f47"
     },
     {
       "path": "src/lib/race-sound-pref.ts",

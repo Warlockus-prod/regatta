@@ -846,8 +846,12 @@ procedural ambience with its own context and its own off-by-default toggle.
   the finish hold (results), the replay, mute and a hidden page fade it out
   at once; after half a second of silence the sources are stopped until the
   next live update (no idle rendering on those screens); unmount stops and
-  disconnects it. Only the solo race (`/game`) is wired; multiplayer is not
-  yet.
+  disconnects it. The solo race (`/game`) feeds it from the race loop;
+  multiplayer (`/multiplayer`) feeds the same mapping from each HUD frame of
+  its own boat (`src/app/multiplayer/useMultiplayerSoundscape.ts`), with heel
+  0 and the Simple mode, because the server publishes no heel and trims every
+  boat; it is silent once our own boat has finished (the room races on, the server
+  freezes a finished boat), on the results, in the lobby and while reconnecting.
 - Race sound is on by default at a moderate level (decision 3): the master
   stays 0.5 and the soundscape bus 0.7 under it, below the signals. The
   "ambient" session makes the iPhone silent switch silence it and lets it mix

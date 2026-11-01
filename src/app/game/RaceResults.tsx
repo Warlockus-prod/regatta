@@ -5,8 +5,9 @@
 // coach's top one) and "Again" as the only primary button; the judge, the
 // coach's details, the fleet table and the share block are collapsed below.
 // A did-not-finish gets its own calm layout: what happened and one thing to
-// try. Empty M4 slots (RaceFinishSlots.tsx) mark where skill bars, "Watch"
-// and "Practise" go. Presentational: GameClient owns every state and action.
+// try. M4-1 skill bars (RaceSkillBars.tsx) sit under the place and time;
+// empty M4 slots (RaceFinishSlots.tsx) mark where "Watch" and "Practise" go.
+// Presentational: GameClient owns every state and action.
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -23,7 +24,9 @@ import type { useRaceCopy } from "./race-copy";
 import { PhysicalTrialNote } from "./RaceBriefing";
 import { formatTime, type Boat, type Coaching, type RaceResultRow } from "./race-model";
 import { FINISH_COPY, dnfStage, fillFinish, formatGapSeconds, summariseFinish, type FinishSummary } from "./race-finish-summary";
-import { RaceFinishPractiseSlot, RaceFinishSkillBarsSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
+import { RaceFinishPractiseSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
+import { RaceSkillBars } from "./RaceSkillBars";
+import type { SkillBar } from "@/lib/race-skill-metrics";
 import { REPLAY_COPY_RESOURCES } from "./replay-copy";
 import { AlertIcon, CheckIcon, HintIcon, MedalIcon, ReplayIcon, ShareIcon, TargetIcon } from "@/features/race-hud/RaceIcons";
 
@@ -139,7 +142,7 @@ export function RaceResults({
   copy, trialProfile, judgeDebrief, boatsRef, nativeRace, nativeSave, retryNativeSave, nativeBestSave, sceneRaceId, requestNativeBest,
   results, isNewRecord, bestRecord, missionResult, coachingSource, coaching, coachingLoading, coachingError,
   saveState, setSaveState, saveError, saveResult, nicknameInput, setNicknameInput, replayCode, nickname,
-  difficulty, windStrength, selectedMission, replayDisabled, onMenu, onReplay, onAgain, playerLapDone,
+  difficulty, windStrength, selectedMission, replayDisabled, onMenu, onReplay, onAgain, playerLapDone, skillBars,
 }: {
   copy: ReturnType<typeof useRaceCopy>;
   trialProfile: PhysicalRaceProfile | null;
@@ -177,6 +180,8 @@ export function RaceResults({
   /** The player boat's lapDone at the race end (0 before the windward mark, 1 after it):
    * tells a did-not-finish what happened. Unknown when omitted. */
   playerLapDone?: number;
+  /** M4-1 skill bars of this race (race-skill-metrics.ts); none for the physical trial. */
+  skillBars?: readonly SkillBar[] | null;
 }) {
   const { tp, tl } = useI18n();
   const summary = summariseFinish(results, bestRecord, isNewRecord);
@@ -194,7 +199,7 @@ export function RaceResults({
             {summary.finished
               ? <FinishedSummary summary={summary} />
               : <DnfSummary stage={stage} coaching={coaching} ai={ai} />}
-            <RaceFinishSkillBarsSlot />
+            <RaceSkillBars bars={skillBars} />
 
             {/* Mission result card */}
             {missionResult && (

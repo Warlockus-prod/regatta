@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import dynamic from "next/dynamic";
 import Link from 'next/link';
 import { recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
@@ -13,7 +13,8 @@ import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
 import { MultiplayerCockpit } from "./MultiplayerCockpit";
 import { createServerStartSignals } from "./start-signals";
 import { playerHapticEvents, playerSoundEvents } from "./haptics";
-import { playMarkRound, playFinish, playNoGo } from "@/lib/sounds";
+import { playMarkRound, playFinish, playNoGo, readRaceSound, subscribeRaceSound } from "@/lib/sounds";
+import { useMultiplayerSoundscape } from "./useMultiplayerSoundscape";
 import { raceHaptic } from "@/lib/race-haptics";
 import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse, FLEET_COLORS, MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
@@ -426,6 +427,12 @@ export default function MultiplayerClient() {
     raf = requestAnimationFrame(render);
     return () => cancelAnimationFrame(raf);
   }, [phase, room, lobbyPlayers]);
+
+  // M3-2 tail: the solo race's wind, water, slap and flog beds for our own
+  // boat, fed by each HUD frame; silent on the results, in the lobby, while
+  // reconnecting, with race sound off and after leaving the page.
+  const raceSoundOn = useSyncExternalStore(subscribeRaceSound, readRaceSound, () => true);
+  useMultiplayerSoundscape({ phase, reconnecting, soundOn: raceSoundOn, frame, windReading });
 
   // --- UI ---
 

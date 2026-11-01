@@ -25,6 +25,7 @@ import { type StandingRow } from '@/features/race-hud/RaceHud';
 import { raceEventSource, type FeedbackTone } from '@/features/race-hud/feedback';
 import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
 import { polarFor, targetSpeed } from '@/features/race-hud/target';
+import { measureRaceSkills, raceSkillBars } from '@/lib/race-skill-metrics';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
 import type { RaceBoat } from "@/lib/race-physics";
@@ -884,6 +885,15 @@ export default function GamePage() {
   const racePolar = useMemo(() => (gameState === "racing" || gameState === "countdown") && !physicalTrial ? polarFor(12 * windStrengthMul) : null,
     [gameState, physicalTrial, windStrengthMul]);
   const raceTarget = racePolar ? targetSpeed(racePolar, playerTWA) : null;
+  // M4-1 skill bars on the result screen, from this race's log against the
+  // same polar target. None for the physical trial (no target, never ranked).
+  const skillBars = useMemo(() => {
+    if (gameState !== "finished" || physicalTrial) return null;
+    const polar = polarFor(12 * windStrengthMul), course = courseRef.current;
+    return raceSkillBars(measureRaceSkills({ samples: logSamplesRef.current, events: logEventsRef.current,
+      course: { windwardMark: course.marks[0].pos, startLine: course.startLine }, targetKn: (twa) => targetSpeed(polar, twa),
+      startedAt: startedAtRef.current ?? null }));
+  }, [gameState, physicalTrial, results, windStrengthMul]);
 
   // M1-2 game layer (owner decision C1): countdown, race and replay hide the
   // site header and take the whole viewport. Menu, briefing and results stay
@@ -1037,7 +1047,7 @@ export default function GamePage() {
 
       {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (
-        <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef} playerLapDone={hudPlayer?.lapDone}
+        <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef} playerLapDone={hudPlayer?.lapDone} skillBars={skillBars}
           nativeRace={nativeRace} nativeSave={nativeSave} retryNativeSave={retryNativeSave} nativeBestSave={nativeBestSave}
           sceneRaceId={sceneRaceId} requestNativeBest={requestNativeBest} results={results} isNewRecord={isNewRecord}
           bestRecord={bestRecord} missionResult={missionResult} coachingSource={coachingSource} coaching={coaching}
