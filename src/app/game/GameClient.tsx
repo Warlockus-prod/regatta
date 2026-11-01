@@ -22,9 +22,12 @@ import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 import { useRaceSceneFlags, useRaceView } from '@/features/race-3d/useRaceView';
 import type { RaceSceneStats } from '@/features/race-scene/RaceScene';
 import { type StandingRow } from '@/features/race-hud/RaceHud';
-import { raceEventSource, type FeedbackTone } from '@/features/race-hud/feedback';
+import { raceEventSource, type FeedbackPost, type FeedbackTone } from '@/features/race-hud/feedback';
+import { hintLogKind, loggedRouteAction, loggedTrimKey } from '@/features/race-hud/hint-log';
+import { useRaceHintLog } from '@/features/race-hud/RaceHintLog';
 import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
 import { useFirstRaceHints } from '@/features/race-hud/useFirstRaceHints';
+import { hasSeenRaceIntro, markRaceIntroSeen, raceIntroDue, raceIntroEndRecordsSeen, raceIntroRequested, stepAfterRaceIntro, type RaceIntroEnd, type RaceIntroOpen } from '@/features/race-hud/race-intro';
 import { polarFor, targetSpeed } from '@/features/race-hud/target';
 import { measureRaceSkills, raceSkillBars } from '@/lib/race-skill-metrics';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
@@ -50,6 +53,7 @@ import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
 import { raceReturnFor } from "@/lib/race-return";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
+import type { CoachKey } from "@/features/sailing-lab/runtime/trim-coach";
 import { createRaceSoundscape } from "@/lib/race-soundscape-audio";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
@@ -83,6 +87,8 @@ import type { RaceSetupRecord, RaceSetupSource, RaceTally } from "./race-diagnos
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
+// F5: the race intro loads only when it opens (once per device, or "How to race").
+const RaceIntro = dynamic(() => import('@/features/race-hud/RaceIntro').then((m) => m.RaceIntro), { ssr: false });
 
 const noSubscribe = () => () => {};
 
@@ -166,6 +172,9 @@ export default function GamePage() {
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
   const gameStateRef = useRef(gameState); gameStateRef.current = gameState;
+  // F5: the race intro, by itself before the first race ("first") or on request.
+  const [intro, setIntro] = useState<RaceIntroOpen>("closed");
+  const introRef = useRef(intro); introRef.current = intro;
   // Diagnostics only (race.summary, race.lifecycle restart): how this race was
   // entered and its per-race counts. Never read by the race itself.
   const raceSetupRef = useRef<RaceSetupRecord>({ source: "lobby", briefingShown: false, race: "free" });
@@ -279,6 +288,8 @@ export default function GamePage() {
 
   // Race log for AI coaching
   const logSamplesRef = useRef<LogSample[]>([]);
+  // F3: the big map draws the player's track from the race log, read when it renders.
+  const [readTrack] = useState(() => () => logSamplesRef.current);
   const logEventsRef = useRef<LogEvent[]>([]);
   const lastSampleTimeRef = useRef<number>(0);
   const wasInNoGoRef = useRef<boolean>(false);
@@ -295,7 +306,14 @@ export default function GamePage() {
   const pendingRankRef = useRef<{ rank: number; since: number } | null>(null);
   // M1-3 feedback bus: race events, rule notices and the contact frame share
   // one queue with priorities, so a rule notice no longer hides an event.
-  const { feedback, post: postFeedback, contact: showContact, clear: clearFeedback } = useRaceFeedback();
+  const { feedback, post: postToBus, contact: showContact, clear: clearFeedback } = useRaceFeedback();
+  // F4 hint log: every message given to the bus is also kept, with the race
+  // time, in the race's hint log (hint-log.ts), which the player can open and read.
+  const { entries: hintLog, add: addHint, clear: clearHintLog } = useRaceHintLog();
+  const postFeedback = useCallback((message: FeedbackPost) => {
+    postToBus(message);
+    addHint(hintLogKind(message.source), message.text, message.tone, raceClockRef.current);
+  }, [postToBus, addHint]);
   const showEvent = useCallback((event: RaceEvent, tone: FeedbackTone) => {
     postFeedback({ source: raceEventSource(event.kind), text: eventText(langRef.current, event), tone });
   }, [postFeedback]);
@@ -362,6 +380,12 @@ export default function GamePage() {
       handedSetupRef.current = true;
       setHubHandoff(true); setHandedOff(true);
     }
+  }, []);
+  // F5: the app's Race hub ("How to race") and a shared /game?intro=1 open
+  // the race page only to read the intro, over the lobby.
+  useEffect(() => {
+    const search = readRaceSearch();
+    if (raceIntroRequested(search, { trial: readPhysicalTrial(search.toString()) !== null, linkedSetup: linkedRaceSetup(search) !== null })) setIntro("hub");
   }, []);
 
   // Autopilot: holds a target heading; any input turns it off
@@ -614,7 +638,7 @@ export default function GamePage() {
     ruleStateRef.current = createRaceRulesState();
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
-    clearFeedback(); setPenalty(0); setRecall(false); setNativeSave("idle");
+    clearFeedback(); clearHintLog(); setPenalty(0); setRecall(false); setNativeSave("idle");
     setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
     setElapsed(0);
@@ -632,7 +656,7 @@ export default function GamePage() {
     lastSampleTimeRef.current = 0;
     wasInNoGoRef.current = false;
     lastTackSignRef.current = 0;
-  }, [clearFeedback, reloadFirstHints]);
+  }, [clearFeedback, clearHintLog, reloadFirstHints]);
 
   // -----------------------------------------------------------------------
   // Start race flow
@@ -702,6 +726,16 @@ export default function GamePage() {
     const source: RaceSetupSource = trigger === "start" ? handedSetupRef.current ? "hub" : "lobby" : trigger;
     if (trigger === "again" || trigger === "restart") recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "restart",
       setupSource: source, phase: gameStateRef.current, mode: racePrefsRef.current.mode });
+    // F5: before the first race on this device the intro comes first, over the
+    // lobby, with the race already set up; endIntro takes the next step.
+    // The trial is read from the link too: its engine may still be loading.
+    const trial = physicalRef.current !== null || readPhysicalTrial(readRaceSearch().toString()) !== null;
+    if (raceIntroDue({ trigger, trial, seen: hasSeenRaceIntro() })) {
+      raceSetupRef.current = { ...raceSetupRef.current, source, briefingShown: false };
+      prepareRace();
+      setIntro("first");
+      return;
+    }
     raceSetupRef.current = { ...raceSetupRef.current, source, briefingShown: step === "briefing" };
     if (step === "briefing") { openBriefing(); return; }
     prepareRace();
@@ -709,6 +743,28 @@ export default function GamePage() {
   }, [openBriefing, prepareRace, beginCountdown]);
   const startFromBriefing = useCallback(() => {
     markBriefingSeen(briefingCourseId(physicalRef.current));
+    beginCountdown();
+  }, [beginCountdown]);
+  // F5: the intro ends. Before the first race, Start race goes to the countdown
+  // (its cards cover the classic course briefing, which then counts as seen)
+  // and Skip to the lobby start's own step; both record the intro as seen.
+  // Opened on request it only closes (Got it on the last card records it as
+  // seen): a race it paused stays paused, and the app's Race hub that opened
+  // it gets the screen back.
+  const endIntro = useCallback((end: RaceIntroEnd) => {
+    const opened = introRef.current;
+    setIntro("closed");
+    if (raceIntroEndRecordsSeen(opened, end)) markRaceIntroSeen();
+    if (opened === "hub") navigateNativeRace("/race");
+    if (opened !== "first") return;
+    const course = briefingCourseId(physicalRef.current);
+    if (stepAfterRaceIntro(end === "start" ? "start" : "skip", hasSeenBriefing(course)) === "briefing") {
+      raceSetupRef.current = { ...raceSetupRef.current, briefingShown: true };
+      setGameState('briefing');
+      recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "briefing", mode: racePrefsRef.current.mode });
+      return;
+    }
+    if (end === "start") markBriefingSeen(course);
     beginCountdown();
   }, [beginCountdown]);
   useEffect(() => {
@@ -755,10 +811,22 @@ export default function GamePage() {
   // sheet is open exactly while the race is paused (M1-2).
   // The cockpit passes its click event; only the keyboard handler says "keyboard".
   const togglePause = useCallback((how?: unknown) => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: pausedRef.current ? "pause" : "resume", source: how === "keyboard" ? "keyboard" : "pointer", phase: gameStateRef.current }); }, []);
+  // F5 "How to race" from the race settings: the race pauses under the intro
+  // (the clock never runs while the player reads) and stays paused after it.
+  const showIntroInRace = useCallback(() => {
+    if (!pausedRef.current) togglePause();
+    setIntro("race");
+  }, [togglePause]);
+  // The intro of the race settings belongs to that race: gone with it.
+  useEffect(() => {
+    if (intro === "race" && gameState !== "countdown" && gameState !== "racing") setIntro("closed");
+  }, [intro, gameState]);
   useEffect(() => {
     if (gameState !== "racing" && gameState !== "countdown") return;
     const onDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
+      // F5: no key reaches the race under the open intro (it catches them first; this is the second guard).
+      if (introRef.current !== "closed") return;
       // M1-2: Esc and P pause and resume on a desktop keyboard, also from a slider.
       if (isRacePauseKey(e, Boolean(target?.closest?.(TEXT_ENTRY_SELECTOR)))) {
         e.preventDefault();
@@ -905,10 +973,21 @@ export default function GamePage() {
     for (const [key, preference] of [["guidance", "guidance"], ["trimHints", "trim-hints"], ["rules", "rules"], ["penalties", "penalties"]] as const) if (patch[key] !== undefined) recordPreferenceChange("race", preference, patch[key]!, racePrefsRef.current[key]);
   }, [writeRacePrefs, applyTrim]);
   const trimCoach = hudPlayer && playingPrefs.mode === "pro" && playingPrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
+  // F6: the same advice colours the "Wind on the sails" ribbons; none without it (Simple, trim hints off).
+  const sailFlowCoachRef = useRef<CoachKey | null>(null);
+  useEffect(() => { sailFlowCoachRef.current = trimCoach; }, [trimCoach]);
   useEffect(() => {
     if (gameState === "briefing") setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
   }, [gameState, difficulty, windStrength, racePrefs.mode]);
   const guidance = racePrefs.guidance ? routeGuidance : null;
+  // F4 hint log: the route coach line when it asks for a manoeuvre, and the
+  // Pro trim hint when it changes to advice that asks for a change, while the
+  // race runs (hint-log.ts loggedRouteAction, loggedTrimKey).
+  const loggedRoute = loggedRouteAction(gameState === "racing", racePrefs.guidance, routeGuidance?.action);
+  useEffect(() => { if (loggedRoute) addHint("route", copyRef.current.actions[loggedRoute], "info", raceClockRef.current); }, [loggedRoute, addHint]);
+  const trimLabelsRef = useRef(trimLabels); trimLabelsRef.current = trimLabels;
+  const loggedTrim = loggedTrimKey(gameState === "racing", playingPrefs, trimCoach);
+  useEffect(() => { if (loggedTrim) addHint("trim", trimLabelsRef.current[loggedTrim], "info", raceClockRef.current); }, [loggedTrim, addHint]);
   // M1-3: speed against the polar target at this wind angle (the race's own
   // force model, solved once per wind strength). Not for the physical trial,
   // whose wind is its own.
@@ -1015,7 +1094,9 @@ export default function GamePage() {
           dailyDay={dailyDay}
           racePrefs={racePrefs} updateRacePrefs={updateRacePrefs}
           native={nativeRace} medalCourse={medalCourse}
+          onShowIntro={() => setIntro("lobby")}
         />
+        {(intro === "first" || intro === "lobby" || intro === "hub") && <RaceIntro open={intro} pro={racePrefs.mode === "pro"} onEnd={endIntro} />}
       </div>
     );
   }
@@ -1055,9 +1136,9 @@ export default function GamePage() {
           windReading={windReading} navigation={navigation}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance}
-          feedback={{ toasts: feedback.visible, contact: feedback.contact }} targetSpeed={raceTarget}
+          feedback={{ toasts: feedback.visible, contact: feedback.contact }} targetSpeed={raceTarget} hintLog={hintLog}
           camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu} onExitPrompt={exitPrompt}
-          onRestart={() => startRace("restart")} onShowHintsAgain={showHintsAgain} raceId={sceneRaceId} fullscreenOffer={!embed}
+          onRestart={() => startRace("restart")} onShowHintsAgain={showHintsAgain} onShowIntro={showIntroInRace} track={readTrack} raceId={sceneRaceId} fullscreenOffer={!embed}
           raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
           haptics={raceHaptics.available ? { on: raceHaptics.on, setOn: raceHaptics.setOn } : undefined}
           autopilot={autopilotOn} onAutopilot={() => {
@@ -1072,11 +1153,12 @@ export default function GamePage() {
           <RaceScene key={sceneRaceId} raceProfile={physicalTrial} racing={gameState === "racing" && !paused} started={gameState === "racing"} contactId={feedback.contact?.id} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
             ghostRef={ghostBoatsRef} ghostLabel={ghostTime === null ? undefined : `${tl({ ru: "Твой лучший", en: "Your best", pl: "Twój najlepszy", es: "Tu mejor", fr: "Ton meilleur", de: "Deine Bestzeit", it: "Il tuo migliore" })} ${formatRecordTime(ghostTime)}`}
             showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}
-            guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />
+            guidance={guidance} softLight={playingPrefs.softLight} sailFlow={playingPrefs.sailFlow === true} sailFlowCoachRef={sailFlowCoachRef} sailFlowOwnTrim={playingPrefs.mode === "pro"} onStats={sceneFlags.fps ? showSceneStats : undefined} />
           <RaceFinishHoldPlate raceId={sceneRaceId} />
           {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
         </RaceCockpit>
       )}
+      {(gameState === "countdown" || gameState === "racing") && intro === "race" && <RaceIntro open={intro} pro={playingPrefs.mode === "pro"} onEnd={endIntro} />}
 
       {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (

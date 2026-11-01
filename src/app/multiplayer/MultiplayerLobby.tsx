@@ -14,6 +14,8 @@ import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
 import { sections } from '@/lib/product/catalog';
 import type { CreateBlocker, ShareOutcome } from './lobby';
+import { RACE_INTRO_TITLE } from '@/data/race-intro-title';
+import { HintIcon } from '@/features/race-hud/RaceIcons';
 
 const RACE_SECTION = sections.find(section => section.id === 'race')!;
 const FIELD = { background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' } as const;
@@ -30,6 +32,8 @@ export function MultiplayerMenu(p: {
   createBlocker: CreateBlocker; connecting: boolean;
   onCreate: () => void; onJoin: () => void; joinDisabled: boolean;
   error: string | null;
+  /** F5: "How to race" opens the race intro on request; multiplayer never shows it by itself. */
+  onShowIntro?: () => void;
 }) {
   const { tp, tl, lang } = useI18n();
   const nicknameRef = useRef<HTMLInputElement>(null);
@@ -66,6 +70,10 @@ export function MultiplayerMenu(p: {
           },
         )}
       </p>
+      {p.onShowIntro && <button type="button" onClick={p.onShowIntro} data-testid="mp-intro" aria-haspopup="dialog"
+        className="mb-6 -mt-2 inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--border-subtle)] px-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]">
+        <HintIcon size={20} className="shrink-0 text-[var(--text-secondary)]" />{tl(RACE_INTRO_TITLE)}
+      </button>}
       <div className="card p-4 mb-4">
         <label htmlFor="mp-nickname" className="text-sm text-[var(--text-secondary)] block mb-1">{tp('Твой ник', 'Your nickname', 'Twój nick', { es: 'Tu apodo', fr: 'Ton pseudo', de: 'Dein Nickname', it: 'Il tuo nickname' })}</label>
         <input

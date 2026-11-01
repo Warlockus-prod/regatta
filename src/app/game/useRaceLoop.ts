@@ -413,8 +413,10 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           if (watched.cost) showEvent(watched.cost, watched.cost.lossKn > TURN_COST.bigLossKn ? 'danger' : 'info');
         }
         // M4-7: a first race hint at the moment it matters (first-race-hints.ts).
+        // F4: the player can switch them off in the race Settings; off, none is
+        // due or fired, so switching them back on gives the same hints later.
         const hintsRecord = refs.firstHintsRef?.current;
-        if (!physical && showHint && hintsRecord) {
+        if (!physical && showHint && hintsRecord && racePrefsRef.current.firstRaceHints !== false) {
           if (hintsRecord.revision !== firstHintsRevision) { firstHints = createFirstRaceHintState(); firstHintsRevision = hintsRecord.revision; }
           const due = nextFirstRaceHint(firstHints, { t, racing: true, tacked: classified.manoeuvre === 'tack', twa: pTWA,
             windDir: windDirRef.current, boats, course }, hintsRecord.seen);

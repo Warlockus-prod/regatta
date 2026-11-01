@@ -17,12 +17,15 @@ import { bootcampLessons } from "../data";
 import { VenuePicker } from "../game/VenuePicker";
 import { RaceSetupPanel } from "./RaceSetupPanel";
 import { RaceHubMedal, hubMedalCourse } from "./RaceHubMedal";
-import { RaceHubNextStep, useRaceHubRows } from "./RaceHubNextStep";
+import { RaceHubNextStep, hubRacedBefore, useRaceHubRows } from "./RaceHubNextStep";
 import { raceHomeView } from "../../../src/lib/race-next-step";
 import { useVenue } from "../persistence/venue";
-import { DEFAULT_HUB_SETUP, hubRaceHref, hubSetupCopy, type HubRaceSetup } from "./race-setup";
+import { DEFAULT_HUB_SETUP, hubRaceHref, hubStartLabel, type HubRaceSetup } from "./race-setup";
+import { RACE_INTRO_TITLE } from "../../../src/data/race-intro-title";
 
 const racePhoto = require("../../assets/design/race-card.jpg");
+/** F5: the race page opened only for its intro (raceEntryQuery forwards the flag). */
+export const RACE_INTRO_HREF = "/game?intro=1";
 
 /**
  * A tab hub. Learn, Practice and Race list their own section. The Menu tab
@@ -36,7 +39,8 @@ const racePhoto = require("../../assets/design/race-card.jpg");
  *
  * The Race hub is the race lobby of the app (M1-1, M1-6): the race frame, the
  * one race setup (preset, level and wind or mission, then mode and venue) and
- * one primary start. The setup goes to the race in the route, so the race's
+ * one primary start, pinned under the scroll above the tab bar (F1) and named
+ * "first race" only until this device has raced. The setup goes to the race in the route, so the race's
  * own menu and briefing never ask for it again.
  */
 export function ProductHub({ section }: { section: Exclude<Section, "home">; menu?: boolean }) {
@@ -45,11 +49,15 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
   const [query, setQuery] = useState("");
   const [raceSetup, setRaceSetup] = useState<HubRaceSetup>(DEFAULT_HUB_SETUP);
   const startRace = () => router.push(hubRaceHref(raceSetup) as Href);
-  const startLabel = raceSetup.preset === "learn" ? hubSetupCopy.startFirst[lang] : raceSetup.preset === "mission" ? hubSetupCopy.startMission[lang] : hubSetupCopy.start[lang];
   const daily = dailySettings(new Date().toISOString().slice(0, 10));
   // M4-6: the one next-step card of the Race hub, the record and the progress.
   const { mode } = useVenue();
   const rows = useRaceHubRows(section === "race");
+  // F1: once this device has raced, the easy preset is "Easy race" and the
+  // start says "Start the race", not "Start your first race". Until the
+  // storage read settles the words stay neutral (no "first race" flash).
+  const racedBefore = hubRacedBefore(rows);
+  const startLabel = hubStartLabel(raceSetup, racedBefore, lang);
   const home = section === "race" ? raceHomeView({ ...rows, course: hubMedalCourse(raceSetup), mode, now: new Date(), inDaily: false }) : null;
   const isMenu = section === "library";
   const current = sections.find(s => s.id === section)!;
@@ -78,10 +86,9 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
       {home && <RaceHubNextStep view={home} setup={raceSetup} onOpen={href => router.push(href as Href)} />}
       {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={startRace} />}
-      {section === "race" && <RaceSetupPanel value={raceSetup} onChange={setRaceSetup} />}
+      {section === "race" && <RaceSetupPanel value={raceSetup} onChange={setRaceSetup} racedBefore={racedBefore} />}
       {section === "race" && home?.step?.kind !== "medal" && <RaceHubMedal setup={raceSetup} />}
       {section === "race" && <VenuePicker />}
-      {section === "race" && <Button size="large" onPress={startRace}>{startLabel}</Button>}
       {isMenu && <View style={styles.search}>
         <View style={styles.field}>
           <Svg width={18} height={18} viewBox="0 0 18 18" accessibilityElementsHidden importantForAccessibility="no">
@@ -97,10 +104,18 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       </Group>)}
       {isMenu && !query.trim() && <MyProgress />}
       {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
-      {section === "race" && home?.step?.kind !== "daily" && <Group title="">
-        <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />
+      {section === "race" && <Group title="">
+        {home?.step?.kind !== "daily" && <ListRow title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />}
+        {/* F5: the race intro on request (the race's own lobby, with its entry, is not in the app). */}
+        <ListRow noBorder title={RACE_INTRO_TITLE[lang]} onPress={() => router.push(RACE_INTRO_HREF as Href)} />
       </Group>}
     </ScrollView>
+    {/* F1: the one labelled start stays on screen above the tab bar. On a
+        phone the setup, the next-step card and the venues pushed it below the
+        fold, so the race photo above (also a start) looked like the only way. */}
+    {section === "race" && <View style={styles.startBar} testID="race-hub-start-bar">
+      <View style={styles.startInner}><Button size="large" onPress={startRace}>{startLabel}</Button></View>
+    </View>}
   </Screen>;
 }
 
@@ -149,6 +164,8 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 20, maxWidth: 820, width: "100%", alignSelf: "center" },
+  startBar: { paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(18, 50, 71, 0.12)", backgroundColor: colors.bgPrimary },
+  startInner: { maxWidth: 780, width: "100%", alignSelf: "center" },
   title: { minHeight: 40 },
   intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: -8 },
   group: { gap: 8 },

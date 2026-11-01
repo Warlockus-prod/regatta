@@ -30,6 +30,7 @@ vi.mock("./RaceCockpit", () => ({ RaceCockpit: () => null, RaceModePicker: () =>
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (text: Record<string, string>) => text.en, tp: (_ru: string, en: string) => en }) }));
 vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
 import { RACE_BRIEFING_SEEN_KEY } from "./race-setup-flow";
+import { RACE_INTRO_KEY } from "@/features/race-hud/race-intro";
 
 // A fresh module graph per case: the seen-briefing session memory must not
 // leak from one case into the next (each case is a new page load).
@@ -54,6 +55,8 @@ afterEach(() => { vi.unstubAllGlobals(); });
 
 describe("one race setup on the actual race page", () => {
   it("opens the briefing on the first start and goes straight to the countdown once the course is seen", async () => {
+    // F5: a device that has seen the race intro (GameClient.intro.test.tsx covers the one that has not).
+    values.set(RACE_INTRO_KEY, "1");
     await renderPage();
     capture.menu!.onStart();
     expect(lifecycle()).toEqual(["init", "briefing"]);

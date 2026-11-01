@@ -7,6 +7,7 @@ import { makeStandardCourse } from "@/lib/race-physics";
 import { RaceOverviewMap, type RaceOverviewLabels } from "./RaceOverviewMap";
 import { createRaceNavigationSnapshot, type RaceNavigationInput } from "./navigation-model";
 import { PLAYER_COLOR } from "./boat-colors";
+import { mapFitBounds, raceMapView } from "./map-view";
 
 beforeEach(() => vi.stubGlobal("React", React));
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -174,5 +175,33 @@ describe("race overview SVG", () => {
   it("draws mark numbers after the boats so a glyph never covers them", () => {
     const html = render();
     expect(html.indexOf("data-map-ordinal")).toBeGreaterThan(html.lastIndexOf("data-map-boat="));
+  });
+
+  // F3: the full map shows the side to leave each mark on, the player's track
+  // and the route hint; the big map's bow up turns every direction glyph.
+  it("shows the rounding side, the track and the route on the full map only", () => {
+    const snapshot = createRaceNavigationSnapshot(input())!;
+    const extra = { track: [{ x: 400, y: 1200 }, { x: 410, y: 1150 }, { x: 400, y: 1100 }], route: [{ x: 400, y: 1100 }, { x: 450, y: 600 }, { x: 500, y: 200 }] };
+    const full = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={{ ...labels, roundPort: "Backbord lassen", track: "Spur", route: "Route" }} {...extra} />);
+    expect(full.match(/data-map-rounding="port"/g)).toHaveLength(1);
+    expect(full).toContain("<title>Backbord lassen</title>");
+    expect(full).toMatch(/data-map-track="" points="[\d., ]+"/);
+    expect(full).toContain('data-map-route=""');
+    const compact = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} compact width={128} height={128} {...extra} />);
+    expect(compact).not.toMatch(/data-map-rounding|data-map-track|data-map-route/);
+    const saved = createRaceNavigationSnapshot(input({ course: { ...makeStandardCourse(), marks: makeStandardCourse().marks.map(m => m.type === "windward" ? { ...m, roundSide: "starboard" as const } : m) } }))!;
+    expect(renderToStaticMarkup(<RaceOverviewMap snapshot={saved} labels={labels} />)).toContain('data-map-rounding="starboard"');
+  });
+
+  it("turns the boats, the wind and north with the big map's bow up view", () => {
+    const snapshot = createRaceNavigationSnapshot(input({ boats: [{ id: "p", pos: { x: 400, y: 1100 }, heading: 30, isPlayer: true }], windFrom: 10 }))!;
+    const view = raceMapView({ fit: mapFitBounds(snapshot), width: 300, height: 300, zoom: 1, orientation: "heading", player: snapshot.boats[0] });
+    const html = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} width={300} height={300} view={view} caption={false} testId="big" />);
+    expect(html).toContain('data-testid="big"');
+    expect(html).toContain('data-map-rotation="330"');
+    expect(html).toMatch(/data-map-boat="player" transform="translate\(150 150\) rotate\(0\)"/);
+    expect(html).toMatch(/data-map-north="" d="[^"]+" transform="rotate\(330 18 23.5\)"/);
+    expect(html).toContain('transform="rotate(340)"');
+    expect(html).not.toContain("figcaption");
   });
 });

@@ -7,7 +7,7 @@ import { Button, Text } from "../design-system/components";
 import { colors, radii, shadow, spacing } from "../design-system/tokens";
 import { BEST_TIMES_STORAGE_KEY, formatRecordTime } from "../../../src/lib/best-times";
 import { RACE_MEDALS_STORAGE_KEY, parseMedalStore, type MedalStore } from "../../../src/lib/race-medals";
-import { EMPTY_RACE_HOME, RACE_HOME_STORAGE_KEY, parseRaceHomeStore, type RaceHomeStore, type RaceHomeView } from "../../../src/lib/race-next-step";
+import { EMPTY_RACE_HOME, RACE_HOME_STORAGE_KEY, hasRacedBefore, parseRaceHomeStore, type RaceHomeStore, type RaceHomeView } from "../../../src/lib/race-next-step";
 import { racePracticeNativeHref, racePracticeTitle } from "../../../src/lib/race-practice";
 import { RACE_PRACTICE_COPY } from "../../../src/data/race-practice";
 import { raceNextStepCopy } from "../../../src/data/race-next-step-copy";
@@ -15,23 +15,40 @@ import { fillMedal, medalCourseText } from "../../../src/data/race-medal-copy";
 import { copy as productCopy } from "../../../src/lib/product/copy";
 import { RaceHubMedal } from "./RaceHubMedal";
 import type { HubRaceSetup } from "./race-setup";
+import { RACE_HISTORY_STORAGE_KEY, countStoredRaces } from "../persistence/race-history";
 
-export interface RaceHubRows { home: RaceHomeStore; medals: MedalStore; bestTimesRaw: string | null }
-const EMPTY_ROWS: RaceHubRows = { home: EMPTY_RACE_HOME, medals: {}, bestTimesRaw: null };
+export interface RaceHubRows { home: RaceHomeStore; medals: MedalStore; bestTimesRaw: string | null;
+  /** F1: races kept in the native race history (hasRacedBefore). */
+  savedRaces: number;
+  /** F1: false until the first storage read of this mount settles; the rows are then the stored ones, not the empty default. */
+  loaded: boolean }
+const EMPTY_ROWS: RaceHubRows = { home: EMPTY_RACE_HOME, medals: {}, bestTimesRaw: null, savedRaces: 0, loaded: false };
+
+/** F1: whether the hub may call its easy preset a "first race". Only after the
+ * storage read settled and found no race: before that the wording is the
+ * neutral "Easy race" / "Start the race", so a returning player never sees
+ * "first race" flash on a cold mount (a new player sees the neutral words for
+ * one read, which is still true for them). */
+export function hubRacedBefore(rows: RaceHubRows): boolean {
+  return !rows.loaded || hasRacedBefore(rows);
+}
 
 /** The three rows the next step reads, again whenever the hub comes back into
  * focus: the race WebView wrote them through the race bridge
- * (race-web-storage.ts) or the native best-time store (race-personal-best.ts). */
+ * (race-web-storage.ts) or the native best-time store (race-personal-best.ts).
+ * F1: plus the count of the native race history, one of the signals that this
+ * device has raced (the start then stops saying "first race"). */
 export function useRaceHubRows(enabled = true): RaceHubRows {
   const [rows, setRows] = useState<RaceHubRows>(EMPTY_ROWS);
   useFocusEffect(useCallback(() => {
     if (!enabled) return undefined;
     let live = true;
-    AsyncStorage.multiGet([RACE_HOME_STORAGE_KEY, RACE_MEDALS_STORAGE_KEY, BEST_TIMES_STORAGE_KEY]).then(pairs => {
+    AsyncStorage.multiGet([RACE_HOME_STORAGE_KEY, RACE_MEDALS_STORAGE_KEY, BEST_TIMES_STORAGE_KEY, RACE_HISTORY_STORAGE_KEY]).then(pairs => {
       if (!live) return;
       const get = (key: string) => pairs.find(([k]) => k === key)?.[1] ?? null;
-      setRows({ home: parseRaceHomeStore(get(RACE_HOME_STORAGE_KEY)), medals: parseMedalStore(get(RACE_MEDALS_STORAGE_KEY)), bestTimesRaw: get(BEST_TIMES_STORAGE_KEY) });
-    }, () => { if (live) setRows(EMPTY_ROWS); });
+      setRows({ home: parseRaceHomeStore(get(RACE_HOME_STORAGE_KEY)), medals: parseMedalStore(get(RACE_MEDALS_STORAGE_KEY)), bestTimesRaw: get(BEST_TIMES_STORAGE_KEY),
+        savedRaces: countStoredRaces(get(RACE_HISTORY_STORAGE_KEY)), loaded: true });
+    }, () => { if (live) setRows({ ...EMPTY_ROWS, loaded: true }); });
     return () => { live = false; };
   }, [enabled]));
   return rows;

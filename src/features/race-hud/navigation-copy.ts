@@ -24,8 +24,12 @@ export function useRaceNavigationCopy() {
     fromStarboard: tl({ ru: "С правого борта", en: "From starboard", pl: "Z prawej burty", es: "Por estribor", fr: "De tribord", de: "Von Steuerbord", it: "Da dritta" }),
     fromBow: tl({ ru: "С носа", en: "From ahead", pl: "Od dziobu", es: "De proa", fr: "De l'avant", de: "Von vorn", it: "Da prua" }),
     fromStern: tl({ ru: "С кормы", en: "From astern", pl: "Od rufy", es: "De popa", fr: "De l'arrière", de: "Von achtern", it: "Da poppa" }),
-    portShort: tl({ ru: "Л", en: "P", pl: "L", es: "B", fr: "B", de: "Bb", it: "S" }),
-    starboardShort: tl({ ru: "П", en: "S", pl: "P", es: "E", fr: "T", de: "Stb", it: "D" }),
+    // F2: the visible side under the TWA number (glossary: port / starboard
+    // side); the full "From port" stays the accessible name and title.
+    portSide: tl({ ru: "левый борт", en: "port", pl: "lewa burta", es: "babor", fr: "bâbord", de: "Backbord", it: "sinistra" }),
+    starboardSide: tl({ ru: "правый борт", en: "starboard", pl: "prawa burta", es: "estribor", fr: "tribord", de: "Steuerbord", it: "dritta" }),
+    aheadSide: tl({ ru: "с носа", en: "ahead", pl: "od dziobu", es: "de proa", fr: "de l'avant", de: "von vorn", it: "da prua" }),
+    asternSide: tl({ ru: "с кормы", en: "astern", pl: "od rufy", es: "de popa", fr: "de l'arrière", de: "von achtern", it: "da poppa" }),
     heading: tl({ ru: "Курс лодки", en: "Boat heading", pl: "Kurs jachtu", es: "Rumbo del barco", fr: "Cap du bateau", de: "Bootskurs", it: "Prua della barca" }),
     twa: tl({ ru: "Угол к ветру", en: "Angle to wind", pl: "Kąt do wiatru", es: "Ángulo al viento", fr: "Angle au vent", de: "Winkel zum Wind", it: "Angolo al vento" }),
     windDisplay: tl({ ru: "Отображение ветра", en: "Wind display", pl: "Widok wiatru", es: "Vista del viento", fr: "Affichage du vent", de: "Windanzeige", it: "Vista del vento" }),

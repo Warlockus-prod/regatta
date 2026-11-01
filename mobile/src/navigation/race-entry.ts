@@ -15,6 +15,8 @@ export function raceEntryQuery(params: Record<string, string | string[] | undefi
   if (knownLesson(params.fromLesson)) query.fromLesson = params.fromLesson;
   // The on-screen frame counter (?fps=1) for checks on a device.
   if (params.fps === "1") query.fps = "1";
+  // F5: the Race hub's "How to race" opens the race page only to read its intro.
+  if (params.intro === "1") query.intro = "1";
   const day = typeof params.daily === "string" ? params.daily : params.course === "daily" ? now.toISOString().slice(0, 10) : null;
   if (day) {
     try {

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { VENUES } from "./venues";
 import {
-  REFLECTION_DEPTH, SUN_CLEAR_OF_WIND, VENUE_LOOKS, bearingGap, contrast, luminance, mixHex, parseHex, sceneColors, sunDirection, sunIntensity, venueLook, warmHex,
+  MARK_HALO, MARK_RING_COLOR, REFLECTION_DEPTH, SOFT_LIGHT, SUN_CLEAR_OF_WIND, VENUE_LOOKS, bearingGap, contrast, luminance, markHaloOpacity, mixHex, parseHex, raceLight, sceneColors, sunDirection, sunIntensity, venueLook, warmHex,
 } from "./look";
 
 // M3-6 contract: every venue has a complete look within the art board's
@@ -179,6 +179,61 @@ describe("marks on the stern camera's water (art board rule 1)", () => {
       expect(c.horizon).toBe(warmHex(look.sky.horizon, look.warmth));
       expect(luminance(c.reflection)).toBeLessThan(luminance(c.horizon));
       expect(luminance(c.reflection)).toBeGreaterThan(luminance(c.deep));
+    }
+  });
+});
+
+// F4 contract: "Softer light, clearer marks" is off by default and then the
+// look is drawn as before; on, every venue gets less exposure, sun, glints
+// and glow, and larger marks lit from within. In both looks every mark has a
+// halo that fades in with distance, so a mark hundreds of metres away is not
+// lost among the waves (the owner's replay: the windward mark at 540 m was a
+// dot of a few pixels).
+describe("softer race light and the mark halo (F4)", () => {
+  const MARK = "#ff7a1a", PIN = "#ffd23f";
+  it("changes nothing in the light while off, and keeps the mark halo on", () => {
+    for (const look of Object.values(VENUE_LOOKS)) {
+      expect(raceLight(look)).toEqual({ exposure: look.exposure, sunIntensity: sunIntensity(look), glint: 1, glow: 1, mark: { scale: 1, glow: false, halo: true } });
+      expect(raceLight(look, false)).toEqual(raceLight(look));
+    }
+  });
+
+  it("lowers exposure, sun, glints and glow on every venue and enlarges the marks", () => {
+    for (const look of Object.values(VENUE_LOOKS)) {
+      const plain = raceLight(look), soft = raceLight(look, true);
+      expect(soft.exposure).toBeLessThan(plain.exposure);
+      expect(soft.exposure).toBeGreaterThanOrEqual(0.8);
+      expect(soft.sunIntensity).toBeLessThan(plain.sunIntensity);
+      expect(soft.glint).toBeLessThanOrEqual(0.5);
+      expect(soft.glow).toBeLessThanOrEqual(0.5);
+      expect(soft.mark).toEqual({ scale: SOFT_LIGHT.markScale, glow: true, halo: true });
+      expect(soft.mark.scale).toBeGreaterThanOrEqual(1.3);
+    }
+  });
+
+  it("fades the halo in with distance: none at the mark, full from the far end, never more", () => {
+    const [near, far] = MARK_HALO.fade;
+    expect(markHaloOpacity(0)).toBe(0);
+    expect(markHaloOpacity(near)).toBe(0);
+    expect(markHaloOpacity(far)).toBeCloseTo(MARK_HALO.opacity);
+    expect(markHaloOpacity(540)).toBeCloseTo(MARK_HALO.opacity);
+    expect(markHaloOpacity(Number.NaN)).toBe(0);
+    let last = 0;
+    for (let d = near; d <= far; d += 5) { const o = markHaloOpacity(d); expect(o).toBeGreaterThanOrEqual(last); last = o; }
+    expect(MARK_HALO.opacity).toBeLessThanOrEqual(1);
+    // Starts fading in before a mark is a few pixels (the buoy is about 3 m across).
+    expect(near).toBeLessThanOrEqual(80);
+  });
+
+  it("outlines the halo dark enough to stand out from the marks and the bright water", () => {
+    expect(contrast(MARK_RING_COLOR, MARK)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(MARK_RING_COLOR, PIN)).toBeGreaterThanOrEqual(4.5);
+    for (const look of Object.values(VENUE_LOOKS)) {
+      const c = sceneColors(look);
+      // The reflected horizon is the brightest water at a grazing angle; the shallows the brightest water from above.
+      expect(contrast(MARK_RING_COLOR, c.reflection), look.sky.horizon).toBeGreaterThanOrEqual(3);
+      expect(contrast(MARK_RING_COLOR, c.sun), look.sun.color).toBeGreaterThanOrEqual(4.5);
+      expect(luminance(MARK_RING_COLOR)).toBeLessThan(luminance(c.deep));
     }
   });
 });

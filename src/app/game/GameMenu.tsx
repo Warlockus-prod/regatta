@@ -10,19 +10,22 @@ import { RaceModePicker } from "./RaceCockpit";
 import type { RacePrefs } from "./race-prefs";
 import { LobbyVenues } from "./LobbyVenues";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
-import { TargetIcon } from "@/features/race-hud/RaceIcons";
+import { HintIcon, TargetIcon } from "@/features/race-hud/RaceIcons";
+import { RACE_INTRO_TITLE } from "@/data/race-intro-title";
 import { linkedRaceSetup } from "@/lib/race-setup";
 import { readRaceSearch } from "@/lib/race-native-env";
 import type { MedalCourse } from "@/lib/race-medals";
 import { RaceMedalLine } from "./RaceMedal";
-import { RaceDailyEntry, RaceNextStepCard, readLobbyHome } from "./RaceNextStep";
+import { RaceDailyEntry, RaceNextStepCard, readLobbyHome, readRacedBefore } from "./RaceNextStep";
+import { easyPresetText } from "@/data/race-start-copy";
 import { localStore } from "./race-model";
 import { dailyRaceDay } from "@/lib/race-next-step";
 import { raceReturnFor } from "@/lib/race-return";
 
 // ============================================================================
 // GameMenu - the race lobby (M1-1, M1-6). One setup screen: a race frame, three
-// presets (First race / Free / Mission), the mode and the venue as compact
+// presets (First race, "Easy race" once this device has raced / Free /
+// Mission), the mode and the venue as compact
 // choices, and one primary action that starts the race. The briefing opens by
 // itself only the first time on a course; the "i" button beside the start
 // opens it on request. Inside the app the Race hub already chose the mode and
@@ -47,7 +50,7 @@ export function GameMenu({
   difficulty, setDifficulty,
   windStrength, setWindStrength,
   selectedMission, pickMission,
-  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false, medalCourse = null,
+  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false, medalCourse = null, onShowIntro,
 }: {
   dailyDay: string | null;
   racePrefs: RacePrefs; updateRacePrefs: (patch: Partial<RacePrefs>) => void;
@@ -65,14 +68,21 @@ export function GameMenu({
   native?: boolean;
   /** M4-5: the course whose medal and next goal the lobby shows; none for the physical trial. */
   medalCourse?: MedalCourse | null;
+  /** F5: "How to race" opens the race intro again (a secondary entry, the start stays the one primary action). */
+  onShowIntro?: () => void;
 }) {
-  const { tp, tl } = useI18n();
+  const { tp, tl, lang } = useI18n();
   const raceCopy = useRaceCopy();
   // The initial tab comes from the link, on every mount: /game is client-only
   // (page.tsx, ssr: false), so no server render disagrees with it.
   const [tab, setTab] = useState<MenuTab>(() => linkedMenuTab(readRaceSearch()));
 
   useEffect(() => { if (selectedMission) setTab("mission"); }, [selectedMission]);
+  // F1: after the first ended race on this device the easy preset is "Easy
+  // race" and the start "Start the race", not "first" (read once per mount:
+  // the lobby mounts again after every race).
+  const [racedBefore] = useState(() => readRacedBefore(localStore()));
+  const easy = easyPresetText(racedBefore, lang);
 
   // Wind-label helper used in several places in this menu.
   const windLabel = (w: 'light' | 'medium' | 'heavy') =>
@@ -108,7 +118,7 @@ export function GameMenu({
   const level = difficultyLabel(difficulty);
   const ctaLabel =
     dailyDay ? tl({ ru: 'Начать гонку дня', en: 'Start the daily race', pl: 'Zacznij wyścig dnia', es: 'Empezar la regata del día', fr: 'Lancer la course du jour', de: 'Tagesrennen starten', it: 'Inizia la regata del giorno' }) :
-    tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
+    tab === 'learn' ? easy.start :
     tab === 'mission' ? (selectedMission
       ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`, {
           es: `Ir a la misión: ${selectedMission.titleEs ?? selectedMission.titleEn}`,
@@ -145,6 +155,10 @@ export function GameMenu({
         <p className="text-base text-[var(--text-secondary)]">
           {tl({ ru: 'Выбери режим гонки', en: 'Pick a race mode', pl: 'Wybierz tryb wyścigu', es: 'Elige un modo de regata', fr: 'Choisis un mode de course', de: 'Wähle einen Rennmodus', it: 'Scegli una modalità di regata' })}
         </p>
+        {onShowIntro && <button type="button" onClick={onShowIntro} data-testid="race-lobby-intro" aria-haspopup="dialog"
+          className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--border-subtle)] px-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]">
+          <HintIcon size={20} className="shrink-0 text-[var(--text-secondary)]" />{tl(RACE_INTRO_TITLE)}
+        </button>}
       </div>
 
       {home && <RaceNextStepCard view={home} mode={racePrefs.mode}
@@ -157,19 +171,9 @@ export function GameMenu({
           active={tab === 'learn'}
           onClick={() => setTab('learn')}
           icon="first"
-          title={tl({ ru: 'Первая гонка', en: 'First race', pl: 'Pierwszy wyścig', es: 'Primera regata', fr: 'Première course', de: 'Erstes Rennen', it: 'Prima regata' })}
+          title={easy.title}
           subtitle={tl({ ru: 'Лёгкий уровень, средний ветер', en: 'Easy level, medium wind', pl: 'Łatwy poziom, średni wiatr', es: 'Nivel fácil, viento medio', fr: 'Niveau facile, vent moyen', de: 'Leichte Stufe, mittlerer Wind', it: 'Livello facile, vento medio' })}
-          desc={tp(
-            'Спокойные противники, плавные повороты. Для первого опыта гонки.',
-            'Calm opponents, gentle turns. For a first racing experience.',
-            'Spokojni rywale, łagodne zwroty. Na pierwsze regatowe doświadczenie.',
-            {
-              es: 'Rivales tranquilos, viradas suaves. Para tu primera experiencia de regata.',
-              fr: 'Adversaires calmes, virements en douceur. Pour une première expérience de course.',
-              de: 'Ruhige Gegner, sanfte Wenden. Für dein erstes Regatta-Erlebnis.',
-              it: 'Avversari tranquilli, virate morbide. Per una prima esperienza di regata.',
-            },
-          )}
+          desc={easy.desc}
         />
         <PresetCard
           active={tab === 'free'}

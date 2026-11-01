@@ -9,6 +9,8 @@
 // the judge's items) where a tap jumps to 5 s before the event. The clock
 // waits for the 3D scene's first frame, so the 5 s lead is never spent behind
 // the loading screen. The pure parts live in src/lib/race-replay-teaching.ts.
+// F3: the corner map opens the big race map with the boat and its track at
+// the replay's time (the same panel as in the race).
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -20,6 +22,7 @@ import { replayFrame } from "@/lib/race-replay-frame";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useReplayCopy } from "./replay-copy";
 import { PLAYER_COLOR } from "./race-model";
+import { readRacePrefs } from "./race-prefs";
 import styles from "./RaceCockpit.module.css";
 import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
@@ -32,6 +35,11 @@ import { RACE_UNITS } from "@/features/race-hud/units";
 import { createTapTracker, nextRaceCamera, type TapTracker } from "@/features/race-scene/camera";
 import { RACE_CAMERA_SWITCH, sceneTapHandlers } from "@/features/race-scene/camera-tap";
 import { CameraIcon } from "@/features/race-hud/RaceIcons";
+import { createRaceNavigationSnapshot } from "@/features/race-hud/navigation-model";
+import { RaceMiniMapButton } from "@/features/race-hud/RaceCornerInstruments";
+import { RaceBigMap } from "@/features/race-hud/RaceBigMap";
+import { RACE_MAP_COPY } from "@/data/race-map-copy";
+import corner from "@/features/race-hud/RaceCornerInstruments.module.css";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(m => m.RaceScene), { ssr: false });
 
@@ -115,6 +123,9 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
   const { venue } = useVenue();
   const { camera, setCamera } = useRaceView();
   const [cameraRevision, setCameraRevision] = useState(0);
+  // F4: the race's "Softer light, clearer marks" holds in the replay too (read
+  // once when it opens; it only reaches the client-only scene, never the markup).
+  const [softLight] = useState(() => readRacePrefs().softLight === true);
   const first = samples[0]?.t ?? 0;
   const total = samples.at(-1)?.t ?? 0;
   const ribbon = useMemo(() => replayRibbon({ samples, events, judgeItems }), [samples, events, judgeItems]);
@@ -197,6 +208,20 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
     return () => cancelAnimationFrame(id);
   }, [playing, samples, total, title, rate, sceneReady]);
 
+  // F3: the map at the replay's time (the HUD's 10 Hz clock): the course, the
+  // boat and its track so far. Old shared replays without a course have none.
+  const [bigMap, setBigMap] = useState(false);
+  const mapFrame = useMemo(() => replayFrame(samples, time), [samples, time]);
+  const navigation = useMemo(() => mapFrame && course ? createRaceNavigationSnapshot({ course,
+    boats: [{ id: "player", pos: mapFrame.pos, heading: mapFrame.heading, isPlayer: true, color: PLAYER_COLOR }], windFrom: mapFrame.windDir }) : null, [course, mapFrame]);
+  // The track only while the big map is open (the corner map draws none).
+  const track = useMemo(() => {
+    if (!bigMap) return null;
+    const sailed: { x: number; y: number }[] = samples.filter(sample => sample.t <= time);
+    if (mapFrame) sailed.push(mapFrame.pos);
+    return sailed;
+  }, [bigMap, samples, time, mapFrame]);
+  const you = tl(RACE_MAP_COPY.you), fleet = tl(RACE_MAP_COPY.fleet);
   const switchName = `${tl(RACE_CAMERA_SWITCH)}: ${c[camera]}`;
   return <div ref={rootRef} className={`${styles.cockpit} absolute inset-0`} data-testid="race-replay-3d">
     <header className={styles.toolbar}><button type="button" onClick={close}>{c.back}</button><strong>{title}</strong></header>
@@ -207,7 +232,10 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
         className="inline-flex min-h-11 min-w-11 items-center justify-center"><CameraIcon size={22} /></button>
       <button type="button" onClick={() => { setCameraRevision(value => value + 1); recordControlChange("replay", "camera", camera); }}>{c.resetCamera}</button>
     </div>
-    <div className={styles.scene} style={{ flex: 1 }} data-testid="replay-scene" {...sceneTap}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={labels} onReady={onSceneReady} /></div>
+    <div className={styles.scene} style={{ flex: 1 }} data-testid="replay-scene" {...sceneTap}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={labels} onReady={onSceneReady} softLight={softLight} />
+      {navigation && <div className={corner.instruments}><RaceMiniMapButton navigation={navigation} onOpenMap={() => setBigMap(true)} you={you} fleet={fleet} /></div>}
+      {bigMap && <RaceBigMap snapshot={navigation} track={track} you={you} fleet={fleet} onClose={() => setBigMap(false)} />}
+    </div>
     <ReplayControls playing={playing} time={time} first={first} total={total} rate={rate} ribbon={ribbon} pinned={pinned}
       onPlay={play} onSeek={seek} onRate={changeRate} onJump={jump} />
   </div>;

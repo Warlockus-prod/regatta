@@ -1,23 +1,29 @@
 .instrument { display:flex; align-items:center; gap:12px; min-width:0; color:var(--text-secondary); }
-.compass { flex:0 0 auto; width:88px; height:88px; }
+.compass { flex:0 0 auto; width:96px; height:96px; }
 .readings { min-width:0; }
-.caption { font-size:12px; line-height:1.4; color:var(--text-secondary); margin-bottom:4px; }
-.bearing { display:flex; align-items:baseline; gap:4px; font-size:22px; line-height:1.15; color:var(--text-primary); font-weight:600; white-space:nowrap; }
-.kind,.side { font-size:11px; color:var(--text-secondary); }
-.metadata { display:flex; flex-wrap:wrap; gap:0 8px; font-size:13px; line-height:1.4; color:var(--text-secondary); }
+.caption { font-size:14px; line-height:1.4; color:var(--text-secondary); margin-bottom:4px; }
+.bearing { display:flex; align-items:baseline; gap:6px; font-size:24px; line-height:1.15; color:var(--text-primary); font-weight:650; white-space:nowrap; }
+.kind { font-size:14px; font-weight:600; color:var(--text-secondary); }
+/* F2: the side reads as a word under the angle ("правый борт"), at the
+   secondary size; it breaks between words, never inside one. */
+.side { display:block; font-size:14px; line-height:1.3; font-weight:600; color:var(--text-primary); overflow-wrap:normal; }
+.metadata { display:flex; flex-wrap:wrap; gap:0 8px; font-size:14px; line-height:1.4; color:var(--text-secondary); }
 .metadata>span { white-space:nowrap; }
 .speed { font-size:inherit; line-height:inherit; }
-.details { display:grid; gap:5px; margin:8px 0 0; font-size:11px; line-height:1.35; }
+.details { display:grid; gap:5px; margin:8px 0 0; font-size:14px; line-height:1.4; }
 .details>div { display:flex; flex-wrap:wrap; gap:2px 8px; justify-content:space-between; }
 .details dt { color:var(--text-muted); }.details dd { margin:0; color:var(--text-primary); }
-.instrument[data-compact] { gap:4px; }
-.instrument[data-compact] .compass { width:28px; height:28px; }
-.instrument[data-compact] .bearing { font-size:18px; }
-.instrument[data-compact][data-available=false] .bearing { font-size:11px; line-height:1.3; }
-.instrument[data-compact] .metadata { column-gap:4px; font-size:10px; line-height:1.68; }
-.instrument[data-compact] .speed { font-size:12px; line-height:1.4; }
+/* Corner box over the scene: a bow-up dial that grows with the scene (the
+   scene is a size container), the angle and side beside it, TWD and the wind
+   speed under them at the secondary size. */
+.instrument[data-compact] { gap:8px; align-items:center; }
+.instrument[data-compact] .compass { width:clamp(44px,15cqw,64px); height:clamp(44px,15cqw,64px); }
+.instrument[data-compact] .kind { display:none; }
+.instrument[data-compact] .bearing { font-size:22px; }
+.instrument[data-compact][data-available=false] .bearing { font-size:14px; line-height:1.3; }
+.instrument[data-compact] .metadata { flex-direction:column; gap:0; }
 .settings { display:flex; flex-direction:column; gap:8px; min-width:0; border:0; padding:0; margin:0; }
-.settings legend { margin-bottom:8px; font-size:13px; color:var(--text-primary); }
-.choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
-.choices button { min-width:0; min-height:44px; white-space:normal; overflow-wrap:anywhere; }
-.settings p { margin:0; font-size:12px; line-height:1.5; color:var(--text-secondary); }
+.settings legend { margin-bottom:8px; font-size:16px; line-height:1.4; color:var(--text-primary); }
+.choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.choices button { min-width:0; min-height:44px; white-space:normal; overflow-wrap:normal; font-size:16px; line-height:1.25; }
+.settings p { margin:0; font-size:14px; line-height:1.5; color:var(--text-secondary); }

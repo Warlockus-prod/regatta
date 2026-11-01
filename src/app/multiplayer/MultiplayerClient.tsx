@@ -18,11 +18,14 @@ import { useMultiplayerSoundscape } from "./useMultiplayerSoundscape";
 import { raceHaptic } from "@/lib/race-haptics";
 import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse, FLEET_COLORS, MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
+import { recordTrackPoint } from "@/features/race-hud/map-view";
 import { useRacePrefs } from "../game/race-prefs";
 import { MultiplayerMenu, MultiplayerRoom, type LobbyPlayer } from "./MultiplayerLobby";
 import { canShareNatively, createLobbyBlocker, createTapAction, defaultSailorName, shareRoomInvite, type ShareOutcome } from "./lobby";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
+// F5: the race intro, only on request from the menu ("How to race"), never by itself here.
+const RaceIntro = dynamic(() => import("@/features/race-hud/RaceIntro").then(module => module.RaceIntro), { ssr: false });
 
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
 
@@ -104,6 +107,10 @@ export default function MultiplayerClient() {
   const boatsRef = useRef<Race3DBoat[]>([]);
   const courseRef = useRef(MULTIPLAYER_COURSE);
   const windDirRef = useRef(0);
+  // F3: the player's track for the big map, one point a second of race time
+  // (the online race keeps no log); a new race starts a new track.
+  const trackRef = useRef<{ x: number; y: number; t: number }[]>([]);
+  const readTrack = useCallback(() => trackRef.current, []);
   const [frame, setFrame] = useState<MultiplayerFrame | null>(null);
   const [windReading, setWindReading] = useState<RaceWindReading | null>(null);
   const [navigation, setNavigation] = useState<RaceNavigationSnapshot | null>(null);
@@ -208,7 +215,7 @@ export default function MultiplayerClient() {
         if (msg.phase === 'lobby') setPhase('lobby');
         else if (msg.phase === 'countdown') {
           setPhase('countdown'); bufferRef.current.reset(); presentationRef.current.reset();
-          boatsRef.current = []; setFrame(null); setWindReading(null); setNavigation(null); releaseInput();
+          boatsRef.current = []; trackRef.current = []; setFrame(null); setWindReading(null); setNavigation(null); releaseInput();
         }
         else if (msg.phase === 'racing') setPhase('racing');
         else if (msg.phase === 'finished') setPhase('finished');
@@ -417,6 +424,7 @@ export default function MultiplayerClient() {
         if (now - lastHud >= 100) {
           lastHud = now; setFrame(next);
           const player = next.boats.find(boat => boat.isPlayer);
+          recordTrackPoint(trackRef.current, player?.pos, next.time);
           setWindReading(player ? raceWindReading({ heading: player.heading, boatSpeedKn: player.speed,
             windFrom: next.windDir, windKnots: next.windKnots, leeway: player.physics?.leeway }) : null);
           setNavigation(createRaceNavigationSnapshot({ course: courseRef.current, boats: next.boats, windFrom: next.windDir }));
@@ -434,13 +442,22 @@ export default function MultiplayerClient() {
   const raceSoundOn = useSyncExternalStore(subscribeRaceSound, readRaceSound, () => true);
   useMultiplayerSoundscape({ phase, reconnecting, soundOn: raceSoundOn, frame, windReading });
 
+  // F5: the race intro opened from the menu (last state of the page, after the ones the tests seed by order).
+  const [intro, setIntro] = useState<"closed" | "multiplayer">("closed");
+  // It belongs to the menu: a lobby that arrives while it is open (Create or
+  // Join was still connecting) closes it, so it never comes back by itself.
+  useEffect(() => { if (phase !== "menu" && phase !== "error") setIntro("closed"); }, [phase]);
+
   // --- UI ---
 
   if (phase === 'menu' || phase === 'error') {
-    return <MultiplayerMenu embed={embed} nickname={nickname} setNickname={setNickname}
-      nicknameInvalid={nicknameInvalid} nicknameHint={nicknameHint} joinCode={joinCode} setJoinCode={setJoinCode}
-      createBlocker={createBlocker} connecting={connecting} onCreate={() => void createLobby(sid)} onJoin={joinLobby}
-      joinDisabled={connecting || joinCode.length !== 4 || !cleanNickname || !sid} error={error} />;
+    return <>
+      <MultiplayerMenu embed={embed} nickname={nickname} setNickname={setNickname}
+        nicknameInvalid={nicknameInvalid} nicknameHint={nicknameHint} joinCode={joinCode} setJoinCode={setJoinCode}
+        createBlocker={createBlocker} connecting={connecting} onCreate={() => void createLobby(sid)} onJoin={joinLobby}
+        joinDisabled={connecting || joinCode.length !== 4 || !cleanNickname || !sid} error={error} onShowIntro={() => setIntro("multiplayer")} />
+      {intro === "multiplayer" && <RaceIntro open="multiplayer" pro={false} onEnd={() => setIntro("closed")} />}
+    </>;
   }
 
   if (phase === 'lobby' && room) {
@@ -516,11 +533,12 @@ export default function MultiplayerClient() {
     <div style={{ height: embed ? "100dvh" : "calc(100dvh - var(--site-nav-h, 56px))" }}>
       <MultiplayerCockpit frame={frame} phase={phase} countdown={countdown} reconnecting={reconnecting} code={room?.code ?? ""}
         windReading={windReading} navigation={navigation} windDisplay={visualPrefs.windDisplay} setWindDisplay={windDisplay => updateVisualPrefs({ windDisplay })}
-        miniMap={visualPrefs.miniMap} setMiniMap={miniMap => updateVisualPrefs({ miniMap })}
+        miniMap={visualPrefs.miniMap} setMiniMap={miniMap => updateVisualPrefs({ miniMap })} track={readTrack}
+        softLight={visualPrefs.softLight === true} setSoftLight={softLight => updateVisualPrefs({ softLight })}
         rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
         camera={camera} setCamera={view => { setCamera(view); recordControlChange("multiplayer", "camera", view, camera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("multiplayer", "camera", camera); }} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={value => { setGuidanceOn(value); recordPreferenceChange("multiplayer", "guidance", value, guidanceOn); }}>
         <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} started={phase === "racing"}
-          showWind={visualPrefs.windDisplay === "arrows" || visualPrefs.windDisplay === "both"} />
+          showWind={visualPrefs.windDisplay === "arrows" || visualPrefs.windDisplay === "both"} softLight={visualPrefs.softLight === true} />
       </MultiplayerCockpit>
     </div>
   );

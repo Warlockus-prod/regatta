@@ -50,6 +50,11 @@ export function writeRacePrefs(patch: Partial<RacePrefs>, surface: "race" | "mul
   }
   if (patch.windDisplay !== undefined) recordPreferenceChange(surface, "wind-display", next.windDisplay, previous.windDisplay);
   if (patch.miniMap !== undefined) recordPreferenceChange(surface, "mini-map", next.miniMap, previous.miniMap);
+  // F4 switches: whether players drop the coach line, the first race hints or take the softer light.
+  if (patch.coachStrip !== undefined) recordPreferenceChange(surface, "coach-strip", next.coachStrip, previous.coachStrip);
+  if (patch.firstRaceHints !== undefined) recordPreferenceChange(surface, "first-race-hints", next.firstRaceHints, previous.firstRaceHints);
+  if (patch.softLight !== undefined) recordPreferenceChange(surface, "soft-light", next.softLight, previous.softLight);
+  if (patch.sailFlow !== undefined) recordPreferenceChange(surface, "sail-flow", next.sailFlow, previous.sailFlow);
   window.dispatchEvent(new Event(EVENT));
 }
 export function useRacePrefs(surface: "race" | "multiplayer" = "race") {

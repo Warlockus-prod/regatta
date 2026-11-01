@@ -1,57 +1,60 @@
-.cockpit { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; color:var(--text-primary); background:var(--bg-primary,#071923); font-variant-numeric:tabular-nums; }
-.cockpit button { min-height:44px; border:1px solid transparent; border-radius:8px; padding:6px 12px; font-size:13px; color:var(--text-secondary); cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+.cockpit { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; touch-action:pan-y; overscroll-behavior:none; color:var(--text-primary); background:var(--bg-primary,#071923); font-variant-numeric:tabular-nums; }
+.cockpit button { min-height:44px; border:1px solid transparent; border-radius:8px; padding:6px 12px; font-size:16px; line-height:1.25; color:var(--text-secondary); cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
 .cockpit button:focus-visible,.cockpit input:focus-visible,.notice:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
 .cockpit button:hover { color:var(--text-primary); background:var(--hover-bg); }
 .cockpit button[aria-pressed=true],.cockpit button[aria-checked=true] { color:var(--accent-cyan); background:var(--bg-card); border-color:var(--accent-cyan); }
 .toolbar { height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px; border-bottom:1px solid var(--border-subtle); }
 .toolbar strong { font-size:14px; letter-spacing:.12em; }.toolbar strong span { font-size:10px; letter-spacing:.06em; color:var(--accent-cyan); margin-left:6px; }
 .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:9px 12px 11px; border-bottom:1px solid var(--border-subtle); gap:12px; }
-.metrics>div { min-width:0; }.metrics>div>span { display:block; color:var(--text-muted); font-size:10px; margin-bottom:3px; }.metrics>div>strong { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 4px; font-size:clamp(18px,3.8vw,28px); font-weight:600; line-height:1.1; white-space:nowrap; }.metrics>div>strong>small { color:var(--text-secondary); font-size:11px; font-weight:400; }
+.metrics>div { min-width:0; }.metrics>div>span { display:block; color:var(--text-muted); font-size:14px; line-height:1.3; margin-bottom:2px; }.metrics>div>strong { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 4px; font-size:clamp(18px,3.8vw,28px); font-weight:600; line-height:1.1; white-space:nowrap; }.metrics>div>strong>small { color:var(--text-secondary); font-size:14px; font-weight:400; }
 .workspace { flex:1; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 344px; }
 .scene { --race-status-h:52px; position:relative; min-height:0; overflow:hidden; isolation:isolate; container-type:size; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
 .dock { position:relative; min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border-subtle); background:var(--bg-primary,#071923); }
-.notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:12px; line-height:1.45; color:var(--text-primary); }.notice strong { font-size:28px; }
+.notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:16px; line-height:1.4; font-weight:600; color:var(--text-primary); }.notice strong { font-size:28px; }
 /* Tab labels break only between words ("Kurs / halten"), never inside one: at
    844x390 the 290 px dock split "Держат / ь курс" in five equal columns with
    overflow-wrap:anywhere. A flex row shares the width but never squeezes a tab
    below its longest word (the automatic flex minimum); the icon-only Settings
    tab and the label boxes keep the 44 px target; a row that cannot fit wraps
    whole tabs instead of letters. */
-.tabs { display:flex; flex-wrap:wrap; flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { flex:1 1 0; min-width:auto; overflow-wrap:normal; word-break:normal; hyphens:manual; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }.tabs button:not(:has(svg))>span { min-width:36px; text-align:center; }.tabs button:has(svg) { padding-inline:14px; }
-.mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:13px; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
+.tabs { display:flex; flex-wrap:wrap; flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { flex:1 1 0; min-width:auto; overflow-wrap:normal; word-break:normal; hyphens:manual; padding:4px; font-size:16px; line-height:1.2; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }.tabs button:not(:has(svg))>span { min-width:36px; text-align:center; }.tabs button:has(svg) { padding-inline:14px; }
+.mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:16px; line-height:1.4; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
 .panel:has(.mapPanel) { container-type:size; }
 .tabs button:has(svg)>span { position:absolute; clip-path:inset(50%); width:1px; height:1px; overflow:hidden; white-space:nowrap; }
 .panel { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; flex:1; padding:8px 12px; }
 .wheels { height:260px; min-height:0; }.wheels>div { height:100%; }.sliders { padding:6px 4px; }
-.range { display:block; margin:12px 0; font-size:13px; }.range>span { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }.range output { flex-shrink:0; white-space:nowrap; color:var(--accent-cyan); }.range input { width:100%; height:44px; accent-color:var(--accent-cyan); }
-.options { display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.options p,.modePicker p { font-size:12px; line-height:1.5; color:var(--text-secondary); }.toggle { display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:44px; font-size:13px; border-bottom:1px solid var(--border-subtle); }.toggle input { width:20px; height:20px; flex-shrink:0; accent-color:var(--accent-cyan); }
-.segmented { display:flex; gap:4px; }.segmented button { flex:1; min-width:0; overflow-wrap:anywhere; background:var(--bg-secondary); border-color:var(--border-subtle); }.modePicker { display:flex; flex-direction:column; gap:8px; }
-.fleet { padding:4px 0; }.fleet li { display:flex; align-items:center; gap:12px; min-height:42px; font-size:13px; border-bottom:1px solid var(--border-subtle); }.fleet b { width:20px; color:var(--text-muted); }.fleet strong { margin-left:auto; color:var(--accent-cyan); }
+.range { display:block; margin:12px 0; font-size:16px; line-height:1.4; }.range>span { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }.range output { flex-shrink:0; white-space:nowrap; color:var(--accent-cyan); }.range input { width:100%; height:44px; accent-color:var(--accent-cyan); }
+.options { display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.options p,.modePicker p { font-size:14px; line-height:1.5; color:var(--text-secondary); }.toggle { display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:48px; font-size:16px; line-height:1.4; border-bottom:1px solid var(--border-subtle); }.toggle input { width:24px; height:24px; flex-shrink:0; accent-color:var(--accent-cyan); }
+/* Segmented choices (Settings: steering, sensitivity, camera) never squeeze a
+   word past its button: a button keeps at least its longest word and a row
+   that cannot fit wraps whole buttons (Polish "Dokładnie", Spanish
+   "Alrededor" in the 290 px landscape dock). */
+.segmented { display:flex; flex-wrap:wrap; gap:4px; }.segmented button { flex:1 1 0; min-width:auto; overflow-wrap:normal; background:var(--bg-secondary); border-color:var(--border-subtle); }.modePicker { display:flex; flex-direction:column; gap:8px; }
+.fleet { padding:4px 0; }.fleet li { display:flex; align-items:center; gap:12px; min-height:44px; font-size:16px; border-bottom:1px solid var(--border-subtle); }.fleet b { width:20px; color:var(--text-muted); }.fleet strong { margin-left:auto; color:var(--accent-cyan); }
 /* M1-7: fleet colours are graphics (3:1), not text colours (4.5:1), so the name
    stays in the text colour and the boat colour is a dot beside it. */
 .fleetDot { width:10px; height:10px; flex-shrink:0; border-radius:999px; }
 .fleetName { min-width:0; overflow-wrap:anywhere; color:var(--text-primary); }
 .fleet li[data-player] .fleetName { font-weight:650; }
 @media(max-width:767px) and (orientation:portrait) {
- .toolbar { height:46px; }.metrics { padding:7px 12px; gap:6px; }.metrics>div>span { font-size:10px; }.metrics>div>strong>small { font-size:10px; }
- .workspace { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,60%)); }.dock { border-left:0; border-top:1px solid var(--border-subtle); }.notice { min-height:38px; padding:7px 12px; font-size:11px; }.tabs button { min-height:44px; }.panel { contain:size; min-height:172px; padding:2px 12px; }.wheels { height:190px; }.range { margin:4px 0; }.range input { height:44px; }
+ .toolbar { height:46px; }.metrics { padding:7px 12px; gap:6px; }
+ .workspace { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,60%)); }.dock { border-left:0; border-top:1px solid var(--border-subtle); }.notice { min-height:38px; padding:7px 12px; }.tabs button { min-height:44px; }.panel { contain:size; min-height:172px; padding:2px 12px; }.wheels { height:190px; }.range { margin:4px 0; }.range input { height:44px; }
 }
-@media(max-height:480px) and (orientation:landscape) { .toolbar { height:44px; }.metrics { padding:4px 12px; }.metrics>div>span { display:none; }.metrics>div>strong { font-size:18px; }.workspace { grid-template-columns:minmax(0,1fr) 290px; }.notice { min-height:32px; padding:5px 10px; font-size:11px; }.tabs button { min-height:44px; }.wheels { height:190px; }.panel { padding:2px 10px; } }
+@media(max-height:480px) and (orientation:landscape) { .toolbar { height:44px; }.metrics { padding:4px 12px; }.metrics>div>span { display:none; }.metrics>div>strong { font-size:18px; }.workspace { grid-template-columns:minmax(0,1fr) 290px; }.notice { min-height:32px; padding:5px 10px; }.tabs button { min-height:44px; }.wheels { height:190px; }.panel { padding:2px 10px; } }
 @media(prefers-reduced-motion:no-preference) { .cockpit button { transition:background .15s,color .15s,border-color .15s; } }
 
 .panel:has(.wheels) { display:flex; flex-direction:column; overflow:hidden; }
 .panel .wheels { flex:1; height:auto; min-height:0; }
 .modePicker { margin-bottom:16px; }
 
-.trimAdvice { display:block; font-size:11px; line-height:1.4; color:var(--text-secondary); margin-top:4px; }
+.trimAdvice { display:block; font-size:14px; line-height:1.4; font-weight:400; color:var(--text-secondary); margin-top:4px; }
 .panel:has(.wheels) { overflow-y:auto; }
 .panel .wheels { min-height:180px; }
 @media(max-width:767px) and (max-height:650px) and (orientation:portrait) {
  .workspace { grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,62%)); }
  .panel .wheels { min-height:168px; }
  .wheels :global([data-testid="wheel-deck"]) { min-height:168px; }
- .notice { font-size:10px; }
- .trimAdvice { font-size:10px; margin-top:2px; }
+ .trimAdvice { margin-top:2px; }
  .metrics>div>strong { font-size:17px; }
 }
 
@@ -71,12 +74,12 @@
    real translated tab height instead of squeezing that panel when a label
    wraps. Shared wheel geometry reserves the complete three-line caption. */
 @media(max-width:767px) and (orientation:portrait) {
- .notice { max-height:64px; overflow-y:auto; overscroll-behavior:contain; }
+ .notice { max-height:112px; overflow-y:auto; overscroll-behavior:contain; }
  .panel .wheels { flex:1 1 auto; height:auto; min-height:168px; max-height:196px; }
  .wheels :global([data-testid="wheel-deck"]) { min-height:168px; }
 }
 @media(max-height:480px) and (orientation:landscape) {
- .notice { max-height:64px; overflow-y:auto; overscroll-behavior:contain; }
+ .notice { max-height:96px; overflow-y:auto; overscroll-behavior:contain; }
  .panel .wheels { flex:1 1 auto; height:auto; min-height:168px; max-height:196px; }
 }
 
@@ -96,7 +99,7 @@
 .readout,.modeBadge { display:inline-flex; align-items:baseline; gap:4px; min-height:36px; padding:6px 8px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); white-space:nowrap; }
 .modeBadge { align-items:center; font-size:12px; font-weight:650; letter-spacing:.08em; color:var(--text-secondary); }
 .readout strong { font-size:16px; line-height:24px; font-weight:600; }
-.readout small { font-size:12px; color:var(--text-secondary); }
+.readout small { font-size:14px; color:var(--text-secondary); }
 .readout .penalty { color:var(--warning); font-weight:600; }
 .readoutLabel { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .statusEnd { margin-left:auto; display:flex; align-items:center; gap:6px; }
@@ -134,3 +137,54 @@
  .gameLayer .notice { position:absolute; left:0; right:0; bottom:100%; z-index:4; border-top:1px solid var(--border-subtle); border-bottom:0; background:var(--bg-primary,#071923); }
  .gameLayer[data-paused] .notice { display:none; }
 }
+
+/* F2 (TestFlight 74: "the helm is not fixed, easy to scroll and lose it").
+   The Helm panel is never a scroll container: the wheels or sliders are sized
+   to fit it, and a drag that misses a wheel neither scrolls the panel nor pans
+   or zooms the page (touch-action:none; the wheels keep their own drag). The
+   cockpit allows only vertical panning (no pinch or double-tap zoom that
+   moved the page in the app's web view); Sails, Map and Settings scroll inside
+   their own panel, so long text stays reachable without moving the helm. */
+.panel.pinned,.panel.pinned:has(.wheels) { overflow:hidden; overscroll-behavior:none; touch-action:none; }
+.panel:not(.pinned),.notice { touch-action:pan-y; }
+/* Pro sliders: label beside a full-width slider, so the three rows fit the
+   pinned panel (phone portrait and the short landscape dock) instead of
+   overflowing it. */
+.pinned .sliders { display:flex; flex-direction:column; justify-content:center; gap:4px; min-height:100%; padding:2px 0; }
+.pinned .sliders .range { display:grid; grid-template-columns:minmax(0,8.5rem) minmax(0,1fr); align-items:center; gap:4px 10px; margin:0; }
+.pinned .sliders .range>span { flex-direction:column; align-items:flex-start; gap:0; }
+/* Wheel captions in the race (the Helm tab is the panel shown most of a
+   race): name 16 px, value and unit 14 px. The line heights keep the helm's
+   three lines and a two-line sheet name inside the 50 px the shared deck
+   reserves (CAPTION_H in WheelDeck.tsx), so the pinned panel never clips them. */
+.wheels :global([data-testid="wheel-deck"] [role="slider"] > div) { font-size:14px; line-height:16px; }
+.wheels :global([data-testid="wheel-deck"] [role="slider"] > div b) { font-size:16px; line-height:17px; }
+.wheels :global([data-testid="wheel-deck"] [role="slider"] > div small) { font-size:14px; line-height:16px; }
+/* Map tab legend at the secondary size (it was 12 px). */
+.mapPanel figcaption { font-size:14px; line-height:20px; }
+/* Portrait phone: the floating coach line keeps two lines and the route line
+   over the scene (it scrolls inside itself), so the boat stays in view. */
+@media(max-width:767px) and (orientation:portrait) {
+ .gameLayer .notice { max-height:80px; }
+ .gameLayer .bigMap { bottom:88px; }
+ .gameLayer .hintLog { bottom:88px; }
+ .gameLayer[data-paused] .hintLog { bottom:8px; }
+}
+
+/* F3: the big map over the race scene sits under the status row (Menu stays
+   reachable) and, on a portrait phone, above the floating coach line, so the
+   line stays readable; the dock with the helm is never covered. */
+.scene .bigMap { top:calc(var(--race-status-h) + 4px); }
+
+/* F4: the Hints and Graphics groups of the race Settings. */
+.group { display:flex; flex-direction:column; gap:12px; }
+.groupTitle { margin:8px 0 0; font-size:16px; line-height:24px; font-weight:650; color:var(--text-primary); }
+/* F4: the hint log button at the end of the coach line: the bulb and how many
+   lines the log holds; 44 px, neutral (the pressed style marks it open). */
+.cockpit .hintLogButton { float:right; display:inline-flex; align-items:center; gap:4px; min-width:44px; margin:-6px -6px 0 8px; padding:6px 10px; font-size:16px; line-height:20px; font-weight:600; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+.cockpit .hintLogButton svg { flex-shrink:0; }
+/* F4: the hint log panel sits where the big map does (under the status row,
+   above the floating coach line on a phone). Opened from the pause sheet it
+   lies over the sheet (after it in the markup, same layer). */
+.scene .hintLog { top:calc(var(--race-status-h) + 4px); }
+.scene .overPause { z-index:8; }

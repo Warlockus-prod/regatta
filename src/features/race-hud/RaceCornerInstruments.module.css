@@ -1,6 +1,13 @@
 .instruments { position:absolute; inset:0; z-index:2; pointer-events:none; }
 .wind,.instruments .map { position:absolute; top:8px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); }
-.wind { left:8px; padding:5px 7px; max-width:calc(45% - 8px); }
-.label { display:block; font-size:11px; line-height:1.2; color:var(--text-secondary); margin-bottom:2px; }
+/* F2: the wind box is a reading the helmsman checks at a glance, so it keeps
+   14 px and larger text and a dial that grows with the scene; it stays left of
+   the mini-map with a clear gap (e2e/race-navigation.spec.ts). */
+.wind { left:8px; padding:6px 10px 8px 8px; max-width:calc(50% - 16px); }
+.label { display:block; font-size:14px; line-height:1.3; font-weight:600; color:var(--text-secondary); margin-bottom:2px; }
 .instruments .map { right:8px; width:clamp(72px,24cqw,112px); height:clamp(64px,32cqh,112px); padding:0; pointer-events:auto; --race-map-height:100%; background:transparent; }
 .map>span { display:block; height:100%; }
+/* F3: the corner map opens the big map; the expand mark in its lower left
+   corner shows that it is a button, on its own solid chip over the radar. */
+.instruments .map { overflow:hidden; }
+.map>.expand { position:absolute; left:4px; bottom:4px; display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:6px; background:var(--bg-card,#102838); border:1px solid var(--border-subtle); color:var(--text-primary); pointer-events:none; }

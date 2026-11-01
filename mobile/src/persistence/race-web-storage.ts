@@ -32,6 +32,8 @@ export const RACE_WEB_STORAGE_KEYS = [
   "regatta.race.home.v1",
   // M4-7: the first race hints this device has shown, a short list of ids (src/features/race-hud/first-race-hints.ts).
   "regatta.race.hints-seen.v1",
+  // F5: the race intro before the first race was finished or skipped on this device, "1" (src/features/race-hud/race-intro.ts).
+  "regatta.race.intro-seen.v1",
 ] as const;
 export type RaceWebStorage = Record<string, string | null>;
 

@@ -34,6 +34,9 @@ vi.mock("@/lib/diagnostics-controls", () => ({ recordControlChange: () => {}, re
 vi.mock("@/lib/diagnostics-bridge", () => ({ initializeDiagnosticBridge: () => {} }));
 import { RaceReplay, ReplayControls } from "./RaceReplay";
 import type { ReplayRibbonItem } from "@/lib/race-replay-teaching";
+import { makeStandardCourse } from "@/lib/race-physics";
+import { RaceMiniMapButton } from "@/features/race-hud/RaceCornerInstruments";
+import { RaceBigMap } from "@/features/race-hud/RaceBigMap";
 
 type Node = ReactElement<Record<string, unknown>>;
 function nodes(tree: ReactNode): Node[] {
@@ -120,5 +123,36 @@ describe("teaching replay wiring (M4-3)", () => {
     (scene.props.onPointerDown as (e: unknown) => void)(p(1000));
     (scene.props.onPointerUp as (e: unknown) => void)(p(1100));
     expect(picked).toEqual(["stern", "orbit"]);
+  });
+});
+
+// F3: the replay gets the race's map: the corner map opens the big map with
+// the boat and its track at the replay's time; a replay without a course
+// (old shared links) has no map.
+describe("replay map (F3)", () => {
+  const course = makeStandardCourse() as unknown as ComponentProps<typeof RaceReplay>["course"];
+  it("the corner map opens the big map with the boat and its track at the replay's time", () => {
+    const p = { ...props, course };
+    const first = render(p);
+    expect(nodes(first).some(n => n.type === RaceBigMap)).toBe(false);
+    controlsOf(first).onSeek(20);
+    const tree = render(p);
+    const corner = nodes(tree).find(n => n.type === RaceMiniMapButton)!;
+    expect(corner).toBeDefined();
+    (corner.props.onOpenMap as () => void)();
+    const big = nodes(render(p)).find(n => n.type === RaceBigMap)!.props as unknown as ComponentProps<typeof RaceBigMap>;
+    const boat = big.snapshot!.boats.find(b => b.isPlayer)!;
+    // Sample 40 is at t = 20 s: x 500, y 1200 - 40, heading 45.
+    expect(boat.pos).toEqual({ x: 500, y: 1160 });
+    expect(boat.heading).toBe(45);
+    expect(big.track).toHaveLength(42);
+    expect(big.track!.at(-1)).toEqual({ x: 500, y: 1160 });
+    expect(big.guidance).toBeUndefined();
+    (big.onClose as () => void)();
+    expect(nodes(render(p)).some(n => n.type === RaceBigMap)).toBe(false);
+  });
+  it("an old replay without a course shows no map", () => {
+    const tree = render({ ...props, course: null as unknown as ComponentProps<typeof RaceReplay>["course"] });
+    expect(nodes(tree).some(n => n.type === RaceMiniMapButton)).toBe(false);
   });
 });

@@ -10,7 +10,7 @@ import { FirstSceneFrame, SceneStartup } from "@/features/simulator-3d/SceneStar
 import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
 import { NEUTRAL_YACHT } from "@/features/simulator-3d/types";
 import type { Venue } from "@/data/venues/venues";
-import { venueLook } from "@/data/venues/look";
+import { raceLight, venueLook } from "@/data/venues/look";
 import {
   Rival, World,
   playerOf, useBoatPose, type OriginRef, type Race3DLabels,
@@ -37,6 +37,9 @@ import { WindFlow } from "@/features/simulator-3d/ocean/WindFlow";
 import { raceWindReading } from "@/features/race-hud/navigation-model";
 import { recordSceneLifecycle } from "@/features/simulator-3d/scene-diagnostics";
 import { BowSpray, useReducedMotionRef } from "./BowSpray";
+import { SailFlow } from "./SailFlow";
+import { raceWindLayers } from "./sail-flow";
+import type { CoachKey } from "@/features/sailing-lab/runtime/trim-coach";
 import { beginShakenFrame, createSceneShake, endShakenFrame, type ShakeControl } from "./effects";
 import type { SceneQuality } from "./quality";
 
@@ -63,6 +66,9 @@ import type { SceneQuality } from "./quality";
 // Light by venue (M3-6, src/data/venues/look.ts): sun, sky, fog, water,
 // exposure and warmth come from the venue's look; glow only on glints and
 // foam, built only on "medium" and "high", no bloom pass on any profile.
+// Wind on the sails (F6, SailFlow.tsx): optional apparent-wind ribbons along
+// the player's sails, two instanced draws, mounted only when switched on; they
+// take the place of the 3D wind arrows (raceWindLayers), never both.
 // ============================================================================
 
 const GUIDANCE_POINTS = 80;
@@ -396,7 +402,7 @@ function GpuFailure({ failed }: { failed: boolean }) {
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started, softLight = false, sailFlow = false, sailFlowCoachRef, sailFlowOwnTrim = false }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -429,8 +435,18 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   contactId?: number | null;
   /** M3-5: false through the countdown, true from the start gun; the change shakes the camera once. */
   started?: boolean;
+  /** F4: the player's "Softer light, clearer marks" (race Settings): less glare, larger marks with a dark ring. */
+  softLight?: boolean;
+  /** F6: the player's "Wind on the sails" (race Settings): apparent-wind ribbons along the player's sails only. */
+  sailFlow?: boolean;
+  /** F6: the Pro trim advice the player is shown (null without it); colours the ribbons like telltales. */
+  sailFlowCoachRef?: MutableRefObject<CoachKey | null>;
+  /** F6: the player trims the sails (Pro); without advice the ribbons then only show the arriving air. */
+  sailFlowOwnTrim?: boolean;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
+  const windLayers = raceWindLayers(showWind, sailFlow);
+  const markLook = useMemo(() => raceLight(venueLook(venue.id), softLight).mark, [venue.id, softLight]);
   const tactics = useMemo(() => raceTacticsModel(raceProfile), [raceProfile]);
   const arrowRef = useRef<HTMLDivElement | null>(null);
   const hintRef = useRef<HTMLDivElement | null>(null);
@@ -523,13 +539,14 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           dpr={dpr}
           camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
         >
-          <SailingEnvironment venue={venue} look={venueLook(venue.id)} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
-          <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} />
+          <SailingEnvironment venue={venue} look={venueLook(venue.id)} soft={softLight} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
+          <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} marks={markLook} />
           {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} model={tactics} />}
           <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} />
           <Suspense fallback={null}>
-            <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={showWind} />
+            <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={windLayers.arrows} />
             <BowSpray boatsRef={boatsRef} profileRef={profileRef} />
+            {windLayers.ribbons && <SailFlow boatsRef={boatsRef} windDirRef={windDirRef} coachRef={sailFlowCoachRef} ownTrim={sailFlowOwnTrim} />}
             {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />)}
             {ghostRef && ghostLabel && <Rival id="ghost" color="#9aa7b4" label={ghostLabel} boatsRef={ghostRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />}
             <WarmShaders gateRef={gateRef}><FirstSceneFrame onReady={ready} /></WarmShaders>

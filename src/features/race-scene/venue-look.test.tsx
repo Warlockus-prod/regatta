@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { ReactElement, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three/webgpu";
-import { VENUE_LOOKS, sceneColors, sunDirection, type VenueLook } from "@/data/venues/look";
+import { VENUE_LOOKS, raceLight, sceneColors, sunDirection, sunIntensity, type VenueLook } from "@/data/venues/look";
 import { VENUES } from "@/data/venues/venues";
 import { NEAR_CALM, NEAR_RIPPLE, NEAR_SWELL, TRAINER_COLORS, rippleStrength, swellShading, wakeMaterial, waterMaterial, waterUniforms } from "./materials";
 import { QUALITY_PROFILES, type SceneQuality } from "./quality";
@@ -30,8 +30,8 @@ import { SailingEnvironment, applyExposure, environmentLight } from "./SailingEn
 type El = ReactElement<Record<string, unknown>>;
 const typeName = (el: El) => typeof el.type === "string" ? el.type : (el.type as { name?: string }).name ?? "";
 
-function draw(look?: VenueLook, quality?: SceneQuality) {
-  const tree = SailingEnvironment({ look, ...(quality ? { quality } : {}), readState: () => null, originRef: { current: { x: 0, z: 0 } } }) as El;
+function draw(look?: VenueLook, quality?: SceneQuality, soft?: boolean) {
+  const tree = SailingEnvironment({ look, ...(quality ? { quality } : {}), ...(soft === undefined ? {} : { soft }), readState: () => null, originRef: { current: { x: 0, z: 0 } } }) as El;
   const children = (tree.props.children as ReactNode[]).filter(Boolean) as El[];
   const one = (name: string) => {
     const found = children.filter((c) => typeName(c) === name);
@@ -199,3 +199,45 @@ describe("tone mapping exposure of the venue look", () => {
     expect(renderer.toneMappingExposure).toBe(1.05);
   });
 });
+
+// F4 contract: the softer light reaches the drawn scene as gains (exposure,
+// sun light, glint and glow uniforms) with the same colours and the same
+// water look, so switching it builds no shader; off, the scene is as before.
+describe("softer race light in the scene (F4)", () => {
+  it("lowers exposure, sun, glints and glow and keeps the colours and the water look", () => {
+    for (const look of Object.values(VENUE_LOOKS)) {
+      const plain = draw(look, QUALITY_PROFILES.high, false).one, soft = draw(look, QUALITY_PROFILES.high, true).one;
+      const light = raceLight(look, true);
+      expect(soft("Exposure").value).toBe(light.exposure);
+      expect(soft("Exposure").value).toBeLessThan(plain("Exposure").value as number);
+      expect(soft("directionalLight").intensity).toBe(light.sunIntensity);
+      expect(plain("directionalLight").intensity).toBe(sunIntensity(look));
+      const u = (one: typeof plain) => one("Water").uniforms as { glint: { value: number }; glow: { value: number } };
+      expect(u(plain).glint.value).toBe(1);
+      expect(u(soft).glint.value).toBe(light.glint);
+      expect(u(plain).glow.value).toBe(QUALITY_PROFILES.high.glow);
+      expect(u(soft).glow.value).toBeCloseTo(QUALITY_PROFILES.high.glow * light.glow, 9);
+      expect(soft("Water").look).toEqual(plain("Water").look);
+      expect(soft("fog").args).toEqual(plain("fog").args);
+      expect(soft("hemisphereLight").args).toEqual(plain("hemisphereLight").args);
+    }
+  });
+
+  it("is off unless asked, and the trainers keep their light", () => {
+    const look = VENUE_LOOKS.split;
+    expect(draw(look, QUALITY_PROFILES.high).one("Exposure").value).toBe(look.exposure);
+    expect(draw(undefined, undefined, true).one("Exposure").value).toBeUndefined();
+    expect(waterUniforms().glint.value).toBe(1);
+  });
+
+  it("is wired from the race: RaceScene passes the player's choice to the light and the marks", () => {
+    const source = readFileSync(join(process.cwd(), "src/features/race-scene/RaceScene.tsx"), "utf8");
+    expect(source).toMatch(/<SailingEnvironment [^>]*soft=\{softLight\}[^>]*\/>/);
+    expect(source).toMatch(/<World [^>]*marks=\{markLook\}[^>]*\/>/);
+    expect(source).toMatch(/raceLight\(venueLook\(venue\.id\), softLight\)\.mark/);
+    for (const host of ["src/app/game/GameClient.tsx", "src/app/game/RaceReplay.tsx", "src/app/multiplayer/MultiplayerClient.tsx"]) {
+      expect(readFileSync(join(process.cwd(), host), "utf8"), host).toMatch(/<RaceScene [^>]*softLight=\{/);
+    }
+  });
+});
+

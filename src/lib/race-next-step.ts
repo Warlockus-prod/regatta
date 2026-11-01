@@ -103,6 +103,27 @@ export function recordRaceEnd(store: RaceHomeStore, race: { now: Date; goal: Coa
     dailyDone: race.finished && isDay(race.dailyDay) && (!store.dailyDone || race.dailyDay > store.dailyDone) ? race.dailyDay : store.dailyDone };
 }
 
+/** A stored best-times row (src/lib/best-times.ts, the same text in the app's
+ * AsyncStorage) holds at least one valid finish time, in any bucket. */
+function hasAnyBestTime(raw: string | null | undefined): boolean {
+  if (!raw) return false;
+  try {
+    const store: unknown = JSON.parse(raw);
+    if (!store || typeof store !== "object" || Array.isArray(store)) return false;
+    return Object.values(store as Record<string, unknown>).some(rec => !!rec && typeof rec === "object"
+      && typeof (rec as { timeSec?: unknown }).timeSec === "number" && Number.isFinite((rec as { timeSec: number }).timeSec) && (rec as { timeSec: number }).timeSec > 0);
+  } catch { return false; }
+}
+
+/** F1: this device has ended a solo race, so the race menu stops calling its
+ * easy preset a "first race". Any one of three local signals is enough: a
+ * race day in the race home row (every ended race since M4-6), a personal
+ * best (a finish; builds before M4-6 wrote only this) or, in the iOS app, a
+ * race kept in the native race history. A corrupt row counts as no race. */
+export function hasRacedBefore(input: { home: RaceHomeStore; bestTimesRaw?: string | null; savedRaces?: number }): boolean {
+  return input.home.days.length > 0 || (input.savedRaces ?? 0) > 0 || hasAnyBestTime(input.bestTimesRaw);
+}
+
 /** Days with a race in this local week (Monday to today). Zero is shown as nothing. */
 export function daysRacedThisWeek(store: RaceHomeStore, now: Date): number {
   const from = localWeekStart(now), to = localDay(now);

@@ -28,6 +28,8 @@ vi.mock("@/components/FoundationReturn", () => ({ FoundationReturn: () => null }
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (text: Record<string, string>) => text.en, tp: (_ru: string, en: string) => en }) }));
 import { GameMenu, LOBBY_HERO_SRC, linkedMenuTab } from "./GameMenu";
 import { missions } from "@/data/missions";
+import { RACE_HOME_STORAGE_KEY } from "@/lib/race-next-step";
+import { BEST_TIMES_STORAGE_KEY } from "@/lib/best-times";
 
 const noop = () => {};
 function lobbyProps(patch: Partial<ComponentProps<typeof GameMenu>> = {}): ComponentProps<typeof GameMenu> {
@@ -108,6 +110,16 @@ describe("race lobby", () => {
       expect(byTestId(tree, "race-lobby-start")!.disabled).toBe(false);
     }
   });
+
+  // F5: "How to race" reopens the race intro; a secondary entry, so the start stays the one cyan action.
+  it("offers How to race as a secondary 44 px button wired to onShowIntro", () => {
+    const onShowIntro = vi.fn();
+    for (const native of [false, true]) expect(byTestId(lobbyTree({ onShowIntro, native }), "race-lobby-intro")!.onClick).toBe(onShowIntro);
+    const html = lobby({ onShowIntro });
+    expect(html).toMatch(/<button[^>]*data-testid="race-lobby-intro"[^>]*class="[^"]*min-h-11[^"]*"[^>]*>(?:(?!<\/button>).)*How to race<\/button>/);
+    expect(html.match(/background:var\(--accent-cyan\)/g)?.length).toBe(1);
+    expect(lobby()).not.toContain('data-testid="race-lobby-intro"');
+  });
 });
 
 // Contract (M4-2): "Back to the race" from a practice links /game with its
@@ -158,5 +170,43 @@ describe("race lobby opened by a linked setup (M4-2)", () => {
       expect(cta).toBe("Start your first race →");
       expect(calls).toEqual(expect.arrayContaining(["difficulty:easy", "wind:medium"]));
     }
+  });
+});
+
+// Contract (F1, TestFlight 74 feedback): before the first ended solo race on
+// this device the easy preset is "First race" and the start "Start your first
+// race"; after one (the race home row or a personal best) the same preset is
+// "Easy race" and the one primary start says "Start the race".
+describe("race lobby wording after the first race (F1)", () => {
+  function lobbyWith(rows: Record<string, string>) {
+    vi.stubGlobal("window", { location: { search: "" }, localStorage: { getItem: (key: string) => rows[key] ?? null } });
+    try { return lobby(); } finally { vi.unstubAllGlobals(); vi.stubGlobal("React", React); }
+  }
+
+  it("says First race with no race on this device", () => {
+    const html = lobbyWith({});
+    expect(html).toContain('aria-label="First race.');
+    expect(html).toContain("Start your first race →");
+    expect(html).not.toContain("Easy race");
+  });
+
+  it("says Easy race and Start the race after an ended race or a personal best", () => {
+    const rows: Array<Record<string, string>> = [
+      { [RACE_HOME_STORAGE_KEY]: JSON.stringify({ schema: 1, days: ["2026-10-31"], goal: null, dailyDone: null }) },
+      { [BEST_TIMES_STORAGE_KEY]: JSON.stringify({ "easy-medium": { timeSec: 101, ts: 1 } }) },
+    ];
+    for (const row of rows) {
+      const html = lobbyWith(row);
+      expect(html).toContain('aria-label="Easy race. Easy level, medium wind.');
+      expect(html).not.toContain("First race");
+      expect(html).not.toContain("first race");
+      expect(html.match(/data-testid="race-lobby-start"/g)?.length).toBe(1);
+      expect(html).toMatch(/data-testid="race-lobby-start"[^>]*>Start the race →<\/button>/);
+    }
+  });
+
+  it("a storage that throws reads as no race", () => {
+    vi.stubGlobal("window", { location: { search: "" }, localStorage: { getItem: () => { throw new Error("denied"); } } });
+    try { expect(lobby()).toContain("Start your first race →"); } finally { vi.unstubAllGlobals(); vi.stubGlobal("React", React); }
   });
 });

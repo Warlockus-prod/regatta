@@ -26,7 +26,8 @@ vi.mock("@/features/simulator-3d/Yacht", () => ({ Yacht: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Ocean", () => ({ Ocean: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Wake", () => ({ Wake: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Backdrop", () => ({ terrainGeometry: () => null }));
-import { GUIDANCE_COLOR, LOADING_COLOR, STANDARD_COURSE, World } from "./Race3DView";
+import { Buoy, GUIDANCE_COLOR, LOADING_COLOR, PLAIN_MARK, STANDARD_COURSE, World } from "./Race3DView";
+import { MARK_HALO, VENUE_LOOKS, markHaloOpacity, raceLight } from "@/data/venues/look";
 
 const customCourse = (): Race3DCourse => ({
   marks: [{ pos: { x: 91, y: 30 }, type: "start" }, { pos: { x: 131, y: 30 }, type: "start" }, { pos: { x: 75, y: -330 }, type: "windward" }],
@@ -98,3 +99,58 @@ describe("race 3D colours", () => {
     expect(LOADING_COLOR.toLowerCase()).not.toBe("#00d4ff");
   });
 });
+
+// F4 contract: every course mark has a halo that faces the camera at a fixed
+// size on screen, is drawn over the water (the swell cannot cut it) and fades
+// in with the camera distance; with the softer light the buoy is larger and
+// lit from within. No flat ring on the water (the swell made it shimmer).
+describe("course marks: distance halo and the softer light (F4)", () => {
+  type El = ReactElement<Record<string, unknown>>;
+  const all = (el: El): El[] => [el, ...Children.toArray(el.props.children as never).filter(isValidElement).flatMap(child => all(child as El))];
+  const drawBuoy = (look = PLAIN_MARK) => { hooks.cursor = 0; hooks.frames = []; return all(Buoy({ x: 10, z: -20, color: "#ff7a1a", flag: true, look }) as El); };
+
+  it("passes the mark look to every buoy of the course", () => {
+    hooks.cursor = 0; hooks.frames = [];
+    const soft = raceLight(VENUE_LOOKS.split, true).mark;
+    const tree = World({ venue: findVenue("gocek"), courseRef: { current: STANDARD_COURSE }, boatsRef: { current: [] }, originRef: { current: { x: 0, z: 0 } }, targetLabel: "", land: false, marks: soft });
+    hooks.frames.forEach(frame => frame());
+    hooks.cursor = 0;
+    const again = World({ venue: findVenue("gocek"), courseRef: { current: STANDARD_COURSE }, boatsRef: { current: [] }, originRef: { current: { x: 0, z: 0 } }, targetLabel: "", land: false, marks: soft });
+    const buoys = (Children.toArray(again.props.children).filter(isValidElement) as El[]).filter(node => node.type === Buoy);
+    expect(tree).toBeDefined();
+    expect(buoys.length).toBeGreaterThan(0);
+    for (const buoy of buoys) expect(buoy.props.look).toBe(soft);
+  });
+
+  it("draws the halo over the water at a fixed screen size by default, and a larger lit buoy only with the softer light", () => {
+    const plain = drawBuoy();
+    expect(plain.some(node => node.props.name === "mark-ring")).toBe(false);
+    const halo = plain.find(node => node.props.name === "mark-halo")!;
+    expect(halo.type).toBe("sprite");
+    expect(halo.props.scale).toEqual([MARK_HALO.size, MARK_HALO.size, 1]);
+    const material = all(halo).find(node => node.type === "spriteMaterial")!;
+    expect(material.props).toMatchObject({ sizeAttenuation: false, depthTest: false, depthWrite: false, transparent: true, fog: false });
+    expect(plain.find(node => node.type === "group" && "scale" in node.props)!.props.scale).toBe(1);
+    expect(plain.find(node => node.type === "meshStandardMaterial")!.props.emissiveIntensity).toBe(0);
+    const soft = raceLight(VENUE_LOOKS.gocek, true).mark;
+    const tree = drawBuoy(soft);
+    expect(tree.find(node => node.props.name === "mark-halo")).toBeDefined();
+    expect(tree.find(node => node.type === "group" && "scale" in node.props)!.props.scale).toBe(soft.scale);
+    expect(tree.find(node => node.type === "meshStandardMaterial")!.props.emissiveIntensity).toBeGreaterThan(0);
+  });
+
+  it("fades the halo with the camera distance every frame", () => {
+    const tree = drawBuoy();
+    const halo = tree.find(node => node.props.name === "mark-halo")!;
+    const material = { opacity: 0 };
+    const sprite = { visible: false, material, getWorldPosition: (v: { set: (x: number, y: number, z: number) => unknown }) => { v.set(0, 0, 0); return v; } };
+    (halo.props.ref as { current: unknown }).current = sprite;
+    const frame = (distance: number) => (hooks.frames.at(-1) as unknown as (s: unknown) => void)({ clock: { elapsedTime: 0 }, camera: { position: { distanceTo: () => distance } } });
+    frame(20);
+    expect(sprite.visible).toBe(false);
+    frame(540);
+    expect(sprite.visible).toBe(true);
+    expect(material.opacity).toBeCloseTo(markHaloOpacity(540));
+  });
+});
+

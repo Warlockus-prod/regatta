@@ -399,6 +399,8 @@ async function startRace(page: Page, context: BrowserContext, entry: RaceEntry =
       localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels", helmReturnToCenter: false }));
       // The briefing opens by itself only on a course's first start; every journey here walks through it.
       localStorage.removeItem("regatta.race.briefing-seen.v1");
+      // F5: the race intro before the first race is seen (smoke.spec.ts walks through it).
+      localStorage.setItem("regatta.race.intro-seen.v1", "1");
     } catch { /* Ordinary browser storage may be unavailable. */ }
   });
   await page.setViewportSize(entry.viewport ?? { width: 390, height: 844 });
@@ -477,14 +479,19 @@ test("corner map and wind stay visible through dock tabs and five viewport sizes
     samples.push({ viewport, ...geometry });
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  // F3: the corner map opens the big map over the scene; the dock under it
+  // stays usable while it is open, and Close brings the corner map back.
   await mini.click();
-  await expect(cockpit.getByTestId("race-overview-map")).toBeVisible();
-  await expect(mini).toBeVisible();
+  const bigMap = cockpit.getByTestId("race-big-map");
+  await expect(bigMap.getByRole("img", { name: "Карта трассы", exact: true })).toBeVisible();
+  await expect(bigMap.locator("[data-map-mark]")).toHaveCount(makeStandardCourse().marks.length);
   await cockpit.getByRole("button", { name: "Паруса", exact: true }).click();
+  await expect(bigMap).toBeVisible();
+  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  await bigMap.getByRole("button", { name: "Закрыть карту", exact: true }).click();
+  await expect(bigMap).toHaveCount(0);
   await expect(mini).toBeVisible();
   await expect(wind).toBeVisible();
-  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
-  await expect(mini).toBeVisible();
   await testInfo.attach("corner-instrument-layout", { contentType: "application/json", body: JSON.stringify(samples) });
 });
 
@@ -629,9 +636,11 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
     const instrument = root.querySelector('[data-testid="race-wind-instrument"][data-compact]')!;
     const numeric = (testId: string) => Number.parseFloat(instrument.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "");
     const course = root.querySelector('[data-testid="race-route-heading"] > span > span')?.textContent?.match(/(\d+)°/);
-    const arrow = instrument.querySelector('[data-testid="race-relative-wind-arrow"]')?.getAttribute("transform")?.match(/^rotate\(([-\d.]+) 50 50\)$/);
+    // The dial's signed bow-relative angle (its drawn points come from it, wind-dial.ts).
+    const arrow = instrument.querySelector('[data-testid="race-relative-wind-arrow"]')?.getAttribute("data-angle");
     return { heading: Number(course?.[1]), absolute: numeric("race-true-wind-direction"), twa: numeric("race-true-wind-angle"),
-      relative: Number(arrow?.[1]), absoluteLabelled: instrument.querySelector('[data-testid="race-true-wind-direction"]')?.parentElement?.textContent?.includes("TWD") === true };
+      relative: arrow ? Number(arrow) : Number.NaN,
+      tailX: Number(instrument.querySelector('[data-testid="race-relative-wind-shaft"]')?.getAttribute("x1")), absoluteLabelled: instrument.querySelector('[data-testid="race-true-wind-direction"]')?.parentElement?.textContent?.includes("TWD") === true };
   });
   const delta = (from: number, to: number) => ((to - from + 540) % 360) - 180;
   const beforeWind = await windFrame();
@@ -648,6 +657,8 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
   expect(Math.abs(delta(beforeWind.absolute, afterWind.absolute))).toBeLessThan(Math.abs(delta(beforeWind.heading, afterWind.heading)));
   expect(Math.abs(delta(afterWind.relative, delta(afterWind.heading, afterWind.absolute)))).toBeLessThanOrEqual(1.1);
   expect(afterWind.twa).toBe(Math.round(Math.abs(afterWind.relative)));
+  // The drawn tail sits on the side the wind comes from: starboard (positive) right of the bow.
+  for (const frame of [beforeWind, afterWind]) if (Math.abs(frame.relative) > 2 && Math.abs(frame.relative) < 178) expect(Math.sign(frame.tailX - 50)).toBe(Math.sign(frame.relative));
   await expect(startup).toHaveAttribute("data-scene-startup", "ready");
   await testInfo.attach("race-wind-bow-relative", { body: Buffer.from(JSON.stringify({ before: beforeWind, after: afterWind })), contentType: "application/json" });
 
@@ -789,19 +800,20 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
         svgInsidePanel: true, captionInsidePanel: true, svgInsideViewport: true, captionInsideViewport: true,
       }));
       await expect.poll(() => mapOpenCount(page)).toBe(previousOpens! + 1);
-      // Fleet intentionally scrolls this very same Map panel. Tapping its
-      // persistent corner shortcut again must restore the complete overview,
-      // without pretending that an already-open Map was opened a second time.
+      // Fleet intentionally scrolls this very same Map panel inside itself.
       await step("map-fleet-scroll", () => dock.getByRole("heading", { name: "Флот", exact: true }).scrollIntoViewIfNeeded());
       await overview.evaluate(figure => {
         const panel = figure.parentElement!.parentElement!;
         panel.scrollTop = panel.scrollHeight;
       });
       await expect.poll(async () => (await mapGeometry(overview)).scrollTop).toBeGreaterThan(0);
-      await step("map-retap", () => mini.click());
-      await step("map-restored", () => expect.poll(() => mapGeometry(overview)).toMatchObject({
-        scrollTop: 0, svgInsidePanel: true, captionInsidePanel: true, svgInsideViewport: true, captionInsideViewport: true,
-      }));
+      // F3: the corner shortcut opens the big map over the scene instead of
+      // the dock tab, so it never counts as opening the Map tab again.
+      await step("big-map-open", () => mini.click());
+      const bigMap = cockpit.getByTestId("race-big-map");
+      await step("big-map-visible", () => expect(bigMap.getByRole("img", { name: "Карта трассы", exact: true })).toBeVisible());
+      await step("big-map-close", () => bigMap.getByRole("button", { name: "Закрыть карту", exact: true }).click());
+      await expect(bigMap).toHaveCount(0);
       expect(await mapOpenCount(page)).toBe(previousOpens! + 1);
       await step("settings-open", () => cockpit.getByRole("button", { name: "Настройки", exact: true }).click());
       const diagnostics = dock.locator("details > summary");
@@ -876,6 +888,7 @@ for (const localized of localizedProEntries) {
       await evidence.step("storage-init", () => context.addInitScript(() => {
         localStorage.setItem("regatta.onboarding.v1", "1");
         localStorage.setItem("regatta.v3.tour.v1", "1");
+        localStorage.setItem("regatta.race.intro-seen.v1", "1");
         localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels", helmReturnToCenter: false }));
       }));
       await evidence.step("short:resize", () => page.setViewportSize({ width: 320, height: 568 }));

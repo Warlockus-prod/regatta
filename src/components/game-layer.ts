@@ -50,3 +50,31 @@ const serverSnapshot = () => false;
 export function useGameLayer(): boolean {
   return useSyncExternalStore(subscribeGameLayer, gameLayerActive, serverSnapshot);
 }
+
+// F2 (TestFlight 74: "the helm is not fixed, easy to scroll and lose it"): a
+// race surface that keeps the site header (the multiplayer race) still stops
+// the page itself from scrolling while it is on screen. The solo race gets the
+// same lock from the game layer; both attributes share one rule in
+// src/app/globals.css. Counted like the layer, so overlapping claims are safe.
+export const RACE_SCROLL_LOCK_ATTRIBUTE = "data-race-scroll-lock";
+
+let scrollLocks = 0;
+
+function publishScrollLock(): void {
+  if (typeof document === "undefined" || !document.body) return;
+  if (scrollLocks > 0) document.body.setAttribute(RACE_SCROLL_LOCK_ATTRIBUTE, "");
+  else document.body.removeAttribute(RACE_SCROLL_LOCK_ATTRIBUTE);
+}
+
+/** Lock page scrolling for a race; the returned release is safe to call more than once. */
+export function claimRaceScrollLock(): () => void {
+  scrollLocks += 1;
+  publishScrollLock();
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    scrollLocks = Math.max(0, scrollLocks - 1);
+    publishScrollLock();
+  };
+}

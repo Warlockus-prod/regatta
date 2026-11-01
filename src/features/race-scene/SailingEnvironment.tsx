@@ -7,7 +7,7 @@ import { sampleWave } from "@/features/simulator-3d/ocean/waves";
 import { METRES_PER_UNIT } from "@/features/race-3d/pose";
 import { landPolygon, raceTerrain, noise1, RACE_AREA } from "@/data/venues/geometry";
 import type { Venue } from "@/data/venues/venues";
-import { sceneColors, sunDirection, sunIntensity, type SceneColors, type VenueLook } from "@/data/venues/look";
+import { raceLight, sceneColors, sunDirection, type SceneColors, type VenueLook } from "@/data/venues/look";
 import { shoreField } from "./shore";
 import { TRAIL_POINTS, buildRibbon, pushTrail, ribbonIndices, type TrailPoint } from "./trail";
 import { BEACH_ROWS, landGeometry } from "./land";
@@ -274,20 +274,25 @@ function Exposure({ value }: { value?: number }) {
   return null;
 }
 
-/** What the environment draws from a venue look (M3-6), or the trainers' light without one. */
-export function environmentLight(look?: VenueLook) {
-  if (!look) return { colors: TRAINER_COLORS, sun: SAILING_SUN, intensity: 2.4, exposure: undefined, nearCalm: false };
+/** What the environment draws from a venue look (M3-6), or the trainers' light without one.
+ * `soft` (F4, the race's "Softer light" setting) lowers exposure, sun, glints and glow (look.ts raceLight). */
+export function environmentLight(look?: VenueLook, soft = false) {
+  if (!look) return { colors: TRAINER_COLORS, sun: SAILING_SUN, intensity: 2.4, exposure: undefined, nearCalm: false, glint: 1, glow: 1 };
   const [x, y, z] = sunDirection(look);
-  return { colors: sceneColors(look), sun: [x * 80, y * 80, z * 80] as [number, number, number], intensity: sunIntensity(look), exposure: look.exposure, nearCalm: true };
+  const light = raceLight(look, soft);
+  return { colors: sceneColors(look), sun: [x * 80, y * 80, z * 80] as [number, number, number], intensity: light.sunIntensity, exposure: light.exposure, nearCalm: true,
+    glint: light.glint, glow: light.glow };
 }
 
 /** One environment for the solo race, replay and trainers. Call inside the
  * shared renderer's Canvas. Cameras, rig state and lesson UI stay with the
  * consumer; only the sea, scenery, light and world-space wakes live here. */
-export function SailingEnvironment({ venue, look, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN, quality = TRAINER_QUALITY }: {
+export function SailingEnvironment({ venue, look, soft = false, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN, quality = TRAINER_QUALITY }: {
   venue?: Venue;
   /** The venue's light and colour (M3-6, src/data/venues/look.ts); trainers pass none and keep their light. */
   look?: VenueLook;
+  /** F4: the race's softer light (less glare, a slightly darker picture); gains on uniforms, no new shader. */
+  soft?: boolean;
   /** The race scene's quality profile (M2-5); trainers keep the full picture. */
   quality?: EnvironmentQuality;
   readState: () => SailingState | null;
@@ -298,12 +303,15 @@ export function SailingEnvironment({ venue, look, readState, readBoats, originRe
   const uniforms = useMemo(() => waterUniforms(), []);
   const uniformsRef = useRef(uniforms);
   const light = useMemo(() => environmentLight(look), [look]);
+  // F4: the softer light changes gains only (uniforms, exposure, sun), never the colours, so switching it builds no shader.
+  const gains = useMemo(() => environmentLight(look, soft), [look, soft]);
   const sunDir = useMemo(() => look ? new THREE.Vector3(...light.sun).normalize() : TRAINER_SUN, [look, light]);
   // The glints follow the sun of the look (the trainers keep the water's own default).
   useEffect(() => { if (look) uniforms.sunDir.value.copy(sunDir); }, [look, sunDir, uniforms]);
   // The glow's strength is a uniform: "high" to "medium" changes a value, only glow on or off builds new materials.
   const glowing = quality.glow > 0;
-  useEffect(() => { uniformsRef.current.glow.value = quality.glow; }, [quality.glow]);
+  useEffect(() => { uniformsRef.current.glow.value = quality.glow * gains.glow; }, [quality.glow, gains.glow]);
+  useEffect(() => { uniformsRef.current.glint.value = gains.glint; }, [gains.glint]);
   const waterLook = useMemo<WaterLook>(() => ({ colors: light.colors, glow: glowing, nearCalm: light.nearCalm }), [light, glowing]);
   const sky = useMemo(() => skyMaterial(sunDir, uniforms.time, quality.clouds, light.colors), [sunDir, uniforms, quality.clouds, light]);
   const singleHull = useCallback(() => [sailingHull(readState())], [readState]);
@@ -323,8 +331,8 @@ export function SailingEnvironment({ venue, look, readState, readBoats, originRe
     <color attach="background" args={[light.colors.horizon]} />
     <fog attach="fog" args={[light.colors.fog, 420, 1900]} />
     <hemisphereLight args={[light.colors.hemiSky, light.colors.hemiGround, 0.9]} />
-    <directionalLight position={light.sun} intensity={light.intensity} color={look ? light.colors.sun : "#fff0d8"} />
-    <Exposure value={light.exposure} />
+    <directionalLight position={light.sun} intensity={gains.intensity} color={look ? light.colors.sun : "#fff0d8"} />
+    <Exposure value={gains.exposure} />
     <Reflections colors={light.colors} sunDir={sunDir} />
     <mesh renderOrder={-100} material={sky}><sphereGeometry args={[3600, 32, 16]} /></mesh>
     <Water venue={venue} uniforms={uniforms} chartOrigin={chartOrigin} segments={quality.waterSegments} detail={quality.waterDetail} look={waterLook} />

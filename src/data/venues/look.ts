@@ -194,3 +194,80 @@ export function sceneColors(look: VenueLook): SceneColors {
     hemiGround: w(mixHex("#3a5560", look.water.deep, 0.4)),
   };
 }
+
+// ---------------------------------------------------------------------------
+// F4 "Softer light, clearer marks" (race Settings, TestFlight 74: "maybe turn
+// the light down a bit so the mark is better visible"). One switch, off by
+// default: the venue look stays as drawn, and with it on the race scene draws
+// less sun (exposure, sun light, the glints on the water and their glow) and
+// the marks larger and lit a little from within, so an orange or yellow buoy
+// stands out of a bright sun path. Scenery only: no physics, no course
+// geometry (the mark's place and the rounding rules do not change).
+//
+// The mark halo is on by default, with or without the softer light: in the
+// owner's replay screenshot (build 74, chase camera) the windward mark at
+// 540 m was an orange dot a few pixels wide, so the default look did hurt
+// mark visibility. The halo is a ring that faces the camera and keeps the
+// same size on screen (like the name tags), drawn over the water so the swell
+// cannot cut it, and fades in only where the buoy itself gets small. An
+// earlier flat ring on the water was dropped: the swell (up to about 0.5 m
+// across it) cut it differently every frame and made it shimmer.
+
+/** How much the softer light takes off, as gains on the look (1 = as drawn). */
+export const SOFT_LIGHT = {
+  exposure: 0.88,
+  sun: 0.8,
+  /** The sharp sun glints on the water, the main glare in the owner's screenshots. */
+  glint: 0.35,
+  /** The glow on glints and foam (quality.ts glow), on top of the glint gain. */
+  glow: 0.3,
+  /** Mark size (the buoy and its flag), so it reads from farther away. */
+  markScale: 1.4,
+} as const;
+
+/** The dark outline of the mark halo, against the bright water and the sun path. */
+export const MARK_RING_COLOR = "#0b1d29";
+
+/** The halo round a course mark that keeps it findable at distance. */
+export const MARK_HALO = {
+  /** Size on screen (sprite scale with size attenuation off; about 0.05 of the view height). */
+  size: 0.04,
+  /** Camera distance, metres, over which it fades in: none near, where the buoy is large; full from the far end. */
+  fade: [60, 140] as const,
+  /** Opacity once faded in. */
+  opacity: 0.9,
+} as const;
+
+/** The halo's opacity at a camera distance in metres: 0 near the mark, MARK_HALO.opacity far away, smooth between. */
+export function markHaloOpacity(distance: number): number {
+  if (!Number.isFinite(distance)) return 0;
+  const [near, far] = MARK_HALO.fade;
+  const t = Math.min(1, Math.max(0, (distance - near) / (far - near)));
+  return MARK_HALO.opacity * t * t * (3 - 2 * t);
+}
+
+export interface RaceLight {
+  /** Tone mapping exposure of the renderer. */
+  exposure: number;
+  /** Strength of the directional sun light. */
+  sunIntensity: number;
+  /** Gain on the sun glints on the water. */
+  glint: number;
+  /** Gain on the glow (multiplies the quality profile's glow). */
+  glow: number;
+  /** Mark size, whether it is lit from within, and the distance halo (on in both looks). */
+  mark: { scale: number; glow: boolean; halo: boolean };
+}
+
+/** The race scene's light for a venue look, softer when the player asked for it. */
+export function raceLight(look: VenueLook, soft = false): RaceLight {
+  const sun = sunIntensity(look);
+  if (!soft) return { exposure: look.exposure, sunIntensity: sun, glint: 1, glow: 1, mark: { scale: 1, glow: false, halo: true } };
+  return {
+    exposure: look.exposure * SOFT_LIGHT.exposure,
+    sunIntensity: sun * SOFT_LIGHT.sun,
+    glint: SOFT_LIGHT.glint,
+    glow: SOFT_LIGHT.glow,
+    mark: { scale: SOFT_LIGHT.markScale, glow: true, halo: true },
+  };
+}

@@ -6,7 +6,8 @@ import { raceTrim, makeStandardCourse } from "@/lib/race-physics";
 import { createRaceNavigationSnapshot, raceWindReading } from "@/features/race-hud/navigation-model";
 import { RaceOverviewMap } from "@/features/race-hud/RaceOverviewMap";
 import { RaceWindInstrument, RaceWindSettings } from "@/features/race-hud/RaceWindInstrument";
-import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
+import { RaceCornerInstruments, RaceMiniMapButton } from "@/features/race-hud/RaceCornerInstruments";
+import { RaceBigMap } from "@/features/race-hud/RaceBigMap";
 import { recordWebDiagnostic } from "@/lib/diagnostics-web";
 
 // Keep hook slots across explicit rerenders to exercise the actual tab and
@@ -59,7 +60,7 @@ const boat = { id: "p", pos: { x: 400, y: 1100 }, heading: 45, speed: 5, color: 
 const navigation = createRaceNavigationSnapshot({ course: makeStandardCourse(), boats: [boat], windFrom: 355 });
 const windReading = raceWindReading({ heading: 45, boatSpeedKn: 5, windFrom: 355, windKnots: 14 });
 function soloProps(): ComponentProps<typeof RaceCockpit> {
-  return { children: <div data-testid="actual-scene" />, prefs: { mode: "pro", guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true }, updatePrefs: vi.fn(),
+  return { children: <div data-testid="actual-scene" />, prefs: { mode: "pro", guidance: true, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true, coachStrip: true, firstRaceHints: true, softLight: false, sailFlow: false }, updatePrefs: vi.fn(),
     rudder: 0, setRudder: vi.fn(), courseDelta: vi.fn(), setCourse: vi.fn(), targetHeading: 45, trim: raceTrim({}), setTrim: vi.fn(),
     heading: 45, speed: 5, twa: 50, time: "0:10.0", rank: 1, rows: [{ ...boat, name: "Player" }],
     windReading, navigation, guidance: null, camera: "orbit", setCamera: vi.fn(), onResetCamera: vi.fn(),
@@ -90,11 +91,15 @@ describe("solo map and wind integration", () => {
     const initial = render();
     const cornerNode = nodes(initial).find(node => node.type === RaceCornerInstruments)!;
     const corner = RaceCornerInstruments(cornerNode.props as ComponentProps<typeof RaceCornerInstruments>);
-    const openButton = nodes(corner).find(node => node.type === "button")!;
+    const miniNode = nodes(corner).find(node => node.type === RaceMiniMapButton)!;
+    const openButton = nodes(RaceMiniMapButton(miniNode.props as ComponentProps<typeof RaceMiniMapButton>)).find(node => node.type === "button")!;
     expect(openButton.props["aria-label"]).toBe(open);
+    // F3: the corner map opens the big map over the scene, not the dock's Map tab.
+    expect(nodes(initial).some(node => node.type === RaceBigMap)).toBe(false);
     click(openButton);
     const map = render();
-    expect(nodes(map).some(node => node.type === RaceOverviewMap)).toBe(true);
+    expect(nodes(map).find(node => node.type === RaceBigMap)?.props.snapshot).toBe(navigation);
+    expect(nodes(map).some(node => node.type === RaceOverviewMap)).toBe(false);
     expect(nodes(map).find(node => node.type === RaceCornerInstruments)?.props.navigation).toBe(navigation);
     const settingsButton = nodes(map).find(node => node.type === "button" && Children.toArray(node.props.children as ReactNode).some(child => isValidElement(child) && child.type !== "span"))!;
     click(settingsButton);
@@ -103,6 +108,51 @@ describe("solo map and wind integration", () => {
     (toggle.props.onChange as (value: boolean) => void)(false);
     expect(props.updatePrefs).toHaveBeenLastCalledWith({ miniMap: false });
   });
+  it("gives the big map the race track and the route hint only while hints are on, and keeps the race running", () => {
+    const props = soloProps();
+    const target = { x: 520, y: 210 };
+    const samples = [{ x: 400, y: 1150 }, { x: 410, y: 1120 }];
+    props.track = vi.fn(() => samples);
+    props.guidance = { target } as NonNullable<typeof props.guidance>;
+    const render = () => { hooks.cursor = 0; return RaceCockpit(props); };
+    (nodes(render()).find(node => node.type === RaceCornerInstruments)!.props.onOpenMap as () => void)();
+    const big = nodes(render()).find(node => node.type === RaceBigMap)!;
+    expect(big.props).toMatchObject({ snapshot: navigation, track: samples, guidance: props.guidance });
+    expect(String(big.props.className)).toBeTruthy();
+    props.prefs = { ...props.prefs, guidance: false };
+    expect(nodes(render()).find(node => node.type === RaceBigMap)?.props.guidance).toBeNull();
+    // Opening the map neither pauses nor exits; the helm tab stays selected.
+    expect(props.onPause).not.toHaveBeenCalled();
+    expect(button(render(), "Helm").props["aria-pressed"]).toBe(true);
+    (big.props.onClose as () => void)();
+    expect(nodes(render()).some(node => node.type === RaceBigMap)).toBe(false);
+  });
+
+  // Review F3: the race keeps running under the map, so the start countdown,
+  // the start flags and the race toasts come after it in the scene (and above
+  // it, RaceBigMap.test.tsx checks the layers); a restart or the next race
+  // starts with the map closed; the pause sheet hides it.
+  it("keeps the countdown and toasts over the open map, and closes it for the next race and under the pause sheet", () => {
+    const props = { ...soloProps(), raceId: "race-1", countdown: 7 };
+    const render = () => { hooks.cursor = 0; return RaceCockpit(props); };
+    (nodes(render()).find(node => node.type === RaceCornerInstruments)!.props.onOpenMap as () => void)();
+    const list = nodes(render());
+    const at = (match: (node: Node) => boolean) => list.findIndex(match);
+    const map = at(node => node.type === RaceBigMap);
+    expect(map).toBeGreaterThan(-1);
+    expect(at(node => node.props["data-testid"] === "race-countdown")).toBeGreaterThan(map);
+    expect(at(node => typeof node.type === "function" && node.type.name === "RaceStartFlags")).toBeGreaterThan(map);
+    expect(at(node => typeof node.type === "function" && node.type.name === "RaceFeedbackLayer")).toBeGreaterThan(map);
+    // The pause sheet hides it; Continue brings it back.
+    props.paused = true;
+    expect(nodes(render()).some(node => node.type === RaceBigMap)).toBe(false);
+    props.paused = false;
+    expect(nodes(render()).some(node => node.type === RaceBigMap)).toBe(true);
+    // Restart: the same cockpit, a new race id, the map closed.
+    props.raceId = "race-2";
+    expect(nodes(render()).some(node => node.type === RaceBigMap)).toBe(false);
+  });
+
   it("keeps the real map, detailed wind and fleet together outside the scene", () => {
     const props = soloProps();
     const render = () => { hooks.cursor = 0; return RaceCockpit(props); };
@@ -173,6 +223,32 @@ describe("authoritative multiplayer map and wind integration", () => {
     ]);
     expect(props.setRudder).not.toHaveBeenCalled();
     expect(props.setCourse).not.toHaveBeenCalled();
+  });
+
+  // F3: the corner map opens the big map over the scene; the dock (helm, tabs) stays.
+  it("opens the big map from the corner with the hint's route only while hints are on, and closes it", () => {
+    const props = multiProps();
+    const target = { x: 500, y: 200 };
+    props.frame = { ...props.frame!, guidance: { target } as NonNullable<NonNullable<typeof props.frame>["guidance"]> };
+    const samples = [{ x: 400, y: 1150 }, { x: 410, y: 1120 }];
+    props.track = vi.fn(() => samples);
+    const render = () => { hooks.cursor = 0; return MultiplayerCockpit(props); };
+    const open = nodes(render()).find(node => node.type === RaceCornerInstruments)!;
+    (open.props.onOpenMap as () => void)();
+    let tree = render();
+    const list = nodes(tree);
+    const big = list.find(node => node.type === RaceBigMap)!;
+    // The online race shows the player's track too (recorded by the client).
+    expect(big.props).toMatchObject({ snapshot: navigation, guidance: props.frame.guidance, track: samples });
+    expect(nodes(tree).some(node => node.type === "nav")).toBe(true);
+    // The start flags stay over the open map.
+    expect(list.findIndex(node => typeof node.type === "function" && node.type.name === "RaceStartFlags")).toBeGreaterThan(list.indexOf(big));
+    props.guidanceOn = false;
+    expect(nodes(render()).find(node => node.type === RaceBigMap)?.props.guidance).toBeNull();
+    (big.props.onClose as () => void)();
+    tree = render();
+    expect(nodes(tree).some(node => node.type === RaceBigMap)).toBe(false);
+    expect(props.setRudder).not.toHaveBeenCalled();
   });
 
   it("retains received result UI and shows unknown telemetry without inventing a frame", () => {

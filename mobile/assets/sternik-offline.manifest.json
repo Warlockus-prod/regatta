@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "8f4ce597bc70",
+  "version": "eafe8ffce61b",
   "lang": "pl",
-  "sha256": "329d2cfee6339111e7c34af7a89396ff435bb45f5c5a6ac907e3944f130fdf15",
-  "bytes": 2590021,
+  "sha256": "11b82e84cdcf1f971de5c69141cd0284da4978939ac2f5370d014802e9f11f23",
+  "bytes": 2590324,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -184,8 +184,8 @@
     },
     {
       "path": "src/app/globals.css",
-      "bytes": 16039,
-      "sha256": "e07959258ecc94b4653969170f7e37f673dbb31d6802d74f570109f56d283731"
+      "bytes": 16553,
+      "sha256": "7eea95720aa75b885d1233311787b3a4566ec6c7d1a253dea03a7c90cc54f318"
     },
     {
       "path": "src/app/radio/rozmowa/dialogueGrading.ts",
@@ -329,13 +329,13 @@
     },
     {
       "path": "src/lib/diagnostics.ts",
-      "bytes": 34270,
-      "sha256": "dc34e0145e847509427be4c2da88d70fac66b2cb2194b7eb195509e22f754e78"
+      "bytes": 34470,
+      "sha256": "f4b1355178880f9a265514997788776ad054d9c39b6713111166dd84c623c5ec"
     },
     {
       "path": "src/lib/race-visual-prefs.ts",
-      "bytes": 1640,
-      "sha256": "be6cffb251ed361f7535d670ae654afa0f362de0173ccf47c2e034bea40820ba"
+      "bytes": 2863,
+      "sha256": "52ad1b9116abcfcaeee1f3a4c0482dbb3782e928ebd749fb1464a1c4215fae27"
     },
     {
       "path": "src/lib/sternik-progress.ts",

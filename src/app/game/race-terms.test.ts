@@ -10,6 +10,7 @@ import { RACE_PAUSE_RESOURCES } from "./race-pause-copy";
 import { raceJudgeCopy } from "@/data/race-judge-copy";
 import { useRaceNavigationCopy } from "@/features/race-hud/navigation-copy";
 import { eventText } from "@/features/race-hud/events";
+import { RACE_INTRO_COPY } from "@/data/race-intro-copy";
 
 // Contract (2026-10-31 language pass): the race names a course mark with one
 // glossary term per language (scripts/sailing-glossary.md, "Race UI terms"):
@@ -39,7 +40,7 @@ function raceTexts(lang: Lang): string[] {
   return [
     ...strings(copy, lang), ...messages, ...events, MISSED_MARK_NOTICE[lang],
     ...strings(FINISH_COPY, lang), ...strings(RACE_PAUSE_RESOURCES, lang), ...strings(raceJudgeCopy, lang),
-    ...strings(useRaceNavigationCopy(), lang),
+    ...strings(useRaceNavigationCopy(), lang), ...strings(RACE_INTRO_COPY, lang),
   ];
 }
 

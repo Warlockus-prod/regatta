@@ -155,7 +155,8 @@ it("persists every closed wind style through the preference bridge and restores 
   const view = render(<Game />);
   const game = await waitFor(() => view.getByTestId("local-race"));
   for (const windDisplay of ["off", "compass", "arrows", "both"]) {
-    const assists = { guidance: false, trimHints: false, rules: true, penalties: true, windDisplay, miniMap: false };
+    // F4 and F6: the coach line, first race hints, softer light and wind on the sails ride in the same assists row.
+    const assists = { guidance: false, trimHints: false, rules: true, penalties: true, windDisplay, miniMap: false, coachStrip: false, firstRaceHints: false, softLight: true, sailFlow: true };
     await act(async () => game.props.onOfflineMessage(JSON.stringify({ type: "race-prefs", mode: "pro", assists }), jest.fn()));
     await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage["regatta.race.assists.v1"])).toEqual(assists));
     expect(JSON.parse((await AsyncStorage.getItem("regatta.race.assists.v1"))!)).toEqual(assists);
@@ -164,7 +165,7 @@ it("persists every closed wind style through the preference bridge and restores 
   view.unmount();
   const reopened = render(<Game />);
   const next = await waitFor(() => reopened.getByTestId("local-race"));
-  expect(JSON.parse(next.props.localStorage["regatta.race.assists.v1"])).toEqual({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay: "both", miniMap: false });
+  expect(JSON.parse(next.props.localStorage["regatta.race.assists.v1"])).toEqual({ guidance: false, trimHints: false, rules: true, penalties: true, windDisplay: "both", miniMap: false, coachStrip: false, firstRaceHints: false, softLight: true, sailFlow: true });
   expect(next.props.query.mode).toBe("pro");
 });
 
@@ -181,7 +182,7 @@ it("preserves the required legacy boolean guard and defaults optional trim and i
   expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
   expect(await AsyncStorage.getItem(key)).toBe(existing);
   await act(async () => game.props.onOfflineMessage(JSON.stringify({ type: "race-prefs", assists: { guidance: false, rules: false, penalties: true, trimHints: "false", windDisplay: "PRIVATE", privatePayload: "PRIVATE" } }), jest.fn()));
-  await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage[key])).toEqual({ guidance: false, trimHints: true, rules: false, penalties: true, windDisplay: "compass", miniMap: true }));
+  await waitFor(() => expect(JSON.parse(view.getByTestId("local-race").props.localStorage[key])).toEqual({ guidance: false, trimHints: true, rules: false, penalties: true, windDisplay: "compass", miniMap: true, coachStrip: true, firstRaceHints: true, softLight: false, sailFlow: false }));
   expect(await AsyncStorage.getItem(key)).not.toContain("PRIVATE");
 });
 

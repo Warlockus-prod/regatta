@@ -525,3 +525,13 @@ button:not(:disabled),
 
 /* Match sticky section controls and anchor targets to the responsive header. */
 html { scroll-padding-top: calc(var(--site-nav-h, 56px) + 16px); }
+
+/* F2: during a race countdown, race and replay (the game layer, see
+   src/components/game-layer.ts) and while the multiplayer race is on screen
+   (its race scroll lock) the page itself never scrolls, so a swipe on the race
+   dock cannot move the helm out of view. The race fits the viewport and
+   scrolls only inside its own panels. */
+html:has(body[data-game-layer]),
+body[data-game-layer],
+html:has(body[data-race-scroll-lock]),
+body[data-race-scroll-lock] { overflow: hidden; overscroll-behavior: none; }

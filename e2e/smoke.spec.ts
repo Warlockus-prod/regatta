@@ -94,13 +94,15 @@ async function observeProPage(page: Page, stage: ProObservation["stage"]): Promi
 }
 
 // Pin language to Russian for deterministic string matches, and mark the
-// Trainer's first-run tour (simulator-v3 TourOverlay) as seen so it cannot
-// cover the controls the simulator test clicks.
+// Trainer's first-run tour (simulator-v3 TourOverlay) and the race intro (F5)
+// as seen so they cannot cover the controls the tests click. The briefing
+// test below clears the race intro and walks through it.
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
     try {
       window.localStorage.setItem('regatta.lang.v1', 'ru');
       window.localStorage.setItem('regatta.v3.tour.v1', '1');
+      window.localStorage.setItem('regatta.race.intro-seen.v1', '1');
     } catch { /* ignore */ }
   });
 });
@@ -206,9 +208,17 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('button', { name: /Свободная гонка/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /^Миссия/ }).first()).toBeVisible();
 
-    // Default CTA fires briefing
+    // F5: a device without the race intro sees it first; Skip leads on to the briefing.
+    // The start reads the row when pressed, so clearing it after the load is enough.
+    await page.evaluate(() => localStorage.removeItem('regatta.race.intro-seen.v1'));
+    // Default CTA fires the intro, then the briefing
     await page.getByRole('button', { name: /Начать первую гонку/i }).click();
+    const intro = page.getByRole('dialog', { name: 'Цель: старт, верхний знак, финиш' });
+    await expect(intro).toBeVisible({ timeout: 10_000 });
+    await expect(intro.getByText('Шаг 1 из 4')).toBeVisible();
+    await intro.getByRole('button', { name: 'Пропустить', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Брифинг' })).toBeVisible({ timeout: 5_000 });
+    expect(await page.evaluate(() => localStorage.getItem('regatta.race.intro-seen.v1'))).toBe('1');
   });
 
   test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }, testInfo) => {

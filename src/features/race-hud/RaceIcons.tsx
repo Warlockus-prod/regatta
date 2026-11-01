@@ -32,6 +32,11 @@ export const ShareIcon = (p: IconProps) => <Icon {...p}><path d="M10 14a4 4 0 0 
 export const HintIcon = (p: IconProps) => <Icon {...p}><path d="M9 18h6M10 21h4" /><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.9.7-1.5 1.6-1.5 2.5h-4c0-.9-.6-1.8-1.5-2.5z" /></Icon>;
 /** Switch the race or replay camera (M2-1, M4-3). */
 export const CameraIcon = (p: IconProps) => <Icon {...p}><path d="M4 8h3l2-2.5h6L17 8h3v11H4z" /><circle cx="12" cy="13.5" r="3.2" /></Icon>;
+/** F3 big map: zoom in, zoom out, close, and the expand mark on the corner map. */
+export const PlusIcon = (p: IconProps) => <Icon {...p}><path d="M12 5v14M5 12h14" /></Icon>;
+export const MinusIcon = (p: IconProps) => <Icon {...p}><path d="M5 12h14" /></Icon>;
+export const CloseIcon = (p: IconProps) => <Icon {...p}><path d="M6 6l12 12M18 6L6 18" /></Icon>;
+export const ExpandIcon = (p: IconProps) => <Icon {...p}><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" /></Icon>;
 /** The coach's course advice. */
 export const CompassIcon = (p: IconProps) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></Icon>;
 

@@ -11,14 +11,15 @@ import {
 /**
  * The Race hub's one race setup (M1-1): preset, then level and wind for a free
  * race or the mission. The hub's start hands it to the race; the race does
- * not ask again. No animation; every target is at least 44 pt.
+ * not ask again. F1: the easy preset is "First race" until this device has
+ * raced, then "Easy race". No animation; every target is at least 44 pt.
  */
-export function RaceSetupPanel({ value, onChange }: { value: HubRaceSetup; onChange: (next: HubRaceSetup) => void }) {
+export function RaceSetupPanel({ value, onChange, racedBefore = false }: { value: HubRaceSetup; onChange: (next: HubRaceSetup) => void; racedBefore?: boolean }) {
   const { lang } = useI18n();
   const c = hubSetupCopy;
   return <View style={styles.wrap}>
     <Text variant="muted" style={styles.label}>{c.setup[lang].toUpperCase()}</Text>
-    <Segment label={c.setup[lang]} options={(["learn", "free", "mission"] as HubPreset[]).map(id => ({ id, text: c[id][lang] }))}
+    <Segment label={c.setup[lang]} options={(["learn", "free", "mission"] as HubPreset[]).map(id => ({ id, text: id === "learn" && racedBefore ? c.learnAgain[lang] : c[id][lang] }))}
       value={value.preset} onPick={preset => onChange(choosePreset(value, preset))} />
     {value.preset === "learn" && <Text variant="caption" style={styles.note}>{c.learnNote[lang]}</Text>}
     {value.preset === "free" && <>

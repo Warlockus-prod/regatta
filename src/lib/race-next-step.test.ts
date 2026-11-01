@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EMPTY_RACE_HOME, RACE_HOME_MAX_DAYS, dailyRaceDay, daysRacedThisWeek, isRaceHomeStoreText, localDay, localWeekStart,
-  medalProgress, parseRaceHomeStore, pickRaceNextStep, raceHomeView, recordRaceEnd, storedBestSec, type RaceHomeStore,
+  hasRacedBefore, medalProgress, parseRaceHomeStore, pickRaceNextStep, raceHomeView, recordRaceEnd, storedBestSec, type RaceHomeStore,
 } from "./race-next-step";
 import { RACE_COACH_PRACTICE } from "../data/race-practice";
 import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_PROFILES, physicalRaceContext } from "./race-context";
@@ -150,5 +150,25 @@ describe("the menu's view", () => {
     const unchosen = view({ bestTimesRaw: raw, courseChosen: false });
     expect(unchosen.step?.kind).toBe("daily");
     expect(unchosen.recordSec).toBeNull();
+  });
+});
+
+// Contract (F1): once this device has ended a solo race, the race menu stops
+// calling its easy preset a "first race". A race day in the home row, any
+// valid personal best or a race in the app's native history is enough; an
+// empty or corrupt row is no race.
+describe("has this device raced before", () => {
+  it("is false with nothing stored or only corrupt rows", () => {
+    expect(hasRacedBefore({ home: empty() })).toBe(false);
+    expect(hasRacedBefore({ home: empty(), bestTimesRaw: null, savedRaces: 0 })).toBe(false);
+    for (const raw of ["", "{", "[]", "null", "{}", JSON.stringify({ "easy-medium": { timeSec: 0, ts: 1 } }), JSON.stringify({ "easy-medium": "fast" })]) {
+      expect(hasRacedBefore({ home: parseRaceHomeStore("{bad"), bestTimesRaw: raw }), raw).toBe(false);
+    }
+  });
+
+  it("is true after an ended race, a personal best or a saved race in the app", () => {
+    expect(hasRacedBefore({ home: recordRaceEnd(empty(), { now: at(2026, 11, 1), goal: null, dailyDay: null, finished: false }) })).toBe(true);
+    expect(hasRacedBefore({ home: empty(), bestTimesRaw: JSON.stringify({ "legacy|pro|hard|heavy": { timeSec: 142.5, ts: 1 } }) })).toBe(true);
+    expect(hasRacedBefore({ home: empty(), savedRaces: 1 })).toBe(true);
   });
 });

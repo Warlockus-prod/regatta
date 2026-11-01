@@ -1,6 +1,7 @@
 import { words } from "../../../src/lib/product/catalog";
 import { DIFFICULTY_CONFIG, type Difficulty } from "../../../src/data/race-difficulty";
 import missionData from "../data/missions.json";
+import { raceStartCopy } from "../../../src/data/race-start-copy";
 
 /**
  * M1-1: the app asks the race setup once, in the Race hub. The hub hands it to
@@ -35,6 +36,14 @@ export function choosePreset(setup: HubRaceSetup, preset: HubPreset): HubRaceSet
   return { ...setup, preset };
 }
 
+/** F1: the hub's start label. The easy preset is a "first race" only until
+ * this device has raced (src/lib/race-next-step.ts hasRacedBefore). */
+export function hubStartLabel(setup: HubRaceSetup, racedBefore: boolean, lang: keyof ReturnType<typeof words>): string {
+  if (setup.preset === "mission") return hubSetupCopy.startMission[lang];
+  if (setup.preset === "learn" && !racedBefore) return hubSetupCopy.startFirst[lang];
+  return hubSetupCopy.start[lang];
+}
+
 export function difficultyLabel(d: Difficulty, lang: keyof ReturnType<typeof words>): string {
   const c = DIFFICULTY_CONFIG[d];
   return { ru: c.label, en: c.labelEn, pl: c.labelPl, es: c.labelEs, fr: c.labelFr, de: c.labelDe, it: c.labelIt }[lang];
@@ -42,7 +51,9 @@ export function difficultyLabel(d: Difficulty, lang: keyof ReturnType<typeof wor
 
 export const hubSetupCopy = {
   setup: words("Настройка гонки", "Race setup", "Ustawienia wyścigu", "Ajustes de la regata", "Réglages de la course", "Renneinstellungen", "Impostazioni della regata"),
-  learn: words("Первая гонка", "First race", "Pierwszy wyścig", "Primera regata", "Première course", "Erstes Rennen", "Prima regata"),
+  /** F1: "First race" until this device has raced, then "Easy race" (src/data/race-start-copy.ts). */
+  learn: raceStartCopy.firstRace,
+  learnAgain: raceStartCopy.easyRace,
   learnNote: words("Лёгкий уровень, средний ветер", "Easy level, medium wind", "Łatwy poziom, średni wiatr", "Nivel fácil, viento medio", "Niveau facile, vent moyen", "Leichte Stufe, mittlerer Wind", "Livello facile, vento medio"),
   free: words("Свободная", "Free race", "Wyścig swobodny", "Regata libre", "Course libre", "Freies Rennen", "Regata libera"),
   mission: words("Миссия", "Mission", "Misja", "Misión", "Mission", "Mission", "Missione"),
@@ -51,7 +62,7 @@ export const hubSetupCopy = {
   light: words("Слабый", "Light", "Słaby", "Flojo", "Faible", "Schwach", "Leggero"),
   medium: words("Средний", "Medium", "Średni", "Medio", "Moyen", "Mittel", "Medio"),
   heavy: words("Сильный", "Strong", "Silny", "Fuerte", "Fort", "Stark", "Forte"),
-  start: words("Начать гонку", "Start the race", "Zacznij wyścig", "Empezar la regata", "Lancer la course", "Rennen starten", "Inizia la regata"),
-  startFirst: words("Начать первую гонку", "Start your first race", "Zacznij pierwszy wyścig", "Empezar la primera regata", "Lancer la première course", "Erstes Rennen starten", "Inizia la prima regata"),
+  start: raceStartCopy.start,
+  startFirst: raceStartCopy.startFirst,
   startMission: words("Начать миссию", "Start the mission", "Zacznij misję", "Empezar la misión", "Lancer la mission", "Mission starten", "Inizia la missione"),
 };

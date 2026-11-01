@@ -96,4 +96,17 @@ describe("first race hints in the solo race loop", () => {
     } });
     expect(hints(showHint)).toEqual(["no-go", "no-go"]);
   });
+
+  // F4: "First race hints" off in the race Settings: none is shown; on again, they come back.
+  it("shows no first race hint while the player has them switched off, and again once on", () => {
+    const off = (i: number, refs: RaceLoopInput["refs"]) => { if (i === 1) Object.assign(refs.racePrefsRef.current, { firstRaceHints: false }); };
+    expect(sail({ place: stalled, frames: 300, onFrame: off }).showHint).not.toHaveBeenCalled();
+    effects.cleanups.forEach(cleanup => cleanup?.()); effects.cleanups = [];
+    const dueFrames = Math.ceil(HINT_TIMING.noGoSec * 10) + 5;
+    const toggled = sail({ place: stalled, frames: 3 * dueFrames, onFrame: (i, refs) => {
+      if (i === 1) Object.assign(refs.racePrefsRef.current, { firstRaceHints: false });
+      if (i === 2 * dueFrames) Object.assign(refs.racePrefsRef.current, { firstRaceHints: true });
+    } });
+    expect(hints(toggled.showHint)).toEqual(["no-go"]);
+  });
 });

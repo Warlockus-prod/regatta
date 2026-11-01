@@ -108,6 +108,8 @@ export interface WaterUniforms {
   sunDir: { value: THREE.Vector3 };
   /** Strength of the glow (quality.ts `glow`), read only by materials built with glow. */
   glow: { value: number };
+  /** F4: gain on the sun glints on the water, 1 as drawn (the softer race light lowers it, look.ts raceLight). */
+  glint: { value: number };
 }
 
 export function waterUniforms(): WaterUniforms {
@@ -118,6 +120,7 @@ export function waterUniforms(): WaterUniforms {
     windiness: uniform(0.6),
     sunDir: uniform(new THREE.Vector3(0.6, 0.7, 0.3).normalize()),
     glow: uniform(0),
+    glint: uniform(1),
   } as unknown as WaterUniforms;
 }
 
@@ -183,7 +186,7 @@ export function waterMaterial(u: WaterUniforms, shore: { texture: THREE.Texture;
   const zenith = tone(colors.zenith);
   const sky = mix(horizon, zenith, pow(max(r.y, 0), 0.5));
   const toSun: N = max(dot(r, U.sunDir), 0);
-  const glint: N = pow(toSun, 220).mul(1.6).mul(float(1).sub(calm));
+  const glint: N = pow(toSun, 220).mul(1.6).mul(U.glint).mul(float(1).sub(calm));
 
   // Shallows and beach foam from the shore field (0 at the beach, 1 at maxDist and beyond).
   const shoreUv = race.sub(vec2(shore.min.x, shore.min.z)).div(vec2(shore.size.x, shore.size.z));

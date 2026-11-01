@@ -17,7 +17,7 @@ import { copy as productCopy } from "@/lib/product/copy";
 import { BEST_TIMES_STORAGE_KEY, formatRecordTime } from "@/lib/best-times";
 import { readMedalStore, type MedalCourse } from "@/lib/race-medals";
 import { racePracticeHref, racePracticeTitle } from "@/lib/race-practice";
-import { raceHomeView, readRaceHomeStore, type RaceHomeView } from "@/lib/race-next-step";
+import { hasRacedBefore, raceHomeView, readRaceHomeStore, type RaceHomeView } from "@/lib/race-next-step";
 import type { RaceReturn } from "@/lib/race-return";
 
 /** The lobby's view of the stored rows. A plain read, not a hook: the lobby
@@ -28,6 +28,15 @@ export function readLobbyHome(storage: Pick<Storage, "getItem"> | null, course: 
   try { bestTimesRaw = storage?.getItem(BEST_TIMES_STORAGE_KEY) ?? null; } catch { bestTimesRaw = null; }
   return raceHomeView({ home: readRaceHomeStore(storage), medals: readMedalStore(storage), bestTimesRaw, course, mode,
     now: opts.now ?? new Date(), inDaily: opts.inDaily, courseChosen: opts.courseChosen });
+}
+
+/** F1: whether this browser has ended a solo race (the race home row or a
+ * personal best), so the lobby names its easy preset "Easy race", not "First
+ * race". A storage that throws reads as no race. */
+export function readRacedBefore(storage: Pick<Storage, "getItem"> | null): boolean {
+  let bestTimesRaw: string | null = null;
+  try { bestTimesRaw = storage?.getItem(BEST_TIMES_STORAGE_KEY) ?? null; } catch { bestTimesRaw = null; }
+  return hasRacedBefore({ home: readRaceHomeStore(storage), bestTimesRaw });
 }
 
 /** The daily race's link: a full page load, so the race reads its setup from the query. */
