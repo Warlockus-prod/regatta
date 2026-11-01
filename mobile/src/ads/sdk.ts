@@ -9,6 +9,17 @@ import type { VoxPlacement } from './vox-placements';
  */
 export type AdSdk = 'vox1' | 'vox2';
 
+/**
+ * SDKs offered by the Ads switch. SDK 2 needs the Prebid Server that runs on
+ * this Mac (localhost), which a phone cannot reach, so release builds
+ * (TestFlight) offer SDK 1 only until a hosted Prebid Server exists.
+ */
+export function availableAdSdks(dev: boolean): readonly AdSdk[] {
+  return dev ? ['vox1', 'vox2'] : ['vox1'];
+}
+
+export const AD_SDKS = availableAdSdks(__DEV__);
+
 let current: AdSdk = 'vox1';
 const listeners = new Set<() => void>();
 

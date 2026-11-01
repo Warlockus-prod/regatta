@@ -4,12 +4,10 @@ import { VoxAds } from '../../modules/vox-ads';
 import { VoxPrebid } from '../../modules/vox-prebid';
 import { sdkAvailable } from '../../src/ads/AdSlot';
 import { AD_FORMATS, AD_FORMAT_ROUTES } from '../../src/ads/formats';
-import { setAdSdk, useAdSdk, type AdSdk } from '../../src/ads/sdk';
+import { AD_SDKS, setAdSdk, useAdSdk } from '../../src/ads/sdk';
 import { useAdsText } from '../../src/ads/strings';
 import { Card, Screen, Text } from '../../src/design-system/components';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
-
-const SDKS: readonly AdSdk[] = ['vox1', 'vox2'];
 
 /**
  * Settings -> Ads. SDK switch (VOX SDK 1 / VOX SDK 2) and the list of ad
@@ -26,7 +24,7 @@ export default function AdsFormatsScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card style={styles.intro}>
           <View style={styles.switch} accessibilityRole="tablist" accessibilityLabel={text.sdkLabel}>
-            {SDKS.map((id) => (
+            {AD_SDKS.map((id) => (
               <Pressable
                 key={id}
                 onPress={() => setAdSdk(id)}

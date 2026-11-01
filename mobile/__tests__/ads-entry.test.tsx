@@ -88,3 +88,9 @@ it("keeps ad SDK bridges inside the Ads section only", () => {
   for (const dir of ["app", "src", "plugins", "scripts"]) walk(dir);
   expect(offenders).toEqual([]);
 });
+
+it("offers VOX SDK 2 only in development builds, where its Prebid Server is reachable", () => {
+  const { availableAdSdks } = require("../src/ads/sdk");
+  expect(availableAdSdks(true)).toEqual(["vox1", "vox2"]);
+  expect(availableAdSdks(false)).toEqual(["vox1"]);
+});
