@@ -1762,7 +1762,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `src/features/ads-lab/TestPlacements.tsx` - three local front-facing test cards with explicit texture disposal; no ad network/SDK.
 - `docs/design/mobile/ads-lab.md` - requested scope, actual evidence and SDK/release limits.
 
-`RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. Actual ad serving is absent.
+`RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. The 3D boards are still local test cards. Since 2026-10-30 the native app opens this lab as the In-game format of Settings -> Ads; the other formats (display, interstitial, rewarded, video) request real ads through VOX SDK 1, see `docs/design/mobile/ARCHITECTURE.md` section Ads.
 
 `e2e/offline.spec.ts` adds an actual bundled Ads first-frame/control/geometry/placement-journal case with the existing25s scene and60s case limits; it checks no external/API request. This source test still requires its next exact cloud run. `SceneBoundary`/`SceneStartup` optional callbacks keep Ads directional controls disabled until a real frame and after an actual scene failure; normal trainer callers retain their existing behavior.
 

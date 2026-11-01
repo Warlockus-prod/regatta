@@ -60,7 +60,7 @@ afterEach(() => {
 });
 
 describe('Settings screen', () => {
-  it('opens the owner-requested Ads inspection lab from its named Settings entry', async () => {
+  it('opens the Ads formats from its named Settings entry', async () => {
     const view = renderWithProviders(<Settings />);
     const button = await waitFor(() => view.getByRole('button', { name: 'Ads' }));
     fireEvent.press(button);

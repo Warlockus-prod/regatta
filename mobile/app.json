@@ -139,6 +139,8 @@
       "expo-router",
       "expo-localization",
       "./plugins/with-uiscene",
+      "./plugins/with-vox-sdk",
+      "./plugins/with-min-pod-deployment-target",
       "expo-build-properties",
       [
         "expo-screen-orientation",
