@@ -1,10 +1,9 @@
 name: CI
 
+# Manual only (owner rule 2026-10-29): checks run on the Mac before every push,
+# GitHub only receives the push. Run this workflow only when the owner asks.
 on:
-  push:
-    branches-ignore: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 # Least privilege by default; jobs that need more (publish-images,
 # deploy) ask for it in their own permissions block.

@@ -178,8 +178,10 @@ npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
 ```
 
-- CI гоняет весь набор, а не список папок: `.github/workflows/ci.yml` на
-  каждый PR и `.github/workflows/deploy.yml` перед сборкой запускают
+- Проверки идут на Mac перед каждым push (правило владельца): GitHub только
+  принимает push, push и PR ничего не запускают. Набор тот же, что в CI:
+  `.github/workflows/ci.yml` и `.github/workflows/deploy.yml` (оба только по
+  ручному запуску, по просьбе владельца) перед сборкой запускают
   `node scripts/build-race-server.mjs --check`, затем `npx vitest run`, плюс
   `npm run test:multiplayer` и `npm run check:map`. Новый тестовый файл где
   угодно в `src` попадает в CI сам.
@@ -218,7 +220,9 @@ npm run check:map            # карта проекта актуальна
 
 - Ветки: `main` - веб-приложение плюс инфраструктура; `app` - это `main` плюс
   работа по мобильному приложению (`mobile/`).
-- Деплой только из CI. Push в `main` запускает `.github/workflows/deploy.yml`:
+- Деплой только из CI и только вручную: push в `main` сайт не выкатывает.
+  Выпуск сайта - `gh workflow run deploy.yml --ref main` по просьбе владельца,
+  после полного локального гейта. `.github/workflows/deploy.yml`:
   проверки (типы, типографика, карта, весь `npx vitest run`, сокеты), сборка и
   pre-deploy E2E на раннере, затем неизменяемые образы в GHCR.
   Публикация образов и deploy имеют явное условие refs/heads/main; другой ref
