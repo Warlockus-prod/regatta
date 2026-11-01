@@ -8,20 +8,29 @@ import { useI18n } from '@/lib/i18n';
 import { missions, type Mission } from '@/data/missions';
 import { RaceModePicker } from "./RaceCockpit";
 import type { RacePrefs } from "./race-prefs";
-import { VenuePicker } from '@/features/venues/VenuePicker';
+import { LobbyVenues } from "./LobbyVenues";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
+import { TargetIcon } from "@/features/race-hud/RaceIcons";
 
 // ============================================================================
-// GameMenu - 3-preset entry (Учусь / Свободная / Миссия) with collapsible details
+// GameMenu - the race lobby (M1-1, M1-6). One setup screen: a race frame, three
+// presets (First race / Free / Mission), the mode and the venue as compact
+// choices, and one primary action that starts the race. The briefing opens by
+// itself only the first time on a course; the "i" button beside the start
+// opens it on request. Inside the app the Race hub already chose the mode and
+// the venue, so the lobby only shows the mode and never asks again.
 // ============================================================================
 
 type MenuTab = 'learn' | 'free' | 'mission';
+
+/** The race frame: an existing editorial still, not a new asset (site only). */
+export const LOBBY_HERO_SRC = "/design-v3/sailing-editorial.webp";
 
 export function GameMenu({
   difficulty, setDifficulty,
   windStrength, setWindStrength,
   selectedMission, pickMission,
-  openBriefing, racePrefs, updateRacePrefs, dailyDay,
+  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false,
 }: {
   dailyDay: string | null;
   racePrefs: RacePrefs; updateRacePrefs: (patch: Partial<RacePrefs>) => void;
@@ -31,12 +40,16 @@ export function GameMenu({
   setWindStrength: (w: 'light' | 'medium' | 'heavy') => void;
   selectedMission: Mission | null;
   pickMission: (m: Mission | null) => void;
-  openBriefing: () => void;
+  /** The primary action: the briefing on a first visit, otherwise the countdown. */
+  onStart: () => void;
+  /** The "i" button: always the briefing. */
+  onShowBriefing: () => void;
+  /** Inside the app: the hub owns the mode and the venue. */
+  native?: boolean;
 }) {
   const { tp, tl } = useI18n();
   const raceCopy = useRaceCopy();
   const [tab, setTab] = useState<MenuTab>('learn');
-  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => { if (selectedMission) setTab("mission"); }, [selectedMission]);
 
@@ -71,7 +84,9 @@ export function GameMenu({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, dailyDay]);
 
+  const level = difficultyLabel(difficulty);
   const ctaLabel =
+    dailyDay ? tl({ ru: 'Начать гонку дня', en: 'Start the daily race', pl: 'Zacznij wyścig dnia', es: 'Empezar la regata del día', fr: 'Lancer la course du jour', de: 'Tagesrennen starten', it: 'Inizia la regata del giorno' }) :
     tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
     tab === 'mission' ? (selectedMission
       ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`, {
@@ -81,24 +96,21 @@ export function GameMenu({
           it: `Vai alla missione: ${selectedMission.titleIt ?? selectedMission.titleEn}`,
         })
       : tp('Выбери миссию', 'Pick a mission', 'Wybierz misję', { es: 'Elige una misión', fr: 'Choisis une mission', de: 'Wähle eine Mission', it: 'Scegli una missione' })) :
-    tp(
-      `К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`,
-      `To briefing · ${DIFFICULTY_CONFIG[difficulty].labelEn}`,
-      `Do odprawy · ${DIFFICULTY_CONFIG[difficulty].labelPl}`,
-      {
-        es: `Al briefing · ${DIFFICULTY_CONFIG[difficulty].labelEs}`,
-        fr: `Vers le briefing · ${DIFFICULTY_CONFIG[difficulty].labelFr}`,
-        de: `Zum Briefing · ${DIFFICULTY_CONFIG[difficulty].labelDe}`,
-        it: `Al briefing · ${DIFFICULTY_CONFIG[difficulty].labelIt}`,
-      },
-    );
+    tl({ ru: `Старт · ${level}`, en: `Start · ${level}`, pl: `Start · ${level}`, es: `Salida · ${level}`, fr: `Départ · ${level}`, de: `Start · ${level}`, it: `Partenza · ${level}` });
 
-  const ctaDisabled = tab === 'mission' && !selectedMission;
+  const ctaDisabled = tab === 'mission' && !selectedMission && !dailyDay;
+  const briefingLabel = tl({ ru: 'Брифинг: трасса и правила', en: 'Briefing: course and rules', pl: 'Odprawa: trasa i zasady', es: 'Briefing: recorrido y reglas', fr: 'Briefing : parcours et règles', de: 'Briefing: Bahn und Regeln', it: 'Briefing: percorso e regole' });
 
   return (
-    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6" data-testid="race-lobby">
       <FoundationReturn />
-      <div className="mb-6">
+      {!native && (
+        <div className="mb-4 h-32 sm:h-48 overflow-hidden rounded-2xl bg-[var(--bg-secondary)]" data-testid="race-lobby-hero">
+          {/* eslint-disable-next-line @next/next/no-img-element -- one local still, the same file the home page uses */}
+          <img src={LOBBY_HERO_SRC} alt="" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: '70% 55%' }} />
+        </div>
+      )}
+      <div className="mb-5">
         <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
           {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
         </h1>
@@ -107,9 +119,9 @@ export function GameMenu({
         </p>
       </div>
 
-      {dailyDay && <p className="mb-4 text-[var(--accent-cyan)]">{dailyDay}</p>}
+      {dailyDay && <p className="mb-4 text-base font-semibold text-[var(--text-primary)]" data-testid="race-lobby-daily">{dailyDay}</p>}
       {/* Compact presets keep the start action visible on a phone. */}
-      <div hidden={Boolean(dailyDay)} className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
+      <div hidden={Boolean(dailyDay)} className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-4">
         <PresetCard
           active={tab === 'learn'}
           onClick={() => setTab('learn')}
@@ -167,38 +179,36 @@ export function GameMenu({
       </div>
 
       {/* Tab-specific controls */}
-      {tab === 'mission' && (
-        <div className="card p-4 mb-5">
+      {tab === 'mission' && !dailyDay && (
+        <div className="card p-4 mb-4">
           <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ВЫБЕРИ МИССИЮ', 'PICK A MISSION', 'WYBIERZ MISJĘ', { es: 'ELIGE UNA MISIÓN', fr: 'CHOISIS UNE MISSION', de: 'WÄHLE EINE MISSION', it: 'SCEGLI UNA MISSIONE' })}</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2" role="radiogroup" aria-label={tp('Миссия', 'Mission', 'Misja', { es: 'Misión', fr: 'Mission', de: 'Mission', it: 'Missione' })}>
             {missions.map((m) => {
               const active = selectedMission?.id === m.id;
               return (
                 <button
                   key={m.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
                   onClick={() => pickMission(m)}
-                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
+                  className="min-h-11 p-3 rounded-lg text-left text-sm transition border"
                   style={{
-                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                    borderColor: active ? 'var(--accent-cyan)' : 'var(--border-subtle)',
                     outlineColor: 'var(--accent-cyan)',
                   }}
                 >
-                  <div className="text-lg mb-1">{m.emoji}</div>
-                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{mTitle(m)}</div>
-                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{mDesc(m)}</div>
+                  {/* M1-7: a line icon in place of the mission emoji; the title is the name. */}
+                  <div className="font-semibold text-[var(--text-primary)] flex items-start gap-1.5"><TargetIcon className="mt-1 shrink-0 text-[var(--text-secondary)]" /><span className="line-clamp-2">{mTitle(m)}</span></div>
                 </button>
               );
             })}
           </div>
           {selectedMission && (
-            <div className="mt-3 p-3 rounded text-xs" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)' }}>
-              <div className="text-[var(--text-primary)] font-semibold mb-1">
-                {selectedMission.emoji} {mTitle(selectedMission)}
-              </div>
-              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{mDesc(selectedMission)}</div>
-              <div className="text-[var(--accent-cyan)]">💡 {tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">
+            <div className="mt-3 text-sm leading-6">
+              <div className="text-[var(--text-secondary)] mb-1">{mDesc(selectedMission)}</div>
+              <div className="text-[var(--text-secondary)]">{tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</div>
+              <div className="text-[var(--text-muted)] mt-1">
                 {tp('Автонастройки', 'Auto-settings', 'Ustawienia automatyczne', { es: 'Ajustes automáticos', fr: 'Réglages auto', de: 'Automatische Einstellungen', it: 'Impostazioni automatiche' })}: {difficultyLabel(selectedMission.difficulty)} · {tp('ветер', 'wind', 'wiatr', { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' })} {windLabel(selectedMission.windStrength)}
               </div>
             </div>
@@ -207,39 +217,36 @@ export function GameMenu({
       )}
 
       {tab === 'free' && !dailyDay && (
-        <div className="card p-4 mb-5 space-y-4">
-          {/* Difficulty */}
+        <div className="card p-4 mb-4 space-y-4">
           <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM', { es: 'DIFICULTAD', fr: 'DIFFICULTÉ', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTÀ' })}</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tp('Сложность', 'Difficulty', 'Poziom', { es: 'Dificultad', fr: 'Difficulté', de: 'Schwierigkeit', it: 'Difficoltà' })}>
               {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
                 const cfg = DIFFICULTY_CONFIG[d];
                 const active = difficulty === d;
                 return (
                   <button
                     key={d}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
                     onClick={() => setDifficulty(d)}
-                    className={`p-2.5 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : ''}`}
-                    style={{
-                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                      outlineColor: 'var(--accent-cyan)',
-                    }}
+                    className="min-h-11 p-2.5 rounded-lg text-left text-sm transition border"
+                    style={{ borderColor: active ? 'var(--accent-cyan)' : 'var(--border-subtle)', outlineColor: 'var(--accent-cyan)' }}
                   >
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
                       <div className="font-semibold text-[var(--text-primary)]">{tp(cfg.label, cfg.labelEn, cfg.labelPl, { es: cfg.labelEs, fr: cfg.labelFr, de: cfg.labelDe, it: cfg.labelIt })}</div>
                     </div>
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперника', 'opponents', 'rywali', { es: 'rivales', fr: 'adversaires', de: 'Gegner', it: 'avversari' })}</div>
+                    <div className="text-xs text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперника', 'opponents', 'rywali', { es: 'rivales', fr: 'adversaires', de: 'Gegner', it: 'avversari' })}</div>
                   </button>
                 );
               })}
             </div>
           </div>
-          {/* Wind */}
           <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SIŁA WIATRU', { es: 'FUERZA DEL VIENTO', fr: 'FORCE DU VENT', de: 'WINDSTÄRKE', it: 'FORZA DEL VENTO' })}</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tp('Сила ветра', 'Wind strength', 'Siła wiatru', { es: 'Fuerza del viento', fr: 'Force du vent', de: 'Windstärke', it: 'Forza del vento' })}>
               {([
                 { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~8 kn'  },
                 { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~12 kn' },
@@ -247,15 +254,14 @@ export function GameMenu({
               ] as const).map((w) => (
                 <button
                   key={w.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={windStrength === w.id}
                   onClick={() => setWindStrength(w.id)}
-                  className={`p-2.5 rounded-lg border transition text-center ${windStrength === w.id ? 'ring-1' : ''}`}
-                  style={{
-                    borderColor: windStrength === w.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: windStrength === w.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
-                    outlineColor: 'var(--accent-cyan)',
-                  }}
+                  className="min-h-11 p-2.5 rounded-lg border transition text-center"
+                  style={{ borderColor: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--border-subtle)', outlineColor: 'var(--accent-cyan)' }}
                 >
-                  <div className="text-xs font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
+                  <div className="text-sm font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
                   <div className="text-xs text-[var(--text-muted)]">{w.desc}</div>
                 </button>
               ))}
@@ -264,52 +270,42 @@ export function GameMenu({
         </div>
       )}
 
-      <RaceModePicker prefs={racePrefs} update={updateRacePrefs} />
-      <button
-        onClick={openBriefing}
-        disabled={ctaDisabled}
-        className="w-full mb-4 min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-        style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
-      >
-        {ctaLabel} →
-      </button>
-      <VenuePicker />
-
-      {/* Collapsible details panel (controls + course rules) */}
-      <button
-        onClick={() => setDetailsOpen(!detailsOpen)}
-        className="w-full mb-4 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1 transition"
-      >
-        <span>{detailsOpen
-          ? tp('Скрыть детали', 'Hide details', 'Ukryj szczegóły', { es: 'Ocultar detalles', fr: 'Masquer les détails', de: 'Details ausblenden', it: 'Nascondi i dettagli' })
-          : tp('Показать управление и правила трассы', 'Show controls and course rules', 'Pokaż sterowanie i zasady trasy', { es: 'Ver controles y reglas del recorrido', fr: 'Afficher les commandes et les règles du parcours', de: 'Steuerung und Bahnregeln anzeigen', it: 'Mostra comandi e regole del percorso' })
-        }</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-             style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-
-      {detailsOpen && (
-        <div className="card p-4 mb-5 space-y-4">
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
-            <p className="text-sm text-[var(--text-secondary)]">{racePrefs.mode === "pro" ? raceCopy.proNote : raceCopy.simpleNote}</p>
-            <p className="mt-2 text-xs text-[var(--text-muted)]">{tl({ ru: "← →: руль. В Pro Q/A: гика-шкот, W/S: стаксель-шкот.", en: "← →: helm. In Pro, Q/A: mainsheet; W/S: jib sheet.", pl: "← →: ster. W Pro Q/A: szot grota, W/S: szot foka.", es: "← →: timón. En Pro, Q/A: escota de mayor; W/S: escota de foque.", fr: "← → : barre. En Pro, Q/A : écoute de grand-voile ; W/S : écoute de foc.", de: "← →: Steuer. In Pro Q/A: Großschot, W/S: Fockschot.", it: "← →: timone. In Pro Q/A: scotta della randa, W/S: scotta del fiocco." })}</p>
-          </div>
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
-            <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
-              <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start z dolnej pomarańczowej linii (tam jest też meta).', { es: 'Salida desde la línea naranja de abajo (también es la llegada).', fr: 'Départ depuis la ligne orange du bas (c\'est aussi l\'arrivée).', de: 'Start an der unteren orangen Linie (dort ist auch das Ziel).', it: 'Partenza dalla linea arancione in basso (è anche l\'arrivo).' })}</li>
-              <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Tack your way up to the windward mark - the wind blows from the top.', 'Do znaku nawietrznego płyniesz halsami - wiatr wieje z góry.', { es: 'Subes a la baliza de barlovento dando bordos - el viento viene de arriba.', fr: 'Tu remontes vers la bouée au vent en louvoyant - le vent vient du haut.', de: 'Zur Luvtonne kreuzt du auf - der Wind kommt von oben.', it: 'Risali verso la boa di bolina bordeggiando - il vento arriva dall\'alto.' })}</li>
-              <li>{tp('Огибаешь знак, оставляя его по левому борту.', 'Round the mark, leaving it to port.', 'Okrążasz znak, zostawiając go po lewej burcie.', { es: 'Rodeas la baliza dejándola a babor.', fr: 'Tu contournes la bouée en la laissant à bâbord.', de: 'Du rundest die Tonne und lässt sie an Backbord.', it: 'Giri la boa lasciandola a sinistra.' })}</li>
-              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
-            </ol>
-          </div>
-        </div>
+      {native ? (
+        <p className="mb-4 text-base leading-6 text-[var(--text-secondary)]" data-testid="race-lobby-mode">
+          <span className="font-semibold text-[var(--text-primary)]">{tl({ ru: 'Режим', en: 'Mode', pl: 'Tryb', es: 'Modo', fr: 'Mode', de: 'Modus', it: 'Modalità' })}: {racePrefs.mode === 'pro' ? raceCopy.pro : raceCopy.simple}.</span>{' '}
+          {tl({ ru: 'Режим выбирается в разделе Гонка.', en: 'Choose the mode in the Race tab.', pl: 'Tryb wybierasz w zakładce Regaty.', es: 'El modo se elige en la pestaña Regata.', fr: "Le mode se choisit dans l'onglet Course.", de: 'Den Modus wählst du im Tab Rennen.', it: 'La modalità si sceglie nella scheda Regata.' })}
+        </p>
+      ) : (
+        <div className="mb-4"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
       )}
+      {!native && <LobbyVenues />}
 
-
+      {/* One primary action, pinned to the bottom of the lobby's scroll area. */}
+      <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 flex gap-2 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]">
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={ctaDisabled}
+          data-testid="race-lobby-start"
+          className="flex-1 min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
+        >
+          {ctaLabel} →
+        </button>
+        <button
+          type="button"
+          onClick={onShowBriefing}
+          disabled={ctaDisabled}
+          aria-label={briefingLabel}
+          title={briefingLabel}
+          data-testid="race-lobby-briefing"
+          className="shrink-0 min-h-[52px] min-w-[52px] rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] flex items-center justify-center disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7.5" r="0.6" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
@@ -336,18 +332,16 @@ function PresetCard({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-pressed={active}
       aria-label={`${title}. ${subtitle}. ${desc}`}
-      className="card p-3 md:p-4 grid grid-cols-[28px_1fr] gap-x-3 md:block text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-      style={{
-        borderColor: active ? 'var(--accent-cyan)' : undefined,
-        background: active ? 'rgba(0, 212, 255, 0.08)' : undefined,
-      }}
+      className="card min-h-11 p-3 md:p-4 grid grid-cols-[28px_1fr] gap-x-3 md:block text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+      style={{ borderColor: active ? 'var(--accent-cyan)' : undefined }}
     >
       <div className="row-span-2 self-center md:mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
       <div className="font-semibold text-base text-[var(--text-primary)]">{title}</div>
-      <div className="text-xs text-[var(--text-muted)] md:mb-2">{subtitle}</div>
+      <div className="text-sm text-[var(--text-muted)] md:mb-2">{subtitle}</div>
       <p className="hidden md:block text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
     </button>
   );

@@ -197,6 +197,39 @@ describe('POST /api/log - event allow-list', () => {
     expect(metas[2]).toMatchObject({ ct: 'web_home' });
     expect(metas[3]?.ct).toBeUndefined();
   });
+
+  it('stores the race funnel steps with validated fields and drops the rest', async () => {
+    const race = { raceNo: 1, mode: 'simple', difficulty: 'easy', wind: 'medium', client: 'web', embed: false };
+    await POST(makeReq({ level: 'info', evt: 'race.countdown', path: '/game', ...race, nickname: 'Ala' }));
+    await POST(makeReq({ level: 'info', evt: 'race.first_tack', ...race, atSec: 14 }));
+    await POST(makeReq({ level: 'info', evt: 'race.first_mark', ...race, atSec: 9999 }));
+    await POST(makeReq({
+      level: 'info', evt: 'race.end', ...race,
+      finished: true, position: 2, totalBoats: 4, durationSec: 201, tacks: 7, samples: [[0, 0]],
+    }));
+    await POST(makeReq({ level: 'info', evt: 'race.replay', ...race, source: 'result' }));
+    const calls = mocks.db.insertEvent.mock.calls.map((c) => c[0]);
+    expect(calls.map((c) => c.evt)).toEqual(['race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay']);
+    for (const c of calls) expect(c.meta).toMatchObject({ raceNo: 1, mode: 'simple', difficulty: 'easy', wind: 'medium', client: 'web' });
+    expect(calls[0].meta.nickname).toBeUndefined();
+    expect(calls[1].meta.atSec).toBe(14);
+    expect(calls[2].meta.atSec).toBeUndefined();
+    expect(calls[3].meta).toMatchObject({ finished: true, position: 2, totalBoats: 4, durationSec: 201, tacks: 7 });
+    expect(calls[3].meta.samples).toBeUndefined();
+    expect(calls[4].meta.source).toBe('result');
+  });
+
+  it('drops out-of-range race fields but keeps the event', async () => {
+    await POST(makeReq({
+      level: 'info', evt: 'race.end', raceNo: 0, mode: 'arcade', difficulty: 'insane', wind: 'storm',
+      finished: 'yes', position: 65, totalBoats: 0, tacks: 1.5, missionId: '../etc',
+    }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.evt).toBe('race.end');
+    for (const key of ['raceNo', 'mode', 'difficulty', 'wind', 'finished', 'position', 'totalBoats', 'tacks', 'missionId']) {
+      expect(arg.meta?.[key]).toBeUndefined();
+    }
+  });
 });
 
 describe('POST /api/log - js error reports', () => {

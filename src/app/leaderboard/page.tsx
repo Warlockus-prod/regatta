@@ -1,232 +1,128 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
 import { missions } from '@/data/missions';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
+import { FlagIcon, TargetIcon } from '@/features/race-hud/RaceIcons';
+import { useLeaderboardCopy } from './leaderboard-copy';
+import { LeaderboardTable } from './LeaderboardTable';
+import { leaderboardUrl, unrecordedModeUrl, type LeaderboardBoard, type LeaderboardRow, type LeaderboardSelection } from './leaderboard-model';
 
-type Difficulty = 'easy' | 'medium' | 'hard';
-type Wind = 'light' | 'medium' | 'heavy';
+// M1-7: Simple and Pro are ranked in separate tables, results without a
+// recorded mode sit in their own folded list, and the page fits a 390 px
+// phone: 20 px gutters, 44 px choices, names that wrap instead of scrolling.
 
-interface Row {
-  nickname: string;
-  isMe: boolean;
-  difficulty: string;
-  wind_strength: string;
-  mission_id: string | null;
-  finish_time_sec: number;
-  score: number | null;
-  ts: number;
-}
-
-export default function LeaderboardPage() {
-  const { tp, lang } = useI18n();
-  const [mode, setMode] = useState<'free' | 'mission'>('free');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [wind, setWind] = useState<Wind>('medium');
-  const [missionId, setMissionId] = useState<string>(missions[0]?.id ?? '');
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
-
+function useRows(url: string | null) {
+  const [rows, setRows] = useState<LeaderboardRow[]>([]);
+  const [loading, setLoading] = useState(url !== null);
   useEffect(() => {
-    // Preemptive loading state flashes "Loading..." while the fetch runs, which
-    // is better UX than stale rows. React Compiler flags setState as cascading;
-    // informational - the fetch settles on completion.
+    if (url === null) return;
+    // Preemptive loading state: better than stale rows while the fetch runs.
+    // React Compiler flags setState as cascading; the fetch settles it.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    // Guard against out-of-order responses: rapidly toggling filters can resolve
-    // an older request after a newer one; the cancelled flag drops stale writes.
+    // Drop an older response that resolves after a newer one.
     let cancelled = false;
-    const url = mode === 'mission'
-      ? `/api/leaderboard?mission=${encodeURIComponent(missionId)}`
-      : `/api/leaderboard?difficulty=${difficulty}&wind=${wind}`;
     fetch(url)
       .then((r) => r.json())
-      .then((d) => { if (!cancelled) setRows(d.rows ?? []); })
+      .then((d) => { if (!cancelled) setRows(Array.isArray(d.rows) ? d.rows : []); })
       .catch(() => { if (!cancelled) setRows([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [mode, difficulty, wind, missionId]);
+  }, [url]);
+  return { rows, loading };
+}
 
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    const ms = Math.floor((s * 10) % 10);
-    return `${m}:${sec.toString().padStart(2, '0')}.${ms}`;
-  };
+function Choices<T extends string>({ label, value, options, onChange, columns = 'flex' }: {
+  label: string; value: T; options: Array<{ id: T; label: string; icon?: ReactNode }>;
+  onChange: (value: T) => void; columns?: 'flex' | 'grid';
+}) {
+  return (
+    <div className="min-w-0">
+      <div className="mb-1 text-sm text-[var(--text-secondary)]" aria-hidden="true">{label}</div>
+      <div role="radiogroup" aria-label={label} className={columns === 'grid' ? 'grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:grid-cols-4' : 'flex gap-2'}>
+        {options.map((o) => {
+          const active = o.id === value;
+          return (
+            <button key={o.id} type="button" role="radio" aria-checked={active} onClick={() => onChange(o.id)}
+              className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg px-2 py-2 text-base font-semibold leading-5 [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+              style={{
+                background: active ? 'var(--bg-card-hover)' : 'transparent',
+                border: `1px solid ${active ? 'var(--accent-cyan)' : 'var(--border-subtle, rgba(139, 167, 184, 0.3))'}`,
+                color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+              }}>
+              {o.icon}{o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function LeaderboardPage() {
+  const { lang } = useI18n();
+  const copy = useLeaderboardCopy();
+  const [selection, setSelection] = useState<LeaderboardSelection>({
+    board: 'free', mode: 'simple', difficulty: 'medium', wind: 'medium', missionId: missions[0]?.id ?? '',
+  });
+  const [unrecordedOpen, setUnrecordedOpen] = useState(false);
+  const update = (patch: Partial<LeaderboardSelection>) => setSelection((s) => ({ ...s, ...patch }));
+  const main = useRows(leaderboardUrl(selection));
+  const unrecorded = useRows(selection.board === 'free' && unrecordedOpen ? unrecordedModeUrl(selection) : null);
+  const free = selection.board === 'free';
 
   return (
-    <div className="page-enter max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-        {tp('Таблица лучших', 'Leaderboard', 'Ranking',
-          { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
-      </h1>
-      <p className="text-sm text-[var(--text-muted)] mb-6">
-        {tp('Лучшее время по каждой сессии. Переключай режим / сложность / миссию.', 'Best time per session. Toggle mode / difficulty / mission.', 'Najlepszy czas z każdej sesji. Przełączaj tryb / poziom / misję.',
-          { es: 'Mejor tiempo por sesión. Cambia modo / dificultad / misión.', fr: 'Meilleur temps par session. Change de mode / difficulté / mission.', de: 'Beste Zeit pro Sitzung. Wechsle Modus / Schwierigkeit / Mission.', it: 'Miglior tempo per sessione. Cambia modalità / difficoltà / missione.' },
-        )}
-      </p>
+    <div className="page-enter max-w-3xl mx-auto px-5 sm:px-6 py-10" data-testid="leaderboard-page">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-2">{copy.title}</h1>
+      <p className="text-base leading-6 text-[var(--text-secondary)] mb-6">{copy.intro}</p>
 
-      {/* Mode toggle */}
-      <div className="card p-3 mb-4 flex flex-wrap gap-2 items-center">
-        <div className="text-xs text-[var(--text-muted)] mr-2">{tp('РЕЖИМ', 'MODE', 'TRYB',
-          { es: 'MODO', fr: 'MODE', de: 'MODUS', it: 'MODALITÀ' })}:</div>
-        <button
-          onClick={() => setMode('free')}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-          style={{
-            background: mode === 'free' ? 'rgba(0, 212, 255, 0.15)' : 'rgba(139, 167, 184, 0.08)',
-            color: mode === 'free' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-            border: `1px solid ${mode === 'free' ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
-          }}
-        >
-          🏁 {tp('Свободная гонка', 'Free race', 'Wolny wyścig',
-            { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
-        </button>
-        <button
-          onClick={() => setMode('mission')}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-          style={{
-            background: mode === 'mission' ? 'rgba(0, 212, 255, 0.15)' : 'rgba(139, 167, 184, 0.08)',
-            color: mode === 'mission' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-            border: `1px solid ${mode === 'mission' ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
-          }}
-        >
-          🎯 {tp('Миссии', 'Missions', 'Misje',
-            { es: 'Misiones', fr: 'Missions', de: 'Missionen', it: 'Missioni' })}
-        </button>
+      <div className="card p-3 mb-4 space-y-4">
+        <Choices<LeaderboardBoard> label={copy.raceType} value={selection.board} onChange={(board) => update({ board })} options={[
+          { id: 'free', label: copy.free, icon: <FlagIcon size={20} /> },
+          { id: 'mission', label: copy.missions, icon: <TargetIcon size={20} /> },
+        ]} />
+        {free ? <>
+          <Choices label={copy.controlMode} value={selection.mode} onChange={(mode) => update({ mode })} options={[
+            { id: 'simple', label: copy.simple }, { id: 'pro', label: copy.pro },
+          ]} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Choices label={copy.difficulty} value={selection.difficulty} onChange={(difficulty) => update({ difficulty })} options={[
+              { id: 'easy', label: copy.easy }, { id: 'medium', label: copy.medium }, { id: 'hard', label: copy.hard },
+            ]} />
+            <Choices label={copy.wind} value={selection.wind} onChange={(wind) => update({ wind })} options={[
+              { id: 'light', label: copy.light }, { id: 'medium', label: copy.windMedium }, { id: 'heavy', label: copy.heavy },
+            ]} />
+          </div>
+        </> : <>
+          <Choices label={copy.mission} value={selection.missionId} onChange={(missionId) => update({ missionId })} columns="grid"
+            options={missions.map((m) => ({ id: m.id, label: legacyPick(m, 'title', lang) }))} />
+          <p className="text-sm leading-5 text-[var(--text-muted)]" data-testid="leaderboard-mission-note">{copy.missionNote}</p>
+        </>}
       </div>
 
-      {/* Filters */}
-      <div className="card p-3 mb-4">
-        {mode === 'free' ? (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM',
-                { es: 'DIFICULTAD', fr: 'DIFFICULTÉ', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTÀ' })}</div>
-              <div className="flex gap-1">
-                {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDifficulty(d)}
-                    className="flex-1 px-2 py-1.5 rounded text-xs font-semibold transition"
-                    style={{
-                      background: difficulty === d ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
-                      border: `1px solid ${difficulty === d ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
-                      color: difficulty === d ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                    }}
-                  >
-                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Łatwy', { es: 'Fácil', fr: 'Facile', de: 'Leicht', it: 'Facile' }) : d === 'medium' ? tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сложный', 'Hard', 'Trudny', { es: 'Difícil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' })}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('ВЕТЕР', 'WIND', 'WIATR',
-                { es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO' })}</div>
-              <div className="flex gap-1">
-                {(['light', 'medium', 'heavy'] as Wind[]).map((w) => (
-                  <button
-                    key={w}
-                    onClick={() => setWind(w)}
-                    className="flex-1 px-2 py-1.5 rounded text-xs font-semibold transition"
-                    style={{
-                      background: wind === w ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
-                      border: `1px solid ${wind === w ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
-                      color: wind === w ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                    }}
-                  >
-                    {w === 'light' ? tp('Слабый', 'Light', 'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }) : w === 'medium' ? tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сильный', 'Heavy', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' })}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('МИССИЯ', 'MISSION', 'MISJA',
-              { es: 'MISIÓN', fr: 'MISSION', de: 'MISSION', it: 'MISSIONE' })}</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              {missions.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setMissionId(m.id)}
-                  className="px-2 py-1.5 rounded text-xs font-semibold transition text-left"
-                  style={{
-                    background: missionId === m.id ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
-                    border: `1px solid ${missionId === m.id ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
-                    color: missionId === m.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                  }}
-                >
-                  <span className="mr-1">{m.emoji}</span>
-                  {legacyPick(m, 'title', lang)}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <section className="card p-3" aria-label={free ? `${copy.free}: ${selection.mode === 'pro' ? copy.pro : copy.simple}` : copy.missions}>
+        {main.loading
+          ? <div className="py-10 text-center text-base text-[var(--text-muted)]" role="status">{copy.loading}</div>
+          : <LeaderboardTable rows={main.rows} copy={copy} lang={lang} testId="leaderboard-rows" empty={<>
+              {copy.empty}
+              <div className="mt-3"><Link href="/game" className="inline-flex min-h-11 items-center font-semibold text-[var(--accent-cyan)] hover:underline">{copy.toRace}</Link></div>
+            </>} />}
+      </section>
 
-      {/* Table */}
-      <div className="card p-3">
-        {loading ? (
-          <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp('Загружаю...', 'Loading...', 'Ładowanie...',
-              { es: 'Cargando...', fr: 'Chargement...', de: 'Wird geladen...', it: 'Caricamento...' })}
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp('Пока никто не финишировал. Стань первым!', 'No results yet. Be the first!', 'Nikt jeszcze nie dopłynął do mety. Bądź pierwszy!',
-              { es: 'Aún no hay resultados. ¡Sé el primero!', fr: 'Pas encore de résultats. Sois le premier !', de: 'Noch keine Ergebnisse. Sei der Erste!', it: 'Ancora nessun risultato. Sii il primo!' },
-            )}
-            <div className="mt-3">
-              <Link href="/game" className="text-[var(--accent-cyan)] font-semibold hover:underline">
-                {tp('К гонке →', 'To the race →', 'Do regaty →',
-                  { es: 'A la regata →', fr: 'Vers la course →', de: 'Zum Rennen →', it: 'Alla regata →' })}
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {rows.map((r, i) => {
-              const isMe = r.isMe;
-              return (
-                <div
-                  key={`${r.nickname}-${i}`}
-                  className="flex items-center gap-3 py-2 px-3 rounded"
-                  style={{
-                    background: isMe ? 'rgba(0, 212, 255, 0.1)' : i === 0 ? 'rgba(255, 170, 0, 0.06)' : 'transparent',
-                    border: isMe ? '1px solid rgba(0, 212, 255, 0.35)' : '1px solid transparent',
-                  }}
-                >
-                  <div className="w-7 text-center text-xs font-mono" style={{ color: i === 0 ? 'var(--warning)' : i < 3 ? 'var(--success)' : 'var(--text-muted)' }}>
-                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold truncate text-[var(--text-primary)]">
-                      {r.nickname} {isMe && <span className="text-[10px] text-[var(--accent-cyan)]">{tp('ты', 'you', 'ty', { es: 'tú', fr: 'toi', de: 'du', it: 'tu' })}</span>}
-                    </div>
-                    {r.score !== null && (
-                      <div className="text-[10px] text-[var(--text-muted)]">{tp('оценка', 'score', 'ocena', { es: 'puntuación', fr: 'note', de: 'Bewertung', it: 'punteggio' })} {r.score}/100</div>
-                    )}
-                  </div>
-                  <div className="text-sm font-mono text-[var(--accent-cyan)] tabular-nums">
-                    {formatTime(r.finish_time_sec)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {free && <details className="card p-3 mt-4" data-testid="leaderboard-unrecorded" onToggle={(e) => setUnrecordedOpen(e.currentTarget.open)}>
+        <summary className="flex min-h-11 cursor-pointer items-center text-base font-semibold text-[var(--text-primary)]">{copy.unrecordedTitle}</summary>
+        <p className="mb-2 text-sm leading-5 text-[var(--text-muted)]">{copy.unrecordedNote}</p>
+        {unrecordedOpen && (unrecorded.loading
+          ? <div className="py-6 text-center text-base text-[var(--text-muted)]" role="status">{copy.loading}</div>
+          : <LeaderboardTable rows={unrecorded.rows} copy={copy} lang={lang} testId="leaderboard-unrecorded-rows" />)}
+      </details>}
 
       <div className="text-center mt-6">
-        <Link href="/game" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] transition">
-          ← {tp('Назад к гонке', 'Back to race', 'Powrót do wyścigu',
-            { es: 'Volver a la regata', fr: 'Retour à la course', de: 'Zurück zum Rennen', it: 'Torna alla regata' })}
-        </Link>
+        <Link href="/game" className="inline-flex min-h-11 items-center text-base text-[var(--text-secondary)] hover:text-[var(--text-primary)]">{copy.back}</Link>
       </div>
 
       <ContentFooterNav page="/leaderboard" />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SCENARIOS } from './scenarios';
-import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
+import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, UKE_TASK_SCENARIOS, ukeTasksFor } from './practiceMenu';
 import { PRACTICAL_TASKS } from '../zadania/tasks';
 
 describe('Practice list', () => {
@@ -14,6 +14,15 @@ describe('Practice list', () => {
     expect(ukeTasksFor('fire-mayday')).toEqual([9, 18, 19]);
     expect(ukeTasksFor('engine-panpan')).toEqual([]);
     expect(CONTROLS_COURSE_TASKS).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('mirrors the scenario and controls-course links of the task list', () => {
+    expect(UKE_TASK_SCENARIOS).toEqual(
+      Object.fromEntries(PRACTICAL_TASKS.filter((t) => t.scenario).map((t) => [t.n, t.scenario])),
+    );
+    expect(CONTROLS_COURSE_TASKS).toEqual(
+      PRACTICAL_TASKS.filter((t) => t.guide === 'interaktywny-kurs').map((t) => t.n),
+    );
   });
 
   it('leaves no UKE task with a simulator scenario unreachable from the list', () => {

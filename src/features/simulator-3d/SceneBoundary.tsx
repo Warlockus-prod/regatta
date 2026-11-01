@@ -17,6 +17,8 @@ export class SceneBoundary extends Component<{
   errorLabel: string;
   retryLabel: string;
   onError?: () => void;
+  /** The person asked for the scene again, before its children remount. */
+  onRetry?: () => void;
 }, { failed: boolean; attempt: number }> {
   state = { failed: false, attempt: 0 };
   static getDerivedStateFromError() { return { failed: true }; }
@@ -28,6 +30,7 @@ export class SceneBoundary extends Component<{
         <button className="min-h-11 rounded-lg border border-[var(--accent-cyan)] px-5" onClick={() => {
           recordWebDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface(window.location.pathname), action: "retry", outcome: "accepted", source: "pointer" });
           useGLTF.clear(this.props.modelUrl);
+          this.props.onRetry?.();
           this.setState(({ attempt }) => ({ failed: false, attempt: attempt + 1 }));
         }}>{this.props.retryLabel}</button>
       </div>

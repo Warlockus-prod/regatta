@@ -1,6 +1,7 @@
 'use client';
 
 import { useI18n } from "@/lib/i18n";
+import { RACE_UNITS } from "./units";
 
 export function useRaceNavigationCopy() {
   const { tl } = useI18n();
@@ -34,6 +35,6 @@ export function useRaceNavigationCopy() {
     off: tl({ ru: "Без подсказки", en: "No visual aid", pl: "Bez wskazówki", es: "Sin ayuda visual", fr: "Sans aide visuelle", de: "Ohne visuelle Hilfe", it: "Senza aiuto visivo" }),
     windNote: tl({ ru: "Нос наверху. TWA - угол истинного ветра относительно носа; TWD - направление ветра, отсчитанное от севера. Стрелки в 3D показывают вымпельный ветер.", en: "Bow up. TWA is the true wind angle from the bow; TWD is the wind direction measured from north. The 3D arrows show apparent wind.", pl: "Dziób u góry. TWA to kąt wiatru prawdziwego względem dziobu; TWD to kierunek wiatru liczony od północy. Strzałki w 3D pokazują wiatr pozorny.", es: "Proa arriba. TWA es el ángulo del viento real respecto a la proa; TWD es su dirección medida desde el norte. Las flechas 3D muestran el viento aparente.", fr: "Avant en haut. TWA est l'angle du vent réel par rapport à l'avant ; TWD est sa direction mesurée depuis le nord. Les flèches 3D montrent le vent apparent.", de: "Bug oben. TWA ist der wahre Windwinkel zum Bug; TWD ist die von Norden aus gemessene Windrichtung. Die 3D-Pfeile zeigen den scheinbaren Wind.", it: "Prua in alto. TWA è l'angolo del vento reale rispetto alla prua; TWD è la sua direzione misurata da nord. Le frecce 3D mostrano il vento apparente." }),
     unknown: tl({ ru: "Нет данных", en: "Unavailable", pl: "Brak danych", es: "Sin datos", fr: "Indisponible", de: "Keine Daten", it: "Non disponibile" }),
-    knots: tl({ ru: "уз", en: "kn", pl: "w.", es: "kn", fr: "nd", de: "kn", it: "kn" }),
+    knots: tl(RACE_UNITS.knots),
   };
 }

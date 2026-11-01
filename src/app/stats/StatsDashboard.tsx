@@ -31,6 +31,7 @@ interface RangeMetrics {
     lessons: Array<{ course: string; count: number }>;
     radioTasks: number;
     appStoreClicks: Array<{ ct: string; count: number }>;
+    races?: { first: RaceFunnelSteps; all: RaceFunnelSteps; replaySources: Array<{ source: string; count: number }> };
   };
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
   daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
@@ -345,6 +346,11 @@ export default function StatsDashboard() {
               <Panel title="App Store clicks (ct)">
                 <Distribution items={metrics.funnel.appStoreClicks.map((a) => ({ label: a.ct, value: a.count }))} />
               </Panel>
+              {metrics.funnel.races && (
+                <Panel title="Race funnel" className="lg:col-span-4">
+                  <RaceFunnelTable races={metrics.funnel.races} />
+                </Panel>
+              )}
               <p className="lg:col-span-4 text-[11px] leading-relaxed text-[var(--text-muted)]">
                 Funnel counts are reported by the browser (/api/log), so a visitor can send them by hand; treat them as
                 trends, not exact numbers. The app&apos;s offline SRC radio course (its default mode) runs from a local
@@ -521,6 +527,49 @@ function LiveFeed({ items }: { items: RangeMetrics['recent'] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+interface RaceFunnelSteps {
+  countdown: number; firstTack: number; firstMark: number; ended: number; finished: number; replay: number;
+}
+
+const RACE_STEPS: Array<[keyof RaceFunnelSteps, string]> = [
+  ['countdown', 'countdown'], ['firstTack', 'first tack'], ['firstMark', 'first mark'],
+  ['ended', 'ended'], ['finished', 'finished'], ['replay', 'replay'],
+];
+
+// Each step fires once per race, so a step over countdown is the share of
+// started races that got that far. "First race" is raceNo = 1 on the device.
+function RaceFunnelTable({ races }: { races: { first: RaceFunnelSteps; all: RaceFunnelSteps; replaySources: Array<{ source: string; count: number }> } }) {
+  if (races.all.countdown === 0) return <EmptyHint text="No race.countdown events in this range." />;
+  const cell = (row: RaceFunnelSteps, key: keyof RaceFunnelSteps) =>
+    key === 'countdown' || row.countdown === 0 ? `${row[key]}` : `${row[key]} (${Math.round((100 * row[key]) / row.countdown)}%)`;
+  return (
+    <div className="space-y-2 text-xs">
+      <div className="overflow-x-auto">
+        <table className="w-full tabular-nums">
+          <thead>
+            <tr className="text-left text-[var(--text-muted)]">
+              <th className="pr-3 py-1 font-normal" />
+              {RACE_STEPS.map(([key, label]) => <th key={key} className="pr-3 py-1 font-normal whitespace-nowrap">{label}</th>)}
+            </tr>
+          </thead>
+          <tbody className="text-[var(--text-secondary)]">
+            {([['first race', races.first], ['all races', races.all]] as const).map(([label, row]) => (
+              <tr key={label}>
+                <td className="pr-3 py-1 font-semibold text-[var(--text-primary)] whitespace-nowrap">{label}</td>
+                {RACE_STEPS.map(([key]) => <td key={key} className="pr-3 py-1 whitespace-nowrap">{cell(row, key)}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="text-[var(--text-secondary)] tabular-nums">
+        replays by source: {races.replaySources.length > 0 ? races.replaySources.map((r) => `${r.source} ${r.count}`).join(' · ') : 'none'}
+        {' '}· leaderboard saves are race.finish (server), not counted here
+      </div>
     </div>
   );
 }

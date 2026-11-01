@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Snapshot } from "@/lib/mp-client";
-import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse } from "./presentation";
+import { FLEET_COLORS as BOAT_FLEET_COLORS, PLAYER_COLOR } from "@/features/race-hud/boat-colors";
+import { FLEET_COLORS, createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse } from "./presentation";
 
 function snapshot(): Snapshot {
   return { t: 12, recvAt: 5000, wind: { dir: 350, gust: 1.1 }, boats: [
@@ -28,6 +29,14 @@ describe("authoritative multiplayer presentation", () => {
       expect(next.boats[0].pos).toEqual({ x: 400, y: 900 });
       expect(next.boats[0].speed).toBe(5.75);
     }
+  });
+
+  it("paints the boats in the shared race palette, never the action cyan (M1-7)", () => {
+    expect(FLEET_COLORS).toEqual([...BOAT_FLEET_COLORS]);
+    expect(FLEET_COLORS.map(c => c.toLowerCase())).not.toContain("#00d4ff");
+    expect(FLEET_COLORS).not.toContain(PLAYER_COLOR);
+    const frame = createMultiplayerPresentation().frame(snapshot(), players, "p_opaque", "medium");
+    expect(frame.boats.map(boat => boat.color)).toEqual([BOAT_FLEET_COLORS[0], BOAT_FLEET_COLORS[1]]);
   });
 
   it("keeps identity colours stable when snapshot and lobby order change", () => {

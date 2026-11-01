@@ -24,7 +24,7 @@ export function RaceWindInstrument({ reading, display, compact = false }: {
       <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="1.5" />
       <path d="M50 10v6M90 50h-6M50 90v-6M10 50h6" stroke="currentColor" strokeWidth="2" />
       <path data-testid="race-wind-bow" d="M50 36 42 60 50 56 58 60Z" fill="var(--text-secondary)" opacity=".85" />
-      <g data-testid="race-relative-wind-arrow" transform={`rotate(${reading.twaSigned} 50 50)`} fill="none" stroke="var(--accent-cyan)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <g data-testid="race-relative-wind-arrow" transform={`rotate(${reading.twaSigned} 50 50)`} fill="none" stroke="var(--text-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
         <path d="M50 10v22m-6-7 6 7 6-7" />
       </g>
     </svg>}

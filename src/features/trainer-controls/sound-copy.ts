@@ -1,14 +1,16 @@
 import { words } from "../../lib/product/catalog";
 
+// Wheel clicks only. Since M1-5 the race sound has its own switch in the race
+// (status row, pause sheet and race settings), so this copy no longer claims it.
 export const controlSoundCopy = {
-  label: words("Звуки управления и гонки", "Controls and race sounds", "Dźwięki sterowania i regat", "Sonidos de controles y regata", "Sons des commandes et de la course", "Steuerungs- und Renntöne", "Suoni dei comandi e della regata"),
+  label: words("Щелчки штурвалов", "Wheel clicks", "Kliknięcia kół", "Clics de las ruedas", "Clics des roues", "Radklicks", "Clic delle ruote"),
   note: words(
-    "Щелчки штурвалов и сигналы гонки. Без вибрации. Громкость рации регулируется на самой рации.",
-    "Wheel clicks and race signals. No vibration. Set radio volume on the radio itself.",
-    "Kliknięcia kół i sygnały regat. Bez wibracji. Głośność radia ustawiasz na samym radiu.",
-    "Clics de las ruedas y señales de regata. Sin vibración. El volumen de la radio se ajusta en la propia radio.",
-    "Clics des roues et signaux de course. Sans vibration. Le volume radio se règle sur la radio elle-même.",
-    "Radklicks und Rennsignale. Keine Vibration. Die Funklautstärke stellst du am Funkgerät ein.",
-    "Clic delle ruote e segnali di regata. Nessuna vibrazione. Il volume della radio si regola sulla radio stessa.",
+    "Щелчки при повороте штурвала. Без вибрации. Звук гонки включается отдельно, в самой гонке. Громкость рации регулируется на самой рации.",
+    "Clicks when you turn a wheel. No vibration. Race sound has its own switch in the race. Set radio volume on the radio itself.",
+    "Kliknięcia przy obracaniu koła. Bez wibracji. Dźwięk regat włączasz osobno, w samych regatach. Głośność radia ustawiasz na samym radiu.",
+    "Clics al girar una rueda. Sin vibración. El sonido de la regata tiene su propio interruptor en la regata. El volumen de la radio se ajusta en la propia radio.",
+    "Clics quand tu tournes une roue. Sans vibration. Le son de la course a son propre interrupteur dans la course. Le volume radio se règle sur la radio elle-même.",
+    "Klicks beim Drehen eines Rads. Keine Vibration. Der Rennton hat im Rennen einen eigenen Schalter. Die Funklautstärke stellst du am Funkgerät ein.",
+    "Clic quando giri una ruota. Nessuna vibrazione. L'audio della regata ha un interruttore a parte nella regata. Il volume della radio si regola sulla radio stessa.",
   ),
 };

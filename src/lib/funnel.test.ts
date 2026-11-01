@@ -2,7 +2,8 @@
 // with /api/log (src/lib/analytics-events.ts).
 // Contract: every real lesson / chapter / scenario id passes the server-side
 // id check (otherwise its completions are silently dropped), and an exam
-// result reaches both /api/log and the iOS app shell.
+// result reaches both /api/log and the iOS app shell. Race funnel steps fire
+// at most once per race and carry the device's race number (1 = first race).
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CLIENT_EVENTS, FUNNEL_EVENTS, isBrowserNoise, isClientEvent, pickEventFields } from './analytics-events';
@@ -10,11 +11,13 @@ import { bootcampLessons } from '@/data/bootcamp';
 import { sailLessons } from '@/data/sailing-lab/course';
 import { THEORY_CHAPTERS } from '@/app/radio/teoria/courseData';
 import { SCENARIOS } from '@/app/radio/symulator/scenarios';
+import { missions } from '@/data/missions';
 
 interface FakeEnv {
   beacons: Array<Record<string, unknown>>;
   posted: Array<Record<string, unknown>>;
   session: Map<string, string>;
+  local: Map<string, string>;
 }
 
 interface BrowserOpts {
@@ -25,16 +28,23 @@ interface BrowserOpts {
   /** window.__REGATTA_NO_ANALYTICS__, set by the iOS app when analytics is off. */
   noAnalytics?: boolean;
   session?: Record<string, string>;
+  /** localStorage that survives a page load (same Map), or 'blocked' to throw. */
+  local?: Map<string, string> | 'blocked';
 }
 
 function installBrowser(search: string, opts: BrowserOpts = {}): FakeEnv {
-  const env: FakeEnv = { beacons: [], posted: [], session: new Map(Object.entries(opts.session ?? {})) };
+  const local = opts.local instanceof Map ? opts.local : new Map<string, string>();
+  const env: FakeEnv = { beacons: [], posted: [], session: new Map(Object.entries(opts.session ?? {})), local };
+  const blocked = () => { throw new Error('SecurityError'); };
   const win: Record<string, unknown> = {
     location: { search, pathname: '/sternik/egzamin', protocol: opts.protocol ?? 'https:' },
     sessionStorage: {
       getItem: (k: string) => env.session.get(k) ?? null,
       setItem: (k: string, v: string) => { env.session.set(k, v); },
     },
+    localStorage: opts.local === 'blocked'
+      ? { getItem: blocked, setItem: blocked }
+      : { getItem: (k: string) => local.get(k) ?? null, setItem: (k: string, v: string) => { local.set(k, v); } },
   };
   if (opts.webView) {
     win.ReactNativeWebView = { postMessage: (m: string) => env.posted.push(JSON.parse(m)) };
@@ -66,16 +76,19 @@ afterEach(() => {
 describe('event field contract', () => {
   it('lists every client event the web sends', () => {
     for (const evt of ['page.view', 'page.engaged', 'js.uncaught', 'js.rejection', 'exam.start',
-      'exam.finish', 'lesson.complete', 'radio.task.complete', 'app_store.click']) {
+      'exam.finish', 'lesson.complete', 'radio.task.complete', 'app_store.click',
+      'race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay']) {
       expect(isClientEvent(evt)).toBe(true);
     }
+    // Written only by /api/race-result for a saved leaderboard time.
     expect(isClientEvent('race.finish')).toBe(false);
-    expect(CLIENT_EVENTS).toHaveLength(9);
+    expect(CLIENT_EVENTS).toHaveLength(14);
   });
 
   it('treats only the milestones as funnel events', () => {
     expect([...FUNNEL_EVENTS].sort()).toEqual(
-      ['app_store.click', 'exam.finish', 'exam.start', 'lesson.complete', 'radio.task.complete'],
+      ['app_store.click', 'exam.finish', 'exam.start', 'lesson.complete', 'race.countdown',
+        'race.end', 'race.first_mark', 'race.first_tack', 'race.replay', 'radio.task.complete'],
     );
     for (const evt of FUNNEL_EVENTS) expect(isClientEvent(evt)).toBe(true);
   });
@@ -102,6 +115,177 @@ describe('event field contract', () => {
     for (const s of SCENARIOS) {
       expect(pickEventFields('radio.task.complete', { taskId: s.id, score: 100 })).toEqual({ taskId: s.id, score: 100 });
     }
+  });
+});
+
+describe('race funnel field contract', () => {
+  const setup = { raceNo: 1, mode: 'pro', difficulty: 'hard', wind: 'heavy', missionId: 'sub-90', daily: true };
+
+  it('keeps the race setup on every race event and the step fields only on their own step', () => {
+    expect(pickEventFields('race.countdown', { ...setup, atSec: 5, finished: true })).toEqual(setup);
+    expect(pickEventFields('race.first_tack', { ...setup, atSec: 42 })).toEqual({ ...setup, atSec: 42 });
+    expect(pickEventFields('race.first_mark', { ...setup, atSec: 300, position: 2 })).toEqual({ ...setup, atSec: 300 });
+    expect(pickEventFields('race.end', { ...setup, finished: true, position: 2, totalBoats: 5, durationSec: 410, tacks: 7 }))
+      .toEqual({ ...setup, finished: true, position: 2, totalBoats: 5, durationSec: 410, tacks: 7 });
+    expect(pickEventFields('race.replay', { ...setup, source: 'result', tacks: 3 })).toEqual({ ...setup, source: 'result' });
+    // Race fields never ride on other events.
+    expect(pickEventFields('exam.start', { base: 'src', raceNo: 1, mode: 'pro' })).toEqual({ base: 'src' });
+  });
+
+  it('drops unknown fields and free text', () => {
+    expect(pickEventFields('race.end', { finished: false, nickname: 'Ala', samples: [1, 2], note: 'x' }))
+      .toEqual({ finished: false });
+    expect(pickEventFields('race.countdown', { missionId: 'drop table; --' })).toEqual({});
+  });
+
+  it.each([
+    ['raceNo', [0, 1001, 1.5, '1', -1], [1, 1000]],
+    ['atSec', [-1, 7201, 2.5, '30'], [0, 7200]],
+    ['position', [0, 65, '1'], [1, 64]],
+    ['totalBoats', [0, 65, null], [1, 64]],
+    ['tacks', [-1, 1001, 3.2], [0, 1000]],
+    ['durationSec', [-1, 86_401], [0, 86_400]],
+    ['mode', ['arcade', 1], ['simple', 'pro']],
+    ['difficulty', ['insane', ''], ['easy', 'medium', 'hard']],
+    ['wind', ['storm'], ['light', 'medium', 'heavy']],
+    ['source', ['email', 'RESULT'], ['result', 'saved', 'shared']],
+    ['finished', ['yes', 1], [true, false]],
+  ] as const)('enforces the bounds of %s', (field, bad, good) => {
+    const evt = field === 'atSec' ? 'race.first_tack' : field === 'source' ? 'race.replay' : 'race.end';
+    for (const v of bad) expect(pickEventFields(evt, { [field]: v })).toEqual({});
+    for (const v of good) expect(pickEventFields(evt, { [field]: v })).toEqual({ [field]: v });
+  });
+
+  it('accepts every mission id', () => {
+    expect(missions.length).toBeGreaterThan(0);
+    for (const m of missions) expect(pickEventFields('race.countdown', { missionId: m.id })).toEqual({ missionId: m.id });
+  });
+});
+
+describe('race funnel helpers', () => {
+  const setup = { mode: 'simple', difficulty: 'easy', wind: 'medium' } as const;
+
+  it('sends each step once per race and numbers the races of this device', async () => {
+    const env = installBrowser('');
+    const f = await import('./funnel');
+    f.trackRaceCountdown('race_a', setup);
+    f.trackRaceCountdown('race_a', setup); // same race: a re-render, not a new race
+    f.trackRaceTack('race_a', 12.4);
+    f.trackRaceTack('race_a', 30);
+    f.trackRaceMark('race_a', 95.6);
+    f.trackRaceMark('race_a', 96);
+    f.trackRaceEnd('race_a', { finished: true, position: 2, totalBoats: 4, durationSec: 180.2, tacks: 6 });
+    f.trackRaceEnd('race_a', { finished: true, position: 2, totalBoats: 4 });
+    f.trackRaceReplay('result', 'race_a');
+    f.trackRaceReplay('result', 'race_a');
+    await flush();
+    expect(env.beacons.map((b) => b.evt)).toEqual(
+      ['race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay'],
+    );
+    for (const b of env.beacons) expect(b).toMatchObject({ raceNo: 1, mode: 'simple', difficulty: 'easy', wind: 'medium', client: 'web' });
+    expect(env.beacons[1].atSec).toBe(12);
+    expect(env.beacons[2].atSec).toBe(96);
+    expect(env.beacons[3]).toMatchObject({ finished: true, position: 2, totalBoats: 4, durationSec: 180, tacks: 6 });
+    expect(env.beacons[4].source).toBe('result');
+
+    // "Again": a new race id is the device's second race.
+    f.trackRaceCountdown('race_b', { ...setup, missionId: 'sub-90', daily: true });
+    // Late ticks of the old race are not the new race's steps.
+    f.trackRaceTack('race_a', 5);
+    f.trackRaceMark('race_a', 6);
+    f.trackRaceEnd('race_a', { finished: false });
+    f.trackRaceReplay('result', 'race_a');
+    f.trackRaceTack('race_b', 7);
+    f.trackRaceMark('race_b', 8);
+    f.trackRaceEnd('race_b', { finished: true, position: 1 });
+    f.trackRaceReplay('result', 'race_b');
+    await flush();
+    expect(env.beacons.slice(5).map((b) => [b.evt, b.raceNo, b.missionId, b.daily, b.atSec ?? b.finished ?? b.source])).toEqual([
+      ['race.countdown', 2, 'sub-90', true, undefined],
+      ['race.first_tack', 2, 'sub-90', true, 7],
+      ['race.first_mark', 2, 'sub-90', true, 8],
+      ['race.end', 2, 'sub-90', true, true],
+      ['race.replay', 2, 'sub-90', true, 'result'],
+    ]);
+  });
+
+  it('keeps counting across page loads', async () => {
+    const local = new Map<string, string>();
+    installBrowser('', { local });
+    (await import('./funnel')).trackRaceCountdown('race_1', setup);
+    vi.resetModules();
+    const env = installBrowser('', { local });
+    (await import('./funnel')).trackRaceCountdown('race_2', setup);
+    await flush();
+    expect(env.beacons.map((b) => b.raceNo)).toEqual([2]);
+    expect(local.get('regatta.race-count.v1')).toBe('2');
+  });
+
+  it('stops the counter at its bound and recovers from a corrupt value', async () => {
+    const local = new Map([['regatta.race-count.v1', '1000']]);
+    const env = installBrowser('', { local });
+    const f = await import('./funnel');
+    f.trackRaceCountdown('race_x', setup);
+    local.set('regatta.race-count.v1', 'garbage');
+    f.trackRaceCountdown('race_y', setup);
+    await flush();
+    expect(env.beacons.map((b) => b.raceNo)).toEqual([1000, 1]);
+  });
+
+  it('leaves raceNo out when storage is blocked instead of calling it a first race', async () => {
+    const env = installBrowser('', { local: 'blocked' });
+    const f = await import('./funnel');
+    f.trackRaceCountdown('race_z', setup);
+    await flush();
+    expect(env.beacons).toHaveLength(1);
+    expect(env.beacons[0]).not.toHaveProperty('raceNo');
+  });
+
+  it('sends no place for a race that ended by the time limit and clamps wild numbers', async () => {
+    const env = installBrowser('?embed=1');
+    const f = await import('./funnel');
+    f.trackRaceCountdown('race_t', setup);
+    f.trackRaceEnd('race_t', { finished: false, position: 4, totalBoats: 999, durationSec: Number.NaN, tacks: -3 });
+    await flush();
+    const end = env.beacons.find((b) => b.evt === 'race.end')!;
+    expect(end).toMatchObject({ finished: false, totalBoats: 64, tacks: 0, embed: true, client: 'app' });
+    expect(end).not.toHaveProperty('position');
+    expect(end).not.toHaveProperty('durationSec');
+  });
+
+  it('ignores steps of a race whose countdown it never saw', async () => {
+    const env = installBrowser('');
+    const f = await import('./funnel');
+    f.trackRaceTack('race_none', 3);
+    f.trackRaceMark('race_none', 3);
+    f.trackRaceEnd('race_none', { finished: true });
+    f.trackRaceReplay('result', 'race_none');
+    await flush();
+    expect(env.beacons).toEqual([]);
+  });
+
+  it('sends a saved or shared replay on every opening, without race fields', async () => {
+    const env = installBrowser('');
+    const f = await import('./funnel');
+    f.trackRaceReplay('shared');
+    f.trackRaceReplay('shared');
+    f.trackRaceReplay('saved');
+    await flush();
+    expect(env.beacons.map((b) => [b.evt, b.source, b.raceNo])).toEqual([
+      ['race.replay', 'shared', undefined],
+      ['race.replay', 'shared', undefined],
+      ['race.replay', 'saved', undefined],
+    ]);
+  });
+
+  it('neither sends nor counts a race when analytics is off', async () => {
+    const env = installBrowser('', { noAnalytics: true, webView: true });
+    const f = await import('./funnel');
+    f.trackRaceCountdown('race_off', setup);
+    f.trackRaceTack('race_off', 3);
+    await flush();
+    expect(env.beacons).toEqual([]);
+    expect(env.local.has('regatta.race-count.v1')).toBe(false);
   });
 });
 

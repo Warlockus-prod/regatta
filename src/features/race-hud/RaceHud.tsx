@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/lib/i18n";
 import { NO_GO_TWA } from "./target";
+import { RACE_UNITS } from "./units";
 
 // The race HUD (game audit C2, 2026-10-22): what a racer reads at a glance.
 // Speed against what the boat can make on this angle, the wind relative to
@@ -25,7 +26,7 @@ export function SpeedCard({ speed, target, pointName, pointColor }: {
     <div className="card p-2 sm:p-3 w-[136px] sm:w-[168px]" style={CARD} data-testid="hud-speed">
       <div className="flex items-baseline gap-1">
         <span className="text-2xl sm:text-3xl font-semibold tabular-nums text-[var(--text-primary)]">{speed.toFixed(1)}</span>
-        <span className="text-xs text-[var(--text-muted)]">kn</span>
+        <span className="text-xs text-[var(--text-muted)]">{tl(RACE_UNITS.knots)}</span>
       </div>
       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full" style={{ background: "rgba(0, 0, 0, 0.3)" }}>
         <div className="h-full" style={{ width: `${Math.min(100, share * 100)}%`, background: tone }} />
@@ -96,18 +97,6 @@ export function Standings({ rows, time }: { rows: StandingRow[]; time: string })
           </li>
         ))}
       </ol>
-    </div>
-  );
-}
-
-export type ToastTone = "good" | "bad" | "info";
-
-/** One short race event (a tack's cost, a mark split, an overtake). */
-export function RaceToast({ text, tone }: { text: string; tone: ToastTone }) {
-  const color = tone === "good" ? "#3ddc84" : tone === "bad" ? "#ff8899" : "var(--text-primary)";
-  return (
-    <div role="status" aria-live="polite" className="card px-3 py-1.5 text-sm font-semibold whitespace-nowrap" style={{ ...CARD, color }} data-testid="hud-toast">
-      {text}
     </div>
   );
 }

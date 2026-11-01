@@ -58,6 +58,39 @@ describe('getMetricsRange().funnel', () => {
     expect(m.funnel.appStoreClicks).toEqual([{ ct: 'web_home', count: 1 }]);
   });
 
+  it('counts the race funnel for first races and all races, apart from the saved race.finish', () => {
+    const ev = (evt: string, meta: Record<string, unknown>) => db.insertEvent({ evt, sessionId: 's2', meta });
+    // Device A: first race, all steps, replay from the finish screen.
+    ev('race.countdown', { raceNo: 1 });
+    ev('race.first_tack', { raceNo: 1, atSec: 12 });
+    ev('race.first_mark', { raceNo: 1, atSec: 90 });
+    ev('race.end', { raceNo: 1, finished: true, position: 2, totalBoats: 4 });
+    ev('race.replay', { raceNo: 1, source: 'result' });
+    // Device B: first race times out before the mark.
+    ev('race.countdown', { raceNo: 1 });
+    ev('race.first_tack', { raceNo: 1, atSec: 20 });
+    ev('race.end', { raceNo: 1, finished: false });
+    // Device A again: second race, quits during the countdown.
+    ev('race.countdown', { raceNo: 2 });
+    // A shared replay and the server's leaderboard save.
+    ev('race.replay', { source: 'shared' });
+    ev('race.finish', { finishTimeSec: 180 });
+
+    const m = db.getMetricsRange(Date.now() - 60_000, Date.now() + 60_000);
+    expect(m.funnel.races.first).toEqual({ countdown: 2, firstTack: 2, firstMark: 1, ended: 2, finished: 1, replay: 1 });
+    expect(m.funnel.races.all).toEqual({ countdown: 3, firstTack: 2, firstMark: 1, ended: 2, finished: 1, replay: 1 });
+    expect([...m.funnel.races.replaySources].sort((a, b) => a.source.localeCompare(b.source))).toEqual([
+      { source: 'result', count: 1 },
+      { source: 'shared', count: 1 },
+    ]);
+  });
+
+  it('reports a zero race funnel for a range with no race events', () => {
+    const m = db.getMetricsRange(0, 1);
+    const zero = { countdown: 0, firstTack: 0, firstMark: 0, ended: 0, finished: 0, replay: 0 };
+    expect(m.funnel.races).toEqual({ first: zero, all: zero, replaySources: [] });
+  });
+
   it('indexes events by (evt, ts) and drops the redundant evt-only index', () => {
     const raw = new Database(path.join(dir, 'regatta-stats.db'), { readonly: true });
     const names = (raw.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'events'").all() as Array<{ name: string }>)

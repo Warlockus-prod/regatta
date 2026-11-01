@@ -5,7 +5,8 @@ import { useRadioI18n } from "@/app/radio/localization/context";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSternikPrefs } from "@/app/radio/prefs";
-import { SCENARIOS } from '../symulator/scenarios';
+import { SCENARIO_IDS } from '../courseIds';
+import { SCENARIO_TITLES_PL } from './scenarioTitles';
 import { SpeakButton } from '../audio/SpeakButton';
 import {
   CHANNELS, PHONETIC, DIGITS, PROWORDS, SMCP, DSC_STEPS, MISTAKES, EXAM_FACTS,
@@ -52,9 +53,9 @@ export default function CheatSheet() {
     try {
       const raw = JSON.parse(window.localStorage.getItem(PROGRESS_KEY) ?? '{}') as Record<string, ScenarioProgress>;
       setPassed(
-        SCENARIOS
-          .filter((s) => (raw[s.id]?.best ?? 0) >= PASS)
-          .map((s) => ({ id: s.id, title: s.title.pl, best: raw[s.id].best })),
+        SCENARIO_IDS
+          .filter((id) => (raw[id]?.best ?? 0) >= PASS)
+          .map((id) => ({ id, title: SCENARIO_TITLES_PL[id], best: raw[id].best })),
       );
       setName(window.localStorage.getItem(NAME_KEY) ?? '');
     } catch { /* private browsing */ }
@@ -75,7 +76,7 @@ export default function CheatSheet() {
     }, 60);
   }, []);
 
-  const total = SCENARIOS.length;
+  const total = SCENARIO_IDS.length;
   const done = passed.length;
   const complete = done >= total;
   const bi = useCallback((pl: string, ru: string) => {

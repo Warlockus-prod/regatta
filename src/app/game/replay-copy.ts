@@ -13,6 +13,8 @@ export const REPLAY_COPY_RESOURCES = {
   resume: { ru: "Продолжить", en: "Resume", pl: "Wznów", es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" },
   back: { ru: "Назад", en: "Back", pl: "Wróć", es: "Volver", fr: "Retour", de: "Zurück", it: "Indietro" },
   retry: { ru: "Повторить", en: "Retry", pl: "Ponów", es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" },
+  /** M1-7: the replay of the player's race, one wording for the title and the button (was "Replay гонки"). */
+  raceReplay: { ru: "Повтор гонки", en: "Race replay", pl: "Powtórka wyścigu", es: "Repetición de la regata", fr: "Revoir la course", de: "Rennwiederholung", it: "Replay della regata" },
 } as const satisfies Record<string, Record<Lang, string>>;
 
 export function useReplayCopy() {
@@ -27,5 +29,6 @@ export function useReplayCopy() {
     resume: tl(REPLAY_COPY_RESOURCES.resume),
     back: tl(REPLAY_COPY_RESOURCES.back),
     retry: tl(REPLAY_COPY_RESOURCES.retry),
+    raceReplay: tl(REPLAY_COPY_RESOURCES.raceReplay),
   };
 }

@@ -7,6 +7,7 @@ import { ENABLED_LANGUAGES } from "./languages";
 import { makeStandardCourse, type RaceBoat } from "./race-physics";
 import { buildRaceJudgeDebrief, RACE_JUDGE_MERGE_GAP, RACE_JUDGE_NOT_COVERED, resolvePhase } from "./race-judge";
 import { createRaceRulesState, evaluateRaceRules, RULE_EVENT_COOLDOWN, type RaceRuleEvent } from "./race-rules";
+import { isStartJostle, RACE_START_JOSTLE_SECONDS } from "./race-start-jostle";
 
 let seq = 0;
 const ev = (e: Omit<RaceRuleEvent, "id" | "penaltySeconds"> & { penaltySeconds?: number }): RaceRuleEvent =>
@@ -202,5 +203,50 @@ describe("summary and copy", () => {
     expect(html).toContain('data-penalty="uncertain"');
     expect(html).toContain("Aurora");
     expect(html.match(/<li>/g)?.length).toBe(RACE_JUDGE_NOT_COVERED.length);
+  });
+});
+
+describe("start jostle (M0-3)", () => {
+  const opening = [
+    ev({ kind: "avoid-contact", rule: "14", boatId: "player", otherBoatId: "bot1", time: 0.4 }),
+    ev({ kind: "give-way", rule: "11", boatId: "player", otherBoatId: "bot2", time: 1.2 }),
+    ev({ kind: "contact", rule: "14", boatId: "player", otherBoatId: "bot1", time: 2 }),
+    ev({ kind: "avoid-contact", rule: "14", boatId: "player", otherBoatId: "bot2", time: RACE_START_JOSTLE_SECONDS - 0.1 }),
+  ];
+
+  it("groups penalty-free events of the first seconds into one item without a rule lesson", () => {
+    const { items, summary } = buildRaceJudgeDebrief(opening, { startedAt: 1 });
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ jostle: true, phase: "start", occurrences: 4, penalty: { kind: "advice" },
+      rightOfWay: "not-applicable", lesson: "start-jostle", time: 0.4, until: RACE_START_JOSTLE_SECONDS - 0.1 });
+    expect(items[0].otherBoatId).toBeUndefined();
+    expect(summary).toMatchObject({ incidents: 1, uncertain: 0, totalPenaltySeconds: 0 });
+  });
+
+  it("keeps penalties, other-boat penalties, early starts and later events as their own items", () => {
+    const { items, summary } = buildRaceJudgeDebrief([
+      ...opening,
+      ev({ kind: "contact", rule: "10", boatId: "player", otherBoatId: "bot3", time: 3, penaltySeconds: 5 }),
+      ev({ kind: "contact", rule: "11", boatId: "bot1", otherBoatId: "player", time: 4, penaltySeconds: 5 }),
+      ev({ kind: "early-start", rule: "29.1", boatId: "player", time: 0 }),
+      ev({ kind: "give-way", rule: "10", boatId: "player", otherBoatId: "bot2", time: RACE_START_JOSTLE_SECONDS }),
+    ], { startedAt: 1 });
+    expect(items.map(i => i.jostle ? "jostle" : `${i.kind}:${i.rule}`)).toEqual(["early-start:29.1", "jostle", "contact:10", "contact:11", "give-way:10"]);
+    expect(summary.totalPenaltySeconds).toBe(5);
+  });
+
+  it("matches the live notice filter exactly", () => {
+    expect(opening.every(isStartJostle)).toBe(true);
+    expect(isStartJostle(ev({ kind: "contact", rule: "10", boatId: "player", time: 1, penaltySeconds: 5 }))).toBe(false);
+    expect(isStartJostle(ev({ kind: "mark-touch", rule: "31", boatId: "player", time: 1 }))).toBe(false);
+    expect(isStartJostle(ev({ kind: "give-way", rule: "10", boatId: "player", time: -0.5 }))).toBe(false);
+  });
+
+  it("renders the explanation and no 'Next time' line", () => {
+    const html = renderToStaticMarkup(createElement(RaceJudgeReview, { debrief: buildRaceJudgeDebrief(opening, { startedAt: 1 }) }));
+    // The server render uses the source language.
+    expect(html).toContain(raceJudgeCopy.jostle.ru);
+    expect(html).toContain(raceJudgeCopy.lesson["start-jostle"].ru);
+    expect(html).not.toContain(raceJudgeCopy.nextTime.ru);
   });
 });

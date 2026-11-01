@@ -43,6 +43,11 @@ const MARK_COLOR = "#ff7a1a";
 const PIN_COLOR = "#ffd23f";
 /** The start line, orange dashes as on the map. */
 const LINE_COLOR = "#ffaa00";
+/** Where to sail next: the soft guidance blue of the race scene's target ring
+ * (RaceScene), not the action cyan (M1-7, DESIGN.md: cyan is for actions). */
+export const GUIDANCE_COLOR = "#76c9e9";
+/** The loading ring: neutral, it is a state and not an action. */
+export const LOADING_COLOR = "#c7d2da";
 export const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
 
 export interface Race3DLabels {
@@ -439,7 +444,7 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
       <group ref={pointer}>
         <mesh rotation-x={Math.PI}>
           <coneGeometry args={[1.8, 3.2, 4]} />
-          <meshBasicMaterial color="#00d4ff" fog={false} />
+          <meshBasicMaterial color={GUIDANCE_COLOR} fog={false} />
         </mesh>
         {targetLabel && <NameTag text={targetLabel} y={4.5} />}
       </group>
@@ -477,8 +482,8 @@ export function ChaseCamera({ stateRef, mode }: { stateRef: MutableRefObject<Mut
 export function Loading({ label }: { label: string }) {
   return (
     <Html center>
-      <div role="status" aria-label={label} style={{ width: 46, height: 46, border: "3px solid rgba(0, 212, 255, 0.25)",
-        borderTopColor: "#00d4ff", borderRadius: "50%", animation: "regatta-spin 0.9s linear infinite" }} />
+      <div role="status" aria-label={label} style={{ width: 46, height: 46, border: "3px solid rgba(199, 210, 218, 0.25)",
+        borderTopColor: LOADING_COLOR, borderRadius: "50%", animation: "regatta-spin 0.9s linear infinite" }} />
       <style>{"@keyframes regatta-spin { to { transform: rotate(360deg); } }"}</style>
     </Html>
   );
@@ -608,8 +613,8 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
       </Canvas>
       {/* Off-screen pointer to the next target, moved by TargetArrow. */}
       <div ref={arrowRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 hidden h-11 w-11 items-center justify-center rounded-full"
-        style={{ background: "rgba(10, 22, 40, 0.82)", border: "1px solid rgba(0, 212, 255, 0.6)" }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        style={{ background: "rgba(10, 22, 40, 0.82)", border: "1px solid rgba(118, 201, 233, 0.6)" }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={GUIDANCE_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 19V5M5 12l7-7 7 7" />
         </svg>
       </div>

@@ -18,7 +18,6 @@ Yacht.tsx              loads the GLB, drives morphs + rig nodes from the ref
 RegattaScene.tsx       the R3F <Canvas> (OrbitControls, sky, water, lights)
 Simulator3D.tsx        PORTABLE core component (no Next.js, no i18n)
 SimulatorV2.tsx        app wrapper (Next.js + i18n + V1/V2/V3 switcher)
-index.ts               exports
 ```
 
 ## Dependencies (peer)
@@ -34,7 +33,7 @@ uses `next` and the app i18n - drop it if you embed the module elsewhere.
 ## Use it (portable core)
 
 ```tsx
-import { Simulator3D } from './simulator-3d';
+import { Simulator3D } from './simulator-3d/Simulator3D';
 
 export default function Page() {
   return <Simulator3D />; // English UI; pass `labels` to localize

@@ -12,6 +12,8 @@ export function raceEntryQuery(params: Record<string, string | string[] | undefi
   }
   if (params.camera === "orbit" || params.camera === "high" || params.camera === "stern") query.camera = params.camera;
   if (knownLesson(params.fromLesson)) query.fromLesson = params.fromLesson;
+  // The on-screen frame counter (?fps=1) for checks on a device.
+  if (params.fps === "1") query.fps = "1";
   const day = typeof params.daily === "string" ? params.daily : params.course === "daily" ? now.toISOString().slice(0, 10) : null;
   if (day) {
     try {

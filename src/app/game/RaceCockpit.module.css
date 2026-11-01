@@ -8,8 +8,8 @@
 .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:9px 12px 11px; border-bottom:1px solid var(--border-subtle); gap:12px; }
 .metrics>div { min-width:0; }.metrics>div>span { display:block; color:var(--text-muted); font-size:10px; margin-bottom:3px; }.metrics>div>strong { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 4px; font-size:clamp(18px,3.8vw,28px); font-weight:600; line-height:1.1; white-space:nowrap; }.metrics>div>strong>small { color:var(--text-secondary); font-size:11px; font-weight:400; }
 .workspace { flex:1; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 344px; }
-.scene { position:relative; min-height:0; overflow:hidden; isolation:isolate; container-type:size; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
-.dock { min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border-subtle); background:var(--bg-primary,#071923); }
+.scene { --race-status-h:52px; position:relative; min-height:0; overflow:hidden; isolation:isolate; container-type:size; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
+.dock { position:relative; min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border-subtle); background:var(--bg-primary,#071923); }
 .notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:12px; line-height:1.45; color:var(--text-primary); }.notice strong { font-size:28px; }
 .tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { min-width:0; overflow-wrap:anywhere; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }
 .mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:13px; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
@@ -21,6 +21,11 @@
 .options { display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.options p,.modePicker p { font-size:12px; line-height:1.5; color:var(--text-secondary); }.toggle { display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:44px; font-size:13px; border-bottom:1px solid var(--border-subtle); }.toggle input { width:20px; height:20px; flex-shrink:0; accent-color:var(--accent-cyan); }
 .segmented { display:flex; gap:4px; }.segmented button { flex:1; min-width:0; overflow-wrap:anywhere; background:var(--bg-secondary); border-color:var(--border-subtle); }.modePicker { display:flex; flex-direction:column; gap:8px; }
 .fleet { padding:4px 0; }.fleet li { display:flex; align-items:center; gap:12px; min-height:42px; font-size:13px; border-bottom:1px solid var(--border-subtle); }.fleet b { width:20px; color:var(--text-muted); }.fleet strong { margin-left:auto; color:var(--accent-cyan); }
+/* M1-7: fleet colours are graphics (3:1), not text colours (4.5:1), so the name
+   stays in the text colour and the boat colour is a dot beside it. */
+.fleetDot { width:10px; height:10px; flex-shrink:0; border-radius:999px; }
+.fleetName { min-width:0; overflow-wrap:anywhere; color:var(--text-primary); }
+.fleet li[data-player] .fleetName { font-weight:650; }
 @media(max-width:767px) and (orientation:portrait) {
  .toolbar { height:46px; }.metrics { padding:7px 12px; gap:6px; }.metrics>div>span { font-size:10px; }.metrics>div>strong>small { font-size:10px; }
  .workspace { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,60%)); }.dock { border-left:0; border-top:1px solid var(--border-subtle); }.notice { min-height:38px; padding:7px 12px; font-size:11px; }.tabs button { min-height:44px; }.panel { contain:size; min-height:172px; padding:2px 12px; }.wheels { height:190px; }.range { margin:4px 0; }.range input { height:44px; }
@@ -67,4 +72,59 @@
 @media(max-height:480px) and (orientation:landscape) {
  .notice { max-height:64px; overflow-y:auto; overscroll-behavior:contain; }
  .panel .wheels { flex:1 1 auto; height:auto; min-height:168px; max-height:196px; }
+}
+
+/* M1-2 game layer. The site header steps aside during the race, so the scene
+   takes the viewport; one thin status row floats over it and the corner
+   instruments sit just below that row. */
+.instrumentsArea { position:absolute; inset:var(--race-status-h) 0 0 0; z-index:2; pointer-events:none; }
+.status { position:absolute; top:0; left:0; right:0; z-index:9; min-height:var(--race-status-h); display:flex; align-items:center; gap:6px; padding:4px 8px; pointer-events:none; }
+.status button { pointer-events:auto; }
+.cockpit .menuButton,.cockpit .statusAction { min-height:44px; padding:8px 14px; font-size:15px; font-weight:600; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); white-space:nowrap; }
+/* Over the 3D scene the chip stays solid on hover (a sticky hover after a tap
+   left the translucent hover tint, so the cyan Menu was unreadable over the
+   dimmed scene); hover shows on the border instead. */
+.cockpit .menuButton:hover,.cockpit .statusAction:hover { background:var(--bg-card,#102838); border-color:var(--text-secondary); }
+.cockpit .menuButton[aria-expanded=true]:hover { border-color:var(--accent-cyan); }
+.cockpit .menuButton[aria-expanded=true] { border-color:var(--accent-cyan); color:var(--accent-cyan); }
+.readout,.modeBadge { display:inline-flex; align-items:baseline; gap:4px; min-height:36px; padding:6px 8px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); white-space:nowrap; }
+.modeBadge { align-items:center; font-size:12px; font-weight:650; letter-spacing:.08em; color:var(--text-secondary); }
+.readout strong { font-size:16px; line-height:24px; font-weight:600; }
+.readout small { font-size:12px; color:var(--text-secondary); }
+.readout .penalty { color:var(--warning); font-weight:600; }
+.readoutLabel { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.statusEnd { margin-left:auto; display:flex; align-items:center; gap:6px; }
+/* The race sound switch over the scene: a solid chip like the readouts; on, it
+   takes the shared pressed style (cyan = the active control). */
+.statusEnd button { background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+@container (min-width:640px) { .readoutLabel { position:static; width:auto; height:auto; clip-path:none; font-size:12px; color:var(--text-secondary); } }
+@container (max-width:359px) { .modeBadge { display:none; } }
+/* A narrow desktop window has no room for the one-time full-screen offer next
+   to the readouts (measured: 456 px of content in a 390 px scene; no slack at
+   640 px in ru Pro, so a penalty would push it out); the pause sheet keeps its
+   full-screen entry. */
+@container (max-width:719px) { .statusEnd .statusAction { display:none; } }
+
+/* Pause: a sheet over the dimmed scene; the dock stays usable beside it. */
+.pauseLayer { position:absolute; inset:0; z-index:8; display:flex; align-items:flex-start; justify-content:center; padding:calc(var(--race-status-h) + 8px) 12px 12px; background:rgb(0 0 0 / .5); overflow:auto; }
+.pauseSheet { width:min(100%,360px); padding:16px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-card,#102838); color:var(--text-primary); box-shadow:0 12px 32px rgb(0 0 0 / .35); }
+.pauseSheet h2 { margin:0 0 12px; font-size:18px; line-height:24px; font-weight:650; }
+.pauseSheet p { margin:0 0 12px; font-size:16px; line-height:24px; color:var(--text-secondary); }
+.pauseActions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.cockpit .pauseActions button { min-width:0; font-size:16px; line-height:20px; color:var(--text-primary); background:var(--bg-secondary); border-color:var(--border-subtle); overflow-wrap:anywhere; }
+.cockpit .pauseActions .pausePrimary,.cockpit .pauseActions .pausePrimary:hover { grid-column:1 / -1; color:var(--accent-ink); background:var(--accent-cyan); border-color:var(--accent-cyan); font-weight:650; }
+.pauseExtras { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; }
+.pauseSheet .pauseKeys { margin:12px 0 0; font-size:14px; line-height:20px; color:var(--text-muted); }
+
+/* Finish hold (M1-4): the boat is no longer raced, steering and trim rest. */
+.held { opacity:.45; }
+
+/* Portrait phone, solo race only (.gameLayer): the dock is only the tabs and
+   the helm deck, so the boat gets the height. The notice floats over the lower
+   edge of the scene (it stays in the dock for focus order) and gives way to the
+   pause sheet. The multiplayer cockpit and the replay keep their own layout. */
+@media(max-width:767px) and (orientation:portrait) {
+ .gameLayer .workspace { grid-template-rows:minmax(0,1fr) auto; }
+ .gameLayer .notice { position:absolute; left:0; right:0; bottom:100%; z-index:4; border-top:1px solid var(--border-subtle); border-bottom:0; background:var(--bg-primary,#071923); }
+ .gameLayer[data-paused] .notice { display:none; }
 }

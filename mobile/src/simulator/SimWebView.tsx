@@ -1,5 +1,5 @@
 import { Stack, useRouter, type Href } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { Screen, Text } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { colors } from '../design-system/tokens';
@@ -22,6 +23,7 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
+import { isRaceShell, raceFrameInsets, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, useKeepAwakeWhileFocused } from './race-shell';
 import { ActivityBack } from '../navigation/ActivityBack';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
@@ -156,7 +158,7 @@ export function SimWebView({
   offlineBridgeScript = "",
   localStorage: pageStorage,
 }: SimWebViewProps) {
-  const { lang, tp } = useI18n();
+  const { lang, tp, tl } = useI18n();
   const router = useRouter();
   const { enabled: analyticsOn, ready: consentReady } = useAnalyticsConsent();
   // Trainer controls (sliders or wheels, sound) live in the app: the page gets
@@ -167,6 +169,11 @@ export function SimWebView({
   const { prefs: controlPrefs, replace: replaceControls, ready: controlsReady } = useControlPrefs();
   // Only the trainers turn with the phone; content pages (anatomy) stay portrait.
   useLandscapeWhileFocused(Boolean(tier) || path === "/game");
+  // A race keeps the display on and stays out of the landscape side insets.
+  useKeepAwakeWhileFocused(isRaceShell(path));
+  // The context, not useSafeAreaInsets: a host without a provider renders unpadded.
+  const safeArea = useContext(SafeAreaInsetsContext);
+  const frameInsets = raceFrameInsets(safeArea, fullScreen);
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
@@ -211,6 +218,12 @@ export function SimWebView({
   const [failed, setFailed] = useState(false);
   // Bumping the key remounts the WebView for a clean Retry.
   const [reloadKey, setReloadKey] = useState(0);
+  // The local race reloads itself once when the system kills its web
+  // process (memory pressure, a long background) and says so.
+  const autoReloadAt = useRef<number | null>(null);
+  const [processNotice, setProcessNotice] = useState(false);
+  const headerShown = !fullScreen || loading || failed;
+  const overlayInsets = raceOverlayInsets(safeArea, fullScreen, headerShown);
 
   const params = new URLSearchParams({ lang, embed: '1', ...(query ?? {}) });
   const uri = `${ORIGIN}${path}?${params.toString()}`;
@@ -248,14 +261,40 @@ export function SimWebView({
 
   const retry = () => {
     recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "retry", outcome: "accepted", attempt: reloadKey });
+    setProcessNotice(false);
     setFailed(false);
     setLoading(true);
     setReloadKey((k) => k + 1);
   };
 
+  // iOS onContentProcessDidTerminate and Android onRenderProcessGone. The
+  // remounted race opens on its menu, where the page offers to resume the
+  // saved setup; any other surface, or a second loss soon after, shows Retry.
+  const processGone = () => {
+    recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "process-terminated", outcome: "failed", reason: "webview-process", attempt: reloadKey });
+    const now = Date.now();
+    if (path === "/game" && offlineSource && raceProcessRecovery(autoReloadAt.current, now) === "reload") {
+      autoReloadAt.current = now;
+      recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "retry", outcome: "accepted", reason: "webview-process", attempt: reloadKey });
+      setProcessNotice(true);
+      setFailed(false);
+      setLoading(true);
+      setReloadKey((k) => k + 1);
+      return;
+    }
+    setProcessNotice(false);
+    setLoading(false);
+    setFailed(true);
+  };
+  useEffect(() => {
+    if (!processNotice) return;
+    const t = setTimeout(() => setProcessNotice(false), 8000);
+    return () => clearTimeout(t);
+  }, [processNotice]);
+
   return (
-    <AppSurface><Screen noTopInset={!fullScreen}>
-      <Stack.Screen options={{ ...appStackOptions, title, headerShown: !fullScreen || loading || failed, headerBackVisible: false,
+    <AppSurface><Screen noTopInset={!fullScreen} style={frameInsets}>
+      <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false,
         headerLeft: () => returnLesson
           ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
           : isFoundationLesson(query?.fromLesson)
@@ -362,7 +401,8 @@ export function SimWebView({
         onLoadStart={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "begin", outcome: "accepted", attempt: reloadKey }); }}
         onLoadEnd={() => { if (!offlineSource && tier !== 'boat3d') setLoading(false); }}
         onHttpError={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "connection", attempt: reloadKey }); setLoading(false); setFailed(true); }}
-        onContentProcessDidTerminate={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "process-terminated", outcome: "failed", reason: "webview-process", attempt: reloadKey }); setLoading(false); setFailed(true); }}
+        onContentProcessDidTerminate={processGone}
+        onRenderProcessGone={processGone}
         onError={() => {
           recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "webview-load", attempt: reloadKey });
           setLoading(false);
@@ -371,12 +411,41 @@ export function SimWebView({
         startInLoadingState={false}
       />}
       {loading && !failed && (
-        <View style={styles.overlay} pointerEvents="none">
+        <View style={[styles.overlay, { left: overlayInsets.left, right: overlayInsets.right }]} pointerEvents="none">
           <ActivityIndicator color={colors.accentCyan} size="large" />
         </View>
       )}
+      {processNotice && !failed && (
+        <Pressable
+          onPress={() => setProcessNotice(false)}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={[styles.notice, { top: 12 + overlayInsets.top, left: 16 + overlayInsets.left, right: 16 + overlayInsets.right }]}
+          testID="race-process-notice"
+        >
+          <Text style={styles.noticeText}>
+            {raceReplay ? tl({
+              ru: "Система закрыла повтор, чтобы освободить память. Повтор открыт заново.",
+              en: "The system closed the replay to free memory. It has been opened again.",
+              pl: "System zamknął powtórkę, aby zwolnić pamięć. Powtórka została otwarta ponownie.",
+              es: "El sistema cerró la repetición para liberar memoria. Se ha vuelto a abrir.",
+              fr: "Le système a fermé la rediffusion pour libérer de la mémoire. Elle a été rouverte.",
+              de: "Das System hat die Wiederholung geschlossen, um Speicher freizugeben. Sie wurde neu geöffnet.",
+              it: "Il sistema ha chiuso il replay per liberare memoria. È stato riaperto.",
+            }) : tl({
+              ru: "Система закрыла гонку, чтобы освободить память. Меню гонки открыто заново.",
+              en: "The system closed the race to free memory. The race menu is open again.",
+              pl: "System zamknął wyścig, aby zwolnić pamięć. Menu regat jest znów otwarte.",
+              es: "El sistema cerró la regata para liberar memoria. El menú de regatas está abierto de nuevo.",
+              fr: "Le système a fermé la course pour libérer de la mémoire. Le menu des courses est rouvert.",
+              de: "Das System hat das Rennen geschlossen, um Speicher freizugeben. Das Rennmenü ist wieder offen.",
+              it: "Il sistema ha chiuso la regata per liberare memoria. Il menu delle regate è di nuovo aperto.",
+            })}
+          </Text>
+        </Pressable>
+      )}
       {failed && (
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { left: overlayInsets.left, right: overlayInsets.right }]} testID="sim-failed">
           <Text style={styles.errText}>
             {path === "/game" && offlineSource ? tp(
               "Не удалось открыть гонку. Повтори запуск или вернись к выбору гонки. Интернет не требуется.",
@@ -479,6 +548,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgPrimary,
     paddingHorizontal: 32,
     gap: 20,
+  },
+  notice: {
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    right: 16,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 167, 184, 0.4)',
+    backgroundColor: colors.bgPrimary,
+  },
+  noticeText: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    lineHeight: 24,
   },
   errText: {
     color: colors.textSecondary,

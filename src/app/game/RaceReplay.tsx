@@ -9,6 +9,7 @@ import { useRaceView } from "@/features/race-3d/useRaceView";
 import { replayFrame } from "@/lib/race-replay-frame";
 import { useI18n } from "@/lib/i18n";
 import { useReplayCopy } from "./replay-copy";
+import { PLAYER_COLOR } from "./race-model";
 import styles from "./RaceCockpit.module.css";
 import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
@@ -43,7 +44,8 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
   const courseRef = useRef(course);
   const windDirRef = useRef(0);
   const boatsRef = useRef<Race3DBoat[]>([]);
-  const title = tl({ ru: "Повтор гонки", en: "Race replay", pl: "Powtórka wyścigu", es: "Repetición de regata", fr: "Relecture de la course", de: "Rennwiederholung", it: "Replay della regata" });
+  // M1-7: one wording for the replay title and the results button.
+  const title = c.raceReplay;
   const labels = useMemo(() => ({ metres: lang === "ru" ? "м" : "m", scene: title,
     loading: tl({ ru: "Загружаем яхту", en: "Loading the yacht", pl: "Ładujemy jacht", es: "Cargando el velero", fr: "Chargement du voilier", de: "Yacht wird geladen", it: "Caricamento della barca" }),
     error: tl({ ru: "Не удалось открыть 3D. Повтори загрузку.", en: "Could not open 3D. Retry loading.", pl: "Nie udało się otworzyć 3D. Ponów ładowanie.", es: "No se pudo abrir el 3D. Reintenta la carga.", fr: "Impossible d'ouvrir la 3D. Relance le chargement.", de: "3D konnte nicht geöffnet werden. Erneut laden.", it: "Impossibile aprire il 3D. Riprova il caricamento." }), retry: c.retry }), [tl, lang, title, c.retry]);
@@ -52,7 +54,7 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
     const at = (t: number) => {
       const frame = replayFrame(samples, t); if (!frame) return;
       windDirRef.current = frame.windDir;
-      boatsRef.current = [{ id: "player", name: title, color: "#00d4ff", isPlayer: true, ...frame }];
+      boatsRef.current = [{ id: "player", name: title, color: PLAYER_COLOR, isPlayer: true, ...frame }];
     };
     at(cursor.current);
     let id = 0, last = 0, lastUi = 0;
