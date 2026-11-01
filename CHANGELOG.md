@@ -7,7 +7,7 @@
 
 ## Unreleased
 
-- GitHub Actions больше не запускаются сами: `ci.yml` и `deploy.yml` только по ручному запуску. Проверки идут на Mac перед каждым push, push в `main` сайт не выкатывает; выпуск сайта - `gh workflow run deploy.yml --ref main` по просьбе владельца.
+- GitHub Actions больше не запускаются сами: `.github/workflows/ci.yml` и `.github/workflows/deploy.yml` только по ручному запуску. Проверки идут на Mac перед каждым push, push в `main` сайт не выкатывает; выпуск сайта - `gh workflow run deploy.yml --ref main` по просьбе владельца.
 
 - TestFlight 1.7.0 (75) в группе Self: сборка 74 плюс тестовый раздел Настройки > Реклама с настоящей рекламой Hybrid через VOX SDK 1. Откат 74. [Отчет](docs/design/mobile/testflight75-2026-11-01.md).
 
