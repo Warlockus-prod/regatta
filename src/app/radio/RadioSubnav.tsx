@@ -22,7 +22,7 @@ export default function RadioSubnav() {
     {
       href: RADIO_FREE_HREF,
       label: tp("Практика", "Practice", "Trening"),
-      match: ["/radio/symulator", "/radio/obsluga", "/radio/rozmowa", "/radio/pozycja", "/radio/zadania"],
+      match: ["/radio/symulator", "/radio/obsluga", "/radio/rozmowa", "/radio/pozycja", "/radio/alfabet", "/radio/zadania"],
     },
     { href: "/radio/test", label: tp("Экзамен", "Exam", "Egzamin"), match: ["/radio/test"] },
   ];

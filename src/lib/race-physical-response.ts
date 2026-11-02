@@ -12,8 +12,17 @@ interface ResponseFrame {
   readonly course: RaceCourse;
   readonly dt: number;
 }
-interface Body { id: string; pos: Vec2; velocity: Vec2; from: Vec2; damping: number }
-interface Impact { t: number; a: Body; b?: Body; markIndex?: number; wall?: true; closing: number }
+interface Body {
+  id: string; pos: Vec2; velocity: Vec2; from: Vec2; damping: number;
+  /** The proposal, returned unchanged while recovery and contact leave the body alone. */
+  proposal: PhysicalRaceMotion;
+  /** Closing constraint hits this tick; more than MAX_SLIDING_HITS stops the body. */
+  hits: number;
+  /** Positions where the velocity changed mid-tick (ADR-0015 point 4). */
+  bends: Vec2[];
+  changed: boolean;
+}
+interface Impact { t: number; a: Body; b?: Body; markIndex?: number; wall?: "x" | "y"; closing: number }
 export interface PhysicalRaceImpactBody {
   /** Same course origin/axes as race-world-v1: east x, south y, in metres. */
   readonly centreMetres: Readonly<Vec2>;
@@ -40,7 +49,15 @@ export interface PhysicalRaceResponse {
   readonly speedMultipliers: ReadonlyMap<string, number>;
 }
 const tolerance = 1e-7;
+/** A body hit more often than this within one tick is wedged and stops for
+ * the rest of the tick, as every closing hit did before ADR-0015. */
+const MAX_SLIDING_HITS = 3;
 const dot = (a: Vec2, b: Vec2) => a.x * b.x + a.y * b.y;
+
+function frozenMotion(from: Readonly<Vec2>, to: Readonly<Vec2>, path: readonly Readonly<Vec2>[] | undefined): PhysicalRaceMotion {
+  return Object.freeze({ from: Object.freeze({ x: from.x, y: from.y }), to: Object.freeze({ x: to.x, y: to.y }),
+    ...(path?.length ? { path: Object.freeze(path.map(p => Object.freeze({ x: p.x, y: p.y }))) } : {}) });
+}
 
 /** Time of impact for circular envelopes over a common remaining tick.
  * Resting/tangential or separating contact must not pin an escaping boat. */
@@ -59,11 +76,15 @@ function impact(a: Body, p: Vec2, v: Vec2, radius: number, remaining: number) {
   return { t: Math.min(remaining, t), closing };
 }
 
-/** ADR-0013 circular contact constraint, currently only for the unwired
- * physical fleet. Recover existing overlap before travel, then advance all
- * bodies on one clock to each actual impact. An impacted body stops for the
- * rest of this tick; other bodies continue and can encounter the stopped hull.
- * Recovery never enters the travelled segment or earns progress. No caller is
+/** ADR-0013 circular contact constraint with the ADR-0015 sliding response,
+ * for the physical fleet. Recover existing overlap before travel, then advance
+ * all bodies on one clock to each actual impact. At a closing impact each body
+ * loses only its own velocity component into the other body (or the mark, or
+ * the water bound) and keeps its tangential travel: no shove, no freeze. A
+ * body hit more than MAX_SLIDING_HITS times in one tick is wedged and stops
+ * for the rest of the tick. Every mid-tick velocity change is a bend of the
+ * returned travelled polyline, which progress grades segment by segment.
+ * Recovery never enters the travelled path or earns progress. No caller is
  * mutated, no force/helm constant changes and no RRS liability is inferred. */
 export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceResponse | null {
   if (!frame || frame.dt !== 1 / 30) return null;
@@ -73,7 +94,8 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
   const water = physicalCourseWaterBounds(frame.context.profile), radius = d.hardware.boatDiameterMetres / (2 * m);
   const bodies: Body[] = frame.boats.filter(b => b.lapDone !== 2).map(b => {
     const motion = frame.motions.get(b.id)!;
-    return { id: b.id, pos: { ...motion.from }, from: { ...motion.from }, damping: 1,
+    return { id: b.id, pos: { ...motion.from }, from: { ...motion.from }, damping: 1, proposal: motion,
+      hits: 0, bends: [], changed: false,
       velocity: { x: motion.to.x - motion.from.x, y: motion.to.y - motion.from.y } };
   }).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   const contacts = new Map<string, PhysicalRaceContact>();
@@ -136,10 +158,16 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
         const hit = impact(a, mark.pos, { x: 0, y: 0 }, radius + mark.radius, remaining);
         if (hit) hits.push({ ...hit, a, markIndex });
       });
-      for (const [pos, velocity, low, high] of [[a.pos.x, a.velocity.x, water.minX, water.maxX], [a.pos.y, a.velocity.y, water.minY, water.maxY]]) {
+      for (const [axis, pos, velocity, low, high] of [["x", a.pos.x, a.velocity.x, water.minX, water.maxX], ["y", a.pos.y, a.velocity.y, water.minY, water.maxY]] as const) {
         if (velocity === 0) continue;
-        const t = ((velocity > 0 ? high : low) - pos) / velocity;
-        if (t >= -tolerance && t <= remaining) hits.push({ t: Math.max(0, t), a, wall: true, closing: Math.abs(velocity) });
+        const bound = velocity > 0 ? high : low, t = (bound - pos) / velocity;
+        // Travel that ends on the bound needs no wall response: no tick time
+        // is left to slide, and stepPhysicalBoat's own bound clamp (with its
+        // recorded bend) already ends every proposal exactly there. Treating
+        // it as a hit would rebuild the motion from the chord and drop that
+        // bend before progress grades the polyline.
+        if (Math.abs(pos + velocity * remaining - bound) <= tolerance) continue;
+        if (t >= -tolerance && t <= remaining) hits.push({ t: Math.max(0, t), a, wall: axis, closing: Math.abs(velocity) });
       }
     }
     const first = Math.min(remaining, ...hits.map(hit => hit.t));
@@ -166,9 +194,36 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
         hit.a.damping *= damping; if (hit.b) hit.b.damping *= damping;
       }
     }
+    // ADR-0015 sliding: each body loses only its own component into the
+    // other body, read along the contact normal at the impact position.
+    const before = new Map(bodies.map(body => [body, body.velocity]));
     for (const hit of simultaneous) {
       if (hit.closing <= tolerance) continue;
-      hit.a.velocity = { x: 0, y: 0 }; if (hit.b) hit.b.velocity = { x: 0, y: 0 };
+      const touched = hit.b ? [hit.a, hit.b] : [hit.a];
+      for (const body of touched) body.hits += 1;
+      if (hit.wall) hit.a.velocity = hit.wall === "x" ? { x: 0, y: hit.a.velocity.y } : { x: hit.a.velocity.x, y: 0 };
+      else {
+        const centre = hit.b ? hit.b.pos : frame.course.marks[hit.markIndex!].pos;
+        const dx = centre.x - hit.a.pos.x, dy = centre.y - hit.a.pos.y, gap = Math.hypot(dx, dy);
+        const n = gap > 0 ? { x: dx / gap, y: dy / gap } : { x: 1, y: 0 };
+        const va = dot(hit.a.velocity, n);
+        if (va > 0) hit.a.velocity = { x: hit.a.velocity.x - va * n.x, y: hit.a.velocity.y - va * n.y };
+        if (hit.b) {
+          const vb = dot(hit.b.velocity, n);
+          if (vb < 0) hit.b.velocity = { x: hit.b.velocity.x - vb * n.x, y: hit.b.velocity.y - vb * n.y };
+        }
+      }
+      for (const body of touched) if (body.hits > MAX_SLIDING_HITS) body.velocity = { x: 0, y: 0 };
+    }
+    // A changed velocity bends the travelled path here (a stop is a bend too;
+    // a bend at the start or at the end of the path is not interior). A body
+    // whose own velocity did not change keeps its free travel bit for bit.
+    for (const body of bodies) {
+      const previous = before.get(body)!;
+      if (previous.x === body.velocity.x && previous.y === body.velocity.y) continue;
+      body.changed = true;
+      const last = body.bends[body.bends.length - 1] ?? body.from;
+      if (body.pos.x !== last.x || body.pos.y !== last.y) body.bends.push({ ...body.pos });
     }
   }
   if (elapsed < 1 - tolerance) return null;
@@ -179,7 +234,18 @@ export function constrainPhysicalRaceTravel(frame: ResponseFrame): PhysicalRaceR
       || body.pos.y < water.minY - tolerance || body.pos.y > water.maxY + tolerance
       || frame.course.marks.some(mark => Math.hypot(body.pos.x - mark.pos.x, body.pos.y - mark.pos.y) < radius + mark.radius - tolerance)
       || bodies.some(other => other !== body && Math.hypot(body.pos.x - other.pos.x, body.pos.y - other.pos.y) < radius * 2 - tolerance)) return null;
-    motions.set(body.id, Object.freeze({ from: Object.freeze({ ...body.from }), to: Object.freeze({ ...body.pos }) }));
+    // Free travel returns the proposal itself (bit-identical, with its own
+    // bound bends); changed travel returns the simulated polyline. A body
+    // changed by a contact or by recovery is simulated on its chord, so a
+    // bound bend of its proposal in that same tick is replaced by the
+    // simulated bends. The chord stays inside the (convex) water and within
+    // one tick of travel (under 1 unit) of the dropped bend; no gate ends
+    // that close to a bound (nearest in-water gate end: 22 units, the long
+    // north gate, which runs on through the bound), so chord and bent path
+    // cross the same gates the same way (known limit, ADR-0015 point 4).
+    const free = !body.changed && body.from.x === body.proposal.from.x && body.from.y === body.proposal.from.y;
+    motions.set(body.id, free ? frozenMotion(body.proposal.from, body.proposal.to, body.proposal.path)
+      : frozenMotion(body.from, body.pos, body.bends.filter(p => p.x !== body.pos.x || p.y !== body.pos.y)));
     speedMultipliers.set(body.id, body.damping);
   }
   return { motions, contacts: Object.freeze([...contacts.values()]), initialContacts,

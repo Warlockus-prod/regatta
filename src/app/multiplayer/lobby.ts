@@ -66,3 +66,73 @@ export async function shareRoomInvite(nav: ShareNavigator | undefined, invite: {
 export function canShareNatively(nav: ShareNavigator | undefined): boolean {
   return typeof nav?.share === "function";
 }
+
+/** The site the invite link points at when the page itself has no web origin
+ * to share (a file or about:blank page): a friend opens the same lobby there. */
+export const INVITE_ORIGIN = "https://weektoregatta.com";
+
+/** The invite link for a room. Only an http(s) origin is shared as is. */
+export function roomInviteUrl(origin: string | null | undefined, code: string): string {
+  const base = origin && /^https?:\/\//.test(origin) ? origin : INVITE_ORIGIN;
+  return `${base}/multiplayer?code=${encodeURIComponent(code)}`;
+}
+
+/** TestFlight 74 feedback: the card said "Link copied" forever, so a player
+ * could not tell when a tap had copied. A confirmation now stays this long and
+ * the card returns to the idle caption that says what a tap does. */
+export const SHARE_CONFIRM_MS = 4000;
+
+/** How long an outcome stays on the card before the idle caption returns:
+ * a success for SHARE_CONFIRM_MS, a closed share sheet not at all, and a
+ * failure until the next tap (null), because the link it shows has to stay
+ * there to be selected and copied by hand. */
+export function shareFeedbackHoldMs(outcome: ShareOutcome | null): number | null {
+  if (outcome === "copied" || outcome === "shared") return SHARE_CONFIRM_MS;
+  if (outcome === "cancelled") return 0;
+  return null;
+}
+
+type Timers = { setTimeout: (run: () => void, ms: number) => unknown; clearTimeout: (id: unknown) => void };
+
+/** Shows a share outcome and puts the card back to idle on time. One timer at
+ * a time: a new tap replaces the pending reset, and dispose() (unmount, leaving
+ * the room) cancels it so nothing fires on a screen that is gone.
+ *
+ * run() owns the whole tap: a share sheet can stay open while the race starts
+ * or the player leaves the room, so every show() or dispose() bumps a
+ * generation and an attempt that resolves after that is dropped instead of
+ * landing on a lobby screen where nobody tapped. */
+export function createShareFeedback(onChange: (outcome: ShareOutcome | null) => void, timers: Timers = {
+  setTimeout: (run, ms) => globalThis.setTimeout(run, ms),
+  clearTimeout: id => globalThis.clearTimeout(id as ReturnType<typeof globalThis.setTimeout>),
+}) {
+  let pending: unknown = null;
+  let generation = 0;
+  const cancel = () => { if (pending !== null) { timers.clearTimeout(pending); pending = null; } };
+  const apply = (outcome: ShareOutcome | null) => {
+    cancel();
+    const hold = shareFeedbackHoldMs(outcome);
+    onChange(hold === 0 ? null : outcome);
+    if (hold !== null && hold > 0) pending = timers.setTimeout(() => { pending = null; onChange(null); }, hold);
+  };
+  return {
+    show(outcome: ShareOutcome | null) {
+      generation += 1;
+      apply(outcome);
+    },
+    /** One tap: shows the attempt's outcome unless a show(), a newer run() or
+     * dispose() came first. Resolves to what was shown, or null if dropped. */
+    async run(attempt: () => Promise<ShareOutcome>): Promise<ShareOutcome | null> {
+      generation += 1;
+      const ticket = generation;
+      const outcome = await attempt();
+      if (ticket !== generation) return null;
+      apply(outcome);
+      return outcome;
+    },
+    dispose() {
+      generation += 1;
+      cancel();
+    },
+  };
+}

@@ -42,7 +42,7 @@ type TrainingMode = 'adaptive' | 'exam' | 'weak';
 
 export default function SrcTrainerPage() {
   const { rt: radioText } = useRadioI18n();
-  const { tp, lang } = useRadioI18n();
+  const { tp, tl, lang } = useRadioI18n();
   const [progress, setProgress] = useState<QuestionProgress>({});
   const [part, setPart] = useState<PartFilter>('all');
   const [mode, setMode] = useState<TrainingMode>('adaptive');
@@ -195,14 +195,18 @@ export default function SrcTrainerPage() {
   return (
     <div id="radio-src-trainer">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-        ✅ {radioText(tp('Тренажёр: официальная база UKE (SRC)', 'Practice: official UKE SRC question bank', 'Trening: oficjalna baza UKE (SRC)'))}
+        ✅ {radioText(tl({ pl: 'Trening: oficjalna baza pytań SRC', ru: 'Тренажёр: официальная база вопросов SRC', en: 'Practice: official SRC question bank', es: 'Práctica: banco oficial de preguntas SRC', fr: 'Entraînement : banque officielle de questions SRC', de: 'Training: offizielle SRC-Fragenbank', it: 'Allenamento: banca ufficiale delle domande SRC' }))}
       </h1>
       <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-        {radioText(tp(
-          '324 вопроса из официальных материалов UKE к тесту SRC (по 5 из каждого раздела попадут на экзамен). В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.',
-          'All 324 questions from the official UKE SRC study materials. Learn with instant feedback, or take a mock exam with feedback at the end.',
-          '324 pytania z oficjalnych materiałów UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.',
-        ))}
+        {radioText(tl({
+          pl: '324 pytania z oficjalnych materiałów do testu SRC (źródło: UKE). W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.',
+          ru: '324 вопроса из официальных материалов к тесту SRC (источник: UKE), по 5 из каждого раздела попадут на экзамен. В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.',
+          en: 'All 324 questions from the official SRC study materials (source: UKE). Learn with instant feedback, or take a mock exam with feedback at the end.',
+          es: '324 preguntas de los materiales oficiales para la prueba SRC (fuente: UKE). En el modo de estudio ves las respuestas inmediatamente; en el simulacro de examen, solo al terminar.',
+          fr: "324 questions issues des ressources officielles pour l'examen SRC (source : UKE). En mode apprentissage, les réponses s'affichent immédiatement ; lors de l'examen blanc, elles ne s'affichent qu'à la fin.",
+          de: '324 Fragen aus den offiziellen Unterlagen für die SRC-Prüfung (Quelle: UKE). Beim Lernen siehst du die Antworten sofort, bei der Probeprüfung erst nach dem Abschluss.',
+          it: "324 domande tratte dai materiali ufficiali per il test SRC (fonte: UKE). Durante lo studio vedi subito le risposte, mentre nella simulazione d'esame le vedi solo alla fine.",
+        }))}
       </p>
 
       <div className="mb-4 rounded-xl px-4 py-3 text-xs leading-relaxed" style={{ background: 'rgba(255,210,74,0.08)', border: '1px solid rgba(255,210,74,0.3)', color: 'var(--text-secondary)' }}>

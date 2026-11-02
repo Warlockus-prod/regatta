@@ -16,6 +16,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PHONETIC, DIGITS, PROWORDS, SMCP } from '../src/app/radio/cheatData.ts';
 import { REACTION_LINES } from '../src/app/radio/symulator/stationReaction.ts';
+import { phoneticDrillPhrases } from '../src/data/radio/phonetic-alphabet.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'public', 'radio-audio');
@@ -62,6 +63,7 @@ function phrases() {
   for (const [phrase] of SMCP) out.add(phrase);            // How do you read me? ...
   for (const line of REACTION_LINES) out.add(line);        // SAY AGAIN, OVER. ...
   for (const line of dialogueLines()) out.add(line);       // the model transmissions
+  for (const line of phoneticDrillPhrases()) out.add(line); // /radio/alfabet: figures, numbers, spellings
   return [...out];
 }
 

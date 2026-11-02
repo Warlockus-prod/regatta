@@ -23,7 +23,7 @@ const GROUP_ICON: Record<TaskGroup, string> = {
 
 export default function RadioTasksPage() {
   const { rt: radioText } = useRadioI18n();
-  const { tp } = useRadioI18n();
+  const { tp, tl } = useRadioI18n();
   const { explLang } = useSternikPrefs();
   // RU commentary honours the PL/RU/both toggle; the section scope already
   // The radio provider follows the selected course language.
@@ -32,14 +32,18 @@ export default function RadioTasksPage() {
   return (
     <div id="radio-zadania">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-        📋 {radioText(tp('26 практических заданий UKE', '26 UKE practical tasks', '26 zadań praktycznych UKE'))}
+        📋 {radioText(tl({ pl: '26 zadań praktycznych egzaminu', ru: '26 практических заданий экзамена', en: '26 practical exam tasks', es: '26 tareas prácticas del examen', fr: "26 exercices pratiques de l'examen", de: '26 praktische Prüfungsaufgaben', it: "26 prove pratiche d'esame" }))}
       </h1>
       <p className="mb-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
-        {radioText(tp(
-          'Полный официальный список практических заданий экзамена SRC (UKE) - с правильной процедурой для каждого и ссылкой на симулятор/курс, где его можно отработать. Источник: materialy_do_testu_src.pdf. Официального ключа ответов UKE не публикует, поэтому здесь описана правильная процедура по GMDSS/ICOM, а не выбор A/B/C.',
-          'The full official list of the SRC (UKE) practical exam tasks - each with the correct procedure and a link to the simulator/course where you can practise it. Source: materialy_do_testu_src.pdf. UKE publishes no answer key, so this is the correct GMDSS/ICOM procedure, not an A/B/C quiz.',
-          'Pełna oficjalna lista zadań praktycznych egzaminu SRC (UKE) - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf. UKE nie publikuje klucza odpowiedzi, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.',
-        ))}
+        {radioText(tl({
+          pl: 'Pełna oficjalna lista zadań praktycznych egzaminu SRC - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf (UKE). Klucz odpowiedzi nie jest publikowany, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.',
+          ru: 'Полный официальный список практических заданий экзамена SRC - с правильной процедурой для каждого и ссылкой на симулятор/курс, где его можно отработать. Источник: materialy_do_testu_src.pdf (UKE). Официальный ключ ответов не публикуется, поэтому здесь описана правильная процедура по GMDSS/ICOM, а не выбор A/B/C.',
+          en: 'The full official list of the SRC practical exam tasks - each with the correct procedure and a link to the simulator/course where you can practise it. Source: materialy_do_testu_src.pdf (UKE). No answer key is published, so this is the correct GMDSS/ICOM procedure, not an A/B/C quiz.',
+          es: 'Lista oficial completa de ejercicios prácticos del examen SRC, cada uno con el procedimiento correcto y un enlace al simulador o curso donde practicarlo. Fuente: materialy_do_testu_src.pdf (UKE). No se publica una clave de respuestas, por lo que se presenta el procedimiento correcto según GMDSS/ICOM, no una selección A/B/C.',
+          fr: "Liste officielle complète des exercices pratiques de l'examen SRC, avec pour chacun la procédure correcte et un lien vers le simulateur ou le cours permettant de s'entraîner. Source : materialy_do_testu_src.pdf (UKE). Aucun corrigé n'est publié : les réponses présentent donc la procédure correcte selon le GMDSS et ICOM, sans choix A/B/C.",
+          de: 'Die vollständige offizielle Liste der praktischen Aufgaben der SRC-Prüfung - jeweils mit dem korrekten Verfahren und einem Link zum Simulator oder Kurs, in dem du es üben kannst. Quelle: materialy_do_testu_src.pdf (UKE). Ein Lösungsschlüssel wird nicht veröffentlicht. Deshalb wird hier das korrekte Verfahren gemäß GMDSS/ICOM beschrieben, keine Auswahl A/B/C.',
+          it: "Elenco ufficiale completo delle prove pratiche dell'esame SRC: ciascuna comprende la procedura corretta e un collegamento al simulatore o al corso in cui esercitarti. Fonte: materialy_do_testu_src.pdf (UKE). Le soluzioni non vengono pubblicate, quindi viene indicata la procedura corretta secondo GMDSS/ICOM, senza selezionare una risposta A/B/C.",
+        }))}
       </p>
 
       <div className="mb-6 flex flex-wrap gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>

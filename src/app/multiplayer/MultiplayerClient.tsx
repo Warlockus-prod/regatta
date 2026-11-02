@@ -21,7 +21,7 @@ import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnaps
 import { recordTrackPoint } from "@/features/race-hud/map-view";
 import { useRacePrefs } from "../game/race-prefs";
 import { MultiplayerMenu, MultiplayerRoom, type LobbyPlayer } from "./MultiplayerLobby";
-import { canShareNatively, createLobbyBlocker, createTapAction, defaultSailorName, shareRoomInvite, type ShareOutcome } from "./lobby";
+import { canShareNatively, createLobbyBlocker, createShareFeedback, createTapAction, defaultSailorName, roomInviteUrl, shareRoomInvite, type ShareOutcome } from "./lobby";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
 // F5: the race intro, only on request from the menu ("How to race"), never by itself here.
@@ -86,6 +86,9 @@ export default function MultiplayerClient() {
   const [sid, setSid] = useState<string | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
   const [shareOutcome, setShareOutcome] = useState<ShareOutcome | null>(null);
+  // The share confirmation returns to the idle caption on a timer, cancelled on unmount.
+  const shareFeedback = useMemo(() => createShareFeedback(setShareOutcome), []);
+  useEffect(() => () => shareFeedback.dispose(), [shareFeedback]);
   const [connecting, setConnecting] = useState(false);
 
   const [room, setRoom] = useState<{
@@ -214,6 +217,9 @@ export default function MultiplayerClient() {
       case 'phase':
         if (msg.phase === 'lobby') setPhase('lobby');
         else if (msg.phase === 'countdown') {
+          // A share result belongs to the lobby screen it was tapped on, not the
+          // one the player comes back to after the race.
+          shareFeedback.show(null);
           setPhase('countdown'); bufferRef.current.reset(); presentationRef.current.reset();
           boatsRef.current = []; trackRef.current = []; setFrame(null); setWindReading(null); setNavigation(null); releaseInput();
         }
@@ -256,7 +262,7 @@ export default function MultiplayerClient() {
         setPhase((p) => p === 'menu' ? 'error' : p);
         break;
     }
-  }, [tp, tl, releaseInput, startSignals]);
+  }, [tp, tl, releaseInput, startSignals, shareFeedback]);
 
   const ensureClient = useCallback(async (): Promise<MPClient> => {
     if (clientRef.current?.isOpen) return clientRef.current;
@@ -359,19 +365,18 @@ export default function MultiplayerClient() {
     setResults([]);
     setPhase('menu');
     setError(null);
-    setShareOutcome(null);
-  }, [releaseInput, startSignals]);
+    shareFeedback.show(null);
+  }, [releaseInput, shareFeedback, startSignals]);
 
   // M2-8: the system share sheet where there is one, the clipboard otherwise;
-  // if both fail the link is shown so it can be copied by hand.
+  // if both fail the card shows the link so it can be copied by hand.
   const shareCode = useCallback(async () => {
     if (!room) return;
-    const url = `${window.location.origin}/multiplayer?code=${room.code}`;
-    const outcome = await shareRoomInvite(navigator, { title: "Week to Regatta", url,
-      text: tl({ ru: `Гонка с друзьями: код ${room.code}`, en: `Race with friends: code ${room.code}`, pl: `Regaty ze znajomymi: kod ${room.code}`, es: `Regata con amigos: código ${room.code}`, fr: `Course entre amis : code ${room.code}`, de: `Rennen mit Freunden: Code ${room.code}`, it: `Regata con amici: codice ${room.code}` }) });
-    setShareOutcome(outcome);
-    if (outcome === "failed") setError(url);
-  }, [room, tl]);
+    const url = roomInviteUrl(window.location.origin, room.code);
+    const text = tl({ ru: `Гонка с друзьями: код ${room.code}`, en: `Race with friends: code ${room.code}`, pl: `Regaty ze znajomymi: kod ${room.code}`, es: `Regata con amigos: código ${room.code}`, fr: `Course entre amis : code ${room.code}`, de: `Rennen mit Freunden: Code ${room.code}`, it: `Regata con amici: codice ${room.code}` });
+    // run() drops the result if the race starts or the player leaves first.
+    await shareFeedback.run(() => shareRoomInvite(navigator, { title: "Week to Regatta", url, text }));
+  }, [room, shareFeedback, tl]);
 
   // Input capture + 20Hz send
   useEffect(() => {
@@ -463,6 +468,7 @@ export default function MultiplayerClient() {
   if (phase === 'lobby' && room) {
     return <MultiplayerRoom room={room} players={lobbyPlayers} colors={COLORS} reconnecting={reconnecting} error={error}
       canShare={canShareNatively(typeof navigator === 'undefined' ? undefined : navigator)} share={shareOutcome} onShare={shareCode}
+      inviteUrl={roomInviteUrl(typeof window === 'undefined' ? null : window.location.origin, room.code)}
       onLeave={leaveLobby} onPickMission={missionId => pickMission(missionId)} onAddBot={addBot} onRemoveBot={removeBot}
       onStart={startRace} onReady={ready => clientRef.current?.send({ type: "ready", ready })} />;
   }

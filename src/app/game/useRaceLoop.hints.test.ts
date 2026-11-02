@@ -15,7 +15,7 @@ import type { RaceLoopInput } from "./useRaceLoop";
 
 // Contract (M4-7): in the actual solo race loop a player stalled head to wind
 // for HINT_TIMING.noGoSec gets the no-go hint once, not again in the same race, not when the device
-// has seen it, not in the physical trial; "Show hints again" (a new revision)
+// has seen it; the metric race too (M5 step 6); "Show hints again" (a new revision)
 // makes it due again in the running race.
 const effects = vi.hoisted(() => ({ cleanups: [] as (void | (() => void))[] }));
 vi.mock("react", async original => ({ ...await original<typeof import("react")>(), useEffect: (fn: () => void | (() => void)) => { effects.cleanups.push(fn()); } }));
@@ -80,10 +80,12 @@ describe("first race hints in the solo race loop", () => {
     expect(hints(showHint)).toEqual(["no-go"]);
   });
 
-  it("shows nothing the device has seen, and nothing in the physical trial", () => {
+  it("shows nothing the device has seen; M5 step 6: the metric race shows its hints too", () => {
     expect(hints(sail({ place: stalled, frames: 100, hints: { seen: new Set(["no-go"]), revision: 0 } }).showHint)).not.toContain("no-go");
     effects.cleanups.forEach(cleanup => cleanup?.()); effects.cleanups = [];
-    expect(sail({ place: stalled, frames: 100, physical: true }).showHint).not.toHaveBeenCalled();
+    expect(hints(sail({ place: stalled, frames: 100, physical: true }).showHint)).toEqual(["no-go"]);
+    effects.cleanups.forEach(cleanup => cleanup?.()); effects.cleanups = [];
+    expect(sail({ place: stalled, frames: 100, physical: true, hints: { seen: new Set(["no-go"]), revision: 0 } }).showHint).not.toHaveBeenCalled();
   });
 
   it("shows it again in the running race after Show hints again", () => {

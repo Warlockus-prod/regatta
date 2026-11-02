@@ -61,6 +61,7 @@ const PRECACHE = [
   '/radio/symulator',
   '/radio/rozmowa',
   '/radio/pozycja',
+  '/radio/alfabet',
   '/radio/zadania',
   '/radio/sciaga',
   '/radio/test',

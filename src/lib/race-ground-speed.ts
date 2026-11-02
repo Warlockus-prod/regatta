@@ -24,12 +24,15 @@ export function createGroundSpeedWindow(): GroundSpeedWindow {
 }
 
 /** Add one simulation step: where the boat was, where it is after the world
- * clamp and collisions, and the speed (knots) stepBoat moved it with. */
-export function recordGroundStep(window: GroundSpeedWindow, prevPos: Vec2, pos: Vec2, speedKn: number, dt: number): GroundSpeedWindow {
+ * clamp and collisions, and the speed (knots) the model moved it with. M5:
+ * `unitsPerKnotSecond` is the race's scale (race-scale.ts); the metric race
+ * moves a boat at real speed, the legacy race 8 units per knot second. */
+export function recordGroundStep(window: GroundSpeedWindow, prevPos: Vec2, pos: Vec2, speedKn: number, dt: number,
+  unitsPerKnotSecond: number = UNITS_PER_KNOT_SECOND): GroundSpeedWindow {
   if (!Number.isFinite(dt) || dt <= 0 || !Number.isFinite(speedKn)) return window;
   const travelled = Math.hypot(pos.x - prevPos.x, pos.y - prevPos.y);
   if (!Number.isFinite(travelled)) return window;
-  const steps = [...window.steps, { dt, travelled, expected: Math.max(0, speedKn) * UNITS_PER_KNOT_SECOND * dt }];
+  const steps = [...window.steps, { dt, travelled, expected: Math.max(0, speedKn) * unitsPerKnotSecond * dt }];
   let span = 0, first = steps.length;
   while (first > 0 && span < GROUND_SPEED_WINDOW_SEC) span += steps[--first].dt;
   return { steps: first > 0 ? steps.slice(first) : steps };
@@ -37,11 +40,11 @@ export function recordGroundStep(window: GroundSpeedWindow, prevPos: Vec2, pos: 
 
 /** The speed to show: the boat speed times the share of its expected path it
  * really covered in the window, never more than the boat speed. */
-export function displayedBoatSpeed(window: GroundSpeedWindow, speedKn: number): number {
+export function displayedBoatSpeed(window: GroundSpeedWindow, speedKn: number, unitsPerKnotSecond: number = UNITS_PER_KNOT_SECOND): number {
   if (!Number.isFinite(speedKn) || speedKn <= 0) return Math.max(0, speedKn || 0);
   let travelled = 0, expected = 0;
   for (const step of window.steps) { travelled += step.travelled; expected += step.expected; }
   // Nearly stopped over the whole window: nothing to compare, trust the boat.
-  if (expected < 0.05 * UNITS_PER_KNOT_SECOND * GROUND_SPEED_WINDOW_SEC) return speedKn;
+  if (expected < 0.05 * unitsPerKnotSecond * GROUND_SPEED_WINDOW_SEC) return speedKn;
   return speedKn * Math.min(1, travelled / expected);
 }

@@ -35,7 +35,7 @@ export const RACE_COACH_MISTAKES = ["no-go", "tacks", "close-hauled", "none"] as
 /** Bounds of race.summary: counts are per race, seconds are race time. */
 export const RACE_SUMMARY_LIMITS = { boats: 64, seconds: 7200, count: 10_000, score: 100 } as const;
 const RACE_LIFECYCLE_ACTIONS = ["briefing", "init", "scene-ready", "countdown", "start", "pause", "resume", "exit", "exit-ask", "exit-stay",
-  "restart", "finish", "finish-hold", "timeout", "results"] as const;
+  "restart", "finish", "finish-hold", "timeout", "results", "stuck"] as const;
 type Member<T extends readonly string[]> = T[number];
 export type RenderBackend = Member<typeof RENDER_BACKENDS>;
 export type DiagnosticSurface = Member<typeof DIAGNOSTIC_SURFACES>;

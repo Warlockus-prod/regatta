@@ -39,8 +39,9 @@ export function summariseFinish(results: readonly RaceResultRow[], bestRecord: B
   const winner = results[0];
   const second = results[1];
   const won = finished && place === 1;
-  const behindWinner = finished && !won && winner && Number.isFinite(winner.time) ? Math.max(0, time! - winner.time) : null;
-  const aheadOfSecond = won && second && Number.isFinite(second.time) ? Math.max(0, second.time - time!) : null;
+  // M5: an estimated time ("~") places a boat but never makes a gap line.
+  const behindWinner = finished && !won && winner && Number.isFinite(winner.time) && !winner.estimated ? Math.max(0, time! - winner.time) : null;
+  const aheadOfSecond = won && second && Number.isFinite(second.time) && !second.estimated ? Math.max(0, second.time - time!) : null;
   const newRecord = finished && isNewRecord;
   const recordDelta = finished && !newRecord && bestRecord ? time! - bestRecord.timeSec : null;
   return {

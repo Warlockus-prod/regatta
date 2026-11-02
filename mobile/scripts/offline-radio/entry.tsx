@@ -11,6 +11,7 @@ import SrcTrainerPage from "../../../src/app/radio/test/page";
 import RadioTasksPage from "../../../src/app/radio/zadania/page";
 import CheatSheet from "../../../src/app/radio/sciaga/CheatSheet";
 import PositionDrill from "../../../src/app/radio/pozycja/PositionDrill";
+import PhoneticDrill from "../../../src/app/radio/alfabet/PhoneticDrill";
 import LiveDialogue from "../../../src/app/radio/rozmowa/LiveDialogue";
 import { RadioPrefsProvider } from "../../../src/app/radio/prefs";
 import { RadioLocaleProvider } from "../../../src/app/radio/localization/context";
@@ -85,6 +86,7 @@ const ROUTES: Record<string, ComponentType> = {
   "/radio/zadania": RadioTasksPage,
   "/radio/sciaga": CheatSheet,
   "/radio/pozycja": PositionDrill,
+  "/radio/alfabet": PhoneticDrill,
   "/radio/rozmowa": LiveDialogue,
   "/sternik": OfflineSkipperNotice,
 };

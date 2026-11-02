@@ -38,6 +38,8 @@ import { SceneOverlayLabels } from './ui/SceneOverlayLabels';
 import { SceneRear } from './ui/SceneRear';
 import { SceneSide } from './ui/SceneSide';
 import { SceneTop } from './ui/SceneTop';
+import { TrainerWindInstrument } from './ui/TrainerWindInstrument';
+import { trainerWindCardMode } from './ui/trainer-wind';
 import { DrillCard, type DrillResult } from './ui/panels/DrillCard';
 import { ModeBar, type ModeKind } from './ui/panels/ModeBar';
 import { ScenarioPicker } from './ui/panels/ScenarioPicker';
@@ -481,6 +483,11 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     ? <p className={styles.groupTitle}>{trimAssessment.assessment ? assessmentCopy.title[lang] : rigTitle}</p>
     : <ModeBar active={mode} onChange={handleModeChange} tp={tp} />;
 
+  // The race wind card over the scene (TestFlight 74): 3D with the bow-up
+  // dial, the top view and the deck camera text only; the side and rear
+  // drawings keep their own header in that corner.
+  const windCardMode = trainerWindCardMode(ui.view, activeBoatView);
+  const windCard = windCardMode ? <TrainerWindInstrument sim={sim} dial={windCardMode === "dial"} /> : null;
   const pointLabel = legacyPick(sim.pos, 'name', lang);
   const tackLabel =
     ui.tack === 'starboard'
@@ -845,6 +852,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             ) : (
               <SceneRear ui={ui} sim={sim} tp={tp} />
             )}
+            {onClient && windCard}
           </div>
           <MetricsStrip ui={ui} sim={sim} tp={tp} />
           <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
@@ -904,6 +912,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               ) : (
                 <SceneRear ui={ui} sim={sim} tp={tp} />
               )}
+              {onClient && windCard}
               <SceneDrawer
                 id="trainer-views"
                 open={viewsOpen}

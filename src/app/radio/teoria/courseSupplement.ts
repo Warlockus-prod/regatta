@@ -2,6 +2,18 @@ import type { BiText, TheoryChapter } from "./courseData";
 
 const b = (pl: string, ru: string): BiText => ({ pl, ru });
 
+// Owner, 2026-11-01: no country label in radio buttons. All seven values sit in
+// one literal so the radio catalog builder pairs them.
+const PRACTISE_PHRASES = {
+  pl: "Przećwicz 60 fraz egzaminacyjnych",
+  ru: "Отработать 60 экзаменационных фраз",
+  en: "Practise 60 exam phrases",
+  es: "Practica 60 frases de examen",
+  fr: "Entraînez-vous aux 60 phrases d'examen",
+  de: "Übe 60 Prüfungs-Funkphrasen",
+  it: "Esercitati con 60 frasi d'esame",
+};
+
 export const SUPPLEMENTAL_THEORY_CHAPTERS: TheoryChapter[] = [
   {
     id: "power",
@@ -136,7 +148,7 @@ export const SUPPLEMENTAL_THEORY_CHAPTERS: TheoryChapter[] = [
     ],
     sourceIds: ["uke", "smcp", "cept"],
     practiceHref: "/radio/test?chapter=smcp",
-    practiceLabel: b("Przećwicz 60 fraz UKE", "Отработать 60 фраз UKE"),
+    practiceLabel: b(PRACTISE_PHRASES.pl, PRACTISE_PHRASES.ru),
     minutes: 28,
   },
   {

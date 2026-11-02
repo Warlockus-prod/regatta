@@ -1,4 +1,5 @@
-import { angleDiff, deg2rad, distance, MIN_BOAT_SEPARATION, segmentCrossed, UNITS_PER_KNOT_SECOND, type RaceBoat, type RaceCourse, type Vec2 } from "./race-physics";
+import { angleDiff, deg2rad, distance, MIN_BOAT_SEPARATION, segmentCrossed, type RaceBoat, type RaceCourse, type Vec2 } from "./race-physics";
+import { raceScale, type RaceScale } from "./race-scale";
 
 /** Educational subset of World Sailing RRS 2025-2028, checked 2026-10-24.
  * Source: https://www.sailing.org/rules-regulations/racingrules
@@ -10,7 +11,10 @@ export const TRAINING_PENALTIES = { contact: 5, markTouch: 3 } as const;
 export const RULE_EVENT_COOLDOWN = 8;
 const HULL_LENGTH = MIN_BOAT_SEPARATION;
 const HULL_RADIUS = HULL_LENGTH / 2;
-const LOOKAHEAD_SECONDS = 3;
+/** Speeds and look-ahead come from the race's scale (race-scale.ts, M5).
+ * Without one the judge is the legacy judge, exactly as before. HULL_LENGTH
+ * stays 22 units: 13.2 m at 0.6 m per unit in both models. */
+const legacyScale = (): RaceScale => raceScale(null);
 
 export type RacingRule = "10" | "11" | "12" | "14" | "29.1" | "31" | "28";
 export type RaceRuleEventKind = "give-way" | "avoid-contact" | "contact" | "early-start" | "start-clear" | "mark-touch" | "wrong-rounding" | "mark-rounded";
@@ -44,7 +48,17 @@ export interface RaceRulesFrame {
   penalties?: boolean;
   /** Snapshot before movement. Supply it to diagnose a wrong-side gate crossing. */
   previousPositions?: Readonly<Record<string, Vec2>>;
+  /** The race's scale model (race-scale.ts). Omitted: the legacy race. */
+  scale?: RaceScale;
+  /** Metric race only: the impacts the physical fleet measured this tick
+   * (ADR-0013 evidence, race-physical-response.ts). A hull or mark the
+   * constraint stopped exactly at the touching distance is then never missed. */
+  impacts?: readonly RaceRulesImpact[];
 }
+export type RaceRulesImpact = Readonly<{ boatId: string; closingMetresPerSecond: number } & (
+  | { kind: "hull"; otherBoatId: string }
+  | { kind: "mark"; markIndex: number }
+)>;
 
 export function createRaceRulesState(): RaceRulesState {
   return { penalties: {}, lastEmitted: {}, contacts: [], markContacts: [], early: [], laps: {} };
@@ -78,17 +92,19 @@ export function raceRightOfWay(a: RaceBoat, b: RaceBoat, windDir: number): Right
   return { giveWayId: aWindward > 0 ? a.id : b.id, standOnId: aWindward > 0 ? b.id : a.id, rule: "11" };
 }
 
-function velocity(b: RaceBoat): Vec2 {
+function velocity(b: RaceBoat, unitsPerKnotSecond: number): Vec2 {
   const u = unit(b.heading + (b.physics?.leeway ?? 0));
-  return { x: u.x * b.speed * UNITS_PER_KNOT_SECOND, y: u.y * b.speed * UNITS_PER_KNOT_SECOND };
+  return { x: u.x * b.speed * unitsPerKnotSecond, y: u.y * b.speed * unitsPerKnotSecond };
 }
 
-export function raceClosestApproach(a: RaceBoat, b: RaceBoat): { time: number; distance: number; closing: number } {
+/** Closest approach within the scale's look-ahead, in race units and
+ * simulation seconds, with each boat moving at its model's own speed. */
+export function raceClosestApproach(a: RaceBoat, b: RaceBoat, scale: RaceScale = legacyScale()): { time: number; distance: number; closing: number } {
   const p = { x: b.pos.x - a.pos.x, y: b.pos.y - a.pos.y };
-  const av = velocity(a), bv = velocity(b);
+  const av = velocity(a, scale.unitsPerKnotSecond), bv = velocity(b, scale.unitsPerKnotSecond);
   const v = { x: bv.x - av.x, y: bv.y - av.y };
   const vv = dot(v, v), d = Math.hypot(p.x, p.y);
-  const time = vv > .001 ? Math.max(0, Math.min(LOOKAHEAD_SECONDS, -dot(p, v) / vv)) : 0;
+  const time = vv > .001 ? Math.max(0, Math.min(scale.lookaheadSeconds, -dot(p, v) / vv)) : 0;
   return { time, distance: Math.hypot(p.x + v.x * time, p.y + v.y * time), closing: d > .001 ? -dot(p, v) / d : 0 };
 }
 
@@ -97,6 +113,15 @@ export function raceClosestApproach(a: RaceBoat, b: RaceBoat): { time: number; d
  * the contact tolerance includes the exact separation resolveCollisions uses. */
 export function evaluateRaceRules(previous: RaceRulesState, frame: RaceRulesFrame): { state: RaceRulesState; events: RaceRuleEvent[] } {
   if (frame.enabled === false || !frame.racing || !Number.isFinite(frame.time)) return { state: previous, events: [] };
+  const scale = frame.scale ?? legacyScale();
+  // Impact evidence (metric race): pairs and marks the constraint stopped this tick, closing in race units per second.
+  const hullImpacts = new Map<string, number>(), markImpacts = new Set<string>();
+  for (const hit of frame.impacts ?? []) {
+    if (hit.kind === "hull") {
+      const pair = [hit.boatId, hit.otherBoatId].sort().join("|");
+      hullImpacts.set(pair, Math.max(hullImpacts.get(pair) ?? 0, hit.closingMetresPerSecond / scale.metresPerUnit));
+    } else markImpacts.add(`${hit.boatId}:${hit.markIndex}`);
+  }
   const state: RaceRulesState = { penalties: { ...previous.penalties }, lastEmitted: { ...previous.lastEmitted }, contacts: [], markContacts: [], early: [...previous.early], laps: { ...previous.laps } };
   const events: RaceRuleEvent[] = [];
   const emit = (kind: RaceRuleEventKind, rule: RacingRule, boatId: string, otherBoatId?: string, penalty = 0, once = false) => {
@@ -127,7 +152,7 @@ export function evaluateRaceRules(previous: RaceRulesState, frame: RaceRulesFram
       : frame.course.marks.filter(m => m.type === "start");
     for (const mark of activeMarks) {
       const key = `${boat.id}:${frame.course.marks.indexOf(mark)}`;
-      const touching = distance(boat.pos, mark.pos) <= mark.radius + HULL_RADIUS;
+      const touching = distance(boat.pos, mark.pos) <= mark.radius + HULL_RADIUS || markImpacts.has(key);
       if (touching) {
         state.markContacts.push(key);
         if (!previous.markContacts.includes(key)) emit("mark-touch", "31", boat.id, undefined, TRAINING_PENALTIES.markTouch);
@@ -135,7 +160,8 @@ export function evaluateRaceRules(previous: RaceRulesState, frame: RaceRulesFram
     }
     const prev = frame.previousPositions?.[boat.id], mark = frame.course.marks[0];
     if (prev && boat.started && boat.lapDone === 0 && (boat.roundPhase ?? 0) === 0 && boat.pos.y < prev.y) {
-      const inner = mark.radius + HULL_RADIUS, outer = inner + 70;
+      const inner = mark.radius + HULL_RADIUS;
+      const outer = scale.wrongRoundingOuter.from === "inner" ? inner + scale.wrongRoundingOuter.units : scale.wrongRoundingOuter.units;
       if (segmentCrossed(prev, boat.pos, { x: mark.pos.x - inner, y: mark.pos.y }, { x: mark.pos.x - outer, y: mark.pos.y })) emit("wrong-rounding", "28", boat.id);
     }
   }
@@ -144,18 +170,19 @@ export function evaluateRaceRules(previous: RaceRulesState, frame: RaceRulesFram
     const d = distance(a.pos, b.pos);
     if (d > HULL_LENGTH * 8) continue;
     const pair = [a.id, b.id].sort().join("|");
-    const approach = raceClosestApproach(a, b);
+    const approach = raceClosestApproach(a, b, scale);
     const inMarkZone = boatsNearActiveMark(a, b, frame.course);
     const row = inMarkZone ? null : raceRightOfWay(a, b, frame.windDir);
-    if (approach.closing > .1 && approach.distance < HULL_LENGTH * 1.5 && approach.time < LOOKAHEAD_SECONDS) {
+    if (approach.closing > .1 && approach.distance < HULL_LENGTH * 1.5 && approach.time < scale.lookaheadSeconds) {
       if (row) emit("give-way", row.rule, row.giveWayId, row.standOnId);
       // Rule 14 still matters when priority is known or cannot be resolved here.
       emit("avoid-contact", "14", row?.standOnId ?? a.id, row?.giveWayId ?? b.id);
       if (!row) emit("avoid-contact", "14", b.id, a.id);
     }
-    if (d <= HULL_LENGTH + .1) {
+    const impactClosing = hullImpacts.get(pair);
+    if (d <= HULL_LENGTH + .1 || impactClosing !== undefined) {
       state.contacts.push(pair);
-      if (!previous.contacts.includes(pair) && approach.closing > UNITS_PER_KNOT_SECOND * .2) {
+      if (!previous.contacts.includes(pair) && Math.max(approach.closing, impactClosing ?? 0) > scale.contactClosingUnitsPerSecond) {
         if (row) emit("contact", row.rule, row.giveWayId, row.standOnId, TRAINING_PENALTIES.contact);
         else { emit("contact", "14", a.id, b.id); emit("contact", "14", b.id, a.id); }
       }

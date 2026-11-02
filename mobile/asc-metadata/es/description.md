@@ -37,9 +37,9 @@ EL BARCO Y LAS REGLAS
 - Primera semana a bordo: qué llevar, qué preguntar al patrón, cómo ayudar a la tripulación.
 - Lista antes de la regata: márcala la noche anterior.
 
-TITULACIONES POLACAS
+TITULACIONES
 
-- Radio marina SRC: 324 preguntas UKE con traducciones de estudio, teoría y práctica en siete idiomas. Las frases de radio estándar siguen en inglés. Desde la versión 1.7.0, compilación 59, la voz usa un modelo local de inglés disponible; sin modelo puedes comprobar el contenido escrito sin conexión.
+- Radio marina SRC: 324 preguntas oficiales de examen con traducciones de estudio, teoría y práctica en siete idiomas. Las frases de radio estándar siguen en inglés. Desde la versión 1.7.0, compilación 59, la voz usa un modelo local de inglés disponible; sin modelo puedes comprobar el contenido escrito sin conexión.
 - Sternik motorowodny (en polaco): 879 preguntas de examen, teoría y un examen de prueba completo de 75 preguntas en 90 minutos. Funciona sin conexión; la práctica oral comprueba localmente las respuestas escritas en polaco.
 
 PRIVACIDAD

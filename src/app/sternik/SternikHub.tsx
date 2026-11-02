@@ -97,11 +97,20 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
         </h1>
         <p className="mt-2 max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
           {tp(
-            'Подготовка к польскому госэкзамену на патент судоводителя моторной лодки: теория со схемами, тренажёр вопросов и пробный экзамен. Вопросы по-польски (как на экзамене), пояснения по-русски.',
-            'Preparation for the Polish state exam for the motorboat helmsman licence: theory with diagrams, a question trainer and a mock exam. Questions in Polish (as on the exam), explanations in Russian.',
+            'Подготовка к экзамену на патент судоводителя моторной лодки: теория со схемами, тренажёр вопросов и пробный экзамен. Вопросы по-польски (как на экзамене), пояснения по-русски.',
+            'Preparation for the motorboat helmsman licence exam: theory with diagrams, a question trainer and a mock exam.',
             'Przygotowanie do państwowego egzaminu na patent sternika motorowodnego: teoria ze schematami, trening pytań i próbny egzamin.',
           )}
         </p>
+        {/* Owner, 2026-11-01: no country in any title. Only the Polish text says
+            where the material comes from, in full; other languages stay short. */}
+        {lang === 'pl' && (
+          <p data-testid="sternik-source-note" className="mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Materiały przygotowaliśmy na podstawie szkolenia do polskiego patentu sternika motorowodnego: zakres teorii, pytania egzaminacyjne,
+            format egzaminu i opłaty odpowiadają przepisom o uprawianiu żeglarstwa (rozporządzenie Ministra Sportu i Turystyki z 9 kwietnia 2013 r.,
+            tekst jednolity Dz.U. 2026 poz. 604). Pytania i terminy brzmią tak, jak na egzaminie.
+          </p>
+        )}
       </header>
 
       {/* Exam format */}
@@ -248,9 +257,9 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
             </div>
             <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {tp(
-                'Отдельный раздел про морскую УКВ-рацию: как получить SRC в UKE, каналы, MAYDAY/PAN-PAN, DSC и фонетика.',
-                'A dedicated section on the marine VHF radio: how to get the SRC at UKE, channels, MAYDAY/PAN-PAN, DSC and phonetics.',
-                'Osobny dział o radiu VHF: jak zdobyć SRC w UKE, kanały, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
+                'Отдельный раздел про морскую УКВ-рацию: как получить SRC, каналы, MAYDAY/PAN-PAN, DSC и фонетика.',
+                'A dedicated section on the marine VHF radio: how to get the SRC, channels, MAYDAY/PAN-PAN, DSC and phonetics.',
+                'Osobny dział o radiu VHF: jak zdobyć SRC, kanały, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
               )}
             </p>
           </div>

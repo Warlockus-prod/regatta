@@ -306,3 +306,56 @@ test("short portrait Trainer keeps wheel controls and Diagnostics reachable belo
   expect(target.y + target.height).toBeLessThanOrEqual(568);
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
 });
+
+// TestFlight 74 feedback (2026-11-01): the race wind card sits over the
+// Trainer scene in 3D and on the top view, reads the live boat, and stays out
+// of the side and rear drawings, which keep their own header in that corner.
+test("the race wind card sits over the 3D and top views and follows the boat", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize(PHONE);
+  const deadline = Date.now() + 25_000;
+  const remaining = () => Math.max(1, deadline - Date.now());
+  const scene = page.getByTestId("trainer-scene");
+  const card = scene.getByTestId("trainer-wind-box");
+  const chooseView = async (name: string) => {
+    await page.getByTestId("scene-view-button").click();
+    await page.getByTestId("scene-drawer").first().getByRole("button", { name, exact: true }).click();
+    await expect(page.getByTestId("scene-drawer").first()).toBeHidden();
+  };
+  const cardInsideScene = async () => {
+    const s = (await scene.boundingBox())!;
+    const c = (await card.boundingBox())!;
+    expect(c.x).toBeGreaterThanOrEqual(s.x - 1);
+    expect(c.y).toBeGreaterThanOrEqual(s.y - 1);
+    expect(c.x + c.width).toBeLessThanOrEqual(s.x + s.width / 2 + 1);
+    expect(c.y + c.height).toBeLessThanOrEqual(s.y + s.height + 1);
+  };
+
+  await page.goto("/simulator-v3?embed=1&lang=en&twa=120&tack=s&tws=10");
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  await expect(card).toBeVisible({ timeout: remaining() });
+  await expect(card.getByTestId("race-wind-compass")).toBeVisible();
+  await expect(card.getByTestId("race-true-wind-angle")).toHaveText("120°");
+  await expect(card.getByTestId("race-true-wind-side")).toHaveAttribute("data-side", "starboard");
+  await expect(card.getByTestId("race-true-wind-speed")).toHaveText(/^10\.\d kn$/);
+  await cardInsideScene();
+
+  await page.goto("/simulator-v3?embed=1&lang=en&twa=60&tack=p&tws=16");
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  await expect(card.getByTestId("race-true-wind-angle")).toHaveText("60°", { timeout: remaining() });
+  await expect(card.getByTestId("race-true-wind-side")).toHaveAttribute("data-side", "port");
+  await expect(card.getByTestId("race-true-wind-speed")).toHaveText(/^1[56]\.\d kn$/);
+  await expect(card.getByTestId("trainer-boat-speed")).toHaveText(/^\d+\.\d kn$/);
+
+  await chooseView("Top");
+  await expect(card).toBeVisible();
+  await expect(card.getByTestId("race-wind-compass")).toHaveCount(0);
+  await expect(card.getByTestId("trainer-wind-heading")).toContainText("TWA");
+  await expect(card.getByTestId("race-true-wind-angle")).toHaveText("60°");
+  await cardInsideScene();
+
+  for (const name of ["Rear", "Side"]) {
+    await chooseView(name);
+    await expect(scene.getByTestId("trainer-wind-box")).toHaveCount(0);
+  }
+});

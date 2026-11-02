@@ -1,0 +1,106 @@
+// UI strings of the Manoeuvres section, all seven languages, read with tl().
+import type { Text7 } from "@/data/manoeuvres";
+
+const t7 = (ru: string, en: string, pl: string, es: string, fr: string, de: string, it: string): Text7 => ({ ru, en, pl, es, fr, de, it });
+
+export const copy = {
+  title: t7("Манёвры", "Manoeuvres", "Manewry", "Maniobras", "Manœuvres", "Manöver", "Manovre"),
+  intro: t7(
+    "Швартовка и управление на нашей яхте: мотор с инерцией, заброс кормы винтом, руль, который работает только на ходу, ветер и кранцы.",
+    "Mooring and boat handling on our yacht: an engine with inertia, prop walk, a rudder that works only with water flowing past it, wind and fenders.",
+    "Cumowanie i manewrowanie naszym jachtem: silnik z bezwładnością, znoszenie rufy przez śrubę, ster działający tylko w ruchu, wiatr i odbijacze.",
+    "Atraque y manejo de nuestro velero: un motor con inercia, el efecto de la hélice, un timón que solo actúa con arrancada, viento y defensas.",
+    "Amarrage et manœuvre de notre voilier : un moteur avec de l'inertie, le pas d'hélice, un safran qui ne porte qu'avec de l'erre, le vent et les pare-battages.",
+    "Anlegen und Manövrieren mit unserer Yacht: ein Motor mit Trägheit, der Radeffekt, ein Ruder, das nur mit Fahrt wirkt, Wind und Fender.",
+    "Ormeggio e manovra con la nostra barca: un motore con inerzia, l'effetto evolutivo dell'elica, un timone che lavora solo con abbrivio, vento e parabordi."),
+  locked: t7("Откроется после звезды в предыдущем упражнении", "Opens after a star in the previous exercise", "Otworzy się po gwiazdce w poprzednim ćwiczeniu", "Se abre con una estrella en el ejercicio anterior", "S'ouvre après une étoile à l'exercice précédent", "Öffnet sich nach einem Stern in der vorigen Übung", "Si apre con una stella nell'esercizio precedente"),
+  windKn: t7("ветер {n} уз", "wind {n} kn", "wiatr {n} w", "viento {n} nudos", "vent {n} nœuds", "Wind {n} kn", "vento {n} nodi"),
+  difficulty: [
+    t7("легко", "easy", "łatwe", "fácil", "facile", "leicht", "facile"),
+    t7("средне", "medium", "średnie", "medio", "moyen", "mittel", "medio"),
+    t7("трудно", "hard", "trudne", "difícil", "difficile", "schwer", "difficile"),
+  ],
+  stars: t7("{n} из 3 звёзд", "{n} of 3 stars", "{n} z 3 gwiazdek", "{n} de 3 estrellas", "{n} étoiles sur 3", "{n} von 3 Sternen", "{n} stelle su 3"),
+  back: t7("Все манёвры", "All manoeuvres", "Wszystkie manewry", "Todas las maniobras", "Toutes les manœuvres", "Alle Manöver", "Tutte le manovre"),
+  start: t7("Начать", "Start", "Zacznij", "Empezar", "Commencer", "Starten", "Inizia"),
+  restart: t7("Заново", "Restart", "Od nowa", "Reiniciar", "Recommencer", "Neu starten", "Ricomincia"),
+  retry: t7("Ещё раз", "Try again", "Jeszcze raz", "Otra vez", "Réessayer", "Noch einmal", "Riprova"),
+  next: t7("Следующее упражнение", "Next exercise", "Następne ćwiczenie", "Siguiente ejercicio", "Exercice suivant", "Nächste Übung", "Esercizio successivo"),
+  hintShow: t7("Подсказка", "Hint", "Podpowiedź", "Pista", "Indice", "Tipp", "Suggerimento"),
+  hintHide: t7("Скрыть подсказку", "Hide hint", "Ukryj podpowiedź", "Ocultar pista", "Masquer l'indice", "Tipp ausblenden", "Nascondi suggerimento"),
+  castOff: t7("Отдать шпринг", "Cast off the spring", "Oddaj szpring", "Largar el spring", "Larguer la garde", "Spring loswerfen", "Mollare lo spring"),
+  lineFast: t7("Шпринг заведен", "Spring made fast", "Szpring założony", "Spring hecho firme", "Garde tournée", "Spring fest", "Spring dato volta"),
+  goalLabel: t7("Задача", "Goal", "Zadanie", "Objetivo", "Objectif", "Aufgabe", "Obiettivo"),
+  howLabel: t7("Как это делают", "How it is done", "Jak to się robi", "Cómo se hace", "Comment faire", "So geht es", "Come si fa"),
+  criteriaLabel: t7("Как оцениваем", "How it is scored", "Jak oceniamy", "Cómo se puntúa", "Comment c'est noté", "So wird bewertet", "Come si valuta"),
+  schemeLabel: t7("Схема манёвра: старт, путь и цель, стрелка показывает ветер", "Manoeuvre diagram: start, track and target, the arrow shows the wind", "Schemat manewru: start, droga i cel, strzałka pokazuje wiatr", "Esquema de la maniobra: salida, trayectoria y objetivo; la flecha indica el viento", "Schéma de la manœuvre : départ, trajet et objectif, la flèche indique le vent", "Skizze des Manövers: Start, Weg und Ziel, der Pfeil zeigt den Wind", "Schema della manovra: partenza, percorso e obiettivo, la freccia indica il vento"),
+  sceneLabel: t7("Гавань, вид сверху", "Harbour seen from above", "Port widziany z góry", "Puerto visto desde arriba", "Port vu du dessus", "Hafen von oben", "Porto visto dall'alto"),
+  criteria: {
+    berth: t7("Встать в контур: до {pos} м и {deg}°, скорость не больше {v} уз, {hold} с.", "Stop in the outline: within {pos} m and {deg} degrees, at {v} kn or less, for {hold} s.", "Stań w obrysie: do {pos} m i {deg}°, prędkość najwyżej {v} w, przez {hold} s.", "Quédate en el contorno: a {pos} m y {deg} grados como mucho, a {v} nudos o menos, durante {hold} s.", "Arrête-toi dans le contour : à {pos} m et {deg} degrés près, à {v} nœuds au plus, pendant {hold} s.", "Stoppe in der Markierung: bis {pos} m und {deg} Grad, höchstens {v} kn, {hold} s lang.", "Fermati nella sagoma: entro {pos} m e {deg} gradi, a non più di {v} nodi, per {hold} s."),
+    pickup: t7("Подойти на {reach} м, скорость не больше {v} уз.", "Come within {reach} m at {v} kn or less.", "Podejdź na {reach} m z prędkością najwyżej {v} w.", "Llega a {reach} m a {v} nudos o menos.", "Arrive à {reach} m à {v} nœuds au plus.", "Komm bis auf {reach} m heran, höchstens {v} kn.", "Arriva a {reach} m a non più di {v} nodi."),
+    neutral: t7("Винт в этот момент на нейтрали.", "The propeller in neutral at that moment.", "Śruba w tym momencie na luzie.", "La hélice en punto muerto en ese momento.", "L'hélice au point mort à ce moment.", "Der Propeller dabei ausgekuppelt.", "L'elica in folle in quel momento."),
+    leave: t7("Вся лодка в пунктирной зоне чистой воды.", "The whole boat inside the dashed clear-water zone.", "Cały jacht w zaznaczonej strefie czystej wody.", "Todo el barco dentro de la zona libre marcada.", "Tout le bateau dans la zone d'eau libre marquée.", "Das ganze Boot im markierten freien Wasser.", "Tutta la barca nella zona d'acqua libera segnata."),
+    turn: t7("Нос на обратный курс с точностью {deg}°, в проходе, скорость до {v} уз, {hold} с.", "Bow on the reverse course within {deg} degrees, inside the fairway, at {v} kn or less, for {hold} s.", "Dziób na kurs przeciwny z dokładnością {deg}°, w przejściu, prędkość do {v} w, przez {hold} s.", "Proa al rumbo contrario con {deg} grados de margen, dentro del canal, a {v} nudos o menos, durante {hold} s.", "Étrave au cap inverse à {deg} degrés près, dans l'allée, à {v} nœuds au plus, pendant {hold} s.", "Bug auf Gegenkurs bis {deg} Grad genau, in der Gasse, höchstens {v} kn, {hold} s lang.", "Prua sulla rotta opposta entro {deg} gradi, nel corridoio, a non più di {v} nodi, per {hold} s."),
+    gates: t7("Пройти ворота по порядку.", "Pass the gates in order.", "Przepłyń bramki po kolei.", "Pasa las puertas en orden.", "Passe les portes dans l'ordre.", "Fahr die Tore der Reihe nach.", "Passa le porte in ordine."),
+    station: t7("{s} с подряд в круге {r} м.", "{s} s in a row inside the {r} m circle.", "{s} s bez przerwy w kole {r} m.", "{s} s seguidos dentro del círculo de {r} m.", "{s} s d'affilée dans le cercle de {r} m.", "{s} s am Stück im {r}-m-Kreis.", "{s} s di fila nel cerchio di {r} m."),
+    stars: t7("1 звезда: задача выполнена за {limit} с. 2: без ударов, касание кранцем до {gentle} уз. 3: ещё и за {par} с с точностью вдвое лучше допуска.", "1 star: goal done within {limit} s. 2: no hits, fender touches at {gentle} kn or less. 3: also within {par} s and twice as precise as the tolerance.", "1 gwiazdka: zadanie w {limit} s. 2: bez uderzeń, dotknięcie odbijaczem do {gentle} w. 3: do tego w {par} s i dwa razy dokładniej niż tolerancja.", "1 estrella: objetivo en {limit} s. 2: sin golpes, roces con defensa a {gentle} nudos o menos. 3: además en {par} s y con el doble de precisión que el margen.", "1 étoile : objectif atteint en {limit} s. 2 : aucun choc, contacts sur pare-battage à {gentle} nœuds au plus. 3 : en plus en {par} s et deux fois plus précis que la tolérance.", "1 Stern: Ziel in {limit} s. 2: kein Stoß, Fenderkontakt höchstens {gentle} kn. 3: dazu in {par} s und doppelt so genau wie die Toleranz.", "1 stella: obiettivo in {limit} s. 2: nessun urto, contatti sui parabordi a non più di {gentle} nodi. 3: in più entro {par} s e con precisione doppia rispetto alla tolleranza."),
+    starsSail: t7("1 звезда: задача выполнена за {limit} с. 2: ни одного касания буя. 3: ещё и за {par} с.", "1 star: goal done within {limit} s. 2: no buoy touched. 3: also within {par} s.", "1 gwiazdka: zadanie w {limit} s. 2: żadnego dotknięcia boi. 3: do tego w {par} s.", "1 estrella: objetivo en {limit} s. 2: sin tocar boyas. 3: además en {par} s.", "1 étoile : objectif atteint en {limit} s. 2 : aucune bouée touchée. 3 : en plus en {par} s.", "1 Stern: Ziel in {limit} s. 2: keine Tonne berührt. 3: dazu in {par} s.", "1 stella: obiettivo in {limit} s. 2: nessuna boa toccata. 3: in più entro {par} s."),
+  },
+  hud: {
+    speed: t7("Скорость", "Speed", "Prędkość", "Velocidad", "Vitesse", "Fahrt", "Velocità"),
+    astern: t7("назад", "astern", "wstecz", "atrás", "arrière", "zurück", "indietro"),
+    throttle: t7("Газ", "Throttle", "Manetka", "Acelerador", "Gaz", "Gashebel", "Acceleratore"),
+    sheets: t7("Шкоты", "Sheets", "Szoty", "Escotas", "Écoutes", "Schoten", "Scotte"),
+    wind: t7("Ветер", "Wind", "Wiatr", "Viento", "Vent", "Wind", "Vento"),
+    target: t7("До цели", "To target", "Do celu", "Al objetivo", "Jusqu'au but", "Zum Ziel", "All'obiettivo"),
+    time: t7("Время", "Time", "Czas", "Tiempo", "Temps", "Zeit", "Tempo"),
+    touches: t7("Касания", "Touches", "Dotknięcia", "Toques", "Contacts", "Berührungen", "Contatti"),
+    gate: t7("Ворота", "Gate", "Bramka", "Puerta", "Porte", "Tor", "Porta"),
+    inCircle: t7("В круге", "In circle", "W kole", "En el círculo", "Dans le cercle", "Im Kreis", "Nel cerchio"),
+  },
+  throttle: [
+    { value: 1, label: t7("Полный вперёд", "Full ahead", "Cała naprzód", "Avante toda", "En avant toute", "Voll voraus", "Avanti tutta") },
+    { value: 0.4, label: t7("Малый вперёд", "Slow ahead", "Mała naprzód", "Avante poca", "En avant lente", "Langsam voraus", "Avanti adagio") },
+    { value: 0, label: t7("Нейтраль", "Neutral", "Luz", "Punto muerto", "Point mort", "Leerlauf", "Folle") },
+    { value: -0.4, label: t7("Малый назад", "Slow astern", "Mała wstecz", "Atrás poca", "En arrière lente", "Langsam zurück", "Indietro adagio") },
+    { value: -1, label: t7("Полный назад", "Full astern", "Cała wstecz", "Atrás toda", "En arrière toute", "Voll zurück", "Indietro tutta") },
+  ],
+  steer: {
+    port: t7("Руль влево", "Helm to port", "Ster w lewo", "Timón a babor", "Barre à bâbord", "Ruder Backbord", "Timone a sinistra"),
+    starboard: t7("Руль вправо", "Helm to starboard", "Ster w prawo", "Timón a estribor", "Barre à tribord", "Ruder Steuerbord", "Timone a dritta"),
+    centre: t7("Прямо руль", "Midships", "Ster prosto", "Timón a la vía", "Barre au centre", "Ruder mittschiffs", "Timone al centro"),
+    rudder: t7("Руль", "Rudder", "Ster", "Timón", "Safran", "Ruder", "Timone"),
+    left: t7("влево", "port", "w lewo", "babor", "bâbord", "Backbord", "sinistra"),
+    right: t7("вправо", "starboard", "w prawo", "estribor", "tribord", "Steuerbord", "dritta"),
+  },
+  sheets: {
+    trim: t7("Выбрать шкоты", "Trim the sheets", "Wybierz szoty", "Cazar escotas", "Border les écoutes", "Schoten dicht", "Cazza le scotte"),
+    ease: t7("Потравить шкоты", "Ease the sheets", "Luzuj szoty", "Largar escotas", "Choquer les écoutes", "Schoten fieren", "Lasca le scotte"),
+    auto: t7("Паруса тримуются сами, ты держишь руль.", "The sails trim themselves; you steer.", "Żagle trymują się same, ty sterujesz.", "Las velas se ajustan solas; tú gobiernas.", "Les voiles se règlent seules, tu barres.", "Die Segel trimmen sich selbst, du steuerst.", "Le vele si regolano da sole, tu governi."),
+  },
+  keys: t7("Клавиатура: стрелки влево и вправо поворачивают штурвал, вверх и вниз двигают ручку газа, пробел ставит руль прямо.", "Keyboard: left and right arrows turn the wheel, up and down move the throttle, space centres the rudder.", "Klawiatura: strzałki w lewo i w prawo obracają koło sterowe, w górę i w dół przesuwają manetkę, spacja ustawia ster prosto.", "Teclado: las flechas izquierda y derecha giran la rueda, arriba y abajo mueven el acelerador, la barra espaciadora centra el timón.", "Clavier : flèches gauche et droite pour la barre, haut et bas pour la manette, espace pour remettre la barre au centre.", "Tastatur: Pfeile links und rechts drehen das Rad, hoch und runter bewegen den Gashebel, Leertaste stellt das Ruder mittschiffs.", "Tastiera: frecce sinistra e destra girano la ruota, su e giù muovono l'acceleratore, la barra spaziatrice centra il timone."),
+  result: {
+    success: t7("Получилось", "Done", "Udało się", "Conseguido", "Réussi", "Geschafft", "Riuscito"),
+    timeout: t7("Время вышло", "Time is up", "Czas minął", "Se acabó el tiempo", "Temps écoulé", "Zeit abgelaufen", "Tempo scaduto"),
+    time: t7("Время", "Time", "Czas", "Tiempo", "Temps", "Zeit", "Tempo"),
+    touches: t7("Касаний", "Touches", "Dotknięć", "Toques", "Contacts", "Berührungen", "Contatti"),
+    hits: t7("Из них ударов", "Of them hits", "W tym uderzeń", "De ellos golpes", "Dont chocs", "Davon Stöße", "Di cui urti"),
+    hardest: t7("Самое сильное касание", "Hardest touch", "Najmocniejsze dotknięcie", "Toque más fuerte", "Contact le plus fort", "Stärkste Berührung", "Contatto più forte"),
+    precision: t7("Точность", "Precision", "Dokładność", "Precisión", "Précision", "Genauigkeit", "Precisione"),
+    missing: {
+      goal: t7("Задача не выполнена за отведённое время.", "The goal was not reached in time.", "Zadanie nie zostało wykonane w czasie.", "No se alcanzó el objetivo a tiempo.", "L'objectif n'a pas été atteint à temps.", "Das Ziel wurde nicht rechtzeitig erreicht.", "L'obiettivo non è stato raggiunto in tempo."),
+      contact: t7("Был удар: чужая лодка, свая или слишком быстрое касание.", "There was a hit: another boat, a pile or too fast a touch.", "Było uderzenie: cudzy jacht, dalba albo zbyt szybkie dotknięcie.", "Hubo un golpe: otro barco, un pilote o un toque demasiado rápido.", "Il y a eu un choc : un autre bateau, un pieu ou un contact trop rapide.", "Es gab einen Stoß: ein anderes Boot, ein Dalben oder eine zu schnelle Berührung.", "C'è stato un urto: un'altra barca, un palo o un contatto troppo veloce."),
+      time: t7("На третью звезду нужно быстрее.", "The third star needs a quicker run.", "Na trzecią gwiazdkę trzeba szybciej.", "La tercera estrella pide más rapidez.", "La troisième étoile demande d'aller plus vite.", "Für den dritten Stern musst du schneller sein.", "Per la terza stella serve più rapidità."),
+      precision: t7("На третью звезду нужно точнее.", "The third star needs more precision.", "Na trzecią gwiazdkę trzeba dokładniej.", "La tercera estrella pide más precisión.", "La troisième étoile demande plus de précision.", "Für den dritten Stern musst du genauer sein.", "Per la terza stella serve più precisione."),
+    },
+    saveFailed: t7("Не удалось сохранить результат на этом устройстве.", "Could not save the result on this device.", "Nie udało się zapisać wyniku na tym urządzeniu.", "No se pudo guardar el resultado en este dispositivo.", "Impossible d'enregistrer le résultat sur cet appareil.", "Das Ergebnis konnte auf diesem Gerät nicht gespeichert werden.", "Impossibile salvare il risultato su questo dispositivo."),
+  },
+  scheme: {
+    wind: t7("ветер", "wind", "wiatr", "viento", "vent", "Wind", "vento"),
+    start: t7("старт", "start", "start", "salida", "départ", "Start", "partenza"),
+    target: t7("цель", "target", "cel", "objetivo", "but", "Ziel", "obiettivo"),
+  },
+};
+
+export const fill = (text: string, values: Record<string, string | number>) =>
+  text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ""));

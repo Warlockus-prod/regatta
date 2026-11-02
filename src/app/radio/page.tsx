@@ -9,6 +9,7 @@ import { RADIO_WEAK_AREAS } from "./weakSpots";
 import { loadRadioCourseProgress, type RadioCourseProgress } from "./courseProgress";
 import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
 import { RADIO_GUIDED_HREF } from "./navigation";
+import { PHONETIC_COPY, PHONETIC_DRILL_HREF } from "@/data/radio/phonetic-copy";
 
 const EMPTY_PROGRESS: RadioCourseProgress = {
   theoryCompleted: 0,
@@ -54,7 +55,7 @@ function ProgressLine({
 
 export default function RadioCourseHome() {
   const { rt: radioText } = useRadioI18n();
-  const { tp } = useRadioI18n();
+  const { tp, tl } = useRadioI18n();
   const [progress, setProgress] = useState<RadioCourseProgress>(EMPTY_PROGRESS);
 
   useEffect(() => {
@@ -124,11 +125,15 @@ export default function RadioCourseHome() {
     {
       number: "02",
       title: tp("Научиться управлять", "Operate", "Obsługuj"),
-      text: tp(
-        "15 последовательных уроков на моделях ICOM IC-M330GE и IC-M323, используемых на практике UKE.",
-        "15 sequential lessons on the ICOM IC-M330GE and IC-M323 used in UKE practical exams.",
-        "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na praktyce UKE.",
-      ),
+      text: tl({
+        pl: "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na egzaminie praktycznym.",
+        ru: "15 последовательных уроков на моделях ICOM IC-M330GE и IC-M323, используемых на практическом экзамене.",
+        en: "15 sequential lessons on the ICOM IC-M330GE and IC-M323 used in the practical exam.",
+        es: "15 lecciones seguidas con los ICOM IC-M330GE e IC-M323 que se usan en el examen práctico.",
+        fr: "15 leçons progressives sur les ICOM IC-M330GE et IC-M323 utilisés à l'examen pratique.",
+        de: "15 aufeinander aufbauende Lektionen an den ICOM IC-M330GE und IC-M323, die in der praktischen Prüfung verwendet werden.",
+        it: "15 lezioni in sequenza sugli ICOM IC-M330GE e IC-M323 usati all'esame pratico.",
+      }),
       href: RADIO_GUIDED_HREF,
       action: tp("Курс управления", "Controls course", "Kurs obsługi"),
     },
@@ -145,7 +150,7 @@ export default function RadioCourseHome() {
     },
     {
       number: "04",
-      title: tp("Сдать формат UKE", "Pass the UKE format", "Zdaj format UKE"),
+      title: tl({ pl: "Zdaj w formacie egzaminu", ru: "Сдать в формате экзамена", en: "Pass the exam format", es: "Supera el formato del examen", fr: "Réussir le format de l'examen", de: "Das Prüfungsformat bestehen", it: "Supera il formato d'esame" }),
       text: tp(
         "324 учебных вопроса, пробный экзамен 2 x 5, 26 практических заданий и тематическое повторение.",
         "324 study questions, a 2 x 5 mock exam, 26 practical tasks, and topic-based review.",
@@ -161,7 +166,7 @@ export default function RadioCourseHome() {
       <header className="mb-8 grid gap-6 border-b pb-8 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--text-secondary)" }}>
-            {radioText(tp("Подготовка к польскому SRC", "Polish SRC preparation", "Przygotowanie do polskiego SRC"))}
+            {radioText(tl({ pl: "Kurs radiowy SRC", ru: "Курс радиосвязи SRC", en: "SRC radio course", es: "Curso de radio SRC", fr: "Cours de radio SRC", de: "SRC-Funkkurs", it: "Corso di radio SRC" }))}
           </p>
           <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
             {radioText(tp(
@@ -171,11 +176,15 @@ export default function RadioCourseHome() {
             ))}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            {radioText(tp(
-              "Курс разделяет три вещи: ответ для экзамена UKE, международную процедуру и местную практику. Сначала ты понимаешь причину, затем отвечаешь на вопросы и только после этого выполняешь процедуру на ICOM.",
-              "The course separates the UKE exam answer, international procedure, and local practice. First understand the reason, then answer questions, then perform the procedure on an ICOM.",
-              "Kurs rozdziela odpowiedź egzaminacyjną UKE, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
-            ))}
+            {radioText(tl({
+              pl: "Kurs rozdziela odpowiedź egzaminacyjną, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
+              ru: "Курс разделяет три вещи: ответ для экзамена, международную процедуру и местную практику. Сначала ты понимаешь причину, затем отвечаешь на вопросы и только после этого выполняешь процедуру на ICOM.",
+              en: "The course separates the exam answer, international procedure, and local practice. First understand the reason, then answer questions, then perform the procedure on an ICOM.",
+              es: "El curso separa tres cosas: la respuesta de examen, el procedimiento internacional y la práctica local. Primero entiendes el porqué, luego respondes preguntas y después haces el procedimiento en un ICOM.",
+              fr: "Le cours distingue trois choses : la réponse attendue à l'examen, la procédure internationale et la pratique locale. D'abord tu comprends pourquoi, puis tu réponds aux questions, puis tu exécutes la procédure sur un ICOM.",
+              de: "Der Kurs trennt drei Dinge: die Prüfungsantwort, das internationale Verfahren und die örtliche Praxis. Zuerst verstehst du den Grund, dann beantwortest du Fragen und erst danach führst du das Verfahren an einem ICOM aus.",
+              it: "Il corso distingue tre cose: la risposta d'esame, la procedura internazionale e la pratica locale. Prima capisci il perché, poi rispondi alle domande e infine esegui la procedura su un ICOM.",
+            }))}
           </p>
           <Link
             href={next.href}
@@ -240,7 +249,7 @@ export default function RadioCourseHome() {
       <section className="mb-10 grid gap-6 border-y py-6 md:grid-cols-3" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
           <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-            {radioText(tp("Формат UKE", "UKE format", "Format UKE"))}
+            {radioText(tl({ pl: "Format egzaminu", ru: "Формат экзамена", en: "Exam format", es: "Formato del examen", fr: "Format de l'examen", de: "Prüfungsformat", it: "Formato d'esame" }))}
           </h2>
           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             {radioText(tp(
@@ -284,6 +293,9 @@ export default function RadioCourseHome() {
         </Link>
         <Link href="/radio/pozycja" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
           {radioText(tp("Диктовка позиции", "Position dictation", "Dyktowanie pozycji"))}
+        </Link>
+        <Link href={PHONETIC_DRILL_HREF} className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
+          {tl(PHONETIC_COPY.drillTitle)}
         </Link>
         <Link href="/radio/zadania" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
           {radioText(tp("26 практических заданий", "26 practical tasks", "26 zadań praktycznych"))}

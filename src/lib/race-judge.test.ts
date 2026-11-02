@@ -235,6 +235,14 @@ describe("start jostle (M0-3)", () => {
     expect(summary.totalPenaltySeconds).toBe(5);
   });
 
+  it("groups by the race's own jostle when given one (M5 step 6: the metric race's 16 s)", () => {
+    const late = ev({ kind: "avoid-contact", rule: "14", boatId: "player", otherBoatId: "bot1", time: 13 });
+    expect(buildRaceJudgeDebrief([...opening, late], { startedAt: 1 }).items.map(i => i.jostle === true)).toEqual([true, false]);
+    const metric = buildRaceJudgeDebrief([...opening, late], { startedAt: 1, startJostleSeconds: 16 });
+    expect(metric.items).toHaveLength(1);
+    expect(metric.items[0]).toMatchObject({ jostle: true, occurrences: 5, until: 13 });
+  });
+
   it("matches the live notice filter exactly", () => {
     expect(opening.every(isStartJostle)).toBe(true);
     expect(isStartJostle(ev({ kind: "contact", rule: "10", boatId: "player", time: 1, penaltySeconds: 5 }))).toBe(false);

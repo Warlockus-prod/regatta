@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MIN_BOAT_SEPARATION, calcTWA, stepBoat, type RaceBoat } from "@/lib/race-physics";
 import { classifyManoeuvre, createManoeuvreState } from "@/lib/race-manoeuvres";
 import { RACE_START_JOSTLE_SECONDS } from "@/lib/race-start-jostle";
+import { raceScale } from "@/lib/race-scale";
 import { CONTACT_CUE, TURN_COST, contactCue, createContactCueState, playerTouching, watchTurn, type TurnWatch } from "./race-cues";
 
 // Contract (M1-3): the cost of a tack is told when the boat is slowest (as
@@ -96,5 +97,15 @@ describe("contact frame cue", () => {
     expect(step(true, RACE_START_JOSTLE_SECONDS - .1)).toBe(false);
     expect(step(false, RACE_START_JOSTLE_SECONDS + 1)).toBe(false);
     expect(step(true, 30, false)).toBe(false);
+  });
+
+  it("stays quiet for the race's own start jostle (M5 step 6: metric 16 s, legacy 10 s)", () => {
+    const jostleSeconds = raceScale("short").startJostleSeconds;
+    expect(jostleSeconds).toBe(16);
+    const cueAt = (t: number, seconds?: number) => contactCue(createContactCueState(), { touching: true, t, racing: true, jostleSeconds: seconds }).cue;
+    expect(cueAt(12)).toBe(true);
+    expect(cueAt(12, jostleSeconds)).toBe(false);
+    expect(cueAt(jostleSeconds, jostleSeconds)).toBe(true);
+    expect(cueAt(12, raceScale(null).startJostleSeconds)).toBe(true);
   });
 });

@@ -230,14 +230,14 @@ export default function Rules() {
           <Text variant="body" style={styles.introText}>{intro}</Text>
         </View>
 
-        {/* Kursy (patenty) - Polish licence courses embedded from the web */}
+        {/* Kursy (patenty) - licence courses; no country in titles (owner, 2026-11-01) */}
         <View style={styles.sectionHeader}>
           <View style={[styles.badge, styles.badgeColregs]}>
             <Text style={[styles.badgeText, { color: colors.accentCyan }]}>🎓 KURSY</Text>
           </View>
           <Text variant="subtitle" style={styles.sectionTitle}>
-            {tp('Курсы (патенты PL)', 'Courses (PL licenses)', 'Kursy (polskie patenty)', {
-              es: 'Cursos (títulos polacos)', fr: 'Cours (permis polonais)', de: 'Kurse (polnische Scheine)', it: 'Corsi (patenti polacche)',
+            {tp('Курсы (патенты)', 'Courses (licences)', 'Kursy (patenty)', {
+              es: 'Cursos (títulos)', fr: 'Cours (permis)', de: 'Kurse (Scheine)', it: 'Corsi (patenti)',
             })}
           </Text>
         </View>
@@ -274,10 +274,10 @@ export default function Rules() {
               <Text variant="subtitle">SRC Radio</Text>
               <Text variant="caption" style={styles.scene} numberOfLines={2}>
                 {tp(
-                  'Свидетельство SRC, симулятор ICOM с голосом, 26 заданий UKE - на польском.',
-                  'SRC certificate, ICOM voice simulator, 26 UKE tasks - in Polish.',
-                   'Świadectwo SRC, symulator ICOM z głosem, 26 zadań UKE - po polsku.',
-                  { es: "Certificado SRC, simulador ICOM con voz y 26 tareas UKE en polaco.", fr: "Certificat SRC, simulateur vocal ICOM et 26 exercices UKE en polonais.", de: 'SRC-Funkzeugnis, ICOM-Sprachsimulator und 26 UKE-Aufgaben auf Polnisch.', it: "Certificato SRC, simulatore vocale ICOM e 26 esercizi UKE in polacco." },
+                  'Свидетельство SRC, симулятор ICOM с голосом, 26 практических заданий.',
+                  'SRC certificate, ICOM voice simulator, 26 practical tasks.',
+                  'Świadectwo SRC, symulator ICOM z głosem, 26 zadań praktycznych.',
+                  { es: "Certificado SRC, simulador ICOM con voz y 26 tareas prácticas.", fr: "Certificat SRC, simulateur vocal ICOM et 26 exercices pratiques.", de: 'SRC-Funkzeugnis, ICOM-Sprachsimulator und 26 Praxisaufgaben.', it: "Certificato SRC, simulatore vocale ICOM e 26 esercizi pratici." },
                 )}
               </Text>
             </View>

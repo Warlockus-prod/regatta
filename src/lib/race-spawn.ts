@@ -8,7 +8,7 @@ import { distance, MIN_BOAT_SEPARATION, type RaceCourse, type Vec2 } from "./rac
  * corridor (`raceAutopilotPlan`, |x - centre| < 70), where they sail straight
  * up instead of looping, and clear of the start marks.
  * Bots, race physics and the multiplayer server are unchanged; the metric
- * trial keeps `physicalFleetSpawns`. */
+ * race has the same echelon in metres in `physicalFleetSpawns` (M5). */
 export const LEGACY_SPAWN = Object.freeze({
   maxOpponents: 4,
   playerBelowLine: 30,
@@ -20,6 +20,13 @@ export const LEGACY_SPAWN = Object.freeze({
 });
 
 export interface RaceSpawn { pos: Vec2; heading: number }
+
+/** A bot's speedMul: the difficulty's aiSpeedMul with a little spread
+ * (0.97-1.03). `random` is injectable for seeded runs (tests, a seeded e2e);
+ * Math.random stays the production default. */
+export function raceBotSpeedMul(aiSpeedMul: number, random: () => number = Math.random): number {
+  return aiSpeedMul * (0.97 + random() * 0.06);
+}
 
 /** Bot slots alternate left and right of the player: -1, +1, -2, +2. */
 const slotOf = (i: number) => (i % 2 ? 1 : -1) * Math.ceil((i + 1) / 2);

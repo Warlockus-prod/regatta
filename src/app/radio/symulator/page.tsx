@@ -29,6 +29,7 @@ import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios
 import { trackRadioTaskComplete } from '@/lib/funnel';
 import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
+import { PHONETIC_COPY, PHONETIC_DRILL_HREF } from '@/data/radio/phonetic-copy';
 import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
 import { checkLabel, useTrainerI18n } from './trainerText';
 import { browserStorage, loadProgress as loadStoredProgress, recordAttempt, saveProgress as saveStoredProgress, type ProgressMap, type SaveOutcome } from './progressStore';
@@ -710,11 +711,15 @@ function RadioSimulator() {
             </button>
           </div>
           <p className="mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {radioText(tp(
-              'Учебная копия раций с практической части SRC в UKE. Меню и процедуры - по инструкциям ICOM.',
-              'A training replica of the radios used in the UKE SRC practical. Menus and procedures follow the ICOM manuals.',
-              'Treningowa kopia radiotelefonów z części praktycznej SRC w UKE. Menu i procedury wg instrukcji ICOM.',
-            ))}
+            {radioText(tl({
+              pl: 'Treningowa kopia radiotelefonów z części praktycznej egzaminu SRC. Menu i procedury wg instrukcji ICOM.',
+              ru: 'Учебная копия раций с практической части экзамена SRC. Меню и процедуры - по инструкциям ICOM.',
+              en: 'A training replica of the radios used in the SRC practical exam. Menus and procedures follow the ICOM manuals.',
+              es: 'Réplica de entrenamiento de los radioteléfonos de la parte práctica del examen SRC. Menús y procedimientos según los manuales de ICOM.',
+              fr: "Reproduction d'entraînement des radiotéléphones utilisés lors de l'épreuve pratique SRC. Menus et procédures conformes aux notices ICOM.",
+              de: 'Trainingsnachbildung der Funkgeräte aus dem praktischen Teil der SRC-Prüfung. Menüs und Verfahren gemäß den ICOM-Anleitungen.',
+              it: "Replica didattica dei ricetrasmettitori utilizzati nella parte pratica dell'esame SRC. Menu e procedure conformi ai manuali ICOM.",
+            }))}
           </p>
 
           <button type="button" data-testid="start-free-practice" onClick={()=>startScenario(FREE_PRACTICE,"nauka")} className="mb-4 flex min-h-[56px] w-full items-center justify-between rounded-xl border px-4 py-3 text-left font-semibold" style={{borderColor:"var(--accent-cyan)",color:"var(--accent-cyan)",background:"var(--bg-card)"}}>
@@ -783,7 +788,7 @@ function RadioSimulator() {
                 {radioText(tp('Первые шаги: управление рацией', 'First steps: the radio controls', 'Pierwsze kroki: obsługa radia'))}
               </span>
               <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                {radioText(tp('уроки на кнопках рации', 'lessons on the radio keys', 'lekcje na przyciskach radia'))} · {radioText(tp('зад. UKE', 'UKE tasks', 'zad. UKE'))} {radioText(CONTROLS_COURSE_TASKS.join(', '))}
+                {radioText(tp('уроки на кнопках рации', 'lessons on the radio keys', 'lekcje na przyciskach radia'))} · {radioText(tl({ pl: 'zadania egzaminu', ru: 'задания экзамена', en: 'exam tasks', es: 'tareas de examen', fr: "exercices d'examen", de: 'Prüfungsaufgaben', it: "esercizi d'esame" }))} {radioText(CONTROLS_COURSE_TASKS.join(', '))}
               </span>
             </span>
             <span aria-hidden style={{ color: 'var(--text-muted)' }}>›</span>
@@ -813,7 +818,7 @@ function RadioSimulator() {
                           <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{radioText(bi(sc.title))}</span>
                           {tasks.length > 0 && (
                             <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                              {radioText(tasks.length === 1 ? tp('зад. UKE', 'UKE task', 'zad. UKE') : tp('зад. UKE', 'UKE tasks', 'zad. UKE'))} {radioText(tasks.join(', '))}
+                              {radioText(tasks.length === 1 ? tl({ pl: 'zadanie egzaminu', ru: 'задание экзамена', en: 'exam task', es: 'tarea de examen', fr: "exercice d'examen", de: 'Prüfungsaufgabe', it: "esercizio d'esame" }) : tl({ pl: 'zadania egzaminu', ru: 'задания экзамена', en: 'exam tasks', es: 'tareas de examen', fr: "exercices d'examen", de: 'Prüfungsaufgaben', it: "esercizi d'esame" }))} {radioText(tasks.join(', '))}
                             </span>
                           )}
                         </span>
@@ -839,6 +844,7 @@ function RadioSimulator() {
               {[
                 { href: '/radio/rozmowa', icon: '🎙️', title: tp('Живой разговор со станцией', 'Live conversation with a station', 'Rozmowa na żywo ze stacją'), note: tl({ ru: 'Голосовая или текстовая практика', en: 'Voice or typed practice', pl: 'Ćwiczenia głosowe lub tekstowe', es: 'Práctica por voz o por escrito', fr: 'Entraînement oral ou écrit', de: 'Üben per Sprache oder Text', it: 'Esercitazioni vocali o scritte' }) },
                 { href: '/radio/pozycja', icon: '🧭', title: tp('Диктовка позиции', 'Position dictation', 'Dyktowanie pozycji'), note: null },
+                { href: PHONETIC_DRILL_HREF, icon: '🔤', title: tl(PHONETIC_COPY.drillTitle), note: tl(PHONETIC_COPY.listNote) },
               ].map((item, i) => (
                 <li key={item.href} style={i > 0 ? { borderTop: '1px solid var(--border-subtle)' } : undefined}>
                   <Link href={item.href} className="flex min-h-[56px] items-center gap-3 px-4 py-2">
@@ -856,7 +862,7 @@ function RadioSimulator() {
 
           <nav className="mt-4 flex flex-wrap gap-x-6" aria-label={radioText(tp('Справка', 'Reference', 'Ściągi'))}>
             <Link href="/radio/zadania" className="flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: 'var(--text-secondary)' }}>
-              📋 {radioText(tp('Все 26 заданий UKE', 'All 26 UKE tasks', 'Wszystkie 26 zadań UKE'))}
+              📋 {radioText(tl({ pl: 'Wszystkie 26 zadań praktycznych', ru: 'Все 26 практических заданий', en: 'All 26 practical tasks', es: 'Las 26 tareas prácticas', fr: 'Les 26 exercices pratiques', de: 'Alle 26 Praxisaufgaben', it: 'Tutti i 26 esercizi pratici' }))}
             </Link>
             <Link href="/radio/sciaga" className="flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: 'var(--text-secondary)' }}>
               📄 {radioText(tp('Шпаргалка', 'Cheat sheet', 'Ściąga'))}
@@ -1201,7 +1207,7 @@ function RadioSimulator() {
               {
                 icon: '📻',
                 h: tp('Это копия настоящей рации', 'This is a replica of the real radio', 'To kopia prawdziwego radia'),
-                p: tp('ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.', 'ICOM IC-M330GE - the radio used for the UKE SRC practical, along with the IC-M323. Every key, menu and display follows the original equipment.', 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.'),
+                p: tl({ pl: 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktyczną część egzaminu SRC. Każdy klawisz, menu i ekran działa jak w oryginale.', ru: 'ICOM IC-M330GE - именно на ней (или IC-M323) сдают практическую часть экзамена SRC. Все кнопки, меню и экраны работают как в оригинале.', en: 'ICOM IC-M330GE - the radio used for the SRC practical exam, along with the IC-M323. Every key, menu and display follows the original equipment.', es: 'ICOM IC-M330GE: en este equipo (o en el IC-M323) se realiza la prueba práctica del examen SRC. Cada tecla, menú y pantalla funciona como en el original.', fr: "ICOM IC-M330GE : c'est sur ce modèle (ou sur l'IC-M323) que se déroule l'épreuve pratique de l'examen SRC. Chaque touche, menu et écran fonctionne comme sur l'appareil d'origine.", de: 'ICOM IC-M330GE - an diesem Gerät (oder am IC-M323) wird der praktische Teil der SRC-Prüfung abgelegt. Jede Taste, jedes Menü und jede Anzeige funktioniert wie beim Original.', it: "ICOM IC-M330GE - è questo il modello (oppure l'IC-M323) usato per la prova pratica dell'esame SRC. Ogni tasto, menu e schermata funziona come nell'originale." }),
               },
               {
                 icon: '🗺️',
@@ -1211,7 +1217,7 @@ function RadioSimulator() {
               {
                 icon: '🎓',
                 h: tp('Два режима', 'Two modes', 'Dwa tryby'),
-                p: tp('Обучение - подсказки на каждом шаге. Экзамен - как в UKE: только ситуация, разбор в конце. Прогресс сохраняется.', 'Learn - hints at every step. Exam - like at UKE: situation only, debrief at the end. Progress is saved.', 'Nauka - wskazówki na każdym kroku. Egzamin - jak w UKE: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.'),
+                p: tl({ pl: 'Nauka - wskazówki na każdym kroku. Egzamin - jak na prawdziwym egzaminie: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.', ru: 'Обучение - подсказки на каждом шаге. Экзамен - как на настоящем экзамене: только ситуация, разбор в конце. Прогресс сохраняется.', en: 'Learn - hints at every step. Exam - like the real exam: situation only, debrief at the end. Progress is saved.', es: 'Aprendizaje: indicaciones en cada paso. Examen: como en el examen real, solo se presenta la situación y la explicación llega al final. El progreso se guarda.', fr: "Apprentissage : des conseils à chaque étape. Examen : comme à l'examen réel, avec seulement la situation et un bilan à la fin. Votre progression est enregistrée.", de: 'Lernen - Hinweise bei jedem Schritt. Prüfung - wie in der echten Prüfung: nur die Situation, die Auswertung folgt am Ende. Dein Fortschritt wird gespeichert.', it: "Apprendimento - suggerimenti a ogni passaggio. Esame - come all'esame vero: solo la situazione, con analisi finale. I progressi vengono salvati." }),
               },
               {
                 icon: '🔍',

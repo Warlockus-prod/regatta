@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_EMISSION_ENABLED, PHYSICAL_RACE_PROFILES, physicalRaceContext, type PhysicalRaceContext } from "./race-context";
-import { physicalCourseDefinition } from "./race-courses";
+import { physicalCourseDefinition, physicalCourseWaterBounds } from "./race-courses";
 import { stepPhysicalBoat, type PhysicalRaceInput, type PhysicalRaceStepOptions } from "./race-physical-motion";
 import { stepBoat, type RaceBoat } from "./race-physics";
 import { KNOT_METRES_PER_SECOND } from "./sailing-kinematics";
@@ -96,6 +96,47 @@ describe("explicit physical race movement", () => {
     boat.pos.x += 100; boat.pos.y -= 100;
     expect(motion.to).toEqual(motion.from);
     expect(Object.isFrozen(motion) && Object.isFrozen(motion.from) && Object.isFrozen(motion.to)).toBe(true);
+  });
+
+  it("slides along the water bound with an honest tangential velocity and records the mid-tick bend", () => {
+    // ADR-0015 point 4: the bound removes only its normal component. A boat
+    // sailing WNW into the west bound keeps all of its northward travel.
+    const water = physicalCourseWaterBounds("short");
+    const boat = mkBoat(300, 6); boat.pos = { x: water.minX + .05, y: 600 };
+    const expected = (b: RaceBoat) => {
+      const angle = (b.heading + b.physics!.leeway) * Math.PI / 180, d = b.speed * .514444 * dt / .6;
+      return { dx: Math.sin(angle) * d, dy: -Math.cos(angle) * d };
+    };
+    const first = stepPhysicalBoat(boat, dt, 0, 1, helm(), context)!, free = expected(boat);
+    expect(free.dx).toBeLessThan(-.05); // the free travel would leave the water
+    expect(first.to.x).toBe(water.minX);
+    expect(first.to.y - first.from.y).toBeCloseTo(free.dy, 12);
+    expect(first.path).toHaveLength(1);
+    const t = (water.minX - first.from.x) / free.dx;
+    expect(first.path![0].x).toBe(water.minX);
+    expect(first.path![0].y).toBeCloseTo(first.from.y + free.dy * t, 12);
+    expect(Object.isFrozen(first.path) && Object.isFrozen(first.path![0])).toBe(true);
+    // Pinned at the bound: no bend (it would sit at the start), and the next
+    // ticks keep the full tangential travel instead of freezing.
+    for (let i = 0; i < 30; i++) {
+      const next = stepPhysicalBoat(boat, dt, 0, 1, helm(), context)!, step = expected(boat);
+      expect(next.from.x).toBe(water.minX); expect(next.to.x).toBe(water.minX);
+      expect(next.path).toBeUndefined();
+      expect(next.to.y - next.from.y).toBeCloseTo(step.dy, 12);
+      expect(next.to.y).toBeLessThan(next.from.y);
+    }
+    // Open water: one straight segment, no path key at all.
+    expect("path" in stepPhysicalBoat(mkBoat(300, 6), dt, 0, 1, helm(), context)!).toBe(false);
+  });
+
+  it("records both bends, in order, when a boat runs into a water corner", () => {
+    const water = physicalCourseWaterBounds("short");
+    const boat = mkBoat(315, 8); boat.pos = { x: water.minX + .03, y: water.minY + .09 };
+    const motion = stepPhysicalBoat(boat, dt, 0, 1, helm(), context)!;
+    expect(motion.to).toEqual({ x: water.minX, y: water.minY });
+    expect(motion.path).toHaveLength(1); // the second bend is the corner itself, the end point
+    expect(motion.path![0].x).toBe(water.minX);
+    expect(motion.path![0].y).toBeGreaterThan(water.minY);
   });
 
   it.each([undefined, null, LEGACY_RACE_CONTEXT, { ...context, geometryRevision: 2 }, { ...context, profile: "future" }, { ...context, metresPerUnit: 1 }])("rejects missing, legacy or unknown explicit context without a mutation", raw => {

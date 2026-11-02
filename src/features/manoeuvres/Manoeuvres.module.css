@@ -1,0 +1,96 @@
+/* Manoeuvres section. Cyan only marks actions, the selected detent and focus. */
+.page { max-width: 1080px; margin: 0 auto; padding: 44px 28px 72px; }
+.header { max-width: 720px; margin-bottom: 28px; }
+.title { font-size: clamp(28px, 3.4vw, 40px); font-weight: 650; line-height: 1.15; letter-spacing: -.03em; margin: 0 0 12px; text-wrap: balance; }
+.intro { color: var(--text-secondary); font-size: 17px; line-height: 1.6; max-width: 640px; }
+.meta { color: var(--text-secondary); font-size: 15px; line-height: 1.5; display: block; }
+.text { font-size: 16px; line-height: 24px; margin: 0 0 12px; }
+.subTitle { font-size: 18px; font-weight: 650; margin: 20px 0 8px; }
+.track { margin-top: 32px; }
+.trackTitle { font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+.list { border-top: 1px solid var(--border-subtle); list-style: none; padding: 0; margin: 0; }
+.row { display: flex; gap: 16px; align-items: center; width: 100%; text-align: left; padding: 16px 4px; border-bottom: 1px solid var(--border-subtle); min-height: 64px; background: none; color: inherit; font: inherit; cursor: pointer; }
+.row strong { font-size: 17px; font-weight: 600; display: block; margin-bottom: 2px; }
+.row:hover:not(:disabled) strong { color: var(--accent-cyan); }
+.row:disabled { cursor: default; opacity: .62; }
+.rowText { flex: 1; min-width: 0; }
+.number { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 17px; width: 28px; flex-shrink: 0; align-self: flex-start; padding-top: 1px; }
+.stars { flex-shrink: 0; font-size: 18px; letter-spacing: 2px; color: var(--text-secondary); }
+.bigStars { font-size: 34px; letter-spacing: 6px; margin: 4px 0 12px; }
+.back { color: var(--text-secondary); min-height: 44px; padding: 10px 0; background: none; font: inherit; font-size: 16px; cursor: pointer; }
+.back:hover { color: var(--text-primary); }
+.primary { background: var(--accent-cyan); color: var(--accent-ink); border-radius: 8px; min-height: 48px; padding: 12px 20px; font-weight: 650; font-size: 16px; cursor: pointer; }
+.primary:hover { filter: brightness(.94); }
+.secondary { color: var(--text-primary); border: 1px solid var(--border-subtle); background: var(--bg-card); border-radius: 8px; min-height: 44px; padding: 10px 14px; font-size: 16px; cursor: pointer; }
+.secondary:hover { background: var(--hover-bg); }
+.briefGrid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.criteria { margin: 0 0 16px; padding-left: 20px; font-size: 16px; line-height: 24px; }
+.criteria li { margin-bottom: 6px; }
+.schematic { margin: 0; border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden; color: var(--text-primary); }
+.schematic svg { display: block; width: 100%; height: auto; }
+.svgWater { fill: var(--bg-secondary); }
+.svgLand { fill: var(--border-subtle); stroke: var(--text-muted); }
+.svgBoat { fill: var(--border-subtle); stroke: var(--text-muted); }
+.svgOurs { fill: var(--bg-card); stroke: var(--text-primary); }
+.svgPile { fill: var(--text-muted); }
+.svgBuoy { fill: var(--cat-orange); }
+.svgDanger { fill: var(--danger); }
+.svgTarget { fill: none; stroke: var(--success); stroke-dasharray: 2 1.5; }
+.svgPlan { fill: none; stroke: var(--text-secondary); stroke-dasharray: 1 1.4; color: var(--text-secondary); }
+.svgWind { stroke: var(--text-primary); color: var(--text-primary); }
+.svgText { fill: var(--text-primary); font-family: var(--font-source-sans), sans-serif; font-weight: 600; }
+
+/* Play view: protected scene, then readings and controls in reserved space. */
+.playPage { max-width: 1080px; margin: 0 auto; padding: 12px 20px 32px; }
+.playHeader { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.playTitle { font-size: 20px; font-weight: 650; margin: 0; }
+.playGrid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; margin-top: 8px; align-items: start; }
+.sceneWrap { position: relative; border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden; height: clamp(420px, 72vh, 720px); }
+.canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.hud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; margin: 0; }
+.hud div { min-width: 0; }
+.hud dt { color: var(--text-secondary); font-size: 13px; line-height: 18px; }
+.hud dd { margin: 0; font-size: 16px; line-height: 22px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.dock { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.steer { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.steerRow { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 6px; }
+.readout { font-size: 15px; line-height: 20px; color: var(--text-secondary); margin: 0; min-height: 20px; }
+.rudderBar { position: relative; height: 6px; border-radius: 3px; background: var(--border-subtle); }
+.rudderBar span { position: absolute; top: -4px; width: 4px; height: 14px; margin-left: -2px; border-radius: 2px; background: var(--text-primary); }
+.control { min-height: 48px; min-width: 44px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 15px; font-weight: 600; line-height: 18px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.control:active { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.lever { display: flex; flex-direction: column; gap: 4px; touch-action: none; min-width: 0; }
+.detent { min-height: 44px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 15px; font-weight: 600; line-height: 18px; text-align: center; cursor: pointer; }
+.neutral { border-style: dashed; }
+.active { background: var(--accent-cyan); border-color: var(--accent-cyan); color: var(--accent-ink); }
+.toolRow { display: flex; gap: 8px; flex-wrap: wrap; }
+.hint { font-size: 16px; line-height: 24px; margin: 0; padding: 12px 14px; border-radius: 8px; background: var(--bg-secondary); }
+.result { border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+.result .subTitle { margin-top: 0; }
+.page :is(a, button):focus-visible, .playPage :is(a, button):focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .playGrid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .sceneWrap { height: clamp(260px, 44vh, 520px); }
+  .briefGrid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
+@media (max-width: 640px) {
+  .page { padding: 20px 20px 48px; }
+  .title { font-size: 28px; }
+  .intro { font-size: 16px; }
+  .playPage { padding: 0 20px 24px; }
+  .playHeader { gap: 0 12px; }
+  .playHeader .back { min-height: 44px; padding: 4px 0; font-size: 15px; }
+  .playTitle { font-size: 16px; line-height: 20px; width: 100%; margin-bottom: 4px; }
+  .sceneWrap { height: clamp(220px, 34vh, 420px); }
+  .side { gap: 8px; }
+  .hud dt { font-size: 12px; line-height: 16px; }
+  .hud dd { line-height: 20px; }
+  .dock { gap: 8px; }
+  .lever { gap: 3px; }
+  .readout { font-size: 14px; }
+  .row { gap: 12px; padding: 14px 0; }
+  .hud { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 8px; }
+  .hud dd { font-size: 15px; }
+}

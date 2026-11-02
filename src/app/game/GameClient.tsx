@@ -36,7 +36,7 @@ import type { RaceBoat } from "@/lib/race-physics";
 import type { Controls } from "@/lib/sailing-physics/types";
 import { raceStartTrim } from "./race-start-trim";
 import { raceTrim } from "@/lib/race-physics";
-import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
+import type { RaceGuidance } from "@/lib/race-guidance";
 import { createRaceRulesState, type RaceRuleEvent } from "@/lib/race-rules";
 import type { RaceJudgeDebrief } from "@/lib/race-judge";
 
@@ -67,14 +67,14 @@ import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnaps
 import { createPendingNativeBestCommands, nativeBestFailure } from "@/lib/race-best-command";
 import { LEGACY_RACE_CONTEXT, type PhysicalRaceProfile } from "@/lib/race-context";
 import { physicalFleetSpawns } from "@/lib/race-courses";
-import { legacyRaceSpawns } from "@/lib/race-spawn";
+import { legacyRaceSpawns, raceBotSpeedMul, type RaceSpawn } from "@/lib/race-spawn";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { readPhysicalTrial } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, readGhostStore, type GhostTrack } from "@/lib/race-ghost";
 import type { MedalAward } from "@/lib/race-medals";
 import type { GhostSplit } from "@/lib/race-ghost-splits";
-import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, raceLogTally, recordSample, formatTime,
-  type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow } from "./race-model";
+import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, planRouteGuidance, raceLogTally, recordSample, formatTime,
+  type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type RouteGuidanceState } from "./race-model";
 import { useRaceLoop } from "./useRaceLoop";
 import { RaceFinishHoldPlate } from "./RaceFinishPlate";
 import { finishHoldActive } from "./race-finish-hold";
@@ -281,7 +281,7 @@ export default function GamePage() {
     });
     return () => { live = false; };
   }, []);
-  const guidanceStateRef = useRef<RaceGuidanceState | null>(null);
+  const guidanceStateRef = useRef<RouteGuidanceState | null>(null);
   const [routeGuidance, setRouteGuidance] = useState<RaceGuidance | null>(null);
   const keysRef = useRef<Set<string>>(new Set());
   const rafRef = useRef<number | null>(null);
@@ -586,11 +586,10 @@ export default function GamePage() {
     const cfg = DIFFICULTY_CONFIG[diff];
     const course = courseRef.current;
     const boats: Boat[] = [];
-    // The physical fleet uses its registered metric spawn slots (max 5 boats);
-    // the legacy race uses the fair echelon start (M0-2, race-spawn.ts).
-    const spawns = physicalRef.current ? physicalFleetSpawns(1 + cfg.opponents) : null;
-    const legacy = spawns ? null : legacyRaceSpawns(course, cfg.opponents);
-    const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
+    // Both races start in the fair echelon, everybody on one heading: the
+    // legacy race in race units (M0-2, race-spawn.ts), the metric fleet in
+    // metres (M5, physicalFleetSpawns, max 5 boats).
+    const spawns: RaceSpawn[] = physicalRef.current ? physicalFleetSpawns(1 + cfg.opponents) : legacyRaceSpawns(course, cfg.opponents);
     physicalNavRef.current = undefined;
     ghostTrackRef.current = null; ghostBoatsRef.current = []; setGhostTime(null); setGhostSplits([]);
     ruleEventsRef.current = []; startedAtRef.current = undefined; setJudgeDebrief(null);
@@ -602,8 +601,8 @@ export default function GamePage() {
       id: 'player',
       name: copyRef.current.you,
       color: PLAYER_COLOR,
-      pos: spawns ? { ...spawns[0] } : { ...legacy![0].pos },
-      heading: legacy ? legacy[0].heading : 45,
+      pos: { ...spawns[0].pos },
+      heading: spawns[0].heading,
       speed: 0,
       isPlayer: true,
       lapDone: 0,
@@ -615,12 +614,12 @@ export default function GamePage() {
         id: `ai${i}`,
         name: AI_NAMES[i] || `AI ${i + 1}`,
         color: AI_COLORS[i] || '#888888',
-        pos: spawns ? { ...spawns[i + 1] } : { ...legacy![i + 1].pos },
-        heading: spawns ? (spawns[i + 1].x <= lineCenter.x ? 45 : 315) : legacy![i + 1].heading,
+        pos: { ...spawns[i + 1].pos },
+        heading: spawns[i + 1].heading,
         speed: 0,
         isPlayer: false,
         lapDone: 0,
-        speedMul: cfg.aiSpeedMul * (0.97 + Math.random() * 0.06), // difficulty, a little spread between bots
+        speedMul: raceBotSpeedMul(cfg.aiSpeedMul), // difficulty, a little spread between bots (Math.random)
       });
     }
 
@@ -630,7 +629,10 @@ export default function GamePage() {
     boatsRef.current = boats;
     setWindReading(raceWindReading({ heading: boats[0].heading, boatSpeedKn: boats[0].speed, windFrom: WIND_DIRECTION, windKnots: 12 * windStrengthRef.current }));
     setNavigation(createRaceNavigationSnapshot({ course, boats, windFrom: WIND_DIRECTION }));
-    const initialGuidance = planRaceGuidance(boats[0], course, WIND_DIRECTION);
+    // M5 step 6: the route hint planner of the race's model (race-model.ts).
+    const metric = physicalRef.current;
+    const initialGuidance = planRouteGuidance(boats[0], course, WIND_DIRECTION, null,
+      metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null);
     guidanceStateRef.current = initialGuidance.state; setRouteGuidance(initialGuidance.guidance);
     raceIdRef.current = `race_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     startupGate.current.reset(raceIdRef.current);

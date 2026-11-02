@@ -2,6 +2,7 @@ Przygotuj się do egzaminu na sternika motorowodnego i świadectwo SRC, a przy o
 
 STERNIK MOTOROWODNY
 
+- Materiały przygotowane na podstawie szkolenia do polskiego patentu sternika motorowodnego, zgodnie z przepisami o uprawianiu żeglarstwa.
 - 879 pytań egzaminacyjnych z wyjaśnieniami.
 - Teoria w działach: przepisy i prawo, locja, znaki i sygnały, budowa jednostki, silniki, meteorologia, manewry, ratownictwo.
 - Pełny egzamin próbny: 75 pytań, 90 minut, próg zaliczenia 65 poprawnych odpowiedzi.
@@ -10,7 +11,7 @@ STERNIK MOTOROWODNY
 
 SRC: ŚWIADECTWO OPERATORA RADIOTELEFONISTY VHF
 
-- 324 pytania z bazy UKE z tłumaczeniami do nauki, teoria i praktyka w siedmiu językach. Standardowe komunikaty radiowe pozostają angielskie.
+- 324 oficjalne pytania egzaminacyjne z tłumaczeniami do nauki, teoria i praktyka w siedmiu językach. Standardowe komunikaty radiowe pozostają angielskie.
 - Symulator radiostacji z oceną głosu: ćwiczysz MAYDAY, PAN-PAN i SECURITE na głos.
 - Od wersji 1.7.0, kompilacja 59, kurs rozpoznaje mowę dostępnym lokalnym modelem angielskim. Bez modelu sprawdzisz wpisany tekst offline.
 

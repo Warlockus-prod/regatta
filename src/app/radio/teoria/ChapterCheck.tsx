@@ -15,6 +15,7 @@ import {
 } from "../questionProgress";
 import { record as recordWeak } from "../weakSpots";
 import type { TheoryChapter } from "./courseData";
+import { PHONETIC_COPY, PHONETIC_DRILL_CHAPTER, PHONETIC_DRILL_HREF } from "@/data/radio/phonetic-copy";
 
 function selectChecks(questionIds: string[]): SrcQuestion[] {
   const available = questionIds
@@ -38,7 +39,7 @@ export default function ChapterCheck({
   onPassed: () => void;
 }) {
   const { rt: radioText } = useRadioI18n();
-  const { tp, lang } = useRadioI18n();
+  const { tp, tl, lang } = useRadioI18n();
   const { explLang } = useSternikPrefs();
   const questions = useMemo(
     () => selectChecks(chapter.questionIds ?? []),
@@ -103,12 +104,22 @@ export default function ChapterCheck({
                 : tp("Проверь понимание", "Check your understanding", "Sprawdź zrozumienie"))}
             </h2>
             <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              {radioText(tp(
-                "Три вопроса из связанных материалов UKE. Глава завершится только после трех правильных ответов.",
-                "Three questions from the related UKE material. The chapter completes after three correct answers.",
-                "Trzy pytania z powiązanych materiałów UKE. Rozdział kończy się po trzech poprawnych odpowiedziach.",
-              ))}
+              {radioText(tl({
+                ru: "Три вопроса из связанных экзаменационных материалов. Глава завершится только после трех правильных ответов.",
+                en: "Three questions from the related exam material. The chapter completes after three correct answers.",
+                pl: "Trzy pytania z powiązanych materiałów egzaminacyjnych. Rozdział kończy się po trzech poprawnych odpowiedziach.",
+                es: "Tres preguntas de los materiales de examen relacionados. El capítulo se completa al responder correctamente las tres.",
+                fr: "Trois questions tirées des documents d'examen associés. Le chapitre se termine après trois bonnes réponses.",
+                de: "Drei Fragen aus den zugehörigen Prüfungsunterlagen. Das Kapitel endet nach drei richtigen Antworten.",
+                it: "Tre domande tratte dai materiali d'esame correlati. Il capitolo termina dopo tre risposte corrette.",
+              }))}
             </p>
+            {chapter.id === PHONETIC_DRILL_CHAPTER && (
+              <Link href={`${PHONETIC_DRILL_HREF}?from=${chapter.id}`} data-testid="chapter-phonetic-drill"
+                className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: "var(--accent-cyan)" }}>
+                {tl(PHONETIC_COPY.chapterLink)}
+              </Link>
+            )}
           </div>
           <button
             type="button"

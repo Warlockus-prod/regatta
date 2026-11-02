@@ -25,6 +25,7 @@ const AREA: Record<WeakSpot['area'], { icon: string; href: string }> = {
   dialogue: { icon: '🗣', href: '/radio/rozmowa' },
   control: { icon: '🔍', href: '/radio/obsluga' },
   position: { icon: '🧭', href: '/radio/pozycja' },
+  phonetic: { icon: '🔤', href: '/radio/alfabet' },
   theory: { icon: '🧠', href: '/radio/test?mode=weak' },
   oral: { icon: '🎓', href: '/sternik/ustny' },
 };

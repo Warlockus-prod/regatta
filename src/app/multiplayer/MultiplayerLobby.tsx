@@ -148,10 +148,12 @@ export function MultiplayerRoom(p: {
   room: LobbyRoom; players: LobbyPlayer[]; colors: readonly string[];
   reconnecting: boolean; error: string | null;
   canShare: boolean; share: ShareOutcome | null; onShare: () => void;
+  /** The invite link a tap shares or copies; shown on the card when that failed. */
+  inviteUrl: string;
   onLeave: () => void; onPickMission: (missionId: string | null) => void;
   onAddBot: () => void; onRemoveBot: () => void; onStart: () => void; onReady: (ready: boolean) => void;
 }) {
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
   const { room, players } = p;
   const iAmHost = room.hostId === room.myId;
   const me = players.find((player) => player.id === room.myId);
@@ -164,11 +166,25 @@ export function MultiplayerRoom(p: {
     borderColor: selected ? 'var(--accent-cyan)' : 'var(--border-subtle)',
     background: selected ? 'var(--bg-card-hover)' : 'transparent',
   });
-  const shareLabel = p.share === 'copied'
-    ? tp("Ссылка скопирована", "Link copied", "Link skopiowany", { es: "Enlace copiado", fr: "Lien copié", de: "Link kopiert", it: "Link copiato" })
-    : p.canShare
-      ? tp('Поделиться кодом', 'Share the code', 'Udostępnij kod', { es: 'Compartir el código', fr: 'Partager le code', de: 'Code teilen', it: 'Condividi il codice' })
-      : tp('Копировать ссылку', 'Copy link', 'Kopiuj link', { es: 'Copiar enlace', fr: 'Copier le lien', de: 'Link kopieren', it: 'Copia link' });
+  // TestFlight 74 feedback: the button always names the action; the line under
+  // it says what a tap will do, then for a few seconds what was copied or
+  // shared, then goes back (the timer lives in lobby.ts createShareFeedback).
+  // A failure is never worded as success and leaves the link to select by hand.
+  const shareLabel = p.canShare
+    ? tp('Поделиться кодом', 'Share the code', 'Udostępnij kod', { es: 'Compartir el código', fr: 'Partager le code', de: 'Code teilen', it: 'Condividi il codice' })
+    : tp('Копировать ссылку', 'Copy link', 'Kopiuj link', { es: 'Copiar enlace', fr: 'Copier le lien', de: 'Link kopieren', it: 'Copia link' });
+  const code = room.code;
+  const shareState = p.share === 'copied' || p.share === 'shared' || p.share === 'failed' ? p.share : 'idle';
+  const shareStatus = shareState === 'copied'
+    ? tl({ ru: `Скопирована ссылка на лобби ${code}. Вставь её в сообщение другу.`, en: `Invite link to lobby ${code} copied. Paste it into a message to a friend.`, pl: `Skopiowano link do lobby ${code}. Wklej go w wiadomości do znajomego.`, es: `Enlace a la sala ${code} copiado. Pégalo en un mensaje para un amigo.`, fr: `Lien du salon ${code} copié. Colle-le dans un message à un ami.`, de: `Link zur Lobby ${code} kopiert. Füge ihn in eine Nachricht an einen Freund ein.`, it: `Link alla lobby ${code} copiato. Incollalo in un messaggio a un amico.` })
+    : shareState === 'shared'
+      ? tl({ ru: `Готово: ссылка на лобби ${code} передана.`, en: `Done: the link to lobby ${code} was shared.`, pl: `Gotowe: link do lobby ${code} został udostępniony.`, es: `Listo: se compartió el enlace a la sala ${code}.`, fr: `C'est fait : le lien du salon ${code} a été partagé.`, de: `Fertig: Der Link zur Lobby ${code} wurde geteilt.`, it: `Fatto: il link alla lobby ${code} è stato condiviso.` })
+      : shareState === 'failed'
+        ? tl({ ru: 'Не получилось скопировать. Выдели ссылку ниже и скопируй вручную.', en: 'Could not copy. Select the link below and copy it by hand.', pl: 'Nie udało się skopiować. Zaznacz link poniżej i skopiuj go ręcznie.', es: 'No se pudo copiar. Selecciona el enlace de abajo y cópialo a mano.', fr: 'Impossible de copier. Sélectionne le lien ci-dessous et copie-le à la main.', de: 'Kopieren hat nicht geklappt. Markiere den Link unten und kopiere ihn von Hand.', it: 'Non è stato possibile copiare. Seleziona il link qui sotto e copialo a mano.' })
+        : p.canShare
+          ? tl({ ru: 'Нажми, чтобы отправить другу ссылку-приглашение в это лобби.', en: 'Tap to send a friend an invite link to this lobby.', pl: 'Dotknij, aby wysłać znajomemu link z zaproszeniem do tego lobby.', es: 'Toca para enviar a un amigo un enlace de invitación a esta sala.', fr: 'Appuie pour envoyer à un ami un lien d\'invitation vers ce salon.', de: 'Tippe, um einem Freund einen Einladungslink zu dieser Lobby zu schicken.', it: 'Tocca per inviare a un amico un link di invito a questa lobby.' })
+          : tl({ ru: 'Нажми, чтобы скопировать ссылку-приглашение в это лобби.', en: 'Tap to copy an invite link to this lobby.', pl: 'Dotknij, aby skopiować link z zaproszeniem do tego lobby.', es: 'Toca para copiar un enlace de invitación a esta sala.', fr: 'Appuie pour copier un lien d\'invitation vers ce salon.', de: 'Tippe, um einen Einladungslink zu dieser Lobby zu kopieren.', it: 'Tocca per copiare un link di invito a questa lobby.' });
+  const shareStatusColor = shareState === 'copied' || shareState === 'shared' ? 'var(--success)' : shareState === 'failed' ? 'var(--warning)' : 'var(--text-secondary)';
   return (
     <div className="page-enter max-w-lg mx-auto px-4 py-10" data-testid="mp-room">
       <div className="flex items-center justify-between mb-4">
@@ -181,13 +197,25 @@ export function MultiplayerRoom(p: {
       </div>
       <div className="card p-5 text-center mb-4" data-testid="mp-code-card">
         <div className="text-sm text-[var(--text-secondary)] mb-1">{tp('КОД ЛОББИ', 'LOBBY CODE', 'KOD LOBBY', { es: 'CÓDIGO DE SALA', fr: 'CODE DU SALON', de: 'LOBBY-CODE', it: 'CODICE LOBBY' })}</div>
-        <div className="text-5xl font-bold font-mono tracking-[0.2em] text-[var(--text-primary)]">
+        <div data-testid="mp-room-code" className="text-5xl font-bold font-mono tracking-[0.2em] text-[var(--text-primary)]">
           {room.code}
         </div>
-        <button type="button" onClick={p.onShare} data-testid="mp-share-code"
+        <button type="button" onClick={p.onShare} data-testid="mp-share-code" aria-describedby="mp-share-status"
           className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg border border-[var(--border-subtle)] px-4 text-base font-semibold text-[var(--accent-cyan)]">
           {shareLabel}
         </button>
+        <p id="mp-share-status" role="status" data-testid="mp-share-status" data-state={shareState}
+          className="mt-2 text-base" style={{ color: shareStatusColor }}>
+          {shareStatus}
+        </p>
+        {shareState === 'copied' && (
+          <p data-testid="mp-share-copied-link" className="mt-1 break-all font-mono text-base text-[var(--text-secondary)]">{p.inviteUrl.replace(/^https?:\/\//, '')}</p>
+        )}
+        {shareState === 'failed' && (
+          <textarea readOnly rows={2} value={p.inviteUrl} data-testid="mp-invite-link" onFocus={(event) => event.currentTarget.select()}
+            aria-label={tl({ ru: 'Ссылка-приглашение', en: 'Invite link', pl: 'Link z zaproszeniem', es: 'Enlace de invitación', fr: 'Lien d\'invitation', de: 'Einladungslink', it: 'Link di invito' })}
+            className="mt-2 block w-full min-h-11 resize-none break-all rounded-lg px-3 py-2 text-center font-mono text-base" style={FIELD} />
+        )}
       </div>
 
       <p className="mb-4 text-base text-[var(--text-secondary)]">

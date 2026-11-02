@@ -20,9 +20,9 @@
 
 const KEY = 'sternik.radio.weak.v1';
 
-export type WeakArea = 'voice' | 'procedure' | 'dialogue' | 'control' | 'position' | 'theory' | 'oral';
+export type WeakArea = 'voice' | 'procedure' | 'dialogue' | 'control' | 'position' | 'phonetic' | 'theory' | 'oral';
 
-export const RADIO_WEAK_AREAS = ['voice', 'procedure', 'dialogue', 'control', 'position', 'theory'] as const satisfies readonly WeakArea[];
+export const RADIO_WEAK_AREAS = ['voice', 'procedure', 'dialogue', 'control', 'position', 'phonetic', 'theory'] as const satisfies readonly WeakArea[];
 
 export interface WeakSpot {
   /** stable id: the check id, the mistake id, the lesson id */

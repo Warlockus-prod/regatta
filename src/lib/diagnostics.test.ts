@@ -381,6 +381,11 @@ describe("race.summary and the M1 lifecycle actions", () => {
     expect(parseDiagnosticBatch({ version: 1, events: [trial] })).not.toBeNull();
   });
 
+  it("knows the M5 stuck hint of the metric race as a lifecycle action", () => {
+    expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "stuck", mode: "simple", elapsedSeconds: 42 }] })).not.toBeNull();
+    expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "stuck-hint" }] })).toBeNull();
+  });
+
   it("knows restart with its setup source, results, the finish hold and the exit question", () => {
     for (const action of ["restart", "results", "finish-hold", "exit-ask", "exit-stay"]) {
       expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action, setupSource: "again", phase: "finished" }] }), action).not.toBeNull();

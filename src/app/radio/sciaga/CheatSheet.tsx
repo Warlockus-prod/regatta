@@ -35,6 +35,10 @@ const PASS = 60;
 
 interface ScenarioProgress { attempts: number; best: number; lastScore: number; bestTimeSec: number | null }
 
+// Owner, 2026-11-01: no country label in radio headings. All seven values sit
+// in one literal so the radio catalog builder pairs them.
+const EXAM_TITLE = { pl: 'Egzamin SRC', ru: 'Экзамен SRC', en: 'SRC exam', es: 'Examen SRC', fr: 'Examen SRC', de: 'SRC-Prüfung', it: 'Esame SRC' };
+
 export default function CheatSheet() {
   const { rt: radioText } = useRadioI18n();
   const { tp, lang } = useRadioI18n();
@@ -232,7 +236,7 @@ export default function CheatSheet() {
             </ul>
           </Box>
 
-          <Box title={radioText(bi('Egzamin UKE', 'Экзамен UKE'))}>
+          <Box title={radioText(bi(EXAM_TITLE.pl, EXAM_TITLE.ru))}>
             <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {EXAM_FACTS.map(([pl, ru]) => (
                 <li key={pl}>· {radioText(bi(pl, ru))}</li>

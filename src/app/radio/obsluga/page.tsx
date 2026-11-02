@@ -247,11 +247,15 @@ export default function RadioGuidePage() {
           </p>
         </Card>
         <Tip tone="warn">
-          {radioText(tp(
-            'MMSI программируется в рацию обычно ОДИН раз (на многих аппаратах его нельзя переписать без сервиса) - не вбивай наугад. Для своей рации на борту нужен MMSI/позывной из разрешения на судовую радиостанцию (в Польше - UKE). Без введённого MMSI функции DSC заблокированы.',
-            'The MMSI is usually programmed ONCE (many sets cannot be re-entered without service) - do not guess it. Your own set needs an MMSI/call sign from a ship-station radio licence (in Poland: UKE). Without an MMSI the DSC functions are locked.',
-            'MMSI programuje się zwykle RAZ (w wielu radiach nie da się zmienić bez serwisu) - nie wpisuj na oślep. Własne radio potrzebuje MMSI/znaku z pozwolenia radiowego na stację statkową (w Polsce: UKE). Bez MMSI funkcje DSC są zablokowane.',
-          ))}
+          {radioText(tl({
+            pl: 'MMSI programuje się zwykle RAZ (w wielu radiach nie da się zmienić bez serwisu) - nie wpisuj na oślep. Własne radio potrzebuje MMSI/znaku z pozwolenia radiowego na stację statkową, które wydaje krajowy urząd łączności. Bez MMSI funkcje DSC są zablokowane.',
+            ru: 'MMSI программируется в рацию обычно ОДИН раз (на многих аппаратах его нельзя переписать без сервиса) - не вбивай наугад. Для своей рации на борту нужен MMSI/позывной из разрешения на судовую радиостанцию, которое выдаёт национальный орган связи. Без введённого MMSI функции DSC заблокированы.',
+            en: 'The MMSI is usually programmed ONCE (many sets cannot be re-entered without service) - do not guess it. Your own set needs an MMSI/call sign from a ship-station radio licence issued by the national telecom authority. Without an MMSI the DSC functions are locked.',
+            es: 'El MMSI suele programarse UNA SOLA VEZ; en muchas radios no puede cambiarse sin acudir al servicio técnico. No lo introduzcas al azar. Tu radio necesita el MMSI y el distintivo de llamada que figuran en la licencia de la estación de barco, emitida por la autoridad nacional de telecomunicaciones. Sin MMSI, las funciones DSC están bloqueadas.',
+            fr: "Le MMSI ne se programme généralement qu'UNE SEULE FOIS (sur de nombreuses radios, seul un service technique peut le modifier). Ne le saisissez pas au hasard. Votre radio doit utiliser le MMSI et l'indicatif figurant sur la licence radio de la station de navire, délivrée par l'autorité nationale des télécommunications. Sans MMSI, les fonctions DSC sont bloquées.",
+            de: 'Die MMSI wird üblicherweise EINMAL programmiert (bei vielen Funkgeräten lässt sie sich nur durch einen Servicebetrieb ändern) - gib sie nicht auf gut Glück ein. Dein eigenes Funkgerät benötigt die MMSI und das Rufzeichen aus der Funkgenehmigung für die Seefunkstelle, die die nationale Fernmeldebehörde erteilt. Ohne MMSI sind die DSC-Funktionen gesperrt.',
+            it: "L'MMSI si programma di solito UNA SOLA VOLTA (su molte radio non è modificabile senza assistenza tecnica): non inserirlo a caso. La tua radio richiede l'MMSI e il nominativo indicati nella licenza radio della stazione di nave, rilasciata dall'autorità nazionale delle telecomunicazioni. Senza MMSI, le funzioni DSC sono bloccate.",
+          }))}
         </Tip>
         <div className="mb-4">
           <Link href="/radio/symulator" className="text-sm" style={{ color: CYAN }}>
@@ -345,9 +349,9 @@ export default function RadioGuidePage() {
           </Card>
           <Card title={radioText("Dokąd dalej / Куда дальше")}>
             <div className="flex flex-col gap-2">
-              <Link href="/radio" className="text-sm" style={{ color: CYAN }}>📻 {radioText(tp('Сертификат SRC и экзамен UKE', 'SRC certificate and UKE exam', 'Świadectwo SRC i egzamin UKE'))}</Link>
+              <Link href="/radio" className="text-sm" style={{ color: CYAN }}>📻 {radioText(tl({ pl: 'Świadectwo SRC i egzamin', ru: 'Сертификат SRC и экзамен', en: 'SRC certificate and exam', es: 'Certificado SRC y examen', fr: 'Certificat SRC et examen', de: 'SRC-Zeugnis und Prüfung', it: 'Certificato SRC ed esame' }))}</Link>
               <Link href="/radio/symulator" className="text-sm" style={{ color: CYAN }}>🎙️ {radioText(tp('Симулятор ICOM (голос, DSC, MAYDAY)', 'ICOM simulator (voice, DSC, MAYDAY)', 'Symulator ICOM (głos, DSC, MAYDAY)'))}</Link>
-              <Link href="/radio/test" className="text-sm" style={{ color: CYAN }}>✅ {radioText(tp('Тренажёр по базе вопросов UKE', 'UKE question trainer', 'Trening po bazie pytań UKE'))}</Link>
+              <Link href="/radio/test" className="text-sm" style={{ color: CYAN }}>✅ {radioText(tl({ pl: 'Trening po bazie pytań egzaminacyjnych', ru: 'Тренажёр по базе экзаменационных вопросов', en: 'Exam question trainer', es: 'Entrenador de preguntas de examen', fr: "Entraînement aux questions d'examen", de: 'Prüfungsfragen-Training', it: "Allenamento sulle domande d'esame" }))}</Link>
             </div>
           </Card>
         </div>

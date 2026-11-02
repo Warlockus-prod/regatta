@@ -294,7 +294,7 @@ function MobileTheoryFlow({ chapter }: { chapter: TheoryChapter }) {
 export default function RadioTheoryCourse() {
   const router = useRouter();
   const { rt: radioText } = useRadioI18n();
-  const { tp } = useRadioI18n();
+  const { tp, tl } = useRadioI18n();
   const { explLang } = useSternikPrefs();
   const activeId = useSyncExternalStore(
     subscribeChapterHash,
@@ -368,8 +368,8 @@ export default function RadioTheoryCourse() {
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-secondary)" }}>
               {radioText(tp(
-                "Не список фактов, а цельная модель: почему VHF работает именно так, как выбрать приоритет, что реально передаёт DSC, зачем нужна каждая строка MAYDAY и как польский экзамен связан с практикой в море.",
-                "A coherent model rather than a fact list: why VHF works this way, how to choose priority, what DSC actually sends, why every MAYDAY line exists, and how the Polish exam connects to real operations.",
+                "Не список фактов, а цельная модель: почему VHF работает именно так, как выбрать приоритет, что реально передаёт DSC, зачем нужна каждая строка MAYDAY и как экзамен связан с практикой в море.",
+                "A coherent model rather than a fact list: why VHF works this way, how to choose priority, what DSC actually sends, why every MAYDAY line exists, and how the exam connects to real operations.",
                 "Nie lista faktów, lecz spójny model: dlaczego VHF działa w ten sposób, jak wybrać priorytet, co naprawdę wysyła DSC, po co jest każda linia MAYDAY i jak egzamin łączy się z praktyką.",
               ))}
             </p>
@@ -377,7 +377,7 @@ export default function RadioTheoryCourse() {
               <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{radioText(THEORY_CHAPTERS.length)} {radioText(tp("глав", "chapters", "rozdziałów"))}</span>
               <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{radioText(THEORY_CHAPTERS.length)} {radioText(tp("схем", "diagrams", "schematów"))}</span>
               <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{radioText(TOTAL_THEORY_MINUTES)}{radioText(" min")}</span>
-              <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>324 {radioText(tp("вопроса UKE", "UKE questions", "pytania UKE"))}</span>
+              <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>324 {radioText(tl({ pl: "pytania egzaminacyjne", ru: "экзаменационных вопроса", en: "exam questions", es: "preguntas de examen", fr: "questions d'examen", de: "Prüfungsfragen", it: "domande d'esame" }))}</span>
             </div>
           </div>
           <Surface tone="cyan" className="self-start p-5">
@@ -494,7 +494,7 @@ export default function RadioTheoryCourse() {
                     ))}
                   </div>
                   <Link href={`/radio/test?chapter=${chapter.id}`} className="mt-4 inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-bold" style={{ background: "var(--accent-cyan)", color: "var(--accent-ink, #04222e)" }}>
-                    {radioText(tp("Перейти к вопросам UKE", "Open UKE questions", "Przejdź do pytań UKE"))}
+                    {radioText(tl({ pl: "Przejdź do pytań egzaminacyjnych", ru: "Перейти к экзаменационным вопросам", en: "Open exam questions", es: "Ir a las preguntas de examen", fr: "Ouvrir les questions d'examen", de: "Zu den Prüfungsfragen", it: "Apri le domande d'esame" }))}
                   </Link>
                 </Surface>
                 <SourceList sourceIds={chapter.sourceIds} />

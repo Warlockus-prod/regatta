@@ -334,7 +334,9 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
   soft-wrap at the edges, no boat-to-boat collisions. Collision parity is a
   product decision, not a refactor of `race-physics`. Details in
   `WEB_VS_APP_PARITY.md`.
-- Other parity items live in `WEB_VS_APP_PARITY.md` and `SIMULATOR_V3_PARITY.md`.
+- Other parity notes live in `WEB_VS_APP_PARITY.md`; open work is in
+  `docs/BACKLOG.md` (the native trainer parity page was removed 2026-11-02: the
+  native trainer is only the offline fallback, ADR-0011).
 
 ---
 

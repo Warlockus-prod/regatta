@@ -24,7 +24,14 @@ export type PhysicalRaceStepOptions = Pick<RaceStepOptions, "speedMul" | "windSt
 export interface PhysicalRaceMotion {
   readonly from: Readonly<Vec2>;
   readonly to: Readonly<Vec2>;
+  /** Interior bend points of the travelled polyline from -> path... -> to, at
+   * most PHYSICAL_MOTION_MAX_BENDS, recorded where the velocity changed
+   * mid-tick (a water bound, a sliding contact, ADR-0015 point 4). Absent
+   * means one straight segment. Progress grades the whole polyline. */
+  readonly path?: readonly Readonly<Vec2>[];
 }
+/** A travelled polyline has at most five points: from, four bends, to. */
+export const PHYSICAL_MOTION_MAX_BENDS = 4;
 
 const object = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -113,7 +120,20 @@ export function stepPhysicalBoat(
 function travelBoat(boat: RaceBoat, from: Readonly<Vec2>, travel: { east: number; north: number }, scale: number,
   boundX: (x: number) => number, boundY: (y: number) => number): PhysicalRaceMotion {
   // Keep the same physical hull and clearance in every course profile.
-  boat.pos.x = boundX(from.x + travel.east / scale);
-  boat.pos.y = boundY(from.y - travel.north / scale);
-  return Object.freeze({ from, to: Object.freeze({ ...boat.pos }) });
+  const dx = travel.east / scale, dy = -travel.north / scale;
+  boat.pos.x = boundX(from.x + dx);
+  boat.pos.y = boundY(from.y + dy);
+  // The per-axis clamp is a slide along the water bound: the axis into the
+  // bound stops where it meets it and the other axis keeps its full travel,
+  // so the next tick starts at the bound with an honest tangential velocity.
+  // Where that happens mid-tick the travelled path bends; record the bend.
+  const bends: { t: number; axis: "x" | "y" }[] = [];
+  if (boat.pos.x !== from.x + dx && dx !== 0) bends.push({ t: (boat.pos.x - from.x) / dx, axis: "x" });
+  if (boat.pos.y !== from.y + dy && dy !== 0) bends.push({ t: (boat.pos.y - from.y) / dy, axis: "y" });
+  const path = bends.filter(b => b.t > 0 && b.t < 1).sort((a, b) => a.t - b.t).map(b => Object.freeze({
+    // Each axis travels freely until its own bound, then stays there.
+    x: bends.some(o => o.axis === "x" && o.t <= b.t) ? boat.pos.x : from.x + dx * b.t,
+    y: bends.some(o => o.axis === "y" && o.t <= b.t) ? boat.pos.y : from.y + dy * b.t,
+  })).filter(p => p.x !== boat.pos.x || p.y !== boat.pos.y);
+  return Object.freeze({ from, to: Object.freeze({ ...boat.pos }), ...(path.length ? { path: Object.freeze(path) } : {}) });
 }

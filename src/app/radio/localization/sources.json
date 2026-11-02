@@ -332,6 +332,19 @@
     }
   },
   {
+    "id": "02317e707ce7a9ca",
+    "source": "Trening: oficjalna baza pytań SRC",
+    "known": {
+      "pl": "Trening: oficjalna baza pytań SRC",
+      "ru": "Тренажёр: официальная база вопросов SRC",
+      "en": "Practice: official SRC question bank",
+      "es": "Práctica: banco oficial de preguntas SRC",
+      "fr": "Entraînement : banque officielle de questions SRC",
+      "de": "Training: offizielle SRC-Fragenbank",
+      "it": "Allenamento: banca ufficiale delle domande SRC"
+    }
+  },
+  {
     "id": "023e92724a9fbd41",
     "source": "Nie zastępuj standardowej frazy długą rozmową potoczną.",
     "known": {
@@ -900,6 +913,19 @@
     "known": {
       "pl": "Nie ucz się listy bez kontekstu. Zawsze pytaj: kogo wołam, po co, czy kanał jest simplex, i jaka moc jest dozwolona.",
       "ru": "Не учи список без контекста. Всегда спрашивай: кого вызываю, зачем, simplex ли канал и какая мощность разрешена."
+    }
+  },
+  {
+    "id": "07fff407a6546cad",
+    "source": "Trzy pytania z powiązanych materiałów egzaminacyjnych. Rozdział kończy się po trzech poprawnych odpowiedziach.",
+    "known": {
+      "pl": "Trzy pytania z powiązanych materiałów egzaminacyjnych. Rozdział kończy się po trzech poprawnych odpowiedziach.",
+      "ru": "Три вопроса из связанных экзаменационных материалов. Глава завершится только после трех правильных ответов.",
+      "en": "Three questions from the related exam material. The chapter completes after three correct answers.",
+      "es": "Tres preguntas de los materiales de examen relacionados. El capítulo se completa al responder correctamente las tres.",
+      "fr": "Trois questions tirées des documents d'examen associés. Le chapitre se termine après trois bonnes réponses.",
+      "de": "Drei Fragen aus den zugehörigen Prüfungsunterlagen. Das Kapitel endet nach drei richtigen Antworten.",
+      "it": "Tre domande tratte dai materiali d'esame correlati. Il capitolo termina dopo tre risposte corrette."
     }
   },
   {
@@ -1822,19 +1848,6 @@
     "source": "Fraza SMCP to \"{radioTerm0}\"; \"{radioTerm1}\" i \"{radioTerm2}\" nie są standardowymi zwrotami.",
     "known": {
       "pl": "Fraza SMCP to \"{radioTerm0}\"; \"{radioTerm1}\" i \"{radioTerm2}\" nie są standardowymi zwrotami."
-    }
-  },
-  {
-    "id": "0e99208cec27021d",
-    "source": "Co znajdziesz w pytaniach UKE",
-    "known": {
-      "pl": "Co znajdziesz w pytaniach UKE",
-      "ru": "Что встретится в вопросах UKE",
-      "en": "What the UKE questions cover",
-      "es": "Qué incluyen las preguntas UKE",
-      "fr": "Ce que couvrent les questions UKE",
-      "de": "Was die UKE-Fragen behandeln",
-      "it": "Cosa trattano le domande UKE"
     }
   },
   {
@@ -3012,6 +3025,19 @@
     }
   },
   {
+    "id": "1765cd30138ee975",
+    "source": "zadania egzaminu",
+    "known": {
+      "pl": "zadania egzaminu",
+      "ru": "задания экзамена",
+      "en": "exam tasks",
+      "es": "tareas de examen",
+      "fr": "exercices d'examen",
+      "de": "Prüfungsaufgaben",
+      "it": "esercizi d'esame"
+    }
+  },
+  {
     "id": "1771b23a3758f14e",
     "source": "W ostrzeżeniach nawigacyjnych nieświecąca pława świetlna to \"lightbuoy unlit\".",
     "known": {
@@ -3780,15 +3806,6 @@
     }
   },
   {
-    "id": "1e13730bb0cc3160",
-    "source": "Przygotowanie do polskiego SRC",
-    "known": {
-      "pl": "Przygotowanie do polskiego SRC",
-      "ru": "Подготовка к польскому SRC",
-      "en": "Polish SRC preparation"
-    }
-  },
-  {
     "id": "1e1b68b7d7fe52de",
     "source": "(?:0|zero|oh)",
     "known": {}
@@ -4396,14 +4413,6 @@
     }
   },
   {
-    "id": "237367f0d412823a",
-    "source": "Sprawdź całą bazę UKE",
-    "known": {
-      "pl": "Sprawdź całą bazę UKE",
-      "ru": "Проверить всю базу UKE"
-    }
-  },
-  {
     "id": "23873b8ef44b9675",
     "source": "Słucham...",
     "known": {
@@ -4693,6 +4702,19 @@
     "known": {
       "pl": "Sprawdź pytania EPIRB",
       "ru": "Проверить вопросы EPIRB"
+    }
+  },
+  {
+    "id": "25ed4b46db6cf566",
+    "source": "Egzamin sprawdza program SRC i praktykę krajowej administracji, która go prowadzi. Odpowiadaj według oficjalnego materiału, ale oznaczaj w pamięci, co jest regułą globalną, a co regionalną.",
+    "known": {
+      "pl": "Egzamin sprawdza program SRC i praktykę krajowej administracji, która go prowadzi. Odpowiadaj według oficjalnego materiału, ale oznaczaj w pamięci, co jest regułą globalną, a co regionalną.",
+      "ru": "Экзамен проверяет программу SRC и практику национальной администрации, которая его проводит. Отвечай по официальному материалу, но различай глобальные и региональные правила.",
+      "en": "The exam tests the SRC syllabus and the practice of the national administration that runs it. Answer according to the official material, but keep track of which rules are global and which are regional.",
+      "es": "El examen evalúa el programa SRC y la práctica de la administración nacional que lo organiza. Responde según el material oficial, pero distingue qué reglas son globales y cuáles son regionales.",
+      "fr": "L'examen porte sur le programme SRC et les pratiques de l'administration nationale qui l'organise. Répondez selon le matériel officiel, tout en distinguant mentalement les règles mondiales des règles régionales.",
+      "de": "Die Prüfung prüft den SRC-Lehrstoff und die Praxis der nationalen Verwaltung, die sie abnimmt. Antworte nach dem offiziellen Material, merke dir aber, welche Regeln weltweit und welche regional gelten.",
+      "it": "L'esame verifica il programma SRC e la pratica dell'amministrazione nazionale che lo organizza. Rispondi secondo il materiale ufficiale, ma tieni a mente quali regole sono globali e quali regionali."
     }
   },
   {
@@ -5451,6 +5473,19 @@
     "known": {}
   },
   {
+    "id": "2d78cf1b10de215b",
+    "source": "26 zadań praktycznych egzaminu",
+    "known": {
+      "pl": "26 zadań praktycznych egzaminu",
+      "ru": "26 практических заданий экзамена",
+      "en": "26 practical exam tasks",
+      "es": "26 tareas prácticas del examen",
+      "fr": "26 exercices pratiques de l'examen",
+      "de": "26 praktische Prüfungsaufgaben",
+      "it": "26 prove pratiche d'esame"
+    }
+  },
+  {
     "id": "2d7b0d356205103f",
     "source": "Wpisany tekst",
     "known": {
@@ -5555,6 +5590,19 @@
     }
   },
   {
+    "id": "2def604d2bb7ff57",
+    "source": "Kurs radiowy SRC",
+    "known": {
+      "pl": "Kurs radiowy SRC",
+      "ru": "Курс радиосвязи SRC",
+      "en": "SRC radio course",
+      "es": "Curso de radio SRC",
+      "fr": "Cours de radio SRC",
+      "de": "SRC-Funkkurs",
+      "it": "Corso di radio SRC"
+    }
+  },
+  {
     "id": "2df1c69c054be9d9",
     "source": "Podczas sprzątania kokpitu ktoś oparł się o radio i alert DISTRESS poszedł w eter (nature: Undesignated). Nic się nie dzieje, wszyscy cali. Fałszywy alert trzeba NATYCHMIAST odwołać - cyfrowo i głosem - inaczej ruszy akcja ratownicza.",
     "known": {
@@ -5611,6 +5659,19 @@
     "id": "2e0e690feaf8bb6b",
     "source": "PermissionDeniedError",
     "known": {}
+  },
+  {
+    "id": "2e1798ac7ce70188",
+    "source": "Kurs rozdziela odpowiedź egzaminacyjną, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
+    "known": {
+      "pl": "Kurs rozdziela odpowiedź egzaminacyjną, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
+      "ru": "Курс разделяет три вещи: ответ для экзамена, международную процедуру и местную практику. Сначала ты понимаешь причину, затем отвечаешь на вопросы и только после этого выполняешь процедуру на ICOM.",
+      "en": "The course separates the exam answer, international procedure, and local practice. First understand the reason, then answer questions, then perform the procedure on an ICOM.",
+      "es": "El curso separa tres cosas: la respuesta de examen, el procedimiento internacional y la práctica local. Primero entiendes el porqué, luego respondes preguntas y después haces el procedimiento en un ICOM.",
+      "fr": "Le cours distingue trois choses : la réponse attendue à l'examen, la procédure internationale et la pratique locale. D'abord tu comprends pourquoi, puis tu réponds aux questions, puis tu exécutes la procédure sur un ICOM.",
+      "de": "Der Kurs trennt drei Dinge: die Prüfungsantwort, das internationale Verfahren und die örtliche Praxis. Zuerst verstehst du den Grund, dann beantwortest du Fragen und erst danach führst du das Verfahren an einem ICOM aus.",
+      "it": "Il corso distingue tre cose: la risposta d'esame, la procedura internazionale e la pratica locale. Prima capisci il perché, poi rispondi alle domande e infine esegui la procedura su un ICOM."
+    }
   },
   {
     "id": "2e3b910b198240ec",
@@ -6989,8 +7050,8 @@
     "source": "Nie lista faktów, lecz spójny model: dlaczego VHF działa w ten sposób, jak wybrać priorytet, co naprawdę wysyła DSC, po co jest każda linia MAYDAY i jak egzamin łączy się z praktyką.",
     "known": {
       "pl": "Nie lista faktów, lecz spójny model: dlaczego VHF działa w ten sposób, jak wybrać priorytet, co naprawdę wysyła DSC, po co jest każda linia MAYDAY i jak egzamin łączy się z praktyką.",
-      "ru": "Не список фактов, а цельная модель: почему VHF работает именно так, как выбрать приоритет, что реально передаёт DSC, зачем нужна каждая строка MAYDAY и как польский экзамен связан с практикой в море.",
-      "en": "A coherent model rather than a fact list: why VHF works this way, how to choose priority, what DSC actually sends, why every MAYDAY line exists, and how the Polish exam connects to real operations."
+      "ru": "Не список фактов, а цельная модель: почему VHF работает именно так, как выбрать приоритет, что реально передаёт DSC, зачем нужна каждая строка MAYDAY и как экзамен связан с практикой в море.",
+      "en": "A coherent model rather than a fact list: why VHF works this way, how to choose priority, what DSC actually sends, why every MAYDAY line exists, and how the exam connects to real operations."
     }
   },
   {
@@ -7072,14 +7133,6 @@
     "id": "3c01d61b6dd82e0a",
     "source": "VTS Zatoka Gdanska",
     "known": {}
-  },
-  {
-    "id": "3c0a701d2505ad5f",
-    "source": "Egzamin UKE sprawdza program SRC i praktykę stosowaną w Polsce. Odpowiadaj według oficjalnego materiału, ale oznaczaj w pamięci, co jest regułą globalną, a co regionalną.",
-    "known": {
-      "pl": "Egzamin UKE sprawdza program SRC i praktykę stosowaną w Polsce. Odpowiadaj według oficjalnego materiału, ale oznaczaj w pamięci, co jest regułą globalną, a co regionalną.",
-      "ru": "Экзамен UKE проверяет программу SRC и польскую практику. Отвечай по официальному материалу, но различай глобальные и региональные правила."
-    }
   },
   {
     "id": "3c0c61284209ed0a",
@@ -7608,6 +7661,19 @@
     }
   },
   {
+    "id": "401c25d6879fee3f",
+    "source": "Darmowe przygotowanie do egzaminu SRC: jak zdobyć świadectwo, kanały VHF, procedury MAYDAY / PAN-PAN / SECURITE i interaktywny symulator radia ICOM IC-M330GE z oceną transmisji głosowych.",
+    "known": {
+      "pl": "Darmowe przygotowanie do egzaminu SRC: jak zdobyć świadectwo, kanały VHF, procedury MAYDAY / PAN-PAN / SECURITE i interaktywny symulator radia ICOM IC-M330GE z oceną transmisji głosowych.",
+      "ru": "Бесплатная подготовка к экзамену SRC: как получить свидетельство, каналы VHF, процедуры MAYDAY / PAN-PAN / SECURITE и интерактивный симулятор радиостанции ICOM IC-M330GE с оценкой голосовых передач.",
+      "en": "Free preparation for the SRC exam: how to obtain the certificate, VHF channels, MAYDAY / PAN-PAN / SECURITE procedures and an interactive ICOM IC-M330GE radio simulator with voice transmission assessment.",
+      "es": "Preparación gratuita para el examen SRC: cómo obtener el certificado, canales VHF, procedimientos MAYDAY / PAN-PAN / SECURITE y un simulador interactivo de la radio ICOM IC-M330GE con evaluación de las transmisiones de voz.",
+      "fr": "Préparation gratuite à l'examen SRC : comment obtenir le certificat, canaux VHF, procédures MAYDAY / PAN-PAN / SECURITE et simulateur interactif de radio ICOM IC-M330GE avec évaluation des transmissions vocales.",
+      "de": "Kostenlose Vorbereitung auf die SRC-Prüfung: der Weg zum Zeugnis, VHF-Kanäle, MAYDAY- / PAN-PAN- / SECURITE-Verfahren und ein interaktiver Simulator des Funkgeräts ICOM IC-M330GE mit Bewertung von Sprechfunkaussendungen.",
+      "it": "Preparazione gratuita all'esame SRC: come ottenere il certificato, canali VHF, procedure MAYDAY / PAN-PAN / SECURITE e simulatore interattivo della radio ICOM IC-M330GE con valutazione delle trasmissioni vocali."
+    }
+  },
+  {
     "id": "402d0a91c8c067d7",
     "source": "zmienia moc nadawania we wszystkich kanałach",
     "known": {
@@ -7916,6 +7982,19 @@
     }
   },
   {
+    "id": "43106eaf5c55fda6",
+    "source": "Pełna oficjalna lista zadań praktycznych egzaminu SRC - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf (UKE). Klucz odpowiedzi nie jest publikowany, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.",
+    "known": {
+      "pl": "Pełna oficjalna lista zadań praktycznych egzaminu SRC - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf (UKE). Klucz odpowiedzi nie jest publikowany, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.",
+      "ru": "Полный официальный список практических заданий экзамена SRC - с правильной процедурой для каждого и ссылкой на симулятор/курс, где его можно отработать. Источник: materialy_do_testu_src.pdf (UKE). Официальный ключ ответов не публикуется, поэтому здесь описана правильная процедура по GMDSS/ICOM, а не выбор A/B/C.",
+      "en": "The full official list of the SRC practical exam tasks - each with the correct procedure and a link to the simulator/course where you can practise it. Source: materialy_do_testu_src.pdf (UKE). No answer key is published, so this is the correct GMDSS/ICOM procedure, not an A/B/C quiz.",
+      "es": "Lista oficial completa de ejercicios prácticos del examen SRC, cada uno con el procedimiento correcto y un enlace al simulador o curso donde practicarlo. Fuente: materialy_do_testu_src.pdf (UKE). No se publica una clave de respuestas, por lo que se presenta el procedimiento correcto según GMDSS/ICOM, no una selección A/B/C.",
+      "fr": "Liste officielle complète des exercices pratiques de l'examen SRC, avec pour chacun la procédure correcte et un lien vers le simulateur ou le cours permettant de s'entraîner. Source : materialy_do_testu_src.pdf (UKE). Aucun corrigé n'est publié : les réponses présentent donc la procédure correcte selon le GMDSS et ICOM, sans choix A/B/C.",
+      "de": "Die vollständige offizielle Liste der praktischen Aufgaben der SRC-Prüfung - jeweils mit dem korrekten Verfahren und einem Link zum Simulator oder Kurs, in dem du es üben kannst. Quelle: materialy_do_testu_src.pdf (UKE). Ein Lösungsschlüssel wird nicht veröffentlicht. Deshalb wird hier das korrekte Verfahren gemäß GMDSS/ICOM beschrieben, keine Auswahl A/B/C.",
+      "it": "Elenco ufficiale completo delle prove pratiche dell'esame SRC: ciascuna comprende la procedura corretta e un collegamento al simulatore o al corso in cui esercitarti. Fonte: materialy_do_testu_src.pdf (UKE). Le soluzioni non vengono pubblicate, quindi viene indicata la procedura corretta secondo GMDSS/ICOM, senza selezionare una risposta A/B/C."
+    }
+  },
+  {
     "id": "43479d9b9310a510",
     "source": "jednoczesny nasłuch kanału 16 i dowolnego roboczego",
     "known": {
@@ -8055,21 +8134,25 @@
     }
   },
   {
+    "id": "44b898b85712e4ef",
+    "source": "Przećwicz 60 fraz egzaminacyjnych",
+    "known": {
+      "pl": "Przećwicz 60 fraz egzaminacyjnych",
+      "ru": "Отработать 60 экзаменационных фраз",
+      "en": "Practise 60 exam phrases",
+      "es": "Practica 60 frases de examen",
+      "fr": "Entraînez-vous aux 60 phrases d'examen",
+      "de": "Übe 60 Prüfungs-Funkphrasen",
+      "it": "Esercitati con 60 frasi d'esame"
+    }
+  },
+  {
     "id": "44bbe5cdd1f7178e",
     "source": "Przejdź obsługę ICOM do DISTRESS bez szukania klawiszy.",
     "known": {
       "pl": "Przejdź obsługę ICOM do DISTRESS bez szukania klawiszy.",
       "ru": "Пройди управление ICOM до DISTRESS без поиска кнопок.",
       "en": "Complete the ICOM controls through DISTRESS without hunting for buttons."
-    }
-  },
-  {
-    "id": "44c28e7eb9a767da",
-    "source": "pytania UKE",
-    "known": {
-      "pl": "pytania UKE",
-      "ru": "вопроса UKE",
-      "en": "UKE questions"
     }
   },
   {
@@ -8340,6 +8423,19 @@
     "known": {
       "pl": "Wyślij wywołanie DSC",
       "ru": "Отправить вызов DSC"
+    }
+  },
+  {
+    "id": "46d98131f290b933",
+    "source": "zadanie egzaminu",
+    "known": {
+      "pl": "zadanie egzaminu",
+      "ru": "задание экзамена",
+      "en": "exam task",
+      "es": "tarea de examen",
+      "fr": "exercice d'examen",
+      "de": "Prüfungsaufgabe",
+      "it": "esercizio d'esame"
     }
   },
   {
@@ -8705,15 +8801,6 @@
     "source": "w postaci koncentrycznych okręgów przy odległości do rozbitków poniżej 0,1 mili",
     "known": {
       "pl": "w postaci koncentrycznych okręgów przy odległości do rozbitków poniżej 0,1 mili"
-    }
-  },
-  {
-    "id": "49c5d8a2b245e28b",
-    "source": "Format UKE",
-    "known": {
-      "pl": "Format UKE",
-      "ru": "Формат UKE",
-      "en": "UKE format"
     }
   },
   {
@@ -9242,6 +9329,19 @@
     "known": {
       "pl": "Krótko, jasno, na zmianę",
       "ru": "Коротко, ясно, по очереди"
+    }
+  },
+  {
+    "id": "4dec0ddb07729dd8",
+    "source": "Alfabet fonetyczny i cyfry w radiu VHF - trening | Week to Regatta",
+    "known": {
+      "pl": "Alfabet fonetyczny i cyfry w radiu VHF - trening | Week to Regatta",
+      "ru": "Фонетический алфавит и цифры в УКВ-радиосвязи - тренажёр | Week to Regatta",
+      "en": "Phonetic alphabet and numbers on VHF radio - drill | Week to Regatta",
+      "es": "Alfabeto fonético y números en radio VHF - práctica | Week to Regatta",
+      "fr": "Alphabet phonétique et chiffres en radio VHF - entraînement | Week to Regatta",
+      "de": "Buchstabieralphabet und Zahlen im UKW-Seefunk - Training | Week to Regatta",
+      "it": "Alfabeto fonetico e numeri via radio VHF - esercizio | Week to Regatta"
     }
   },
   {
@@ -10108,6 +10208,19 @@
     }
   },
   {
+    "id": "5403c7362e8ab651",
+    "source": "Cały alfabet fonetyczny od Alfa do Zulu z akcentem i nagraniem, wymowa cyfr (WUN, TOO, TREE, NIN-ER), rozpoznawanie słów ze słuchu, literowanie nazw i znaków wywoławczych oraz runda punktowana.",
+    "known": {
+      "pl": "Cały alfabet fonetyczny od Alfa do Zulu z akcentem i nagraniem, wymowa cyfr (WUN, TOO, TREE, NIN-ER), rozpoznawanie słów ze słuchu, literowanie nazw i znaków wywoławczych oraz runda punktowana.",
+      "ru": "Весь фонетический алфавит от Alfa до Zulu с ударением и озвучкой, произношение цифр (WUN, TOO, TREE, NIN-ER), узнавание слов на слух, передача имён и позывных по буквам и зачётный раунд.",
+      "en": "The whole phonetic alphabet from Alfa to Zulu with stress and audio, how figures are pronounced (WUN, TOO, TREE, NIN-ER), recognising words by ear, spelling names and call signs, and a scored round.",
+      "es": "Todo el alfabeto fonético de Alfa a Zulu con acento y audio, la pronunciación de las cifras (WUN, TOO, TREE, NIN-ER), reconocer palabras de oído, deletrear nombres y distintivos de llamada y una ronda puntuada.",
+      "fr": "Tout l'alphabet phonétique d'Alfa à Zulu avec l'accent et l'audio, la prononciation des chiffres (WUN, TOO, TREE, NIN-ER), la reconnaissance des mots à l'oreille, l'épellation des noms et indicatifs et une manche notée.",
+      "de": "Das ganze Buchstabieralphabet von Alfa bis Zulu mit Betonung und Audio, die Aussprache der Ziffern (WUN, TOO, TREE, NIN-ER), Wörter nach Gehör erkennen, Namen und Rufzeichen buchstabieren und eine gewertete Runde.",
+      "it": "Tutto l'alfabeto fonetico da Alfa a Zulu con accento e audio, la pronuncia delle cifre (WUN, TOO, TREE, NIN-ER), il riconoscimento delle parole a orecchio, lo spelling di nomi e nominativi e un round a punti."
+    }
+  },
+  {
     "id": "542c3824390a4495",
     "source": "Łączność na miejscu akcji jest utrzymywana z wykorzystaniem częstotliwości:",
     "known": {
@@ -10202,6 +10315,19 @@
     "known": {
       "pl": "Na jachcie jest pożar. Alarm cyfrowy trafia przez kanał 70 do statków i stacji brzegowej. Głosowy MAYDAY na 16 wyjaśnia sytuację. Stacja brzegowa przekazuje dane do RCC, które koordynuje SAR.",
       "ru": "На яхте пожар. Цифровой сигнал по каналу 70 получают суда и берег. Голосовой MAYDAY на 16 объясняет ситуацию. Берег передаёт данные в RCC, которое координирует SAR."
+    }
+  },
+  {
+    "id": "55315d9e2de5b8fa",
+    "source": "Format egzaminu",
+    "known": {
+      "pl": "Format egzaminu",
+      "ru": "Формат экзамена",
+      "en": "Exam format",
+      "es": "Formato del examen",
+      "fr": "Format de l'examen",
+      "de": "Prüfungsformat",
+      "it": "Formato d'esame"
     }
   },
   {
@@ -10541,19 +10667,6 @@
     }
   },
   {
-    "id": "582a5371c40baa38",
-    "source": "Na egzaminie UKE",
-    "known": {
-      "pl": "Na egzaminie UKE",
-      "ru": "На экзамене UKE",
-      "en": "In the UKE exam",
-      "es": "En el examen UKE",
-      "fr": "À l'examen UKE",
-      "de": "In der UKE-Prüfung",
-      "it": "All'esame UKE"
-    }
-  },
-  {
     "id": "582ee6fe136eb79d",
     "source": "Transmitting Distress Alert",
     "known": {}
@@ -10666,6 +10779,19 @@
     }
   },
   {
+    "id": "595ecded7a157935",
+    "source": "Trening po bazie pytań egzaminacyjnych",
+    "known": {
+      "pl": "Trening po bazie pytań egzaminacyjnych",
+      "ru": "Тренажёр по базе экзаменационных вопросов",
+      "en": "Exam question trainer",
+      "es": "Entrenador de preguntas de examen",
+      "fr": "Entraînement aux questions d'examen",
+      "de": "Prüfungsfragen-Training",
+      "it": "Allenamento sulle domande d'esame"
+    }
+  },
+  {
     "id": "5972c1083e1169d3",
     "source": "Rozdziały kursu",
     "known": {
@@ -10736,15 +10862,6 @@
       "pl": "Radio ma 20 poziomów i OFF. Głośność wpływa na głośnik, nigdy na zasięg nadawania. Ustawia się ją według szumu, bo ciszy nie da się wyregulować.",
       "ru": "У рации 20 уровней и OFF. Громкость влияет только на динамик и никак не на дальность передачи. Именно поэтому громкость ставят по шуму: тишину настроить нельзя.",
       "en": "The set has 20 levels plus OFF. Volume affects the speaker, never the transmit range. And it is set against the hiss because you cannot set a level against silence."
-    }
-  },
-  {
-    "id": "59fd1e1f4c41214a",
-    "source": "ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.",
-    "known": {
-      "pl": "ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.",
-      "ru": "ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.",
-      "en": "ICOM IC-M330GE - the radio used for the UKE SRC practical, along with the IC-M323. Every key, menu and display follows the original equipment."
     }
   },
   {
@@ -11451,15 +11568,6 @@
     }
   },
   {
-    "id": "600be162805c3105",
-    "source": "Trzy pytania z powiązanych materiałów UKE. Rozdział kończy się po trzech poprawnych odpowiedziach.",
-    "known": {
-      "pl": "Trzy pytania z powiązanych materiałów UKE. Rozdział kończy się po trzech poprawnych odpowiedziach.",
-      "ru": "Три вопроса из связанных материалов UKE. Глава завершится только после трех правильных ответов.",
-      "en": "Three questions from the related UKE material. The chapter completes after three correct answers."
-    }
-  },
-  {
     "id": "600c953f2ee70ce0",
     "source": "czekaj na kanale 16",
     "known": {}
@@ -11633,15 +11741,6 @@
     "known": {
       "pl": "Zachowaj komunikat dotyczący trasy, nawet jeśli odbiornik zwykle go filtruje.",
       "ru": "Сохрани сообщение по маршруту, даже если приемник обычно его фильтрует."
-    }
-  },
-  {
-    "id": "621b4226d76413a4",
-    "source": "MMSI programuje się zwykle RAZ (w wielu radiach nie da się zmienić bez serwisu) - nie wpisuj na oślep. Własne radio potrzebuje MMSI/znaku z pozwolenia radiowego na stację statkową (w Polsce: UKE). Bez MMSI funkcje DSC są zablokowane.",
-    "known": {
-      "pl": "MMSI programuje się zwykle RAZ (w wielu radiach nie da się zmienić bez serwisu) - nie wpisuj na oślep. Własne radio potrzebuje MMSI/znaku z pozwolenia radiowego na stację statkową (w Polsce: UKE). Bez MMSI funkcje DSC są zablokowane.",
-      "ru": "MMSI программируется в рацию обычно ОДИН раз (на многих аппаратах его нельзя переписать без сервиса) - не вбивай наугад. Для своей рации на борту нужен MMSI/позывной из разрешения на судовую радиостанцию (в Польше - UKE). Без введённого MMSI функции DSC заблокированы.",
-      "en": "The MMSI is usually programmed ONCE (many sets cannot be re-entered without service) - do not guess it. Your own set needs an MMSI/call sign from a ship-station radio licence (in Poland: UKE). Without an MMSI the DSC functions are locked."
     }
   },
   {
@@ -12716,6 +12815,19 @@
     "source": "Zmniejszenie wzmocnienia odbiornika radaru eliminuje echa listków bocznych anteny i przywraca obraz kropek.",
     "known": {
       "pl": "Zmniejszenie wzmocnienia odbiornika radaru eliminuje echa listków bocznych anteny i przywraca obraz kropek."
+    }
+  },
+  {
+    "id": "6badfcb576f09512",
+    "source": "pytania egzaminacyjne",
+    "known": {
+      "pl": "pytania egzaminacyjne",
+      "ru": "экзаменационных вопроса",
+      "en": "exam questions",
+      "es": "preguntas de examen",
+      "fr": "questions d'examen",
+      "de": "Prüfungsfragen",
+      "it": "domande d'esame"
     }
   },
   {
@@ -14651,15 +14763,6 @@
     }
   },
   {
-    "id": "7e06aa681e32781b",
-    "source": "26 zadań praktycznych UKE",
-    "known": {
-      "pl": "26 zadań praktycznych UKE",
-      "ru": "26 практических заданий UKE",
-      "en": "26 UKE practical tasks"
-    }
-  },
-  {
     "id": "7e4fc3d7d8765c19",
     "source": "Znak wywoławczy stacji statkowej to identyfikacja przyznawana:",
     "known": {
@@ -14802,11 +14905,6 @@
       "de": "Funkgerät bedienen lernen",
       "it": "Impara i comandi della radio"
     }
-  },
-  {
-    "id": "7fef39f41afe2d3f",
-    "source": "Egzamin UKE",
-    "known": {}
   },
   {
     "id": "7ffb4884f10a0491",
@@ -16653,15 +16751,6 @@
     }
   },
   {
-    "id": "8de45154dcc2b178",
-    "source": "Trening po bazie pytań UKE",
-    "known": {
-      "pl": "Trening po bazie pytań UKE",
-      "ru": "Тренажёр по базе вопросов UKE",
-      "en": "UKE question trainer"
-    }
-  },
-  {
     "id": "8de5f9db2c0a5446",
     "source": "Jeśli nadal brak łączności, zmień pozycję, podnieś antenę lub użyj przekazu.",
     "known": {
@@ -17402,6 +17491,19 @@
     }
   },
   {
+    "id": "943bf9a7ff633a2b",
+    "source": "Zdaj w formacie egzaminu",
+    "known": {
+      "pl": "Zdaj w formacie egzaminu",
+      "ru": "Сдать в формате экзамена",
+      "en": "Pass the exam format",
+      "es": "Supera el formato del examen",
+      "fr": "Réussir le format de l'examen",
+      "de": "Das Prüfungsformat bestehen",
+      "it": "Supera il formato d'esame"
+    }
+  },
+  {
     "id": "9447f5e5897d96f1",
     "source": "Ta sama awaria może dać inną odpowiedź w innym kontekście",
     "known": {
@@ -17836,6 +17938,19 @@
     }
   },
   {
+    "id": "98f8eb683d9b1a1e",
+    "source": "MMSI programuje się zwykle RAZ (w wielu radiach nie da się zmienić bez serwisu) - nie wpisuj na oślep. Własne radio potrzebuje MMSI/znaku z pozwolenia radiowego na stację statkową, które wydaje krajowy urząd łączności. Bez MMSI funkcje DSC są zablokowane.",
+    "known": {
+      "pl": "MMSI programuje się zwykle RAZ (w wielu radiach nie da się zmienić bez serwisu) - nie wpisuj na oślep. Własne radio potrzebuje MMSI/znaku z pozwolenia radiowego na stację statkową, które wydaje krajowy urząd łączności. Bez MMSI funkcje DSC są zablokowane.",
+      "ru": "MMSI программируется в рацию обычно ОДИН раз (на многих аппаратах его нельзя переписать без сервиса) - не вбивай наугад. Для своей рации на борту нужен MMSI/позывной из разрешения на судовую радиостанцию, которое выдаёт национальный орган связи. Без введённого MMSI функции DSC заблокированы.",
+      "en": "The MMSI is usually programmed ONCE (many sets cannot be re-entered without service) - do not guess it. Your own set needs an MMSI/call sign from a ship-station radio licence issued by the national telecom authority. Without an MMSI the DSC functions are locked.",
+      "es": "El MMSI suele programarse UNA SOLA VEZ; en muchas radios no puede cambiarse sin acudir al servicio técnico. No lo introduzcas al azar. Tu radio necesita el MMSI y el distintivo de llamada que figuran en la licencia de la estación de barco, emitida por la autoridad nacional de telecomunicaciones. Sin MMSI, las funciones DSC están bloqueadas.",
+      "fr": "Le MMSI ne se programme généralement qu'UNE SEULE FOIS (sur de nombreuses radios, seul un service technique peut le modifier). Ne le saisissez pas au hasard. Votre radio doit utiliser le MMSI et l'indicatif figurant sur la licence radio de la station de navire, délivrée par l'autorité nationale des télécommunications. Sans MMSI, les fonctions DSC sont bloquées.",
+      "de": "Die MMSI wird üblicherweise EINMAL programmiert (bei vielen Funkgeräten lässt sie sich nur durch einen Servicebetrieb ändern) - gib sie nicht auf gut Glück ein. Dein eigenes Funkgerät benötigt die MMSI und das Rufzeichen aus der Funkgenehmigung für die Seefunkstelle, die die nationale Fernmeldebehörde erteilt. Ohne MMSI sind die DSC-Funktionen gesperrt.",
+      "it": "L'MMSI si programma di solito UNA SOLA VOLTA (su molte radio non è modificabile senza assistenza tecnica): non inserirlo a caso. La tua radio richiede l'MMSI e il nominativo indicati nella licenza radio della stazione di nave, rilasciata dall'autorità nazionale delle telecomunicazioni. Senza MMSI, le funzioni DSC sono bloccate."
+    }
+  },
+  {
     "id": "9908e078da016940",
     "source": "ICOM IC-M330",
     "known": {}
@@ -17991,6 +18106,19 @@
     "source": "Morski zakres VHF obejmuje częstotliwości 156-174 MHz zgodnie z Regulaminem Radiokomunikacyjnym ITU.",
     "known": {
       "pl": "Morski zakres VHF obejmuje częstotliwości 156-174 MHz zgodnie z Regulaminem Radiokomunikacyjnym ITU."
+    }
+  },
+  {
+    "id": "9ad1526cf5ffa4a3",
+    "source": "Sprawdź całą bazę pytań egzaminacyjnych",
+    "known": {
+      "pl": "Sprawdź całą bazę pytań egzaminacyjnych",
+      "ru": "Проверить всю базу экзаменационных вопросов",
+      "en": "Browse the full exam question bank",
+      "es": "Consultar toda la base de preguntas de examen",
+      "fr": "Consulter toute la base de questions d'examen",
+      "de": "Gesamten Prüfungsfragenkatalog ansehen",
+      "it": "Consulta l'intera banca delle domande d'esame"
     }
   },
   {
@@ -18249,11 +18377,6 @@
     }
   },
   {
-    "id": "9d758bbc28c0b5de",
-    "source": "Darmowe przygotowanie do egzaminu SRC w UKE: jak zdobyć świadectwo, kanały VHF, procedury MAYDAY / PAN-PAN / SECURITE i interaktywny symulator radia ICOM IC-M330GE z oceną transmisji głosowych.",
-    "known": {}
-  },
-  {
     "id": "9d87279ff0ca02ee",
     "source": "na obszarze morza A1",
     "known": {
@@ -18338,6 +18461,19 @@
     "known": {
       "pl": "Przed rejsem: plan kanałów, dokumenty, VTS, Notices to Mariners",
       "ru": "Перед рейсом: план каналов, документы, VTS, Notices to Mariners"
+    }
+  },
+  {
+    "id": "9e3a3ca11f33f55e",
+    "source": "Egzamin SRC",
+    "known": {
+      "pl": "Egzamin SRC",
+      "ru": "Экзамен SRC",
+      "en": "SRC exam",
+      "es": "Examen SRC",
+      "fr": "Examen SRC",
+      "de": "SRC-Prüfung",
+      "it": "Esame SRC"
     }
   },
   {
@@ -18762,15 +18898,6 @@
     }
   },
   {
-    "id": "a2616961e527b332",
-    "source": "Świadectwo SRC i egzamin UKE",
-    "known": {
-      "pl": "Świadectwo SRC i egzamin UKE",
-      "ru": "Сертификат SRC и экзамен UKE",
-      "en": "SRC certificate and UKE exam"
-    }
-  },
-  {
     "id": "a26a8bfe24adfee5",
     "source": "od tego czy nadaje w paśmie X czy S",
     "known": {
@@ -18845,11 +18972,6 @@
     "known": {}
   },
   {
-    "id": "a30d4cc2a00ea21b",
-    "source": "egzamin UKE",
-    "known": {}
-  },
-  {
     "id": "a314c7e9e0ec19d7",
     "source": "Nie zakładaj, że brak specjalnego symbolu oznacza brak sygnału na starszym AIS.",
     "known": {
@@ -18901,6 +19023,19 @@
     }
   },
   {
+    "id": "a38fd3b9dfcbe22d",
+    "source": "Powiązane obszary bazy pytań",
+    "known": {
+      "pl": "Powiązane obszary bazy pytań",
+      "ru": "Связанные темы базы вопросов",
+      "en": "Related exam question topics",
+      "es": "Temas relacionados del banco de preguntas",
+      "fr": "Thèmes associés de la banque de questions",
+      "de": "Verwandte Themen der Fragenbank",
+      "it": "Argomenti correlati della banca domande"
+    }
+  },
+  {
     "id": "a3edf5c3ae7701a9",
     "source": "kolejność: ALL STATIONS -> identyfikacja -> odwołanie",
     "known": {
@@ -18926,11 +19061,6 @@
     "known": {
       "pl": "przez podanie pozycji geograficznej odbiornika"
     }
-  },
-  {
-    "id": "a3fdad8116be6111",
-    "source": "Экзамен UKE",
-    "known": {}
   },
   {
     "id": "a407add7993dedbd",
@@ -19361,7 +19491,11 @@
     "known": {
       "pl": "Na egzaminie",
       "ru": "На экзамене",
-      "en": "At the exam"
+      "en": "At the exam",
+      "es": "En el examen",
+      "fr": "À l'examen",
+      "de": "In der Prüfung",
+      "it": "All'esame"
     }
   },
   {
@@ -19702,6 +19836,19 @@
       "fr": "I have problems with rudder.",
       "de": "I have problems with rudder.",
       "it": "I have problems with rudder."
+    }
+  },
+  {
+    "id": "a9a73eee2875796d",
+    "source": "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na egzaminie praktycznym.",
+    "known": {
+      "pl": "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na egzaminie praktycznym.",
+      "ru": "15 последовательных уроков на моделях ICOM IC-M330GE и IC-M323, используемых на практическом экзамене.",
+      "en": "15 sequential lessons on the ICOM IC-M330GE and IC-M323 used in the practical exam.",
+      "es": "15 lecciones seguidas con los ICOM IC-M330GE e IC-M323 que se usan en el examen práctico.",
+      "fr": "15 leçons progressives sur les ICOM IC-M330GE et IC-M323 utilisés à l'examen pratique.",
+      "de": "15 aufeinander aufbauende Lektionen an den ICOM IC-M330GE und IC-M323, die in der praktischen Prüfung verwendet werden.",
+      "it": "15 lezioni in sequenza sugli ICOM IC-M330GE e IC-M323 usati all'esame pratico."
     }
   },
   {
@@ -20137,15 +20284,6 @@
     }
   },
   {
-    "id": "ad9b0dd68ec245d4",
-    "source": "Nauka - wskazówki na każdym kroku. Egzamin - jak w UKE: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.",
-    "known": {
-      "pl": "Nauka - wskazówki na każdym kroku. Egzamin - jak w UKE: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.",
-      "ru": "Обучение - подсказки на каждом шаге. Экзамен - как в UKE: только ситуация, разбор в конце. Прогресс сохраняется.",
-      "en": "Learn - hints at every step. Exam - like at UKE: situation only, debrief at the end. Progress is saved."
-    }
-  },
-  {
     "id": "adaab49c2e5a0820",
     "source": "Satelity geostacjonarne (GEOSAR) odbierają sygnał praktycznie natychmiast, więc powiadomienie RCC następuje w ciągu około 5 minut.",
     "known": {
@@ -20302,15 +20440,6 @@
     "source": "ostrzeżeń meteorologicznych",
     "known": {
       "pl": "ostrzeżeń meteorologicznych"
-    }
-  },
-  {
-    "id": "aead6342ded62cd3",
-    "source": "Wszystkie 26 zadań UKE",
-    "known": {
-      "pl": "Wszystkie 26 zadań UKE",
-      "ru": "Все 26 заданий UKE",
-      "en": "All 26 UKE tasks"
     }
   },
   {
@@ -20542,6 +20671,19 @@
     "known": {
       "pl": "Zachowaj baterię na realną sytuację, wykonuj tylko dopuszczony self test.",
       "ru": "Береги батарею для реальной аварии, выполняй только разрешенный self test."
+    }
+  },
+  {
+    "id": "b05046dd38a770f4",
+    "source": "Wszystkie 26 zadań praktycznych",
+    "known": {
+      "pl": "Wszystkie 26 zadań praktycznych",
+      "ru": "Все 26 практических заданий",
+      "en": "All 26 practical tasks",
+      "es": "Las 26 tareas prácticas",
+      "fr": "Les 26 exercices pratiques",
+      "de": "Alle 26 Praxisaufgaben",
+      "it": "Tutti i 26 esercizi pratici"
     }
   },
   {
@@ -21561,15 +21703,6 @@
     }
   },
   {
-    "id": "b94b6b5891436dbb",
-    "source": "Treningowa kopia radiotelefonów z części praktycznej SRC w UKE. Menu i procedury wg instrukcji ICOM.",
-    "known": {
-      "pl": "Treningowa kopia radiotelefonów z części praktycznej SRC w UKE. Menu i procedury wg instrukcji ICOM.",
-      "ru": "Учебная копия раций с практической части SRC в UKE. Меню и процедуры - по инструкциям ICOM.",
-      "en": "A training replica of the radios used in the UKE SRC practical. Menus and procedures follow the ICOM manuals."
-    }
-  },
-  {
     "id": "b94cb99c74e843e4",
     "source": "do lokalizacji położenia radiopław w obszarze pokrycia satelitów geostacjonarnych",
     "known": {
@@ -21626,15 +21759,6 @@
     "id": "b9945fab93ec9854",
     "source": "Solent Coastguard",
     "known": {}
-  },
-  {
-    "id": "b99613fdac58f826",
-    "source": "Pełna oficjalna lista zadań praktycznych egzaminu SRC (UKE) - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf. UKE nie publikuje klucza odpowiedzi, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.",
-    "known": {
-      "pl": "Pełna oficjalna lista zadań praktycznych egzaminu SRC (UKE) - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf. UKE nie publikuje klucza odpowiedzi, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.",
-      "ru": "Полный официальный список практических заданий экзамена SRC (UKE) - с правильной процедурой для каждого и ссылкой на симулятор/курс, где его можно отработать. Источник: materialy_do_testu_src.pdf. Официального ключа ответов UKE не публикует, поэтому здесь описана правильная процедура по GMDSS/ICOM, а не выбор A/B/C.",
-      "en": "The full official list of the SRC (UKE) practical exam tasks - each with the correct procedure and a link to the simulator/course where you can practise it. Source: materialy_do_testu_src.pdf. UKE publishes no answer key, so this is the correct GMDSS/ICOM procedure, not an A/B/C quiz."
-    }
   },
   {
     "id": "b9a431acfcf3932e",
@@ -22939,6 +23063,19 @@
     }
   },
   {
+    "id": "c4244c4ca967367d",
+    "source": "Nauka - wskazówki na każdym kroku. Egzamin - jak na prawdziwym egzaminie: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.",
+    "known": {
+      "pl": "Nauka - wskazówki na każdym kroku. Egzamin - jak na prawdziwym egzaminie: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.",
+      "ru": "Обучение - подсказки на каждом шаге. Экзамен - как на настоящем экзамене: только ситуация, разбор в конце. Прогресс сохраняется.",
+      "en": "Learn - hints at every step. Exam - like the real exam: situation only, debrief at the end. Progress is saved.",
+      "es": "Aprendizaje: indicaciones en cada paso. Examen: como en el examen real, solo se presenta la situación y la explicación llega al final. El progreso se guarda.",
+      "fr": "Apprentissage : des conseils à chaque étape. Examen : comme à l'examen réel, avec seulement la situation et un bilan à la fin. Votre progression est enregistrée.",
+      "de": "Lernen - Hinweise bei jedem Schritt. Prüfung - wie in der echten Prüfung: nur die Situation, die Auswertung folgt am Ende. Dein Fortschritt wird gespeichert.",
+      "it": "Apprendimento - suggerimenti a ogni passaggio. Esame - come all'esame vero: solo la situazione, con analisi finale. I progressi vengono salvati."
+    }
+  },
+  {
     "id": "c43d114d1fa90031",
     "source": "Łączność pilna (PAN PAN) służy między innymi do uzyskania porady i pomocy medycznej.",
     "known": {
@@ -24197,6 +24334,19 @@
     }
   },
   {
+    "id": "ceed95e00e2744ae",
+    "source": "Przejdź do pytań egzaminacyjnych",
+    "known": {
+      "pl": "Przejdź do pytań egzaminacyjnych",
+      "ru": "Перейти к экзаменационным вопросам",
+      "en": "Open exam questions",
+      "es": "Ir a las preguntas de examen",
+      "fr": "Ouvrir les questions d'examen",
+      "de": "Zu den Prüfungsfragen",
+      "it": "Apri le domande d'esame"
+    }
+  },
+  {
     "id": "ceffe0d4c3d858fa",
     "source": "Meldunek do VTS ZATOKA GDAŃSKA",
     "known": {
@@ -24407,6 +24557,19 @@
     }
   },
   {
+    "id": "d08dc2ba9bd316af",
+    "source": "Treningowa kopia radiotelefonów z części praktycznej egzaminu SRC. Menu i procedury wg instrukcji ICOM.",
+    "known": {
+      "pl": "Treningowa kopia radiotelefonów z części praktycznej egzaminu SRC. Menu i procedury wg instrukcji ICOM.",
+      "ru": "Учебная копия раций с практической части экзамена SRC. Меню и процедуры - по инструкциям ICOM.",
+      "en": "A training replica of the radios used in the SRC practical exam. Menus and procedures follow the ICOM manuals.",
+      "es": "Réplica de entrenamiento de los radioteléfonos de la parte práctica del examen SRC. Menús y procedimientos según los manuales de ICOM.",
+      "fr": "Reproduction d'entraînement des radiotéléphones utilisés lors de l'épreuve pratique SRC. Menus et procédures conformes aux notices ICOM.",
+      "de": "Trainingsnachbildung der Funkgeräte aus dem praktischen Teil der SRC-Prüfung. Menüs und Verfahren gemäß den ICOM-Anleitungen.",
+      "it": "Replica didattica dei ricetrasmettitori utilizzati nella parte pratica dell'esame SRC. Menu e procedure conformi ai manuali ICOM."
+    }
+  },
+  {
     "id": "d091e069d18ea087",
     "source": "Kontynuuj: lekcja",
     "known": {
@@ -24479,15 +24642,6 @@
     "known": {
       "pl": "Cyfrowe selektywne wywołanie (DSC)",
       "ru": "Цифровой избирательный вызов (DSC)"
-    }
-  },
-  {
-    "id": "d10584f6983d89dc",
-    "source": "324 pytania z oficjalnych materiałów UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.",
-    "known": {
-      "pl": "324 pytania z oficjalnych materiałów UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.",
-      "ru": "324 вопроса из официальных материалов UKE к тесту SRC (по 5 из каждого раздела попадут на экзамен). В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.",
-      "en": "All 324 questions from the official UKE SRC study materials. Learn with instant feedback, or take a mock exam with feedback at the end."
     }
   },
   {
@@ -24735,6 +24889,19 @@
     "source": "„wewnętrznego albo zewnętrznego”",
     "known": {
       "pl": "„wewnętrznego albo zewnętrznego”"
+    }
+  },
+  {
+    "id": "d3476bcbe0e780c3",
+    "source": "Świadectwo SRC i egzamin",
+    "known": {
+      "pl": "Świadectwo SRC i egzamin",
+      "ru": "Сертификат SRC и экзамен",
+      "en": "SRC certificate and exam",
+      "es": "Certificado SRC y examen",
+      "fr": "Certificat SRC et examen",
+      "de": "SRC-Zeugnis und Prüfung",
+      "it": "Certificato SRC ed esame"
     }
   },
   {
@@ -25560,15 +25727,6 @@
     }
   },
   {
-    "id": "dac2ddf83da726d9",
-    "source": "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na praktyce UKE.",
-    "known": {
-      "pl": "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na praktyce UKE.",
-      "ru": "15 последовательных уроков на моделях ICOM IC-M330GE и IC-M323, используемых на практике UKE.",
-      "en": "15 sequential lessons on the ICOM IC-M330GE and IC-M323 used in UKE practical exams."
-    }
-  },
-  {
     "id": "dac33bb9a36256cf",
     "source": "Powtórka do egzaminu",
     "known": {
@@ -26256,6 +26414,19 @@
       "fr": "Si l'ACK n'arrive pas au bout d'environ 15 secondes, appuie sur 16/C et lance le MAYDAY à la voix sur le 16. Ne coupe pas l'alerte et n'attends pas indéfiniment : la radio continue de répéter l'alerte DSC toutes les 3,5 à 4,5 minutes.",
       "de": "Kommt innerhalb von etwa 15 Sekunden kein ACK, drück 16/C und sende MAYDAY per Sprechfunk auf 16. Schalte den Alarm nicht ab und warte nicht endlos: Das Funkgerät wiederholt den DSC-Alarm weiter alle 3,5-4,5 Minuten.",
       "it": "Se l'ACK non arriva entro circa 15 secondi, premi 16/C e trasmetti il MAYDAY a voce sul 16. Non disattivare l'allerta e non aspettare all'infinito: la radio continua a ripetere il DSC ogni 3,5-4,5 minuti."
+    }
+  },
+  {
+    "id": "e049d0540c842ddd",
+    "source": "ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktyczną część egzaminu SRC. Każdy klawisz, menu i ekran działa jak w oryginale.",
+    "known": {
+      "pl": "ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktyczną część egzaminu SRC. Każdy klawisz, menu i ekran działa jak w oryginale.",
+      "ru": "ICOM IC-M330GE - именно на ней (или IC-M323) сдают практическую часть экзамена SRC. Все кнопки, меню и экраны работают как в оригинале.",
+      "en": "ICOM IC-M330GE - the radio used for the SRC practical exam, along with the IC-M323. Every key, menu and display follows the original equipment.",
+      "es": "ICOM IC-M330GE: en este equipo (o en el IC-M323) se realiza la prueba práctica del examen SRC. Cada tecla, menú y pantalla funciona como en el original.",
+      "fr": "ICOM IC-M330GE : c'est sur ce modèle (ou sur l'IC-M323) que se déroule l'épreuve pratique de l'examen SRC. Chaque touche, menu et écran fonctionne comme sur l'appareil d'origine.",
+      "de": "ICOM IC-M330GE - an diesem Gerät (oder am IC-M323) wird der praktische Teil der SRC-Prüfung abgelegt. Jede Taste, jedes Menü und jede Anzeige funktioniert wie beim Original.",
+      "it": "ICOM IC-M330GE - è questo il modello (oppure l'IC-M323) usato per la prova pratica dell'esame SRC. Ogni tasto, menu e schermata funziona come nell'originale."
     }
   },
   {
@@ -27159,15 +27330,6 @@
     }
   },
   {
-    "id": "e79b66994540c094",
-    "source": "Trening: oficjalna baza UKE (SRC)",
-    "known": {
-      "pl": "Trening: oficjalna baza UKE (SRC)",
-      "ru": "Тренажёр: официальная база UKE (SRC)",
-      "en": "Practice: official UKE SRC question bank"
-    }
-  },
-  {
     "id": "e7a525c113f2c821",
     "source": "ANTENA",
     "known": {
@@ -27291,15 +27453,6 @@
       "fr": "Lance le MAYDAY RELAY à la voix sur le 16",
       "de": "Sende MAYDAY RELAY per Sprechfunk auf 16",
       "it": "Trasmetti il MAYDAY RELAY a voce sul 16"
-    }
-  },
-  {
-    "id": "e8b7f8d2837bd2dd",
-    "source": "Przejdź do pytań UKE",
-    "known": {
-      "pl": "Przejdź do pytań UKE",
-      "ru": "Перейти к вопросам UKE",
-      "en": "Open UKE questions"
     }
   },
   {
@@ -28257,15 +28410,6 @@
     }
   },
   {
-    "id": "f00a41b4079c440b",
-    "source": "Zdaj format UKE",
-    "known": {
-      "pl": "Zdaj format UKE",
-      "ru": "Сдать формат UKE",
-      "en": "Pass the UKE format"
-    }
-  },
-  {
     "id": "f0204554a809cae8",
     "source": "urządzenie nadawczo-odbiorcze na kanale 70",
     "known": {
@@ -28532,6 +28676,19 @@
     }
   },
   {
+    "id": "f2bbdf3dca0ec468",
+    "source": "324 pytania z oficjalnych materiałów do testu SRC (źródło: UKE). W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.",
+    "known": {
+      "pl": "324 pytania z oficjalnych materiałów do testu SRC (źródło: UKE). W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.",
+      "ru": "324 вопроса из официальных материалов к тесту SRC (источник: UKE), по 5 из каждого раздела попадут на экзамен. В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.",
+      "en": "All 324 questions from the official SRC study materials (source: UKE). Learn with instant feedback, or take a mock exam with feedback at the end.",
+      "es": "324 preguntas de los materiales oficiales para la prueba SRC (fuente: UKE). En el modo de estudio ves las respuestas inmediatamente; en el simulacro de examen, solo al terminar.",
+      "fr": "324 questions issues des ressources officielles pour l'examen SRC (source : UKE). En mode apprentissage, les réponses s'affichent immédiatement ; lors de l'examen blanc, elles ne s'affichent qu'à la fin.",
+      "de": "324 Fragen aus den offiziellen Unterlagen für die SRC-Prüfung (Quelle: UKE). Beim Lernen siehst du die Antworten sofort, bei der Probeprüfung erst nach dem Abschluss.",
+      "it": "324 domande tratte dai materiali ufficiali per il test SRC (fonte: UKE). Durante lo studio vedi subito le risposte, mentre nella simulazione d'esame le vedi solo alla fine."
+    }
+  },
+  {
     "id": "f2e8c0d3a13bdf7b",
     "source": "I have received your Mayday signal.",
     "known": {
@@ -28670,14 +28827,6 @@
     "source": "z modulacją fazy",
     "known": {
       "pl": "z modulacją fazy"
-    }
-  },
-  {
-    "id": "f3d0e9f2ce658d13",
-    "source": "Przećwicz 60 fraz UKE",
-    "known": {
-      "pl": "Przećwicz 60 fraz UKE",
-      "ru": "Отработать 60 фраз UKE"
     }
   },
   {
@@ -29121,15 +29270,6 @@
     }
   },
   {
-    "id": "f7a4b01a75da8904",
-    "source": "zad. UKE",
-    "known": {
-      "pl": "zad. UKE",
-      "ru": "зад. UKE",
-      "en": "UKE tasks"
-    }
-  },
-  {
     "id": "f7bffe7a7ffb217d",
     "source": "30-40 mil",
     "known": {
@@ -29268,6 +29408,19 @@
     "source": "Potwierdzenie odbioru nadaje się na tym samym kanale 16, na którym prowadzi się całą korespondencję w niebezpieczeństwie.",
     "known": {
       "pl": "Potwierdzenie odbioru nadaje się na tym samym kanale 16, na którym prowadzi się całą korespondencję w niebezpieczeństwie."
+    }
+  },
+  {
+    "id": "f8a49c0e547857a4",
+    "source": "Co znajdziesz w pytaniach egzaminacyjnych",
+    "known": {
+      "pl": "Co znajdziesz w pytaniach egzaminacyjnych",
+      "ru": "Что встретится в экзаменационных вопросах",
+      "en": "What the exam questions cover",
+      "es": "Qué incluyen las preguntas de examen",
+      "fr": "Ce que couvrent les questions d'examen",
+      "de": "Was die Prüfungsfragen behandeln",
+      "it": "Cosa trattano le domande d'esame"
     }
   },
   {
@@ -29472,11 +29625,6 @@
     }
   },
   {
-    "id": "fa5e3268792f3a23",
-    "source": "UKE task",
-    "known": {}
-  },
-  {
     "id": "fa7e9aa25cbd52e3",
     "source": "Uczy najczęstszej rozmowy jachtu w ogóle i ruchu 16 -> kanał roboczy. Klasyczny błąd: wywalanie całej treści (długość, zanurzenie, ETA) już na kanale 16, który ma zostać wolny.",
     "known": {
@@ -29633,19 +29781,6 @@
     }
   },
   {
-    "id": "fbe49fff6c88e737",
-    "source": "Powiązane obszary banku UKE",
-    "known": {
-      "pl": "Powiązane obszary banku UKE",
-      "ru": "Связанные темы базы UKE",
-      "en": "Related UKE question topics",
-      "es": "Temas relacionados del banco UKE",
-      "fr": "Thèmes associés de la banque UKE",
-      "de": "Verwandte Themen der UKE-Fragenbank",
-      "it": "Argomenti correlati della banca UKE"
-    }
-  },
-  {
     "id": "fc066eec1e2bf31b",
     "source": "Najpierw sprawdź nazwę i pełny MMSI 002191000. DEL otwiera potwierdzenie, jeszcze niczego nie usuwa.",
     "known": {
@@ -29796,15 +29931,6 @@
       "pl": "Otwórz kurs",
       "ru": "Открыть курс",
       "en": "Open course"
-    }
-  },
-  {
-    "id": "fcfffe094e1ffae5",
-    "source": "Kurs rozdziela odpowiedź egzaminacyjną UKE, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
-    "known": {
-      "pl": "Kurs rozdziela odpowiedź egzaminacyjną UKE, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
-      "ru": "Курс разделяет три вещи: ответ для экзамена UKE, международную процедуру и местную практику. Сначала ты понимаешь причину, затем отвечаешь на вопросы и только после этого выполняешь процедуру на ICOM.",
-      "en": "The course separates the UKE exam answer, international procedure, and local practice. First understand the reason, then answer questions, then perform the procedure on an ICOM."
     }
   },
   {

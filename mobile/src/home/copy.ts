@@ -12,7 +12,7 @@ export const homeCopy = {
   lastCourse: words("Последний курс", "Your last course", "Ostatni kurs", "Tu último curso", "Ton dernier cours", "Zuletzt geöffnet", "Ultimo corso"),
   otherPaths: words("Другие направления", "Other paths", "Inne ścieżki", "Otros itinerarios", "Autres parcours", "Weitere Lernwege", "Altri percorsi"),
   allCourses: words("Все курсы", "All courses", "Wszystkie kursy", "Todos los cursos", "Tous les cours", "Alle Kurse", "Tutti i corsi"),
-  exams: words("Экзамены в Польше", "Exams in Poland", "Egzaminy w Polsce", "Exámenes en Polonia", "Examens en Pologne", "Prüfungen in Polen", "Esami in Polonia"),
+  exams: words("Экзамены", "Exams", "Egzaminy", "Exámenes", "Examens", "Prüfungen", "Esami"),
   myProgress: words("Мой прогресс", "My progress", "Mój postęp", "Mi progreso", "Ma progression", "Mein Fortschritt", "I miei progressi"),
   appGroup: words("Приложение", "App", "Aplikacja", "App", "Application", "App", "App"),
   onDevice: words("Хранится на этом устройстве.", "Stored on this device.", "Zapisane na tym urządzeniu.", "Guardado en este dispositivo.", "Enregistré sur cet appareil.", "Auf diesem Gerät gespeichert.", "Salvato su questo dispositivo."),

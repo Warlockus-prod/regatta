@@ -15,6 +15,25 @@ export interface PhysicalBotState {
   finishLoop?: { ccw: boolean };
   plannedHeading?: number;
   predictive?: { heading: number; until: number; stage: PhysicalRaceStage };
+  /** Consecutive ticks in irons or pinned by a hull (ADR-0015 point 5). */
+  stall?: number;
+  /** A committed bear-away, held without re-evaluation until `until` (s). */
+  escape?: { heading: number; until: number };
+}
+/** What the fleet tells a bot about this tick beyond the shared perception:
+ * the wind, and the unit normal (race units, east x, south y) pointing away
+ * from the hulls whose centres are within the escape contact distance. */
+export interface PhysicalBotSituation {
+  readonly windDir: number;
+  readonly contactNormal?: Readonly<Vec2> | null;
+}
+/** Another boat's predicted centre paths in metres. A bot's own path is one
+ * line; a boat no bot steers (the player) is a cone of lines and gets extra room. */
+export interface PhysicalBotPerception {
+  readonly id: string;
+  readonly path: readonly Vec2[];
+  readonly alternatives?: readonly (readonly Vec2[])[];
+  readonly extraMetres?: number;
 }
 export interface PhysicalBotPlan { heading: number; turn: number; path: RaceRoutePath; beating: boolean; rounding: { center: Vec2; radius: number } }
 interface PathFix { tangent: number; right: number; path: RaceRoutePath }
@@ -157,32 +176,126 @@ export function planPhysicalBot(boat: RaceBoat, course: RaceCourse, windDir: num
 }
 
 const horizon = 12, sample = .5;
+/** Coasting in the prediction (ADR-0015 point 5): while the predicted heading
+ * is inside the no-go zone the predicted speed decays by exp(-dt / tau). */
+export interface PhysicalBotCoast { readonly windDir: number; readonly noGoTwaDeg: number; readonly tauSeconds: number }
 export function physicalBotTrajectory(boat: RaceBoat, target: number | SailingSteering, m: number,
-  water?: ReturnType<typeof physicalCourseWaterBounds>) {
+  water?: ReturnType<typeof physicalCourseWaterBounds>, coast?: PhysicalBotCoast) {
   const boundX = (x: number) => water ? Math.max(water.minX * m, Math.min(water.maxX * m, x)) : x;
   const boundY = (y: number) => water ? Math.max(water.minY * m, Math.min(water.maxY * m, y)) : y;
-  let heading = boat.heading, x = boundX(boat.pos.x * m), y = boundY(boat.pos.y * m);
+  let heading = boat.heading, x = boundX(boat.pos.x * m), y = boundY(boat.pos.y * m), speed = boat.speed;
+  const decay = coast ? Math.exp(-sample / coast.tauSeconds) : 1;
   const path: { x: number; y: number }[] = [];
   for (let t = sample; t <= horizon; t += sample) {
-    heading = advanceSailingHeading(heading, boat.speed, typeof target === "number" ? { mode: "helm", rudder: physicalBotRudder(heading, target), lowSpeedAssist: true } : target, sample);
-    const move = sailingDisplacement(heading, boat.physics?.leeway ?? 0, boat.speed, sample);
+    // The decayed speed also sets the helm authority of the next turn.
+    heading = advanceSailingHeading(heading, speed, typeof target === "number" ? { mode: "helm", rudder: physicalBotRudder(heading, target), lowSpeedAssist: true } : target, sample);
+    if (coast && Math.abs(calcTWA(heading, coast.windDir)) < coast.noGoTwaDeg) speed *= decay;
+    const move = sailingDisplacement(heading, boat.physics?.leeway ?? 0, speed, sample);
     x = boundX(x + move.east); y = boundY(y - move.north); path.push({ x, y });
   }
   return path;
+}
+
+/** A boat no bot steers, as the bots see it: straight lines at its present
+ * speed on its heading and up to +-coneDeg off it, in metres. Its future
+ * input is unknown, so a bot keeps clear of the whole cone. */
+export function physicalHumanCone(boat: RaceBoat, coneDeg: number, m: number,
+  water?: ReturnType<typeof physicalCourseWaterBounds>): Vec2[][] {
+  const boundX = (x: number) => water ? Math.max(water.minX * m, Math.min(water.maxX * m, x)) : x;
+  const boundY = (y: number) => water ? Math.max(water.minY * m, Math.min(water.maxY * m, y)) : y;
+  return [-coneDeg, -coneDeg / 2, 0, coneDeg / 2, coneDeg].map(offset => {
+    const move = sailingDisplacement(normalizeAngle(boat.heading + offset), 0, boat.speed, sample);
+    let x = boundX(boat.pos.x * m), y = boundY(boat.pos.y * m);
+    const path: Vec2[] = [];
+    for (let t = sample; t <= horizon; t += sample) { x = boundX(x + move.east); y = boundY(y - move.north); path.push({ x, y }); }
+    return path;
+  });
+}
+
+/** Unit vector of a heading in race axes (east x, south y). */
+const headingVector = (heading: number): Vec2 => ({ x: Math.sin(deg2rad(heading)), y: -Math.cos(deg2rad(heading)) });
+
+/** True when the helm's shortest turn from `heading` to `target` sweeps the bow through the wind. */
+function turnsThroughWind(heading: number, target: number, windDir: number): boolean {
+  const turn = angleDiff(heading, target), toWind = angleDiff(heading, windDir);
+  return toWind !== 0 && Math.sign(toWind) === Math.sign(turn) && Math.abs(toWind) < Math.abs(turn);
+}
+
+/** The deterministic bear-away: wind +- bearAwayTwaDeg, on the side away
+ * from the touching hulls when the helm reaches it without crossing the
+ * wind; otherwise the non-crossing heading (TWA 75, 105 or 150 on either
+ * gybe) that opens most from them; otherwise, and with no contact, the
+ * present tack; head to wind (|TWA| <= 2 deg) on a side fixed by the boat id. */
+export function physicalBotBearAway(boat: RaceBoat, situation: PhysicalBotSituation, bearAwayTwaDeg: number): number {
+  const twa = calcTWA(boat.heading, situation.windDir);
+  const port = normalizeAngle(situation.windDir - bearAwayTwaDeg), starboard = normalizeAngle(situation.windDir + bearAwayTwaDeg);
+  const n = situation.contactNormal;
+  if (n) {
+    const away = (heading: number) => { const v = headingVector(heading); return v.x * n.x + v.y * n.y; };
+    const a = away(starboard), b = away(port);
+    if (Math.abs(a - b) > 1e-9) {
+      const tackSide = a > b ? starboard : port;
+      if (!turnsThroughWind(boat.heading, tackSide, situation.windDir)) return tackSide;
+      // Away from the hull lies only through the wind, which a stopped boat
+      // crosses at a few deg/s and may stall in again. Bear away instead
+      // (gybing if need be) to the heading that opens most from the hull
+      // without crossing the wind; if none opens, keep the present tack below.
+      const bearAway = [75, 105, 150, -75, -105, -150].map(twa => normalizeAngle(situation.windDir + twa))
+        .filter(heading => !turnsThroughWind(boat.heading, heading, situation.windDir) && away(heading) > 1e-9)
+        .sort((x, y) => away(y) - away(x))[0];
+      if (bearAway !== undefined) return bearAway;
+    }
+  }
+  if (Math.abs(twa) > 2) return twa > 0 ? starboard : port;
+  return laneOf(boat.id, 2) > 0 ? starboard : port;
+}
+
+/** Irons and pin escape (ADR-0015 point 5). Counts stall ticks on the bot's
+ * own memory; after afterSeconds commits to the bear-away and holds it for
+ * holdSeconds without re-evaluation. Returns the committed heading or null. */
+function escapeHeading(boat: RaceBoat, situation: PhysicalBotSituation, memory: PhysicalBotState, now: number,
+  e: ReturnType<typeof physicalCourseDefinition>["bots"]["escape"]): number | null {
+  if (memory.escape) {
+    if (memory.escape.until > now + 1e-9) return memory.escape.heading;
+    memory.escape = undefined;
+  }
+  const irons = boat.speed < e.slowKn && Math.abs(calcTWA(boat.heading, situation.windDir)) < e.noGoTwaDeg;
+  const pinned = boat.speed < e.pinnedKn && !!situation.contactNormal;
+  memory.stall = irons || pinned ? (memory.stall ?? 0) + 1 : 0;
+  if (memory.stall < Math.round(e.afterSeconds * PHYSICAL_FLEET_HZ)) return null;
+  const heading = physicalBotBearAway(boat, situation, e.bearAwayTwaDeg);
+  memory.escape = { heading, until: now + e.holdSeconds };
+  memory.stall = 0;
+  return heading;
 }
 
 /** Internal helper for the validated immutable perception frame. Predict
  * reachable turns at the present speed. This is bounded bot advice, not a
  * guarantee about future human input, future acceleration or RRS liability. */
 export function avoidPhysicalBotHeading(boat: RaceBoat,
-  perception: readonly { id: string; path: readonly Vec2[] }[], plannedHeading: number,
-  context: PhysicalRaceContext, course: RaceCourse, memory: PhysicalBotState): number {
+  perception: readonly PhysicalBotPerception[], plannedHeading: number,
+  context: PhysicalRaceContext, course: RaceCourse, memory: PhysicalBotState, situation?: PhysicalBotSituation): number {
   const stage = physicalRaceStage(boat), now = memory.tick / PHYSICAL_FLEET_HZ;
-  if (memory.predictive && memory.predictive.until > now && memory.predictive.stage === stage) return memory.predictive.heading;
   const d = physicalCourseDefinition(context.profile), m = context.metresPerUnit;
+  if (situation) {
+    // The escape runs every tick, ahead of the half-second avoidance hold, and
+    // still refreshes the predictive memory the fleet validates and observes.
+    const escape = escapeHeading(boat, situation, memory, now, d.bots.escape);
+    if (escape !== null) {
+      memory.turnSide = undefined;
+      // Never past the escape's own end, so the hold lasts holdSeconds, not
+      // up to half a second more through the predictive hold below.
+      memory.predictive = { heading: escape, until: Math.min(now + sample, memory.escape!.until), stage };
+      return escape;
+    }
+  }
+  if (memory.predictive && memory.predictive.until > now && memory.predictive.stage === stage) return memory.predictive.heading;
   const water = physicalCourseWaterBounds(context.profile);
   const safe = d.hardware.boatDiameterMetres + d.hardware.clearanceBufferMetres;
-  const neighbours = perception.filter(other => other.id !== boat.id).map(other => other.path);
+  const p = d.bots.prediction;
+  const coast: PhysicalBotCoast | undefined = situation ? { windDir: situation.windDir, noGoTwaDeg: p.noGoTwaDeg, tauSeconds: p.coastTauSeconds } : undefined;
+  const neighbours = perception.filter(other => other.id !== boat.id)
+    .flatMap(other => [other.path, ...(other.alternatives ?? [])].map(path => ({ path, extra: other.extraMetres ?? 0 })));
   const hardware = course.marks.map(mark => ({ x: mark.pos.x * m, y: mark.pos.y * m,
     radius: mark.radius * m + d.hardware.boatDiameterMetres / 2 + d.hardware.clearanceBufferMetres }));
   const gates = physicalRaceGates(context, course)!;
@@ -203,13 +316,17 @@ export function avoidPhysicalBotHeading(boat: RaceBoat,
   // Temporary luffing is also an avoidance action. Keep the same candidate
   // set on both sides of the close-hauled boundary; floating point rounding
   // must not decide whether a boat may slow while clearing an obstruction.
-  const candidates = [plannedHeading, ...(memory.predictive ? [memory.predictive.heading] : []),
-    ...[5, -5, 10, -10, 20, -20, 40, -40, 60, -60, 90, -90, 135, -135, 180].map(delta => normalizeAngle(plannedHeading + delta))]
+  // M5: below 2 kn a luff into the no-go zone only stops the boat (ADR-0015
+  // point 5), so slow boats do not take those avoidance candidates.
+  const slowLuff = (heading: number) => !!situation && boat.speed < 2
+    && Math.abs(calcTWA(heading, situation.windDir)) < p.noGoTwaDeg;
+  const candidates = [plannedHeading, ...(memory.predictive ? [memory.predictive.heading] : []).filter(h => !slowLuff(h)),
+    ...[5, -5, 10, -10, 20, -20, 40, -40, 60, -60, 90, -90, 135, -135, 180].map(delta => normalizeAngle(plannedHeading + delta)).filter(h => !slowLuff(h))]
     .filter((heading, i, all) => all.indexOf(heading) === i);
   const scored = candidates.map(heading => {
-    const path = physicalBotTrajectory(boat, heading, m, water);
+    const path = physicalBotTrajectory(boat, heading, m, water, coast);
     let clearance = Infinity;
-    for (const other of neighbours) for (let i = 0; i < path.length; i++) clearance = Math.min(clearance, Math.hypot(path[i].x - other[i].x, path[i].y - other[i].y) - safe);
+    for (const other of neighbours) for (let i = 0; i < path.length; i++) clearance = Math.min(clearance, Math.hypot(path[i].x - other.path[i].x, path[i].y - other.path[i].y) - safe - other.extra);
     for (const mark of hardware) for (const point of path) clearance = Math.min(clearance, Math.hypot(point.x - mark.x, point.y - mark.y) - mark.radius);
     return { heading, clearance, missesGate: missesGate(path), deviation: Math.abs(angleDiff(plannedHeading, heading)) };
   });
@@ -229,11 +346,16 @@ export function avoidPhysicalBotHeading(boat: RaceBoat,
   const consistent = eligible.filter(row => memory.turnSide === undefined
     || Math.sign(angleDiff(boat.heading, row.heading)) === memory.turnSide);
   const stable = consistent.length ? consistent : eligible;
-  const best = stable.length ? stable.sort((a, b) => a.deviation - b.deviation)[0]
-    : scored.sort((a, b) => b.clearance - a.clearance || a.deviation - b.deviation)[0];
-  const turn = Math.sign(angleDiff(boat.heading, best.heading));
+  // No clear turn: the most clearance. ADR-0015 point 5 tried the fixed
+  // bear-away here; it steered boats into each other and the committee boat
+  // (18 of 36 bot-only fleets touched, 2026-11-01), so the bear-away stays
+  // with the irons/pin escape above. Below 2 kn only the planned route
+  // heading itself can still lie inside the no-go zone.
+  const heading = stable.length ? stable.sort((a, b) => a.deviation - b.deviation)[0].heading
+    : scored.sort((a, b) => b.clearance - a.clearance || a.deviation - b.deviation)[0].heading;
+  const turn = Math.sign(angleDiff(boat.heading, heading));
   memory.turnSide = reducedAuthority && Math.abs(plannedDelta) > 90 && turn !== 0 ? turn as 1 | -1 : undefined;
-  memory.predictive = { heading: best.heading, until: now + sample, stage };
-  return best.heading;
+  memory.predictive = { heading, until: now + sample, stage };
+  return heading;
 }
 

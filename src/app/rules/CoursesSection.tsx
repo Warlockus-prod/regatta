@@ -4,19 +4,18 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 
 // ============================================================================
-// The two Polish licence courses, surfaced in the theory section.
+// The two licence courses (sternik motorowodny, SRC radio), surfaced in the
+// theory section. Owner, 2026-11-01: no country in titles or blurbs.
 //
 // They belong here because this is where somebody who wants a CERTIFICATE looks
 // - and because /radio used to be reachable only through a link buried inside
 // /sternik, so a visitor who came for the radio exam could not find it from the
 // navigation at all.
 //
-// LANGUAGE. The course content is Polish and stays Polish: these are Polish
-// state exams, and a half-translated licence course is worse than none. What
-// changes with the site language is only the FRAMING around them - and on the
-// Russian version, the courses themselves offer optional Russian commentary
-// (see SternikLangScope / ExplLangToggle). Every other language gets the courses
-// in Polish, with no Russian anywhere.
+// LANGUAGE. The sternik content is Polish and stays Polish (the exam language);
+// on the Russian version it offers optional Russian commentary (see
+// SternikLangScope / ExplLangToggle). The SRC radio course follows the site
+// language (owner, 2026-10-24).
 // ============================================================================
 
 interface Course {
@@ -37,14 +36,14 @@ export default function CoursesSection() {
       icon: '⚓',
       name: 'Sternik motorowodny',
       blurb: tp(
-        'Польские права на моторную лодку. Теория, банк из 879 вопросов, пробный экзамен.',
-        'The Polish powerboat license. Theory, an 879-question bank, and a mock exam.',
+        'Патент на моторную лодку. Теория, банк из 879 вопросов, пробный экзамен.',
+        'The powerboat licence. Theory, an 879-question bank, and a mock exam.',
         'Patent sternika motorowodnego. Teoria, baza 879 pytań, egzamin próbny.',
         {
-          es: 'La licencia polaca de patrón de motor. Teoría, banco de 879 preguntas y examen de prueba.',
-          fr: 'Le permis bateau polonais. Théorie, banque de 879 questions et examen blanc.',
-          de: 'Der polnische Motorbootführerschein. Theorie, 879 Prüfungsfragen, Probeprüfung.',
-          it: "La patente nautica polacca per barche a motore. Teoria, 879 domande e simulazione d'esame.",
+          es: 'La licencia de patrón de motor. Teoría, banco de 879 preguntas y examen de prueba.',
+          fr: 'Le permis bateau à moteur. Théorie, banque de 879 questions et examen blanc.',
+          de: 'Der Motorbootführerschein. Theorie, 879 Prüfungsfragen, Probeprüfung.',
+          it: "La patente nautica per barche a motore. Teoria, 879 domande e simulazione d'esame.",
         },
       ),
       bullets: [
@@ -58,19 +57,19 @@ export default function CoursesSection() {
       icon: '📻',
       name: 'Radio SRC (VHF / DSC)',
       blurb: tp(
-        'Свидетельство оператора SRC: экзамен в UKE. Симулятор настоящей ICOM, 26 практических заданий, голосовая тренировка.',
-        'The SRC operator certificate, examined by UKE. A simulator of the real ICOM, all 26 practical tasks, and voice practice.',
-        'Świadectwo operatora SRC: egzamin w UKE. Symulator prawdziwego ICOM-a, 26 zadań praktycznych i trening głosowy.',
+        'Свидетельство оператора SRC. Симулятор настоящей ICOM, 26 практических заданий, голосовая тренировка.',
+        'The SRC operator certificate. A simulator of the real ICOM, all 26 practical tasks, and voice practice.',
+        'Świadectwo operatora SRC. Symulator prawdziwego ICOM-a, 26 zadań praktycznych i trening głosowy.',
         {
-          es: 'El certificado de operador SRC, con examen en la UKE. Un simulador del ICOM real, las 26 tareas prácticas y práctica de voz.',
-          fr: "Le certificat d'opérateur SRC, avec examen à l'UKE. Un simulateur du vrai ICOM, les 26 exercices pratiques et un entraînement vocal.",
-          de: 'Das SRC-Funkzeugnis, Prüfung beim UKE. Ein Simulator des echten ICOM, alle 26 Praxisaufgaben und Sprechtraining.',
-          it: "Il certificato di operatore SRC, con esame all'UKE. Un simulatore del vero ICOM, tutti i 26 esercizi pratici e allenamento vocale.",
+          es: 'El certificado de operador SRC. Un simulador del ICOM real, las 26 tareas prácticas y práctica de voz.',
+          fr: "Le certificat d'opérateur SRC. Un simulateur du vrai ICOM, les 26 exercices pratiques et un entraînement vocal.",
+          de: 'Das SRC-Funkzeugnis. Ein Simulator des echten ICOM, alle 26 Praxisaufgaben und Sprechtraining.',
+          it: "Il certificato di operatore SRC. Un simulatore del vero ICOM, tutti i 26 esercizi pratici e allenamento vocale.",
         },
       ),
       bullets: [
         tp('Симулятор ICOM', 'ICOM simulator', 'Symulator ICOM', { es: 'Simulador ICOM', fr: 'Simulateur ICOM', de: 'ICOM-Simulator', it: 'Simulatore ICOM' }),
-        tp('26 заданий UKE', 'All 26 UKE tasks', '26 zadań UKE', { es: 'Las 26 tareas UKE', fr: 'Les 26 exercices UKE', de: 'Alle 26 UKE-Aufgaben', it: 'Tutti i 26 esercizi UKE' }),
+        tp('26 практических заданий', 'All 26 practical tasks', '26 zadań praktycznych', { es: 'Las 26 tareas prácticas', fr: 'Les 26 exercices pratiques', de: 'Alle 26 Praxisaufgaben', it: 'Tutti i 26 esercizi pratici' }),
         tp('Голос и разбор', 'Voice and review', 'Głos i omówienie', { es: 'Voz y revisión', fr: 'Voix et correction', de: 'Sprechen und Auswertung', it: 'Voce e revisione' }),
       ],
     },
@@ -87,14 +86,14 @@ export default function CoursesSection() {
         </div>
         <h2 className="text-base font-semibold sm:text-lg">
           {tp(
-            'Польские патенты: sternik motorowodny и radio SRC',
-            'Polish licenses: sternik motorowodny and SRC radio',
-            'Polskie patenty: sternik motorowodny i radio SRC',
+            'Патенты: sternik motorowodny и radio SRC',
+            'Licences: sternik motorowodny and SRC radio',
+            'Patenty: sternik motorowodny i radio SRC',
             {
-              es: 'Títulos polacos: sternik motorowodny y radio SRC',
-              fr: 'Permis polonais : sternik motorowodny et radio SRC',
-              de: 'Polnische Scheine: sternik motorowodny und SRC-Funk',
-              it: 'Patenti polacche: sternik motorowodny e radio SRC',
+              es: 'Títulos: sternik motorowodny y radio SRC',
+              fr: 'Permis : sternik motorowodny et radio SRC',
+              de: 'Scheine: sternik motorowodny und SRC-Funk',
+              it: 'Patenti: sternik motorowodny e radio SRC',
             },
           )}
         </h2>
@@ -139,16 +138,16 @@ export default function CoursesSection() {
           discovered by surprise inside them. */}
       <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
         {lang === 'ru'
-          ? 'Оба курса ведутся на польском - это язык экзамена, и переводить его наполовину было бы хуже, чем не переводить вовсе. Внутри курса можно дополнительно включить русские комментарии: кнопка 💬 в подменю раздела.'
+          ? 'Курс sternik ведётся на польском - это язык экзамена. Внутри курса можно дополнительно включить русские комментарии: кнопка 💬 в подменю раздела. Курс радиосвязи SRC идёт на языке сайта.'
           : tp(
               '',
-              'Both courses are taught in Polish - it is the language of the exam, and a half-translated license course would be worse than none.',
-              'Oba kursy są po polsku - to język egzaminu.',
+              'The sternik course is taught in Polish, the language of the exam. The SRC radio course follows the site language.',
+              'Kurs na sternika jest po polsku, w języku egzaminu. Kurs radiowy SRC jest w języku strony.',
               {
-                es: 'Ambos cursos son en polaco: es el idioma del examen, y un curso a medio traducir sería peor que ninguno.',
-                fr: "Les deux cours sont en polonais : c'est la langue de l'examen, et un cours à moitié traduit serait pire que rien.",
-                de: 'Beide Kurse sind auf Polnisch - das ist die Prüfungssprache; ein halb übersetzter Kurs wäre schlechter als keiner.',
-                it: "Entrambi i corsi sono in polacco: è la lingua dell'esame, e un corso tradotto a metà sarebbe peggio di nessuno.",
+                es: 'El curso sternik se imparte en polaco, el idioma del examen. El curso de radio SRC sigue el idioma del sitio.',
+                fr: "Le cours sternik est en polonais, la langue de l'examen. Le cours de radio SRC suit la langue du site.",
+                de: 'Der Sternik-Kurs ist auf Polnisch, in der Prüfungssprache. Der SRC-Funkkurs folgt der Sprache der Website.',
+                it: "Il corso sternik è in polacco, la lingua dell'esame. Il corso di radio SRC segue la lingua del sito.",
               },
             )}
       </p>

@@ -60,6 +60,63 @@ const fleetRows = (html: string) => {
   return fleet.split('class="flex items-center justify-between py-1.5').slice(1).map(row => row.slice(0, row.indexOf("</span></div>") + 13));
 };
 
+// M5 step 5 (ADR-0015 point 8): the metric fleet after the player's finish.
+describe("the metric race's fleet rows after the player's finish", () => {
+  const row = (name: string, time: number, extra: Partial<{ isPlayer: boolean; pending: boolean; estimated: boolean }> = {}) =>
+    ({ name, time, color: "#888", isPlayer: false, ...extra });
+  /** Whole fleet rows, place and time side included. */
+  const fleetRows = (html: string) => html.slice(html.indexOf('data-testid="race-results-fleet"'))
+    .split('class="flex items-center justify-between py-1.5').slice(1);
+
+  it("says how many bots are still racing, on the plate and the results, and marks their rows without a place", () => {
+    const plate = renderToStaticMarkup(<RaceFinishPlate place={1} total={3} stillRacing={2} />);
+    expect(plate).toContain('data-testid="race-finish-still-racing"');
+    expect(plate).toContain(">Still racing: 2</div>");
+    expect(renderToStaticMarkup(<RaceFinishPlate place={1} total={3} />)).not.toContain("Still racing");
+    const html = results({ results: [row("You", 174.4, { isPlayer: true }), row("Nautilus", Infinity, { pending: true }), row("Mistral", Infinity, { pending: true })] });
+    expect(html).toContain('data-testid="race-results-still-racing"');
+    expect(html).toContain(">Still racing: 2</p>");
+    const rows = fleetRows(html);
+    expect(rows).toHaveLength(3);
+    for (const r of rows.slice(1)) {
+      expect(r).toContain('data-testid="race-results-row-racing"');
+      expect(r).toContain(">Still racing</span>");
+      expect(r).not.toContain("DNF");
+    }
+    // No action, so no cyan; 14 px at least for the new label.
+    expect(plate).not.toContain("accent-cyan");
+    expect(rows[1]).toContain('class="text-sm text-[var(--text-secondary)]"');
+  });
+
+  it("shows an estimated time and place with ~ and no medal, and explains it once", () => {
+    const html = results({ results: [row("Nautilus", 150, { estimated: true }), row("You", 174.4, { isPlayer: true }), row("Mistral", Infinity, { estimated: true })] });
+    const rows = fleetRows(html);
+    expect(rows[0]).toContain("~1.");
+    expect(rows[0]).toContain("~2:30.0");
+    expect(rows[0]).not.toContain("<svg");
+    expect(rows[2]).toContain("DNF");
+    expect(html).toContain('data-testid="race-results-estimated-note"');
+    expect(html).toContain("~ estimated from the boat&#x27;s average VMG");
+    // An estimate never makes the gap line ("+24.4 s behind the winner").
+    expect(html).not.toContain('data-testid="race-results-gap"');
+    expect(html).not.toContain('data-testid="race-results-still-racing"');
+  });
+
+  it("explains ~ only when a row shows it: an estimate past the limit is a plain DNF", () => {
+    const html = results({ results: [row("You", 174.4, { isPlayer: true }), row("Mistral", Infinity, { estimated: true })] });
+    expect(fleetRows(html)[1]).toContain("DNF");
+    expect(html).not.toContain("race-results-estimated-note");
+    expect(html).not.toContain("~");
+  });
+
+  it("keeps the legacy fleet table as it was: no still-racing line, no ~", () => {
+    const html = results();
+    expect(html).not.toContain("Still racing");
+    expect(html).not.toContain("race-results-estimated-note");
+    expect(html).not.toContain("~");
+  });
+});
+
 describe("solo race screens", () => {
   it("briefing shows the course, the rules and one start action, with the trial picker only on a trial", () => {
     const props: ComponentProps<typeof RaceBriefing> = { onBack: noop, bestRecord: { timeSec: 87.4 } as ComponentProps<typeof RaceBriefing>["bestRecord"],

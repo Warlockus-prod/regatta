@@ -20,8 +20,10 @@ export function finishHoldMs(playerFinished: boolean): number {
   return playerFinished ? FINISH_HOLD_MS : 0;
 }
 
-/** What the place plate shows while the scene holds. */
-export interface FinishHold { raceId: string; place: number; total: number }
+/** What the place plate shows while the scene holds. M5: `stillRacing` is the
+ * number of metric bots the fleet resolver is still sailing home; the place
+ * follows the resolved rows. */
+export interface FinishHold { raceId: string; place: number; total: number; stillRacing?: number }
 
 let current: FinishHold | null = null;
 const listeners = new Set<() => void>();
@@ -52,6 +54,8 @@ export interface FinishedScreenRequest {
   playerFinished: boolean;
   place: number;
   total: number;
+  /** M5: metric bots still sailing to their finish (0 or omitted: none). */
+  stillRacing?: number;
   raceId: string;
   /** True while the race that ended is still the live one (no new race, no exit). */
   isCurrentRace: () => boolean;
@@ -63,14 +67,14 @@ export interface FinishedScreenRequest {
  * hold ends, the results replace the scene only if the same race is still
  * running: an exit to the menu or a new race during the hold is never undone. */
 export function scheduleFinishedScreen(request: FinishedScreenRequest): void {
-  const { playerFinished, place, total, raceId, isCurrentRace, setGameState } = request;
+  const { playerFinished, place, total, stillRacing = 0, raceId, isCurrentRace, setGameState } = request;
   const holdMs = finishHoldMs(playerFinished);
   if (holdMs === 0) {
     finishHoldStore.set(null);
     setGameState("finished");
     return;
   }
-  finishHoldStore.set({ raceId, place, total });
+  finishHoldStore.set(stillRacing > 0 ? { raceId, place, total, stillRacing } : { raceId, place, total });
   setTimeout(() => {
     if (finishHoldStore.get()?.raceId === raceId) finishHoldStore.set(null);
     const live = isCurrentRace();

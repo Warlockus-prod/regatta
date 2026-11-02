@@ -29,7 +29,7 @@ const players: LobbyPlayer[] = [
 ];
 function room(patch: Partial<ComponentProps<typeof MultiplayerRoom>> = {}) {
   return renderToStaticMarkup(<MultiplayerRoom room={{ code: "AB2C", hostId: "p1", myId: "p1", missionId: null, maxPlayers: 10 }} players={players}
-    colors={["#f68", "#8df"]} reconnecting error="x" canShare={false} share={null} onShare={noop} onLeave={noop} onPickMission={noop}
+    colors={["#f68", "#8df"]} reconnecting error="x" canShare={false} share={null} onShare={noop} inviteUrl="https://weektoregatta.com/multiplayer?code=AB2C" onLeave={noop} onPickMission={noop}
     onAddBot={noop} onRemoveBot={noop} onStart={noop} onReady={noop} {...patch} />);
 }
 const createButton = (html: string) => html.match(/<button[^>]*data-testid="mp-create"[^>]*>/)![0];
@@ -102,13 +102,54 @@ describe("multiplayer lobby screens (M2-8)", () => {
     expect(tagOf(room({ canShare: true }), "mp-share-code")).toBeTruthy();
     expect(room({ canShare: true })).toMatch(/data-testid="mp-share-code"[^>]*>Share the code</);
     expect(room({ canShare: false })).toMatch(/data-testid="mp-share-code"[^>]*>Copy link</);
-    expect(room({ canShare: false, share: "copied" })).toMatch(/data-testid="mp-share-code"[^>]*>Link copied</);
+    // The button keeps naming the action; the outcome goes to the status line.
+    expect(room({ canShare: false, share: "copied" })).toMatch(/data-testid="mp-share-code"[^>]*>Copy link</);
     i18n.lang = "pl";
     expect(room({ canShare: true })).toMatch(/data-testid="mp-share-code"[^>]*>Udostępnij kod</);
     const onShare = vi.fn();
     const button = MultiplayerRoomTree({ canShare: true, onShare });
     button.props.onClick();
     expect(onShare).toHaveBeenCalledTimes(1);
+  });
+
+  it("says what a tap does before it, what was copied after it, and a failure as a failure with the link to select", () => {
+    const status = (html: string) => html.match(/<p id="mp-share-status" role="status"[^>]*data-state="([a-z]+)"[^>]*>([^<]*)<\/p>/)!;
+    expect(tagOf(room(), "mp-share-code")).toContain('aria-describedby="mp-share-status"');
+    expect(status(room()).slice(1)).toEqual(["idle", "Tap to copy an invite link to this lobby."]);
+    expect(status(room({ canShare: true })).slice(1)).toEqual(["idle", "Tap to send a friend an invite link to this lobby."]);
+    expect(status(room({ share: "cancelled" }))[1]).toBe("idle");
+
+    const copied = room({ share: "copied" });
+    expect(status(copied).slice(1)).toEqual(["copied", "Invite link to lobby AB2C copied. Paste it into a message to a friend."]);
+    expect(copied).toMatch(/data-testid="mp-share-copied-link"[^>]*>weektoregatta\.com\/multiplayer\?code=AB2C</);
+    expect(copied).not.toContain("mp-invite-link");
+    // The copied link is body text: 16 px like the status line, never text-sm (14 px).
+    expect(tagOf(copied, "mp-share-copied-link")).toContain("text-base");
+    expect(tagOf(copied, "mp-share-copied-link")).not.toMatch(/\btext-(xs|sm)\b/);
+    expect(status(room({ share: "shared" }))[2]).toContain("AB2C");
+
+    const failed = room({ share: "failed" });
+    const [, state, text] = status(failed);
+    expect(state).toBe("failed");
+    expect(text).toBe("Could not copy. Select the link below and copy it by hand.");
+    expect(text).not.toMatch(/copied|shared|done/i);
+    expect(failed).not.toContain("mp-share-copied-link");
+    const link = tagOf(failed, "mp-invite-link");
+    expect(failed).toMatch(/data-testid="mp-invite-link"[^>]*>https:\/\/weektoregatta\.com\/multiplayer\?code=AB2C<\/textarea>/);
+    expect(link).toContain("readOnly");
+    expect(link).toContain("min-h-11");
+    expect(link).not.toMatch(CYAN);
+
+    // Every language has its own wording for each state, never the English one.
+    const english = new Set(["idle", "copied", "failed"].map(share => status(room({ share: share === "idle" ? null : share as "copied" | "failed" }))[2]));
+    for (const lang of LANGS.filter(l => l !== "en")) {
+      i18n.lang = lang;
+      for (const share of [null, "copied", "shared", "failed"] as const) {
+        const text = status(room({ share }))[2];
+        expect(text.length).toBeGreaterThan(10);
+        expect(english.has(text)).toBe(false);
+      }
+    }
   });
 
   it("keeps the room code, the role badge and the input borders neutral; cyan is left to actions", () => {
@@ -144,7 +185,7 @@ function MultiplayerMenuTree(patch: Partial<ComponentProps<typeof MultiplayerMen
 }
 function MultiplayerRoomTree(patch: Partial<ComponentProps<typeof MultiplayerRoom>>) {
   const props = { room: { code: "AB2C", hostId: "p1", myId: "p1", missionId: null, maxPlayers: 10 }, players, colors: ["#f68"], reconnecting: false,
-    error: null, canShare: false, share: null, onShare: noop, onLeave: noop, onPickMission: noop, onAddBot: noop, onRemoveBot: noop, onStart: noop,
+    error: null, canShare: false, share: null, onShare: noop, inviteUrl: "https://weektoregatta.com/multiplayer?code=AB2C", onLeave: noop, onPickMission: noop, onAddBot: noop, onRemoveBot: noop, onStart: noop,
     onReady: noop, ...patch } as ComponentProps<typeof MultiplayerRoom>;
   return withHooks(() => find(MultiplayerRoom(props), "mp-share-code")!);
 }

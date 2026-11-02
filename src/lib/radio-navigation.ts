@@ -1,6 +1,6 @@
 export const RADIO_FREE_HREF = "/radio/symulator?practice=free";
 export const RADIO_GUIDED_HREF = "/radio/obsluga?kurs=1";
-export const RADIO_PATHS = ["/radio", "/radio/teoria", "/radio/obsluga", "/radio/symulator", "/radio/test", "/radio/zadania", "/radio/sciaga", "/radio/pozycja", "/radio/rozmowa"] as const;
+export const RADIO_PATHS = ["/radio", "/radio/teoria", "/radio/obsluga", "/radio/symulator", "/radio/test", "/radio/zadania", "/radio/sciaga", "/radio/pozycja", "/radio/alfabet", "/radio/rozmowa"] as const;
 export interface RadioRoute { path: string; search: string; hash: string; scroll: number }
 
 /** Only installed SRC pages may cross the native navigation boundary. */

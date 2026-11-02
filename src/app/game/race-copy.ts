@@ -13,6 +13,23 @@ import { RACE_MODE_LABELS } from "./race-mode-labels";
  * the race loop picks it with pickLocalized(lang, ...). */
 export const MISSED_MARK_NOTICE = { ru: "Финиш не засчитан: сначала обогни верхний знак, оставив его по левому борту.", en: "Finish not counted: round the windward mark first, leaving it to port.", pl: "Meta niezaliczona: najpierw opłyń znak nawietrzny, zostawiając go po lewej burcie.", es: "Llegada no válida: primero rodea la baliza de barlovento dejándola a babor.", fr: "Arrivée non comptée : contourne d'abord la bouée au vent en la laissant à bâbord.", de: "Zieldurchgang zählt nicht: Runde zuerst die Luvtonne und lass sie an Backbord.", it: "Arrivo non valido: prima gira la boa di bolina lasciandola a sinistra." } as const satisfies Record<Lang, string>;
 
+/** M5: said when the player's boat is pinned against another hull or the
+ * water bound and has hardly moved for 6 s (src/lib/race-stuck-watch.ts),
+ * metric race only. Picked like MISSED_MARK_NOTICE. Bear away: glossary
+ * "увалиться / odpaść / poggiare / arribar / abattre / abfallen". */
+export const STUCK_NOTICE = { ru: "Ты уперся, отверни под ветер.", en: "You're stuck: bear away to get going again.", pl: "Łódź utknęła: odpadnij, żeby ruszyć.", es: "El barco se ha atascado: arriba para volver a navegar.", fr: "Le bateau est bloqué : abats pour repartir.", de: "Das Boot hängt fest: fall ab, um wieder Fahrt aufzunehmen.", it: "La barca è bloccata: poggia per ripartire." } as const satisfies Record<Lang, string>;
+
+/** M5 (ADR-0015 point 8): the metric fleet after the player's finish. Rows of
+ * bots the fleet resolver is still sailing home, their count on the finish
+ * plate and the results, and the note under an estimated time ("~"), given
+ * when the player left before the bots finished. Module resources, picked
+ * with tl() by RaceResults.tsx and RaceFinishPlate.tsx. */
+export const FLEET_RESOLUTION_COPY = {
+  stillRacing: { ru: "Еще на дистанции", en: "Still racing", pl: "Jeszcze na trasie", es: "Aún en regata", fr: "Encore en course", de: "Noch im Rennen", it: "Ancora in regata" },
+  stillRacingCount: { ru: "Еще на дистанции: {n}", en: "Still racing: {n}", pl: "Jeszcze na trasie: {n}", es: "Aún en regata: {n}", fr: "Encore en course : {n}", de: "Noch im Rennen: {n}", it: "Ancora in regata: {n}" },
+  estimated: { ru: "~ примерное время по среднему VMG: гонку закрыли раньше, чем лодка финишировала.", en: "~ estimated from the boat's average VMG: the race was closed before it finished.", pl: "~ czas szacowany na podstawie średniego VMG łodzi: wyścig zamknięto przed jej metą.", es: "~ tiempo estimado según el VMG medio del barco: la regata se cerró antes de su llegada.", fr: "~ temps estimé d'après la VMG moyenne du bateau : la course a été fermée avant son arrivée.", de: "~ geschätzt aus der mittleren VMG des Boots: Das Rennen wurde vor seinem Zieldurchgang beendet.", it: "~ tempo stimato dalla VMG media della barca: la regata è stata chiusa prima del suo arrivo." },
+} as const satisfies Record<string, Record<Lang, string>>;
+
 /** The two control modes live in race-mode-labels.ts so the leaderboard can
  * use them without bundling this whole copy module. */
 export { RACE_MODE_LABELS };

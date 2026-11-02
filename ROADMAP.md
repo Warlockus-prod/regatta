@@ -3,7 +3,8 @@
 > **Historical snapshot, not an ops reference.** Kept for history only: do not
 > follow its deploy, rollback, host, SSH or `.env` steps. Current sources:
 > `AGENTS.md` (rules), `ARCHITECTURE.md` (code map), `ops/deploy/README.md`
-> (deploy and rollback), `docs/OPS.md` (operations).
+> (deploy and rollback), `docs/OPS.md` (operations). Open work and its order:
+> `docs/BACKLOG.md` only.
 
 **Last updated:** 2026-04-18 (Phase 0 landing)
 **Current focus:** real sailing physics engine

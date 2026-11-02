@@ -27,6 +27,7 @@ import type { Difficulty } from './config';
 import type { useRaceCopy } from "./race-copy";
 import { PhysicalTrialNote } from "./RaceBriefing";
 import { formatTime, type Boat, type Coaching, type RaceResultRow } from "./race-model";
+import { FLEET_RESOLUTION_COPY } from "./race-copy";
 import { FINISH_COPY, dnfStage, fillFinish, formatGapSeconds, summariseFinish, type FinishSummary } from "./race-finish-summary";
 import { RaceFinishPractiseSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
 import { RaceSkillBars } from "./RaceSkillBars";
@@ -71,7 +72,7 @@ function Collapsed({ title, testId, children }: { title: string; testId: string;
   );
 }
 
-function FinishedSummary({ summary }: { summary: FinishSummary }) {
+function FinishedSummary({ summary, stillRacing }: { summary: FinishSummary; stillRacing: number }) {
   const { tp, tl, lang } = useI18n();
   const gap = (seconds: number) => formatGapSeconds(seconds, lang);
   const record = summary.recordTime === null ? "" : formatRecordTime(summary.recordTime);
@@ -94,6 +95,9 @@ function FinishedSummary({ summary }: { summary: FinishSummary }) {
       </div>
       <div className="font-mono text-xl text-[var(--text-secondary)]">{summary.time === null ? '' : formatTime(summary.time)}</div>
       {gapLine && <p className="mt-2 text-base leading-6 text-[var(--text-primary)]" data-testid="race-results-gap">{gapLine}</p>}
+      {/* M5: metric bots still sailing home; the place and the fleet rows follow when they finish. */}
+      {stillRacing > 0 && <p className="mt-1 text-base leading-6 text-[var(--text-secondary)]" data-testid="race-results-still-racing">
+        {fillFinish(tl(FLEET_RESOLUTION_COPY.stillRacingCount), { n: String(stillRacing) })}</p>}
       {/* Native waits for its own durable PB ACK; web uses checked synchronous storage. */}
       {summary.newRecord && (
         <div className="mt-3 inline-flex min-h-11 items-center rounded-full border border-[var(--warning)] px-4 text-base font-bold leading-6"
@@ -221,7 +225,7 @@ export function RaceResults({
 
             {/* 1. Place, time, gap to the winner, record; or the DNF layout. */}
             {summary.finished
-              ? <FinishedSummary summary={summary} />
+              ? <FinishedSummary summary={summary} stillRacing={results.filter(r => r.pending).length} />
               : <DnfSummary stage={stage} coaching={coaching} ai={ai} />}
             {summary.finished && medal && <RaceMedalResult award={medal.award} course={medal.course} mode={medal.mode}
               hintsUsed={medal.hintsUsed} finishSec={summary.time} />}
@@ -474,18 +478,22 @@ export function RaceResults({
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        {/* A boat that did not finish gets no place and no medal. */}
-                        <span className="text-xs font-mono w-6 inline-flex justify-center" style={{ color: i === 0 && r.time !== Infinity ? 'var(--warning)' : 'var(--text-muted)' }}>
-                          {r.time === Infinity ? '-' : i < 3 ? <MedalIcon place={(i + 1) as 1 | 2 | 3} size={20} label={tl(MEDAL_PLACE).replace("{n}", String(i + 1))} /> : `${i + 1}.`}
+                        {/* A boat that did not finish, or is still racing (M5), gets no place and no medal; an estimated place no medal either. */}
+                        <span className="text-xs font-mono w-6 inline-flex justify-center" style={{ color: i === 0 && r.time !== Infinity && !r.estimated ? 'var(--warning)' : 'var(--text-muted)' }}>
+                          {r.time === Infinity ? '-' : r.estimated ? `~${i + 1}.` : i < 3 ? <MedalIcon place={(i + 1) as 1 | 2 | 3} size={20} label={tl(MEDAL_PLACE).replace("{n}", String(i + 1))} /> : `${i + 1}.`}
                         </span>
                         <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />
                         <span className={`text-xs ${r.isPlayer ? 'font-semibold' : ''}`}>{r.isPlayer ? tp('Ты', 'You', 'Ty', { es: 'Tú', fr: 'Toi', de: 'Du', it: 'Tu' }) : r.name}</span>
                       </div>
-                      <span className="text-xs font-mono text-[var(--text-secondary)]">
-                        {r.time === Infinity ? 'DNF' : formatTime(r.time)}
-                      </span>
+                      {r.pending
+                        ? <span className="text-sm text-[var(--text-secondary)]" data-testid="race-results-row-racing">{tl(FLEET_RESOLUTION_COPY.stillRacing)}</span>
+                        : <span className="text-xs font-mono text-[var(--text-secondary)]">
+                          {r.time === Infinity ? 'DNF' : `${r.estimated ? '~' : ''}${formatTime(r.time)}`}
+                        </span>}
                     </div>
                   ))}
+                  {results.some(r => r.estimated && Number.isFinite(r.time)) && <p className="pt-2 text-sm leading-5 text-[var(--text-muted)]" data-testid="race-results-estimated-note">
+                    {tl(FLEET_RESOLUTION_COPY.estimated)}</p>}
                 </div>
               </Collapsed>
 

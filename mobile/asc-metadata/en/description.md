@@ -37,9 +37,9 @@ LEARN THE BOAT AND THE RULES
 - First week on board: what to pack, what to ask the skipper, how to help the crew.
 - Pre-race checklist: tick it off the night before.
 
-POLISH CERTIFICATES
+LICENSE COURSES
 
-- SRC marine radio: 324 UKE questions with study translations, theory and practice in seven languages. Standard on-air phrases stay English. From app 1.7.0 build 59, speech recognition uses an available local English model; typed content checks work offline when no model is installed.
+- SRC marine radio: 324 official exam questions with study translations, theory and practice in seven languages. Standard on-air phrases stay English. From app 1.7.0 build 59, speech recognition uses an available local English model; typed content checks work offline when no model is installed.
 - Sternik motorowodny (in Polish): 879 exam questions, theory and a full mock exam with 75 questions in 90 minutes. Works offline; oral practice checks typed Polish answers locally.
 
 PRIVACY
@@ -55,6 +55,6 @@ WHO IT IS FOR
 - First-time racers signing up for a club series.
 - Cruisers who want to start racing.
 - New crew with a regatta on the calendar.
-- Anyone preparing for a Polish SRC or motorboat license exam.
+- Anyone preparing for the SRC radio or sternik motorowodny exam.
 
 Open Day 1. See you on the start line.

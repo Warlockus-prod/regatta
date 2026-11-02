@@ -24,9 +24,14 @@
 // - within one race each hint fires at most once (state.fired), even before
 //   it reached storage;
 // - "Show hints again" in the race settings clears the row (resetFirstRaceHints);
-// - solo race only, not the physical trial (?race=) and not multiplayer:
-//   the trial has its own course and is not a first race, multiplayer has no
-//   feedback bus.
+// - solo race only, not multiplayer (it has no feedback bus). M5 step 6: the
+//   metric race (?race=, physical-cruiser-v1) shows them too, with its own
+//   scale (race-scale.ts): the crossing look-ahead is the judge's 8 real
+//   seconds, the distances are its hull lengths and the mark approach is
+//   METRIC_MARK_APPROACH_HULLS. The second-based timings (HINT_TIMING) are the
+//   same in both races: the race clock is real time in both, and a metric
+//   tack crosses the no-go stall clock sooner than noGoSec on each side
+//   (race-guidance-physical.test.ts sails it).
 //
 // Gold medals (decision #8, src/lib/race-medals.ts raceUsesHints): these hints
 // do NOT count as route or trim hints. Each says once what a situation means
@@ -40,6 +45,7 @@
 
 import { MIN_BOAT_SEPARATION, type RaceBoat, type RaceCourse } from "@/lib/race-physics";
 import { raceClosestApproach, raceRightOfWay } from "@/lib/race-rules";
+import type { RaceScale } from "@/lib/race-scale";
 import { MANOEUVRE, inNoGoZone } from "@/lib/race-manoeuvres";
 
 export const FIRST_RACE_HINTS = ["no-go", "first-tack", "mark-approach", "crossing"] as const;
@@ -66,6 +72,21 @@ export const HINT_TIMING = {
   /** ...and its closest approach within this, world units, as the boats sail now. */
   crossingPassUnits: HULL * 3,
 } as const;
+
+/** Mark approach in the metric race, hull lengths from the mark: the boat
+ * sails at real speed, so six hulls (79 m) came 11-55 s before the zone on
+ * the three metric courses; four hulls come 3-8 s before it, while the toast
+ * (6 s) can still be read (race-guidance-physical.test.ts). */
+export const METRIC_MARK_APPROACH_HULLS = 4;
+
+/** The hint distances of a race, world units: the legacy ones (HINT_TIMING) without a metric scale. */
+export function firstRaceHintDistances(scale?: RaceScale): { markUnits: number; crossingUnits: number; crossingPassUnits: number } {
+  if (!scale || scale.model !== "physical-cruiser-v1") {
+    return { markUnits: HINT_TIMING.markUnits, crossingUnits: HINT_TIMING.crossingUnits, crossingPassUnits: HINT_TIMING.crossingPassUnits };
+  }
+  const hull = scale.hullUnits;
+  return { markUnits: hull * METRIC_MARK_APPROACH_HULLS, crossingUnits: hull * 8, crossingPassUnits: hull * 3 };
+}
 
 export interface FirstRaceHintState {
   /** Fired in this race (shown or waiting for a slot). */
@@ -96,30 +117,33 @@ export interface FirstRaceHintSample {
   windDir: number;
   boats: readonly RaceBoat[];
   course: RaceCourse;
+  /** The race's scale (race-scale.ts), so the crossing look-ahead is the judge's; omitted: the legacy race. */
+  scale?: RaceScale;
 }
 
 /** The other racing boat on the opposite tack that is closing in on the
  * player, with who keeps clear; null when there is none. */
-export function playerCrossing(boats: readonly RaceBoat[], windDir: number): { giveWay: boolean } | null {
+export function playerCrossing(boats: readonly RaceBoat[], windDir: number, scale?: RaceScale): { giveWay: boolean } | null {
   const player = boats.find(b => b.isPlayer);
   if (!player || !player.started || player.lapDone >= 2) return null;
+  const near = firstRaceHintDistances(scale);
   for (const other of boats) {
     if (other === player || other.lapDone >= 2) continue;
-    if (Math.hypot(other.pos.x - player.pos.x, other.pos.y - player.pos.y) > HINT_TIMING.crossingUnits) continue;
+    if (Math.hypot(other.pos.x - player.pos.x, other.pos.y - player.pos.y) > near.crossingUnits) continue;
     const row = raceRightOfWay(player, other, windDir);
     if (!row || row.rule !== "10") continue;
-    const approach = raceClosestApproach(player, other);
-    if (approach.closing > 0.1 && approach.distance < HINT_TIMING.crossingPassUnits) return { giveWay: row.giveWayId === player.id };
+    const approach = raceClosestApproach(player, other, scale);
+    if (approach.closing > 0.1 && approach.distance < near.crossingPassUnits) return { giveWay: row.giveWayId === player.id };
   }
   return null;
 }
 
 /** The player sails the first leg and is near the windward mark. */
-export function playerNearMark(boats: readonly RaceBoat[], course: RaceCourse): boolean {
+export function playerNearMark(boats: readonly RaceBoat[], course: RaceCourse, scale?: RaceScale): boolean {
   const player = boats.find(b => b.isPlayer);
   const mark = course.marks.find(m => m.type === "windward") ?? course.marks[0];
   if (!player || !mark || !player.started || player.lapDone !== 0) return false;
-  return Math.hypot(mark.pos.x - player.pos.x, mark.pos.y - player.pos.y) < HINT_TIMING.markUnits;
+  return Math.hypot(mark.pos.x - player.pos.x, mark.pos.y - player.pos.y) < firstRaceHintDistances(scale).markUnits;
 }
 
 /** Feed one race tick; returns the next state and the hint due now, if any.
@@ -143,8 +167,8 @@ export function nextFirstRaceHint(state: FirstRaceHintState, sample: FirstRaceHi
   let hint: FirstRaceHint | null = null;
   // In the order of urgency: a stalled boat first, then a boat on a collision course.
   if (open("no-go") && noGoSince !== null && sample.t - noGoSince >= HINT_TIMING.noGoSec) hint = { id: "no-go" };
-  else if (open("crossing")) { const c = playerCrossing(sample.boats, sample.windDir); if (c) hint = { id: "crossing", giveWay: c.giveWay }; }
-  if (!hint && open("mark-approach") && playerNearMark(sample.boats, sample.course)) hint = { id: "mark-approach" };
+  else if (open("crossing")) { const c = playerCrossing(sample.boats, sample.windDir, sample.scale); if (c) hint = { id: "crossing", giveWay: c.giveWay }; }
+  if (!hint && open("mark-approach") && playerNearMark(sample.boats, sample.course, sample.scale)) hint = { id: "mark-approach" };
   if (!hint && open("first-tack") && firstTackAt !== null && sample.t - firstTackAt <= HINT_TIMING.afterTackSec) hint = { id: "first-tack" };
   if (!hint) return { state: tracked, hint: null };
   return { state: { ...tracked, fired: [...tracked.fired, hint.id], lastAt: sample.t }, hint };

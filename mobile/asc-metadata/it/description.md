@@ -37,9 +37,9 @@ LA BARCA E LE REGOLE
 - Prima settimana a bordo: cosa portare, cosa chiedere allo skipper, come aiutare l'equipaggio.
 - Checklist pre-regata: da spuntare la sera prima.
 
-PATENTI POLACCHE
+PATENTI E CERTIFICATI
 
-- Radio marina SRC: 324 domande UKE con traduzioni per lo studio, teoria e pratica in sette lingue. Le frasi radio standard restano in inglese. Dalla versione 1.7.0, build 59, la voce usa un modello inglese locale disponibile; senza modello puoi verificare il testo offline.
+- Radio marina SRC: 324 domande d'esame ufficiali con traduzioni per lo studio, teoria e pratica in sette lingue. Le frasi radio standard restano in inglese. Dalla versione 1.7.0, build 59, la voce usa un modello inglese locale disponibile; senza modello puoi verificare il testo offline.
 - Sternik motorowodny (in polacco): 879 domande d'esame, teoria e una simulazione d'esame completa di 75 domande in 90 minuti. Funziona offline; la pratica orale verifica localmente le risposte scritte in polacco.
 
 PRIVACY
