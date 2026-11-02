@@ -9,7 +9,7 @@ import { RADIO_WEAK_AREAS } from "./weakSpots";
 import { loadRadioCourseProgress, type RadioCourseProgress } from "./courseProgress";
 import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
 import { RADIO_GUIDED_HREF } from "./navigation";
-import { PHONETIC_COPY, PHONETIC_DRILL_HREF } from "@/data/radio/phonetic-copy";
+import { PHONETIC_ENTRY_COPY, PHONETIC_DRILL_HREF } from "@/data/radio/phonetic-entry-copy";
 
 const EMPTY_PROGRESS: RadioCourseProgress = {
   theoryCompleted: 0,
@@ -295,7 +295,7 @@ export default function RadioCourseHome() {
           {radioText(tp("Диктовка позиции", "Position dictation", "Dyktowanie pozycji"))}
         </Link>
         <Link href={PHONETIC_DRILL_HREF} className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tl(PHONETIC_COPY.drillTitle)}
+          {tl(PHONETIC_ENTRY_COPY.drillTitle)}
         </Link>
         <Link href="/radio/zadania" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
           {radioText(tp("26 практических заданий", "26 practical tasks", "26 zadań praktycznych"))}

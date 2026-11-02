@@ -223,8 +223,12 @@ npm run check:map            # карта проекта актуальна
 
 ## Как шипить
 
-- Ветки: `main` - веб-приложение плюс инфраструктура; `app` - это `main` плюс
-  работа по мобильному приложению (`mobile/`).
+- Ветки: `main` - то, что стоит на сайте; `claude/app-next` - текущая работа
+  для сайта и приложения, перед обновлением сайта сливается в `main`. Старые
+  ветки удалены 2026-11-02, их уникальные коммиты сохранены тегами `archive/*`.
+  Порядок владельца от 2026-11-01: сначала приложение, сайт после того, как
+  приложение устоялось. Деплой только ручным `workflow_dispatch` и только с
+  «да» владельца.
 - Деплой только из CI и только вручную: push в `main` сайт не выкатывает.
   Выпуск сайта - `gh workflow run deploy.yml --ref main` по просьбе владельца,
   после полного локального гейта. `.github/workflows/deploy.yml`:
@@ -301,8 +305,10 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
 | Галерея | `src/data/gallery.ts`, `src/data/gallery-2026.generated.ts` | `/gallery` |
 | Банк вопросов SRC (324, UKE) | `src/data/src-radio.ts` | `/radio` |
 | Практика на рации SRC: список Практики и рабочий экран с закрепленной рацией (симулятор, уроки Obsługa, живой разговор) | `src/app/radio/symulator/RadioWorkspace.tsx`, `src/app/radio/symulator/practiceMenu.ts` | `/radio/symulator`, `/radio/obsluga?kurs=1`, `/radio/rozmowa` |
+| Тренажер фонетического алфавита и цифр SRC | `src/app/radio/alfabet/PhoneticDrill.tsx`, `src/data/radio/phonetic-alphabet.ts` | `/radio/alfabet` |
 | Банк вопросов sternik (879) | `src/data/sternik.ts` | `/sternik` |
 | Уроки работы с парусами | `src/data/sailing-lab/course.ts` и соседние | `/learn/sails` |
+| «Манёвры»: швартовка на моторе и упражнения под парусом, модель малого хода | `src/data/manoeuvres.ts`, `src/features/manoeuvres/`, `src/lib/harbour-physics/` | `/manoeuvres` |
 | Информационная архитектура (5 разделов, подписи, маршруты) | `src/lib/product/catalog.ts` | все хабы |
 | Физика скорости яхты (VPP) | `src/lib/sailing-physics/*` | все тренажеры |
 | Язык и переводы | `src/lib/i18n.tsx`, `src/lib/languages.ts` | все |
@@ -491,7 +497,8 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
 Из `ROADMAP.md` (operating rules) и `PATTERNS.md` (дверь D1-D6):
 
 1. Одна фаза в работе одновременно: не совмещаем переделку физики и UI.
-2. Каждая фаза заканчивается деплоем и проверкой в браузере.
+2. Каждая фаза заканчивается проверкой в браузере и сборкой; деплой сайта
+   только с согласия владельца.
 3. Каждая развилка получает новый ADR в `DECISIONS.md`.
 4. Устаревший документ - это провал, его переписывает та же работа, которая его
    обесценила, в том же коммите.

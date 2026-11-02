@@ -1,6 +1,8 @@
 // Keep controls clear during activities. Reference and course pages retain tabs.
 export function showsMainNavigation(path: string): boolean {
   if (/^\/ads(?:\/|$)/.test(path)) return false;
+  // Manoeuvres: the learner steers the boat, so the bar goes like in the race (AGENTS rule 11).
+  if (/^\/manoeuvres(?:\/|$)/.test(path)) return false;
   if (path === "/simulators") return true;
   return !(/^\/simulator/.test(path) || /^\/(?:game|race-3d)(?:\/|$)/.test(path) || /^\/multiplayer(?:\/race(?:\/|$)|$)/.test(path) || /^\/replay(?:\/|$)/.test(path) || /\/(symulator|egzamin|exam)(?:\/|$)/.test(path));
 }

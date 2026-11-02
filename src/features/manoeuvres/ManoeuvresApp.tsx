@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { useI18n } from "@/lib/i18n";
 import { MANOEUVRES, MANOEUVRE_TRACKS, manoeuvreById, type ManoeuvreExercise } from "@/data/manoeuvres";
 import { castOff, contactsOf, createRun, scoreRun, stepRun, stepSeconds, targetDistance, windAt, type RunInput, type RunResult, type RunState } from "./runner";
@@ -18,25 +18,36 @@ const fmt1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
 type View = { kind: "list" } | { kind: "brief"; id: string } | { kind: "play"; id: string };
+const LIST: View = { kind: "list" };
+const INITIAL_INPUT: RunInput = { helm: 0, throttle: 0, sheets: "trim" };
+
+// False on the server and while hydrating, true on the client afterwards: the
+// local progress and the ?ex= deep link are read only then, so the server HTML
+// and the first client render match (no hydration mismatch).
+const noSubscribe = () => () => {};
+const useHydrated = () => useSyncExternalStore(noSubscribe, () => true, () => false);
 
 export default function ManoeuvresApp({ initialSearch }: { initialSearch?: string }) {
   const { tl } = useI18n();
-  const [view, setView] = useState<View>({ kind: "list" });
-  const [stars, setStars] = useState<Stars>({});
-  const [loaded, setLoaded] = useState(false);
-
-  // Local progress is read after hydration, never during render.
-  useEffect(() => {
-    const read = readProgress(storage(), IDS);
-    setStars(read);
-    setLoaded(true);
-    const search = initialSearch ?? (typeof window !== "undefined" ? window.location.search : "");
+  const loaded = useHydrated();
+  // Local progress as stored; a finished attempt replaces it with what it saved.
+  const storedStars = useMemo<Stars>(() => loaded ? readProgress(storage(), IDS) : {}, [loaded]);
+  const [savedStars, setStars] = useState<Stars | null>(null);
+  const stars = savedStars ?? storedStars;
+  // A deep link (?ex=<id>) opens that exercise's briefing when it is unlocked.
+  const linked = useMemo<View | null>(() => {
+    if (!loaded) return null;
+    const search = initialSearch ?? window.location.search;
     const id = new URLSearchParams(search).get("ex");
-    if (id && manoeuvreById(id) && isUnlocked(MANOEUVRES, read, id)) setView({ kind: "brief", id });
-  }, [initialSearch]);
+    return id && manoeuvreById(id) && isUnlocked(MANOEUVRES, storedStars, id) ? { kind: "brief", id } : null;
+  }, [loaded, initialSearch, storedStars]);
+  // The view the learner chose, remembered with the search it was chosen under:
+  // a new deep link wins over it, a search without a usable link keeps it.
+  const [chosen, setChosen] = useState<{ search: string | undefined; view: View } | null>(null);
+  const view = chosen && chosen.search === initialSearch ? chosen.view : linked ?? chosen?.view ?? LIST;
 
   const open = (kind: View["kind"], id?: string) => {
-    setView(kind === "list" || !id ? { kind: "list" } : { kind, id } as View);
+    setChosen({ search: initialSearch, view: kind === "list" || !id ? LIST : { kind, id } as View });
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
 
@@ -141,10 +152,11 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
   useEffect(() => { langRef.current = lang; }, [lang]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const runRef = useRef<RunState>(createRun(exercise));
-  const inputRef = useRef<RunInput>({ helm: 0, throttle: 0, sheets: "trim" });
+  const inputRef = useRef<RunInput>(INITIAL_INPUT);
   const steerRef = useRef<-1 | 0 | 1>(0);
   const cameraRef = useRef<Camera | null>(null);
-  const [hud, setHud] = useState<Hud>(() => hudOf(exercise, runRef.current, inputRef.current));
+  // The first HUD shows a fresh attempt, the same state the loop starts from.
+  const [hud, setHud] = useState<Hud>(() => hudOf(exercise, createRun(exercise), INITIAL_INPUT));
   const [throttle, setThrottle] = useState(0);
   const [sheets, setSheets] = useState<"trim" | "ease">("trim");
   const [hint, setHint] = useState(false);
@@ -152,9 +164,12 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
   const [result, setResult] = useState<{ score: RunResult; saved: boolean; stars: Stars } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const starsRef = useRef(stars);
-  starsRef.current = stars;
-  hintRef.current = hint;
+  // The loop reads the latest stars and plan switch through refs, updated after each commit.
+  useLayoutEffect(() => { starsRef.current = stars; hintRef.current = hint; }, [stars, hint]);
 
+  // A new attempt starts with the lever in neutral, sheets trimmed and no result;
+  // the loop effect below restarts the run itself when `attempt` changes.
+  const restart = () => { setThrottle(0); setSheets("trim"); setResult(null); setAttempt(a => a + 1); };
   const setLever = useCallback((value: number) => { inputRef.current = { ...inputRef.current, throttle: value }; setThrottle(value); }, []);
   const setSheet = useCallback((value: "trim" | "ease") => { inputRef.current = { ...inputRef.current, sheets: value }; setSheets(value); }, []);
 
@@ -163,7 +178,6 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
     runRef.current = createRun(exercise);
     inputRef.current = { helm: 0, throttle: 0, sheets: "trim" };
     cameraRef.current = null;
-    setThrottle(0); setSheets("trim"); setResult(null);
     const canvas = canvasRef.current!, ctx = canvas.getContext("2d");
     let palette = readPalette(), paletteAt = 0, raf = 0, last = performance.now(), acc = 0, hudAt = 0, finished = false;
     const dt = stepSeconds(exercise);
@@ -270,7 +284,7 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
         </dl>
 
         {result ? <ResultPanel exercise={exercise} result={result.score} saved={result.saved} tl={tl}
-          onRetry={() => setAttempt(a => a + 1)} onNext={nextOpen ? () => onNext(next!.id) : undefined} onBack={onBack} />
+          onRetry={restart} onNext={nextOpen ? () => onNext(next!.id) : undefined} onBack={onBack} />
           : <div className={styles.dock}>
             <div className={styles.steer}>
               <p className={styles.readout}>{tl(copy.steer.rudder)} {Math.abs(rudderDeg)}°{rudderDeg ? ` ${tl(rudderDeg < 0 ? copy.steer.left : copy.steer.right)}` : ""}</p>
@@ -296,7 +310,7 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
 
         {!result && <div className={styles.toolRow}>
           <button type="button" className={styles.secondary} aria-expanded={hint} onClick={() => setHint(h => !h)}>{tl(hint ? copy.hintHide : copy.hintShow)}</button>
-          <button type="button" className={styles.secondary} onClick={() => setAttempt(a => a + 1)}>{tl(copy.restart)}</button>
+          <button type="button" className={styles.secondary} onClick={restart}>{tl(copy.restart)}</button>
         </div>}
         {hint && !result && <p className={styles.hint}>{tl(exercise.hint)}</p>}
       </div>

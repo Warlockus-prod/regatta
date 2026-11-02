@@ -15,7 +15,7 @@ import {
 } from "../questionProgress";
 import { record as recordWeak } from "../weakSpots";
 import type { TheoryChapter } from "./courseData";
-import { PHONETIC_COPY, PHONETIC_DRILL_CHAPTER, PHONETIC_DRILL_HREF } from "@/data/radio/phonetic-copy";
+import { PHONETIC_ENTRY_COPY, PHONETIC_DRILL_CHAPTER, PHONETIC_DRILL_HREF } from "@/data/radio/phonetic-entry-copy";
 
 function selectChecks(questionIds: string[]): SrcQuestion[] {
   const available = questionIds
@@ -117,7 +117,7 @@ export default function ChapterCheck({
             {chapter.id === PHONETIC_DRILL_CHAPTER && (
               <Link href={`${PHONETIC_DRILL_HREF}?from=${chapter.id}`} data-testid="chapter-phonetic-drill"
                 className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: "var(--accent-cyan)" }}>
-                {tl(PHONETIC_COPY.chapterLink)}
+                {tl(PHONETIC_ENTRY_COPY.chapterLink)}
               </Link>
             )}
           </div>

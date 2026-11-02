@@ -106,7 +106,7 @@ const js = result.outputFiles.find(file => file.path.endsWith(".js"))?.text;
 const modulesCss = result.outputFiles.find(file => file.path.endsWith(".css"))?.text ?? "";
 if (!js) throw new Error("No sailing JavaScript generated");
 const cssPath = join(root, "src/app/globals.css");
-const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";\n@source "../app/simulator";\n@source "../app/anatomy";\n@source "../components/YachtViewer3D.tsx";\n@source "../components/AnatomyPosters.tsx";\n@source "../components/ContentFooterNav.tsx";');
+const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";\n@source "../app/simulator";\n@source "../app/anatomy";\n@source "../features/manoeuvres";\n@source "../components/YachtViewer3D.tsx";\n@source "../components/AnatomyPosters.tsx";\n@source "../components/ContentFooterNav.tsx";');
 const compiledCss = (await postcss([tailwindcss()]).process(cssInput, { from: cssPath })).css + modulesCss;
 const css = compiledCss.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quote, url) => {
   if (/^(data:|blob:|#)/.test(url)) return match;
@@ -133,7 +133,7 @@ const sourcePaths = [...new Set([...inputs.filter(path => !path.includes(":") &&
 const sourceFiles = sourcePaths.map(path => { const bytes = readFileSync(join(root, path)); return { path, bytes: bytes.length, sha256: digest(bytes) }; });
 const manifest = JSON.stringify({
   schema: 1, entry: "sailing-offline.html", version, sha256: digest(html), bytes: Buffer.byteLength(html),
-  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads"],
+  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads", "/manoeuvres"],
   model: { sha256: digest(model), bytes: model.length, embeddedSha256: digest(runtimeModel), embeddedBytes: runtimeModel.length },
   inputs, sourceFiles, embeddedAssets,
 }, null, 2) + "\n";

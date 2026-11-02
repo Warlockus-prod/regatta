@@ -116,7 +116,8 @@ as rolling our own.
 - Dynamic sail shape (luff/leech tension, mast bend, cunningham, outhaul)
 - Spinnaker, gennaker, code-0
 - Traveler, vang, backstay adjuster
-- Autopilot / rudder dynamics / yaw inertia
+- Autopilot / rudder dynamics / yaw inertia (exception since 2026-11-01:
+  harbour mode of the Manoeuvres section only, ADR-0020)
 - Current / tide / wave effects
 
 These are candidates for V2+. None are required to deliver the causal-chain
@@ -1033,3 +1034,23 @@ trainer settings write by a player with no race sound choice yet mirrors
 `src/lib/race-soundscape-audio.ts`, `src/app/game/useRaceLoop.ts`,
 `src/app/game/useRaceSoundscape.ts`, `src/app/game/GameClient.tsx`, `docs/audits/2026-10-30-game-roadmap.md` (M3),
 ADR-0008.
+
+## ADR-0020 - Harbour mode low-speed model for Manoeuvres (pointer)
+
+Date: 2026-11-01. Status: accepted (owner decision 2026-11-01: a Manoeuvres
+section on our yacht, with docking). The full text, numbers and verification
+live in `docs/design/harbour-manoeuvres-backlog.md` section 7; this entry is
+the pointer so the ADR list stays complete.
+
+- The boundary "no rudder dynamics and no yaw" (ADR-0001 "NOT building",
+  `AGENTS.md` "Границы продукта") is lifted only for harbour mode: low speed,
+  the Manoeuvres section (`/manoeuvres`, `src/features/manoeuvres/`).
+- The model is its own pure TS module `src/lib/harbour-physics/` (3 degrees of
+  freedom: surge, sway, yaw; engine with prop walk, rudder in the prop wash,
+  windage, contacts and mooring lines). It only reads `DEFAULT_BOAT` length,
+  displacement and hull drag from `src/lib/sailing-physics/*`; no constant of
+  the VPP engine changed.
+- Race physics, the Trainer, Basics, Boat 3D and the multiplayer server
+  physics are unchanged and never import the harbour model.
+- Behaviour tests: `src/lib/harbour-physics/step.test.ts`,
+  `src/features/manoeuvres/runner.test.ts`.

@@ -1,20 +1,17 @@
 import type { Lang } from "@/lib/languages";
+import { PHONETIC_ENTRY_COPY } from "./phonetic-entry-copy";
 
 // Interface copy of the phonetic alphabet drill (/radio/alfabet) in all seven
 // languages. The code words and spoken figures themselves are the international
 // standard and live in phonetic-alphabet.ts; they are never translated.
 // `{0}`, `{1}` are filled by fillCopy().
 
-export const PHONETIC_DRILL_HREF = "/radio/alfabet";
-/** The theory chapter that teaches spelling; the drill returns there. */
-export const PHONETIC_DRILL_CHAPTER = "routine";
+export { PHONETIC_DRILL_CHAPTER, PHONETIC_DRILL_HREF } from "./phonetic-entry-copy";
 
 type Copy = Record<Lang, string>;
 
 export const PHONETIC_COPY = {
-  drillTitle: { ru: "Фонетический алфавит и цифры", en: "Phonetic alphabet and numbers", pl: "Alfabet fonetyczny i cyfry", es: "Alfabeto fonético y números", fr: "Alphabet phonétique et chiffres", de: "Buchstabieralphabet und Zahlen", it: "Alfabeto fonetico e numeri" },
-  listNote: { ru: "Буквы, цифры и передача по буквам", en: "Letters, numbers and spelling", pl: "Litery, cyfry i literowanie", es: "Letras, números y deletreo", fr: "Lettres, chiffres et épellation", de: "Buchstaben, Zahlen und Buchstabieren", it: "Lettere, numeri e spelling" },
-  chapterLink: { ru: "Отработать фонетический алфавит", en: "Practise the phonetic alphabet", pl: "Przećwicz alfabet fonetyczny", es: "Practica el alfabeto fonético", fr: "S'entraîner à l'alphabet phonétique", de: "Buchstabieralphabet üben", it: "Esercitati con l'alfabeto fonetico" },
+  ...PHONETIC_ENTRY_COPY,
   intro: {
     ru: "Имена судов, позывные и MMSI в эфире передают по буквам и по цифрам. Кодовые слова и произношение цифр одинаковы во всём мире и остаются английскими. Сначала выучи таблицу, затем узнавай слова на слух, передай имя по буквам и пройди зачётный раунд.",
     en: "Ship names, call signs and MMSIs are spelled letter by letter and figure by figure on the air. The code words and the way figures are pronounced are the same worldwide and stay English. Learn the table, recognise the words by ear, spell a name, then take the scored round.",

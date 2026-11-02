@@ -29,7 +29,7 @@ import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios
 import { trackRadioTaskComplete } from '@/lib/funnel';
 import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
-import { PHONETIC_COPY, PHONETIC_DRILL_HREF } from '@/data/radio/phonetic-copy';
+import { PHONETIC_ENTRY_COPY, PHONETIC_DRILL_HREF } from '@/data/radio/phonetic-entry-copy';
 import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
 import { checkLabel, useTrainerI18n } from './trainerText';
 import { browserStorage, loadProgress as loadStoredProgress, recordAttempt, saveProgress as saveStoredProgress, type ProgressMap, type SaveOutcome } from './progressStore';
@@ -844,7 +844,7 @@ function RadioSimulator() {
               {[
                 { href: '/radio/rozmowa', icon: '🎙️', title: tp('Живой разговор со станцией', 'Live conversation with a station', 'Rozmowa na żywo ze stacją'), note: tl({ ru: 'Голосовая или текстовая практика', en: 'Voice or typed practice', pl: 'Ćwiczenia głosowe lub tekstowe', es: 'Práctica por voz o por escrito', fr: 'Entraînement oral ou écrit', de: 'Üben per Sprache oder Text', it: 'Esercitazioni vocali o scritte' }) },
                 { href: '/radio/pozycja', icon: '🧭', title: tp('Диктовка позиции', 'Position dictation', 'Dyktowanie pozycji'), note: null },
-                { href: PHONETIC_DRILL_HREF, icon: '🔤', title: tl(PHONETIC_COPY.drillTitle), note: tl(PHONETIC_COPY.listNote) },
+                { href: PHONETIC_DRILL_HREF, icon: '🔤', title: tl(PHONETIC_ENTRY_COPY.drillTitle), note: tl(PHONETIC_ENTRY_COPY.listNote) },
               ].map((item, i) => (
                 <li key={item.href} style={i > 0 ? { borderTop: '1px solid var(--border-subtle)' } : undefined}>
                   <Link href={item.href} className="flex min-h-[56px] items-center gap-3 px-4 py-2">

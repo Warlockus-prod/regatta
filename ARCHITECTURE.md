@@ -555,6 +555,14 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/app/radio/test/examModel.test.ts` - тесты модели экзамена.
 - `src/app/radio/courseIds.test.ts` - сверяет списки id из `src/app/radio/courseIds.ts` и названия из `src/app/radio/sciaga/scenarioTitles.ts` с банком SRC, сценариями и главами теории.
 - `src/app/radio/courseIds.ts` - id глав теории, вопросов SRC и сценариев для счетчиков прогресса на /radio без импорта самих данных.
+- `src/app/radio/alfabet/page.tsx` - маршрут `/radio/alfabet`: тренажер фонетического алфавита и цифр МСЭ.
+- `src/app/radio/alfabet/PhoneticDrill.tsx` - тренажер алфавита: Учить, Узнать, Продиктовать, Раунд на счет.
+- `src/app/radio/alfabet/phoneticData.test.ts` - целостность данных алфавита: 26 букв, цифры, примеры чисел, слова для диктовки.
+- `src/app/radio/alfabet/phoneticDrill.test.ts` - оценка ответов и сохраненный прогресс тренажера алфавита.
+- `src/data/radio/phonetic-alphabet.ts` - алфавит МСЭ, произношение цифр, примеры чисел и слова для диктовки (их же читает скрипт предгенерации аудио).
+- `src/data/radio/phonetic-copy.ts` - тексты интерфейса тренажера алфавита на 7 языках.
+- `src/data/radio/phonetic-entry-copy.ts` - три строки входа в тренажер алфавита (название, подпись в списке Практики, ссылка из главы теории) и его адрес: их показывают другие страницы радио без полного текста тренажера.
+- `src/lib/radio-phonetic.ts` - оценка тренажера алфавита и сохраненный прогресс.
 
 ### 4.6 Курс sternik motorowodny `src/app/sternik`
 
@@ -660,6 +668,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/data/sailing-lab/lesson-guide.ts` - цели 13 уроков, результаты четырех модулей и подписи учебного пути на семи языках.
 - `src/data/sailing-lab/learning-path.ts` - шаги урока (разобраться, проверить, на лодке; шаги не засчитывают урок), модули программы курса парусов по порядку уроков, термины урока.
 - `src/data/sailing-lab/assessment-copy.ts` - тексты независимой проверки настройки в Тренажере (скрутка, глубина).
+- `src/data/manoeuvres.ts` - упражнения раздела «Манёвры»: сцены, ветер, цели, подсчет звезд, тексты на 7 языках.
 
 ### 4.9 `src/features/sailing-lab` - общая сессия, риг и уроки
 
@@ -809,6 +818,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/simulator-v3/ui/pods/ViewPod.tsx` - выбор вида сцены.
 - `src/features/simulator-v3/hooks/use-trim-assessment.ts` - хук проверки настройки (`?assessment=twist|depth`).
 - `src/features/simulator-v3/ui/panels/TrimAssessmentPanel.tsx` - панель задания и результата проверки.
+- `src/features/simulator-v3/ui/TrainerWindInstrument.tsx` - карточка ветра как в гонке поверх сцены Тренажера (в 3D с циферблатом, на видах сверху и с палубы только текст) плюс скорость лодки.
+- `src/features/simulator-v3/ui/TrainerWindInstrument.module.css` - стили угловой карточки.
+- `src/features/simulator-v3/ui/trainer-wind.ts` - чистый адаптер живого состояния лодки Тренажера в показание ветра гонки и режим карточки для каждого вида.
+- `src/features/simulator-v3/ui/TrainerWindInstrument.test.tsx` - живые значения, борт, режим карточки, 7 языков и размер подписей вида сверху.
 
 ### 4.11a `src/features/trainer-controls` - общее управление тренажерами
 
@@ -867,6 +880,29 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/race-hud/events.test.ts` - контракт: события на всех 7 языках несут измеренные числа, порядковые числа по правилам языка.
 - `src/features/trainer-controls/SceneChrome.tsx` - строка над сценой (`SceneBar`), кнопка «Вид» и выезжающая сбоку панель видов и камеры (`SceneDrawer`): на телефоне поверх лодки ничего не лежит.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
+
+### 4.11b `src/features/manoeuvres` - раздел «Манёвры» и модель малого хода
+
+Швартовка на моторе и упражнения под парусом. Модель гавани
+`src/lib/harbour-physics/` используется только здесь; гоночная физика,
+Тренажер и сервер мультиплеера ее не видят (исключение границы продукта,
+`docs/design/harbour-manoeuvres-backlog.md` раздел 7).
+
+- `src/app/manoeuvres/page.tsx` - маршрут `/manoeuvres` (раздел Practice).
+- `src/features/manoeuvres/ManoeuvresApp.tsx` - список, брифинг, игровой вид, управление, результаты.
+- `src/features/manoeuvres/runner.ts` - одна попытка: шаг модели гавани или общей парусной сессии, проверка цели, звезды.
+- `src/features/manoeuvres/runner.test.ts` - целостность каталога, скриптовые прохождения, подсчет звезд.
+- `src/features/manoeuvres/progress.ts` - локальные звезды и открытие упражнений (`regatta.manoeuvres.v1`).
+- `src/features/manoeuvres/scene.ts` - рисование вида сверху на canvas и камера.
+- `src/features/manoeuvres/Schematic.tsx` - статичная SVG-схема упражнения из данных сцены.
+- `src/features/manoeuvres/copy.ts` - строки интерфейса на 7 языках.
+- `src/features/manoeuvres/Manoeuvres.module.css` - стили раздела.
+- `src/lib/harbour-physics/types.ts` - типы модели гавани: яхта, состояние, ввод, препятствия, швартовы, контакты.
+- `src/lib/harbour-physics/yacht.ts` - наша яхта на малом ходу (мотор, винт, руль, парусность), длина и водоизмещение из `DEFAULT_BOAT`.
+- `src/lib/harbour-physics/geometry.ts` - позы, контакты выпуклых многоугольников и окружностей, зазор.
+- `src/lib/harbour-physics/step.ts` - один фиксированный шаг модели гавани: контакты и швартовы.
+- `src/lib/harbour-physics/index.ts` - публичные экспорты.
+- `src/lib/harbour-physics/step.test.ts` - поведенческие тесты и измеренные числа.
 
 ### 4.12 `src/lib` - движок, i18n, данные, утилиты
 
@@ -1020,6 +1056,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8); отдельные120s сохраняют весь keyboard/WS/settings/layout/Fleet flow после доказанного60s deadline на поздней геометрии.
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
 - `e2e/trainer-controls.spec.ts` - независимые DOM measurements объединяются на одной границе состояния; missing/zero-size не принимаются, реальные действия и deadlines сохраняются. На телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры. Scroll и оба3D drawer-кейса ждут actual first frame в прежнем общем25s startup deadline до геометрии; drawer сохраняет1px bounds, view actions и60s total. Wheel-dock проверяет локализованный44px Diagnostics summary как занятое место, отсутствие перекрытий и настоящие пустые промежутки<24px, без увеличения бюджетов.
+- `e2e/manoeuvres.spec.ts` - «Манёвры»: список с открытым только первым упражнением, брифинг, старт, газ меняет скорость в HUD и сцене, удержание кнопки руля поворачивает руль, на 390 px контролы не меньше 44 px без горизонтальной прокрутки; тренажер алфавита `/radio/alfabet`: таблица и ответ с разбором; без ошибок страницы и консоли.
 - `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев. Три модели проходят реальные SQL/Volume уроки мышью: actual LCD `Volume:`, вращение обода и индекса, Complete, release, Next и 44px альтернативы проверяются без изменения timeout.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
 - `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд, compact Task и реальное изменение9m->11m с сохранением намерения через виды, панели и checkpoint; обычный30s бюджет этого case сохранен.
@@ -1213,6 +1250,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 | `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
 | `ARCHITECTURE.md` (до 2026-10-24) | `src/app/radio/runtimeSearch.ts` - поиск по материалам курса | функция отдает строку запроса страницы (на сайте `location.search`, в офлайн-бандле адрес встроенного роутера); поиска по курсу в ней нет |
 | `AGENTS.md` (до 2026-10-24) | курс SRC только на польском, не адаптируется | решение владельца 2026-10-24: курс можно переводить на все 7 языков; тренажер рации уже на 7 языках со случайными акваториями, теория, уроки, разговор и банк 324 вопросов пока PL / RU |
+| `AGENTS.md` «Границы продукта», ADR-0001 (до 2026-11-01) | нет динамики руля и рыскания нигде | исключение только для режима гавани: раздел «Манёвры» (`src/features/manoeuvres/`) идет на своей модели малого хода `src/lib/harbour-physics/` (ADR-0020, текст в `docs/design/harbour-manoeuvres-backlog.md` раздел 7); гонка, Тренажер, Основы, Лодка 3D и сервер мультиплеера по-прежнему без динамики руля |
 
 
 ## 2026-10-24 completion map

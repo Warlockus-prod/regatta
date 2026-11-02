@@ -229,6 +229,7 @@ All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
 | `/replay/[id]` | `app/replay/[id].tsx` | World records use bundled3D; historical pixel records keep their scrubber; unavailable world data shows Back | **Bundled3D** / legacy **Skia** |
 | `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
 | `/race-3d` | `app/race-3d/index.tsx` | The solo race seen from the boat: web `/game?view=3d` in `SimWebView` (online), with the Race hub venue and shore written into the page's localStorage (`localStorage` prop); offline falls back to the native `/game` | WebView |
+| `/manoeuvres` | `app/manoeuvres/index.tsx` | Manoeuvres from the bundled sailing package (`sailing-offline.html`, route `/manoeuvres`): docking under engine on the harbour model and the sail exercises. Stars cross to AsyncStorage through `src/persistence/manoeuvres-web-storage.ts` (one row, `regatta.manoeuvres.v1`); the page opens only after that row is read. Bottom bar hidden on the route (`src/navigation/visibility.ts`); opened from the Practice hub (catalog `native: "/manoeuvres"`) | WebView (offline) |
 
 Root layout / providers: `app/_layout.tsx` (ErrorBoundary -> GestureHandler ->
 SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -> Stack).

@@ -29,7 +29,7 @@ describe("embedded SRC Radio course", () => {
     expect(html).toContain("radio-offline-ready");
     expect(html).toContain("radio-offline-progress");
     expect(html).not.toContain("radio-open-online");
-    for (const path of ["/radio", "/radio/teoria", "/radio/obsluga", "/radio/symulator", "/radio/test", "/radio/zadania", "/radio/sciaga", "/radio/pozycja", "/radio/rozmowa"]) expect(html).toContain(path);
+    for (const path of ["/radio", "/radio/teoria", "/radio/obsluga", "/radio/symulator", "/radio/test", "/radio/zadania", "/radio/sciaga", "/radio/pozycja", "/radio/alfabet", "/radio/rozmowa"]) expect(html).toContain(path);
     expect(text).toContain("Zrozum radio morskie przed symulatorem");
     expect(text).toContain("Pamięć skanowania: sprawdź i dodaj kanały");
     expect(text).toContain("Ręczne wprowadzenie pozycji i czasu");
