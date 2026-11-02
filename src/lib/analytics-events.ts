@@ -20,6 +20,11 @@
  * (finished or timed out); the server's `race.finish` counts only the times a
  * player saved to the leaderboard. The two never describe the same thing, so
  * neither is double counted.
+ *
+ * Package 13 (ADR-0022): `race.assist` fires once per race and assist the
+ * first time the player uses it (the tack or gybe button, BEST VMG, the angle
+ * hold), with the helm control and the race clock; `race.end` also carries the
+ * helm control, the button turns and the whole seconds sailed with BEST VMG.
  */
 
 export const CLIENT_EVENTS = [
@@ -37,6 +42,7 @@ export const CLIENT_EVENTS = [
   'race.first_mark',
   'race.end',
   'race.replay',
+  'race.assist',
 ] as const;
 
 export type ClientEventName = (typeof CLIENT_EVENTS)[number];
@@ -63,6 +69,7 @@ export const FUNNEL_EVENTS: ReadonlySet<string> = new Set<ClientEventName>([
   'race.first_mark',
   'race.end',
   'race.replay',
+  'race.assist',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -123,6 +130,9 @@ export type RaceFunnelWind = 'light' | 'medium' | 'heavy';
  * saved in the app's history, or a shared replay link (/r/CODE).
  */
 export type ReplaySource = 'result' | 'saved' | 'shared';
+/** Package 13: the race's helm control (src/lib/race-helm.ts) and its assists. */
+export type RaceHelmField = 'arrows' | 'wheels' | 'sliders';
+export type RaceAssistKind = 'tack-button' | 'gybe-button' | 'best-vmg' | 'angle-hold';
 
 /** Upper bound of raceNo; the client stops counting here. */
 export const RACE_NO_MAX = 1000;
@@ -138,6 +148,8 @@ const RACE_MODES: ReadonlySet<string> = new Set<RaceFunnelMode>(['simple', 'pro'
 const RACE_DIFFICULTIES: ReadonlySet<string> = new Set<RaceFunnelDifficulty>(['easy', 'medium', 'hard']);
 const RACE_WINDS: ReadonlySet<string> = new Set<RaceFunnelWind>(['light', 'medium', 'heavy']);
 const REPLAY_SOURCES: ReadonlySet<string> = new Set<ReplaySource>(['result', 'saved', 'shared']);
+const RACE_HELMS: ReadonlySet<string> = new Set<RaceHelmField>(['arrows', 'wheels', 'sliders']);
+const RACE_ASSISTS: ReadonlySet<string> = new Set<RaceAssistKind>(['tack-button', 'gybe-button', 'best-vmg', 'angle-hold']);
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const CT_RE = /^[a-z0-9_]{1,40}$/;
@@ -178,6 +190,10 @@ const FIELD_CHECKS: Record<string, FieldCheck> = {
   totalBoats: (v) => isInt(v, 1, RACE_FLEET_MAX),
   tacks: (v) => isInt(v, 0, 1000),
   source: (v) => typeof v === 'string' && REPLAY_SOURCES.has(v),
+  helm: (v) => typeof v === 'string' && RACE_HELMS.has(v),
+  assist: (v) => typeof v === 'string' && RACE_ASSISTS.has(v),
+  buttonTurns: (v) => isInt(v, 0, 1000),
+  bestVmgSec: (v) => isInt(v, 0, RACE_AT_SEC_MAX),
 };
 
 const SHELL = ['embed', 'client'] as const;
@@ -196,8 +212,9 @@ const EVENT_FIELDS: Record<ClientEventName, readonly string[]> = {
   'race.countdown': RACE,
   'race.first_tack': [...RACE, 'atSec'],
   'race.first_mark': [...RACE, 'atSec'],
-  'race.end': [...RACE, 'finished', 'position', 'totalBoats', 'durationSec', 'tacks'],
+  'race.end': [...RACE, 'finished', 'position', 'totalBoats', 'durationSec', 'tacks', 'helm', 'buttonTurns', 'bestVmgSec'],
   'race.replay': [...RACE, 'source'],
+  'race.assist': [...RACE, 'assist', 'helm', 'atSec'],
 };
 
 /**

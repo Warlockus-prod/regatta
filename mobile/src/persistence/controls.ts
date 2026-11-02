@@ -11,6 +11,11 @@
  *
  * Owner decision 2026-10-24: wheels by default, existing slider choices stay; no
  * vibration, wheel clicks are sound and play only when sound is on.
+ *
+ * Package 13: `saved` is true once this device has a stored record (read from
+ * storage or written by the learner), false for the built-in default. The race
+ * keeps a saved trainers' mode for its helm until a race control is picked
+ * (src/lib/race-helm.ts); a new install steers the race with the arrows.
  */
 
 import { useEffect, useSyncExternalStore } from 'react';
@@ -24,6 +29,8 @@ export interface ControlPrefsRecord {
   version: 1;
   mode: ControlMode;
   sound: boolean;
+  /** Package 13: this device stored a record (not the built-in default). */
+  saved?: boolean;
   /** Everything else the web keeps (helm mapping, favorites, sensitivity...). Passed through untouched. */
   [key: string]: unknown;
 }
@@ -51,7 +58,7 @@ const emit = () => listeners.forEach((l) => l());
 function load(): Promise<void> {
   if (!loading) {
     loading = AsyncStorage.getItem(CONTROLS_STORAGE_KEY)
-      .then((text) => { current = coerceControlPrefs(text ? JSON.parse(text) : null); })
+      .then((text) => { current = text ? { ...coerceControlPrefs(JSON.parse(text)), saved: true } : coerceControlPrefs(null); })
       .catch(() => { current = { ...DEFAULT_CONTROL_PREFS }; })
       .finally(() => { ready = true; emit(); });
   }
@@ -59,7 +66,7 @@ function load(): Promise<void> {
 }
 
 export function setControlPrefs(next: unknown) {
-  current = coerceControlPrefs(next);
+  current = { ...coerceControlPrefs(next), saved: true };
   emit();
   void AsyncStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify(current)).catch(() => undefined);
 }

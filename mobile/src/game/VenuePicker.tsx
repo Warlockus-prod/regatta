@@ -5,8 +5,9 @@ import { Text } from '../design-system/components';
 import { colors, radii, spacing } from '../design-system/tokens';
 import { useVenue, type RaceMode } from '../persistence/venue';
 import { raceCopy } from './copy';
+import { RaceHelmChoice } from './RaceHelmChoice';
 
-/** Race hub setup: race mode (simple or pro), the shore switch and the venue chips. */
+/** Race hub setup: race mode (simple or pro), the helm control, the shore switch and the venue chips. */
 export function VenuePicker() {
   const { lang } = useI18n();
   const { picked, shoreOn, mode, setVenue, setShoreOn, setRaceMode } = useVenue();
@@ -25,6 +26,8 @@ export function VenuePicker() {
         })}
       </View>
       <Text variant="caption" style={styles.place}>{mode === 'pro' ? raceCopy.proNote[lang] : raceCopy.simpleNote[lang]}</Text>
+      {/* Package 13: the race's helm control, the same choice as the race settings and Settings. */}
+      <RaceHelmChoice />
 
       <View style={styles.shoreRow}>
         <Text variant="muted" style={[styles.label, styles.shoreLabel]}>{venueLabel[lang].toUpperCase()}</Text>

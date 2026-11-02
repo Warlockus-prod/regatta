@@ -58,7 +58,7 @@ export function ribbonItemText(item: ReplayRibbonItem, lang: Lang): string {
   if (item.kind === "start") return `${at} ${replayTeachingCopy.start[lang]}`;
   if (item.kind === "mark") return `${at} ${replayTeachingCopy.mark[lang]}`;
   if (item.kind === "judge") return `${at} ${item.jostle ? raceJudgeJostleLabel[lang] : raceJudgeKindLabels[item.judgeKind][lang]}`;
-  const tack = `${at} ${replayTeachingCopy.tack[lang]}`;
+  const tack = `${at} ${replayTeachingCopy.tack[lang]}${item.button ? ` ${replayTeachingCopy.byButton[lang]}` : ""}`;
   if (item.lossKn === null) return tack;
   const kn = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.round(item.lossKn * 10) / 10);
   return `${tack}, ${replayTeachingCopy.tackLoss[lang].replace("{n}", `${kn} ${RACE_UNITS.knots[lang]}`)}`;

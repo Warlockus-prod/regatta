@@ -6,6 +6,7 @@ import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
 import { FINISH_SEC_MAX, FINISH_SEC_MIN, isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
 import { readRaceResultSelection } from "@/lib/race-record-class";
 import { readClassifiedRaceResult, type ClassifiedRaceResult } from "@/lib/race-result-eligibility";
+import { readRaceAssistRecord } from "@/lib/race-helm";
 
 export const runtime = 'nodejs';
 
@@ -34,6 +35,8 @@ interface Payload {
   penaltySeconds?: unknown;
   dailyDay?: unknown;
   daily?: unknown;
+  /** Package 13: the helm control and the assists (race-helm.ts); optional, old clients send none. */
+  assists?: unknown;
 }
 
 export async function POST(req: Request) {
@@ -108,6 +111,8 @@ export async function POST(req: Request) {
     classified = read.value;
   }
   const finishTimeSec = classified?.finishTimeSec ?? body.finishTimeSec;
+  // A malformed assist record is dropped, not an error: the time itself is valid.
+  const assists = readRaceAssistRecord(body.assists);
 
   const player = getPlayer(sid);
   // Same sanitizer as /api/player: the fallback is client text that lands on
@@ -130,6 +135,7 @@ export async function POST(req: Request) {
     noGoEntries: body.noGoEntries ?? null,
     topSpeed: body.topSpeed ?? null,
     score: body.score ?? null,
+    ...(assists ? { assists } : {}),
   };
   const id = classified
     ? insertClassifiedRaceResult({ ...result, ...classified, course: body.course })
@@ -163,6 +169,7 @@ export async function POST(req: Request) {
       tacks: body.tacks ?? null,
       score: body.score ?? null,
       ...(classified ? { raceClass: classified.classId, raceMode: classified.mode } : {}),
+      ...(assists ? { helm: assists.helm, buttonTurns: assists.buttonTurns, bestVmgSec: assists.bestVmgSec, angleHoldSec: assists.angleHoldSec } : {}),
     },
   });
 

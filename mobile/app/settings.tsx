@@ -38,6 +38,9 @@ import {
   useUnits,
 } from '../src/persistence/units';
 import { useControlPrefs } from '../src/persistence/controls';
+import { RaceHelmChoice } from '../src/game/RaceHelmChoice';
+import { UI_TERMS } from '../../src/lib/product/catalog';
+import { HELM_CONTROL_TERMS } from '../../src/data/helm-assist-copy';
 import { clearNativeRegattaData } from '../src/persistence/clear-native-data';
 import { useAdsText } from '../src/ads/strings';
 import { ADS_DEMO_ENABLED } from '../src/config/ads-demo';
@@ -287,6 +290,7 @@ export default function Settings() {
         <UnitsSection />
 
         <TrainersSection />
+        <RaceSection />
 
         {ADS_DEMO_ENABLED ? (
           <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
@@ -387,6 +391,27 @@ export default function Settings() {
 }
 
 // ---------------------------------------------------------------------------
+//  Race section (package 13): the race's helm control, the same row as the
+//  race hub and the race's own settings (src/persistence/race-helm.ts).
+// ---------------------------------------------------------------------------
+
+function RaceSection() {
+  const { lang } = useI18n();
+  return (
+    <>
+      <Text variant="muted" style={[styles.sectionLabel, styles.sectionLabelGap]}>
+        {UI_TERMS.raceSection[lang].toUpperCase()}
+      </Text>
+      <View style={styles.privacyList}>
+        <Card style={styles.privacyCard}>
+          <RaceHelmChoice />
+        </Card>
+      </View>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 //  Trainers section: sliders or wheels, wheel click sound. The same record
 //  as the web trainers' own settings sheet (src/persistence/controls.ts).
 // ---------------------------------------------------------------------------
@@ -396,8 +421,9 @@ function TrainersSection() {
   const { prefs, ready, patch } = useControlPrefs();
   const title = tp('Тренажеры', 'Trainers', 'Trenażery', { es: 'Simuladores', fr: 'Simulateurs', de: 'Trainer', it: 'Simulatori' });
   const modeLabel = tp('Управление', 'Controls', 'Sterowanie', { es: 'Controles', fr: 'Commandes', de: 'Steuerung', it: 'Comandi' });
-  const sliders = tp('Ползунки', 'Sliders', 'Suwaki', { es: 'Deslizadores', fr: 'Curseurs', de: 'Schieberegler', it: 'Cursori' });
-  const wheels = tp('Штурвалы', 'Wheels', 'Koła', { es: 'Ruedas', fr: 'Roues', de: 'Räder', it: 'Ruote' });
+  // Package 13: the shared words (HELM_CONTROL_TERMS), the same as the race's helm choice.
+  const sliders = HELM_CONTROL_TERMS.sliders[lang];
+  const wheels = HELM_CONTROL_TERMS.wheels[lang];
   const modeHint = tp(
     'Штурвалы: большой руль по центру, по бокам стаксель-шкот и гика-шкот. Остальное настраивается шестеренкой в тренажере.',
     'Wheels: a big helm in the middle, the jib sheet and the mainsheet at the sides. Everything else is under the gear button in the trainer.',

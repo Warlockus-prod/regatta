@@ -262,16 +262,19 @@ test.describe('Smoke: critical user flows', () => {
       await expect(page.getByTestId("race-3d").locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", {
         timeout: Math.max(1, startupDeadline - Date.now()),
       });
+      // Package 13 (ADR-0022): a new install steers the race with the arrows; in
+      // Pro they are the rudder and the sheets stay beside them.
       const helm = page.getByRole("slider", { name: "Руль", exact: true });
       const main = page.getByRole("slider", { name: "Гика-шкот", exact: true });
       const jib = page.getByRole("slider", { name: "Стаксель-шкот", exact: true });
-      await expect(helm).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
-      const original = await main.getAttribute("aria-valuenow");
+      const right = page.getByRole("button", { name: "Руль вправо", exact: true });
+      await expect(right).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
+      await expect(helm).toHaveCount(0);
+      await expect(page.getByTestId("race-helm-best-vmg")).toHaveText("BEST VMG");
+      const original = await main.inputValue();
       await main.press("ArrowDown");
-      await expect(main).not.toHaveAttribute("aria-valuenow", original ?? "");
-      await helm.press("ArrowRight");
-      await expect(helm).not.toHaveAttribute("aria-valuenow", "0");
-      await helm.press("ArrowLeft");
+      await expect(main).not.toHaveValue(original);
+      await right.click();
       // Let the countdown finish; the clock must advance before and after a pause.
       observations.push(await observeProPage(page, "before-initial-clock"));
       const clock = page.getByText(/^\d+:\d\d\.\d$/);
@@ -320,6 +323,9 @@ test.describe('Smoke: critical user flows', () => {
       await page.getByRole("radio", { name: "Pro", exact: true }).click();
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
       await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible({ timeout: 25_000 });
+      // Package 13: the slider helm shares the panel with the turn button and BEST VMG; the Pro sheets are on the Sails tab.
+      await expect(page.getByTestId("race-helm-assist-row")).toBeVisible();
+      await page.getByTestId("race-cockpit").getByRole("button", { name: "Паруса", exact: true }).click();
       const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
       const beforeKey = await mainSlider.inputValue();
       await page.keyboard.press("q");

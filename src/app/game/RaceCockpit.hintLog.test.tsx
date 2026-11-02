@@ -173,7 +173,7 @@ describe("race Settings: Hints and Graphics groups (F4)", () => {
     const group = byTestId(tree, "race-hints-group")!;
     const inGroup = group.props.children as ReactNode;
     for (const label of ["Route and hints", "Pro trim hints", "Coach line", "First race hints"]) expect(switchRow(inGroup, label), label).toBeDefined();
-    expect(text(inGroup)).toContain("Gold needs a race without route and trim hints.");
+    expect(text(inGroup)).toContain("Gold needs a race without route and trim hints and without best angle.");
     expect(text(byTestId(inGroup, "race-hint-log-settings")!.props.children as ReactNode)).toBe("Hint log (2)");
   });
 

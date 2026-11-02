@@ -15,7 +15,9 @@ import {
 } from '@/lib/best-times';
 import { saveRaceSetup, loadRaceSetup, clearRaceSetup, type SavedRaceSetup } from '@/lib/race-resume';
 // Shared sailing engine; the WebSocket server imports a generated bundle.
-import { WIND_DIRECTION_BASE as WIND_DIRECTION } from '@/lib/race-physics';
+import { WIND_DIRECTION_BASE as WIND_DIRECTION, calcTWA } from '@/lib/race-physics';
+import { HELM_ASSIST, NO_HELM_VIEW, createHelmAssist, requestHelmTurn, setHelmHold, turnKindAt, type HelmAssistState, type HelmView } from '@/lib/helm-assist';
+import { raceAssistRecord } from '@/lib/race-helm';
 import { useVenue } from '@/features/venues/useVenue';
 import { GameMenu } from './GameMenu';
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
@@ -28,7 +30,7 @@ import { useRaceHintLog } from '@/features/race-hud/RaceHintLog';
 import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
 import { useFirstRaceHints } from '@/features/race-hud/useFirstRaceHints';
 import { hasSeenRaceIntro, markRaceIntroSeen, raceIntroDue, raceIntroEndRecordsSeen, raceIntroRequested, stepAfterRaceIntro, type RaceIntroEnd, type RaceIntroOpen } from '@/features/race-hud/race-intro';
-import { polarFor, raceUpwind, targetSpeed } from '@/features/race-hud/target';
+import { helmProfileFor, polarFor, raceUpwind, targetSpeed } from '@/features/race-hud/target';
 import { measureRaceSkills, raceSkillBars } from '@/lib/race-skill-metrics';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
@@ -47,6 +49,7 @@ type PhysicalFleetModule = typeof import("@/lib/race-physical-fleet");
 import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, postNativePersonalBest } from "@/lib/race-native";
 import { RaceCockpit } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
+import { useRaceHelmControl } from "./race-helm-prefs";
 import { RaceSoundToggle } from "@/features/race-hud/RaceSoundToggle";
 import { useRaceHaptics } from "@/features/race-hud/RaceHapticsToggle";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
@@ -63,7 +66,7 @@ import { RaceReplay } from "./RaceReplay";
 import { useRaceSoundscapeLifecycle } from "./useRaceSoundscape";
 import { createPendingRaceSaves } from "@/lib/race-completion";
 import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
-import { trackRaceCountdown, trackRaceReplay } from "@/lib/funnel";
+import { trackRaceAssist, trackRaceCountdown, trackRaceReplay } from "@/lib/funnel";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { createPendingNativeBestCommands, nativeBestFailure } from "@/lib/race-best-command";
@@ -432,6 +435,13 @@ export default function GamePage() {
   // the button engaged/disengaged nothing. The loop reads autopilotOnRef.current.
   const autopilotOnRef = useRef(false);
   useEffect(() => { autopilotOnRef.current = autopilotOn; }, [autopilotOn]);
+  // Package 13 (ADR-0022): the helm assist (BEST VMG, the angle hold, the
+  // tack or gybe button), the on-screen arrows and the race's helm control.
+  const helmRef = useRef<HelmAssistState>(createHelmAssist());
+  const helmInputRef = useRef({ arrows: 0, nudge: 0 });
+  const { helm: helmControl } = useRaceHelmControl();
+  const helmControlRef = useRef(helmControl); helmControlRef.current = helmControl;
+  const [helmView, setHelmView] = useState<HelmView>(NO_HELM_VIEW);
 
   // M1-5: the race's Sound switch is the race sound (default on), not the wheel clicks.
   const muted = !raceSoundOn;
@@ -535,6 +545,8 @@ export default function GamePage() {
             topSpeed: Math.round(topSpeed * 10) / 10,
             score: coaching?.score ?? null,
             nicknameFallback: effectiveNick,
+            // Package 13: the helm and the assists this result was sailed with.
+            assists: raceAssistRecord(helmControlRef.current, helmRef.current.usage),
             ...classified,
           }),
         });
@@ -675,6 +687,8 @@ export default function GamePage() {
     ruleStateRef.current = createRaceRulesState();
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
+    helmRef.current = createHelmAssist(); helmInputRef.current = { arrows: 0, nudge: 0 }; setHelmView(NO_HELM_VIEW);
+    autopilotOnRef.current = false; setAutopilotOn(false);
     clearFeedback(); clearHintLog(); setPenalty(0); setRecall(false); setNativeSave("idle");
     setNativeBestSave({ status: "idle", id: "", requestId: "", retryable: false });
     setResults([]);
@@ -888,7 +902,12 @@ export default function GamePage() {
       const previousTurn = Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft"));
       const repeated = keysRef.current.has(key);
       keysRef.current.add(key);
+      // Package 13 (R-6): in Simple an arrow key press is one course step, holding it turns the course on.
+      if (!repeated && (key === "arrowleft" || key === "arrowright") && racePrefsRef.current.mode !== "pro") helmInputRef.current.nudge += (key === "arrowright" ? 1 : -1) * HELM_ASSIST.arrowStepDeg;
       if (!repeated && (key === "arrowleft" || key === "arrowright")) recordControlChange("race", "rudder", Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")), previousTurn);
+      // Package 13: T turns (tack or gybe), V switches BEST VMG.
+      if (!repeated && key === "t") { e.preventDefault(); helmTurnRef.current(); return; }
+      if (!repeated && key === "v") { e.preventDefault(); bestVmgRef.current(); return; }
       if (["arrowleft", "arrowright", "arrowup", "arrowdown", " "].includes(key)) e.preventDefault();
     };
     const onUp = (e: KeyboardEvent) => {
@@ -919,10 +938,11 @@ export default function GamePage() {
       racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
       startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
       wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
-      pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef, raceSetupRef, raceTallyRef, raceHintsRef, firstHintsRef },
+      pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef, raceSetupRef, raceTallyRef, raceHintsRef, firstHintsRef,
+      helmRef, helmInputRef, helmControlRef },
     set: { setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
       setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setAiCoachPayload, setNativeSave,
-      setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed, setGhostSplits, setMedalAward } });
+      setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed, setGhostSplits, setMedalAward, setHelmView } });
 
   // -----------------------------------------------------------------------
   // Reset
@@ -942,6 +962,8 @@ export default function GamePage() {
     const previous = rudderRef.current;
     rudderRef.current = next; setRudderState(next);
     autopilotOnRef.current = false; setAutopilotOn(false);
+    // Package 13: any manual rudder switches BEST VMG, the angle hold and a button turn off.
+    helmRef.current = { ...setHelmHold(helmRef.current, "off", 0), turn: null };
     recordControlChange("race", "rudder", next, previous);
   }, []);
   const setCourse = useCallback((degrees: number) => {
@@ -951,7 +973,44 @@ export default function GamePage() {
     setTargetHeading(next);
     rudderRef.current = 0; setRudderState(0);
     autopilotOnRef.current = true; setAutopilotOn(true);
+    helmRef.current = { ...setHelmHold(helmRef.current, "off", 0), turn: null };
     recordControlChange("race", "course", next, previous);
+  }, []);
+  // Package 13 (ADR-0022): the cockpit's helm assists. The turn and BEST VMG
+  // centre a wheel rudder (it would switch them off on the next tick).
+  const playerTwa = () => {
+    const player = boatsRef.current.find(b => b.isPlayer);
+    return player ? calcTWA(player.heading, windDirRef.current) : 0;
+  };
+  const helmTurn = useCallback(() => {
+    if (finishHoldActive(raceIdRef.current)) return;
+    const twa = playerTwa(), before = helmRef.current;
+    const profile = helmProfileFor(12 * windStrengthRef.current, physicalRef.current ? "cruiser" : "classic");
+    helmRef.current = requestHelmTurn(before, { twa, courseHold: autopilotOnRef.current ? autopilotHeadingRef.current : null, profile });
+    if (helmRef.current === before || !helmRef.current.turn) return;
+    if (rudderRef.current !== 0) { rudderRef.current = 0; setRudderState(0); }
+    const kind = turnKindAt(twa), target = helmRef.current.turn.targetTwa;
+    recordControlChange("race", "helm-turn", kind);
+    trackRaceAssist(raceIdRef.current, kind === "tack" ? "tack-button" : "gybe-button", helmControlRef.current, raceClockRef.current);
+    setHelmView(view => ({ ...view, turning: { kind, heading: (((windDirRef.current + target) % 360) + 360) % 360 } }));
+  }, []);
+  const toggleHold = useCallback((hold: "wind" | "vmg") => {
+    if (finishHoldActive(raceIdRef.current)) return;
+    const on = helmRef.current.hold !== hold;
+    helmRef.current = setHelmHold(helmRef.current, on ? hold : "off", playerTwa());
+    if (on) { rudderRef.current = 0; setRudderState(0); autopilotOnRef.current = false; setAutopilotOn(false); }
+    recordControlChange("race", hold === "vmg" ? "best-vmg" : "angle-hold", on, !on);
+    if (on) trackRaceAssist(raceIdRef.current, hold === "vmg" ? "best-vmg" : "angle-hold", helmControlRef.current, raceClockRef.current);
+    setHelmView(view => ({ ...view, hold: helmRef.current.hold }));
+  }, []);
+  const helmTurnRef = useRef(helmTurn); helmTurnRef.current = helmTurn;
+  const bestVmgRef = useRef(() => toggleHold("vmg")); bestVmgRef.current = () => toggleHold("vmg");
+  // The on-screen arrows: held like the arrow keys; a Simple press is also one course step.
+  const helmArrow = useCallback((dir: -1 | 0 | 1) => {
+    if (dir !== 0 && racePrefsRef.current.mode !== "pro") helmInputRef.current.nudge += dir * HELM_ASSIST.arrowStepDeg;
+    const previous = helmInputRef.current.arrows;
+    helmInputRef.current.arrows = dir;
+    if (dir !== previous) recordControlChange("race", "rudder", dir, previous);
   }, []);
   const courseDelta = useCallback((degrees: number) => {
     const player = boatsRef.current.find(b => b.isPlayer);
@@ -1187,13 +1246,9 @@ export default function GamePage() {
           onRestart={() => startRace("restart")} onShowHintsAgain={showHintsAgain} onShowIntro={showIntroInRace} track={readTrack} raceId={sceneRaceId} fullscreenOffer={!embed}
           raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
           haptics={raceHaptics.available ? { on: raceHaptics.on, setOn: raceHaptics.setOn } : undefined}
-          autopilot={autopilotOn} onAutopilot={() => {
-            autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
-            setTargetHeading(autopilotHeadingRef.current);
-            rudderRef.current = 0; setRudderState(0);
-            autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
-            recordControlChange("race", "course-assist", autopilotOnRef.current, !autopilotOnRef.current);
-          }} muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
+          autopilot={autopilotOn} onAutopilot={() => toggleHold("wind")}
+          helmControl={helmControl} helmView={helmView} onHelmArrow={helmArrow} onHelmTurn={helmTurn} onBestVmg={() => toggleHold("vmg")}
+          muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
           // The count waits for the first frame (startup gate), so it only shows over a ready scene.
           countdown={gameState === "countdown" && sceneReady ? countdown : undefined} recall={gameState === "racing" && playingPrefs.rules && recall}>
           <RaceScene key={sceneRaceId} raceProfile={physicalTrial} racing={gameState === "racing" && !paused} started={gameState === "racing"} contactId={feedback.contact?.id} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}

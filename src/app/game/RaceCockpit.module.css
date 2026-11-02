@@ -213,3 +213,64 @@
    which one was chosen). Same in the race, the lobby mode picker and the race
    settings before the start. */
 .segmented button[aria-checked=true],.segmented button[aria-checked=true]:hover { color:var(--accent-ink); background:var(--accent-cyan); border-color:var(--accent-cyan); }
+
+/* Package 13 (ADR-0022): the helm assists. Arrows mode fills the pinned Helm
+   panel: Simple has two big arrows over the turn button and BEST VMG and a
+   course line; Pro one row (arrows round the two assists) over the sheets.
+   Wheel and slider modes put the two assists in one row above the helm. The
+   arrows and the turn button are neutral; a held arrow, a turn under way and
+   BEST VMG on take the shared pressed style (cyan = the active control). */
+.helmAssist { display:flex; flex-direction:column; justify-content:center; gap:6px; min-height:100%; padding:2px 0; }
+.helmRow { display:flex; gap:6px; min-width:0; }
+.cockpit .helmRow button { flex:1 1 0; min-width:0; min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:2px 4px; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+/* A two-word name may wrap to a second line inside the button, never a word. */
+.cockpit .helmRow button>span { white-space:normal; overflow-wrap:normal; text-align:center; line-height:1.2; }
+.cockpit .helmRow .helmArrow { flex:0 0 56px; }
+/* Pro arrows: one row, the arrows round the two assists; in the short
+   landscape column two rows (arrows, then the assists), so no name is cut. */
+.helmAssist[data-layout=pro-arrows]>.helmRow { display:grid; grid-template-columns:56px minmax(0,1fr) minmax(0,1fr) 56px; grid-template-areas:"l t b r"; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-left] { grid-area:l; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-turn] { grid-area:t; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-best-vmg] { grid-area:b; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-right] { grid-area:r; }
+@media(max-height:480px) and (orientation:landscape) {
+ .gameLayer .helmAssist[data-layout=pro-arrows]>.helmRow { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"l r" "t b"; gap:4px; }
+ .gameLayer .helmAssist { gap:4px; padding:0; }
+}
+.cockpit .helmArrows .helmArrow { flex:1 1 0; min-height:56px; }
+.cockpit .helmRow .helmArrow:active { color:var(--accent-cyan); border-color:var(--accent-cyan); }
+.cockpit .helmRow button[aria-pressed=true] { color:var(--accent-cyan); border-color:var(--accent-cyan); }
+.cockpit .helmRow button:disabled { opacity:.45; cursor:default; }
+.helmStatus { display:flex; flex-wrap:wrap; justify-content:center; gap:2px 16px; margin:0; font-size:14px; line-height:20px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.helmAssistRow { flex-shrink:0; padding:2px 0 4px; }
+.pinned .helmAssist .range { display:grid; grid-template-columns:minmax(0,8.5rem) minmax(0,1fr); align-items:center; gap:4px 10px; margin:0; }
+.pinned .helmAssist .range>span { flex-direction:column; align-items:flex-start; gap:0; }
+.panel:has(>.helmAssistRow) { display:flex; flex-direction:column; }
+.panel:has(>.helmAssistRow)>.sliders { flex:1 1 auto; min-height:0; }
+/* Wheels: the row sits inside their box, above the deck. */
+.wheels:has(>.helmAssistRow) { display:flex; flex-direction:column; position:relative; }
+.wheels>.helmAssistRow { height:auto; flex:0 0 auto; }
+.wheels:has(>.helmAssistRow)>div:last-child { flex:1 1 auto; min-height:0; height:auto; }
+/* Portrait phone and short landscape: the dock may not grow (a quarter of the
+   portrait screen; the landscape column is the screen's height), so the two
+   assists lie over the deck's top corners beside the helm wheel (96-101 px
+   there; the Pro sheet wheels sit in the lower corners). A long name wraps
+   to two lines inside the 44 px button. */
+@media(orientation:portrait) and (max-width:767px) {
+ .gameLayer .wheels>.helmAssistRow { position:absolute; top:0; left:0; right:0; z-index:3; justify-content:space-between; padding:0; pointer-events:none; }
+ .gameLayer .wheels>.helmAssistRow button { flex:0 0 calc(50% - 56px); pointer-events:auto; }
+ .gameLayer .wheels:has(>.helmAssistRow)>div:last-child { height:100%; }
+}
+@media(max-height:480px) and (orientation:landscape) {
+ .gameLayer .wheels>.helmAssistRow { position:absolute; top:0; left:0; right:0; z-index:3; justify-content:space-between; padding:0; pointer-events:none; }
+ .gameLayer .wheels>.helmAssistRow button { flex:0 0 calc(50% - 56px); padding:2px 6px; pointer-events:auto; }
+ .gameLayer .wheels:has(>.helmAssistRow)>div:last-child { height:100%; }
+}
+/* The VMG line in the wind box: a state colour against the polar's best
+   (success on target, warning below), never cyan; the trend beside it. */
+.vmgLine { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 6px; margin:4px 0 0; font-size:14px; line-height:20px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.vmgLine strong { font-size:16px; line-height:20px; font-weight:600; color:var(--text-primary); }
+.vmgLine[data-target=on] strong { color:var(--success); }
+.vmgLine[data-target=below] strong { color:var(--warning); }
+.vmgLabel { font-weight:600; }
+.vmgTrend { display:inline-flex; align-self:center; }

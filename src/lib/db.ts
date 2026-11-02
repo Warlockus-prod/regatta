@@ -16,6 +16,7 @@ import { ensureRaceResultClassSchema } from "./race-result-schema";
 import { readClassifiedRaceResult } from "./race-result-eligibility";
 import { raceContextForClassId, readRaceComparison, readRaceResultSelection, type RaceResultMode } from "./race-record-class";
 import type { RaceClassId, RaceContext } from "./race-context";
+import { readRaceAssistRecord, type RaceAssistRecord } from "./race-helm";
 
 const DB_DIR = process.env.REGATTA_DB_DIR || '/tmp';
 const DB_PATH = path.join(DB_DIR, 'regatta-stats.db');
@@ -201,6 +202,9 @@ function initializeDatabase(database: Database.Database): void {
   safeAlter('ALTER TABLE sessions ADD COLUMN utm_source TEXT');
   safeAlter('ALTER TABLE sessions ADD COLUMN utm_medium TEXT');
   safeAlter('ALTER TABLE sessions ADD COLUMN utm_campaign TEXT');
+  // Package 13 (ADR-0022): the helm control and assists of a result, JSON
+  // (race-helm.ts RaceAssistRecord); NULL for results saved before.
+  safeAlter('ALTER TABLE race_results ADD COLUMN helm_assists TEXT');
 
   ensureRaceResultClassSchema(database);
 }
@@ -967,6 +971,14 @@ export interface RaceResultInsert {
   noGoEntries?: number | null;
   topSpeed?: number | null;
   score?: number | null;
+  /** Package 13: the helm and assists this result was sailed with. */
+  assists?: RaceAssistRecord | null;
+}
+
+/** The stored helm_assists value: the checked record as JSON, else NULL. */
+function assistsJson(assists: unknown): string | null {
+  const record = readRaceAssistRecord(assists);
+  return record ? JSON.stringify(record) : null;
 }
 
 export function insertRaceResult(r: RaceResultInsert): number | null {
@@ -976,12 +988,12 @@ export function insertRaceResult(r: RaceResultInsert): number | null {
     const d = db();
     const info = d.prepare(`
       INSERT INTO race_results (ts, sid, nickname, difficulty, wind_strength, mission_id,
-        finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score, helm_assists)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       Date.now(), r.sid, r.nickname, r.difficulty, r.windStrength,
       r.missionId ?? null, r.finishTimeSec, r.position ?? null, r.totalBoats ?? null,
-      r.tacks ?? null, r.noGoEntries ?? null, r.topSpeed ?? null, r.score ?? null,
+      r.tacks ?? null, r.noGoEntries ?? null, r.topSpeed ?? null, r.score ?? null, assistsJson(r.assists),
     );
     return info.lastInsertRowid as number;
   } catch {
@@ -1010,13 +1022,14 @@ export function insertClassifiedRaceResult(r: ClassifiedRaceResultInsert): numbe
     const info = db().prepare(`
       INSERT INTO race_results (ts, sid, nickname, difficulty, wind_strength, mission_id,
         finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score,
-        race_class_id, race_mode, race_context_json, raw_finish_time_sec, penalty_seconds)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        race_class_id, race_mode, race_context_json, raw_finish_time_sec, penalty_seconds, helm_assists)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       Date.now(), r.sid, r.nickname, result.difficulty, result.windStrength, null,
       result.finishTimeSec, r.position ?? null, r.totalBoats ?? null, r.tacks ?? null,
       r.noGoEntries ?? null, r.topSpeed ?? null, r.score ?? null,
       result.classId, result.mode, JSON.stringify(result.raceContext), result.rawFinishTimeSec, result.penaltySeconds,
+      assistsJson(r.assists),
     );
     return info.lastInsertRowid as number;
   } catch { return null; }

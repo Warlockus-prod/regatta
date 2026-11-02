@@ -46,6 +46,10 @@ import { RaceHintLogPanel } from "@/features/race-hud/RaceHintLog";
 import { LOGGED_ROUTE_ACTIONS, type HintLogEntry } from "@/features/race-hud/hint-log";
 import { RouteCaption } from "@/features/race-hud/RouteCaption";
 import { windWordsFor } from "@/features/race-hud/wind-words";
+import { HELM_ASSIST_COPY } from "@/data/helm-assist-copy";
+import type { RaceHelmControl } from "@/lib/race-helm";
+import { NO_HELM_VIEW, type HelmView } from "@/lib/helm-assist";
+import { RaceHelmArrows, RaceHelmAssistRow, RaceVmgLine } from "./RaceHelmAssist";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -117,6 +121,14 @@ export function RaceCockpit(p: {
   track?: () => readonly Readonly<{ x: number; y: number }>[];
   /** F4: this race's hint log, newest first (features/race-hud/hint-log.ts); without it there is no log entry. */
   hintLog?: readonly HintLogEntry[];
+  /** Package 13 (ADR-0022): the race's helm control (arrows by default for a
+   * new install, race-helm.ts) and the assists; without them the Helm tab is
+   * the trainers' wheel or sliders, as before. */
+  helmControl?: RaceHelmControl;
+  helmView?: HelmView;
+  onHelmArrow?: (dir: -1 | 0 | 1) => void;
+  onHelmTurn?: () => void;
+  onBestVmg?: () => void;
 }) {
   const c = useRaceCopy();
   const { tl, lang } = useI18n();
@@ -184,10 +196,18 @@ export function RaceCockpit(p: {
   // Package 12 (audit B3): the Simple race reads the wind in words.
   const windWords = pro ? null : windWordsFor(lang);
   const versus = speedVersusTarget(p.speed, p.targetSpeed);
-  const course = p.autopilot ? p.targetHeading : p.heading;
-  const helm = { mapping, value: mapping === "rudder" ? `${Math.round(p.rudder * 35)}°` : `${Math.round(course)}°`, unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
-    ariaNow: mapping === "rudder" ? p.rudder * 35 : course, ariaMin: mapping === "rudder" ? -35 : 0, ariaMax: mapping === "rudder" ? 35 : 360,
-    rudder: p.rudder, setRudder: p.setRudder, onCourseDelta: p.courseDelta };
+  const view = p.helmView ?? NO_HELM_VIEW;
+  const helmMode = p.helmControl ?? controls.mode;
+  const assists = Boolean(p.onHelmTurn && p.onBestVmg);
+  const course = view.course ?? (p.autopilot ? p.targetHeading : p.heading);
+  // Package 13 (audit B17): the wheel shows the helm the boat gets, keys and
+  // assists included; while the wheel itself is turned it shows the wheel.
+  const shownRudder = p.rudder !== 0 ? p.rudder : view.rudder;
+  const helm = { mapping, value: mapping === "rudder" ? `${Math.round(shownRudder * 35)}°` : `${Math.round(course)}°`, unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
+    ariaNow: mapping === "rudder" ? shownRudder * 35 : course, ariaMin: mapping === "rudder" ? -35 : 0, ariaMax: mapping === "rudder" ? 35 : 360,
+    rudder: shownRudder, setRudder: p.setRudder, onCourseDelta: p.courseDelta };
+  const assistProps = { pro, view, twa: p.twa, disabled: holding, onTurn: () => p.onHelmTurn?.(), onBestVmg: () => p.onBestVmg?.() };
+  const holdPressed = p.helmView ? view.hold === "wind" : p.autopilot;
   const range = (label: string, value: number, change: (v: number) => void, min = 0, max = 1) => <label className={styles.range}><span>{label}<output>{Math.round(value * (max === 1 ? 100 : 1))}{max === 1 ? "%" : "°"}</output></span><input type="range" aria-label={label} min={min} max={max} step={max === 1 ? .01 : 1} value={value} onChange={e => change(Number(e.target.value))} /></label>;
   const sound = p.raceSoundToggle;
   // Steering and trim live in the Helm and Sails tabs; Map and Settings stay usable.
@@ -208,7 +228,8 @@ export function RaceCockpit(p: {
       <div className={styles.scene} data-testid="race-3d" {...sceneTap}>{p.children}
         <div className={styles.instrumentsArea}>
           <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.prefs.windDisplay}
-            miniMap={p.prefs.miniMap} onOpenMap={openBigMap} you={c.you} fleet={c.fleet} words={windWords} />
+            miniMap={p.prefs.miniMap} onOpenMap={openBigMap} you={c.you} fleet={c.fleet} words={windWords}
+            extra={p.helmView ? <RaceVmgLine vmg={view.vmg} pro={pro} /> : undefined} />
         </div>
         {bigMap && <RaceBigMap snapshot={p.navigation} track={p.track?.()} guidance={p.prefs.guidance ? p.guidance : null}
           you={c.you} fleet={c.fleet} onClose={() => setBigMapRace(null)} note={tl(RACE_MAP_COPY.raceRunning)} className={styles.bigMap} />}
@@ -278,21 +299,28 @@ export function RaceCockpit(p: {
         </div>}
         <nav className={styles.tabs} aria-label={labels.controlsTitle}>
           {(["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)} aria-label={t === "map" ? nav.map : undefined}>{t === "settings" && <GearIcon size={22} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.mapShort : c[t]}</span></button>)}
-          <button type="button" aria-pressed={p.autopilot} onClick={p.onAutopilot} disabled={holding}><span>{c.auto}</span></button>
+          {/* R-10: the former course hold holds the angle to the wind. */}
+          <button type="button" aria-pressed={holdPressed} onClick={p.onAutopilot} disabled={holding} data-testid="race-hold-angle"><span>{p.helmView ? tl(HELM_ASSIST_COPY.holdAngle) : c.auto}</span></button>
         </nav>
         {/* F2: the Helm panel is pinned (never scrolls, no page pan or zoom from it); the other tabs scroll inside their own panel. */}
         <div key={tab} ref={panelRef} className={`${styles.panel}${tab === "helm" ? ` ${styles.pinned}` : ""}${held ? ` ${styles.held}` : ""}`}
           inert={held || undefined} data-held={held || undefined} data-pinned={tab === "helm" || undefined} data-testid="race-dock-panel">
-          {tab === "helm" && <>
-            {controls.mode === "wheels" ? <div className={styles.wheels}><WheelDeck hideHint sheetKeysEnabled={false} layout="bottom" helm={helm} prefs={controls} labels={labels}
+          {tab === "helm" && (helmMode === "arrows" && p.onHelmArrow ? <RaceHelmArrows {...assistProps} heading={p.heading} onArrow={p.onHelmArrow}
+            sheets={pro ? <>{range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}{range(labels.jibsheet, 1 - p.trim.jibSheet, v => p.setTrim({ jibSheet: 1 - v }))}</> : undefined} /> : <>
+            {/* Package 13: the turn button and BEST VMG with every helm control:
+                above the sliders; with the wheels inside their box (on a portrait
+                phone over its top corners, so the dock keeps its height). */}
+            {assists && helmMode !== "wheels" && <RaceHelmAssistRow {...assistProps} />}
+            {helmMode === "wheels" ? <div className={styles.wheels}>{assists && <RaceHelmAssistRow {...assistProps} />}<WheelDeck hideHint sheetKeysEnabled={false} layout="bottom" helm={helm} prefs={controls} labels={labels}
               main={pro ? { ease: 1 - p.trim.mainSheet, setEase: v => p.setTrim({ mainSheet: 1 - v }) } : null}
               jib={pro ? { ease: 1 - p.trim.jibSheet, setEase: v => p.setTrim({ jibSheet: 1 - v }) } : null}
               note={pro ? labels.wheelHint : c.simpleNote} /></div> : <div className={styles.sliders}>
-                {mapping === "course" ? range(labels.course, course, p.setCourse, 0, 360) : range(labels.rudder, p.rudder * 35, v => p.setRudder(v / 35), -35, 35)}
-                {pro && range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}
-                {pro && range(labels.jibsheet, 1 - p.trim.jibSheet, v => p.setTrim({ jibSheet: 1 - v }))}
+                {mapping === "course" ? range(labels.course, course, p.setCourse, 0, 360) : range(labels.rudder, shownRudder * 35, v => p.setRudder(v / 35), -35, 35)}
+                {/* With the assist row there is no room for the sheets here: in Pro they stay on the Sails tab. */}
+                {pro && !assists && range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}
+                {pro && !assists && range(labels.jibsheet, 1 - p.trim.jibSheet, v => p.setTrim({ jibSheet: 1 - v }))}
               </div>}
-          </>}
+          </>)}
           {tab === "sails" && <div className={styles.options}>
             {/* Package 11 (audit B9): in Pro the Sails tab holds the sheets too (the same trim as the Helm wheels). */}
             {pro && range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}

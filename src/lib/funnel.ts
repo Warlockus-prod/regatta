@@ -21,6 +21,8 @@ import {
   type RaceFunnelMode,
   type RaceFunnelWind,
   type ReplaySource,
+  type RaceAssistKind,
+  type RaceHelmField,
 } from './analytics-events';
 
 // The iOS app opens course pages with ?embed=1 (mobile/src/course/SectionWebView,
@@ -120,6 +122,10 @@ export interface RaceFunnelEnd {
   durationSec?: number;
   /** Tacks and gybes (wind side flips) the player made. */
   tacks?: number;
+  /** Package 13: the helm control, the turns the button finished and the whole seconds with BEST VMG. */
+  helm?: RaceHelmField;
+  buttonTurns?: number;
+  bestVmgSec?: number;
 }
 
 interface ActiveRace {
@@ -129,6 +135,8 @@ interface ActiveRace {
   marked: boolean;
   ended: boolean;
   replayed: boolean;
+  /** Package 13: the assists already reported for this race (race.assist fires once each). */
+  assists?: Set<RaceAssistKind>;
 }
 
 // One race at a time per page load; a new race id replaces it.
@@ -190,6 +198,16 @@ export function trackRaceMark(raceId: string, atSec: number): void {
   clientInfo('race.first_mark', { ...detectShell(), ...race.fields, ...withDefined({ atSec: bounded(atSec, 0, RACE_AT_SEC_MAX) }) });
 }
 
+/** Package 13: the first use of a helm assist in race `raceId`; once per assist and race. */
+export function trackRaceAssist(raceId: string, assist: RaceAssistKind, helm: RaceHelmField, atSec: number): void {
+  const race = activeRace;
+  if (!race || race.id !== raceId) return;
+  race.assists ??= new Set();
+  if (race.assists.has(assist)) return;
+  race.assists.add(assist);
+  clientInfo('race.assist', { ...detectShell(), ...race.fields, ...withDefined({ assist, helm, atSec: bounded(atSec, 0, RACE_AT_SEC_MAX) }) });
+}
+
 /** Race `raceId` ended, finished or by the time limit; sent once. */
 export function trackRaceEnd(raceId: string, end: RaceFunnelEnd): void {
   const race = activeRace;
@@ -204,6 +222,9 @@ export function trackRaceEnd(raceId: string, end: RaceFunnelEnd): void {
       totalBoats: bounded(end.totalBoats, 1, RACE_FLEET_MAX),
       durationSec: bounded(end.durationSec, 0, 86_400),
       tacks: bounded(end.tacks, 0, 1000),
+      helm: end.helm,
+      buttonTurns: bounded(end.buttonTurns, 0, 1000),
+      bestVmgSec: bounded(end.bestVmgSec, 0, RACE_AT_SEC_MAX),
     }),
   });
 }

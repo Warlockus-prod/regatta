@@ -77,17 +77,17 @@ describe('event field contract', () => {
   it('lists every client event the web sends', () => {
     for (const evt of ['page.view', 'page.engaged', 'js.uncaught', 'js.rejection', 'exam.start',
       'exam.finish', 'lesson.complete', 'radio.task.complete', 'app_store.click',
-      'race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay']) {
+      'race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay', 'race.assist']) {
       expect(isClientEvent(evt)).toBe(true);
     }
     // Written only by /api/race-result for a saved leaderboard time.
     expect(isClientEvent('race.finish')).toBe(false);
-    expect(CLIENT_EVENTS).toHaveLength(14);
+    expect(CLIENT_EVENTS).toHaveLength(15);
   });
 
   it('treats only the milestones as funnel events', () => {
     expect([...FUNNEL_EVENTS].sort()).toEqual(
-      ['app_store.click', 'exam.finish', 'exam.start', 'lesson.complete', 'race.countdown',
+      ['app_store.click', 'exam.finish', 'exam.start', 'lesson.complete', 'race.assist', 'race.countdown',
         'race.end', 'race.first_mark', 'race.first_tack', 'race.replay', 'radio.task.complete'],
     );
     for (const evt of FUNNEL_EVENTS) expect(isClientEvent(evt)).toBe(true);
@@ -164,6 +164,35 @@ describe('race funnel field contract', () => {
 
 describe('race funnel helpers', () => {
   const setup = { mode: 'simple', difficulty: 'easy', wind: 'medium' } as const;
+
+  // Package 13 (ADR-0022): the helm assists. Contract: the allow-list admits
+  // race.assist with its own fields and the helm fields of race.end, nothing
+  // else; each assist is reported once per race, a new race reports again.
+  it('reports the first use of each helm assist once per race and the helm at the end', async () => {
+    expect(pickEventFields('race.assist', { ...setup, assist: 'best-vmg', helm: 'arrows', atSec: 12, nickname: 'Ala' }))
+      .toEqual({ ...setup, assist: 'best-vmg', helm: 'arrows', atSec: 12 });
+    expect(pickEventFields('race.assist', { assist: 'autopilot', helm: 'tiller', atSec: -1 })).toEqual({});
+    expect(pickEventFields('race.end', { finished: true, helm: 'wheels', buttonTurns: 3, bestVmgSec: 41 }))
+      .toEqual({ finished: true, helm: 'wheels', buttonTurns: 3, bestVmgSec: 41 });
+    expect(pickEventFields('race.end', { buttonTurns: 1.5, bestVmgSec: 99999, helm: 'joystick' })).toEqual({});
+    expect(pickEventFields('race.first_tack', { helm: 'arrows', assist: 'best-vmg' })).toEqual({});
+    const env = installBrowser('');
+    const f = await import('./funnel');
+    f.trackRaceAssist('race_x', 'tack-button', 'arrows', 3); // before its countdown: nothing
+    f.trackRaceCountdown('race_x', setup);
+    f.trackRaceAssist('race_x', 'tack-button', 'arrows', 10.4);
+    f.trackRaceAssist('race_x', 'tack-button', 'arrows', 20);
+    f.trackRaceAssist('race_x', 'best-vmg', 'arrows', 30);
+    f.trackRaceEnd('race_x', { finished: true, helm: 'arrows', buttonTurns: 2, bestVmgSec: 41.6 });
+    f.trackRaceCountdown('race_y', setup);
+    f.trackRaceAssist('race_y', 'tack-button', 'wheels', 5);
+    await flush();
+    expect(env.beacons.map((b) => b.evt)).toEqual(['race.countdown', 'race.assist', 'race.assist', 'race.end', 'race.countdown', 'race.assist']);
+    expect(env.beacons[1]).toMatchObject({ assist: 'tack-button', helm: 'arrows', atSec: 10, raceNo: 1 });
+    expect(env.beacons[2]).toMatchObject({ assist: 'best-vmg', atSec: 30 });
+    expect(env.beacons[3]).toMatchObject({ helm: 'arrows', buttonTurns: 2, bestVmgSec: 42 });
+    expect(env.beacons[5]).toMatchObject({ assist: 'tack-button', helm: 'wheels', raceNo: 2 });
+  });
 
   it('sends each step once per race and numbers the races of this device', async () => {
     const env = installBrowser('');

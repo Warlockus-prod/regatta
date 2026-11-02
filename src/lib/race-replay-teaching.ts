@@ -41,9 +41,14 @@ export function coachMistakeMoment(mistake: { timeStart: number; timeEnd: number
   return mistake.timeStart;
 }
 
+/** Package 13: the race log's note of a tack or gybe the turn button made. */
+export function isButtonTurnNote(note: unknown): boolean {
+  return typeof note === "string" && note.endsWith("-button");
+}
+
 export type ReplayRibbonItem =
   | { id: string; kind: "start"; t: number; seekT: number }
-  | { id: string; kind: "tack"; t: number; seekT: number; lossKn: number | null }
+  | { id: string; kind: "tack"; t: number; seekT: number; lossKn: number | null; button?: boolean }
   | { id: string; kind: "mark"; t: number; seekT: number }
   | { id: string; kind: "judge"; t: number; seekT: number; judgeKind: RaceJudgeIncidentKind; jostle: boolean };
 
@@ -69,8 +74,11 @@ export function replayRibbon(input: ReplayRibbonInput): ReplayRibbonItem[] {
 
   const start = input.events.find((e) => e.type === "start" && shown(e.t));
   if (start) items.push({ id: "start", kind: "start", t: start.t, seekT: seek(start.t) });
+  // Package 13: a tack or gybe logged with the "-button" note was the turn button's (useRaceLoop).
+  const buttonTurns = input.events.filter((e) => (e.type === "tack" || e.type === "gybe") && isButtonTurnNote((e as { note?: unknown }).note)).map((e) => e.t);
   measureTacks(input.samples, input.events).forEach((tack, i) => {
-    if (shown(tack.t)) items.push({ id: `tack-${i}`, kind: "tack", t: tack.t, seekT: seek(tack.t), lossKn: tack.speedLossKn });
+    const button = buttonTurns.some((t) => Math.abs(t - tack.t) <= 2);
+    if (shown(tack.t)) items.push({ id: `tack-${i}`, kind: "tack", t: tack.t, seekT: seek(tack.t), lossKn: tack.speedLossKn, ...(button ? { button } : {}) });
   });
   input.events.forEach((e, i) => {
     if (e.type === "mark-rounded" && shown(e.t)) items.push({ id: `mark-${i}`, kind: "mark", t: e.t, seekT: seek(e.t) });

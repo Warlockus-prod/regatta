@@ -297,6 +297,19 @@ describe("POST /api/race-result - classified identity", () => {
     expect(mocks.db.insertEvent.mock.calls[0][0].meta).toEqual({ finishTimeSec: 90, difficulty: "easy", windStrength: "light", missionId: null, position: null, totalBoats: null, tacks: null, score: null });
   });
 
+  // Package 13 (ADR-0022): a result remembers the helm and the assists; a
+  // malformed record is dropped (the time itself is valid), none is sent by old clients.
+  it("stores the helm and the assists with the result and in the event meta", async () => {
+    const assists = { helm: "arrows", buttonTurns: 3, bestVmgSec: 42, angleHoldSec: 0 };
+    expect((await POST(makeReq({ ...legacy, assists }))).status).toBe(200);
+    expect((mocks.db.insertRaceResult.mock.calls[0][0] as { assists?: unknown }).assists).toEqual(assists);
+    expect(mocks.db.insertEvent.mock.calls[0][0].meta).toMatchObject({ helm: "arrows", buttonTurns: 3, bestVmgSec: 42, angleHoldSec: 0 });
+    mocks.db.insertRaceResult.mockClear(); mocks.db.insertEvent.mockClear();
+    expect((await POST(makeReq({ ...legacy, assists: { ...assists, helm: "tiller" } }))).status).toBe(200);
+    expect(mocks.db.insertRaceResult.mock.calls[0][0] as object).not.toHaveProperty("assists");
+    expect(mocks.db.insertEvent.mock.calls[0][0].meta).not.toHaveProperty("helm");
+  });
+
   it.each([undefined, null])("does not classify missing/null context merely because mode is supplied: %j", async raceContext => {
     expect((await POST(makeReq({ ...legacy, raceContext, mode: "pro" }))).status).toBe(200);
     expect(mocks.db.insertRaceResult).toHaveBeenCalledTimes(1); expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();

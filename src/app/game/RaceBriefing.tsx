@@ -14,6 +14,7 @@ import { formatRecordTime, type BestRecord } from '@/lib/best-times';
 import { PHYSICAL_RACE_PROFILES, type PhysicalRaceProfile } from "@/lib/race-context";
 import { physicalCourseDefinition } from "@/lib/race-courses";
 import { useRaceCopy } from "./race-copy";
+import { HELM_ASSIST_COPY } from "@/data/helm-assist-copy";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 import { TrophyIcon } from "@/features/race-hud/RaceIcons";
 
@@ -135,15 +136,8 @@ export function RaceBriefing({
                 de: 'Lange Schläge: Jede Wende kostet Fahrt, das HUD zeigt dir, wie viel.',
                 it: "Bordi lunghi: ogni virata costa velocità e l'HUD ti dice quanta.",
               }) },
-              { icon: 'steer', text: tl({
-                ru: 'Рули штурвалом или ползунком. Стрелки ← → тоже поворачивают лодку.',
-                en: 'Steer with the wheel or slider. The ← → keys also turn the boat.',
-                pl: 'Steruj kołem lub suwakiem. Strzałki ← → również skręcają łódź.',
-                es: 'Gobierna con la rueda o el deslizador. Las teclas ← → también giran el barco.',
-                fr: 'Barre avec la roue ou le curseur. Les touches ← → font aussi tourner le bateau.',
-                de: 'Steuere mit Rad oder Schieberegler. Auch ← → drehen das Boot.',
-                it: 'Governa con la ruota o il cursore. Anche i tasti ← → fanno girare la barca.',
-              }) },
+              // Package 13 (ADR-0022): the helm line by level (R-6, R-7, R-8).
+              { icon: 'steer', text: tl(mode === "pro" ? HELM_ASSIST_COPY.briefingPro : HELM_ASSIST_COPY.briefingSimple) },
               ...(mode === "pro" ? [{ icon: 'sheets', text: tl({
                 ru: 'В Pro шкоты на тебе: Q/A гика-шкот, W/S стаксель-шкот.',
                 en: 'In Pro you trim the sheets: Q/A mainsheet, W/S jib sheet.',

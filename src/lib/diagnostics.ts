@@ -53,11 +53,13 @@ type ControlValues = {
   "main-hoisted": boolean; "jib-open": boolean; "sails-raised": boolean; airflow: boolean;
   "wind-mode": "steady" | "shift" | "gust"; tack: "port" | "starboard";
   camera: Member<typeof CAMERAS>; view: Member<typeof CAMERAS>; "race-map": boolean;
+  /** Package 13: the race's helm assists. */
+  "best-vmg": boolean; "angle-hold": boolean; "helm-turn": "tack" | "gybe";
 };
 type PreferenceValues = {
   mode: "sliders" | "wheels"; "helm-mapping": "course" | "rudder";
   "return-center": boolean; sensitivity: 0.5 | 1 | 2; "jib-side": "left" | "right";
-  sound: boolean; haptics: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay; "mini-map": boolean;
+  sound: boolean; haptics: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay; "mini-map": boolean; "race-helm": "arrows" | "wheels" | "sliders";
   "coach-strip": boolean; "first-race-hints": boolean; "soft-light": boolean; "sail-flow": boolean;
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
@@ -128,10 +130,11 @@ const controlChecks: Record<keyof ControlValues, Check> = {
   "main-angle": numeric(-180, 180), "jib-angle": numeric(-180, 180), "main-twist": numeric(0, 1), "jib-twist": numeric(0, 1),
   camber: numeric(0, 1), heel: numeric(-90, 90), luff: numeric(0, 1), "main-hoisted": boolean, "jib-open": boolean, "sails-raised": boolean, airflow: boolean,
   "wind-mode": enumeration(["steady", "shift", "gust"]), tack: enumeration(["port", "starboard"]), camera: enumeration(CAMERAS), view: enumeration(CAMERAS), "race-map": boolean,
+  "best-vmg": boolean, "angle-hold": boolean, "helm-turn": enumeration(["tack", "gybe"]),
 };
 const preferenceChecks: Record<keyof PreferenceValues, Check> = {
   mode: enumeration(["sliders", "wheels"]), "helm-mapping": enumeration(["course", "rudder"]), "return-center": boolean,
-  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, haptics: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS), "mini-map": boolean,
+  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, haptics: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS), "mini-map": boolean, "race-helm": enumeration(["arrows", "wheels", "sliders"]),
   "coach-strip": boolean, "first-race-hints": boolean, "soft-light": boolean, "sail-flow": boolean,
 };
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };

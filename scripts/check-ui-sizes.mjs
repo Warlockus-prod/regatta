@@ -5,7 +5,8 @@
 //
 //   BASE_URL=http://localhost:3025 npm run check:ui
 //
-// Visits the race (Simple and Pro, while the race runs, every dock tab), the
+// Visits the race (Simple and Pro, with the wheels and, package 13, with the
+// on-screen arrows, while the race runs, every dock tab), the
 // Trainer (/simulator-v3, 3D and top view), Basics (/simulator), Boat 3D
 // (/simulator2) and /glossary, and fails on:
 //   - visible text under 12 px for labels or under 14 px for reading text;
@@ -413,6 +414,19 @@ const BASE_INIT = () => {
   } catch { /* storage may be unavailable */ }
 };
 
+/** Package 13: a device that steers the race with the on-screen arrows (the
+ * default of a new install), the other race routes keep the stored wheels. */
+const ARROWS_INIT = () => {
+  try {
+    localStorage.setItem("regatta.lang.v1", "ru");
+    localStorage.setItem("regatta.onboarding.v1", "1");
+    localStorage.setItem("regatta.v3.tour.v1", "1");
+    localStorage.setItem("regatta.race.intro-seen.v1", "1");
+    localStorage.setItem("regatta.race.helm.v1", "arrows");
+    localStorage.removeItem("regatta.race.briefing-seen.v1");
+  } catch { /* storage may be unavailable */ }
+};
+
 /** e2e/race-navigation.spec.ts startRace(), without the test runner. */
 async function startRace(page, mode) {
   await page.goto(`${BASE}/game?embed=1`);
@@ -444,6 +458,8 @@ async function eachScroll(page, locator, fn) {
 const ROUTES = [
   { id: "race-simple", run: async (browser, results) => raceRoute(browser, results, "simple") },
   { id: "race-pro", run: async (browser, results) => raceRoute(browser, results, "pro") },
+  { id: "race-simple-arrows", run: async (browser, results) => raceRoute(browser, results, "simple", ARROWS_INIT) },
+  { id: "race-pro-arrows", run: async (browser, results) => raceRoute(browser, results, "pro", ARROWS_INIT) },
   { id: "trainer", run: async (browser, results) => {
     const page = await newPage(browser, BASE_INIT);
     await page.goto(`${BASE}/simulator-v3?embed=1&lang=ru`);
@@ -495,9 +511,9 @@ async function simpleRoute(browser, results, route, path) {
   await page.context().close();
 }
 
-async function raceRoute(browser, results, mode) {
-  const route = `race-${mode}`;
-  const page = await newPage(browser, BASE_INIT);
+async function raceRoute(browser, results, mode, init = BASE_INIT) {
+  const route = `race-${mode}${init === ARROWS_INIT ? "-arrows" : ""}`;
+  const page = await newPage(browser, init);
   await startRace(page, mode);
   const tabs = page.getByTestId("race-cockpit").locator("nav button");
   const names = (await tabs.allTextContents()).map(s => s.trim());

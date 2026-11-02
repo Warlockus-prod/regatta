@@ -34,6 +34,8 @@ export const RACE_WEB_STORAGE_KEYS = [
   "regatta.race.hints-seen.v1",
   // F5: the race intro before the first race was finished or skipped on this device, "1" (src/features/race-hud/race-intro.ts).
   "regatta.race.intro-seen.v1",
+  // Package 13: the race's helm control, arrows / wheels / sliders (src/lib/race-helm.ts RACE_HELM_KEY).
+  "regatta.race.helm.v1",
 ] as const;
 export type RaceWebStorage = Record<string, string | null>;
 
@@ -51,6 +53,14 @@ export function parseRaceStorageEntries(raw: unknown): RaceWebStorage | null {
   return entries;
 }
 
+/** Package 13: screens that show a race row (the helm choice) hear its writes,
+ * the race page's included, without polling storage. */
+const writeListeners = new Set<(entries: RaceWebStorage) => void>();
+export function subscribeRaceStorageWrites(listener: (entries: RaceWebStorage) => void): () => void {
+  writeListeners.add(listener);
+  return () => { writeListeners.delete(listener); };
+}
+
 export async function persistRaceStorage(entries: RaceWebStorage, epoch = nativeDataEpoch()): Promise<void> {
   const valid = parseRaceStorageEntries(entries);
   if (!valid || Object.prototype.hasOwnProperty.call(valid, BEST_TIMES_STORAGE_KEY)) throw new Error("Invalid race storage message");
@@ -61,6 +71,7 @@ export async function persistRaceStorage(entries: RaceWebStorage, epoch = native
     if (set.length) await AsyncStorage.multiSet(set);
     if (remove.length) await AsyncStorage.multiRemove(remove);
   });
+  for (const listener of writeListeners) { try { listener(valid); } catch { /* a screen's listener never fails a write */ } }
 }
 
 export function useRaceWebStorage() {

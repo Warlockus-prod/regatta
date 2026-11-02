@@ -30,6 +30,10 @@ import type { Label } from "./catalog";
  *
  * The trainer's drawing words (sails, compass points) are TRAINER_TERMS in
  * trainer-terms.ts, part of this dictionary in a module of their own (package 11).
+ * The race helm's three control names (arrows, wheels, sliders) are
+ * HELM_CONTROL_TERMS in src/data/helm-assist-copy.ts, part of this dictionary
+ * in a module only the race chunk and the app read (package 13: UI_TERMS is
+ * copied into many site chunks, the JS budget does not grow).
  *
  * Pure data, no React or platform dependency (the app bundles it through
  * Metro, the offline WebView packages through esbuild).

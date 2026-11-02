@@ -549,6 +549,65 @@ test("race camera by default, orbit one tap away, double tap back, and the mark 
   await expect(distance).toHaveText(/^Знак сзади · \d+ м$/);
 });
 
+// Package 13 (ADR-0022, owner decision 1): a device that never saved a
+// control steers the race with the on-screen arrows. In Simple the arrows move
+// the course; the turn button tacks to the mirrored angle and hands back;
+// BEST VMG is switched off by an arrow. Real scene, real input, no timeout raised.
+test("a new install steers with arrows, the button tacks and an arrow switches BEST VMG off", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  await context.addInitScript(() => {
+    try {
+      localStorage.setItem("regatta.lang.v1", "ru");
+      localStorage.setItem("regatta.onboarding.v1", "1");
+      localStorage.setItem("regatta.race.intro-seen.v1", "1");
+      localStorage.removeItem("regatta.controls.v1");
+      localStorage.removeItem("regatta.race.helm.v1");
+    } catch { /* Ordinary browser storage may be unavailable. */ }
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/game?embed=1");
+  await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /^Первая гонка/ }).click();
+  await page.getByRole("radio", { name: "Простой", exact: true }).click();
+  await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+  await page.getByRole("button", { name: /Готов - старт/ }).click();
+  const cockpit = page.getByTestId("race-cockpit");
+  await expect(cockpit.getByTestId("race-helm-arrows")).toBeVisible({ timeout: 25_000 });
+  await expect(cockpit.getByRole("slider")).toHaveCount(0);
+  const clock = cockpit.getByText(/^\d+:\d\d\.\d$/);
+  await expect(clock).not.toHaveText("0:00.0", { timeout: 25_000 });
+  const status = cockpit.getByTestId("race-helm-status");
+  const course = async () => Number.parseInt((await status.textContent())!.match(/Курс (\d+)°/)![1], 10);
+  const turned = (a: number, b: number) => Math.abs((((b - a) % 360) + 540) % 360 - 180);
+  // An arrow press moves the course a step; the boat holds it.
+  const before = await course();
+  await cockpit.getByRole("button", { name: "Курс правее", exact: true }).click();
+  await expect.poll(async () => turned(before, await course()), { timeout: 5_000 }).toBeGreaterThanOrEqual(1);
+  // The turn button: a tack (close-hauled start), pressed while it turns, then the course is the other tack.
+  const turn = cockpit.getByTestId("race-helm-turn");
+  await expect(turn).toHaveAttribute("data-kind", "tack");
+  const fromCourse = await course();
+  await turn.click();
+  await expect.poll(async () => turned(fromCourse, await course()), { timeout: 15_000 }).toBeGreaterThan(60);
+  await expect(turn).toHaveAttribute("aria-pressed", "false", { timeout: 15_000 });
+  // BEST VMG on, then any arrow switches it off; the VMG line is in the wind box.
+  const best = cockpit.getByTestId("race-helm-best-vmg");
+  await expect(best).toHaveText("Лучший угол");
+  await best.click();
+  await expect(best).toHaveAttribute("aria-pressed", "true");
+  await expect(cockpit.getByTestId("race-vmg")).toBeVisible();
+  await cockpit.getByRole("button", { name: "Курс левее", exact: true }).click();
+  await expect(best).toHaveAttribute("aria-pressed", "false", { timeout: 5_000 });
+  // Every helm control is at least 44 px and its label is whole.
+  for (const id of ["race-helm-left", "race-helm-right", "race-helm-turn", "race-helm-best-vmg", "race-hold-angle"]) {
+    const box = (await cockpit.getByTestId(id).boundingBox())!;
+    expect(box.height, id).toBeGreaterThanOrEqual(44);
+    expect(box.width, id).toBeGreaterThanOrEqual(44);
+    expect(await cockpit.getByTestId(id).evaluate(element => element.scrollWidth <= element.clientWidth + 1), id).toBe(true);
+  }
+  expect(await page.evaluate(() => localStorage.getItem("regatta.race.helm.v1"))).toBeNull();
+});
+
 test("corner mini-map visibility survives a new document and records actual changes", async ({ page, context }) => {
   test.setTimeout(120_000);
   const { cockpit } = await startSimpleRace(page, context);
@@ -799,14 +858,14 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
       await evidence.observe(`${label}:before-primary-check`);
       let validatedPrimary: Awaited<ReturnType<typeof primaryWheelGeometry>> | undefined;
       await step("primary-visible", () => expect.poll(async () => {
-        validatedPrimary = await primaryWheelGeometry(cockpit, "Держать курс");
+        validatedPrimary = await primaryWheelGeometry(cockpit, "Держать угол");
         return validatedPrimary;
       }).toMatchObject({
         scrollTop: 0, count: names.length, allVisibleTogether: true,
       }));
       if (!validatedPrimary) throw new Error("Validated primary geometry is unavailable");
       const primary = validatedPrimary;
-      const autopilot = cockpit.getByRole("button", { name: "Держать курс", exact: true });
+      const autopilot = cockpit.getByRole("button", { name: "Держать угол", exact: true });
       const pilot = primary.pilot;
       if (!pilot) throw new Error("Heading hold geometry is unavailable");
       expect(pilot).toMatchObject({ actions: 5, inReservedActions: true, insideViewport: true });
@@ -921,17 +980,17 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
 // Entry expressions follow the actual localized GameMenu/GameClient actions.
 const localizedProEntries = [
   { lang: "en", first: /^First race/, start: /^Start your first race →$/, ready: /^Ready - starting in/,
-    actions: ["Helm", "Sails", "Course map", "Settings", "Hold heading"], wheels: ["Helm", "Mainsheet", "Jib sheet"] },
+    actions: ["Helm", "Sails", "Course map", "Settings", "Hold angle"], wheels: ["Helm", "Mainsheet", "Jib sheet"] },
   { lang: "pl", first: /^Pierwszy wyścig/, start: /^Zacznij pierwszy wyścig →$/, ready: /^Gotowy - start za/,
-    actions: ["Ster", "Żagle", "Mapa trasy", "Ustawienia", "Trzymaj kurs"], wheels: ["Ster", "Szot grota", "Szot foka"] },
+    actions: ["Ster", "Żagle", "Mapa trasy", "Ustawienia", "Trzymaj kąt"], wheels: ["Ster", "Szot grota", "Szot foka"] },
   { lang: "es", first: /^Primera regata/, start: /^Empezar la primera regata →$/, ready: /^Listo - salida en/,
-    actions: ["Timón", "Velas", "Mapa del recorrido", "Ajustes", "Mantener rumbo"], wheels: ["Timón", "Escota de mayor", "Escota de foque"] },
+    actions: ["Timón", "Velas", "Mapa del recorrido", "Ajustes", "Mantener ángulo"], wheels: ["Timón", "Escota de mayor", "Escota de foque"] },
   { lang: "fr", first: /^Première course/, start: /^Lancer la première course →$/, ready: /^Prêt - départ dans/,
-    actions: ["Barre", "Voiles", "Carte du parcours", "Réglages", "Garder le cap"], wheels: ["Barre", "Écoute de grand-voile", "Écoute de foc"] },
+    actions: ["Barre", "Voiles", "Carte du parcours", "Réglages", "Garder l'angle"], wheels: ["Barre", "Écoute de grand-voile", "Écoute de foc"] },
   { lang: "de", first: /^Erstes Rennen\./, start: /^Erstes Rennen starten →$/, ready: /^Bereit - Start in/,
-    actions: ["Steuer", "Segel", "Kurskarte", "Einstellungen", "Kurs halten"], wheels: ["Steuer", "Großschot", "Fockschot"] },
+    actions: ["Steuer", "Segel", "Kurskarte", "Einstellungen", "Winkel halten"], wheels: ["Steuer", "Großschot", "Fockschot"] },
   { lang: "it", first: /^Prima regata/, start: /^Inizia la prima regata →$/, ready: /^Pronto - partenza tra/,
-    actions: ["Timone", "Vele", "Mappa del percorso", "Impostazioni", "Mantieni rotta"], wheels: ["Timone", "Scotta della randa", "Scotta del fiocco"] },
+    actions: ["Timone", "Vele", "Mappa del percorso", "Impostazioni", "Mantieni angolo"], wheels: ["Timone", "Scotta della randa", "Scotta del fiocco"] },
 ] as const;
 
 for (const localized of localizedProEntries) {

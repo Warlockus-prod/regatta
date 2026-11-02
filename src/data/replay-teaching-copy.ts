@@ -21,6 +21,8 @@ export const replayTeachingCopy = {
   tack: w("Поворот оверштаг", "Tack", "Zwrot przez sztag", "Virada", "Virement de bord", "Wende", "Virata"),
   /** {n} is the speed lost in the tack with its unit, "0,6 уз". */
   tackLoss: w("потеря {n}", "lost {n}", "strata {n}", "pérdida {n}", "perte {n}", "Verlust {n}", "perdita {n}"),
+  /** Package 13: a tack or gybe the turn button made. */
+  byButton: w("кнопкой", "by the button", "przyciskiem", "con el botón", "au bouton", "per Knopf", "col pulsante"),
   mark: w("Верхний знак", "Windward mark", "Znak nawietrzny", "Baliza de barlovento", "Bouée au vent", "Luvtonne", "Boa di bolina"),
   /** Under a judge item or a coach mistake: open the replay at that moment. */
   watchMoment: w("Посмотреть момент", "Watch the moment", "Zobacz ten moment", "Ver el momento", "Revoir le moment",

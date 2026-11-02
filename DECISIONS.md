@@ -1326,3 +1326,147 @@ top-15 items 1-4 and 8); `docs/audits/2026-10-30/m0-13-tack-cost.md`;
 "Principles of Yacht Design" (Delft series residuary shape, Hazen sail
 coefficients); `src/lib/sailing-physics/resistance.ts`,
 `src/lib/sailing-physics/cruiser.test.ts`.
+
+## ADR-0022 - Helm assist in the race: arrows by default, the turn button, BEST VMG and the angle hold
+
+Date: 2026-11-02. Status: accepted (work package 13 of `docs/BACKLOG.md`;
+owner decision 1 of `docs/design/race-game-logic-2026-11-01.md`, arrows by
+default; R-6, R-7, R-8 and R-10 taken as the backlog defaults, listed below).
+No engine constant changes: `src/lib/sailing-physics/*` is untouched, the
+classic profile stays bit for bit (ADR-0021) and
+`PHYSICAL_RACE_EMISSION_ENABLED` stays false.
+
+### Context
+The harsh audit (B17, top-6) measured that the Simple race is not played like
+a game: the wheel takes a third of the phone, it showed "Rudder 0" through a
+race steered with the keys, and there is no tack button. The owner's reference
+recording (race game logic, section 1) has two arrow buttons, a button that
+turns to the mirrored angle and a BEST VMG switch. ADR-0021 gave the race an
+honest polar, so a best-angle helper no longer teaches a false angle.
+
+### Decision
+1. **One solver, pure.** `src/lib/helm-angles.ts` reads the best angles of a
+   polar through the one VMG solver (`upwind-vmg.ts` `bestVmg`, not a fork),
+   picks the leg by the bearing of the next mark (beat, run, reach with a 5 deg
+   hysteresis) and the angle to sail on it (best VMG on a beat or a run, best
+   VMC towards the mark on a reach, always on the side the boat is on).
+   `features/race-hud/target.ts` gives each race its polar: the classic table
+   for the legacy race, the cruiser table for the metric race
+   (`helmProfileFor`). The Trainer's auto-trim (lane V3, stage D) is to read
+   the same module.
+2. **The controller, pure.** `src/lib/helm-assist.ts` decides each tick what
+   the player's helm steers to: the course hold (the existing autopilot refs),
+   the angle hold, BEST VMG or a button turn; the race loop turns the heading
+   into its own steering. A tack turns through head to wind, a gybe through
+   dead downwind (the controller steers at most 60 deg ahead along the turn,
+   so it never goes the wrong way round), the target is the mirrored angle and
+   a tack never ends inside the boat's no-go zone (30 deg classic, 42 cruiser):
+   from a pinch it goes to the best upwind angle. A turn hands back to the
+   hold that was on (BEST VMG survives a tack), is ignored while one is under
+   way and is given up after 20 s. Out of irons: a held boat inside the zone
+   and under 1 kn for 3 s bears away to close-hauled on the side it falls off
+   to. Time to the line (`src/lib/race-line-time.ts`) is ready for the
+   pre-start of package 15 and not drawn yet.
+3. **Arrows by default for new installs, a saved choice kept.** The race has
+   its own helm row `regatta.race.helm.v1` (`src/lib/race-helm.ts`): arrows,
+   wheels or sliders, chosen in the race settings before the start, in the
+   app's race hub and in the app's Settings. Absent, a device that saved the
+   trainers' controls (web: the localStorage row exists; app: the injected
+   record says `saved`) keeps that mode, otherwise arrows. The trainers keep
+   their own mode.
+4. **R-6, meaning of the arrows (backlog default).** In Simple the arrows move
+   the course (a press 2 deg, held 30 deg/s) and the boat holds it; with the
+   angle hold on they move the held angle. In Pro the arrows are the rudder
+   while held, like the arrow keys. The keys do the same in each level; T is
+   the turn button, V BEST VMG.
+5. **R-7 (backlog default).** The turn button and BEST VMG exist in Pro too,
+   only for the helm: they steer through the rudder law (in the metric race
+   the helm law that needs way, in Simple the course assist); the sheets stay
+   manual in Pro.
+6. **R-8 (backlog default).** The arrows, the turn button and the angle hold do
+   not affect medals; any time sailed with BEST VMG costs gold like the route
+   hints (`assistCostsGold`, the loop's hint flag).
+7. **R-10 (backlog default).** The former "Hold course" button becomes "Hold
+   angle": it holds the signed angle to the wind, so a wind shift changes the
+   course. The course hold stays for the Simple arrows and the wheel or slider
+   in course mode.
+8. **Any manual rudder switches the assists off**: a Pro arrow or key, the
+   wheel or the slider in rudder mode (and a course set on the wheel). A Simple
+   arrow switches BEST VMG off and moves the course from where the boat is.
+9. **Records.** A result remembers the helm and the assists
+   (`RaceAssistRecord`: control, button turns, whole seconds with BEST VMG
+   and with the angle hold): the leaderboard row (`race_results.helm_assists`,
+   NULL for older rows), the `race.finish` event meta and the app's race
+   history (`NativeRaceSnapshot.assists`, optional; build 74 ignores it).
+   The local best-time row keeps its build 74 format. Tacks and gybes the
+   button made are logged with a `-button` note; the replay ribbon says "by
+   the button".
+10. **The wheel reflects any input**: unless the wheel itself is turned it shows
+   the helm the loop applied (keys, arrows, assists).
+11. **The VMG line** sits in the wind box: VMG on a beat or a run, VMC on a
+   reach (Simple says "upwind", "downwind", "to the mark"), against the
+   polar's best, green on target (95% and more), amber below 80%, never cyan,
+   with the trend over two seconds.
+
+### Options considered
+- One helm mode switch for trainers and race: the race's arrows mean nothing
+  in a trainer, and a new install could not get arrows without moving a
+  learner's trainer. Rejected for a race row.
+- Overwrite every stored choice with arrows: against decision 1. Rejected.
+- BEST VMG tacks by itself at the layline: the reference keeps tacking with
+  the player, and a self-tacking helper is a cheat code. Rejected.
+- BEST VMG only in Simple (R-7 variant): left to the owner.
+- Remove "Hold angle" in favour of BEST VMG (R-10 variant): left to the owner.
+- Slower crew or a turn rate for the cruiser's button tack: a physics change,
+  so a new ADR, not this one.
+
+### Consequences
+- Measured on the legacy race (classic profile, responsive helm, crew trim),
+  button tack 40 -> -40 deg: 2.0 s in 7.8 / 12 / 15.6 kn, lowest speed 95 / 91
+  / 90% of the speed before, back at 95% after 2.4 / 4.0 / 3.8 s; a gybe
+  172 -> -172 deg takes 0.4-0.6 s and keeps the speed. The reference loses a
+  third on a tack: the legacy race keeps its frozen, nearly free tacks; the
+  metric race's assisted tack costs 30-50% (ADR-0021).
+- Best angles on three winds (5 deg tables): classic upwind 40 deg (VMG 2.09 /
+  4.00 / 5.95 kn in 6 / 12 / 20 kn), downwind 172; cruiser upwind 45 / 40 / 40
+  (3.04 / 4.68 / 5.38 kn), downwind 130 / 160 / 165 (3.01 / 5.35 / 7.25 kn).
+- Bot levels against a player with BEST VMG and the button at the laylines
+  (`src/app/game/helm-assist.scenario.test.ts`, seeds 1 / 7 / 42): easy and
+  medium are won every time (112.6 / 76.3 / 60.3 s in light / medium / heavy
+  wind, 2-5% faster than following the route hint); hard is won in medium
+  wind, 1st / 1st / 3rd in heavy wind and 2nd of 5 every time in light wind.
+  BEST VMG costs gold, so no medal moves; the levels keep their numbers.
+- JS on the site: the copy lives in `src/data/helm-assist-copy.ts`, read only
+  by the race chunk and the app; the three control names are
+  `HELM_CONTROL_TERMS` there, part of the UI dictionary (`ui-terms.ts` says
+  so), because `UI_TERMS` is copied into nine site chunks. `.next/static/chunks`
+  grew from 7 057 170 to 7 086 592 bytes (+29 KB, 6.73 -> 6.76 MB against the
+  6.6 MB budget that was already exceeded before this package); the budget is
+  not raised.
+- Pro with sliders: the assist row leaves no room for the sheet sliders in
+  the pinned Helm panel; in Pro they stay on the Sails tab (package 11).
+- Wheels on a phone (portrait and the short landscape column): the dock may
+  not grow, so the turn button and BEST VMG lie over the deck's top corners
+  beside the helm wheel; in Pro their lower edge covers the top 3 px of the
+  sheet wheels' rims (measured at 390x844). On a desktop they are a row above
+  the wheels.
+
+### Verification
+`helm-angles.test.ts` (both profiles on three winds, optima, legs,
+hysteresis, the side kept), `helm-assist.test.ts` (tack and gybe targets with
+the zone, a turn through the wind and through the run on three winds, BEST
+VMG through a tack, course hold resumed, a turn ignored and given up, manual
+rudder and Simple arrows, the angle hold through a wind shift, out of irons on
+three winds), `race-line-time.test.ts`, `race-helm.test.ts` (new install,
+saved choice, records), `helm-assist.scenario.test.ts` (bot levels),
+`RaceHelmAssist.render.test.tsx`, `RaceCockpit.helm.test.tsx`, the
+`funnel.test.ts` helm events, `race-m5-compat.test.ts` (build 74 rows),
+`e2e/race-navigation.spec.ts` (arrows by default, the turn button, BEST VMG
+off on an arrow) and `npm run check:ui` at 390 px with the wheels and with the
+arrows (`race-simple-arrows`, `race-pro-arrows`).
+
+### References
+ADR-0009, ADR-0014, ADR-0015, ADR-0021; `docs/design/race-game-logic-2026-11-01.md`
+(sections 1, 3, 4); `docs/audits/2026-11-01-harsh-audit.md` (B17, top-6);
+`src/lib/helm-angles.ts`, `src/lib/helm-assist.ts`, `src/lib/race-helm.ts`,
+`src/lib/race-line-time.ts`.

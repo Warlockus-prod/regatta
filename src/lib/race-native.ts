@@ -4,6 +4,7 @@ import { matchesPhysicalRaceCourse } from "./race-courses";
 import { physicalRaceSamplesValid } from "./physical-race-record";
 import { isNativeRace } from "./race-native-env";
 import { readNativeBestCommand, type NativeBestCommand } from "./race-best-command";
+import { readRaceAssistRecord, type RaceAssistRecord } from "./race-helm";
 export { isNativeRace, navigateNativeRace, readRaceSearch } from "./race-native-env";
 
 /** Versioned local race payload shared by the web scene and native history. */
@@ -29,6 +30,9 @@ export interface NativeRaceSnapshot {
   events: Array<{ type: "start" | "tack" | "mark-rounded" | "finish" | "no-go-entered"; t: number; note?: string }>;
   coaching?: Coaching;
   penaltySeconds?: number;
+  /** Package 13 (ADR-0022): the helm control and the assists the race was
+   * sailed with. Absent in races saved before; build 74 ignores the field. */
+  assists?: RaceAssistRecord;
 }
 
 type NativeRaceWindow = Window & {
@@ -67,6 +71,7 @@ export function validateNativeRace(raw: unknown): NativeRaceSnapshot | null {
   }
   if (!Array.isArray(raw.events) || raw.events.length > 2000 || !raw.events.every(e => record(e) && ["start", "tack", "mark-rounded", "finish", "no-go-entered"].includes(String(e.type)) && finite(e.t, 0, 3600) && (e.note === undefined || short(e.note, 200)))) return null;
   if (raw.penaltySeconds !== undefined && !finite(raw.penaltySeconds, 0, 3600)) return null;
+  if (raw.assists !== undefined && !readRaceAssistRecord(raw.assists)) return null;
   if (raw.coaching !== undefined) {
     const c = raw.coaching;
     if (!record(c) || !short(c.overall, 4000) || !finite(c.score, 0, 100) || !short(c.nextGoalRu, 4000) || !Array.isArray(c.strengths) || c.strengths.length > 50 || !c.strengths.every(s => short(s, 4000)) || !Array.isArray(c.mistakes) || c.mistakes.length > 100) return null;

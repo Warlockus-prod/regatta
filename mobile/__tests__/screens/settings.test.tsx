@@ -151,3 +151,28 @@ describe('Settings screen', () => {
     expect(await AsyncStorage.getItem('regatta.best-times.v1')).toBe('preserve-unread-data');
   });
 });
+
+// Package 13 (ADR-0022): Settings offer the race's helm control, the same row
+// as the race hub and the race's own settings. Contract: a new install shows
+// the arrows, a stored trainers' record keeps its mode, a pick is stored.
+describe('Settings: race helm', () => {
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../../src/persistence/controls').__resetControlPrefsForTests();
+  });
+  it('a new install steers the race with the arrows; a pick is stored in the race row', async () => {
+    const view = renderWithProviders(<Settings />);
+    const arrows = await waitFor(() => view.getByTestId('race-helm-arrows'));
+    await waitFor(() => expect(arrows.props.accessibilityState).toMatchObject({ checked: true, disabled: false }));
+    view.getByText('RACE HELM');
+    fireEvent.press(view.getByTestId('race-helm-wheels'));
+    await waitFor(async () => expect(await AsyncStorage.getItem('regatta.race.helm.v1')).toBe('wheels'));
+    await waitFor(() => expect(view.getByTestId('race-helm-wheels').props.accessibilityState).toMatchObject({ checked: true }));
+  });
+  it('a stored trainers record keeps its mode for the race until a race control is picked', async () => {
+    await AsyncStorage.setItem('regatta.controls.v1', JSON.stringify({ version: 1, mode: 'sliders', sound: false }));
+    const view = renderWithProviders(<Settings />);
+    await waitFor(() => expect(view.getByTestId('race-helm-sliders').props.accessibilityState).toMatchObject({ checked: true, disabled: false }));
+    expect(await AsyncStorage.getItem('regatta.race.helm.v1')).toBeNull();
+  });
+});

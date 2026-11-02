@@ -9,7 +9,11 @@ import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'r
 import { playTack, playMarkRound, playFinish, playNoGo, readRaceSound } from '@/lib/sounds';
 import { raceHaptic } from '@/lib/race-haptics';
 import { analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
-import { raceUpwind } from '@/features/race-hud/target';
+import { helmProfileFor, raceUpwind } from '@/features/race-hud/target';
+import { createHelmAssist, helmTurnToward, stepHelmAssist, type HelmAssistState, type HelmView } from '@/lib/helm-assist';
+import { legOf, legTarget, madeGood } from '@/lib/helm-angles';
+import { assistCostsGold, raceAssistRecord, type RaceHelmControl } from '@/lib/race-helm';
+import { HELM_ASSIST_COPY } from '@/data/helm-assist-copy';
 import { evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import type { useI18n } from '@/lib/i18n';
 import { tryUpdateBestRecord, type BestRecord } from '@/lib/best-times';
@@ -18,7 +22,7 @@ import {
   stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, MIN_BOAT_SEPARATION,
   WIND_DIRECTION_BASE as WIND_DIRECTION,
   calcTWA,
-  angleDiff,
+  bearing,
   type RaceBoat,
 } from '@/lib/race-physics';
 import { classifyManoeuvre, createManoeuvreState, inNoGoZone, pressedAgainstEdge, NO_GO } from '@/lib/race-manoeuvres';
@@ -193,7 +197,14 @@ export interface RaceLoopRefs {
   raceHintsRef?: RefObject<boolean>;
   /** M4-7: the first race hints this device has shown (useFirstRaceHints). */
   firstHintsRef?: RefObject<FirstRaceHintsRecord>;
+  /** Package 13 (ADR-0022): the helm assist of this race (reset by GameClient
+   * per race), the on-screen arrows (held direction and a pending tap step)
+   * and the helm control the race is steered with. */
+  helmRef?: RefObject<HelmAssistState>;
+  helmInputRef?: RefObject<{ arrows: number; nudge: number }>;
+  helmControlRef?: RefObject<RaceHelmControl>;
 }
+
 
 /** What the AI coach reads (POST /api/coach): the local coach's race log. */
 export type AiCoachPayload = Parameters<typeof analyseRaceLocallyWithFocus>[0] & { lang: string };
@@ -230,6 +241,8 @@ export interface RaceLoopSetters {
   setGhostSplits?: SetState<GhostSplit[]>;
   /** M4-5: the course medal this race earned or kept; null for the physical trial or a did-not-finish. */
   setMedalAward?: SetState<MedalAward | null>;
+  /** Package 13: the helm view (HelmView) at the HUD rate. */
+  setHelmView?: SetState<HelmView>;
 }
 
 export interface RaceLoopInput {
@@ -304,6 +317,38 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     // M3-2: one input and one target object per race loop, reused every HUD tick.
     const soundIn: RaceSoundscapeInput = { apparentWindKn: 0, boatSpeedKn: 0, heelDeg: 0, luffing: false, inIrons: false, mode: "simple", paused: false, muted: false };
     const soundOut = createSilentTargets();
+    // Package 13 (ADR-0022): the helm assist. Without GameClient's ref (unit
+    // tests of the loop) it lives here; the course hold stays the autopilot refs.
+    const helm = refs.helmRef ?? { current: createHelmAssist() };
+    let lastButtonTurnT = -Infinity, shownRudder = 0;
+    const vmgTrend: number[] = [];
+    const nextMark = (boat: Boat) => boat.lapDone >= 1
+      ? { x: (courseRef.current.finishLine.a.x + courseRef.current.finishLine.b.x) / 2, y: (courseRef.current.finishLine.a.y + courseRef.current.finishLine.b.y) / 2 }
+      : courseRef.current.marks[0].pos;
+    const helmProfile = () => helmProfileFor(12 * windStrengthRef.current, physicalRef.current ? "cruiser" : "classic");
+    /** One helm tick of the player: manual rudder, Simple arrows, the holds and the button turn. */
+    const helmTick = (boat: Boat, dt: number) => {
+      const pro = racePrefsRef.current.mode === "pro";
+      const held = (Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft"))) || Math.sign(refs.helmInputRef?.current.arrows ?? 0);
+      const nudge = pro ? 0 : refs.helmInputRef?.current.nudge ?? 0;
+      if (refs.helmInputRef) refs.helmInputRef.current.nudge = 0;
+      // R-6: in Pro the arrows (screen and keys) are the rudder; in Simple they move the course.
+      const manual = pro ? held || rudderRef.current : rudderRef.current;
+      const markTwa = calcTWA(bearing(boat.pos, nextMark(boat)), windDirRef.current);
+      const r = stepHelmAssist(helm.current, { dt, heading: boat.heading, windDir: windDirRef.current, speedKn: boat.speed, manual,
+        arrows: pro ? 0 : held, nudgeDeg: nudge, courseHold: autopilotOnRef.current ? autopilotHeadingRef.current : null, markTwa, profile: helmProfile() });
+      helm.current = r.state;
+      if (r.courseHold === null) { if (autopilotOnRef.current) { autopilotOnRef.current = false; setAutopilotOn(false); } }
+      else { autopilotHeadingRef.current = r.courseHold; if (!autopilotOnRef.current) { autopilotOnRef.current = true; setAutopilotOn(true); } }
+      if (r.state.turn || r.event === "turn-done") lastButtonTurnT = raceClockRef.current;
+      if (r.event === "vmg-off") showNotice(pickLocalized(langRef.current, HELM_ASSIST_COPY.vmgOff), "rule", "info");
+      if (r.event === "irons") showNotice(pickLocalized(langRef.current, HELM_ASSIST_COPY.irons), "rule", "info");
+      // R-8: time with BEST VMG costs gold like the route hints.
+      if (refs.raceHintsRef && assistCostsGold(r.state.usage)) refs.raceHintsRef.current = true;
+      // R-7: in Pro the button turn, BEST VMG and the angle hold steer through the rudder law.
+      const assisted = r.heading !== null && (r.state.turn !== null || r.state.hold !== "off");
+      return { heading: r.heading, manual: r.heading === null ? manual : 0, rudderLaw: assisted && pro };
+    };
     const step = (now: number) => {
       const refreshHud = now - hudRefreshRef.current >= 100;
       // M4-5: route or trim hints on at any moment of the countdown or the
@@ -336,10 +381,11 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       if (physical) {
         for (const boat of boats) prevPositions.set(boat.id, { ...boat.pos });
         const player = boats.find(b => b.isPlayer);
-        const held = keysRef.current.has("arrowright") || keysRef.current.has("arrowleft")
-          ? Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")) : rudderRef.current;
-        if (held && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
-        const steering = physicalTrialSteering(held, autopilotOnRef.current, autopilotHeadingRef.current);
+        const cmd = player && player.lapDone < 2 ? helmTick(player, dt) : { heading: null, manual: 0, rudderLaw: false };
+        const steering = cmd.heading === null ? physicalTrialSteering(cmd.manual, false, 0)
+          : cmd.rudderLaw && player ? { mode: "helm" as const, rudder: helmTurnToward(player.heading, cmd.heading, 15), lowSpeedAssist: true }
+          : physicalTrialSteering(0, true, cmd.heading);
+        shownRudder = steering.mode === "helm" ? steering.rudder : player && cmd.heading !== null ? helmTurnToward(player.heading, cmd.heading) : 0;
         const stepped = player && fleetRef.current ? fleetRef.current.stepPhysicalRaceFleet({ context: physicalRaceContext(physical), course, dt,
           raceTime: raceClockRef.current, racing: isRacing, windDir: windDirRef.current, gust: windGustRef.current,
           windStrengthMul: windStrengthRef.current, navigation: physicalNavRef.current,
@@ -358,11 +404,10 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
 
         let turnInput = 0;
         if (boat.isPlayer) {
-          const right = keysRef.current.has("arrowright");
-          const left = keysRef.current.has("arrowleft");
-          turnInput = right || left ? Number(right) - Number(left) : rudderRef.current;
-          if (turnInput && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
-          if (!turnInput && autopilotOnRef.current) turnInput = Math.max(-1, Math.min(1, angleDiff(boat.heading, autopilotHeadingRef.current) / 12));
+          // Package 13: the helm assist decides (manual rudder, Simple arrows, holds, the button turn).
+          const cmd = helmTick(boat, dt);
+          turnInput = cmd.heading !== null ? helmTurnToward(boat.heading, cmd.heading) : cmd.manual;
+          shownRudder = turnInput;
         } else turnInput = raceAutopilotTurn(boat, course, windDirRef.current);
         stepBoat(boat, dt, windDirRef.current, windGustRef.current,
           boat.isPlayer ? { turn: turnInput, autoTrim: racePrefsRef.current.mode !== "pro", trim: trimRef.current } : { turn: turnInput },
@@ -501,7 +546,9 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         lastTackSignRef.current = manoeuvres.side;
         if (classified.manoeuvre) {
           const kind = classified.manoeuvre;
-          logEventsRef.current.push({ type: kind, t, note: manoeuvres.side > 0 ? 'to-port-tack' : 'to-starboard-tack' });
+          // Package 13: a tack or gybe the button made says so (the replay and the coach read the note).
+          const byButton = t - lastButtonTurnT <= 1.5;
+          logEventsRef.current.push({ type: kind, t, note: `${manoeuvres.side > 0 ? 'to-port-tack' : 'to-starboard-tack'}${byButton ? '-button' : ''}` });
           // First-race funnel: the first real tack or gybe.
           if (!physical) trackRaceTack(raceIdRef.current, t);
           playTack();
@@ -609,8 +656,10 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
         const finishHoldShown = finishHoldActive(endedRaceId);
         if (finishHoldShown) recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "finish-hold", mode: racePrefsRef.current.mode });
+        const assists = raceAssistRecord(refs.helmControlRef?.current ?? "wheels", helm.current.usage);
         if (!physical) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
-          totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length });
+          totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length,
+          helm: assists.helm, buttonTurns: assists.buttonTurns, bestVmgSec: assists.bestVmgSec });
         // Race ended cleanly - drop the resume offer so the next reload
         // starts from a fresh menu.
         clearRaceSetup();
@@ -739,7 +788,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
               // The native validator (race-native.ts, also inside installed app
               // builds) knows no 'gybe' event yet; the coaching above has them.
               course, samples, events: events.filter(nativeLogEvent), coaching: localCoaching,
-              penaltySeconds: playerPenalty };
+              penaltySeconds: playerPenalty, ...(refs.helmControlRef ? { assists } : {}) };
             pendingNativeSaves.current.add(snapshot);
             const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
             setNativeSave(sent ? "saving" : "error");
@@ -796,7 +845,21 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         if (player) {
           hudRefreshRef.current = now;
           const twa = calcTWA(player.heading, windDirRef.current);
-          setPlayerTWA(twa); setPlayerSpeed(displayedBoatSpeed(groundSpeed, player.speed, raceScale(physicalRef.current).unitsPerKnotSecond));
+          const shownSpeed = displayedBoatSpeed(groundSpeed, player.speed, raceScale(physicalRef.current).unitsPerKnotSecond);
+          setPlayerTWA(twa); setPlayerSpeed(shownSpeed);
+          if (set.setHelmView) {
+            // Package 13: the VMG line (VMC on a reach) against the polar's best, with its trend.
+            const st = helm.current, profile = helmProfile();
+            const markTwa = calcTWA(bearing(player.pos, nextMark(player)), windDirRef.current);
+            const leg = st.leg ?? legOf(markTwa, profile.angles);
+            const kn = madeGood(shownSpeed, twa, leg, markTwa);
+            vmgTrend.push(kn); if (vmgTrend.length > 21) vmgTrend.shift();
+            const change = kn - vmgTrend[0];
+            set.setHelmView({ hold: st.hold, course: autopilotOnRef.current ? autopilotHeadingRef.current : null, rudder: shownRudder,
+              turning: st.turn ? { kind: st.turn.kind, heading: (((windDirRef.current + st.turn.targetTwa) % 360) + 360) % 360 } : null,
+              vmg: player.lapDone < 2 ? { kn, targetKn: legTarget(profile.speedAt, profile.angles, markTwa, twa, leg).targetKn, leg,
+                trend: Math.abs(change) < 0.1 ? 0 : change > 0 ? 1 : -1 } : null });
+          }
           const reading = raceWindReading({ heading: player.heading, boatSpeedKn: player.speed, windFrom: windDirRef.current,
             windKnots: player.physics?.trueWindSpeed, leeway: player.physics?.leeway });
           setWindReading(reading);
