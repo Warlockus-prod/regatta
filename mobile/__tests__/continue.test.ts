@@ -3,7 +3,8 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 jest.mock('expo-router', () => ({ useFocusEffect: jest.fn() }));
 
-import { resolveContinue, type ContinueInput } from '../src/home/continue';
+import { homeStepEvidence, resolveContinue, type ContinueInput } from '../src/home/continue';
+import { hasMeaningfulStep } from '../../src/lib/product/home-entry';
 import { parseBookmark, type LearningBookmark } from '../src/persistence/learning-bookmark';
 import { bootcampLessons } from '../src/data';
 import { hasQuiz } from '../src/bootcamp/quiz-data';
@@ -47,9 +48,20 @@ describe('Home continues the course the learner was in', () => {
     expect(target.course === 'sails' && target.lesson.id).toBe(sailLessons[1]!.id);
   });
 
-  it('radio and the motorboat course reopen the course itself', () => {
-    expect(resolveContinue(input({ bookmark: mark('radio') }))).toEqual({ course: 'radio', state: 'continue' });
-    expect(resolveContinue(input({ bookmark: mark('motor') }))).toEqual({ course: 'motor', state: 'continue' });
+  it('a radio or motorboat bookmark is never the continuation (package 9, R-14)', () => {
+    for (const course of ['radio', 'motor'] as const) {
+      expect(resolveContinue(input({ bookmark: mark(course) }))).toMatchObject({ course: 'bootcamp', state: 'start' });
+    }
+  });
+
+  it('only a passed lesson or a passed sail check is a meaningful step, not a visit', () => {
+    expect(hasMeaningfulStep(homeStepEvidence(input()))).toBe(false);
+    const viewed = input({ bootcamp: { viewedIds: new Set(bootcampLessons.map((l) => l.id)), quizResults: {}, doneIds: new Set(), lastViewedLessonId: 'tacking' }, bookmark: mark('sails', sailLessons[1]!.id) });
+    expect(hasMeaningfulStep(homeStepEvidence(viewed))).toBe(false);
+    const failed = bootcampLessons.find((l) => hasQuiz(l.id))!;
+    expect(hasMeaningfulStep(homeStepEvidence(input({ bootcamp: { viewedIds: new Set(), quizResults: { [failed.id]: { score: 0, total: 9, answeredAt: 1 } }, doneIds: new Set(), lastViewedLessonId: null } })))).toBe(false);
+    expect(hasMeaningfulStep(homeStepEvidence(input({ bootcamp: { viewedIds: new Set(), quizResults: { [failed.id]: { score: 9, total: 9, answeredAt: 1 } }, doneIds: new Set(), lastViewedLessonId: null } })))).toBe(true);
+    expect(hasMeaningfulStep(homeStepEvidence(input({ sail: { version: 1, checked: [sailLessons[0]!.id], current: null } })))).toBe(true);
   });
 
   it('every bootcamp lesson opened but the sail course chosen: continue sails', () => {

@@ -55,3 +55,14 @@
 .menuRow strong { font-size: 16px; }
 .menuAppearance { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border-subtle); margin-top: 40px; padding-top: 20px; max-width: 460px; color: var(--text-secondary); font-size: 15px; }
 @media (max-width: 760px) { .groupsGrid { grid-template-columns: 1fr; gap: 32px; } }
+/* Package 9: the Race hub's one Play, its last settings and the real race frame. */
+.play { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: 12px; }
+.playScene { margin: 0; }
+.playScene img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 860; object-fit: cover; border-radius: 16px; background: var(--bg-secondary); }
+.playActions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.playSummary { color: var(--text-secondary); font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
+.playActions .primary { justify-content: space-between; min-height: 52px; font-size: 16px; }
+@media (max-width: 640px) {
+  .play { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .playScene img { aspect-ratio: 16 / 9; border-radius: 14px; }
+}

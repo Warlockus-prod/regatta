@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Stack, useRouter, type Href } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { destinations, searchDestinations, sections, type Destination, type Section } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
@@ -9,7 +9,6 @@ import { useI18n } from "../i18n/context";
 import { Button, ListRow, Screen, Text } from "../design-system/components";
 import { colors, radii, shadow } from "../design-system/tokens";
 import { dailySettings } from "../../../src/lib/daily-challenge";
-import { PhotoCard } from "../home/PhotoCard";
 import { useLearningSnapshot } from "../home/useLearningSnapshot";
 import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
 import { passedLessonIds } from "../bootcamp/status";
@@ -20,10 +19,13 @@ import { RaceHubMedal, hubMedalCourse } from "./RaceHubMedal";
 import { RaceHubNextStep, hubRacedBefore, useRaceHubRows } from "./RaceHubNextStep";
 import { raceHomeView } from "../../../src/lib/race-next-step";
 import { useVenue } from "../persistence/venue";
-import { DEFAULT_HUB_SETUP, hubRaceHref, hubStartLabel, type HubRaceSetup } from "./race-setup";
+import { DEFAULT_HUB_SETUP, hubRaceHref, hubSetupSummary, type HubRaceSetup } from "./race-setup";
+import { readHubSetup, writeHubSetup } from "../persistence/race-hub-setup";
+import { raceCopy } from "../game/copy";
 import { RACE_INTRO_TITLE } from "../../../src/data/race-intro-title";
 
-const racePhoto = require("../../assets/design/race-card.jpg");
+/** Package 9: a still of the real race scene (the website uses the same frame). */
+const raceScene = require("../../assets/design/race-scene.jpg");
 /** F5: the race page opened only for its intro (raceEntryQuery forwards the flag). */
 export const RACE_INTRO_HREF = "/game?intro=1";
 
@@ -37,32 +39,42 @@ export const RACE_INTRO_HREF = "/game?intro=1";
  * The status bar area stays a fixed paper strip (Screen pads it, outside the
  * scroll view), so rows never scroll under the clock and the system icons.
  *
- * The Race hub is the race lobby of the app (M1-1, M1-6): the race frame, the
- * one race setup (preset, level and wind or mission, then mode and venue) and
- * one primary start, pinned under the scroll above the tab bar (F1) and named
- * "first race" only until this device has raced. The setup goes to the race in the route, so the race's
- * own menu and briefing never ask for it again.
+ * The Race hub is the race lobby of the app (M1-1, M1-6): a frame of the real
+ * race scene, the setup it plays named in one line, and one primary "Play"
+ * pinned under the scroll above the tab bar (F1). Package 9 (audit B10): Play
+ * starts with the last used setup (saved on every change); the choices
+ * (preset, level and wind or mission, then mode and venue) open under
+ * "Change". The easy preset is named "first race" only until this device has
+ * raced. The setup goes to the race in the route, so the race's own menu and
+ * briefing never ask for it again.
  */
 export function ProductHub({ section }: { section: Exclude<Section, "home">; menu?: boolean }) {
   const { lang } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [raceSetup, setRaceSetup] = useState<HubRaceSetup>(DEFAULT_HUB_SETUP);
+  const [changing, setChanging] = useState(false);
+  useEffect(() => {
+    if (section !== "race") return;
+    let active = true;
+    readHubSetup().then(saved => { if (active) setRaceSetup(saved); });
+    return () => { active = false; };
+  }, [section]);
+  const changeSetup = (next: HubRaceSetup) => { setRaceSetup(next); writeHubSetup(next); };
   const startRace = () => router.push(hubRaceHref(raceSetup) as Href);
   const daily = dailySettings(new Date().toISOString().slice(0, 10));
   // M4-6: the one next-step card of the Race hub, the record and the progress.
-  const { mode } = useVenue();
+  const { mode, venue } = useVenue();
   const rows = useRaceHubRows(section === "race");
   // F1: once this device has raced, the easy preset is "Easy race" and the
   // start says "Start the race", not "Start your first race". Until the
   // storage read settles the words stay neutral (no "first race" flash).
   const racedBefore = hubRacedBefore(rows);
-  const startLabel = hubStartLabel(raceSetup, racedBefore, lang);
+  const setupSummary = `${hubSetupSummary(raceSetup, racedBefore, lang)} · ${raceCopy[mode][lang]} · ${venue.name[lang]}`;
   const home = section === "race" ? raceHomeView({ ...rows, course: hubMedalCourse(raceSetup), mode, now: new Date(), inDaily: false }) : null;
   const isMenu = section === "library";
   const current = sections.find(s => s.id === section)!;
   const title = isMenu ? copy.menu[lang] : current.title[lang];
-  const solo = destinations.find(d => d.id === "solo")!;
   const visible = isMenu ? searchDestinations(query, lang, "native") : destinations.filter(d => d.section === section && d.native && !(section === "race" && d.id === "solo"));
   const sectionTitle = (id: Section) => sections.find(s => s.id === id)!.title[lang];
   const groups = isMenu ? [
@@ -85,10 +97,19 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
       {home && <RaceHubNextStep view={home} setup={raceSetup} onOpen={href => router.push(href as Href)} />}
-      {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={startRace} />}
-      {section === "race" && <RaceSetupPanel value={raceSetup} onChange={setRaceSetup} racedBefore={racedBefore} />}
+      {section === "race" && <View style={styles.play}>
+        <Image source={raceScene} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={homeCopy.sceneAlt[lang]} accessibilityIgnoresInvertColors />
+        <View style={styles.summaryRow}>
+          <Text style={styles.summary} testID="race-hub-summary">{setupSummary}</Text>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: changing }} onPress={() => setChanging(v => !v)} hitSlop={8}
+            style={({ pressed }) => [styles.change, pressed && styles.changePressed]}>
+            <Text style={styles.changeText}>{homeCopy.change[lang]}</Text>
+          </Pressable>
+        </View>
+      </View>}
+      {section === "race" && changing && <RaceSetupPanel value={raceSetup} onChange={changeSetup} racedBefore={racedBefore} />}
+      {section === "race" && changing && <VenuePicker />}
       {section === "race" && home?.step?.kind !== "medal" && <RaceHubMedal setup={raceSetup} />}
-      {section === "race" && <VenuePicker />}
       {isMenu && <View style={styles.search}>
         <View style={styles.field}>
           <Svg width={18} height={18} viewBox="0 0 18 18" accessibilityElementsHidden importantForAccessibility="no">
@@ -110,11 +131,10 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
         <ListRow noBorder title={RACE_INTRO_TITLE[lang]} onPress={() => router.push(RACE_INTRO_HREF as Href)} />
       </Group>}
     </ScrollView>
-    {/* F1: the one labelled start stays on screen above the tab bar. On a
-        phone the setup, the next-step card and the venues pushed it below the
-        fold, so the race photo above (also a start) looked like the only way. */}
+    {/* F1: the one start stays on screen above the tab bar, whatever is open
+        above it. Package 9: it is "Play", with the setup named in the hub. */}
     {section === "race" && <View style={styles.startBar} testID="race-hub-start-bar">
-      <View style={styles.startInner}><Button size="large" onPress={startRace}>{startLabel}</Button></View>
+      <View style={styles.startInner}><Button size="large" onPress={startRace} accessibilityHint={setupSummary}>{homeCopy.play[lang]}</Button></View>
     </View>}
   </Screen>;
 }
@@ -167,6 +187,13 @@ const styles = StyleSheet.create({
   startBar: { paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(18, 50, 71, 0.12)", backgroundColor: colors.bgPrimary },
   startInner: { maxWidth: 780, width: "100%", alignSelf: "center" },
   title: { minHeight: 40 },
+  play: { gap: 10 },
+  scene: { width: "100%", aspectRatio: 16 / 9, borderRadius: radii.card, backgroundColor: colors.sand },
+  summaryRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 },
+  summary: { flexShrink: 1, fontSize: 15, lineHeight: 22, color: colors.textSecondary },
+  change: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 4 },
+  changePressed: { opacity: 0.7 },
+  changeText: { fontSize: 15, fontWeight: "600", color: colors.accentCyan },
   intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: -8 },
   group: { gap: 8 },
   groupTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600", color: colors.textSecondary, paddingHorizontal: 4 },

@@ -2,6 +2,7 @@ import { words } from "../../../src/lib/product/catalog";
 import { DIFFICULTY_CONFIG, type Difficulty } from "../../../src/data/race-difficulty";
 import missionData from "../data/missions.json";
 import { raceStartCopy } from "../../../src/data/race-start-copy";
+import { raceHubCopy } from "../../../src/lib/product/race-hub";
 
 /**
  * M1-1: the app asks the race setup once, in the Race hub. The hub hands it to
@@ -36,12 +37,17 @@ export function choosePreset(setup: HubRaceSetup, preset: HubPreset): HubRaceSet
   return { ...setup, preset };
 }
 
-/** F1: the hub's start label. The easy preset is a "first race" only until
- * this device has raced (src/lib/race-next-step.ts hasRacedBefore). */
-export function hubStartLabel(setup: HubRaceSetup, racedBefore: boolean, lang: keyof ReturnType<typeof words>): string {
-  if (setup.preset === "mission") return hubSetupCopy.startMission[lang];
-  if (setup.preset === "learn" && !racedBefore) return hubSetupCopy.startFirst[lang];
-  return hubSetupCopy.start[lang];
+/**
+ * Package 9 (audit B10): the hub names the setup its one "Play" starts with,
+ * so the choices can stay closed under "Change": "First race" (or "Easy race"
+ * once this device has raced), "Hard · strong wind" or the mission's title.
+ */
+export function hubSetupSummary(setup: HubRaceSetup, racedBefore: boolean, lang: keyof ReturnType<typeof words>): string {
+  if (setup.preset === "learn") return (racedBefore ? hubSetupCopy.learnAgain : hubSetupCopy.learn)[lang];
+  if (setup.preset === "free") return `${difficultyLabel(setup.difficulty, lang)} · ${raceHubCopy.wind[setup.wind][lang]}`;
+  const mission = hubMissions.find(m => m.id === setup.missionId) ?? hubMissions[0];
+  const title = { ru: mission.titleRu, en: mission.titleEn, pl: mission.titlePl, es: mission.titleEs, fr: mission.titleFr, de: mission.titleDe, it: mission.titleIt }[lang];
+  return `${hubSetupCopy.mission[lang]}: ${typeof title === "string" && title ? title : String(mission.titleEn ?? mission.id)}`;
 }
 
 export function difficultyLabel(d: Difficulty, lang: keyof ReturnType<typeof words>): string {
@@ -62,7 +68,4 @@ export const hubSetupCopy = {
   light: words("Слабый", "Light", "Słaby", "Flojo", "Faible", "Schwach", "Leggero"),
   medium: words("Средний", "Medium", "Średni", "Medio", "Moyen", "Mittel", "Medio"),
   heavy: words("Сильный", "Strong", "Silny", "Fuerte", "Fort", "Stark", "Forte"),
-  start: raceStartCopy.start,
-  startFirst: raceStartCopy.startFirst,
-  startMission: words("Начать миссию", "Start the mission", "Zacznij misję", "Empezar la misión", "Lancer la mission", "Mission starten", "Inizia la missione"),
 };

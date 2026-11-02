@@ -35,6 +35,7 @@ import { RACE_HISTORY_STORAGE_KEY, countStoredRaces } from "../src/persistence/r
 import { ProductHub } from "../src/navigation/ProductHub";
 import { DEFAULT_HUB_SETUP, choosePreset, hubMissions, hubRaceHref } from "../src/navigation/race-setup";
 import { raceEntryQuery } from "../src/navigation/race-entry";
+import { RACE_HUB_SETUP_KEY, parseHubSetup } from "../src/persistence/race-hub-setup";
 
 const metrics = { insets: { top: 47, bottom: 34, left: 0, right: 0 }, frame: { x: 0, y: 0, width: 390, height: 844 } };
 const hub = () => render(<SafeAreaProvider initialMetrics={metrics}><I18nProvider initialLang="en"><ProductHub section="race" /></I18nProvider></SafeAreaProvider>);
@@ -59,29 +60,48 @@ describe("race hub setup", () => {
     expect(raceEntryQuery(query(`/game?mission=${hubMissions[1].id}`), "simple").mission).toBe(hubMissions[1].id);
   });
 
-  it("starts from the hub with the chosen setup and one primary start", async () => {
+  it("plays the last setup with one Play; the choices open under Change and are kept (package 9)", async () => {
     const view = hub();
-    fireEvent.press(await view.findByRole("button", { name: "Start your first race" }));
+    const summary = () => view.getByTestId("race-hub-summary").props.children;
+    fireEvent.press(await view.findByRole("button", { name: "Play" }));
     expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=easy&wind=medium");
+    // The choices are closed until Change.
+    expect(view.queryByRole("radio", { name: "Free race" })).toBeNull();
+    fireEvent.press(view.getByRole("button", { name: "Change" }));
     fireEvent.press(view.getByRole("radio", { name: "Free race" }));
     fireEvent.press(view.getByRole("radio", { name: "Hard" }));
     fireEvent.press(view.getByRole("radio", { name: "Strong" }));
-    fireEvent.press(view.getByRole("button", { name: "Start the race" }));
+    expect(summary()).toMatch(/^Hard · strong wind · Simple · /);
+    fireEvent.press(view.getByRole("button", { name: "Play" }));
     expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=hard&wind=heavy");
-    // The race frame opens the same setup, not a bare race menu.
-    fireEvent.press(view.getByRole("button", { name: /^Race\. Solo race/ }));
-    expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=hard&wind=heavy");
-    fireEvent.press(view.getByRole("radio", { name: "Mission" }));
-    fireEvent.press(view.getByRole("button", { name: "Start the mission" }));
-    expect(mockPush).toHaveBeenLastCalledWith(`/game?mission=${hubMissions[0].id}`);
+    expect(view.getAllByRole("button", { name: "Play" })).toHaveLength(1);
     view.unmount();
+    // The next visit plays the same setup without opening the choices.
+    await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(RACE_HUB_SETUP_KEY))!)).toMatchObject({ preset: "free", difficulty: "hard", wind: "heavy" }));
+    const again = hub();
+    await waitFor(() => expect(again.getByTestId("race-hub-summary").props.children).toMatch(/^Hard · strong wind/));
+    fireEvent.press(again.getByRole("button", { name: "Play" }));
+    expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=hard&wind=heavy");
+    fireEvent.press(again.getByRole("button", { name: "Change" }));
+    fireEvent.press(again.getByRole("radio", { name: "Mission" }));
+    expect(again.getByTestId("race-hub-summary").props.children).toMatch(/^Mission: /);
+    fireEvent.press(again.getByRole("button", { name: "Play" }));
+    expect(mockPush).toHaveBeenLastCalledWith(`/game?mission=${hubMissions[0].id}`);
+    again.unmount();
+  });
+
+  it("reads a broken or unknown saved setup as the first race", () => {
+    expect(parseHubSetup("{bad")).toBeNull();
+    expect(parseHubSetup(JSON.stringify({ v: 1, preset: "mission", difficulty: "easy", wind: "medium", missionId: "gone" }))).toBeNull();
+    expect(parseHubSetup(JSON.stringify({ v: 1, preset: "free", difficulty: "insane", wind: "medium", missionId: null }))).toBeNull();
+    expect(parseHubSetup(JSON.stringify({ v: 1, preset: "free", difficulty: "medium", wind: "light", missionId: null }))).toEqual({ preset: "free", difficulty: "medium", wind: "light", missionId: null });
   });
 
   // F5: the race's own lobby (with its "How to race") is not in the app, so the
   // hub offers it as a plain row, and the flag reaches the race page.
   it("opens the race intro from How to race, a row beside the one primary start", async () => {
     const view = hub();
-    await view.findByRole("button", { name: "Start your first race" });
+    await view.findByRole("button", { name: "Play" });
     fireEvent.press(view.getByRole("button", { name: /^How to race/ }));
     expect(mockPush).toHaveBeenLastCalledWith("/game?intro=1");
     expect(raceEntryQuery(query("/game?intro=1"), "simple")).toMatchObject({ intro: "1", mode: "simple" });
@@ -91,23 +111,25 @@ describe("race hub setup", () => {
 });
 
 /**
- * F1 (TestFlight 74 feedback): the easy preset is "First race" and the start
- * "Start your first race" only until this device has raced (the race home row,
- * a personal best or the native race history); then "Easy race" and "Start
- * the race". The one labelled start is pinned under the scroll view, above the
- * tab bar, so the race photo (also a start) is never the only visible way in.
+ * F1 (TestFlight 74 feedback): the easy preset is "First race" only until this
+ * device has raced (the race home row, a personal best or the native race
+ * history); then "Easy race". Package 9: the hub names it in the setup line,
+ * and the one start, "Play", is pinned under the scroll view above the tab bar.
  */
 describe("race hub wording and start after the first race (F1)", () => {
   const startBar = (view: ReturnType<typeof hub>) => view.getByTestId("race-hub-start-bar");
+  const summary = (view: ReturnType<typeof hub>) => String(view.getByTestId("race-hub-summary").props.children);
 
-  it("says First race with no race on this device, with the start pinned outside the scroll", async () => {
+  it("says First race with no race on this device, with the one Play pinned outside the scroll", async () => {
     const view = hub();
-    await waitFor(() => expect(view.getByRole("radio", { name: "First race" })).toBeTruthy());
+    await waitFor(() => expect(summary(view)).toMatch(/^First race · /));
+    fireEvent.press(view.getByRole("button", { name: "Change" }));
+    expect(view.getByRole("radio", { name: "First race" })).toBeTruthy();
     expect(view.queryByRole("radio", { name: "Easy race" })).toBeNull();
-    const start = within(startBar(view)).getByRole("button", { name: "Start your first race" });
+    const start = within(startBar(view)).getByRole("button", { name: "Play" });
     // Pinned: the bar is not inside the scroll view, and it is the only start button.
     expect(within(view.UNSAFE_getByType(ScrollView)).queryByTestId("race-hub-start-bar")).toBeNull();
-    expect(view.getAllByRole("button", { name: /^Start / })).toHaveLength(1);
+    expect(view.getAllByRole("button", { name: /^(Play|Start )/ })).toHaveLength(1);
     fireEvent.press(start);
     expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=easy&wind=medium");
     view.unmount();
@@ -118,15 +140,12 @@ describe("race hub wording and start after the first race (F1)", () => {
     ["a personal best", BEST_TIMES_STORAGE_KEY, JSON.stringify({ "easy-medium": { timeSec: 101, ts: 1 } })],
     ["a saved race in the history", RACE_HISTORY_STORAGE_KEY, JSON.stringify([{ id: "r1", courseId: "short", timeSec: 200, score: 70, finishedAt: 1, replay: [] }])],
   ];
-  it.each(rows)("says Easy race and Start the race after %s", async (_label, key, value) => {
+  it.each(rows)("says Easy race after %s", async (_label, key, value) => {
     await AsyncStorage.setItem(key, value);
     const view = hub();
-    await waitFor(() => expect(view.getByRole("radio", { name: "Easy race" })).toBeTruthy());
+    await waitFor(() => expect(summary(view)).toMatch(/^Easy race · /));
     expect(view.queryByText(/first race/i)).toBeNull();
-    fireEvent.press(within(startBar(view)).getByRole("button", { name: "Start the race" }));
-    expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=easy&wind=medium");
-    // The race photo still starts the same race.
-    fireEvent.press(view.getByRole("button", { name: /^Race\. Solo race/ }));
+    fireEvent.press(within(startBar(view)).getByRole("button", { name: "Play" }));
     expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=easy&wind=medium");
     view.unmount();
   });
@@ -136,22 +155,21 @@ describe("race hub wording and start after the first race (F1)", () => {
     const view = hub();
     // The very first render, before AsyncStorage answers: neutral words.
     expect(view.queryByText(/first race/i)).toBeNull();
-    expect(within(startBar(view)).getByRole("button", { name: "Start the race" })).toBeTruthy();
-    await waitFor(() => expect(view.getByRole("radio", { name: "Easy race" })).toBeTruthy());
+    expect(within(startBar(view)).getByRole("button", { name: "Play" })).toBeTruthy();
+    await waitFor(() => expect(summary(view)).toMatch(/^Easy race · /));
     expect(view.queryByText(/first race/i)).toBeNull();
     view.unmount();
   });
 
   it("switches to Easy race when the player comes back after the first race", async () => {
     const view = hub();
-    await waitFor(() => expect(view.getByRole("radio", { name: "First race" })).toBeTruthy());
+    await waitFor(() => expect(summary(view)).toMatch(/^First race · /));
     // The race WebView ends a race and writes the race home row; the player
     // returns to the Race tab, which reads the rows again on focus.
     await AsyncStorage.setItem(RACE_HOME_STORAGE_KEY, JSON.stringify({ schema: 1, days: ["2026-11-01"], goal: null, dailyDone: null }));
     act(() => mockRefocus());
-    await waitFor(() => expect(view.getByRole("radio", { name: "Easy race" })).toBeTruthy());
+    await waitFor(() => expect(summary(view)).toMatch(/^Easy race · /));
     expect(view.queryByText(/first race/i)).toBeNull();
-    expect(within(startBar(view)).getByRole("button", { name: "Start the race" })).toBeTruthy();
     view.unmount();
   });
 

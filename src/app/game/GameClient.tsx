@@ -52,6 +52,7 @@ import { useRaceHaptics } from "@/features/race-hud/RaceHapticsToggle";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup, planRaceResume, raceSetupWindMultiplier } from "@/lib/race-setup";
+import { rememberLastRaceSetup } from "@/lib/race-last-setup";
 import { raceReturnFor } from "@/lib/race-return";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
 import type { CoachKey } from "@/features/sailing-lab/runtime/trim-coach";
@@ -409,7 +410,7 @@ export default function GamePage() {
     setWindStrength(setup.windStrength);
     setSelectedMission(missions.find(m => m.id === setup.missionId) ?? null);
     setDailyDay(setup.dailyDay);
-    if (hubHandsOffSetup({ native: isNativeRace(), linkedSetup: true, replay: Boolean(readNativeRaceReplay()), trial: Boolean(readPhysicalTrial(window.location.search)) })) {
+    if (hubHandsOffSetup({ native: isNativeRace(), play: readRaceSearch().get("play") === "1", linkedSetup: true, replay: Boolean(readNativeRaceReplay()), trial: Boolean(readPhysicalTrial(window.location.search)) })) {
       handedSetupRef.current = true;
       setHubHandoff(true); setHandedOff(true);
     }
@@ -738,6 +739,10 @@ export default function GamePage() {
       phase: 'countdown',
     });
     setLockedMode(racePrefs.mode);
+    // Package 9: the website's Race hub plays the last setup again; the daily
+    // race and the metric trial keep their own entries, the app its own hub.
+    if (!physicalRef.current && dailyDay === null && !isNativeRace()) rememberLastRaceSetup(localStore(),
+      selectedMission ? { kind: "mission", missionId: selectedMission.id } : { kind: "free", difficulty, wind: windStrength });
     raceSetupRef.current = { ...raceSetupRef.current,
       race: physicalRef.current ? "trial" : selectedMission ? "mission" : dailyDay !== null ? "daily" : "free" };
     // M4-4: in the iOS app too; its race bridge injects the native ghost row

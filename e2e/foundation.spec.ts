@@ -46,7 +46,33 @@ test("legacy visits remain ungraded, original checks and draft resume survive re
   await expect(page).toHaveURL(/\/start\?lesson=wind-direction&step=practice$/);
   await expect(page.getByText("Раздел практики открывался, результат не оценивался.", { exact: true })).toBeVisible();
   await page.goto("/");
-  await expect(page.locator('main a[href="/start?lesson=points-of-sail"]')).toBeVisible();
+  // Package 9: the passed check is a meaningful step, so the one primary action continues.
+  const primary = page.locator('main a[data-action="primary"]');
+  await expect(primary).toHaveCount(1);
+  await expect(primary).toHaveAttribute("href", "/start?lesson=points-of-sail");
+  await expect(primary).toContainText("Продолжить обучение");
+});
+
+test("visits alone, legacy ones and a look at /sternik, keep the new visitor home with one Start from scratch", async ({ page }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 900 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/sternik");
+    await page.goto("/");
+    const primary = page.locator('main a[data-action="primary"]');
+    await expect(primary).toHaveCount(1);
+    await expect(primary).toHaveText("Начать с нуля→");
+    await expect(primary).toHaveAttribute("href", "/start?lesson=wind-direction");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Научись ходить под парусом за неделю");
+    await expect(page.getByText("Моторный рулевой Моторный рулевой")).toHaveCount(0);
+    await expect(page.locator('main a[href="/sternik"]')).toBeVisible();
+    const race = page.getByRole("link", { name: "Сразу в гонку", exact: false });
+    await expect(race).toHaveAttribute("href", "/game?difficulty=easy&wind=medium&play=1");
+    // The primary action is on the first screen and a real touch target.
+    const box = (await primary.boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
 });
 
 test("first wind practice renders the whole yacht and returns after a real first frame without grading", async ({ page }) => {

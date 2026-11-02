@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "52f16cec7f05",
-  "sha256": "f127fd921465d00fc846f9454a0892c3b9c4e2ef3fb26ee5de98166e657262be",
-  "bytes": 6959392,
+  "version": "5a349d98b1bd",
+  "sha256": "5932ce3492f2f313178ea6fcd7df84dcca3ed09884fa86034b5be762ecbd2acc",
+  "bytes": 6959763,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -909,6 +909,7 @@
     "src/lib/race-guidance.ts",
     "src/lib/race-haptics.ts",
     "src/lib/race-judge.ts",
+    "src/lib/race-last-setup.ts",
     "src/lib/race-manoeuvres.ts",
     "src/lib/race-medals.ts",
     "src/lib/race-missed-mark.ts",
@@ -999,13 +1000,13 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 81199,
-      "sha256": "869b718c84bdf47da0e025dcc7e847e72af0c0ea59df42d643f31441c1f1f38a"
+      "bytes": 81697,
+      "sha256": "3513134f6a204ef726096ce9b3554ae7503119446b4672478fd7c655cdcbc95a"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
-      "bytes": 24457,
-      "sha256": "78f8376e76eb988e048d77799cfc4100a95ad1d76f2a27d31290b384496af97a"
+      "bytes": 24550,
+      "sha256": "4f2e9e574cadd3684daa82d07cb42c74d0d4ed2e63a31985ec160869f4bc8a3f"
     },
     {
       "path": "src/app/game/LobbyVenues.tsx",
@@ -1144,8 +1145,8 @@
     },
     {
       "path": "src/app/game/race-setup-flow.ts",
-      "bytes": 3149,
-      "sha256": "04d517ea53a1687dd2743aa245cd9dd90dcb6a401599acf652756e00fb48958e"
+      "bytes": 3266,
+      "sha256": "7b945696f2a9571045d37e93ce19b7f527c0f6933fff81f4d9f12aefd6b567be"
     },
     {
       "path": "src/app/game/race-start-trim.ts",
@@ -2576,6 +2577,11 @@
       "path": "src/lib/race-judge.ts",
       "bytes": 13139,
       "sha256": "eb2cff3bfe7c56156494924da272919699ed1ad94bdabc514497039b00cccd83"
+    },
+    {
+      "path": "src/lib/race-last-setup.ts",
+      "bytes": 3488,
+      "sha256": "5c945b902605c6deeb3464e2dff5afd77d7310de53829a9ad3f1b26fc12862e8"
     },
     {
       "path": "src/lib/race-manoeuvres.ts",

@@ -46,6 +46,8 @@ it("shows the stored course medal and its next goal, and no medal for another co
   await waitFor(() => expect(view.getByText("Course medal: Silver")).toBeTruthy());
   expect(view.getByText("Easy, medium wind")).toBeTruthy();
   expect(view.getByText(`Next, gold: finish faster than ${formatRecordTime(t.goldSec)} with "Route and hints" off in the race settings`)).toBeTruthy();
+  // Package 9: the choices open under Change.
+  fireEvent.press(view.getByRole("button", { name: "Change" }));
   await act(async () => { fireEvent.press(view.getByRole("radio", { name: "Free race" })); });
   fireEvent.press(view.getByRole("radio", { name: "Hard" }));
   fireEvent.press(view.getByRole("radio", { name: "Strong" }));

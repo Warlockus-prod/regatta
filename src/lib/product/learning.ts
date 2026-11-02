@@ -3,19 +3,17 @@ import { sailLessons } from "../../data/sailing-lab/course";
 import { readSailProgress } from "../../features/sailing-lab/lessons/progress";
 import { destinations, words, type Language } from "./catalog";
 import { readLearningBookmark } from "./learning-bookmark";
+import type { StepEvidence } from "./home-entry";
 
 // The bookmark helpers live in learning-bookmark.ts (ids only) so Navigation
 // can use them without this module's lesson data; re-exported for callers here.
 export { LEARNING_BOOKMARK_KEY, bookmarkForPath, learningTracks, readLearningBookmark, type LearningBookmark, type LearningTrack } from "./learning-bookmark";
 
 export const homeCopy = {
-  title: words("Твоё обучение", "Your learning", "Twoja nauka", "Tu aprendizaje", "Ton apprentissage", "Dein Lernen", "Il tuo apprendimento"),
-  intro: words("Вернись к уроку или выбери другое направление.", "Return to a lesson or choose another course.", "Wróć do lekcji lub wybierz inny kurs.", "Vuelve a una lección o elige otro curso.", "Reprends une leçon ou choisis un autre cours.", "Kehre zu einer Lektion zurück oder wähle einen anderen Kurs.", "Riprendi una lezione o scegli un altro corso."),
   choose: words("Другое направление", "Another course", "Inny kurs", "Otro curso", "Un autre cours", "Ein anderer Kurs", "Un altro corso"),
   review: words("Повторить уроки", "Review lessons", "Powtórz lekcje", "Repasar las lecciones", "Revoir les leçons", "Lektionen wiederholen", "Ripassa le lezioni"),
   visited: words("Уроков просмотрено", "Lessons visited", "Odwiedzone lekcje", "Lecciones visitadas", "Leçons consultées", "Besuchte Lektionen", "Lezioni visitate"),
   checked: words("Проверок теории пройдено", "Theory checks passed", "Zaliczone sprawdzenia teorii", "Pruebas teóricas superadas", "Vérifications théoriques réussies", "Bestandene Theorieprüfungen", "Verifiche teoriche superate"),
-  courseHome: words("Страница курса", "Course home", "Strona kursu", "Página del curso", "Page du cours", "Kursübersicht", "Pagina del corso"),
   loading: words("Загружаем твой учебный маршрут...", "Loading your learning path...", "Wczytujemy Twój plan nauki...", "Cargando tu itinerario...", "Chargement de ton parcours...", "Dein Lernweg wird geladen...", "Caricamento del tuo percorso..."),
   unavailable: words("Не удалось прочитать сохранённый маршрут. Курсы доступны ниже, прогресс не удалён.", "Could not read your saved path. Courses are available below; no progress was deleted.", "Nie udało się odczytać planu. Kursy są dostępne poniżej; Twoje postępy nie zostały usunięte.", "No se pudo leer tu itinerario. Los cursos están abajo; tu progreso no se ha borrado.", "Impossible de lire ton parcours. Les cours restent disponibles ; ta progression n'a pas été effacée.", "Dein Lernweg konnte nicht gelesen werden. Die Kurse sind unten verfügbar; dein Fortschritt wurde nicht gelöscht.", "Impossibile leggere il percorso. I corsi sono disponibili sotto; i tuoi progressi non sono stati cancellati."),
   retry: words("Попробовать ещё раз", "Try again", "Spróbuj ponownie", "Reintentar", "Réessayer", "Erneut versuchen", "Riprova"),
@@ -30,8 +28,18 @@ export interface LearningSnapshot {
 }
 export const emptyLearningSnapshot = (): LearningSnapshot => ({ bookmark: null, sails: null, bootcamp: { completed: [], current: null } });
 
+/** Package 9: what counts as a meaningful step on the website (home-entry.ts). */
+export function webStepEvidence(snapshot: LearningSnapshot): StepEvidence {
+  const checked = snapshot.foundation?.checked ?? [];
+  return { lessonsPassed: bootcampLessonHeads.filter(l => checked.includes(l.id)).length, sailChecksPassed: readSailProgress(snapshot.sails).checked.length };
+}
+
 export function homeLearning(snapshot: LearningSnapshot, lang: Language, platform: "web" | "native") {
-  const bookmark = readLearningBookmark(snapshot.bookmark);
+  // Package 9 (audit K2): the radio and motorboat courses are separate
+  // entrances. Opening them is never Home's continuation; Home continues the
+  // sailing course the learner was in, or the one with evidence.
+  const marked = readLearningBookmark(snapshot.bookmark);
+  const bookmark = marked && marked.course !== "radio" && marked.course !== "motor" ? marked : null;
   const sail = readSailProgress(snapshot.sails);
   const boot = snapshot.bootcamp;
   const viewed = bootcampLessonHeads.filter(l => Array.isArray(boot.completed) && boot.completed.includes(l.id));
@@ -41,9 +49,6 @@ export function homeLearning(snapshot: LearningSnapshot, lang: Language, platfor
   const courseId = bookmark?.course ?? (bootStarted ? "course" : sailStarted ? "sails" : "course");
   const course = destinations.find(d => d.id === courseId)!;
   const overview = course[platform]!;
-  if (courseId === "radio" || courseId === "motor") {
-    return { course, href: overview, overview, title: course.title[lang], detail: course.detail![lang], started: Boolean(bookmark), complete: false, count: null, total: null, metric: null, lessonId: null, minutes: null };
-  }
   const isSails = courseId === "sails";
   const lessons = isSails ? sailLessons : bootcampLessonHeads;
   const done = isSails ? sail.checked : platform === "web" ? bootcampLessonHeads.filter(l => foundation?.checked.includes(l.id)).map(l => l.id) : viewed.map(l => l.id);

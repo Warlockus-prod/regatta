@@ -3,6 +3,7 @@ import { nextBootcampLesson, passedLessonIds, type BootcampEvidence } from "../b
 import { findSailLesson, sailLessons } from "../../../src/data/sailing-lab/course";
 import { nextSailLesson, type SailProgress } from "../../../src/features/sailing-lab/lessons/progress";
 import type { LearningBookmark } from "../persistence/learning-bookmark";
+import type { StepEvidence } from "../../../src/lib/product/home-entry";
 
 export interface ContinueInput {
   bootcamp: BootcampEvidence;
@@ -16,24 +17,30 @@ type SailLesson = (typeof sailLessons)[number];
 export type ContinueTarget =
   | { course: "bootcamp"; state: "start" | "continue"; lesson: BootcampLesson; number: number; total: number; passed: number }
   | { course: "bootcamp"; state: "done"; total: number; passed: number }
-  | { course: "sails"; state: "start" | "continue"; lesson: SailLesson; number: number; total: number; checked: number }
-  | { course: "radio"; state: "continue" }
-  | { course: "motor"; state: "continue" };
+  | { course: "sails"; state: "start" | "continue"; lesson: SailLesson; number: number; total: number; checked: number };
 
 function hasBootcampActivity(e: BootcampEvidence): boolean {
   return Boolean(e.lastViewedLessonId || e.viewedIds.size || e.doneIds.size || Object.keys(e.quizResults).length);
 }
 
 /**
- * Continue the course the learner was in last (the bookmark). Sails resume the
- * bookmarked lesson unless its theory check is already done, then the next
- * unchecked one. Radio and the motorboat course reopen the course itself: their
- * exact step lives inside the embedded course. Without a bookmark, or when the
- * bookmarked course is finished, fall back to the first course.
+ * Package 9 (audit K2): Home continues only after a meaningful step, a lesson
+ * passed (quiz or marked done) or a sail theory check passed. Opening a lesson
+ * or another course is not one (src/lib/product/home-entry.ts).
+ */
+export function homeStepEvidence({ bootcamp, sail }: Pick<ContinueInput, "bootcamp" | "sail">): StepEvidence {
+  return { lessonsPassed: passedLessonIds(bootcamp).size, sailChecksPassed: sail.checked.length };
+}
+
+/**
+ * Continue the sailing course the learner was in last (the bookmark). Sails
+ * resume the bookmarked lesson unless its theory check is already done, then
+ * the next unchecked one. The radio and motorboat courses are separate
+ * entrances on Home (owner decision R-14): their bookmark is never Home's
+ * continuation. Without a bookmark, or when the bookmarked course is finished,
+ * fall back to the first course.
  */
 export function resolveContinue({ bootcamp, sail, bookmark }: ContinueInput): ContinueTarget {
-  if (bookmark?.course === "radio") return { course: "radio", state: "continue" };
-  if (bookmark?.course === "motor") return { course: "motor", state: "continue" };
   if (bookmark?.course === "sails") {
     const marked = bookmark.lessonId && !sail.checked.includes(bookmark.lessonId) ? findSailLesson(bookmark.lessonId) : undefined;
     const lesson = marked ?? nextSailLesson(sail);

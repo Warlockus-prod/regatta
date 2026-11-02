@@ -178,12 +178,27 @@ test.describe('Smoke: critical user flows', () => {
 
   test("home starts a lesson with working course navigation", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Начать первый урок", exact: true }).click();
+    await page.locator('main a[data-action="primary"]').filter({ hasText: "Начать с нуля" }).click();
     await expect(page).toHaveURL(/\/start\?lesson=wind-direction$/);
     await expect(page.getByRole("heading", { name: "Ветер и направление", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "2. Проверить себя", exact: true }).click();
     await expect(page.getByRole("button", { name: "Проверить ответы", exact: true })).toBeDisabled();
     await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
+  });
+
+  test("race hub plays the last setup with one Play and changes it in the lobby", async ({ page }) => {
+    await page.goto("/race");
+    const play = page.locator('main a[data-action="primary"]');
+    await expect(play).toHaveCount(1);
+    await expect(play).toHaveAttribute("href", "/game?difficulty=easy&wind=medium&play=1");
+    await expect(page.getByTestId("race-play-summary")).toHaveText("Лёгкий · средний ветер · Обычный");
+    await page.evaluate(() => localStorage.setItem("regatta.race.last-setup.v1", JSON.stringify({ v: 1, kind: "free", difficulty: "hard", wind: "light" })));
+    await page.reload();
+    await expect(play).toHaveAttribute("href", "/game?difficulty=hard&wind=light&play=1");
+    await expect(page.getByTestId("race-play-summary")).toHaveText("Сложный · слабый ветер · Обычный");
+    await page.getByRole("link", { name: "Изменить", exact: true }).click();
+    await expect(page).toHaveURL(/\/game\?difficulty=hard&wind=light$/);
+    await expect(page.getByTestId("race-lobby")).toBeVisible();
   });
 
   test("legacy library leads to Menu and search reaches the radio course", async ({ page }) => {

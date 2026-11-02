@@ -1,4 +1,6 @@
 import { words, type Label } from "../../../src/lib/product/catalog";
+import { homeEntryCopy } from "../../../src/lib/product/home-entry";
+import { raceHubCopy } from "../../../src/lib/product/race-hub";
 
 /**
  * App-only strings of the v3 Home and Menu that the shared catalog and web
@@ -8,11 +10,19 @@ import { words, type Label } from "../../../src/lib/product/catalog";
  */
 export const homeCopy = {
   brand: "WEEK TO REGATTA",
-  startHere: words("С чего начать", "Start here", "Zacznij tutaj", "Empieza aquí", "Commence ici", "Hier beginnen", "Inizia da qui"),
-  lastCourse: words("Последний курс", "Your last course", "Ostatni kurs", "Tu último curso", "Ton dernier cours", "Zuletzt geöffnet", "Ultimo corso"),
+  // Package 9: the first entry uses the website's words (src/lib/product/home-entry.ts).
+  value: homeEntryCopy.value,
+  valueDetail: homeEntryCopy.valueDetail,
+  startFromScratch: homeEntryCopy.startFromScratch,
+  straightToRace: homeEntryCopy.straightToRace,
+  sceneCaption: homeEntryCopy.sceneCaption,
+  sceneAlt: homeEntryCopy.sceneAlt,
+  examQuestion: homeEntryCopy.examQuestion,
+  // The Race hub's one start and its choices (src/lib/product/race-hub.ts).
+  play: raceHubCopy.play,
+  change: raceHubCopy.change,
   otherPaths: words("Другие направления", "Other paths", "Inne ścieżki", "Otros itinerarios", "Autres parcours", "Weitere Lernwege", "Altri percorsi"),
   allCourses: words("Все курсы", "All courses", "Wszystkie kursy", "Todos los cursos", "Tous les cours", "Alle Kurse", "Tutti i corsi"),
-  exams: words("Экзамены", "Exams", "Egzaminy", "Exámenes", "Examens", "Prüfungen", "Esami"),
   myProgress: words("Мой прогресс", "My progress", "Mój postęp", "Mi progreso", "Ma progression", "Mein Fortschritt", "I miei progressi"),
   appGroup: words("Приложение", "App", "Aplikacja", "App", "Application", "App", "App"),
   onDevice: words("Хранится на этом устройстве.", "Stored on this device.", "Zapisane na tym urządzeniu.", "Guardado en este dispositivo.", "Enregistré sur cet appareil.", "Auf diesem Gerät gespeichert.", "Salvato su questo dispositivo."),

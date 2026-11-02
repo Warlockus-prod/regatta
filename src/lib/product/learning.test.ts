@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { bootcampLessons } from "../../data/bootcamp";
 import { sailLessons } from "../../data/sailing-lab/course";
-import { bookmarkForPath, emptyLearningSnapshot, homeLearning, readLearningBookmark } from "./learning";
+import { bookmarkForPath, emptyLearningSnapshot, homeLearning, readLearningBookmark, webStepEvidence } from "./learning";
+import { hasMeaningfulStep } from "./home-entry";
 
 describe("honest home learning continuation", () => {
   it("starts a new learner without fabricating progress", () => {
@@ -39,10 +40,22 @@ describe("honest home learning continuation", () => {
     const next = homeLearning({ ...emptyLearningSnapshot(), sails: JSON.stringify({ version: 1, checked: [], current: "winch-clutch" }) }, "en", "web");
     expect(next.href).toBe("/learn/sails/winch-clutch");
   });
-  it("opens the platform-specific radio course without an invented percentage", () => {
-    const snapshot = { ...emptyLearningSnapshot(), bookmark: JSON.stringify(bookmarkForPath("/radio/teoria", "web")) };
-    expect(homeLearning(snapshot, "en", "native")).toMatchObject({ href: "/kursy/radio?view=course", total: null, count: null });
-    expect(homeLearning(snapshot, "en", "web").href).toBe("/radio");
+  it("never continues the radio or motorboat course just because it was opened (package 9, audit K2)", () => {
+    for (const path of ["/radio/teoria", "/sternik"]) {
+      const snapshot = { ...emptyLearningSnapshot(), bookmark: JSON.stringify(bookmarkForPath(path, "web")) };
+      const next = homeLearning(snapshot, "ru", "web");
+      expect(next.course.id).toBe("course");
+      expect(next.href).toBe("/start?lesson=wind-direction");
+      // The doubled heading came from this branch: eyebrow and title were both the course name.
+      expect(next.title).not.toBe(next.course.title.ru);
+      expect(hasMeaningfulStep(webStepEvidence(snapshot))).toBe(false);
+    }
+  });
+  it("keeps the sailing course a learner passed a check in after a look at sternik", () => {
+    const snapshot = { ...emptyLearningSnapshot(), bookmark: JSON.stringify(bookmarkForPath("/sternik", "web")),
+      sails: JSON.stringify({ version: 1, current: sailLessons[0].id, checked: [sailLessons[0].id] }) };
+    expect(homeLearning(snapshot, "en", "web").href).toBe(`/learn/sails/${sailLessons[1].id}`);
+    expect(hasMeaningfulStep(webStepEvidence(snapshot))).toBe(true);
   });
   it("does not let reference or free practice overwrite the current course", () => {
     for (const path of ["/menu", "/anatomy", "/simulator-v3", "/learn/sails", "/radio-fake", "/learn/sails/missing"]) expect(bookmarkForPath(path, "web")).toBeNull();

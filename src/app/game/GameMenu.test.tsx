@@ -60,7 +60,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("race lobby", () => {
   it("is one site screen: race frame, presets, mode, venue cards and one primary start", () => {
     const html = lobby();
-    expect(LOBBY_HERO_SRC).toBe("/design-v3/sailing-editorial.webp");
+    expect(LOBBY_HERO_SRC).toBe("/design-v3/race-scene.webp");
     expect(html).toContain(`src="${LOBBY_HERO_SRC}"`);
     expect(html).toContain('data-testid="mode-picker"');
     expect(html).toContain('data-testid="race-lobby-venues"');

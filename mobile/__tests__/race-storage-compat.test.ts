@@ -26,6 +26,9 @@ const NOT_PERSISTED_IN_THE_APP: Readonly<Record<string, string>> = {
   // and documented there: inside the app it may restart after a relaunch, so raceNo is an upper
   // bound. It is an analytics number only; no race result, medal or best time depends on it.
   "regatta.race-count.v1": "analytics race number, a restart per app launch is accepted",
+  // Package 9: the website Race hub's last setup (src/lib/race-last-setup.ts). The race page writes it
+  // only outside the app; the app hub keeps its own setup natively (mobile/src/persistence/race-hub-setup.ts).
+  "regatta.race.last-setup.v1": "website Race hub only, the app hub has its own native row",
 };
 
 const ROOT = path.resolve(__dirname, "../..");

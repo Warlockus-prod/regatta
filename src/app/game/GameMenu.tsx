@@ -43,8 +43,9 @@ export function linkedMenuTab(query: URLSearchParams): MenuTab {
   return linked && !linked.missionId && !linked.dailyDay ? 'free' : 'learn';
 }
 
-/** The race frame: an existing editorial still, not a new asset (site only). */
-export const LOBBY_HERO_SRC = "/design-v3/sailing-editorial.webp";
+/** The race frame: a still of the real race scene (package 9, audit B10), the
+ * same local file as the home and the Race hub (src/lib/product/home-entry.ts). */
+export const LOBBY_HERO_SRC = "/design-v3/race-scene.webp";
 
 export function GameMenu({
   difficulty, setDifficulty,
@@ -144,8 +145,8 @@ export function GameMenu({
       <FoundationReturn />
       {!native && (
         <div className="mb-4 h-32 sm:h-48 overflow-hidden rounded-2xl bg-[var(--bg-secondary)]" data-testid="race-lobby-hero">
-          {/* eslint-disable-next-line @next/next/no-img-element -- one local still, the same file the home page uses */}
-          <img src={LOBBY_HERO_SRC} alt="" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: '70% 55%' }} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- one local still of the race scene, the same file the home page uses */}
+          <img src={LOBBY_HERO_SRC} alt="" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: '60% 62%' }} />
         </div>
       )}
       <div className="mb-5">
