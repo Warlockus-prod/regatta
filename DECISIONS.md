@@ -1058,9 +1058,8 @@ the pointer so the ADR list stays complete.
 
 ## ADR-0021 - Cruiser profile: wave resistance, heel drag, luffing sails and turning drag; the classic profile frozen for the legacy race
 
-Date: 2026-11-02. Status: proposed (work package 6 of `docs/BACKLOG.md`,
-implemented in the worktree, not committed; owner decision Р-5 is still open,
-see Consequences). Numbers 0016-0018 stay reserved. Changes engine constants
+Date: 2026-11-02. Status: accepted (owner decision Р-5, 2026-11-02; work
+package 6 of `docs/BACKLOG.md`, committed in `d3646af9`). Numbers 0016-0018 stay reserved. Changes engine constants
 under `AGENTS.md` rule 8; ADR-0001 and ADR-0002 keep explaining the classic
 numbers, which do not change.
 
