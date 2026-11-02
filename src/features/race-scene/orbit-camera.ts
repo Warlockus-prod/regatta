@@ -2,12 +2,15 @@ import { Vector3 } from "three";
 import { fitYachtCamera } from "@/features/simulator-3d/camera";
 import { NEUTRAL_YACHT, type YachtState } from "@/features/simulator-3d/types";
 import type { RaceCamera } from "@/features/race-3d/pose";
-import { tacticalPose, type TacticalInput } from "./camera";
+import { raceView, tacticalPose, type TacticalInput } from "./camera";
 
 /** A preset supplies the initial pose only. Every preset remains rotatable
- * and zoomable using the same controls as the trainer; "stern" (Behind) then
- * keeps following the course (ChaseCamera in RaceScene.tsx, M2-1). */
-export function raceCameraPose(preset: RaceCamera, state: YachtState, aspect: number, tactical: Omit<TacticalInput, "portrait">) {
+ * and zoomable using the same controls as the trainer; "stern" (Behind) and
+ * "race" then keep following the course (ChaseCamera in RaceScene.tsx).
+ * `boat` gives the race camera the hull length (m) and the race speed (kn). */
+export function raceCameraPose(preset: RaceCamera, state: YachtState, aspect: number, tactical: Omit<TacticalInput, "portrait">,
+  boat: { hull: number; speedKn: number } = { hull: 13, speedKn: 0 }) {
+  if (preset === "race") return raceViewPose(state.heading ?? 90, aspect, boat.hull, boat.speedKn);
   if (preset === "stern") return chaseCameraPose(state.heading ?? 90, aspect);
   if (preset !== "high") return fitYachtCamera("whole", state, aspect);
   const pose = tacticalPose({ ...tactical, portrait: aspect < 1 });
@@ -39,5 +42,15 @@ export function chaseCameraPose(heading: number, aspect: number, distance: numbe
   if (distance !== null && Number.isFinite(distance) && distance > 0) pose.position.setLength(distance);
   pose.position.add(pose.target);
   pose.fov = fitted.fit.fov;
+  return pose;
+}
+
+/** The race camera pose (camera.ts raceView) as vectors; `out` is filled for the per-frame follow. */
+export function raceViewPose(heading: number, aspect: number, hull: number, speedKn: number, distance: number | null = null, out?: ChasePose): ChasePose {
+  const pose = out ?? createChasePose();
+  const view = raceView({ heading, aspect, hull, speedKn }, distance);
+  pose.position.set(...view.position);
+  pose.target.set(...view.look);
+  pose.fov = view.fov;
   return pose;
 }

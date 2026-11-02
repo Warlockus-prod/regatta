@@ -33,7 +33,7 @@ import { TURN_COST, contactCue, createContactCueState, physicalPlayerTouching, p
 import { createFirstRaceHintState, nextFirstRaceHint, type FirstRaceHint } from '@/features/race-hud/first-race-hints';
 import type { FirstRaceHintsRecord } from '@/features/race-hud/useFirstRaceHints';
 import type { RaceEvent } from '@/features/race-hud/events';
-import type { RaceGuidance } from "@/lib/race-guidance";
+import { turnAhead, type RaceGuidance } from "@/lib/race-guidance";
 import { evaluateRaceRules, type RaceRuleEvent, type RaceRulesState } from "@/lib/race-rules";
 import { raceScale } from "@/lib/race-scale";
 import type { PhysicalRaceImpact } from "@/lib/race-physical-response";
@@ -814,8 +814,11 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           setNavigation(createRaceNavigationSnapshot({ course: courseRef.current, boats: boatsRef.current, windFrom: windDirRef.current }));
           // M5 step 6: the planner of the race's model (race-model.ts planRouteGuidance).
           const metric = physicalRef.current;
-          const advisory = planRouteGuidance(player, courseRef.current, windDirRef.current, guidanceStateRef.current,
+          const plan = (boat: typeof player, memory: RouteGuidanceState | null) => planRouteGuidance(boat, courseRef.current, windDirRef.current, memory,
             metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null, metric ? undefined : raceUpwind(12 * windStrengthRef.current).twa);
+          const advisory = plan(player, guidanceStateRef.current);
+          // Package 8: the caption says when the hint will call the next tack or gybe.
+          if (advisory.guidance) advisory.guidance.next = turnAhead(player, advisory.guidance, advisory.state, plan);
           guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
         }
         if (isRacing) setElapsed(raceClockRef.current);

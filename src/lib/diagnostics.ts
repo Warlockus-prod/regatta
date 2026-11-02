@@ -21,7 +21,7 @@ export const RADIO_DIAGNOSTIC_ACTIONS = ["dial-hold", "dial-push", "dial-rotate"
 export const RADIO_DIAGNOSTIC_SCREENS = ["off", "standby", "volume", "squelch", "channel-select", "backlight", "menu", "m323-dsc-calls", "gps-info", "radio-info", "dsc-log", "stub-view", "config", "dsc-settings", "position-input", "individual-id-list", "individual-id-add-mmsi", "individual-id-add-name", "individual-id-delete", "distress-compose", "distress-nature", "distress-hold", "distress-tx", "distress-wait", "distress-ack", "distress-ack-done", "cancel-confirm", "cancel-tx", "cancel-voice", "cancel-done", "otherdsc-compose", "otherdsc-field", "otherdsc-sent", "otherdsc-ack", "rx-distress-alert", "rx-individual-call"] as const;
 export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "ads", "unknown"] as const;
 const SOURCES = ["pointer", "keyboard", "arrow", "slider", "system", "native", "assistive"] as const;
-const CAMERAS = ["orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
+const CAMERAS = ["race", "orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
 export const RENDER_BACKENDS = ["webgpu", "webgl2"] as const;
 /** Bounds of the race performance journal: frame rates are clamped by the meter,
  * draw calls and triangles are per-frame averages, seconds are measured racing time. */

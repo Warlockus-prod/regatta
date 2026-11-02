@@ -26,7 +26,7 @@ vi.mock("@/features/simulator-3d/Yacht", () => ({ Yacht: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Ocean", () => ({ Ocean: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Wake", () => ({ Wake: () => null }));
 vi.mock("@/features/simulator-3d/ocean/Backdrop", () => ({ terrainGeometry: () => null }));
-import { Buoy, GUIDANCE_COLOR, LOADING_COLOR, PLAIN_MARK, STANDARD_COURSE, World } from "./Race3DView";
+import { BEACON_HEIGHT, Buoy, GUIDANCE_COLOR, LOADING_COLOR, PLAIN_MARK, STANDARD_COURSE, World } from "./Race3DView";
 import { MARK_HALO, VENUE_LOOKS, markHaloOpacity, raceLight } from "@/data/venues/look";
 
 const customCourse = (): Race3DCourse => ({
@@ -97,6 +97,23 @@ describe("race 3D colours", () => {
     const hue = max === r ? 60 * (((g - b) / (max - min)) % 6) : max === g ? 60 * ((b - r) / (max - min) + 2) : 60 * ((r - g) / (max - min) + 4);
     expect(Math.abs(((hue + 360) % 360) - 190)).toBeGreaterThan(60);
     expect(LOADING_COLOR.toLowerCase()).not.toBe("#00d4ff");
+  });
+});
+
+// Package 8: a steady beacon over the next mark: a tall translucent column in
+// the guidance yellow from the water up, the pointer on top, the distance on
+// it; the frame loop only places it (no pulse, no new animation).
+describe("next-mark beacon (package 8)", () => {
+  it("is a steady yellow column that the frame loop only moves", () => {
+    const source = readFileSync(new URL("./Race3DView.tsx", import.meta.url), "utf8");
+    const beacon = source.slice(source.indexOf('name="mark-beacon"'), source.indexOf("</group>", source.indexOf('name="mark-beacon"')));
+    expect(beacon).toMatch(/<cylinderGeometry args=\{\[1\.6, 1\.6, BEACON_HEIGHT, 8, 1, true\]\} \/>/);
+    expect(beacon).toMatch(/color=\{GUIDANCE_COLOR\} transparent opacity=\{0\.45\}/);
+    expect(BEACON_HEIGHT).toBeGreaterThanOrEqual(30);
+    const world = source.slice(source.indexOf("export function World"), source.indexOf('name="mark-beacon"'));
+    const loop = world.slice(world.indexOf("useFrame("), world.indexOf("});", world.indexOf("if (pointer.current)")));
+    expect(loop).toContain("pointer.current.position.set(");
+    expect(loop).not.toMatch(/scale|opacity|elapsedTime|Math\.sin/);
   });
 });
 

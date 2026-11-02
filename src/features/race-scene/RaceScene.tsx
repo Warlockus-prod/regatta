@@ -18,15 +18,15 @@ import {
 import { METRES_PER_UNIT, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "@/features/race-3d/pose";
 import { distance } from "@/lib/race-physics";
 import type { RaceGuidance } from "@/lib/race-guidance";
-import { chaseCameraPose, createChasePose, raceCameraPose } from "./orbit-camera";
-import { CHASE_START, chaseStep, type ChaseState } from "./camera";
+import { chaseCameraPose, createChasePose, raceCameraPose, raceViewPose } from "./orbit-camera";
+import { CHASE_START, CHASE_TUNE, RACE_TUNE, RACE_VIEW, chaseStep, follow, type ChaseState } from "./camera";
 import type { OrbitControls } from "three-stdlib";
 import { prefersReducedMotion } from "@/features/race-hud/feedback";
 import { SailingCameraRig } from "@/features/simulator-3d/SailingCameraRig";
 import { VIEW_SIGNATURE_LENGTH, createQualityGovernor, createRenderGate, createSceneDraw, initialDpr, loadQualityStep, qualityAt, saveQualityStep, settle, type RenderGate } from "./quality";
 import { guidancePath, nextTurnIndex } from "./guidance";
 import { raceTacticsModel, tacticalSizes, type RaceTacticsModel } from "./tactics";
-import { TacticalOverlay, TacticalScreenLayer } from "./TacticalOverlay";
+import { TacticalOverlay, TacticalScreenLayer, type ArrowCopy } from "./TacticalOverlay";
 import type { PhysicalRaceProfile } from "@/lib/race-context";
 import { calmFactor } from "./materials";
 import { SailingEnvironment } from "./SailingEnvironment";
@@ -50,12 +50,14 @@ import type { SceneQuality } from "./quality";
 // its course and rivals), drawn by WebGPURenderer with TSL materials:
 // WebGPU where the browser has it, WebGL2 otherwise. Stylized: water that
 // shows the wind and the shallows, white wakes that keep every tack, soft
-// shadows under the hulls, trees on the shore. Three cameras (M2-1, a tap on
-// the scene steps through them): the default is a close, freely rotatable
-// view fitted exactly like the trainer (owner decision #5 after TestFlight
-// TF07); "Behind" follows the course and comes back behind the stern after a
-// manual orbit (ChaseCamera); "Above" is the tactical camera that keeps
-// upwind at the top like the race map.
+// shadows under the hulls, trees on the shore. Four cameras (M2-1, a tap on
+// the scene steps through them, a double tap returns to the race view): the
+// default "Race" (package 8, owner decision R-9) stands high behind the boat
+// with the horizon in the top quarter and turns slowly through a tack; the
+// close, freely rotatable view fitted like the trainer is one tap away;
+// "Behind" follows the course and comes back behind the stern after a manual
+// orbit (ChaseCamera, which also drives Race); "Above" is the tactical camera
+// that keeps upwind at the top like the race map.
 // Performance (M2-5..M2-7): one quality ladder (pixel ratio, then the scene
 // profile) chosen from the measured frame time and remembered on the device,
 // a few frames a second while the race is held, rivals merged and drawn as
@@ -235,23 +237,27 @@ function Player({ boatsRef, windDirRef, showWind }: {
 }
 
 /**
- * M2-1 chase camera ("Behind"): every frame it moves the shared orbit camera
- * part of the way to the stern view of the boat's current course (chaseStep
- * in camera.ts). While the player orbits or pinches the camera is theirs; a
- * moment after the gesture ends it comes back behind the boat at the zoom the
- * player chose. A refit (camera switch, "Reset view") forgets that zoom.
+ * M2-1 chase camera ("Behind") and the package 8 race camera ("Race"): every
+ * frame it moves the shared orbit camera part of the way to the follow pose
+ * of the boat's current course (chaseStep in camera.ts; Race turns slowly,
+ * RACE_TUNE, and stands back by the hull length and the smoothed speed).
+ * While the player orbits or pinches the camera is theirs; a moment after
+ * the gesture ends it comes back behind the boat at the zoom the player
+ * chose. A refit (camera switch, double tap, "Reset view") forgets that zoom.
  * Runs after SailingCameraRig's controls update, so it sets the final pose.
  */
-function ChaseCamera({ boatsRef, revision }: { boatsRef: MutableRefObject<Race3DBoat[]>; revision: number }) {
+function ChaseCamera({ boatsRef, revision, race, hull }: { boatsRef: MutableRefObject<Race3DBoat[]>; revision: number; race: boolean; hull: number }) {
   const controls = useThree((state) => state.controls) as OrbitControls | null;
   const camera = useThree((state) => state.camera);
   const size = useThree((state) => state.size);
   const chase = useRef<ChaseState>(CHASE_START);
   const held = useRef(false);
   const zoom = useRef<number | null>(null);
+  const speed = useRef<number | null>(null);
   const reduced = useRef(false);
   const pose = useMemo(() => createChasePose(), []);
-  useEffect(() => { chase.current = CHASE_START; zoom.current = null; }, [revision]);
+  const deck = useMemo(() => new THREE.Vector3(0, RACE_VIEW.deck, 0), []);
+  useEffect(() => { chase.current = CHASE_START; zoom.current = null; }, [revision, race]);
   useEffect(() => {
     reduced.current = prefersReducedMotion();
     let query: MediaQueryList | null = null;
@@ -265,20 +271,25 @@ function ChaseCamera({ boatsRef, revision }: { boatsRef: MutableRefObject<Race3D
     const start = () => { held.current = true; };
     const end = () => {
       held.current = false;
-      zoom.current = camera.position.distanceTo(controls.target);
+      // Race measures its distance to the deck, Behind to its look point.
+      zoom.current = camera.position.distanceTo(race ? deck : controls.target);
       chase.current = { ...chase.current, idle: 0 };
     };
     controls.addEventListener("start", start);
     controls.addEventListener("end", end);
     return () => { controls.removeEventListener("start", start); controls.removeEventListener("end", end); held.current = false; };
-  }, [controls, camera]);
+  }, [controls, camera, race, deck]);
   useFrame((_, dt) => {
     const player = playerOf(boatsRef.current);
     if (!controls || !player) return;
-    const step = chaseStep(chase.current, { heading: player.heading, dt, held: held.current, reducedMotion: reduced.current });
+    const step = chaseStep(chase.current, { heading: player.heading, dt, held: held.current, reducedMotion: reduced.current }, race ? RACE_TUNE : CHASE_TUNE);
     chase.current = step.state;
+    // The race camera eases out and in with the speed over about two seconds.
+    speed.current = speed.current === null ? player.speed : speed.current + (player.speed - speed.current) * follow(dt, 2);
     if (step.blend <= 0 || step.state.yaw === null) return;
-    chaseCameraPose(step.state.yaw, size.width / Math.max(1, size.height), zoom.current, pose);
+    const aspect = size.width / Math.max(1, size.height);
+    if (race) raceViewPose(step.state.yaw, aspect, hull, speed.current, zoom.current, pose);
+    else chaseCameraPose(step.state.yaw, aspect, zoom.current, pose);
     camera.position.lerp(pose.position, step.blend);
     controls.target.lerp(pose.target, step.blend);
     camera.lookAt(controls.target);
@@ -402,13 +413,14 @@ function GpuFailure({ failed }: { failed: boolean }) {
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started, softLight = false, sailFlow = false, sailFlowCoachRef, sailFlowOwnTrim = false }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "race", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started, softLight = false, sailFlow = false, sailFlowCoachRef, sailFlowOwnTrim = false }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
   venue: Venue;
-  /** All three presets support free orbit and pinch/scroll zoom; "stern"
-   * (Behind) also follows the course and returns after a manual orbit. */
+  /** Every preset supports free orbit and pinch/scroll zoom; "race" (the
+   * default) and "stern" (Behind) also follow the course and return after a
+   * manual orbit. */
   camera?: RaceCamera;
   /** Increment to refit the selected preset after a manual camera gesture. */
   cameraRevision?: number;
@@ -448,8 +460,10 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   const windLayers = raceWindLayers(showWind, sailFlow);
   const markLook = useMemo(() => raceLight(venueLook(venue.id), softLight).mark, [venue.id, softLight]);
   const tactics = useMemo(() => raceTacticsModel(raceProfile), [raceProfile]);
+  const hull = useMemo(() => tacticalSizes(tactics).hullMetres, [tactics]);
   const arrowRef = useRef<HTMLDivElement | null>(null);
   const hintRef = useRef<HTMLDivElement | null>(null);
+  const arrowCopyRef = useRef<ArrowCopy>({ metres: labels.metres, behind: "" });
   const mountedAt = useRef<number | null>(null);
   const firstFrameRef = useRef<number | null>(null);
   const racingRef = useRef(racing ?? true);
@@ -501,8 +515,8 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
     const player = playerOf(boatsRef.current);
     const target = player ? nextTarget(player, courseRef.current) : null;
     return raceCameraPose(camera, player ? racePose(player, windDirRef.current) : NEUTRAL_YACHT, aspect, { player: player ? toWorld(player.pos) : { x: 0, z: 0 },
-      target: target ? toWorld(target) : null, windFrom: windDirRef.current });
-  }, [camera, boatsRef, courseRef, windDirRef]);
+      target: target ? toWorld(target) : null, windFrom: windDirRef.current }, { hull, speedKn: player?.speed ?? 0 });
+  }, [camera, boatsRef, courseRef, windDirRef, hull]);
   const readBoats = useCallback(() => boatsRef.current.map(boat => ({
     id: boat.id, travel: toWorld(boat.pos), heading: boat.heading, speedKn: boat.speed,
   })), [boatsRef]);
@@ -542,7 +556,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           <SailingEnvironment venue={venue} look={venueLook(venue.id)} soft={softLight} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
           <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} marks={markLook} />
           {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} model={tactics} />}
-          <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} />
+          <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} copyRef={arrowCopyRef} />
           <Suspense fallback={null}>
             <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={windLayers.arrows} />
             <BowSpray boatsRef={boatsRef} profileRef={profileRef} />
@@ -552,12 +566,12 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
             <WarmShaders gateRef={gateRef}><FirstSceneFrame onReady={ready} /></WarmShaders>
           </Suspense>
           <SailingCameraRig poseForAspect={cameraPose} revision={cameraRevision} />
-          {camera === "stern" && <ChaseCamera boatsRef={boatsRef} revision={cameraRevision} />}
+          {(camera === "stern" || camera === "race") && <ChaseCamera boatsRef={boatsRef} revision={cameraRevision} race={camera === "race"} hull={hull} />}
           <Quality key={cap} onStats={onStats} cap={cap} start={qualityStep} onStep={setQualityStep} gateRef={gateRef} heldRef={heldRef} />
           <GatedRender gateRef={gateRef} heldRef={heldRef} racingRef={racingRef} boatsRef={boatsRef} firstFrameRef={firstFrameRef} shakeRef={shakeRef} />
           <PerfJournal boatsRef={boatsRef} racingRef={racingRef} firstFrameRef={firstFrameRef} />
         </Canvas>
-        <TacticalScreenLayer arrowRef={arrowRef} hintRef={hintRef} />
+        <TacticalScreenLayer arrowRef={arrowRef} hintRef={hintRef} copyRef={arrowCopyRef} metres={labels.metres} />
       </div>
       }</SceneStartup>
     </SceneBoundary>

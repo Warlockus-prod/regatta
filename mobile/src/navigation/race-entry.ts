@@ -11,7 +11,7 @@ export function raceEntryQuery(params: Record<string, string | string[] | undefi
     const value = params[name];
     if (typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value)) query[name] = value;
   }
-  if (params.camera === "orbit" || params.camera === "high" || params.camera === "stern") query.camera = params.camera;
+  if (params.camera === "race" || params.camera === "orbit" || params.camera === "high" || params.camera === "stern") query.camera = params.camera;
   if (knownLesson(params.fromLesson)) query.fromLesson = params.fromLesson;
   // The on-screen frame counter (?fps=1) for checks on a device.
   if (params.fps === "1") query.fps = "1";

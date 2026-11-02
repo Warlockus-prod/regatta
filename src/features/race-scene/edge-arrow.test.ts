@@ -3,7 +3,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { makeStandardCourse } from "@/lib/race-physics";
 import { racePose, toWorld, type Race3DBoat, type RaceCamera } from "@/features/race-3d/pose";
 import { raceCameraPose } from "./orbit-camera";
-import { applyEdgeArrow, EDGE_ARROW_RADIUS, edgeArrow, edgeArrowInsets, type EdgeArrow, type EdgeArrowStyle, type ScreenInsets } from "./edge-arrow";
+import { applyEdgeArrow, arrowMetres, ASTERN_DEG, EDGE_ARROW_RADIUS, edgeArrow, edgeArrowInsets, labelSide, offBow, type EdgeArrow, type EdgeArrowStyle, type ScreenInsets } from "./edge-arrow";
 
 // M2-2 contract: the next mark is either in the clear part of the picture or
 // shown by a 44 px arrow inside it that points towards the mark. The M2
@@ -94,7 +94,7 @@ describe("writing the arrow into the DOM", () => {
 describe("M2 done-criterion: the next mark after a 90 degree turn", () => {
   const course = makeStandardCourse();
   const mark = course.marks[0].pos;
-  const presets: RaceCamera[] = ["orbit", "stern", "high"];
+  const presets: RaceCamera[] = ["race", "orbit", "stern", "high"];
   const viewports = [[390, 844], [844, 390]] as const;
   // The player off the start line, before and after turning 90 degrees each way.
   const boats = [0, 90, 270, 45, 135].map((heading): Race3DBoat => ({
@@ -136,5 +136,27 @@ describe("M2 done-criterion: the next mark after a 90 degree turn", () => {
     expect(a.x).toBeLessThan(w / 2);
     expect(a.angle).toBeLessThan(-45);
     expect(a.angle).toBeGreaterThan(-135);
+  });
+});
+
+// Package 8: the arrow's distance, the "mark behind" sign and where its words sit.
+describe("arrow distance and the mark astern", () => {
+  it("measures the angle off the bow in race coordinates (y south), to starboard positive", () => {
+    expect(offBow(0, 0, -100)).toBeCloseTo(0, 6); // dead ahead heading north
+    expect(offBow(0, 100, 0)).toBeCloseTo(90, 6); // east is to starboard
+    expect(offBow(90, 0, -100)).toBeCloseTo(-90, 6); // heading east, north is to port
+    expect(Math.abs(offBow(0, 0, 100))).toBeCloseTo(180, 6); // dead astern
+    expect(offBow(350, 10, -100)).toBeCloseTo(15.71, 1); // across north
+  });
+
+  it("calls a mark astern only beyond ASTERN_DEG, and shows whole tens of metres", () => {
+    expect(ASTERN_DEG).toBeGreaterThan(90);
+    expect(Math.abs(offBow(0, 100, 20)) > ASTERN_DEG).toBe(false); // abeam, a little aft
+    expect(Math.abs(offBow(0, 30, 100)) > ASTERN_DEG).toBe(true);
+    expect([arrowMetres(3), arrowMetres(124), arrowMetres(125), arrowMetres(Number.NaN)]).toEqual([10, 120, 130, 10]);
+  });
+
+  it("keeps the words under the disc inside the picture", () => {
+    expect([labelSide(30, 390), labelSide(195, 390), labelSide(370, 390)]).toEqual(["start", "center", "end"]);
   });
 });

@@ -70,7 +70,7 @@ function press(h: Handlers, id: number, from: [number, number], to: [number, num
 
 describe("race camera switch (M2-1)", () => {
   it("wires the scene so a tap on the canvas steps to the next camera", () => {
-    for (const [camera, next] of [["orbit", "stern"], ["stern", "high"], ["high", "orbit"]] as const) {
+    for (const [camera, next] of [["race", "orbit"], ["orbit", "stern"], ["stern", "high"], ["high", "race"]] as const) {
       const setCamera = vi.fn();
       hooks.slots = [];
       const scene = byTestId(render({ ...props(), camera, setCamera }), "race-3d")!;

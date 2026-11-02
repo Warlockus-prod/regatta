@@ -55,11 +55,12 @@ describe("lightweight replay labels", () => {
       copy.ruleMessage({ id: "copy-fixture", kind, rule, boatId: "player", time: 12, penaltySeconds }))));
     // 47 = 43 original fields + the P03 four-label PB status. M1-7 adds five
     // more (52): the penalty and metre formatters, the race replay title, the
-    // Simple/Pro accessible name and the start signal.
-    expect(Object.keys(copy)).toHaveLength(52);
+    // Simple/Pro accessible name and the start signal. Package 8 adds the race
+    // camera's name (53).
+    expect(Object.keys(copy)).toHaveLength(53);
     // Keep the original43-field byte contract, including every existing
     // formatter, unchanged (see the RU penalty note below).
-    const added = ["personalBestSaving", "personalBestChecked", "personalBestError", "retryPersonalBest", "raceReplay", "controlMode", "startSignal"] as const;
+    const added = ["personalBestSaving", "personalBestChecked", "personalBestError", "retryPersonalBest", "raceReplay", "controlMode", "startSignal", "race"] as const;
     for (const key of added) expect(copy[key].trim().length).toBeGreaterThan(0);
     const addedFormatters = ["penalty", "metres"] as const;
     expect(copy.penalty(5)).toMatch(/^\+5 \S+$/);
@@ -87,7 +88,7 @@ describe("lightweight replay labels", () => {
     }
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(baseline[lang]);
     const replay = useReplayCopy();
-    expect(Object.keys(replay)).toEqual(["view", "orbit", "resetCamera", "high", "stern", "pause", "resume", "back", "retry", "raceReplay"]);
+    expect(Object.keys(replay)).toEqual(["view", "race", "orbit", "resetCamera", "high", "stern", "pause", "resume", "back", "retry", "raceReplay"]);
     for (const key of Object.keys(replay) as Array<keyof typeof replay>) {
       expect(replay[key]).toBe(copy[key]);
       expect(replay[key]).toBe(REPLAY_COPY_RESOURCES[key][lang]);

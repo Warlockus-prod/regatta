@@ -15,7 +15,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NativeRaceSnapshot } from "@/lib/race-native";
-import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
+import { RACE_CAMERAS, type Race3DBoat, type RaceCamera } from "@/features/race-3d/pose";
 import { useVenue } from "@/features/venues/useVenue";
 import { useRaceView } from "@/features/race-3d/useRaceView";
 import { replayFrame } from "@/lib/race-replay-frame";
@@ -179,7 +179,8 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
   };
   const pickCamera = (next: RaceCamera) => { setCamera(next); recordControlChange("replay", "camera", next, camera); };
   const tapRef = useRef<TapTracker | null>(null);
-  const sceneTap = sceneTapHandlers(() => (tapRef.current ??= createTapTracker()), () => pickCamera(nextRaceCamera(camera)));
+  const sceneTap = sceneTapHandlers(() => (tapRef.current ??= createTapTracker()), () => pickCamera(nextRaceCamera(camera)),
+    () => { if (camera !== "race") pickCamera("race"); setCameraRevision(value => value + 1); });
   const courseRef = useRef(course);
   const windDirRef = useRef(0);
   const boatsRef = useRef<Race3DBoat[]>([]);
@@ -226,8 +227,8 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
   return <div ref={rootRef} className={`${styles.cockpit} absolute inset-0`} data-testid="race-replay-3d">
     <header className={styles.toolbar}><button type="button" onClick={close}>{c.back}</button><strong>{title}</strong></header>
     <div className="flex shrink-0 flex-wrap items-center gap-2 px-4 py-2">
-      <select className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 text-sm text-[var(--text-primary)]" aria-label={c.view} value={camera} onChange={event => pickCamera(event.target.value as RaceCamera)}>{(["orbit", "stern", "high"] as const).map(view => <option key={view} value={view}>{c[view]}</option>)}</select>
-      {/* M4-3: the race's camera switch (orbit -> behind -> above); a tap on the scene does the same. */}
+      <select className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 text-sm text-[var(--text-primary)]" aria-label={c.view} value={camera} onChange={event => pickCamera(event.target.value as RaceCamera)}>{RACE_CAMERAS.map(view => <option key={view} value={view}>{c[view]}</option>)}</select>
+      {/* M4-3: the race's camera switch (race -> around -> behind -> above); a tap on the scene does the same, a double tap returns to the race view. */}
       <button type="button" onClick={() => pickCamera(nextRaceCamera(camera))} data-testid="replay-camera-cycle" aria-label={switchName} title={switchName}
         className="inline-flex min-h-11 min-w-11 items-center justify-center"><CameraIcon size={22} /></button>
       <button type="button" onClick={() => { setCameraRevision(value => value + 1); recordControlChange("replay", "camera", camera); }}>{c.resetCamera}</button>

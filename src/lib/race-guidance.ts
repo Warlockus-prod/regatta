@@ -17,7 +17,13 @@ export interface RaceGuidance {
   /** Shared planner geometry. Online waypoint aids deliberately omit it. */
   path?: RaceRoutePath;
   beating?: boolean;
+  /** Package 8: the next tack or gybe along the suggested course (turnAhead),
+   * when the caller looked ahead: how far (world units), its kind and the
+   * course after it. Null: none within reach on this leg. */
+  next?: RaceTurnAhead | null;
 }
+
+export interface RaceTurnAhead { distance: number; action: "tack" | "gybe"; heading: number }
 
 export interface RaceGuidanceState {
   courseKey: string;
@@ -188,4 +194,39 @@ export function guidanceToTarget(boat: Pick<RaceBoat, "pos" | "heading">, target
   if (leg === "complete") action = "hold";
   return { leg, action, target: { ...target }, distance: distance(boat.pos, target), bearing: direct, suggestedHeading: heading, turn,
     targetInNoGo, tack: Math.abs(before) < 1 || Math.abs(before) > 179 ? null : before > 0 ? "starboard" : "port" };
+}
+
+/** How far ahead turnAhead looks (world units, about 400 m) and its step (about 12 m). */
+export const TURN_AHEAD = { reach: 660, step: 20 } as const;
+
+/**
+ * Package 8: where the route hint will call the next tack or gybe if the boat
+ * sails the suggested course. It walks a copy of the boat along that course
+ * and asks the same planner at each step, so the caption says what the hint
+ * itself will say there ("tack in 120 m to 315"). Null when the hint calls
+ * none on this leg within TURN_AHEAD.reach; distance 0 when it calls one now.
+ * Read-only: `plan` gets a fresh probe and the memory it returned last.
+ */
+export function turnAhead<B extends Pick<RaceBoat, "pos" | "heading">, S>(boat: B, guidance: RaceGuidance, state: S | null,
+  plan: (probe: B, state: S | null) => { guidance: RaceGuidance | null; state: S | null }): RaceTurnAhead | null {
+  const now = guidance.action === "tack" || guidance.action === "gybe" ? guidance.action : null;
+  if (now) return { distance: 0, action: now, heading: guidance.suggestedHeading };
+  if (guidance.leg !== "windward" && guidance.leg !== "finish" && guidance.leg !== "waypoint") return null;
+  const probe: B = { ...boat, pos: { ...boat.pos }, heading: guidance.suggestedHeading };
+  let memory = state;
+  let closest = guidance.distance;
+  for (let d = TURN_AHEAD.step; d <= TURN_AHEAD.reach; d += TURN_AHEAD.step) {
+    const r = probe.heading * Math.PI / 180;
+    probe.pos = { x: probe.pos.x + Math.sin(r) * TURN_AHEAD.step, y: probe.pos.y - Math.cos(r) * TURN_AHEAD.step };
+    const next = plan(probe, memory);
+    const g = next.guidance;
+    const left = g ? distance(probe.pos, g.target) : 0;
+    // The leg ends there, or the walk went past its target: no turn to announce on this leg.
+    if (!g || g.leg !== guidance.leg || left < TURN_AHEAD.step || left > closest + TURN_AHEAD.step / 2) return null;
+    closest = Math.min(closest, left);
+    if (g.action === "tack" || g.action === "gybe") return { distance: d, action: g.action, heading: g.suggestedHeading };
+    probe.heading = g.suggestedHeading;
+    memory = next.state;
+  }
+  return null;
 }

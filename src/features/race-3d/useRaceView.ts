@@ -2,11 +2,12 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import { readRaceSearch } from "@/lib/race-native-env";
-import type { RaceCamera } from "./pose";
+import { RACE_CAMERAS, type RaceCamera } from "./pose";
 
 // Solo uses the shared 3D scene for every entry. Legacy view keys stay readable,
 // but never restore the retired flat presentation. Saved camera presets and
-// explicit camera links remain supported; a new installation starts in orbit.
+// explicit camera links remain supported; without one the race starts in the
+// race view (package 8, owner decision R-9).
 export const RACE_VIEW_STORAGE_KEY = "regatta.race.view.v1";
 export const RACE_CAMERA_STORAGE_KEY = "regatta.race.camera.v1";
 const EVENT = "regatta:race-view";
@@ -18,8 +19,8 @@ function read3d(): boolean { return true; }
 let pickedCamera: RaceCamera | null = null;
 
 export function raceCameraPreference(fromUrl: string | null, saved: string | null): RaceCamera {
-  const valid = (value: string | null): value is RaceCamera => value === "orbit" || value === "high" || value === "stern";
-  return valid(fromUrl) ? fromUrl : valid(saved) ? saved : "orbit";
+  const valid = (value: string | null): value is RaceCamera => (RACE_CAMERAS as readonly (string | null)[]).includes(value);
+  return valid(fromUrl) ? fromUrl : valid(saved) ? saved : "race";
 }
 
 function readCamera(): RaceCamera {
@@ -27,7 +28,7 @@ function readCamera(): RaceCamera {
   try {
     return raceCameraPreference(readRaceSearch().get("camera"), localStorage.getItem(RACE_CAMERA_STORAGE_KEY));
   } catch {
-    return "orbit";
+    return "race";
   }
 }
 
@@ -63,7 +64,7 @@ export interface RaceViewState {
 
 export function useRaceView(): RaceViewState {
   const view3d = useSyncExternalStore(subscribe, read3d, () => true);
-  const camera = useSyncExternalStore(subscribe, readCamera, () => "orbit" as const);
+  const camera = useSyncExternalStore(subscribe, readCamera, () => "race" as const);
   const setView3d = useCallback((on: boolean) => write(RACE_VIEW_STORAGE_KEY, on ? "3d" : "2d"), []);
   const setCamera = useCallback((next: RaceCamera) => {
     pickedCamera = next;

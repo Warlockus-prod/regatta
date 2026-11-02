@@ -7,13 +7,15 @@ import { useI18n } from "@/lib/i18n";
 import { GUIDANCE_COLOR, playerOf, type OriginRef } from "@/features/race-3d/Race3DView";
 import { METRES_PER_UNIT, nextTargetInto, toWorld, type Race3DBoat, type Race3DCourse } from "@/features/race-3d/pose";
 import { boundaryProximity, noGoEdges, noGoRing, tacticalSizes, zoneMark, type BoundaryProximity, type RaceTacticsModel } from "./tactics";
-import { applyEdgeArrow, EDGE_ARROW_RADIUS, edgeArrow, edgeArrowInsets, type EdgeArrow, type EdgeArrowStyle, type ScreenInsets } from "./edge-arrow";
+import { applyEdgeArrow, arrowMetres, ASTERN_DEG, EDGE_ARROW_RADIUS, edgeArrow, edgeArrowInsets, labelSide, offBow, type EdgeArrow, type EdgeArrowStyle, type ScreenInsets } from "./edge-arrow";
 
 // ============================================================================
 // Tactics on the water (M2-2, M2-3), drawn inside the race scene: the no-go
 // wedge at the bow, the zone ring round the next rounding mark, the course
 // boundary where the race clamps the boat, and the screen-edge arrow to the
 // next mark with the early boundary hint as two DOM elements over the canvas.
+// Package 8: the arrow carries the distance in metres, and with the mark
+// astern it shows a "turn round" sign to the side of the shorter turn.
 // Every size comes from tacticalSizes(model). Geometries are built once per
 // model; the frame loop only moves objects and writes styles that changed.
 // ============================================================================
@@ -26,6 +28,9 @@ const WEDGE_EDGE_COLOR = "#ff6680";
 const ZONE_COLOR = "#f4f7fa";
 /** The course boundary: red and white like a racing limit on the water. */
 const BOUNDARY_COLOR = "#ff5c5c";
+
+/** The arrow's words, written by TacticalScreenLayer (outside the Canvas, where the language is known). */
+export interface ArrowCopy { metres: string; behind: string }
 
 export interface TacticalRefs {
   boatsRef: MutableRefObject<Race3DBoat[]>;
@@ -154,11 +159,12 @@ function CourseBoundary({ originRef, model, emphasisRef }: { originRef: OriginRe
 }
 
 /** Moves the DOM arrow to the next mark and toggles the boundary hint; writes only changed styles. */
-function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, emphasisRef }: Omit<TacticalRefs, "windDirRef"> & {
+function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, emphasisRef, copyRef }: Omit<TacticalRefs, "windDirRef"> & {
   model: RaceTacticsModel;
   arrowRef: MutableRefObject<HTMLDivElement | null>;
   hintRef: MutableRefObject<HTMLDivElement | null>;
   emphasisRef: MutableRefObject<boolean>;
+  copyRef: MutableRefObject<ArrowCopy>;
 }) {
   const scratch = useRef({
     v: new THREE.Vector3(),
@@ -169,6 +175,8 @@ function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, 
     // NaN: never written, so the first show places the arrow (applyEdgeArrow).
     style: { shown: false, x: NaN, y: NaN, angle: NaN } as EdgeArrowStyle,
     hint: false,
+    // What the arrow last showed: "ahead", "port" or "starboard" (astern), its words and their side.
+    turn: "", labelTurn: "", side: "", metres: NaN, copy: null as ArrowCopy | null,
   });
   useFrame(({ camera, size }) => {
     const s = scratch.current;
@@ -179,7 +187,38 @@ function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, 
       s.v.set(target.x * METRES_PER_UNIT - originRef.current.x, 4, target.y * METRES_PER_UNIT - originRef.current.z).project(camera);
       edgeArrow(s.v.x, s.v.y, s.v.z, size.width, size.height, edgeArrowInsets(size.width, size.height, s.insets), s.arrow);
     } else s.arrow.visible = false;
-    if (arrowEl) applyEdgeArrow(arrowEl, arrowEl.firstElementChild as SVGElement | null, s.arrow, s.style);
+    const disc = arrowEl?.firstElementChild as HTMLElement | null | undefined;
+    const glyphs = disc?.children;
+    if (arrowEl && player && target && s.arrow.visible && glyphs && glyphs.length >= 2) {
+      const dx = target.x - player.pos.x, dy = target.y - player.pos.y;
+      const off = offBow(player.heading, dx, dy);
+      const turn = Math.abs(off) > ASTERN_DEG ? (off > 0 ? "starboard" : "port") : "ahead";
+      if (turn !== s.turn) {
+        s.turn = turn;
+        (glyphs[0] as HTMLElement).style.display = turn === "ahead" ? "" : "none";
+        const back = glyphs[1] as HTMLElement;
+        back.style.display = turn === "ahead" ? "none" : "";
+        back.style.transform = turn === "port" ? "scaleX(-1)" : "";
+        arrowEl.dataset.turn = turn;
+      }
+      const labelEl = arrowEl.lastElementChild as HTMLElement;
+      const metres = arrowMetres(Math.hypot(dx, dy) * METRES_PER_UNIT), copy = copyRef.current;
+      // The words are rebuilt only when the distance, the side or the language changed.
+      if (metres !== s.metres || turn !== s.labelTurn || copy !== s.copy) {
+        s.metres = metres; s.labelTurn = turn; s.copy = copy;
+        labelEl.textContent = turn === "ahead" ? `${metres} ${copy.metres}` : `${copy.behind} · ${metres} ${copy.metres}`;
+      }
+      const side = labelSide(s.arrow.x, size.width);
+      if (side !== s.side) {
+        s.side = side;
+        labelEl.style.left = side === "start" ? "0" : side === "center" ? "50%" : "";
+        labelEl.style.right = side === "end" ? "0" : "";
+        labelEl.style.transform = side === "center" ? "translateX(-50%)" : "";
+      }
+    }
+    // Astern the sign does not turn with the arrow: it says "turn round" to one side.
+    const glyph = (glyphs?.[0] as SVGElement | undefined) ?? null;
+    if (arrowEl) applyEdgeArrow(arrowEl, glyph, s.arrow, s.style);
     const hint = player ? boundaryProximity(player.pos, player.heading, player.speed, model, s.proximity).hint : false;
     emphasisRef.current = hint;
     const hintEl = hintRef.current;
@@ -189,34 +228,53 @@ function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, 
 }
 
 /** Inside the Canvas: the wedge, the zone ring, the boundary and the screen cues' driver. */
-export function TacticalOverlay({ boatsRef, courseRef, windDirRef, originRef, model, arrowRef, hintRef }: TacticalRefs & {
+export function TacticalOverlay({ boatsRef, courseRef, windDirRef, originRef, model, arrowRef, hintRef, copyRef }: TacticalRefs & {
   model: RaceTacticsModel;
   arrowRef: MutableRefObject<HTMLDivElement | null>;
   hintRef: MutableRefObject<HTMLDivElement | null>;
+  copyRef: MutableRefObject<ArrowCopy>;
 }) {
   const emphasisRef = useRef(false);
   return <>
     <NoGoWedge boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} model={model} />
     <MarkZone boatsRef={boatsRef} courseRef={courseRef} originRef={originRef} model={model} />
     <CourseBoundary originRef={originRef} model={model} emphasisRef={emphasisRef} />
-    <ScreenCues boatsRef={boatsRef} courseRef={courseRef} originRef={originRef} model={model} arrowRef={arrowRef} hintRef={hintRef} emphasisRef={emphasisRef} />
+    <ScreenCues boatsRef={boatsRef} courseRef={courseRef} originRef={originRef} model={model} arrowRef={arrowRef} hintRef={hintRef} emphasisRef={emphasisRef} copyRef={copyRef} />
   </>;
 }
 
-/** Over the Canvas: the 44 px arrow to the next mark and the boundary hint, both hidden until needed. */
-export function TacticalScreenLayer({ arrowRef, hintRef }: {
+/** Package 8 copy: the arrow's words when the next mark is astern. */
+export const MARK_BEHIND = { ru: "Знак сзади", en: "Mark behind", pl: "Znak z tyłu", es: "Baliza detrás", fr: "Bouée derrière", de: "Tonne achteraus", it: "Boa dietro" } as const;
+
+/** Over the Canvas: the 44 px arrow to the next mark with its distance, and
+ * the boundary hint, both hidden until needed. */
+export function TacticalScreenLayer({ arrowRef, hintRef, copyRef, metres }: {
   arrowRef: MutableRefObject<HTMLDivElement | null>;
   hintRef: MutableRefObject<HTMLDivElement | null>;
+  copyRef: MutableRefObject<ArrowCopy>;
+  metres: string;
 }) {
   const { tl } = useI18n();
   const boundary = tl({ ru: "Граница трассы близко", en: "Course boundary ahead", pl: "Granica trasy blisko", es: "Límite del recorrido cerca", fr: "Limite du parcours proche", de: "Kursgrenze voraus", it: "Limite del percorso vicino" });
+  const behind = tl(MARK_BEHIND);
+  useEffect(() => { copyRef.current = { metres, behind }; }, [copyRef, metres, behind]);
+  const size = EDGE_ARROW_RADIUS * 2;
   return <>
     <div ref={arrowRef} aria-hidden="true" data-testid="race-mark-arrow" className="pointer-events-none absolute left-0 top-0"
-      style={{ display: "none", zIndex: 1, width: EDGE_ARROW_RADIUS * 2, height: EDGE_ARROW_RADIUS * 2, alignItems: "center", justifyContent: "center",
+      style={{ display: "none", zIndex: 1, width: EDGE_ARROW_RADIUS * 2, height: EDGE_ARROW_RADIUS * 2 }}>
+      <div style={{ display: "flex", width: size, height: size, alignItems: "center", justifyContent: "center",
         borderRadius: "50%", background: "rgba(10, 22, 40, 0.86)", border: `2px solid ${GUIDANCE_COLOR}` }}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GUIDANCE_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 19V5M5 12l7-7 7 7" />
-      </svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GUIDANCE_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 19V5M5 12l7-7 7 7" />
+        </svg>
+        {/* Astern: go up, round and back down, mirrored for a turn to port. */}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GUIDANCE_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "none" }} data-glyph="astern">
+          <path d="M6 20V10a5 5 0 0 1 10 0v7M12 13l4 4 4-4" />
+        </svg>
+      </div>
+      <span data-testid="race-mark-arrow-distance" className="absolute whitespace-nowrap"
+        style={{ top: size + 4, left: "50%", transform: "translateX(-50%)", padding: "2px 8px", borderRadius: 6,
+          background: "rgba(10, 22, 40, 0.86)", color: "#ffffff", fontSize: 14, lineHeight: "20px", fontWeight: 700 }} />
     </div>
     <div ref={hintRef} role="status" data-testid="race-boundary-hint" className="pointer-events-none absolute"
       style={{ display: "none", zIndex: 1, left: "50%", top: "62%", transform: "translateX(-50%)", maxWidth: "min(280px, calc(100% - 120px))",

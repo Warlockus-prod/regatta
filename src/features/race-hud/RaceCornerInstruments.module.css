@@ -5,7 +5,10 @@
    the mini-map with a clear gap (e2e/race-navigation.spec.ts). */
 .wind { left:8px; padding:6px 10px 8px 8px; max-width:calc(50% - 16px); }
 .label { display:block; font-size:14px; line-height:1.3; font-weight:600; color:var(--text-secondary); margin-bottom:2px; }
-.instruments .map { right:8px; width:clamp(72px,24cqw,112px); height:clamp(64px,32cqh,112px); padding:0; pointer-events:auto; --race-map-height:100%; background:transparent; }
+/* Package 8: a square corner map about 110 px on a 390 px phone (was 72-112 px
+   and not square), drawn from a 112-unit picture so its letters are 13-14 px;
+   it stays clear of the wind box and the boat (e2e/race-navigation.spec.ts). */
+.instruments .map { right:8px; width:clamp(88px,min(28cqw,34cqh),144px); height:clamp(88px,min(28cqw,34cqh),144px); padding:0; pointer-events:auto; --race-map-height:100%; background:transparent; }
 .map>span { display:block; height:100%; }
 /* F3: the corner map opens the big map; the expand mark in its lower left
    corner shows that it is a button, on its own solid chip over the radar. */

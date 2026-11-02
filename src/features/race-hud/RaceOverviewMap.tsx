@@ -140,11 +140,11 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, c
           </g>;
         })}
         {/* Mark numbers last: a boat glyph never covers them. */}
-        {ordinals.map(({ x, y, ordinal }) => <text key={ordinal} data-map-ordinal="" x={number(x + (view ? 10 : 7))} y={number(y + (view ? 18 : -5))} fontSize={view ? 14 : 10} fill={zoom ? strong : SECONDARY}
+        {ordinals.map(({ x, y, ordinal }) => <text key={ordinal} data-map-ordinal="" x={number(x + (view ? 10 : 7))} y={number(y + (view ? 18 : -5))} fontSize={view || compact ? 14 : 10} fill={zoom ? strong : SECONDARY}
           stroke={zoom ? RADAR_HALO : undefined} strokeWidth={zoom ? 2 : undefined} paintOrder={zoom ? "stroke" : undefined}>{ordinal}</text>)}
       </g>
       <g aria-hidden="true" fill={ink} stroke="none">
-        <text x={12} y={14} fontSize={view ? 12 : 10}>{labels.north}</text>
+        <text x={compact ? 10 : 12} y={14} fontSize={compact ? 14 : view ? 12 : 10}>{labels.north}</text>
         {/* Bow up turns only the arrow; the label stays level and readable. */}
         <path data-map-north="" d="M18 19 L14 28 L18 25 L22 28 Z" transform={rotation ? `rotate(${turn(0)} 18 23.5)` : undefined} />
       </g>

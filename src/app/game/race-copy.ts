@@ -59,6 +59,7 @@ export function useRaceCopy() {
     jib: tl({ ru: "Стаксель развернут", en: "Jib unfurled", pl: "Fok rozwinięty", es: "Foque desplegado", fr: "Foc déroulé", de: "Fock ausgerollt", it: "Fiocco aperto" }),
     reef: tl({ ru: "Рифление грота", en: "Mainsail reef", pl: "Refowanie grota", es: "Rizo de la mayor", fr: "Ris de grand-voile", de: "Großsegel reffen", it: "Terzaroli randa" }),
     view: tl(REPLAY_COPY_RESOURCES.view),
+    race: tl(REPLAY_COPY_RESOURCES.race),
     orbit: tl(REPLAY_COPY_RESOURCES.orbit),
     resetCamera: tl(REPLAY_COPY_RESOURCES.resetCamera),
     cameraGesture: tl({ ru: "Вращай сцену пальцем или мышью. Масштаб: двумя пальцами или колесом мыши.", en: "Drag the scene to look around. Pinch or scroll to zoom.", pl: "Przeciągnij po scenie, żeby się rozejrzeć. Zbliżaj dwoma palcami lub kółkiem myszy.", es: "Arrastra la escena para mirar alrededor. Usa dos dedos o la rueda para acercar y alejar.", fr: "Fais glisser la scène pour regarder autour. Pince ou utilise la molette pour zoomer.", de: "Ziehe in der Szene, um dich umzusehen. Zoome mit zwei Fingern oder dem Mausrad.", it: "Trascina la scena per guardarti intorno. Usa due dita o la rotella per lo zoom." }),

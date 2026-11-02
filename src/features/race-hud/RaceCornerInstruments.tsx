@@ -16,7 +16,7 @@ export function RaceMiniMapButton({ navigation, onOpenMap, you, fleet }: {
   const c = useRaceNavigationCopy();
   return <button type="button" className={styles.map} onClick={onOpenMap}
     aria-label={c.openMap} title={c.openMap} aria-haspopup="dialog" data-testid="race-mini-map-button">
-    <RaceOverviewMap snapshot={navigation} width={128} height={128} compact
+    <RaceOverviewMap snapshot={navigation} width={112} height={112} compact
       labels={{ ...c, north: c.northShort, title: c.map, you, fleet }} />
     <span className={styles.expand} aria-hidden="true"><ExpandIcon size={16} /></span>
   </button>;

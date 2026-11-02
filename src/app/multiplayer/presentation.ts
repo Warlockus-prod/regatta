@@ -3,7 +3,7 @@ import { angleDiff, LEGACY_RACE_BOAT, makeStandardCourse, normalizeAngle, raceTr
 import { trimForDrive } from "@/lib/sailing-physics/polar";
 import type { Controls } from "@/lib/sailing-physics/types";
 import type { Race3DBoat } from "@/features/race-3d/pose";
-import { guidanceToTarget, type RaceGuidance } from "@/lib/race-guidance";
+import { guidanceToTarget, turnAhead, type RaceGuidance } from "@/lib/race-guidance";
 import { FLEET_COLORS as BOAT_FLEET_COLORS } from "@/features/race-hud/boat-colors";
 
 export const MULTIPLAYER_COURSE = makeStandardCourse();
@@ -45,6 +45,8 @@ export function createMultiplayerPresentation() {
       const target = snapshot.boats.find(boat => boat.id === myId)?.target;
       const guidance = player && player.lapDone < 2 && player.finishTime === undefined && target && [target.x, target.y].every(Number.isFinite)
         ? guidanceToTarget(player, target, windDir) : null;
+      // Package 8: the caption's next tack or gybe, from the same waypoint aid (no memory online).
+      if (guidance && player && target) guidance.next = turnAhead(player, guidance, null, probe => ({ guidance: guidanceToTarget(probe, target, windDir), state: null }));
       return { boats, windDir, windKnots, time: snapshot.t, guidance };
     },
   };

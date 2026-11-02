@@ -476,6 +476,18 @@ test("corner map and wind stay visible through dock tabs and five viewport sizes
     expect(geometry.map.width).toBeLessThanOrEqual(geometry.scene.width * .32 + 1);
     expect(geometry.map.height).toBeLessThanOrEqual(geometry.scene.height * .4 + 1);
     expect(geometry.map.left - geometry.wind.right).toBeGreaterThanOrEqual(geometry.scene.width * .2);
+    // Package 8: a square corner map whose letters read at 12 px or more on a 390 px phone.
+    expect(Math.abs(geometry.map.width - geometry.map.height)).toBeLessThanOrEqual(1);
+    if (viewport.width === 390) {
+      expect(geometry.map.width).toBeGreaterThanOrEqual(104);
+      const letters = await mini.evaluate(button => {
+        const svg = button.querySelector("svg")!;
+        const scale = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+        return [...svg.querySelectorAll("text")].map(text => Number(text.getAttribute("font-size")) * scale);
+      });
+      expect(letters.length).toBeGreaterThan(0);
+      for (const px of letters) expect(px).toBeGreaterThanOrEqual(12);
+    }
     samples.push({ viewport, ...geometry });
   }
   await page.setViewportSize({ width: 390, height: 844 });
@@ -493,6 +505,48 @@ test("corner map and wind stay visible through dock tabs and five viewport sizes
   await expect(mini).toBeVisible();
   await expect(wind).toBeVisible();
   await testInfo.attach("corner-instrument-layout", { contentType: "application/json", body: JSON.stringify(samples) });
+});
+
+// Package 8 (owner decision R-9, audit K5, TestFlight 74 feedback): the race
+// view is the default camera, a tap gives the orbit around the boat and a
+// double tap brings the race view back; the next mark is always findable (in
+// the picture under its beacon, or by the edge arrow with its distance); the
+// route hint says in words when to turn and on what course.
+test("race camera by default, orbit one tap away, double tap back, and the mark findable", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  const { scene, cockpit, canvas } = await startSimpleRace(page, context);
+  const saved = () => page.evaluate(() => localStorage.getItem("regatta.race.camera.v1"));
+  expect(await saved()).toBeNull();
+  await cockpit.getByRole("button", { name: "Настройки", exact: true }).click();
+  const cameras = cockpit.getByRole("radiogroup", { name: "Камера", exact: true });
+  await expect(cameras.getByRole("radio")).toHaveCount(4);
+  await expect(cameras.getByRole("radio", { name: "Гонка", exact: true })).toHaveAttribute("aria-checked", "true");
+  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  // The route call in the coach line: the band's colour, what to do and on what
+  // course; the route row under it keeps the course and how far the target is.
+  const caption = cockpit.getByTestId("race-route-caption");
+  await expect(caption).toBeVisible();
+  await expect(caption).toHaveAttribute("data-kind", /^(tack|gybe)-(now|ahead)$|^hold$|^steer$|^other$/);
+  await expect(caption).toHaveText(/\d+°/);
+  await expect(cockpit.getByTestId("race-route-heading")).toHaveText(/· \d+ м$/);
+  // The mark: the edge arrow carries metres whenever it is shown; turned away, it says the mark is behind.
+  const arrow = scene.getByTestId("race-mark-arrow");
+  const distance = scene.getByTestId("race-mark-arrow-distance");
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const tap = async () => { await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * .45); };
+  await tap();
+  await expect.poll(saved).toBe("orbit");
+  // Two taps in quick succession: the first steps on, the second brings the race view back.
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * .45, { clickCount: 1 });
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * .45, { clickCount: 2 });
+  await expect.poll(saved).toBe("race");
+  // Steer away from the mark until it is astern; the arrow then shows the turn-round sign with the distance.
+  await page.keyboard.down("ArrowRight");
+  await expect(arrow).toHaveAttribute("data-turn", /^(port|starboard)$/, { timeout: 30_000 });
+  await page.keyboard.up("ArrowRight");
+  await expect(arrow).toBeVisible();
+  await expect(distance).toHaveText(/^Знак сзади · \d+ м$/);
 });
 
 test("corner mini-map visibility survives a new document and records actual changes", async ({ page, context }) => {

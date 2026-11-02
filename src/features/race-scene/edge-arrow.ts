@@ -12,10 +12,12 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 /** The race HUD over the scene: a status line and the corner instruments on
  * top, the coach notice at the bottom. Proportional, so a landscape phone
- * (844x390) keeps a usable band and an upright one (390x844) clears the HUD. */
+ * (844x390) keeps a usable band and an upright one (390x844) clears the HUD.
+ * Package 8: the bottom also keeps the distance under the disc clear of the
+ * coach line that floats over the canvas on an upright phone. */
 export function edgeArrowInsets(width: number, height: number, out: ScreenInsets): ScreenInsets {
   out.top = clamp(height * 0.18, 60, 128);
-  out.bottom = clamp(height * 0.1, 48, 96);
+  out.bottom = clamp(height * 0.17, 72, 128);
   out.left = out.right = clamp(width * 0.02, 8, 16);
   return out;
 }
@@ -88,4 +90,26 @@ export function applyEdgeArrow(el: Styled, glyph: Styled | null, arrow: EdgeArro
     shown.angle = arrow.angle;
     glyph.style.transform = `rotate(${arrow.angle.toFixed(1)}deg)`;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Package 8: the arrow says how far the mark is, and when the mark is astern
+// it turns into a "turn round" sign on the side of the shorter turn.
+
+/** Beyond this angle off the bow (degrees) the mark counts as astern. */
+export const ASTERN_DEG = 110;
+
+/** Signed angle from the bow to a point `dx` east and `dy` south of the boat
+ * (race coordinates), -180..180; positive means to starboard. */
+export function offBow(heading: number, dx: number, dy: number): number {
+  const bearing = Math.atan2(dx, -dy) * 180 / Math.PI;
+  return ((((bearing - heading) % 360) + 540) % 360) - 180;
+}
+
+/** Distance shown at the arrow: whole tens of metres, at least 10. */
+export const arrowMetres = (metres: number) => Number.isFinite(metres) ? Math.max(10, Math.round(metres / 10) * 10) : 10;
+
+/** Where the distance label sits under the disc so it stays inside the picture. */
+export function labelSide(x: number, width: number): "start" | "center" | "end" {
+  return x < width / 3 ? "start" : x > width * 2 / 3 ? "end" : "center";
 }

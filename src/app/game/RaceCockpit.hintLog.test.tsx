@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { raceTrim, makeStandardCourse } from "@/lib/race-physics";
 import { createRaceNavigationSnapshot, raceWindReading } from "@/features/race-hud/navigation-model";
 import { RaceHintLogPanel } from "@/features/race-hud/RaceHintLog";
+import { RouteCaption } from "@/features/race-hud/RouteCaption";
 import type { HintLogEntry } from "@/features/race-hud/hint-log";
 
 // F4 contract in the race cockpit: the coach line can be switched off (and
@@ -83,12 +84,16 @@ describe("coach line switch (F4)", () => {
   it("keeps the route hint's manoeuvre calls and heading line, but drops its steady advice", () => {
     const line = byTestId(render({ ...props({ coachStrip: false, guidance: true }), guidance }), "race-coach-line")!;
     expect(byTestId(line.props.children as ReactNode, "race-route-heading")).toBeDefined();
-    expect(text(line.props.children as ReactNode)).toContain("Prepare to tack");
+    // Package 8: the route call is the caption (RouteCaption): when to turn and on what course.
+    const call = (tree: ReactNode) => nodes(tree).find(node => node.type === RouteCaption)?.props as ComponentProps<typeof RouteCaption> | undefined;
+    expect(call(line.props.children as ReactNode)?.guidance.action).toBe("tack");
+    expect(text(RouteCaption(call(line.props.children as ReactNode)!))).toMatch(/^Tack now, course \d+°$/);
     const hold = { ...guidance, action: "hold" } as NonNullable<Props["guidance"]>;
     const quiet = byTestId(render({ ...props({ coachStrip: false, guidance: true }), guidance: hold }), "race-coach-line")!;
-    expect(text(quiet.props.children as ReactNode)).not.toContain("Hold this heading");
+    expect(call(quiet.props.children as ReactNode)).toBeUndefined();
     expect(byTestId(quiet.props.children as ReactNode, "race-route-heading")).toBeDefined();
-    expect(text(byTestId(render({ ...props({ guidance: true }), guidance: hold }), "race-coach-line")!.props.children as ReactNode)).toContain("Hold this heading");
+    const shown = call(byTestId(render({ ...props({ guidance: true }), guidance: hold }), "race-coach-line")!.props.children as ReactNode)!;
+    expect(text(RouteCaption(shown))).toMatch(/^Hold \d+°$/);
     // The route hint switched off: no manoeuvre call either.
     expect(byTestId(render({ ...props({ coachStrip: false }), guidance }), "race-coach-line")).toBeUndefined();
   });

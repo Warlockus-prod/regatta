@@ -51,6 +51,9 @@ const LINE_COLOR = "#ffaa00";
  * high contrast on water and never the action cyan (M1-7, M2-2; DESIGN.md:
  * cyan is for actions). The pointer over the mark and the screen-edge arrow. */
 export const GUIDANCE_COLOR = "#ffd23f";
+/** Package 8: the steady beacon over the next mark (no pulse, no animation):
+ * a translucent column this tall, metres, the pointer on top and the distance on it. */
+export const BEACON_HEIGHT = 38;
 /** The loading ring: neutral, it is a state and not an action. */
 export const LOADING_COLOR = "#c7d2da";
 export const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
@@ -540,13 +543,19 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
       })}
       {start && <LineDashes a={start.a} b={start.b} />}
       {course && !finishSame && <LineDashes a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
-      {/* Where to sail next: the same target the race counts, and how far. */}
-      <group ref={pointer}>
-        <mesh rotation-x={Math.PI}>
-          <coneGeometry args={[1.8, 3.2, 4]} />
+      {/* Where to sail next: the same target the race counts, and how far.
+          Package 8: a steady beacon column from the water, seen from afar. */}
+      <group ref={pointer} name="mark-beacon">
+        <mesh position-y={BEACON_HEIGHT / 2 - 15} renderOrder={6}>
+          <cylinderGeometry args={[1.6, 1.6, BEACON_HEIGHT, 8, 1, true]} />
+          <meshBasicMaterial color={GUIDANCE_COLOR} transparent opacity={0.45} depthWrite={false} fog={false} toneMapped={false} />
+        </mesh>
+        <mesh rotation-x={Math.PI} position-y={BEACON_HEIGHT - 13}>
+          <coneGeometry args={[2.4, 4, 4]} />
           <meshBasicMaterial color={GUIDANCE_COLOR} fog={false} />
         </mesh>
-        {targetLabel && <NameTag text={targetLabel} y={4.5} />}
+        {/* The distance stays low on the column, under the horizon, where the HUD corners do not cover it. */}
+        {targetLabel && <NameTag text={targetLabel} y={5} />}
       </group>
     </group>
   );

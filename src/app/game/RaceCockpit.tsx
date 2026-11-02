@@ -10,7 +10,7 @@ import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/pre
 import type { Controls } from "@/lib/sailing-physics/types";
 import type { StandingRow } from "@/features/race-hud/RaceHud";
 import type { RaceGuidance } from "@/lib/race-guidance";
-import { METRES_PER_UNIT, type RaceCamera } from "@/features/race-3d/pose";
+import { METRES_PER_UNIT, RACE_CAMERAS, type RaceCamera } from "@/features/race-3d/pose";
 import { useRaceCopy } from "./race-copy";
 import type { RacePrefs } from "./race-prefs";
 import styles from "./RaceCockpit.module.css";
@@ -44,6 +44,7 @@ import { RACE_HINT_LOG_COPY, RACE_HINT_SETTINGS_COPY } from "@/data/race-hint-lo
 import { RACE_INTRO_TITLE } from "@/data/race-intro-title";
 import { RaceHintLogPanel } from "@/features/race-hud/RaceHintLog";
 import { LOGGED_ROUTE_ACTIONS, type HintLogEntry } from "@/features/race-hud/hint-log";
+import { RouteCaption } from "@/features/race-hud/RouteCaption";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -63,13 +64,13 @@ export function RaceModePicker({ prefs, update }: { prefs: RacePrefs; update: (p
  * replay, features/race-scene/camera-tap.ts) and the tap hint in Settings. */
 export { RACE_CAMERA_SWITCH, sceneTapHandlers };
 export const RACE_CAMERA_TAP_HINT = {
-  ru: "Коснись сцены, чтобы сменить камеру: вокруг лодки, за кормой, сверху. За кормой камера идет за курсом и сама возвращается за лодку.",
-  en: "Tap the scene to switch camera: around the boat, behind, above. Behind follows your course and comes back behind the boat by itself.",
-  pl: "Dotknij sceny, żeby zmienić kamerę: wokół łodzi, za rufą, z góry. Kamera za rufą podąża za kursem i sama wraca za łódź.",
-  es: "Toca la escena para cambiar de cámara: alrededor del barco, tras la popa, desde arriba. Tras la popa sigue tu rumbo y vuelve sola detrás del barco.",
-  fr: "Touche la scène pour changer de caméra : autour du bateau, derrière, en hauteur. Derrière suit ton cap et revient seule dans l'axe du bateau.",
-  de: "Tippe auf die Szene, um die Kamera zu wechseln: um das Boot, am Heck, von oben. Am Heck folgt sie deinem Kurs und kehrt von selbst hinter das Boot zurück.",
-  it: "Tocca la scena per cambiare inquadratura: attorno alla barca, da poppa, dall'alto. Da poppa segue la rotta e torna da sola dietro la barca.",
+  ru: "Коснись сцены, чтобы сменить камеру: гонка, вокруг лодки, за кормой, сверху. Двойное касание возвращает камеру «Гонка». Гонка и за кормой идут за курсом и сами возвращаются за лодку.",
+  en: "Tap the scene to switch camera: race, around the boat, behind, above. A double tap brings back the race camera. Race and behind follow your course and come back behind the boat by themselves.",
+  pl: "Dotknij sceny, żeby zmienić kamerę: wyścig, wokół łodzi, za rufą, z góry. Podwójne dotknięcie przywraca kamerę wyścigu. Kamery wyścigu i za rufą podążają za kursem i same wracają za łódź.",
+  es: "Toca la escena para cambiar de cámara: regata, alrededor del barco, tras la popa, desde arriba. Un doble toque vuelve a la cámara de regata. Regata y tras la popa siguen tu rumbo y vuelven solas detrás del barco.",
+  fr: "Touche la scène pour changer de caméra : course, autour du bateau, derrière, en hauteur. Un double appui ramène la caméra de course. Course et derrière suivent ton cap et reviennent seules dans l'axe du bateau.",
+  de: "Tippe auf die Szene, um die Kamera zu wechseln: Regatta, um das Boot, am Heck, von oben. Doppeltippen bringt die Regatta-Kamera zurück. Regatta und am Heck folgen deinem Kurs und kehren von selbst hinter das Boot zurück.",
+  it: "Tocca la scena per cambiare inquadratura: regata, attorno alla barca, da poppa, dall'alto. Un doppio tocco riporta la camera di regata. Regata e da poppa seguono la rotta e tornano da sole dietro la barca.",
 } as const;
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (on: boolean) => void }) {
@@ -158,7 +159,9 @@ export function RaceCockpit(p: {
   const menuRef = useRef<HTMLButtonElement>(null);
   const tapRef = useRef<TapTracker | null>(null);
   const cycleCamera = () => p.setCamera(nextRaceCamera(p.camera));
-  const sceneTap = sceneTapHandlers(() => (tapRef.current ??= createTapTracker()), cycleCamera);
+  // Package 8 (R-9): a double tap on the scene brings back the race view, refitted.
+  const raceView = () => { if (p.camera !== "race") p.setCamera("race"); p.onResetCamera(); };
+  const sceneTap = sceneTapHandlers(() => (tapRef.current ??= createTapTracker()), cycleCamera, raceView);
   // M1-4 finish hold: the scene stays for 2.5 s with the place plate; the
   // boat is no longer raced, so steering and trim are dimmed and inert.
   const holding = useSyncExternalStore(finishHoldStore.subscribe, () => finishHoldActive(p.raceId ?? ""), () => false);
@@ -190,7 +193,9 @@ export function RaceCockpit(p: {
   // field). Switched off, it drops the steady advice (hold, steer a little, the
   // mode note) but keeps the manoeuvre calls of the route hint, which the
   // player still pays gold for (hint-log.ts LOGGED_ROUTE_ACTIONS).
-  const routeCall = p.prefs.guidance && p.guidance ? c.actions[p.guidance.action] : null;
+  // Package 8: the route call says when to tack or gybe and on what course
+  // (RouteCaption), beside the colour of the band on the water it explains.
+  const routeCall = p.prefs.guidance && p.guidance ? <RouteCaption guidance={p.guidance} metres={c.metres} fallback={c.actions[p.guidance.action]} target={false} /> : null;
   const coachLine = p.paused ? c.pause : p.prefs.coachStrip !== false ? p.message || routeCall || (pro ? c.proNote : c.simpleNote)
     : p.prefs.guidance && p.guidance && LOGGED_ROUTE_ACTIONS.includes(p.guidance.action) ? routeCall : null;
   const trimLine = Boolean(pro && p.prefs.trimHints && p.trimAdvice);
@@ -307,7 +312,7 @@ export function RaceCockpit(p: {
             <Toggle label={labels.returnCenter} checked={controls.helmReturnToCenter} onChange={helmReturnToCenter => update({ helmReturnToCenter })} />
             <Toggle label={labels.jibRight} checked={controls.jibSheetSide === "right"} onChange={on => update({ jibSheetSide: on ? "right" : "left" })} />
             <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={controls.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
-            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
+            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{RACE_CAMERAS.map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
             <p>{c.cameraGesture} {tl(RACE_CAMERA_TAP_HINT)}</p>
             <RaceWindSettings display={p.prefs.windDisplay} onChange={windDisplay => p.updatePrefs({ windDisplay })} />

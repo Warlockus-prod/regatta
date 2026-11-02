@@ -5,7 +5,10 @@ import { useI18n } from "@/lib/i18n";
 import { useControlLabels } from "@/features/trainer-controls/labels";
 import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/prefs";
 import { WheelDeck } from "@/features/trainer-controls/WheelDeck";
-import { METRES_PER_UNIT, raceRanks, type RaceCamera } from "@/features/race-3d/pose";
+import { RACE_CAMERAS, raceRanks, type RaceCamera } from "@/features/race-3d/pose";
+import { RouteCaption } from "@/features/race-hud/RouteCaption";
+import { createTapTracker, nextRaceCamera, type TapTracker } from "@/features/race-scene/camera";
+import { sceneTapHandlers } from "@/features/race-scene/camera-tap";
 import { useRaceCopy } from "../game/race-copy";
 import styles from "../game/RaceCockpit.module.css";
 import local from "./MultiplayerCockpit.module.css";
@@ -88,6 +91,10 @@ export function MultiplayerCockpit(p: {
     rudder: p.rudder, setRudder: p.setRudder, onCourseDelta: p.courseDelta };
   const range = (label: string, value: number, min: number, max: number, onChange: (v: number) => void) => <label className={styles.range}><span>{label}<output>{Math.round(value)}°</output></span><input type="range" aria-label={label} min={min} max={max} step="1" value={value} onChange={e => onChange(Number(e.target.value))} /></label>;
   const pinned = p.phase !== "finished" && tab === "helm";
+  // Package 8: the same scene taps as the solo race (next camera; a double tap back to the race view).
+  const tapRef = useRef<TapTracker | null>(null);
+  const sceneTap = sceneTapHandlers(() => (tapRef.current ??= createTapTracker()), () => p.setCamera(nextRaceCamera(p.camera)),
+    () => { if (p.camera !== "race") p.setCamera("race"); p.onResetCamera(); });
   const minutes = Math.floor((p.frame?.time ?? 0) / 60);
   const seconds = Math.floor((p.frame?.time ?? 0) % 60).toString().padStart(2, "0");
   return <div className={styles.cockpit} data-testid="multiplayer-cockpit">
@@ -101,7 +108,7 @@ export function MultiplayerCockpit(p: {
       {[[c.time, `${minutes}:${seconds}`, ""], [c.position, `${player ? ranks.get(player.id) ?? "-" : "-"}/${fleet.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
     </div>
     <div className={styles.workspace}>
-      <div className={styles.scene} data-testid="multiplayer-scene">{p.children}
+      <div className={styles.scene} data-testid="multiplayer-scene" {...sceneTap}>{p.children}
         <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.windDisplay}
           miniMap={p.miniMap} onOpenMap={() => setBigMap(true)} you={c.you} fleet={c.fleet} />
         {/* F3: the big map over the scene; the race keeps running and the dock stays usable. */}
@@ -114,7 +121,7 @@ export function MultiplayerCockpit(p: {
         <div className={styles.notice} role="status" aria-live="polite" tabIndex={0}>
           {p.reconnecting ? reconnect : p.phase === "countdown" ? <strong>{p.countdown}</strong> : !p.frame ? waiting : <>
             <span>{auto}</span>
-            {p.guidanceOn && p.frame.guidance && <small className={styles.trimAdvice} data-testid="multiplayer-guidance">{c.actions[p.frame.guidance.action]} · {Math.round(p.frame.guidance.distance * METRES_PER_UNIT)} m</small>}
+            {p.guidanceOn && p.frame.guidance && <small className={styles.trimAdvice} data-testid="multiplayer-guidance"><RouteCaption guidance={p.frame.guidance} metres={c.metres} fallback={c.actions[p.frame.guidance.action]} /></small>}
           </>}
         </div>
         {p.phase !== "finished" && <nav className={`${styles.tabs} ${local.tabs}`} aria-label={labels.controlsTitle}>
@@ -139,7 +146,7 @@ export function MultiplayerCockpit(p: {
             <label className={styles.toggle}><span>{labels.returnCenter}</span><input type="checkbox" role="switch" checked={prefs.helmReturnToCenter} onChange={e => update({ helmReturnToCenter: e.target.checked })} /></label>
             <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([0.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={prefs.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
             <span className={local.settingsLabel}>{c.view}</span>
-            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(view => <button key={view} type="button" role="radio" aria-checked={p.camera === view} onClick={() => p.setCamera(view)}>{c[view]}</button>)}</div>
+            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{RACE_CAMERAS.map(view => <button key={view} type="button" role="radio" aria-checked={p.camera === view} onClick={() => p.setCamera(view)}>{c[view]}</button>)}</div>
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
             <p>{c.cameraGesture}</p>
             <RaceWindSettings display={p.windDisplay} onChange={p.setWindDisplay} />

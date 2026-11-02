@@ -21,8 +21,11 @@ export const METRES_PER_UNIT = 0.6;
  */
 export const VISUAL_SPEEDUP = (UNITS_PER_KNOT_SECOND * METRES_PER_UNIT) / 0.514444;
 
-/** Free orbit around the yacht, with optional stern and tactical presets. */
-export type RaceCamera = "orbit" | "stern" | "high";
+/** The race view (the default, package 8), free orbit around the yacht, and
+ * the stern and tactical presets. */
+export type RaceCamera = "race" | "orbit" | "stern" | "high";
+/** Every camera, in the order the pickers list them. */
+export const RACE_CAMERAS = ["race", "orbit", "stern", "high"] as const satisfies readonly RaceCamera[];
 
 /** Inside this true wind angle the sails cannot fill: the race's own no-go
  * definition (src/lib/race-manoeuvres.ts), the one the log and coach use. */

@@ -117,7 +117,7 @@ export default function MultiplayerClient() {
   const [frame, setFrame] = useState<MultiplayerFrame | null>(null);
   const [windReading, setWindReading] = useState<RaceWindReading | null>(null);
   const [navigation, setNavigation] = useState<RaceNavigationSnapshot | null>(null);
-  const [camera, setCamera] = useState<RaceCamera>("orbit");
+  const [camera, setCamera] = useState<RaceCamera>("race");
   const [cameraRevision, setCameraRevision] = useState(0);
   const [guidanceOn, setGuidanceOn] = useState(true);
   const inputRef = useRef({ left: false, right: false, rudder: 0, course: null as number | null });

@@ -122,7 +122,7 @@ describe("teaching replay wiring (M4-3)", () => {
     const p = (t: number) => ({ pointerId: 1, clientX: 100, clientY: 100, timeStamp: t, target: canvas, isPrimary: true, button: 0 });
     (scene.props.onPointerDown as (e: unknown) => void)(p(1000));
     (scene.props.onPointerUp as (e: unknown) => void)(p(1100));
-    expect(picked).toEqual(["stern", "orbit"]);
+    expect(picked).toEqual(["stern", "race"]);
   });
 });
 
