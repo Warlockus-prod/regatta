@@ -3,8 +3,13 @@
 // a table every 5 degrees is solved once per wind strength and interpolated.
 
 import { solvePolarPoint } from "@/lib/sailing-physics/polar";
+import { CLASSIC_BOAT } from "@/lib/sailing-physics/boat";
 
-/** Below this true wind angle the boat cannot sail (the race's no-go zone). */
+// The table serves the legacy race only (GameClient skips the metric trial),
+// so it is solved on the boat that race sails: the classic profile (ADR-0021).
+
+/** Below this true wind angle the boat cannot sail (the legacy race's no-go
+ * zone, the same 30 deg as NO_GO in race-manoeuvres.ts). */
 export const NO_GO_TWA = 30;
 const STEP = 5;
 
@@ -13,7 +18,7 @@ export type PolarTable = number[];
 /** Best speed (kn) at TWA 0, 5, ... 180 for this true wind speed (kn). */
 export function polarTable(tws: number): PolarTable {
   const table: number[] = [];
-  for (let twa = 0; twa <= 180; twa += STEP) table.push(twa < NO_GO_TWA ? 0 : solvePolarPoint(twa, tws).speed);
+  for (let twa = 0; twa <= 180; twa += STEP) table.push(twa < NO_GO_TWA ? 0 : solvePolarPoint(twa, tws, 0, CLASSIC_BOAT).speed);
   return table;
 }
 

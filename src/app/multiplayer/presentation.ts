@@ -1,5 +1,5 @@
 import type { Snapshot } from "@/lib/mp-client";
-import { angleDiff, makeStandardCourse, normalizeAngle, raceTrim } from "@/lib/race-physics";
+import { angleDiff, LEGACY_RACE_BOAT, makeStandardCourse, normalizeAngle, raceTrim } from "@/lib/race-physics";
 import { trimForDrive } from "@/lib/sailing-physics/polar";
 import type { Controls } from "@/lib/sailing-physics/types";
 import type { Race3DBoat } from "@/features/race-3d/pose";
@@ -33,7 +33,7 @@ export function createMultiplayerPresentation() {
         const physics = { trueWindDir: windDir, trueWindSpeed: windKnots, heading: normalizeAngle(b.h), boatSpeed: b.s, heel: 0, leeway: 0 };
         let visual = rig.get(b.id);
         if (!visual || snapshot.t < visual.at || snapshot.t - visual.at >= 0.5) {
-          visual = { at: snapshot.t, trim: trimForDrive(physics, visual?.trim ?? raceTrim(undefined)) };
+          visual = { at: snapshot.t, trim: trimForDrive(physics, visual?.trim ?? raceTrim(undefined), LEGACY_RACE_BOAT) };
           rig.set(b.id, visual);
         }
         return { id: b.id, name: players.find(player => player.id === b.id)?.nickname ?? "",

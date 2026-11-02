@@ -1,4 +1,7 @@
-import { DEFAULT_BOAT } from "../sailing-physics/boat";
+// The harbour model (ADR-0020) was calibrated on the classic profile, whose
+// hullDragK is the whole hull drag; the cruiser profile's hullDragK is friction
+// only (ADR-0021). Length and displacement are the same in both.
+import { CLASSIC_BOAT as DEFAULT_BOAT } from "../sailing-physics/boat";
 import type { HarbourYacht, Vec2 } from "./types";
 
 // Our yacht in the harbour: the same abstract 45 ft cruiser as the sailing

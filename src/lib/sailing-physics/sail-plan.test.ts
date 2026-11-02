@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSailGeometry, updateSailGeometry } from "@/features/simulator-3d/sails/geometry";
-import { createInitialState, getBoatParams, tick, type Controls } from "./index";
+import { createInitialState, getBoatParams, getClassicBoatParams, tick, type Controls } from "./index";
 import { computeBalance } from "./balance";
 import { projectedSailPath } from "@/features/simulator-v3/ui/sail-projection";
 
@@ -31,10 +31,15 @@ describe("physical sail contracts", () => {
   });
   it("has zero sail force with main lowered and jib completely furled", () => {
     for (const twa of [-150,-90,-45,0,45,90,150,180]) {
-      const result = tick(createInitialState({tws:25,twa,boatSpeed:0}), {...controls, mainHoisted:false, jibFurl:1}, getBoatParams(), .1);
-      expect(result.diag.drive).toBe(0);
-      expect(result.diag.side).toBe(0);
-      expect(result.state.boatSpeed).toBe(0);
+      for (const params of [getBoatParams(), getClassicBoatParams()]) {
+        const result = tick(createInitialState({tws:25,twa,boatSpeed:0}), {...controls, mainHoisted:false, jibFurl:1}, params, .1);
+        expect(result.diag.drive).toBe(0);
+        expect(result.diag.side).toBe(0);
+        // Bare poles: the classic boat has no windage; the cruiser profile's
+        // hull and rig windage (ADR-0021) only push a boat with the wind aft.
+        if (!params.model || Math.abs(twa) <= 90) expect(result.state.boatSpeed).toBe(0);
+        else expect(result.state.boatSpeed).toBeGreaterThan(0);
+      }
     }
   });
   it("a lowered main cannot blanket the jib on a dead run", () => {

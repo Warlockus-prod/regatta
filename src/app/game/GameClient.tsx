@@ -35,7 +35,8 @@ import { isEmbed } from '@/lib/theme';
 import type { RaceBoat } from "@/lib/race-physics";
 import type { Controls } from "@/lib/sailing-physics/types";
 import { raceStartTrim } from "./race-start-trim";
-import { raceTrim } from "@/lib/race-physics";
+import { LEGACY_RACE_BOAT, raceTrim } from "@/lib/race-physics";
+import { CRUISER_BOAT } from "@/lib/sailing-physics/boat";
 import type { RaceGuidance } from "@/lib/race-guidance";
 import { createRaceRulesState, type RaceRuleEvent } from "@/lib/race-rules";
 import type { RaceJudgeDebrief } from "@/lib/race-judge";
@@ -624,7 +625,8 @@ export default function GamePage() {
     }
 
     // Pro sheets the player has not touched yet: close-hauled trim that gets the boat going (race-start-trim.ts).
-    const startingTrim = raceStartTrim(windStrengthRef.current, boats[0].heading);
+    const startingTrim = raceStartTrim(windStrengthRef.current, boats[0].heading,
+      physicalRef.current ? CRUISER_BOAT : LEGACY_RACE_BOAT); // ADR-0021: the boat of this race
     trimRef.current = startingTrim; setTrimState(startingTrim);
     boatsRef.current = boats;
     setWindReading(raceWindReading({ heading: boats[0].heading, boatSpeedKn: boats[0].speed, windFrom: WIND_DIRECTION, windKnots: 12 * windStrengthRef.current }));

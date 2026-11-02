@@ -1,6 +1,7 @@
 import { DEG_TO_RAD, RAD_TO_DEG, type WindVec } from './wind';
-import { sailCl, sailCd, isStalled } from './aero';
+import { sailCl, sailCd, isStalled, softSailAttachment } from './aero';
 import { outhaulDepthFactor } from "./mainsail-shape";
+import type { CruiserModel } from './types';
 
 // ============================================================================
 // Sail forces: given a sail configuration and apparent wind in boat frame,
@@ -21,6 +22,9 @@ export interface SailConfig {
   /** Twist in [0, 1]. */
   twist: number;
   outhaulEase?: number;
+  /** Cruiser profile only: share of the cloth the crew has drawing, 0..1.
+   *  The rest flogs (ADR-0021). The classic profile scales area instead. */
+  attached?: number;
 }
 
 export interface SailForce {
@@ -32,6 +36,23 @@ export interface SailForce {
   aoa: number;
   /** Stall flag. */
   stalled: boolean;
+}
+
+/** Cruiser profile (ADR-0021) post-stall plate: null below 18 deg (attached
+ *  curve), a linear fall from the 1.5 plateau to the plate value by 25 deg,
+ *  then Cn rising 1.15 -> 1.25 toward broadside. Symmetric past 90 deg in Cd. */
+function postStallCoefficients(aoaDeg: number): { cl: number; cd: number } | null {
+  const a = Math.min(180, Math.abs(aoaDeg));
+  if (a < 18) return null;
+  const plate = (deg: number) => {
+    const cn = 1.15 + 0.1 * Math.min(1, Math.max(0, (deg - 25) / 65));
+    const r = deg * DEG_TO_RAD;
+    return { cl: Math.max(0, cn * Math.cos(r)), cd: Math.max(sailCd(deg), cn * Math.abs(Math.sin(r))) };
+  };
+  if (a >= 25) return plate(a);
+  const at25 = plate(25);
+  const t = (a - 18) / 7;
+  return { cl: 1.5 + (at25.cl - 1.5) * t, cd: sailCd(a) + (at25.cd - sailCd(25)) * t };
 }
 
 /** Compute sail force on the boat from one sail.
@@ -54,6 +75,7 @@ function computeSectionForce(
   cfg: SailConfig,
   clMultiplier = 1.0,
   cdMultiplier = 1.0,
+  model?: CruiserModel,
 ): SailForce {
   if (awsMps < 1e-4 || cfg.area < 1e-4) {
     return { drive: 0, side: 0, aoa: 0, stalled: false };
@@ -112,9 +134,28 @@ function computeSectionForce(
   const backed = flowDotLeeward < 0;
 
   // The coefficient curve and diagnostic use the same section stall onset.
-  const clRaw = sailCl(aoa, 1.5) * clMultiplier;
-  const cl = backed ? -clRaw * 0.5 : clRaw;
-  const cd = sailCd(aoa) * cdMultiplier;
+  let cl: number;
+  let cd: number;
+  if (!model) {
+    // Classic profile (ADR-0001): any positive angle lifts, a luffing sail
+    // neither drives nor drags.
+    const clRaw = sailCl(aoa, 1.5) * clMultiplier;
+    cl = backed ? -clRaw * 0.5 : clRaw;
+    cd = sailCd(aoa) * cdMultiplier;
+  } else {
+    // Cruiser profile (ADR-0021): cloth too fine to the flow flogs. It loses
+    // its lift, adds flogging drag, and lift costs induced drag (finite rig).
+    const attached = softSailAttachment(aoa, model.luffStartDeg, model.luffFullDeg)
+      * Math.max(0, Math.min(1, cfg.attached ?? 1));
+    // A stalled sail is a cambered plate carrying a normal force Cn of about
+    // 1.15-1.25: past 25 deg Cl = Cn cos a and Cd = Cn sin a. The classic
+    // curve drops lift to 0.15-0.45 there, which starved the broad reach.
+    const post = postStallCoefficients(aoa);
+    const curve = post ? post.cl : sailCl(aoa, 1.5);
+    const clRaw = curve * clMultiplier * attached;
+    cl = backed ? -clRaw * 0.5 : clRaw;
+    cd = (post ? post.cd : sailCd(aoa)) * cdMultiplier + model.luffCd * (1 - attached) + model.sailInducedK * cl * cl;
+  }
   const stalled = isStalled(aoa, 18);
 
   // Dynamic pressure
@@ -165,7 +206,7 @@ export const MAX_SAIL_TWIST_DEG = 20;
 export function sectionTwistDegrees(twist: number, height: number): number {
   return Math.max(0, Math.min(1, twist)) * MAX_SAIL_TWIST_DEG * Math.pow(height, 1.6);
 }
-export function computeSailForce(aw: WindVec, awsMps: number, cfg: SailConfig, clMultiplier = 1): SailForce {
+export function computeSailForce(aw: WindVec, awsMps: number, cfg: SailConfig, clMultiplier = 1, model?: CruiserModel): SailForce {
   let drive = 0, side = 0, aoa = 0, stalledArea = 0;
   for (let i = 0; i < 5; i++) {
     const height = (i + 0.5) / 5;
@@ -176,7 +217,7 @@ export function computeSailForce(aw: WindVec, awsMps: number, cfg: SailConfig, c
     const section = computeSectionForce(aw, awsMps, {
       ...cfg, area: cfg.area * weight,
       angleOff: cfg.angleOff + sectionTwistDegrees(cfg.twist, height), twist: 0,
-    }, clMultiplier * (1 + .8 * depthDelta), 1 + 1.2 * depthDelta);
+    }, clMultiplier * (1 + .8 * depthDelta), 1 + 1.2 * depthDelta, model);
     drive += section.drive; side += section.side; aoa += section.aoa * weight;
     if (section.stalled) stalledArea += weight;
   }

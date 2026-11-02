@@ -1049,8 +1049,271 @@ the pointer so the ADR list stays complete.
   freedom: surge, sway, yaw; engine with prop walk, rudder in the prop wash,
   windage, contacts and mooring lines). It only reads `DEFAULT_BOAT` length,
   displacement and hull drag from `src/lib/sailing-physics/*`; no constant of
-  the VPP engine changed.
+  the VPP engine changed. Since ADR-0021 it reads them from `CLASSIC_BOAT`
+  (same numbers; the cruiser profile's `hullDragK` is friction only).
 - Race physics, the Trainer, Basics, Boat 3D and the multiplayer server
   physics are unchanged and never import the harbour model.
 - Behaviour tests: `src/lib/harbour-physics/step.test.ts`,
   `src/features/manoeuvres/runner.test.ts`.
+
+## ADR-0021 - Cruiser profile: wave resistance, heel drag, luffing sails and turning drag; the classic profile frozen for the legacy race
+
+Date: 2026-11-02. Status: proposed (work package 6 of `docs/BACKLOG.md`,
+implemented in the worktree, not committed; owner decision Р-5 is still open,
+see Consequences). Numbers 0016-0018 stay reserved. Changes engine constants
+under `AGENTS.md` rule 8; ADR-0001 and ADR-0002 keep explaining the classic
+numbers, which do not change.
+
+### Context
+The 2026-11-01 sailing expert review (`docs/audits/2026-11-01-sailing-expert-review.md`,
+A4-A7, section 4) measured the engine teaching false seamanship:
+- one hull drag `D = 240 v^2` plus a hard cap at 1.25 x hull speed: speed is
+  proportional to wind, half the real speed in 6 kn, 10.60 kn flat from 20 kn
+  on a beam reach, TWA 120 32% slower than the beam reach, best downwind VMG at
+  TWA 172 in every wind;
+- heel only shrinks the sail force, so full sail is fastest even at 45 deg of
+  heel and reefing never pays;
+- a luffing sail neither stops driving nor adds drag and the jib sheets to
+  5 deg: 3.75 kn steady at TWA 25 in 12 kn, the trainer has a hard zero-force
+  cone at 42 deg instead (`step-rig.ts`), so a boat head to wind coasts on;
+- tacks are nearly free: 0.06-0.13 boat lengths, 75-87% speed kept, and 0
+  with course assist;
+- five no-go numbers in use (30 / 35 / 40 / 42 / 45).
+The race game logic (tack button, BEST VMG, package 13) depends on this.
+
+### Decision
+1. **Two profiles of one boat.** `src/lib/sailing-physics/boat.ts` exports
+   `CLASSIC_BOAT` (the ADR-0001 / ADR-0002 numbers, frozen) and `CRUISER_BOAT`
+   (this ADR). `DEFAULT_BOAT` and `getBoatParams()` are the cruiser profile;
+   `getClassicBoatParams()` returns the classic one. A profile is selected by
+   `BoatParams.model` (`CruiserModel`, id `cruiser-2026-11`): without it,
+   `tick`, `trimForDrive` and `solvePolarPoint` run the classic arithmetic bit
+   for bit. Same hull, rig, keel, righting moment, sail plan and mass.
+2. **Cruiser terms** (all calibration of an abstract ~45 ft two-sail cruiser,
+   not a certificate):
+   - Hull: friction `hullDragK = 55` N/(m/s)^2 (0.5 x 1025 x S 33 m^2 x Cf
+     0.0028 x form 1.15) plus residuary `Rr(Fn) x m g` of Delft-series shape,
+     Fn on the 12.2 m waterline: 0 / .0002 / .0006 / .0015 / .004 / .013 /
+     .036 / .09 / .15 / .2 at Fn 0 / .15 / .2 / .25 / .3 / .35 / .4 / .45 / .5
+     / .55 (`resistance.ts`). No speed cap: the wave wall holds the boat.
+   - Heel: hull resistance x (1 + 0.8 heel_rad^2) (+22% at 30 deg).
+   - Keel induced drag: 0.4 x |side force| x |tan leeway|, fading at rest.
+   - Turning drag: the lateral force of a turn `m v r` costs
+     `(m v r)^2 / (0.5 rho_w (v + 0.5)^2 pi b^2)`, b = 1.8 m. The shared boat
+     step passes the yaw rate it produced; below 3 kn the charged rate fades
+     with the helm law's authority (45 deg/s x min(1, v / 3 kn)), so course
+     assist spinning a stopped boat costs nothing, while at speed the whole
+     turn is charged, assist included. No tack-specific penalty.
+   - Windage: hull and rig Cd x A = 3 m^2 along the apparent wind.
+   - Sails: soft-sail entry, no lift below 1 deg of section angle of attack,
+     full attached curve from 8 deg (smoothstep), flogging cloth adds Cd 0.12;
+     induced drag Cd 0.04 x Cl^2; past the stall a cambered plate with Cn 1.15
+     -> 1.25 (Cl = Cn cos a, Cd = Cn sin a); a drawing jib turns the flow the
+     main meets 6 deg finer (downwash, full to AWA 60, none from AWA 100); the
+     main's wind shadow follows the apparent wind (jib collapses by AWA 170,
+     draws fully from AWA 140). `jibMinOff` 10 deg (cruiser genoa track),
+     `jibMaxOff` 65 deg (eased lead).
+   - Rig: a sail the crew is moving across the boat keeps its area and flogs
+     (rig load = attached share) instead of vanishing, and the trainer step no
+     longer zeroes the force inside the 42 deg cone (`step-rig.ts`): luffing
+     now comes from the force model. The drawn sail response is unchanged.
+   - Crew trim: the cruiser crew trims for drive minus resistance at the heel
+     its sheets produce (two fixed-point steps), so an overpowered boat is
+     eased instead of laid flat. Twist stays out of the search (measured:
+     it pointed the boat at 35 deg in 16 kn).
+3. **One no-go value.** `NO_GO_HALF_DEG` stays 42 and now agrees with the
+   physics (best upwind VMG 45 / 42 / 40 deg in 6 / 12 / 20 kn, the rig luffs
+   and stops the boat inside it; `cruiser.test.ts` fails if they drift apart).
+   Code paths moved to it: the right-of-way judge (`race-rules.ts`, was a
+   literal 42, so no outcome changes) and the native trainer's wind-rose
+   sector and no-go tip (`mobile/app/simulator/index.tsx`, were 30). The
+   legacy race keeps its own 30 deg zone (`race-manoeuvres.ts` `NO_GO`,
+   `race-hud/target.ts`, `race-scale.ts`): that is the classic boat's zone and
+   it scores legacy records. Bot and guidance margins (45 = 42 + 3 close-hauled
+   target, escape 35, layline 8) are different concepts and stay. Teaching copy
+   is not changed here; copy that states a wrong number is listed under
+   Consequences for package 7.
+4. **Records.** The legacy race (`legacy-race-v1:standard:r1`: solo
+   default, records, ghosts, medals, replays, classified tables, missions,
+   daily race) and multiplayer sail `LEGACY_RACE_BOAT = CLASSIC_BOAT`
+   (`race-physics.ts`), with every helper that reads boat numbers for them
+   (Pro start trim, multiplayer visual trim, HUD polar target, trim coach,
+   3D sail pose). Its behaviour is bit-identical, so no legacy record, ghost,
+   replay or medal is re-scored and no new class or leaderboard split is
+   needed: Р-5's "old records frozen as Classic" holds without moving a row.
+   `ws-server/race-physics.js` is regenerated (its text now carries the
+   cruiser code, unused by the server). The metric race
+   (`physical-cruiser-v1:*:r1`) sails `PHYSICAL_RACE_BOAT = CRUISER_BOAT`,
+   the trainer's boat, as ADR-0014 requires. Result emission is off and no
+   r1 record, threshold or medal exists, so ADR-0015 point 3 keeps the class
+   at r1; the metric medal thresholds (ADR-0015 point 13, revision 3) must be
+   computed on this profile. Any later change of the cruiser profile after
+   switch A is a new revision of the class.
+5. **Adjustments outside the engine**, all measured:
+   - Bot planner (`race-physical-bot.ts`): over the windward mark a boat may
+     head into the no-go to coast round only with way (>= the 1 kn escape
+     speed); a stopped one sails close-hauled again instead of parking head to
+     wind (it used to coast forever on the classic decay).
+   - Pro start trim of the metric race (`race-start-trim.ts`): solved at 0.45
+     of the wind speed (`CRUISER_START_TRIM_SPEED_SHARE`) instead of 0.25:
+     92-100% of the polar on the beat, 2 kn after 44 / 18 / 12 s from rest at
+     x0.65 / x1 / x1.3. The legacy race keeps 0.25.
+   - The metric start jostle stays 16 s (`race-courses.ts`): two hulls now
+     take 18.6 s, but the strong-wind fleet's first encounter comes at 16.7 s.
+
+### Options considered
+- Change the one boat for everybody, legacy race included: legacy times,
+  bots, medals and multiplayer would move, which needs a new legacy class,
+  frozen tables, a server protocol revision and new medal thresholds.
+  Rejected: the classic profile costs one branch and keeps every record.
+- New profile for the trainers only, metric race on the classic boat:
+  contradicts ADR-0014 (one boat step for trainer and metric race).
+  Rejected.
+- Keep the hard 42 deg zero-force cone: the opposite of "derived from
+  physics", and a boat head to wind coasted 5+ lengths. Replaced.
+- A special tack penalty (fixed time or speed loss): rejected for the general
+  turning drag, which also prices bear-aways and penalty turns.
+- Charge only up to 22 deg/s (helm rate) of yaw: the assisted tack became
+  cheaper than the helm tack again (81% speed kept, 0.08 lengths). Rejected.
+- Jib sheet transfer 3.5 s instead of 1.4 s: speed through a tack changed by
+  1%. Not taken (the crew model stays ADR-0014's).
+- Bot escape at 1.5 or 2 kn instead of 1 kn: moved the one mark touch to
+  other scenarios (and the start encounter to 15.3 s). Kept 1 kn.
+- More sail area to reach the ORC light-air speeds: changes the drawn sail
+  plan and the GLB; left to the owner.
+
+### Consequences
+Before = classic profile (what every surface sailed until now), after =
+cruiser profile, both measured 2026-11-02 with the polar solver (reef 0) and
+the shared trainer boat step. Speed kn (heel deg):
+
+| TWS | TWA 40 | TWA 52 | TWA 60 | TWA 90 | TWA 120 | TWA 150 | TWA 170 |
+|---|---|---|---|---|---|---|---|
+| 6 before | 2.73 (6) | 3.13 (5) | 3.31 (5) | 3.42 (2) | 2.30 (0) | 1.91 (1) | 1.80 (0) |
+| 6 after | 3.84 (7) | 4.78 (8) | 5.23 (8) | 5.76 (5) | 5.16 (2) | 3.28 (0) | 2.73 (0) |
+| 12 before | 5.22 (20) | 6.02 (19) | 6.40 (18) | 6.77 (10) | 4.59 (2) | 3.81 (2) | 3.60 (0) |
+| 12 after | 6.11 (22) | 6.92 (21) | 7.31 (21) | 7.77 (13) | 7.53 (4) | 6.00 (1) | 5.25 (0) |
+| 20 before | 7.76 (38) | 9.02 (37) | 9.70 (35) | 10.60 (23) | 7.63 (5) | 6.34 (7) | 6.00 (1) |
+| 20 after | 7.03 (35) | 7.83 (36) | 8.23 (34) | 8.96 (23) | 8.67 (5) | 7.88 (2) | 7.33 (1) |
+| 25 before | 8.95 (46) | 10.51 (44) | 10.60 (42) | 10.60 (27) | 9.52 (8) | 7.90 (10) | 7.51 (1) |
+| 25 after | 7.18 (43) | 8.10 (42) | 8.57 (40) | 9.50 (28) | 9.31 (5) | 8.67 (4) | 8.06 (1) |
+
+Best VMG angles (TWA, VMG kn), before -> after:
+
+| TWS | upwind | downwind |
+|---|---|---|
+| 6 | 41, 2.09 -> 45, 3.04 | 172, 1.78 -> 132, 3.05 |
+| 8 | 41, 2.76 -> 44, 3.78 | 172, 2.37 -> 159, 3.80 |
+| 12 | 41, 4.00 -> 42, 4.74 | 172, 3.56 -> 158, 5.38 |
+| 16 | 40, 5.06 -> 38, 5.15 | 172, 4.74 -> 162, 6.43 |
+| 20 | 40, 5.95 -> 40, 5.38 | 172, 5.93 -> 167, 7.27 |
+| 25 | 42, 6.88 -> 41, 5.57 | 172, 7.41 -> 165, 7.97 |
+
+Steady speed inside the no-go, TWS 12, kn: TWA 15 / 20 / 25 / 30 / 35 before
+2.01 / 2.95 / 3.75 / 4.31 / 4.78, after 0.00 / 1.02 / 2.79 / 4.36 / 5.46.
+
+Head to wind from 6 kn, close-hauled sheets held (time to 0.5 kn, distance
+in boat lengths of 13.86 m): 12 kn: polar engine before 31.5 s / 2.72,
+trainer before never stops (still 2.4 kn after 20 s, 5.09 lengths at 60 s),
+after 39 s / 3.9 (both paths); 20 kn after 16-18 s / 1.7-2.0; 8 kn after
+still moving at 60 s (5.8-6.2 lengths, light flogging).
+
+Tack 45 -> 315 on the trainer boat, crew retrimming every 0.5 s, min speed
+share and boat lengths lost against a twin over 60 s, before -> after:
+
+| TWS | helm 22 deg/s | helm 11 deg/s | course assist 45 deg/s |
+|---|---|---|---|
+| 8 | 81%, 0.10 -> 69%, 0.78 | 72%, 0.22 -> 74%, 0.54 | 90%, 0.02 -> 46%, 1.72 |
+| 12 | 75%, 0.13 -> 70%, 0.34 | 64%, 0.31 -> 71%, 0.24 | 85%, 0.01 -> 47%, 1.02 |
+| 20 | 66%, 0.07 -> 67%, 0.06 | 54%, 0.35 -> 64%, 0.06 | 80%, -0.10 -> 47%, 0.42 |
+
+Reef crossover, best upwind VMG kn for reef 0 / 0.5 / 1: before reef 0 won
+everywhere (20 kn 5.95 / 5.60 / 5.01 at 38 deg of heel). After: 12 kn 4.74 /
+4.62 / 4.35, 16 kn 5.15 / 5.18 / 5.07, 18 kn 5.27 / 5.32 / 5.26, 20 kn
+5.38 / 5.47 / 5.43, 22 kn 5.46 / 5.61 / 5.60, 25 kn 5.56 / 5.73 / 5.81: half a
+reef pays from 16-18 kn, a full reef from 25 kn.
+
+Against the package 6 targets: met are the stop distance (2-4 lengths), best
+upwind 40-45 in 6-12 kn (38-41 in 16-25 kn, feathering), best downwind
+145-165 in 8-25 kn (159-167), 6 kn beam >= 5.5 (5.76), 20 kn beam <= 9 (8.96),
+TWA 120 >= 95% of the beam reach (97%), reef 0.5 best at 20 kn and reef 1 at
+25 kn, 30-50% speed lost in an assisted tack. Not met, recorded:
+- TWS 12 / TWA 25 is 2.79 kn, not under 1 kn: the boat settles where the
+  apparent wind drops to about 21 deg, the expert's own luffing criterion; TWA
+  20 gives 1.0 kn, TWA 15 zero.
+- A 22 deg/s helm tack loses 30% of speed but only 0.06-0.78 lengths, not
+  1-3: the boat recovers 90% in 8-29 s on the physics alone. The assisted
+  tack costs 0.4-1.7 lengths. A slower crew (sheet transfer 3-5 s) or a
+  realistic cruiser turn rate is a crew/kinematics decision for package 13.
+- 6 kn close-hauled 4.03 kn, not 4.5-5: the abstract boat carries 75 m^2,
+  about 30% less than the ORC cruisers the targets come from.
+- 20 kn beam reach 8.96 kn, above "about 8-8.5" (inside the <= 9 contract):
+  the long, light 12.2 m waterline.
+- Best downwind in 6 kn is 132 deg (light-air apparent wind shift).
+
+Other consequences:
+- The metric race gets faster on reaches and runs, slower through tacks. The
+  full-race gate stays green in all 135 cells (`RACE_GATE_LONG=1`), longest
+  standstill of a steered boat 0.7 s; player median 191.5 / 374.8 / 696.8 s,
+  bot median 224.0 / 407.2 / 687.2 s, slowest bot 391.8 / 674.0 / 1152.3 s on
+  short / medium / long, all far inside the 720 / 1500 / 2400 s limits.
+- Known gap, kept as an exact expectation in `race-physical-fleet.test.ts`:
+  in 1 of the 18 bot-only `soloRaceWind` fleets (medium x1) bot b2 luffs up
+  beside the windward mark at 1.2-2 kn and slides onto it at 234.9 s. Bot
+  rounding is retuned before switch A (package 14).
+- Fixtures re-measured: the metric fleet resolver's three inputs
+  (`race-physical-completion.test.ts`), the start jostle pin, the physical
+  motion parity tests (now against the same force step on the cruiser boat).
+  The ADR-0001 tests and the trainer extraction golden run on the classic
+  profile (unchanged); a cruiser trainer golden digest is added.
+- Basics (`/simulator`) reads only `NO_GO_HALF_DEG` (unchanged) and its own
+  speed table: no behaviour change. The harbour model reads `CLASSIC_BOAT`.
+  Boat 3D, the Trainer, lessons and the native trainer sail the cruiser
+  profile through `getBoatParams()` and `@regatta/physics`; the mobile offline
+  sailing bundle is regenerated, no engine fork.
+- Teaching copy that states a no-go number the physics now contradicts (for
+  package 7, not changed here): "within 30 deg of the wind is the no-go zone"
+  (`src/data/race-intro-copy.ts`, `src/app/game/RaceBriefing.tsx`, the +-30
+  dial in `src/features/race-hud/RaceIntro.tsx`), the noGo drill "more than
+  30 deg off the wind" (`src/data/drills.ts`, mobile drills.json and
+  `mobile/src/simulator/missions.ts` threshold 30), the AI coach prompt
+  "TWA<30" (`src/app/api/coach/route.ts`), the fallback coach "under 30 deg"
+  and "at least 40 deg" (`src/lib/fallback-coach.ts`), "at least 40 deg when
+  beating" (`src/data/missions.ts`, `src/data/race-next-step-copy.ts`), and
+  +-45 against the drawn +-42 (`src/data/bootcamp-quiz.ts`, mobile
+  `LessonDiagram.tsx`). The legacy race's 30 deg copy is right for the classic
+  boat; whether the legacy race keeps 30 or shows 42 is an owner question.
+
+### Verification
+- `src/lib/sailing-physics/cruiser.test.ts` (13 contracts on three inputs
+  each): head-to-wind stop in 2.5-5 lengths at 12 kn and shorter as the wind
+  freshens on both paths; TWA 15 / 20 / 25 limits; best upwind within 4 deg of
+  `NO_GO_HALF_DEG` in 6 / 12 / 20 kn; no cap (20 kn beam 8-9, 25 > 20 + 0.3,
+  30 > 25); light air; broad reach level; downwind 145-165 in 8 kn and 150-170
+  in 12 / 20 kn; reef order in 12 / 20 / 25 kn; heel not above the classic
+  boat; helm tack 25-40% and assisted tack under 60% of speed and over 0.8
+  lengths; classic polar and constants frozen. Mutations, each red: no luff
+  threshold or flogging drag (stop test), heel drag 0 (four tests: cap, broad
+  reach, reef, heel), no turning drag (both tack tests), flat residuary (five
+  tests), `jibMinOff` 5 (no-go and genoa tests).
+- Legacy race bit-identical: the regenerated `ws-server/race-physics.js`
+  against the pre-change bundle, 60 scenarios x 1500 steps (all winds,
+  steering laws, manual and automatic trim, reef, handicap) and 200
+  autopilot calls: 0 mismatches. `simulate.test.ts` (ADR-0001 on the classic
+  profile), the classic trainer golden digest and `race-course.test.ts` are
+  unchanged and green.
+- `npx tsc --noEmit`, `npm run test:physics`, `npx vitest run` (334 files,
+  3347 tests), `RACE_GATE_LONG=1` full-race gate (159 tests), `node
+  scripts/build-race-server.mjs --check`, `cd mobile && npm run check` (97
+  suites, 704 tests), `npm run check:map`, `npm run check:dash`.
+- Before owner acceptance: browser and simulator check of the Trainer, Boat
+  3D and the metric trial at 390 px and desktop (not done in this package).
+
+### References
+ADR-0001, ADR-0002, ADR-0004, ADR-0009, ADR-0011, ADR-0014, ADR-0015,
+ADR-0020; `docs/audits/2026-11-01-sailing-expert-review.md` (A4-A7, section 4,
+top-15 items 1-4 and 8); `docs/audits/2026-10-30/m0-13-tack-cost.md`;
+`docs/design/race-game-logic-2026-11-01.md`; Larsson and Eliasson,
+"Principles of Yacht Design" (Delft series residuary shape, Hazen sail
+coefficients); `src/lib/sailing-physics/resistance.ts`,
+`src/lib/sailing-physics/cruiser.test.ts`.

@@ -906,23 +906,29 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 
 ### 4.12 `src/lib` - движок, i18n, данные, утилиты
 
-Физика (ADR-0001, константы без нового ADR не менять):
+Физика (ADR-0001, константы без нового ADR не менять). С ADR-0021 у движка
+два профиля одной лодки: `CLASSIC_BOAT` (числа ADR-0001/0002, заморожен: на
+нем старая гонка, мультиплеер и все их записи) и `CRUISER_BOAT` (по умолчанию:
+Тренажер, уроки, поляра, метрическая гонка, приложение). Профиль выбирает поле
+`BoatParams.model`; без него `tick` считает классическую арифметику бит в бит.
 
 - `src/lib/sailing-physics/index.ts` - публичный API движка.
-- `src/lib/sailing-physics/types.ts` - типы и соглашения (углы в градусах, знаки).
-- `src/lib/sailing-physics/constants.ts` - константы, общие для UI и движка.
+- `src/lib/sailing-physics/types.ts` - типы и соглашения (углы в градусах, знаки); `CruiserModel` (термы ADR-0021) и `TickMotion` (скорость рыскания для сопротивления поворота).
+- `src/lib/sailing-physics/constants.ts` - константы, общие для UI и движка; `NO_GO_HALF_DEG` 42 совпадает с физикой профиля крейсера (ADR-0021).
 - `src/lib/sailing-physics/wind.ts` - истинный ветер в кажущийся, чистая векторная математика.
-- `src/lib/sailing-physics/aero.ts` - кривые Cl/Cd с явным срывом.
-- `src/lib/sailing-physics/forces.ts` - тяга и боковая сила по каждому парусу.
+- `src/lib/sailing-physics/aero.ts` - кривые Cl/Cd с явным срывом; `softSailAttachment` - заполаскивание мягкого паруса (ADR-0021).
+- `src/lib/sailing-physics/forces.ts` - тяга и боковая сила по каждому парусу; у крейсера заполаскивание, сопротивление полощущей ткани, индуктивное сопротивление и пластина после срыва.
+- `src/lib/sailing-physics/resistance.ts` - сопротивление воды профиля крейсера (ADR-0021): трение плюс волновое по числу Фруда (форма серии Delft), крен, индуктивное сопротивление киля и поворота.
+- `src/lib/sailing-physics/cruiser.test.ts` - контракты ADR-0021 на трех входах: остановка носом к ветру, мертвый сектор из физики, нет потолка скорости, форма поляры, риф окупается, цена поворота, классический профиль заморожен.
 - `src/lib/sailing-physics/balance.ts` - крен и дрейф из баланса моментов.
-- `src/lib/sailing-physics/boat.ts` - параметры абстрактного двухпарусного крейсера.
+- `src/lib/sailing-physics/boat.ts` - два профиля абстрактного двухпарусного крейсера: `CLASSIC_BOAT` и `CRUISER_BOAT` (по умолчанию, `getBoatParams`), `getClassicBoatParams`.
 - `src/lib/sailing-physics/sail-plan.ts` - номинальные площади парусов, общие для сил и рисунков.
 - `src/lib/sailing-physics/sail-plan.test.ts` - тесты площадей и рифления.
 - `src/lib/sailing-physics/mainsail-shape.ts` - отклик формы грота на оттяжку шкаторины.
-- `src/lib/sailing-physics/simulate.ts` - `tick(state, controls, dt)`: 8 шагов, чистая функция.
-- `src/lib/sailing-physics/simulate.test.ts` - 5 поведенческих тестов ADR-0001 плюс sanity.
+- `src/lib/sailing-physics/simulate.ts` - `tick(state, controls, dt)`: 8 шагов, чистая функция; у крейсера без потолка 1.25 корпусной скорости, с парусностью и тенью грота по вымпельному ветру.
+- `src/lib/sailing-physics/simulate.test.ts` - 5 поведенческих тестов ADR-0001 плюс sanity, на классическом профиле.
 - `src/lib/sailing-physics/simulate.fuzz.test.ts` - property-based фаззинг движка.
-- `src/lib/sailing-physics/polar.ts` - полярная диаграмма из движка.
+- `src/lib/sailing-physics/polar.ts` - полярная диаграмма из движка; `trimForDrive` и `solvePolarPoint` принимают профиль, экипаж крейсера тримит на тягу минус сопротивление при крене, который дают шкоты.
 - `src/lib/sailing-physics/polar.test.ts` - тесты поляры.
 - `src/lib/sailing-physics/current.ts` - течение и скорость над грунтом (аддитивно к модели).
 - `src/lib/sailing-physics/current.test.ts` - тесты течения.
@@ -961,7 +967,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/race-soundscape.test.ts` - отображение на трех входах (штиль, бейдевинд в свежий ветер, левентик), монотонность ветра и воды, тишина на паузе и без звука, заполаскивание только в Pro, фазы гонки.
 - `src/lib/race-soundscape-audio.ts` - звуковой фон гонки на общем AudioContext из `src/lib/sounds.ts`: один раз строит шумовые подложки (ветер, вода, шлепки, хлопанье, трещотка лебедки) и синус удара, обновляет не чаще 10 раз в секунду (по часам страницы) через setTargetAtTime без новых узлов, замолкает на паузе, после удержания финиша, без звука, на скрытой странице; через полсекунды тишины останавливает источники до следующего живого обновления, при размонтировании останавливается.
 - `src/lib/race-soundscape-audio.test.ts` - жизненный цикл на поддельном AudioContext: контекст только общий и только после жеста, у выключенного звука контекста нет, подложки строятся один раз, без узлов на обновление, не чаще 10 раз в секунду, тишина на паузе, при выключении звука, на скрытой странице, остановка источников после затянувшейся тишины и пересборка с тем же буфером, каждый тик HUD при аудиочасах с шагом буфера, остановка при размонтировании.
-- `src/lib/race-physics.ts` - гонка `/game`, мультиплеера и мобильного AI: шаг лодки через движок, ворота огибания (`updateLap`), подсказка игроку (`raceWaypoint`) автопилот ботов (`raceAutopilotTurn`: петли по дистанции, сброс скорости перед знаком, повторный круг при промахе; `DECISIONS.md` ADR-0003) и столкновения (`resolveCollisions`: расталкивают всегда, скорость гасят только при сближении, финишировавшие не участвуют; ADR-0004); сложность ботов через `speedMul` в `stepBoat` (ADR-0007). Остатки аркадной модели (`speedFactorFromTWA`, `MAX_SPEED`) - долг Phase 3.
+- `src/lib/race-physics.ts` - гонка `/game`, мультиплеера и мобильного AI: шаг лодки через движок, ворота огибания (`updateLap`), подсказка игроку (`raceWaypoint`) автопилот ботов (`raceAutopilotTurn`: петли по дистанции, сброс скорости перед знаком, повторный круг при промахе; `DECISIONS.md` ADR-0003) и столкновения (`resolveCollisions`: расталкивают всегда, скорость гасят только при сближении, финишировавшие не участвуют; ADR-0004); сложность ботов через `speedMul` в `stepBoat` (ADR-0007); лодка `LEGACY_RACE_BOAT` - классический профиль движка, заморожен ADR-0021 (рекорды и сервер не меняются). Остатки аркадной модели (`speedFactorFromTWA`, `MAX_SPEED`) - долг Phase 3.
 - `src/lib/race-physics.drift.test.ts` - паритет `ws-server/race-physics.js` и `src/lib/race-physics.ts`: константы, ветер, шаг лодки, курс и огибание знаков совпадают.
 - `src/lib/race-course.test.ts` - тесты дистанции гонки (знаки, линия) и автопилота: все 19 стартовых мест сервера вовремя и с фальстартом, 120 разных стартов, заход ветра в слабый, обычный и сильный ветер с отсечкой 300 с, повторная гонка той же лодкой; столкновения: касание бортами, таран, финишировавшие, флот из 8 ботов до отсечки 300 с; сложность ботов (легкий заметно медленнее среднего, средний медленнее сложного).
 - `src/lib/race-resume.ts` - восстановление настроек гонки после перезагрузки.
@@ -2068,7 +2074,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `docs/audits/2026-10-27/checks/physical-progress-browser.json` - exact6fcf safe non-main cloud gate, verified artifact digest and78first-attempt browser cases; publication/deploy skipped.
 - `docs/audits/2026-10-27/checks/physical-progress-source.json` - input hashes, accepted source gate counts, retained timeout attempt and recoverable rejected-research manifest; no activation or delivery claim.
 - `docs/audits/2026-10-27/physical-progress-harness.md` - pure progress checkpoint, failed fleet research boundary and following engine gates.
-- `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter; the player's boat runs the shared trainer boat step with crew and rig (ADR-0014), bot crews keep instant sail transfer; shared trainer heading/metres, fixed metric hull bounds (по оси в границу ход останавливается, вдоль границы остается целиком, излом пишется в `path`, ADR-0015) and immutable propelled motion before collision resolution. Currently unwired from live results.
+- `src/lib/race-physical-motion.ts` - explicit validated physical-context adapter; the player's boat runs the shared trainer boat step with crew and rig (ADR-0014), bot crews keep instant sail transfer; shared trainer heading/metres, fixed metric hull bounds (по оси в границу ход останавливается, вдоль границы остается целиком, излом пишется в `path`, ADR-0015) and immutable propelled motion before collision resolution. Currently unwired from live results. `PHYSICAL_RACE_BOAT` is the cruiser profile of ADR-0021, the trainer's boat.
 - `src/lib/race-physical-bot.ts` - physical-only metric path/recovery, integer-tick memory, reachable-turn traffic/hardware prediction, canonical gate entry, weak-authority turn-side memory, shared water bounds and endpoint-clear recovery; legacy autopilot and human steering stay separate. M5 шаг 4 (ADR-0015 п. 5): счетчик стоянки и выход из левентика или прижима (увал до TWA 75 от касающегося корпуса; если туда только через ветер, увал без перехода через ветер на TWA 75 / 105 / 150 любого борта или свой галс; 4 с без пересмотра), затухание скорости прогноза в мертвой зоне, конус курсов вокруг лодки игрока (`physicalHumanCone`), на малом ходу без приведения в мертвую зону.
 - `src/lib/race-physical-bot.test.ts` - reachable physical turning curves, explicit human course-assist prediction, metre-per-knot and stable weak/full-authority turn behavior; M5 шаг 4: выход на трех входах (0.2 уз при TWA 3 за 1.5 с с удержанием 4 с, прижим при TWA 45 в сторону от корпуса, 4 уз при TWA 30 без выхода), детерминизм, затухание прогноза.
 - `src/lib/race-physical-fleet.ts` - unwired validated30Hz fleet transaction with copied memory/boats, simultaneous perception of last actual bot commands, unchanged shared forces/helm, coupled sliding travel (ADR-0015 п. 4) and recovery-free progress over the travelled polyline, which it also returns in `motions`; live emission stays OFF. M5 шаг 4: боты на общем экипаже (`rigTransfer: true`), нормали касания из позиций начала тика, ветер в прогноз, конус вокруг лодки человека, проверка `stall` и `escape` в памяти. M5 step 6: re-exports `planPhysicalRaceGuidance` (src/lib/race-guidance-physical.ts) so the metric route hint loads with the lazily imported fleet.

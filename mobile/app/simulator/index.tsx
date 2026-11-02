@@ -53,6 +53,7 @@ import Svg, {
 import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
 import type { SailState } from '../../src/simulator/sail-feedback';
 import { leewayAngleDeg } from '../../src/simulator/sail-geometry';
+import { NO_GO_HALF_DEG } from '../../src/simulator/physics';
 import {
   formatSpeed,
   formatWindSpeed,
@@ -259,8 +260,10 @@ function roseWedgePath(r: number, minDeg: number, maxDeg: number) {
  * the boat is currently sailing that point of sail.
  */
 const ROSE_SECTORS: { id: string; min: number; max: number; tint: string; hi: string }[] = [
-  { id: 'in-irons', min: 0, max: 30, tint: 'rgba(255, 80, 80, 0.22)', hi: 'rgba(255, 104, 104, 0.70)' },
-  { id: 'close-hauled', min: 30, max: 60, tint: 'rgba(255, 176, 40, 0.20)', hi: 'rgba(255, 196, 84, 0.68)' },
+  // The no-go edge is the shared reference the engine's physics agrees with
+  // (ADR-0021), not the legacy race's 30 deg.
+  { id: 'in-irons', min: 0, max: NO_GO_HALF_DEG, tint: 'rgba(255, 80, 80, 0.22)', hi: 'rgba(255, 104, 104, 0.70)' },
+  { id: 'close-hauled', min: NO_GO_HALF_DEG, max: 60, tint: 'rgba(255, 176, 40, 0.20)', hi: 'rgba(255, 196, 84, 0.68)' },
   { id: 'beam-reach', min: 60, max: 110, tint: 'rgba(60, 216, 255, 0.19)', hi: 'rgba(96, 230, 255, 0.66)' },
   { id: 'broad-reach', min: 110, max: 160, tint: 'rgba(96, 182, 255, 0.20)', hi: 'rgba(128, 202, 255, 0.66)' },
   { id: 'running', min: 160, max: 180, tint: 'rgba(80, 255, 150, 0.21)', hi: 'rgba(120, 255, 182, 0.66)' },
@@ -1989,7 +1992,7 @@ function commentaryFor({
   trimScore: number;
   tp: ReturnType<typeof useI18n>['tp'];
 }): string {
-  if (Math.abs(twaDeg) < 30) {
+  if (Math.abs(twaDeg) < NO_GO_HALF_DEG) {
     return tp(
       'Мёртвая зона: яхта теряет тягу, увались от ветра.',
       'No-go zone: the sails lose drive, bear away from the wind.',

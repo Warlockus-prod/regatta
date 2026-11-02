@@ -19,8 +19,9 @@ const DASH_RE = new RegExp(`[${EN_DASH}${EM_DASH}]`);
 const DASH_RE_G = new RegExp(`[${EN_DASH}${EM_DASH}]`, 'g');
 
 const EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.md', '.mdx', '.json', '.yml', '.yaml', '.css', '.html', '.txt']);
-// Skip vendored / generated / lockfile trees.
-const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'dist', 'build', 'out', 'coverage', 'playwright-report']);
+// Skip vendored / generated / lockfile trees. Pods is CocoaPods' git-ignored
+// third-party tree under mobile/ios after a local `pod install`.
+const SKIP_DIRS = new Set(['node_modules', '.next', '.git', 'dist', 'build', 'out', 'coverage', 'playwright-report', 'Pods']);
 const SKIP_FILES = new Set(['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml']);
 
 const roots = process.argv.slice(2);

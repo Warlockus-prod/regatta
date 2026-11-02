@@ -4,7 +4,7 @@
 
 import { calcTWA, distance, UNITS_PER_KNOT_SECOND, type Vec2 } from "@/lib/race-physics";
 import { NO_GO } from "@/lib/race-manoeuvres";
-import { getBoatParams } from "@/lib/sailing-physics/boat";
+import { CLASSIC_BOAT } from "@/lib/sailing-physics/boat";
 import type { BoatState, Controls } from "@/lib/sailing-physics/types";
 import type { YachtState } from "@/features/simulator-3d/types";
 
@@ -56,7 +56,9 @@ export function toWorld(p: Vec2): { x: number; z: number } {
   return { x: p.x * METRES_PER_UNIT, z: p.y * METRES_PER_UNIT };
 }
 
-const PARAMS = getBoatParams();
+// The drawn sheet range of the legacy race and its replays: the classic
+// profile, unchanged by ADR-0021 (the metric race shares this drawing for now).
+const PARAMS = CLASSIC_BOAT;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 /**

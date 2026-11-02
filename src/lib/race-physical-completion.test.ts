@@ -83,9 +83,16 @@ const finishes = (boats: readonly RaceBoat[]) => Object.fromEntries(boats.map(b 
 // (231 s inside the 1500 s limit). The same at x0.5: Bot 1 706.0 s, the
 // player 739.6 s, Bot 2 does not finish (DNF at 1500 s).
 // (speedMul is clamped to 0.5..1.2 by the boat step, so the DNF comes from the light wind.)
-const shortWin = liveRace("short", [1.03, 1.02]);
+// Re-measured 2026-11-02 on the cruiser profile (ADR-0021), which is faster in
+// light air: short x1, bots 1.05 and 1.1: player 150.5 s, bots 166.8 s and
+// 168.0 s (16.3 s and 17.5 s behind). Medium x0.65, bots 1.2 and 0.5: Bot 1
+// 460.4 s, the player 468.3 s, Bot 2 841.8 s (the slow bot can no longer be
+// put within 300 s of the 1500 s limit while a bot still beats the player:
+// below x0.65 the player beats the 1.2 bot). Medium x0.33: the player 869.7 s,
+// Bot 1 886.8 s, Bot 2 does not finish (DNF at 1500 s).
+const shortWin = liveRace("short", [1.05, 1.1]);
 const mediumMid = liveRace("medium", [1.2, 0.5], 0.65);
-const mediumDnf = liveRace("medium", [1.2, 0.5], 0.5);
+const mediumDnf = liveRace("medium", [1.2, 0.5], 0.33);
 
 describe("the metric fleet resolver (ADR-0015 point 8)", () => {
   it("input 1: the player wins on short, two bots behind; the resolver gives them the live race's own times, sliced 1, 37 or 10000 ticks", () => {
@@ -107,7 +114,7 @@ describe("the metric fleet resolver (ADR-0015 point 8)", () => {
     expect(gaps.every(g => g > 15 && g < 30), `bot gaps ${gaps.map(g => g.toFixed(1))} s`).toBe(true);
   }, 60_000);
 
-  it("input 2: the player mid-fleet on medium in light wind, one bot home near the limit, identical sliced 37 or 10000 ticks", () => {
+  it("input 2: the player mid-fleet on medium in light wind, one bot home long after the player, identical sliced 37 or 10000 ticks", () => {
     const at = mediumMid.atPlayerFinish!;
     expect(at).not.toBeNull();
     expect(at.boats.find(b => b.id === "ai0")!.lapDone, "a faster bot finished ahead").toBe(2);
@@ -119,7 +126,8 @@ describe("the metric fleet resolver (ADR-0015 point 8)", () => {
       expect(result.boats).toEqual(mediumMid.end.boats);
       expect(result.rules).toEqual(mediumMid.end.rules);
       const slow = result.boats.find(b => b.id === "ai1")!.finishTime!;
-      expect(slow).toBeGreaterThan(limit - 300);
+      // A long resolution: the slow bot finishes more than 300 s after the player.
+      expect(slow).toBeGreaterThan(at.time + 300);
       expect(slow).toBeLessThan(limit);
       expect(sortRaceResults(result.boats, result.rules.penalties).map(r => r.name)).toEqual(["Bot 1", "You", "Bot 2"]);
     }
@@ -134,7 +142,7 @@ describe("the metric fleet resolver (ADR-0015 point 8)", () => {
       expect(result.time).toBeCloseTo(limit, 6);
       expect(result.boats.find(b => b.id === "ai1")!.finishTime).toBeUndefined();
       const rows = sortRaceResults(result.boats, result.rules.penalties);
-      expect(rows.map(r => [r.name, r.time === Infinity])).toEqual([["Bot 1", false], ["You", false], ["Bot 2", true]]);
+      expect(rows.map(r => [r.name, r.time === Infinity])).toEqual([["You", false], ["Bot 1", false], ["Bot 2", true]]);
     }
   }, 60_000);
 

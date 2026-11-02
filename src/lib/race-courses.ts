@@ -94,7 +94,9 @@ const spawn = Object.freeze({ maxBoats: 5 as const, belowLineMetres: 18, sideMet
 // (26.4 m) 16 s after the gun (light x0.65 26 s, strong x1.3 12 s). The
 // fleet itself stays closer than two hulls well past a minute, so separation
 // cannot end the window; the fleet's first real encounter comes later than
-// 16 s (race-start-jostle.test.ts measures both). The legacy 10 s ran at
+// 16 s (race-start-jostle.test.ts measures both). On the cruiser profile
+// (ADR-0021) two hulls take 18.6 s and the strong-wind fleet's first
+// encounter comes at 16.7 s, so 16 s stays the window. The legacy 10 s ran at
 // 9.33 times real speed. Missed mark: two hull lengths,
 // the legacy 40 units (about 1.8 hulls) in the metric race's own hull.
 const judge = Object.freeze({ lookaheadSeconds: 8, contactClosingKnots: 0.2, contactCueClosingMetresPerSecond: 0.1,

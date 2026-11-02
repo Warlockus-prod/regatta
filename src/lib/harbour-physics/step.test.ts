@@ -3,7 +3,7 @@ import {
   angleDiff, attachLine, clearance, createHarbourState, hullWorld, KNOT, OUR_YACHT, rect, releaseLine, speedKnots, stepHarbour, toBody, toWorld,
   type HarbourInput, type HarbourState, type HarbourWorld, type HarbourYacht,
 } from "./index";
-import { DEFAULT_BOAT } from "../sailing-physics/boat";
+import { CLASSIC_BOAT as DEFAULT_BOAT } from "../sailing-physics/boat";
 
 const calm: HarbourWorld = { obstacles: [], wind: { speed: 0, direction: 0 } };
 const windFrom = (speed: number, direction: number): HarbourWorld => ({ obstacles: [], wind: { speed, direction } });

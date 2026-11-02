@@ -102,11 +102,15 @@ describe("start jostle per race model", () => {
     expect([ev(9.9), ev(10)].map(isStartJostle)).toEqual([true, false]);
   });
 
-  it("pins the metric value to the measured fair start: two hull lengths sailed in the medium wind", () => {
+  it("pins the metric value to the measured fair start: no longer than two hull lengths sailed in the medium wind", () => {
+    // ADR-0021: on the cruiser profile the fair echelon sails two hulls in
+    // 18.6 s (was 16 s), but the strong-wind fleet's first encounter comes at
+    // 16.7 s, so the window stays 16 s and ends before both (test below).
     for (const profile of ["short", "medium"] as const) {
       const t = twoHullsOffTheLine(profile, 1);
       expect(t, `${profile}: ${t.toFixed(2)} s`).toBeGreaterThan(15);
-      expect(Math.ceil(t), `${profile}: ${t.toFixed(2)} s`).toBe(raceScale(profile).startJostleSeconds);
+      expect(raceScale(profile).startJostleSeconds, `${profile}: ${t.toFixed(2)} s`).toBeLessThanOrEqual(t);
+      expect(raceScale(profile).startJostleSeconds).toBe(16);
     }
     expect(raceScale("long").startJostleSeconds).toBe(16);
     // The wind moves it (reported, not pinned): light longer, strong shorter.

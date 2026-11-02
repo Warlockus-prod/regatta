@@ -3,7 +3,7 @@ import { SAILING_STEP_SECONDS } from "@/features/sailing-lab/runtime/fixed-clock
 import { soloRaceWind } from "@/app/game/race-model";
 import { raceStartTrim } from "@/app/game/race-start-trim";
 import { DIFFICULTY_CONFIG, type Difficulty } from "@/data/race-difficulty";
-import { makeStandardCourse, raceAutopilotTurn, raceTrim, resolveCollisions, stepBoat, updateLap, type RaceBoat, type RaceCourse } from "./race-physics";
+import { LEGACY_RACE_BOAT, makeStandardCourse, raceAutopilotTurn, raceTrim, resolveCollisions, stepBoat, updateLap, type RaceBoat, type RaceCourse } from "./race-physics";
 import { createRaceRulesState, evaluateRaceRules, type RaceRuleEvent } from "./race-rules";
 import { LEGACY_SPAWN, legacyRaceSpawns, spawnLayoutProblems, type RaceSpawn } from "./race-spawn";
 import { raceTrimCoach } from "./race-trim-coach";
@@ -26,7 +26,7 @@ function preM0Spawns(course: RaceCourse, opponents: number): RaceSpawn[] {
 /** The pre-fix Pro starting trim of `initRace`: sheets solved for a boat at
  * rest. Kept only to prove the Pro tests bite. */
 const preFixStartTrim = (windStrengthMul: number) => raceTrim({ ...trimForDrive(createInitialState({
-  tws: 12 * windStrengthMul, trueWindDir: 0, heading: 45, boatSpeed: 0 }), raceTrim({})), mainHoisted: true, jibFurl: 0, reef: 0 });
+  tws: 12 * windStrengthMul, trueWindDir: 0, heading: 45, boatSpeed: 0 }), raceTrim({}), LEGACY_RACE_BOAT), mainHoisted: true, jibFurl: 0, reef: 0 });
 
 interface OpeningOptions {
   /** Pro: the player holds these sheets (autoTrim false). Omitted = Simple (automatic trim). */

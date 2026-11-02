@@ -84,6 +84,7 @@ import { raceBotSpeedMul } from "./race-spawn";
 import { distance, type RaceBoat, type Vec2 } from "./race-physics";
 import { soloRaceWind } from "@/app/game/race-model";
 import { raceStartTrim } from "@/app/game/race-start-trim";
+import { PHYSICAL_RACE_BOAT } from "./race-physical-motion";
 import { DIFFICULTY_CONFIG, type Difficulty } from "@/data/race-difficulty";
 import { createPhysicalFleetResolver, physicalRaceTimeUp } from "./race-physical-completion";
 import { sortRaceResults } from "@/app/game/race-model";
@@ -159,7 +160,8 @@ function runGate(profile: PhysicalRaceProfile, difficulty: Difficulty, windStren
   }));
   setup.arrange?.(boats, soloRaceWind(0).dir, context.metresPerUnit);
   const pro = mode.startsWith("pro");
-  const startingTrim = pro ? raceStartTrim(windStrengthMul, boats[0].heading) : undefined;
+  // The metric race starts Pro sheets on its own boat, as GameClient does (ADR-0021).
+  const startingTrim = pro ? raceStartTrim(windStrengthMul, boats[0].heading, PHYSICAL_RACE_BOAT) : undefined;
   const playerPlan: PhysicalBotState = { version: 1, profile, tick: 0, lap: 0 };
   let navigation: ReadonlyMap<string, PhysicalBotState> | undefined;
   let rules = createRaceRulesState();
@@ -202,8 +204,7 @@ function runGate(profile: PhysicalRaceProfile, difficulty: Difficulty, windStren
     boats = stepped.boats as GateBoat[]; navigation = stepped.navigation;
     const turned = classifyManoeuvre(manoeuvres, { twa: ((boats[0].heading - wind.dir) % 360 + 540) % 360 - 180, speedKn: boats[0].speed, pinned: false });
     manoeuvres = turned.state;
-    if (turned.manoeuvre === "tack" && events.get("player")!.join() === "start") playerTacks++;
-    const judged = evaluateRaceRules(rules, { boats, course, windDir: wind.dir, time: raceClock, racing, previousPositions: previous,
+    if (turned.manoeuvre === "tack" && events.get("player")!.join() === "start") playerTacks++;    const judged = evaluateRaceRules(rules, { boats, course, windDir: wind.dir, time: raceClock, racing, previousPositions: previous,
       scale: raceScale(profile), impacts: stepped.impacts });
     rules = judged.state;
     for (const e of judged.events) if (e.boatId === "player" && (e.penaltySeconds > 0 || e.kind === "mark-touch" || e.kind === "wrong-rounding"))

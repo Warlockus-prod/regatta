@@ -8,6 +8,9 @@
 // ============================================================================
 
 /** Teaching reference for the close-hauled boundary of our synthetic cruiser.
- * It is a recommended course limit, not a discontinuity in the force model:
- * a moving boat keeps momentum and may pinch inside this reference cone. */
+ * It is a recommended course limit, not a discontinuity in the force model.
+ * Since ADR-0021 it agrees with the physics: the cruiser profile's best upwind
+ * VMG lies at 45 / 42 / 40 deg TWA in 6 / 12 / 20 kn, and inside the cone the
+ * rig luffs and stops the boat (cruiser.test.ts locks both). The legacy race
+ * keeps its own 30 deg zone (race-manoeuvres.ts NO_GO, classic profile). */
 export const NO_GO_HALF_DEG = 42;

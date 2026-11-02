@@ -90,6 +90,47 @@ export interface BoatParams {
   keelK: number;
   /** Boat inertial mass for surge (kg, not necessarily = displacement). */
   surgeMass: number;
+  /** Seamanlike resistance and soft-sail model (DECISIONS.md ADR-0021). When
+   *  present, hullDragK is the frictional part only. Absent on the classic
+   *  profile, which keeps the ADR-0001/0002 arithmetic bit for bit. */
+  model?: CruiserModel;
+}
+
+/** Physics terms of the cruiser profile (DECISIONS.md ADR-0021). Every number
+ *  is a calibration of an abstract ~45 ft two-sail cruiser, not a certificate. */
+export interface CruiserModel {
+  /** Profile id, carried into race-model metadata. */
+  id: string;
+  /** Residuary (wave-making) resistance as a share of displacement weight
+   *  against the Froude number on the waterline, [Fn, Rr / (m g)], Delft form.
+   *  Linear between rows, extrapolated with the last slope above the table. */
+  residuary: readonly (readonly [number, number])[];
+  /** Hull resistance grows with heel: times (1 + heelDragK * heel_rad^2). */
+  heelDragK: number;
+  /** Keel induced drag: share * |side force| * |tan(leeway)|. */
+  keelInducedShare: number;
+  /** Effective lateral span (m) that supplies the centripetal force of a turn;
+   *  its induced drag is (m v r)^2 / (0.5 rho_w (v + 0.5)^2 pi span^2). */
+  turnSpanM: number;
+  /** Hull, rig and crew windage, drag coefficient times area, m^2. */
+  windageCdA: number;
+  /** Sail induced drag Cdi = sailInducedK * Cl^2 (rig aspect ratio). */
+  sailInducedK: number;
+  /** Soft-sail entry: below luffStartDeg the cloth gives no lift, it reaches
+   *  the attached lift curve at luffFullDeg. Section angle of attack, deg. */
+  luffStartDeg: number;
+  luffFullDeg: number;
+  /** Extra drag coefficient of flogging cloth below luffFullDeg. */
+  luffCd: number;
+  /** Downwash of a drawing jib on the main: the main meets an apparent wind
+   *  this many degrees finer (full to AWA 60, none from AWA 100). */
+  mainBackwindDeg: number;
+}
+
+/** Per-step motion the force model cannot see in BoatState. */
+export interface TickMotion {
+  /** Yaw rate the helm produced this step, degrees per second. */
+  yawRateDegPerS?: number;
 }
 
 /** Derived per-tick diagnostic values. Not part of state (recomputed each tick)
@@ -116,6 +157,11 @@ export interface TickDiagnostics {
   side: number;
   /** Velocity made good to windward, knots. Positive = toward wind. */
   vmg: number;
+  /** Total water and air resistance on the boat this step, N (cruiser
+   *  profile only; the classic profile leaves it undefined). */
+  resistance?: number;
+  /** Heel the boat is relaxing toward this step, degrees (cruiser only). */
+  heelTarget?: number;
 }
 
 /** Full tick output: new state + diagnostics for the UI. */

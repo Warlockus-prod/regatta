@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameMenu } from "./GameMenu";
 import { raceSetupWindMultiplier } from "@/lib/race-setup";
+import { LEGACY_RACE_BOAT } from "@/lib/race-physics";
 
 // Contract (pro-start-trim): every new race on the actual race page starts
 // the player's sheets from raceStartTrim for the race's wind and the player's
@@ -40,6 +41,7 @@ describe("starting sheets on the actual race page", () => {
     renderToStaticMarkup(<GameClient />);
     expect(startTrim.calls).toEqual([]);
     capture.menu!.onStart();
-    expect(startTrim.calls).toEqual([[raceSetupWindMultiplier("medium"), 45]]);
+    // The legacy race starts on its own boat, the classic profile (ADR-0021).
+    expect(startTrim.calls).toEqual([[raceSetupWindMultiplier("medium"), 45, LEGACY_RACE_BOAT]]);
   });
 });

@@ -164,7 +164,10 @@ export function planPhysicalBot(boat: RaceBoat, course: RaceCourse, windDir: num
       else if (fix.right > band) tackTo(-1);
       else if (fix.right < -band) tackTo(1);
       desired = normalizeAngle(windDir + st.tack * A.closeHauled);
-    } else if (Math.abs(twa) < A.closeHauled && !freeOverTop) {
+    } else if (Math.abs(twa) < A.closeHauled && (!freeOverTop || v < d.bots.escape.slowKn)) {
+      // Over the top a boat with way may coast through the wind to round; a
+      // stopped one cannot (ADR-0021: a luffing rig stops the boat), so it
+      // sails close-hauled again instead of parking head to wind.
       if (twa > A.closeHauled - 5 && st.tack === -1) tackTo(1);
       else if (twa < -(A.closeHauled - 5) && st.tack === 1) tackTo(-1);
       desired = normalizeAngle(windDir + st.tack * A.closeHauled);

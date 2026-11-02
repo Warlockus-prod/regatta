@@ -2,9 +2,13 @@ import { readRaceContext, type PhysicalRaceContext } from "./race-context";
 import { physicalCourseWaterBounds } from "./race-courses";
 import { raceCrewTrim, stepRaceBoatForces, type InputState, type RaceBoat, type RaceStepOptions, type Vec2 } from "./race-physics";
 import { advanceSailingHeading, sailingDisplacement, type SailingSteering } from "./sailing-kinematics";
-import { getBoatParams } from "./sailing-physics/boat";
+import { CRUISER_BOAT } from "./sailing-physics/boat";
 import { createInitialState } from "./sailing-physics/simulate";
-import type { Controls } from "./sailing-physics/types";
+import type { BoatParams, Controls } from "./sailing-physics/types";
+
+/** The metric race sails the trainer's boat (ADR-0014): the cruiser profile
+ * of ADR-0021. The legacy race keeps the classic profile (race-physics.ts). */
+export const PHYSICAL_RACE_BOAT: BoatParams = CRUISER_BOAT;
 import { createSharedBoat, stepSharedBoat } from "../features/sailing-lab/runtime/boat-step";
 import type { RigMotion } from "../features/sailing-lab/rig/transfer";
 
@@ -95,18 +99,18 @@ export function stepPhysicalBoat(
   const from = Object.freeze({ x: boundX(boat.pos.x), y: boundY(boat.pos.y) });
   if (opts.rigTransfer === false) {
     boat.heading = advanceSailingHeading(boat.heading, boat.speed, input.steering, dt);
-    const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts);
+    const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts, PHYSICAL_RACE_BOAT);
     return travelBoat(boat, from, sailingDisplacement(boat.heading, physics.leeway, boat.speed, dt), scale, boundX, boundY);
   }
   // The trainer's boat step: helm, crew sheet handling, rig transfer, forces.
   // Bot difficulty (ADR-0007) scales the speed made good, never the model.
   const crew = boat as RaceBoat & PhysicalRaceCrew;
-  const params = getBoatParams();
+  const params = PHYSICAL_RACE_BOAT;
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
   const wind = { speed: 12 * (opts.windStrengthMul ?? 1) * gust, direction: windDir };
   const state = { ...(boat.physics ?? createInitialState({ tws: 12 })), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: wind.direction, trueWindSpeed: wind.speed };
-  const target = raceCrewTrim(boat, state, input, dt);
+  const target = raceCrewTrim(boat, state, input, dt, params);
   const prev = crew.live && crew.rig ? { boat: state, live: crew.live, rig: crew.rig } : createSharedBoat(state, { controls: target }, params);
   const next = stepSharedBoat(prev, { controls: target, steering: input.steering }, wind, params, dt, boat.speed);
   boat.heading = next.boat.heading;

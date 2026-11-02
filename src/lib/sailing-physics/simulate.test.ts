@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createInitialState, tick, settle } from './simulate';
-import { getBoatParams } from './boat';
+import { getClassicBoatParams } from './boat';
 import type { Controls } from './types';
 
 // ============================================================================
@@ -8,9 +8,13 @@ import type { Controls } from './types';
 // Each `it` block is one of the 5 scenarios in DECISIONS.md ADR-0001.
 // The engine does not "ship" (= is not considered Phase 1 complete) until
 // all five are green.
+//
+// Since ADR-0021 these lock the CLASSIC profile, the frozen boat of the legacy
+// race and its records: any change to it fails here. The cruiser profile has
+// its own contracts in cruiser.test.ts.
 // ============================================================================
 
-const params = getBoatParams();
+const params = getClassicBoatParams();
 
 // "Properly trimmed beam reach" for TWS=12, steady-state bs ~5.5 kn:
 // Steady-state AWA ~ 65 deg, we want both sails at AoA near peak Cl (~15 deg).

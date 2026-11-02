@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { createHash } from "node:crypto";
-import { createInitialState, getBoatParams } from "../../../lib/sailing-physics";
+import { createInitialState, getBoatParams, getClassicBoatParams } from "../../../lib/sailing-physics";
 import { createSailingSession, stepSailingSession, type SessionInput } from "./session";
 
 // Captured from untouched production session.ts at f883a19 before extraction.
@@ -33,7 +33,7 @@ function command(tick: number): SessionInput {
 }
 
 it("preserves the pre-extraction trainer trajectory through course wrap, helm, gusts and deployment", () => {
-  const params = getBoatParams();
+  const params = getClassicBoatParams(); // the extraction golden locks the classic profile (ADR-0021)
   let state = createSailingSession(createInitialState({ tws: 12, heading: 350, boatSpeed: 5 }), command(0), params, 1234);
   let checked = 0;
   const trajectory = createHash("sha256");
@@ -57,3 +57,27 @@ it("preserves the pre-extraction trainer trajectory through course wrap, helm, g
   expect(state.simTime).toBe(20);
   expect(trajectory.digest("hex")).toBe("5b65db1d0f22c32c35fef2da23d3362419fcecef8136cd791925c7fe83cf5e7c");
 });
+
+// ADR-0021 golden of the cruiser profile the trainer now sails: the same 600
+// commands, captured 2026-11-02 when the profile was accepted. Any change to
+// the cruiser physics, rig or crew moves this digest; update it only with a
+// new ADR's numbers.
+it("keeps the cruiser-profile trainer trajectory of ADR-0021", () => {
+  const params = getBoatParams();
+  let state = createSailingSession(createInitialState({ tws: 12, heading: 350, boatSpeed: 5 }), command(0), params, 1234);
+  const trajectory = createHash("sha256");
+  const rows: number[][] = [];
+  for (let tick = 0; tick < 600; tick++) {
+    state = stepSailingSession(state, command(tick), params);
+    trajectory.update(JSON.stringify(state, (_key, value) => typeof value === "number" ? Number(value.toPrecision(9)) : value) + "\n");
+    if (BEFORE_EXTRACTION.some(row => row[0] === state.ticks)) rows.push([state.ticks, state.boat.boatSpeed, state.boat.heel]);
+  }
+  // Readable checkpoints: tick, speed, heel.
+  expect(rows.map(([t, v, h]) => [t, Number(v.toFixed(3)), Number(h.toFixed(2))])).toEqual(CRUISER_CHECKPOINTS);
+  expect(trajectory.digest("hex")).toBe(CRUISER_DIGEST);
+});
+const CRUISER_CHECKPOINTS: number[][] = [
+  [1, 4.956, -.14], [60, 4.887, -4.05], [150, 5.002, -5.85], [240, 4.889, -14.23],
+  [330, 4.485, -11.69], [420, 2.01, -1.72], [510, 2.076, 1.04], [600, 1.518, -4.83],
+];
+const CRUISER_DIGEST = "49911898d12220ab0f2ff73a09ee0d1cf29209fb0bb9a90baa91f45e2b592184";
