@@ -39,7 +39,7 @@ import {
 } from '../src/persistence/units';
 import { useControlPrefs } from '../src/persistence/controls';
 import { clearNativeRegattaData } from '../src/persistence/clear-native-data';
-import { adsCopy } from '../../src/lib/ads-copy';
+import { useAdsText } from '../src/ads/strings';
 import { recordNativeDiagnostic } from '../src/diagnostics/journal';
 
 const SUPPORT_EMAIL = 'support@gtframe.io';
@@ -55,6 +55,7 @@ const SUPPORT_EMAIL = 'support@gtframe.io';
  */
 export default function Settings() {
   const { tp, lang, setLang } = useI18n();
+  const adsText = useAdsText();
   const router = useRouter();
   const version = Constants.expoConfig?.version ?? 'dev';
   const buildNumber =
@@ -288,7 +289,7 @@ export default function Settings() {
 
         <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
           <Text variant="subtitle">Ads</Text>
-          <Text variant="caption">{adsCopy.settingsHint[lang]}</Text>
+          <Text variant="caption">{adsText.settingsHint}</Text>
         </Card>
 
         <Card onPress={() => router.push("/diagnostics")} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel={diagnosticText(diagnosticCopy.title, lang)}>

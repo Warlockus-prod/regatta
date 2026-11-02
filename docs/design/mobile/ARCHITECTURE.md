@@ -4,19 +4,38 @@ Authoritative "how the mobile app is built and where every screen/element lives"
 reference. Current mobile learning slice: 2026-10-15, `codex/learning-modules`.
 Actual distribution state belongs to `BUILDS.md`.
 
-## Ads inspection prototype
+## Ads: formats demo on VOX SDK 1 and VOX SDK 2
 
-- `mobile/app/ads.tsx` - local Settings recovery and installed sailing package at `/ads`, without a tier switcher or ad SDK.
-- `mobile/app/settings.tsx` - owner-requested named Ads entry and actual navigation request diagnostic.
-- `mobile/__tests__/ads-entry.test.tsx` - bundled route, native frame/hidden tabs and Settings recovery contract.
-- `mobile/__tests__/screens/settings.test.tsx` - actual Ads entry press reaches its route.
+Settings -> Ads is a native list of ad formats with an SDK switch (owner
+requests 2026-10-30). Test build only: ads exist nowhere else in the app, and
+`mobile/__tests__/ads-entry.test.tsx` fails if any file outside `app/ads`,
+`src/ads`, `modules/vox-*` or `plugins/with-vox-*` imports an ad bridge.
 
-`mobile/scripts/offline-sailing/entry.tsx` dispatches Ads only to the local lab;
-the embed/manifest route contracts include it. Shared scene/camera/preview code
-is mapped in the root architecture. The40-action preview journal is session
-memory; general diagnostics remain bounded and native-authoritative. No SDK,
-ad request, impression measurement or website Ads route is introduced. See
-`ads-lab.md` for the pending provider and exact acceptance limits.
+- VOX SDK 1: `GET https://ssp.hybrid.ai/auction/getad` with `placeId`.
+- VOX SDK 2: Prebid Mobile 3.4.1 -> Prebid Server (test: `http://localhost:8200`,
+  built from source in `~/App/sdk_hybrid/vox-sdk-2/server`) -> `vox` adapter ->
+  `POST https://ssp.hybrid.ai/prebid/server/v1/auction` with `placementId`.
+
+Details, SDK limits and release prerequisites: `ads-lab.md`.
+
+- `mobile/app/ads/index.tsx` - format list (display, interstitial, rewarded, video, in-game) and SDK status.
+- `mobile/app/ads/display.tsx` - swipe pager of simulated screens: anchored 320x50, in-content 300x250, in-feed 320x480, half page 300x600, tablet 728x90; each page requests once when first shown.
+- `mobile/app/ads/interstitial.tsx` - race-finish screen, "Next race" calls `VoxAds.showFullScreen`.
+- `mobile/app/ads/rewarded.tsx` - opt-in offer, full-screen VAST 9:16, reward granted by a 15 s app timer (SDK 1 has no completion callback; closing earlier forfeits).
+- `mobile/app/ads/video.tsx` - in-article VAST 16:9 and 9:16.
+- `mobile/app/ads/in-game.tsx` - the installed sailing package at `/ads` (3D yacht, three local test boards); Back returns to the format list.
+- `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry).
+- `mobile/src/ads/sdk.ts` - SDK switch (in memory, opens on SDK 1), Prebid Server URL and account, configID `wtr-<placement key>`, lazy Prebid start.
+- `mobile/modules/vox-prebid/` - local Expo module for VOX SDK 2: `VoxPrebidModule.swift` (start with an explicit status URL, interstitial, rewarded with the SDK reward event), `VoxPrebidBannerView.swift` (banner / outstream video, stops refresh off screen).
+- `mobile/src/ads/strings.ts` - seven-language copy; `formats.ts` - format order and routes; `vox-placements.ts` - place IDs and endpoint; `FakeContent.tsx` - grey content blocks.
+- `mobile/modules/vox-ads/` - local Expo module: `VoxAdsModule.swift` (interstitial), `VoxAdView.swift` (banner / VAST view, HTTP 204 reported as `no-fill`; off screen it stops web creatives and detaches video players, because SDK 1.2.3 otherwise keeps them alive), `index.ts` (null when the native module is absent: Android, Expo Go, Jest).
+- `mobile/plugins/with-vox-sdk.js` - adds `pod 'VOXSDK'` from the private GitHub repository pinned to a commit (`VOX_SDK_IOS_PATH` = local checkout for testing unpushed SDK fixes); `with-min-pod-deployment-target.js` - raises pod targets below iOS 15.1 (Xcode 27 rejects them).
+- `mobile/src/navigation/visibility.ts` - all `/ads` routes hide the tab bar.
+- `mobile/__tests__/ads-entry.test.tsx` - in-game route and recovery, format list navigation, no-fill mapping, placement table; `screens/settings.test.tsx` - Settings entry reaches `/ads`.
+
+`mobile/scripts/offline-sailing/entry.tsx` still dispatches the web `/ads`
+route to the local 3D lab; shared scene/camera code is mapped in the root
+architecture.
 
 ## 0. READ FIRST - where the code lives
 

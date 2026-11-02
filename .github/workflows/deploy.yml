@@ -1,11 +1,12 @@
 name: Deploy to VPS
 
+# Manual only (owner rule 2026-10-29): a push to main no longer deploys. The
+# site is released by `gh workflow run deploy.yml --ref main` when the owner
+# asks, after the full local gate. Runs on another ref may check source, but
+# image publication and deployment below explicitly require main. Environment
+# restrictions are a separate owner-configured control; do not assume they
+# have already been installed.
 on:
-  # Owner rule 2026-11-01: a push to main no longer deploys by itself; GitHub
-  # stores code and the site is updated only on an explicit start. Image
-  # publication and deployment below still explicitly require main.
-  # Environment restrictions are a separate owner-configured control; do not
-  # assume they have already been installed.
   workflow_dispatch:
 
 # Least privilege by default; jobs that need more (publish-images,

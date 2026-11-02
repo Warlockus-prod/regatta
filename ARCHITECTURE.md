@@ -1039,8 +1039,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.
 - `.dockerignore` - что не попадает в контекст сборки образа.
 - `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
-- `.github/workflows/ci.yml` - CI на ветки и PR: типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет JS-бюджет 6,6 МБ и выполняет `e2e/foundation.spec.ts` до публикации.
-- `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E включая sailing lessons/replay, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Non-main checks не получают deploy secrets и не публикуют образы. Экшены закреплены по SHA.
+- `.github/workflows/ci.yml` - CI только по ручному запуску (с 2026-11-02 push и PR ничего не запускают, проверки идут на Mac): типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет JS-бюджет 6,6 МБ и выполняет `e2e/foundation.spec.ts` до публикации.
+- `.github/workflows/deploy.yml` - деплой с `main` только по ручному запуску (`gh workflow run deploy.yml --ref main`, по просьбе владельца): те же проверки до сборки, сборка и pre-deploy E2E включая sailing lessons/replay, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Non-main checks не получают deploy secrets и не публикуют образы. Экшены закреплены по SHA.
 - `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы (digest, без смены мажорной версии Node: она меняется вместе с `node-version` в воркфлоу), GitHub Actions; без автомержа, `mobile/` не входит.
 
 ---
@@ -1096,7 +1096,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - Секреты и окружение прода: `/etc/regatta-deploy/runtime.env` (root, 0600), в
   репозиторий не попадают. Старый чекаут `/opt/repos/regatta` и его `.env` не
   источник релиза.
-- Деплой только из CI: push в `main` -> `.github/workflows/deploy.yml` ->
+- Деплой только из CI и только вручную: `gh workflow run deploy.yml --ref main`
+  (push в `main` с 2026-11-02 ничего не запускает) -> `.github/workflows/deploy.yml` ->
   проверки, весь `npx vitest run`, сборка и pre-deploy E2E на раннере ->
   неизменяемые образы в GHCR -> джоба в environment `production` по SSH stdin
   отдает принудительной команде `regatta-deploy` commit, два digest и
@@ -2075,7 +2076,7 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `src/features/ads-lab/TestPlacements.tsx` - three local front-facing test cards with explicit texture disposal; no ad network/SDK.
 - `docs/design/mobile/ads-lab.md` - requested scope, actual evidence and SDK/release limits.
 
-`RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. Actual ad serving is absent.
+`RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. The 3D boards are still local test cards. Since 2026-10-30 the native app opens this lab as the In-game format of Settings -> Ads; the other formats (display, interstitial, rewarded, video) request real ads through VOX SDK 1, see `docs/design/mobile/ARCHITECTURE.md` section Ads.
 
 `e2e/offline.spec.ts` adds an actual bundled Ads first-frame/control/geometry/placement-journal case with the existing25s scene and60s case limits; it checks no external/API request. This source test still requires its next exact cloud run. `SceneBoundary`/`SceneStartup` optional callbacks keep Ads directional controls disabled until a real frame and after an actual scene failure; normal trainer callers retain their existing behavior.
 

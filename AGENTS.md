@@ -15,7 +15,8 @@
   `codex/app-next-physical`, draft PR #86). Сайт `main` обновляется только с
   согласия владельца (последний деплой 2026-10-31, `41348ddb`); защищенный
   грязный корневой чекаут не трогаем.
-- У владельца TestFlight 1.7.0 (74), откат 73. Сборка, загрузка и доставка в
+- У владельца TestFlight 1.7.0 (75, сборка 74 плюс тестовый раздел рекламы из
+  `claude/ads-formats`), откат 74; следующая сборка 76. Сборка, загрузка и доставка в
   группу Self - три разных состояния, доставку подтверждает живой ASC GET.
 - `PHYSICAL_RACE_EMISSION_ENABLED = false`: метрическая гонка доступна только
   пробой за флагом `/game?race=short|medium|long` (ADR-0014), результаты не
@@ -36,9 +37,10 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  TestFlight 1.7.0 (74), группа Self: исходник 9b061c06 (M0, M1 и журнал гонки), VALID и
-  IN_BETA_TESTING, восемь заметок проверены 2026-10-31 12:10 UTC
-  (`docs/design/mobile/testflight74-2026-10-31.md`). Публичная 1.6.4 (48)
+  TestFlight 1.7.0 (75), группа Self: исходник b372f290 из ветки
+  `claude/ads-formats` (сборка 74 плюс тестовый раздел «Реклама» на VOX SDK 1),
+  VALID и IN_BETA_TESTING, восемь заметок проверены 2026-11-01 23:09 UTC
+  (`docs/design/mobile/testflight75-2026-11-01.md`). Публичная 1.6.4 (48)
   остается отдельно от TestFlight.
   Доставку в Self подтверждают отдельно через живой ASC GET; архив и успешная
   загрузка сами по себе не означают доступность тестировщику. Журнал и история:
@@ -181,8 +183,10 @@ npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
 ```
 
-- CI гоняет весь набор, а не список папок: `.github/workflows/ci.yml` на
-  каждый PR и `.github/workflows/deploy.yml` перед сборкой запускают
+- Проверки идут на Mac перед каждым push (правило владельца): GitHub только
+  принимает push, push и PR ничего не запускают. Набор тот же, что в CI:
+  `.github/workflows/ci.yml` и `.github/workflows/deploy.yml` (оба только по
+  ручному запуску, по просьбе владельца) перед сборкой запускают
   `node scripts/build-race-server.mjs --check`, затем `npx vitest run`, плюс
   `npm run test:multiplayer` и `npm run check:map`. Новый тестовый файл где
   угодно в `src` попадает в CI сам.
@@ -221,7 +225,9 @@ npm run check:map            # карта проекта актуальна
 
 - Ветки: `main` - веб-приложение плюс инфраструктура; `app` - это `main` плюс
   работа по мобильному приложению (`mobile/`).
-- Деплой только из CI. Push в `main` запускает `.github/workflows/deploy.yml`:
+- Деплой только из CI и только вручную: push в `main` сайт не выкатывает.
+  Выпуск сайта - `gh workflow run deploy.yml --ref main` по просьбе владельца,
+  после полного локального гейта. `.github/workflows/deploy.yml`:
   проверки (типы, типографика, карта, весь `npx vitest run`, сокеты), сборка и
   pre-deploy E2E на раннере, затем неизменяемые образы в GHCR.
   Публикация образов и deploy имеют явное условие refs/heads/main; другой ref
