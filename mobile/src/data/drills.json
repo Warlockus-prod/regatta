@@ -206,18 +206,18 @@
         "it": "Tieni la bolina"
       },
       "goal": {
-        "ru": "Бейдевинд у границы мёртвой зоны: TWA 42-50°.",
-        "en": "Close-hauled at the edge of the no-go zone: TWA 42-50°.",
-        "pl": "Bajdewind na granicy kąta martwego: TWA 42-50°.",
-        "es": "Ceñida en el borde de la zona muerta: TWA 42-50°.",
-        "fr": "Au près, au bord de la zone morte : TWA 42-50°.",
-        "de": "Hoch am Wind am Rand des toten Winkels: TWA 42-50°.",
-        "it": "Bolina al bordo dell'angolo morto: TWA 42-50°."
+        "ru": "Бейдевинд у границы мёртвой зоны: TWA 40-48°.",
+        "en": "Close-hauled at the edge of the no-go zone: TWA 40-48°.",
+        "pl": "Bajdewind na granicy kąta martwego: TWA 40-48°.",
+        "es": "Ceñida en el borde de la zona muerta: TWA 40-48°.",
+        "fr": "Au près, au bord de la zone morte : TWA 40-48°.",
+        "de": "Hoch am Wind am Rand des toten Winkels: TWA 40-48°.",
+        "it": "Bolina al bordo dell'angolo morto: TWA 40-48°."
       },
       "params": {
         "targetSec": 30,
-        "twaMinDeg": 42,
-        "twaMaxDeg": 50
+        "twaMinDeg": 40,
+        "twaMaxDeg": 48
       }
     },
     {
@@ -236,17 +236,17 @@
         "it": "Resta fuori dall'angolo morto"
       },
       "goal": {
-        "ru": "60 секунд вне мёртвой зоны: не ближе 42° к ветру.",
-        "en": "60 seconds outside the no-go zone: no closer than 42° to the wind.",
-        "pl": "60 sekund poza kątem martwym: nie bliżej niż 42° do wiatru.",
-        "es": "60 segundos fuera de la zona muerta: a no menos de 42° del viento.",
-        "fr": "60 secondes hors de la zone morte : pas plus près que 42° du vent.",
-        "de": "60 Sekunden außerhalb des toten Winkels: nicht höher als 42° zum Wind.",
-        "it": "60 secondi fuori dall'angolo morto: non più vicino di 42° al vento."
+        "ru": "60 секунд вне мёртвой зоны: не ближе 40° к ветру.",
+        "en": "60 seconds outside the no-go zone: no closer than 40° to the wind.",
+        "pl": "60 sekund poza kątem martwym: nie bliżej niż 40° do wiatru.",
+        "es": "60 segundos fuera de la zona muerta: a no menos de 40° del viento.",
+        "fr": "60 secondes hors de la zone morte : pas plus près que 40° du vent.",
+        "de": "60 Sekunden außerhalb des toten Winkels: nicht höher als 40° zum Wind.",
+        "it": "60 secondi fuori dall'angolo morto: non più vicino di 40° al vento."
       },
       "params": {
         "targetSec": 60,
-        "minTwaDeg": 42
+        "minTwaDeg": 40
       }
     },
     {
@@ -296,18 +296,18 @@
         "it": "Reagisci al salto di vento"
       },
       "goal": {
-        "ru": "Ветер ходит каждые 10 сек. Держи бейдевинд, TWA 42-50°, на новом галсе.",
-        "en": "Wind shifts every 10 s. Hold close-hauled, TWA 42-50°, on the new tack.",
-        "pl": "Wiatr zmienia kierunek co 10 s. Trzymaj bajdewind, TWA 42-50°, na nowym halsie.",
-        "es": "El viento rola cada 10 s. Mantén la ceñida, TWA 42-50°, con la nueva amura.",
-        "fr": "Le vent bascule toutes les 10 s. Tiens le près, TWA 42-50°, sur le nouveau bord.",
-        "de": "Der Wind dreht alle 10 s. Halte hoch am Wind, TWA 42-50°, auf dem neuen Bug.",
-        "it": "Il vento ruota ogni 10 s. Tieni la bolina, TWA 42-50°, sulle nuove mure."
+        "ru": "Ветер ходит каждые 10 сек. Держи бейдевинд, TWA 40-48°, на новом галсе.",
+        "en": "Wind shifts every 10 s. Hold close-hauled, TWA 40-48°, on the new tack.",
+        "pl": "Wiatr zmienia kierunek co 10 s. Trzymaj bajdewind, TWA 40-48°, na nowym halsie.",
+        "es": "El viento rola cada 10 s. Mantén la ceñida, TWA 40-48°, con la nueva amura.",
+        "fr": "Le vent bascule toutes les 10 s. Tiens le près, TWA 40-48°, sur le nouveau bord.",
+        "de": "Der Wind dreht alle 10 s. Halte hoch am Wind, TWA 40-48°, auf dem neuen Bug.",
+        "it": "Il vento ruota ogni 10 s. Tieni la bolina, TWA 40-48°, sulle nuove mure."
       },
       "params": {
         "targetSec": 60,
-        "twaMinDeg": 42,
-        "twaMaxDeg": 50
+        "twaMinDeg": 40,
+        "twaMaxDeg": 48
       }
     },
     {

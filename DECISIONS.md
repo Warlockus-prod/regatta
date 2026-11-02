@@ -1120,7 +1120,8 @@ The race game logic (tack button, BEST VMG, package 13) depends on this.
      its sheets produce (two fixed-point steps), so an overpowered boat is
      eased instead of laid flat. Twist stays out of the search (measured:
      it pointed the boat at 35 deg in 16 kn).
-3. **One no-go value.** `NO_GO_HALF_DEG` stays 42 and now agrees with the
+3. **One no-go value.** (Amended by ADR-0023: 40 since 2026-11-02, the judge
+   and the classic rig keep 42.) `NO_GO_HALF_DEG` stays 42 and now agrees with the
    physics (best upwind VMG 45 / 42 / 40 deg in 6 / 12 / 20 kn, the rig luffs
    and stops the boat inside it; `cruiser.test.ts` fails if they drift apart).
    Code paths moved to it: the right-of-way judge (`race-rules.ts`, was a
@@ -1490,7 +1491,8 @@ measured against it. Now:
    zone (42 deg, the cone the Trainer draws and warns inside): the polar's
    optimum is 45 deg in 6 kn but 40 deg in 12 and 20 kn, and 42 deg makes good
    within 1% of it. The race's BEST VMG still sails 40 deg there; whether the
-   zone or the polar moves is for package 6 (left to the owner).
+   zone or the polar moves is for package 6 (left to the owner). Resolved by
+   ADR-0023: the zone is 40, the preset sails 45 / 40 / 40.
 3. **The default and a drill retuned to the new 100%.** The free Trainer opens
    with the solver's beam-reach sheets (36 / 43 deg instead of 52 / 54, which
    read 80%); the drill "Hold trim" starts from 60 / 60 deg (64%), because its
@@ -1513,3 +1515,78 @@ ADR-0009, ADR-0014, ADR-0015, ADR-0021; `docs/design/race-game-logic-2026-11-01.
 (sections 1, 3, 4); `docs/audits/2026-11-01-harsh-audit.md` (B17, top-6);
 `src/lib/helm-angles.ts`, `src/lib/helm-assist.ts`, `src/lib/race-helm.ts`,
 `src/lib/race-line-time.ts`, `src/lib/helm-trim.ts`.
+
+## ADR-0023 - Cruiser no-go zone 40 deg instead of 42 (amends ADR-0021)
+
+Date: 2026-11-02. Status: accepted (owner, chat 2026-11-02: "Yes, make it
+40"). Amends ADR-0021 point 3 ("One no-go value") and closes the question
+ADR-0022 stage D point 2 left to the owner. Changes the engine-adjacent
+constant `NO_GO_HALF_DEG` under `AGENTS.md` rule 8; no force-model number
+changes.
+
+### Context
+`NO_GO_HALF_DEG` (`src/lib/sailing-physics/constants.ts`) was 42: the cone the
+Trainer, Basics, Boat 3D, the lessons, the quiz, the drills and the app draw
+and teach. The cruiser's best upwind course was narrower than that cone:
+- the race's 5 deg cruiser polar (`helm-angles.ts` on `helmProfileFor`, what
+  BEST VMG and the Trainer's "Best VMG" sail): 45 / 40 / 40 deg TWA in
+  6 / 12 / 20 kn (VMG 3.04 / 4.68 / 5.38 kn);
+- a 1 deg scan of the force model (`solvePolarPoint`): 45 / 42 / 40 deg
+  (VMG 3.04 / 4.74 / 5.38 kn).
+So the Trainer forbade 40 deg while the race's BEST VMG steered 40, and the
+"Best VMG" preset stopped at 42. The expert review
+(`docs/audits/2026-11-01-sailing-expert-review.md` B1 and section 4) gives
+40-42 deg at 12 kn and 38-40 at 20 kn as the real reference and recommends one
+teaching phrase: "бейдевинд около 40-45°, мертвый сектор примерно до 40°".
+
+### Decision
+1. `NO_GO_HALF_DEG` = 40. A no-go zone is never wider than the best course:
+   both solvers above put the best upwind VMG on or outside 40 in 6, 12 and
+   20 kn.
+2. No force-model code reads the constant (checked: `aero.ts`, `boat.ts`,
+   `simulate.ts`, `polar.ts` with `trimForDrive`, `helm-trim.ts`,
+   `jibMinOff`, the luff threshold). Cruiser speed and VMG, kn, TWA
+   38 / 40 / 42 / 45, identical before and after: 6 kn 3.643 / 3.842 / 4.026 /
+   4.305 (VMG 2.870 / 2.943 / 2.992 / 3.044); 12 kn 5.877 / 6.107 / 6.382 /
+   6.534 (4.631 / 4.678 / 4.742 / 4.621); 20 kn 6.774 / 7.028 / 7.194 / 7.479
+   (5.338 / 5.384 / 5.347 / 5.288).
+3. The one place the cone loads a force, the classic profile's rig in
+   `src/features/sailing-lab/runtime/step-rig.ts` (drawn attachment = force
+   inside the cone), keeps 42 as `CLASSIC_RIG_NO_GO_DEG`: `CLASSIC_BOAT` stays
+   bit for bit. On the cruiser the cone there only colours the drawn sail.
+4. The right-of-way judge (`src/lib/race-rules.ts`) runs in both the legacy
+   and the metric race, so it keeps 42 as `JUDGE_TACKING_TWA_DEG`: no race
+   outcome changes silently. Judging "in a tack" by the manoeuvre state
+   (expert review B2, top-15 item 9) is a later package.
+5. Everything else follows the constant: teaching copy in 7 languages
+   (`src/data/no-go-zone.ts`: glossary, points of sail 0-40 / 40-60, lessons,
+   quiz, the tacking strategy), the native drills (close-hauled window 40-48,
+   "no closer than 40"), the Trainer cone, its warning, tour text and "Best
+   VMG" preset (now 45 / 40 / 40 deg, was 45 / 42 / 42: the polar's own angle,
+   the one BEST VMG sails), the sail lab coach, Boat 3D target polar and wind
+   dial (its default was a typed 42), the Basics canvas sector, the metric
+   race's helm, no-go cone and route-hint floor (40 + 3 = 43, was 45), and the
+   app (Basics wedge, labels, band and speed potential now read the engine's
+   value instead of a typed mirror; wind rose, skia cone, lesson diagram).
+6. What does not change: the legacy race's 30 deg zone (`race-manoeuvres.ts`
+   `NO_GO`, `race-hud/target.ts` `NO_GO_TWA`), its physics, records, replays
+   and the generated server physics; bots (`closeHauledTwaDeg` 45, escape 35,
+   layline 8); the Trainer's "Close-hauled" course preset (42 deg) and the
+   overpowered scenario (TWA 42), which are courses outside the zone, not the
+   zone.
+
+### Consequences
+- The legacy race's Pro trim coach (`race-trim-coach.ts` through
+  `coachFrom`) says "pinching" below 45 deg instead of 47; advice only, no
+  physics or scoring.
+- On the 1 deg scan the 12 kn optimum is 42 deg: the "Best VMG" preset now
+  sails 40 there (the race polar's angle), 1.3% less VMG than 42 by that scan.
+  The preset and BEST VMG agree; a finer race polar is a separate question.
+
+### Verification
+`src/lib/sailing-physics/cruiser.test.ts` (the best upwind angle of the 1 deg
+scan is >= `NO_GO_HALF_DEG` and within 5 deg of it in 6 / 12 / 20 kn),
+`src/features/simulator-v3/runtime/auto-trim.test.ts` ("Best VMG" lands on
+helm-angles' angle, never inside the zone, 45 / 40 / 40),
+`src/lib/race-rules.test.ts` (the judge stays 42), the classic and legacy
+golden tests unchanged, `src/data/no-go-copy.test.ts`.

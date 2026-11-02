@@ -99,13 +99,15 @@ describe("cruiser profile: a luffing rig stops the boat (ADR-0021)", () => {
     expect(speed(25, 12) * Math.cos(25 * Math.PI / 180)).toBeLessThan(.6 * best);
   });
 
-  it("puts the best upwind VMG within 4 deg of the shared no-go reference in light, medium and fresh wind", () => {
-    // Measured: 45 (6 kn), 42 (12 kn), 40 (20 kn). The classic profile
-    // pointed at 40-41 in every wind and drove at TWA 20.
+  it("puts the best upwind VMG on or just outside the shared no-go reference in light, medium and fresh wind", () => {
+    // Measured (1 deg scan): 45 (6 kn), 42 (12 kn), 40 (20 kn). The classic
+    // profile pointed at 40-41 in every wind and drove at TWA 20. ADR-0023:
+    // the zone is never wider than the best course (it was 42 against 40 in
+    // 20 kn), and the best course stays within 5 deg of the zone's edge.
     for (const tws of [6, 12, 20]) {
       const { twa } = bestVmg(tws, 30, 56, true);
-      expect(twa, `${tws} kn`).toBeGreaterThanOrEqual(NO_GO_HALF_DEG - 4);
-      expect(twa, `${tws} kn`).toBeLessThanOrEqual(NO_GO_HALF_DEG + 4);
+      expect(twa, `${tws} kn`).toBeGreaterThanOrEqual(NO_GO_HALF_DEG);
+      expect(twa, `${tws} kn`).toBeLessThanOrEqual(NO_GO_HALF_DEG + 5);
     }
   });
 

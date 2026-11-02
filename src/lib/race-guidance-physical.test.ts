@@ -10,7 +10,8 @@
 //
 // Measured 2026-11-02 after the mark guard (solo, soloRaceWind, x0.65 / x1 /
 // x1.3): tacks on the beat 2 / 2 / 3 (short / medium / long) at every
-// strength; the closest hint heading to the wind 45 deg (no-go 42 + 3); no
+// strength; the closest hint heading to the wind 45 deg (no-go 42 + 3; since
+// ADR-0023 43 deg, no-go 40 + 3, finish times within 0.7 s of before); no
 // rule event; finish short 256 / 177 / 139 s (short x1 was 187 s with a mark
 // touch at 81 s before the guard), medium 560 / 367 / 295 s, long 1046 / 698
 // / 554 s; the hint keeps the boat 106..409 m east on long
@@ -257,8 +258,10 @@ describe("planPhysicalRaceGuidance on three inputs", () => {
     expect(guidance).toMatchObject({ leg: "round-port", target: { x: mark.x, y: (north.a.y + north.b.y) / 2 } });
     expect(credited(b, guidance!.target, profile, course)).toBe(true);
     expect(Math.abs(calcTWA(guidance!.suggestedHeading, 0))).toBeGreaterThanOrEqual(raceScale(profile).noGoHalfDeg);
-    // Head to wind the hint points to the port-rounding side: bear away to the north-west, a tack onto starboard.
-    expect(guidance!.suggestedHeading).toBeCloseTo(315, 6);
+    // Head to wind the hint points to the port-rounding side: bear away to the north-west, a tack onto starboard,
+    // to the cone's floor: no-go + 3 = 43 deg off the wind since ADR-0023 (was 45 with the 42 deg zone).
+    expect(guidance!.suggestedHeading).toBeCloseTo(360 - (raceScale(profile).noGoHalfDeg + 3), 6);
+    expect(guidance!.suggestedHeading).toBeCloseTo(317, 6);
   });
 
   it("never calls a correction of a few degrees across a dead run a gybe", () => {

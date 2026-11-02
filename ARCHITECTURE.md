@@ -946,7 +946,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 
 - `src/lib/sailing-physics/index.ts` - публичный API движка.
 - `src/lib/sailing-physics/types.ts` - типы и соглашения (углы в градусах, знаки); `CruiserModel` (термы ADR-0021) и `TickMotion` (скорость рыскания для сопротивления поворота).
-- `src/lib/sailing-physics/constants.ts` - константы, общие для UI и движка; `NO_GO_HALF_DEG` 42 совпадает с физикой профиля крейсера (ADR-0021).
+- `src/lib/sailing-physics/constants.ts` - константы, общие для UI и движка; `NO_GO_HALF_DEG` 40 (ADR-0023, было 42) не шире лучшего курса крейсера (ADR-0021), физика его не читает.
 - `src/lib/sailing-physics/wind.ts` - истинный ветер в кажущийся, чистая векторная математика.
 - `src/lib/sailing-physics/aero.ts` - кривые Cl/Cd с явным срывом; `softSailAttachment` - заполаскивание мягкого паруса (ADR-0021).
 - `src/lib/sailing-physics/forces.ts` - тяга и боковая сила по каждому парусу; у крейсера заполаскивание, сопротивление полощущей ткани, индуктивное сопротивление и пластина после срыва.

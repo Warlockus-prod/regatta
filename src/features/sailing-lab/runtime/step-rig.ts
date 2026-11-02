@@ -5,6 +5,12 @@ import { advanceRig, initialRig, rigSide, transferLoad, type RigMotion } from ".
 import { sailResponse, signedSailIncidence } from "../rig/response";
 import { createMainTrim, stepMainTrim, type MainTrimCommand, type MainTrimState } from "../rig/main-trim";
 
+/** The classic profile's rig cone: on that profile the drawn attachment also
+ * loads the force model (below), so it stays at the 42 deg it had before
+ * ADR-0023 moved the shared teaching zone to 40, keeping CLASSIC_BOAT bit for
+ * bit (ADR-0021). The cruiser's force model ignores the cone. */
+const CLASSIC_RIG_NO_GO_DEG = 42;
+
 /** One shared source for the visible rig and the force calculation. */
 export function stepWithRig(state: BoatState, controls: Controls, params: BoatParams, previous: RigMotion | null, dt: number,
   trim?: { command: MainTrimCommand; state: MainTrimState | null }, boatMotion?: TickMotion) {
@@ -22,7 +28,7 @@ export function stepWithRig(state: BoatState, controls: Controls, params: BoatPa
   const mainIncidence = signedSailIncidence(aw.awa, Math.abs(motion.main), controls.mainTwist);
   const jibIncidence = signedSailIncidence(aw.awa, Math.abs(motion.jib), controls.jibTwist);
   const response = (kind: "main" | "jib", incidence: number) => {
-    const base = sailResponse(aw.aws, incidence, incidence > 18, Math.abs(twa) > 135, Math.abs(twa) < NO_GO_HALF_DEG);
+    const base = sailResponse(aw.aws, incidence, incidence > 18, Math.abs(twa) > 135, Math.abs(twa) < (params.model ? NO_GO_HALF_DEG : CLASSIC_RIG_NO_GO_DEG));
     const load = kind === "main" && mainTrim ? 1 : transferLoad(motion, kind);
     return { ...base, fill: base.fill * load, attachment: base.attachment * load,
       luff: Math.max(base.luff, (motion.maneuver === "tacking" ? 1 : .15) * (1 - load) * Math.min(1, aw.aws / 4)),

@@ -80,4 +80,8 @@ const CRUISER_CHECKPOINTS: number[][] = [
   [1, 4.956, -.14], [60, 4.887, -4.05], [150, 5.002, -5.85], [240, 4.889, -14.23],
   [330, 4.485, -11.69], [420, 2.01, -1.72], [510, 2.076, 1.04], [600, 1.518, -4.83],
 ];
-const CRUISER_DIGEST = "49911898d12220ab0f2ff73a09ee0d1cf29209fb0bb9a90baa91f45e2b592184";
+// ADR-0023 (no-go 42 -> 40): only the drawn sail response moved (main / jib
+// fill, attachment, luff and status on 9 of 600 ticks at TWA 40-42, "drawing"
+// instead of "inIrons"); every boat, position and rig number is unchanged and
+// the checkpoints above did not move. Before: 49911898d122...2b592184.
+const CRUISER_DIGEST = "04b4e93c3afa7841ce974785eb12bcdacfa68a681d69cb0e12c6c25f062ac01d";

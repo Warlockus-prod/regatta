@@ -11,9 +11,11 @@
  */
 
 import { pointsOfSail, type PointOfSail } from '../data';
+import { NO_GO_HALF_DEG } from '../simulator/physics';
 
-/** Mirror of `src/lib/sailing-physics/constants.ts` NO_GO_HALF_DEG. */
-export const NO_GO_HALF_DEG = 42;
+/** The shared no-go half-angle (`src/lib/sailing-physics/constants.ts`, 40 deg
+ * since ADR-0023), read from the engine, not a typed mirror. */
+export { NO_GO_HALF_DEG };
 
 /** Normalize any angle to [0, 360). */
 export function normalize360(deg: number): number {
@@ -42,8 +44,8 @@ export function tackOf(headingDeg: number): Tack {
  * Point-of-sail band for an angle to wind (0..180).
  *
  * Uses the canonical data bands, except the in-irons / close-hauled
- * boundary is clamped to the physics NO_GO_HALF_DEG (42) so the label
- * always matches the red wedge (the data table rounds that edge to 45).
+ * boundary is clamped to the shared NO_GO_HALF_DEG so the label always
+ * matches the red wedge.
  */
 export function bandFor(twaDeg: number): PointOfSail {
   const t = Math.min(180, Math.max(0, Math.abs(twaDeg)));
@@ -60,7 +62,7 @@ export function bandFor(twaDeg: number): PointOfSail {
 /**
  * Speed-potential anchors: 0 at the edge of the no-go wedge, then each
  * band's `speedFactor` at its center angle, held flat to 180.
- * With the synced data this yields: 42->0, 52.5->0.65, 85->1.0, 135->0.85,
+ * With the synced data this yields: 40->0, 50->0.65, 85->1.0, 135->0.85,
  * 170->0.6, 180->0.6.
  */
 const ANCHORS: { twa: number; factor: number }[] = (() => {

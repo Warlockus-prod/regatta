@@ -160,8 +160,14 @@ export function SceneTop({
   const keepOut = 166;
   const driveText = lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciąg' : lang === 'es' ? 'empuje' : lang === 'fr' ? 'poussée' : lang === 'de' ? 'Vortrieb' : lang === 'it' ? 'spinta' : 'drive';
   const sideText = lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : lang === 'es' ? 'lateral' : lang === 'fr' ? 'latérale' : lang === 'de' ? 'Seitenkraft' : lang === 'it' ? 'laterale' : 'side';
-  const driveLabel = placeForceLabel({ cx, cy, tip: 34 + driveScale * 110, angle: boatRotation, gap: px(8), size: px(forceLabelPx), chars: driveText.length, avoid: [card, ...sailBoxes], bounds: { width, height }, keepOut });
-  const sideLabel = placeForceLabel({ cx, cy, tip: 26 + sideScale * 70, angle: boatRotation + sideSignAngle, gap: px(8), size: px(forceLabelPx), chars: sideText.length, avoid: [card, ...sailBoxes, driveLabel.box], bounds: { width, height }, keepOut });
+  // Close-hauled at the zone edge the drive arrow points at the no-go word (ADR-0023 screenshots): keep clear of it too.
+  // Stepping out past the word must not land on the true-wind shaft or the AW label either.
+  const noGoBox = noGoLabelBox({ x: cx, y: cy - sceneRadius * 0.61, size: px(MIN_TOP_LABEL_PX), chars: NO_GO_TERM[lang].length });
+  const twShaft = { l: cx - px(6), r: cx + px(6), t: tw.start.y, b: tw.end.y + px(4) };
+  const awBox = { l: awLabel.left, r: awLabel.right, t: awLabel.y - px(AW_LABEL_PX) * 0.85, b: awLabel.y + px(AW_LABEL_PX) * 0.35 };
+  const windBoxes = [noGoBox, twShaft, awBox];
+  const driveLabel = placeForceLabel({ cx, cy, tip: 34 + driveScale * 110, angle: boatRotation, gap: px(8), size: px(forceLabelPx), chars: driveText.length, avoid: [card, ...windBoxes, ...sailBoxes], bounds: { width, height }, keepOut });
+  const sideLabel = placeForceLabel({ cx, cy, tip: 26 + sideScale * 70, angle: boatRotation + sideSignAngle, gap: px(8), size: px(forceLabelPx), chars: sideText.length, avoid: [card, ...windBoxes, ...sailBoxes, driveLabel.box], bounds: { width, height }, keepOut });
   const jibVisualOpacity = clamp(1 - sim.session.live.jibFurl, 0.18, 1);
 
   // Wind-shadow factor from main onto jib. On broad reach (TWA > 130) the
@@ -1135,6 +1141,15 @@ export function sailLabelPlaces({ cx, cy, boatRotation, sailSide, windIntensity,
     out[1] = { ...m, y, box: { ...m.box, t: y - (m.box.b - m.box.t) / 2, b: y + (m.box.b - m.box.t) / 2 } };
   }
   return out;
+}
+
+/**
+ * Box of the centred no-go word at the top of the view (upper case, letter
+ * spacing 0.12 em, so about 0.72 em a glyph), padded by a quarter em.
+ */
+export function noGoLabelBox({ x, y, size, chars }: { x: number; y: number; size: number; chars: number }): LabelBox {
+  const half = (size * 0.72 * chars) / 2 + size * 0.25;
+  return { l: x - half, r: x + half, t: y - size * 0.85, b: y + size * 0.35 };
 }
 
 /**

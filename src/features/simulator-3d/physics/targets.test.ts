@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NO_GO_HALF_DEG } from "@/lib/sailing-physics";
 import { createTargetSolver } from "./targets";
 
 describe("3D target instruments", () => {
@@ -12,7 +13,8 @@ describe("3D target instruments", () => {
   });
   it("does not retain a sailing target across the no-go boundary in one angle bucket", () => {
     const solve = createTargetSolver();
-    expect(solve(42.5, 12, 0).target).toBeGreaterThan(0);
-    expect(solve(41.9, 12, 0).target).toBe(0);
+    // The shared zone edge (40 since ADR-0023, was 42): same bucket, either side.
+    expect(solve(NO_GO_HALF_DEG + 0.5, 12, 0).target).toBeGreaterThan(0);
+    expect(solve(NO_GO_HALF_DEG - 0.1, 12, 0).target).toBe(0);
   });
 });

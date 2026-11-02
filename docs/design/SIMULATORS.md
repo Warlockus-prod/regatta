@@ -88,9 +88,10 @@ remain documented limitations. See the audit for open calibration work.
 
 ## Shared constants and terms (do not fork these)
 
-- No-go half-angle: `NO_GO_HALF_DEG` (42) exported from
-  `src/lib/sailing-physics/constants.ts`. Consumers: Basics canvas, V3
-  SceneTop, 3D WindDial, mobile Basics (mirrored copy with a comment).
+- No-go half-angle: `NO_GO_HALF_DEG` (40 since ADR-0023, was 42) exported
+  from `src/lib/sailing-physics/constants.ts`. Consumers: Basics canvas, V3
+  SceneTop, 3D WindDial (default), mobile Basics (re-exports the engine's
+  value, no typed mirror).
 - Speed unit label: "kts" (RU: "уз"). Degrees: the ° symbol, never "deg".
 - Dimensionless trim controls (sheets in sail mode, camber/twist/reef): "%".
 - Sail-state vocabulary (RU): полощет / тянет / срыв / перетянут. Tour and

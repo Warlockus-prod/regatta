@@ -1,6 +1,13 @@
 import { angleDiff, deg2rad, distance, MIN_BOAT_SEPARATION, segmentCrossed, type RaceBoat, type RaceCourse, type Vec2 } from "./race-physics";
 import { raceScale, type RaceScale } from "./race-scale";
-import { NO_GO_HALF_DEG } from "./sailing-physics/constants";
+
+/** Below this |TWA| the right-of-way judge treats a boat as tacking and
+ * assigns no liability. Kept at 42, the shared no-go value it read until
+ * ADR-0023 moved the teaching zone to 40, so no legacy or metric race outcome
+ * changes silently. The judge runs in both races (useRaceLoop and
+ * race-physical-completion). Expert review 2026-11-01 B2 / top-15 item 9:
+ * judge "in a tack" by the manoeuvre state instead, a later package. */
+export const JUDGE_TACKING_TWA_DEG = 42;
 
 /** Educational subset of World Sailing RRS 2025-2028, checked 2026-10-24.
  * Source: https://www.sailing.org/rules-regulations/racingrules
@@ -80,9 +87,9 @@ const dot = (a: Vec2, b: Vec2) => a.x * b.x + a.y * b.y;
 export function raceRightOfWay(a: RaceBoat, b: RaceBoat, windDir: number): RightOfWay | null {
   const ta = raceTack(a.heading, windDir), tb = raceTack(b.heading, windDir);
   const aa = Math.abs(angleDiff(a.heading, windDir)), ab = Math.abs(angleDiff(b.heading, windDir));
-  // Inside the shared close-hauled reference (NO_GO_HALF_DEG, ADR-0021) a boat
-  // is treated as tacking and the judge assigns no liability.
-  if (!ta || !tb || aa < NO_GO_HALF_DEG || ab < NO_GO_HALF_DEG || aa > 175 || ab > 175) return null;
+  // Inside JUDGE_TACKING_TWA_DEG a boat is treated as tacking and the judge
+  // assigns no liability.
+  if (!ta || !tb || aa < JUDGE_TACKING_TWA_DEG || ab < JUDGE_TACKING_TWA_DEG || aa > 175 || ab > 175) return null;
   if (ta !== tb) return { giveWayId: ta === "port" ? a.id : b.id, standOnId: ta === "starboard" ? a.id : b.id, rule: "10" };
   if (Math.abs(angleDiff(a.heading, b.heading)) > 20) return null;
   const abPos = { x: b.pos.x - a.pos.x, y: b.pos.y - a.pos.y };

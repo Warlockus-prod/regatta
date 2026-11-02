@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getBoatParams } from '@/lib/sailing-physics';
+import { getBoatParams, NO_GO_HALF_DEG } from '@/lib/sailing-physics';
 import { AUTO_TRIM_PERIOD_S } from '@/lib/helm-trim';
 import { polarAngles } from '@/lib/helm-angles';
 import { helmProfileFor } from '@/features/race-hud/target';
@@ -66,9 +66,10 @@ describe('auto-trim and "Best" give the same answer (cruiser, three winds)', () 
   });
 });
 
-// helm-angles: 45 / 40 / 40 deg upwind (helm-angles.test.ts); 40 is inside the
-// cruiser's 42 deg zone, so the preset sails 42 there.
-const EXPECTED_UP = { 6: 45, 12: 42, 20: 42 } as const;
+// helm-angles: 45 / 40 / 40 deg upwind (helm-angles.test.ts). Since ADR-0023
+// the cruiser's zone is 40, never wider than that, so the preset sails
+// helm-angles' own angle in every wind (it sailed the 42 deg edge before).
+const EXPECTED_UP = { 6: 45, 12: 40, 20: 40 } as const;
 
 describe('"Best VMG" lands on the angle of helm-angles', () => {
   for (const tws of WINDS) {
@@ -76,12 +77,14 @@ describe('"Best VMG" lands on the angle of helm-angles', () => {
       const { angles, speedAt, noGoDeg } = helmProfileFor(tws, 'cruiser');
       // The one solver of helm-angles on the race's cruiser polar.
       expect(polarAngles(speedAt)).toEqual(angles);
-      // Upwind: helm-angles' angle, or the edge of the no-go zone the Trainer
-      // draws when the polar's optimum lies inside it, at a VMG within 1%.
+      // The polar's best angle is never inside the zone the Trainer draws.
+      expect(angles.upwind.twa).toBeGreaterThanOrEqual(noGoDeg);
+      expect(noGoDeg).toBe(NO_GO_HALF_DEG);
+      // Upwind: exactly helm-angles' angle, the one the race's BEST VMG sails.
       const up = bestVmgTwa({ twa: 60, windSpeed: tws });
-      expect(up).toBe(Math.max(angles.upwind.twa, Math.ceil(noGoDeg)));
+      expect(up).toBe(angles.upwind.twa);
       expect(up).toBe(EXPECTED_UP[tws]);
-      expect(speedAt(up) * Math.cos(up * Math.PI / 180)).toBeGreaterThan(0.99 * angles.upwind.vmgKn);
+      expect(speedAt(up) * Math.cos(up * Math.PI / 180)).toBeCloseTo(angles.upwind.vmgKn, 9);
       expect(bestVmgTwa({ twa: 90, windSpeed: tws })).toBe(up);
       expect(bestVmgTwa({ twa: 135, windSpeed: tws })).toBe(angles.downwind.twa);
       // Its sheets are the solver's at rest on that angle.

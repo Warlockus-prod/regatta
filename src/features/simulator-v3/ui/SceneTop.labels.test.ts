@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { placeForceLabel, sailLabelPlaces } from "./SceneTop";
+import { noGoLabelBox, placeForceLabel, sailLabelPlaces } from "./SceneTop";
 import { TRAINER_TERMS } from "@/lib/product/trainer-terms";
 
 // Package 11 (audit B11, TestFlight 76): the top view's force labels never sit
@@ -18,6 +18,18 @@ describe("top view force labels", () => {
     const placed = placeForceLabel({ cx: CX, cy: CY, tip: 140, angle, gap: 8 * U, size: 13 * U, chars: 4, avoid: [card], bounds: { width: 760, height: 600 } });
     expect(overlaps(naive.box, card)).toBe(true);
     expect(overlaps(placed.box, card)).toBe(false);
+  });
+
+  it("keeps the drive label off the no-go word close-hauled at the zone edge (ADR-0023)", () => {
+    // Bow 40 deg off the wind at the top: the drive arrow points at the centred word.
+    const radius = 600 * 0.42;
+    const word = noGoLabelBox({ x: CX, y: CY - radius * 0.61, size: 13 * U, chars: "мёртвая зона".length });
+    for (const angle of [-40, -42, 40]) {
+      const naive = placeForceLabel({ cx: CX, cy: CY, tip: 34 + 110, angle, gap: 8 * U, size: 13 * U, chars: 4, avoid: [card], bounds: { width: 760, height: 600 }, keepOut: 166 });
+      const placed = placeForceLabel({ cx: CX, cy: CY, tip: 34 + 110, angle, gap: 8 * U, size: 13 * U, chars: 4, avoid: [card, word], bounds: { width: 760, height: 600 }, keepOut: 166 });
+      if (angle === -40) expect(overlaps(naive.box, word), "the case this guards").toBe(true);
+      expect(overlaps(placed.box, word), `angle ${angle}`).toBe(false);
+    }
   });
 
   it("keeps the side label off the boat (hull and sails) at three headings", () => {

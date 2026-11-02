@@ -56,7 +56,7 @@ describe("no-go wedge", () => {
   // A flat RingGeometry angle t lands on compass bearing 90 - t (see noGoRing).
   const bearingOf = (t: number) => ((90 - t * 180 / Math.PI) % 360 + 360) % 360;
 
-  it.each([[legacy, 30], [raceTacticsModel("medium"), 42]] as const)("spans head to wind plus and minus the model's half angle", (model, half) => {
+  it.each([[legacy, 30], [raceTacticsModel("medium"), NO_GO_HALF_DEG]] as const)("spans head to wind plus and minus the model's half angle", (model, half) => {
     const ring = noGoRing(model);
     expect(ring.thetaLength * 180 / Math.PI).toBeCloseTo(2 * half, 9);
     const a = bearingOf(ring.thetaStart), b = bearingOf(ring.thetaStart + ring.thetaLength);

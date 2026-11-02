@@ -57,10 +57,11 @@ export function trimDiffers(ui: UiState, trim: OptimalTrim): boolean {
 /** "Best VMG": the best VMG angle of the race's cruiser polar for this wind
  * (helm-angles.ts via helmProfileFor, the angle BEST VMG sails in the metric
  * race), upwind when the boat sails 90 deg or higher, downwind when it sails
- * lower. Upwind it never goes inside the cruiser's no-go zone (42 deg, the
- * cone the Trainer draws and warns about): in 12 kn and more the polar's
- * optimum is 40 deg, so the preset sails the zone's edge, which makes good
- * within 1% of it. The tack stays: the preset never tacks or gybes by itself. */
+ * lower. Upwind it never goes inside the cruiser's no-go zone (NO_GO_HALF_DEG,
+ * the cone the Trainer draws and warns about). Since ADR-0023 the zone (40)
+ * is no wider than the polar's optimum (45 / 40 / 40 deg in 6 / 12 / 20 kn),
+ * so the preset sails helm-angles' own angle; the clamp only guards a future
+ * polar. The tack stays: the preset never tacks or gybes by itself. */
 export function bestVmgTwa(ui: Pick<UiState, 'twa' | 'windSpeed'>): number {
   const { angles, noGoDeg } = helmProfileFor(ui.windSpeed, 'cruiser');
   return ui.twa <= 90 ? Math.max(angles.upwind.twa, Math.ceil(noGoDeg)) : angles.downwind.twa;

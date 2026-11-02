@@ -6,10 +6,13 @@
 // Apparent wind (dashed amber) arrows point inward from the angle they blow
 // FROM, relative to the bow. The shaded wedge at the top is the no-go zone.
 //
-// Pure SVG, no dependencies beyond React, so it travels with the module.
+// Pure SVG, no dependencies beyond React and the shared no-go constant (the
+// wedge's default is NO_GO_HALF_DEG, the cone every trainer draws).
 //
 // Angle convention: 0 = wind from dead ahead (top), positive = starboard bow.
 // ============================================================================
+
+import { NO_GO_HALF_DEG } from '@/lib/sailing-physics/constants';
 
 const R = 42;
 const C = 50;
@@ -37,7 +40,7 @@ function WindArrow({ angle, color, dashed, label }: { angle: number; color: stri
 export function WindDial({
   twaSigned,
   awaSigned,
-  noGoDeg = 42,
+  noGoDeg = NO_GO_HALF_DEG,
   size = 132,
   label = 'Wind dial',
 }: {

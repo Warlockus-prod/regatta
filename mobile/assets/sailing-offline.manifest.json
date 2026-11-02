@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "ef6291e203dc",
-  "sha256": "81955a3a43ff5c8173a1821f576f0f54c83917021696afa06a293ccd833bcbd6",
-  "bytes": 7019299,
+  "version": "d0ba33755f19",
+  "sha256": "2182b26abe30d5640ca00673a9bd8d1ec9c46905a1e4691869cb242653569c8d",
+  "bytes": 7019760,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1979,8 +1979,8 @@
     },
     {
       "path": "src/features/sailing-lab/runtime/step-rig.ts",
-      "bytes": 3318,
-      "sha256": "03d5e450cd060041fd8b509025ccefea9b8a7eddeb765bc57d605ca4846921fb"
+      "bytes": 3691,
+      "sha256": "b8b78a977d084b714ec713ed988d5d88690aeaecafbea23704b1b2144ee4ed2a"
     },
     {
       "path": "src/features/sailing-lab/runtime/storage-protocol.ts",
@@ -2139,8 +2139,8 @@
     },
     {
       "path": "src/features/simulator-3d/ui/WindDial.tsx",
-      "bytes": 3455,
-      "sha256": "9203ff649a2928af24ce7048a07fe292143ab1fa31a657adbc08e618ba8c4986"
+      "bytes": 3606,
+      "sha256": "7ab255e005c48f7597b1c7896bb09a76f7e22d7534517883554e3c072a8e8379"
     },
     {
       "path": "src/features/simulator-3d/ui/WindReadout.tsx",
@@ -2189,8 +2189,8 @@
     },
     {
       "path": "src/features/simulator-v3/runtime/auto-trim.ts",
-      "bytes": 3885,
-      "sha256": "9230c446388a028fbd02b1ecab4b0102d8213442fa688d24c306291d4eb459b1"
+      "bytes": 3962,
+      "sha256": "bdcb212c4ec3b5f949f501ca510555c7d78f075169ad7892ccaa11e7822e49a7"
     },
     {
       "path": "src/features/simulator-v3/runtime/create-runtime-state.ts",
@@ -2269,8 +2269,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/SceneTop.tsx",
-      "bytes": 55292,
-      "sha256": "9da2ea62aaca68b636b47885b6f12fa3fa76995401bd6110f518c2e2d6015796"
+      "bytes": 56346,
+      "sha256": "f0d7be276d1380fabfb944953425c83bc64337cfdecc584d3a6a73d8a26fc4c1"
     },
     {
       "path": "src/features/simulator-v3/ui/TrainerBoat3D.tsx",
@@ -2774,8 +2774,8 @@
     },
     {
       "path": "src/lib/race-rules.ts",
-      "bytes": 12105,
-      "sha256": "5206b534e408b062657078d367de4b550a549f6f7af0b2e1e40caaa8b505538e"
+      "bytes": 12501,
+      "sha256": "20eb44c3bf9d7d725dd8c207de4d3ac31377f81db64fd922e01927addfc7ea32"
     },
     {
       "path": "src/lib/race-scale.ts",
@@ -2884,8 +2884,8 @@
     },
     {
       "path": "src/lib/sailing-physics/constants.ts",
-      "bytes": 1016,
-      "sha256": "e2c39d6a70c075147796587f938f1c1774ed3eda73da2cf1c7619a13eddefb6c"
+      "bytes": 1356,
+      "sha256": "3c51da2eca3167bb677e20021c86c3984104d85b0cdff5fa4d3606735e8a9a79"
     },
     {
       "path": "src/lib/sailing-physics/current.ts",

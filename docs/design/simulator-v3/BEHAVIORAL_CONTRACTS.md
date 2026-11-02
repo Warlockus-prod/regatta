@@ -128,8 +128,10 @@ at 100%.
   does not
 - "Best VMG" sails the best VMG angle of `src/lib/helm-angles.ts` on the
   race's cruiser polar, upwind when the boat sails 90 deg or higher, downwind
-  below, on the tack it is on; upwind never inside the 42 deg no-go cone the
-  Trainer draws (in 12 kn and more the polar's 40 deg becomes 42)
+  below, on the tack it is on; upwind never inside the no-go cone the Trainer
+  draws (`NO_GO_HALF_DEG`, 40 deg since ADR-0023, no wider than the polar's
+  45 / 40 / 40 deg in 6 / 12 / 20 kn), so it lands on the polar's own angle,
+  the one the race's BEST VMG sails
 
 Failure signs:
 

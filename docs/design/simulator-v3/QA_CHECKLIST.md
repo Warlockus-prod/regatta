@@ -81,7 +81,7 @@ Click "Drills" tab:
 
 - [ ] Session settings: "Auto-trim: off" toggles to on, the sheets move to the solver's setting; touching a sheet turns it off
 - [ ] "Best" lands on the same sheets the auto-trim reaches on a settled course
-- [ ] "Sails and courses" > "Best VMG" sets the best VMG angle for the wind on the same tack (upwind from 90 deg or higher, downwind below; upwind 45 deg in 6 kn, 42 deg, the no-go edge, in 12 kn and more) and no "too close to the wind" warning appears
+- [ ] "Sails and courses" > "Best VMG" sets the best VMG angle for the wind on the same tack (upwind from 90 deg or higher, downwind below; upwind 45 deg in 6 kn, 40 deg in 12 and 20 kn, the polar's own angle on the no-go edge, ADR-0023) and no "too close to the wind" warning appears
 
 ## Scenarios (PR-4)
 
