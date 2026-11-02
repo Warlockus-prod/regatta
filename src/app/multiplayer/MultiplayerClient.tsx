@@ -21,6 +21,7 @@ import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnaps
 import { recordTrackPoint } from "@/features/race-hud/map-view";
 import { useRacePrefs } from "../game/race-prefs";
 import { MultiplayerMenu, MultiplayerRoom, type LobbyPlayer } from "./MultiplayerLobby";
+import { QUICK_ONLINE_RACE } from "@/data/quick-online-race";
 import { canShareNatively, createLobbyBlocker, createShareFeedback, createTapAction, defaultSailorName, roomInviteUrl, shareRoomInvite, type ShareOutcome } from "./lobby";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
@@ -373,7 +374,8 @@ export default function MultiplayerClient() {
   const shareCode = useCallback(async () => {
     if (!room) return;
     const url = roomInviteUrl(window.location.origin, room.code);
-    const text = tl({ ru: `Гонка с друзьями: код ${room.code}`, en: `Race with friends: code ${room.code}`, pl: `Regaty ze znajomymi: kod ${room.code}`, es: `Regata con amigos: código ${room.code}`, fr: `Course entre amis : code ${room.code}`, de: `Rennen mit Freunden: Code ${room.code}`, it: `Regata con amici: codice ${room.code}` });
+    // M5 step 8: the invitation names the race as everywhere else (QUICK_ONLINE_RACE).
+    const text = `${tl(QUICK_ONLINE_RACE)}${tl({ ru: `: код ${room.code}`, en: `: code ${room.code}`, pl: `: kod ${room.code}`, es: `: código ${room.code}`, fr: ` : code ${room.code}`, de: `: Code ${room.code}`, it: `: codice ${room.code}` })}`;
     // run() drops the result if the race starts or the player leaves first.
     await shareFeedback.run(() => shareRoomInvite(navigator, { title: "Week to Regatta", url, text }));
   }, [room, shareFeedback, tl]);

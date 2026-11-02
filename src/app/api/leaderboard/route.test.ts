@@ -14,11 +14,14 @@ const mocks = vi.hoisted(() => {
     raw_finish_time_sec: row.finish_time_sec - 5, penalty_seconds: 5, race_context_json: "PRIVATE_STORED_JSON", future_private: "PRIVATE_FUTURE_FIELD" }));
   return {
     sid: 'me-sid' as string | undefined,
+    rows,
     classifiedRows,
     db: {
       topByDifficulty: vi.fn<(difficulty: string, wind: string, limit?: number) => ReturnType<typeof rows>>(() => rows()),
       topByMission: vi.fn<(missionId: string, limit?: number) => ReturnType<typeof rows>>(() => rows()),
       topByRaceClass: vi.fn<(...args: unknown[]) => ReturnType<typeof classifiedRows> | null>(() => classifiedRows()),
+      topArchive: vi.fn<(...args: unknown[]) => ReturnType<typeof rows> | null>(() => rows()),
+      topOnline: vi.fn<(...args: unknown[]) => ReturnType<typeof rows> | null>(() => rows()),
     },
   };
 });
@@ -40,6 +43,8 @@ beforeEach(() => {
   mocks.db.topByDifficulty.mockClear();
   mocks.db.topByMission.mockClear();
   mocks.db.topByRaceClass.mockReset().mockImplementation(() => mocks.classifiedRows());
+  mocks.db.topArchive.mockReset().mockImplementation(() => mocks.rows());
+  mocks.db.topOnline.mockReset().mockImplementation(() => mocks.rows());
 });
 
 describe("GET /api/leaderboard - exact classified boards", () => {
@@ -129,5 +134,51 @@ describe('GET /api/leaderboard', () => {
     expect((await get(q)).status).toBe(400);
     expect(mocks.db.topByDifficulty).not.toHaveBeenCalled();
     expect(mocks.db.topByMission).not.toHaveBeenCalled();
+  });
+});
+
+// Contract (M5 step 8, ADR-0015 point 12): two new boards behind an explicit
+// `board` selector, the frozen archive (with the cutover of
+// src/lib/race-archive.ts, null before switch B) and the quick online race.
+// Every request without `board` reaches exactly the old query; a malformed
+// board request runs no query at all.
+describe("GET /api/leaderboard - archive and online boards (M5 step 8)", () => {
+  const none = () => { for (const fn of Object.values(mocks.db)) expect(fn).not.toHaveBeenCalled(); };
+
+  it("serves the archive with its cutover and the online board, without sid", async () => {
+    const archive = await get("?board=archive&difficulty=hard&wind=heavy");
+    expect(archive.status).toBe(200);
+    const a = await archive.json();
+    expect(a).toMatchObject({ mode: "archive", difficulty: "hard", wind: "heavy", cutoverTs: null });
+    expect(mocks.db.topArchive).toHaveBeenCalledWith("hard", "heavy", null, 20);
+    const online = await (await get("?board=online&difficulty=easy&wind=light")).json();
+    expect(online).toMatchObject({ mode: "online", difficulty: "easy", wind: "light" });
+    expect(mocks.db.topOnline).toHaveBeenCalledWith("easy", "light", 20);
+    for (const body of [a, online]) {
+      expect(body.rows.map((r: { nickname: string; isMe: boolean }) => [r.nickname, r.isMe])).toEqual([["Ola", false], ["Me", true]]);
+      expect(JSON.stringify(body)).not.toMatch(/other-sid|me-sid/);
+    }
+    expect(mocks.db.topByDifficulty).not.toHaveBeenCalled();
+  });
+
+  it("keeps the old pool request on the old query, with the old answer shape", async () => {
+    const body = await (await get("?difficulty=easy&wind=light")).json();
+    expect(Object.keys(body).sort()).toEqual(["difficulty", "mode", "rows", "wind"]);
+    expect(mocks.db.topByDifficulty).toHaveBeenCalledWith("easy", "light", 20);
+    expect(mocks.db.topArchive).not.toHaveBeenCalled(); expect(mocks.db.topOnline).not.toHaveBeenCalled();
+  });
+
+  it.each(["?board=archive", "?board=online&difficulty=easy", "?board=future&difficulty=easy&wind=light", "?board=archive&difficulty=extreme&wind=light",
+    "?board=archive&board=archive&difficulty=easy&wind=light", "?board=online&difficulty=easy&wind=light&mission=sub-90",
+    "?board=archive&difficulty=easy&wind=light&raceClass=legacy-race-v1:standard:r1", "?board=online&difficulty=easy&wind=light&raceMode=pro",
+    "?board=archive&difficulty=easy&wind=light&daily=1"])("400 for %s without any query", async q => {
+    expect((await get(q)).status).toBe(400); none();
+  });
+
+  it("500 on an actual DB failure, an empty board is 200", async () => {
+    mocks.db.topOnline.mockReturnValueOnce([]);
+    expect(await (await get("?board=online&difficulty=easy&wind=light")).json()).toMatchObject({ rows: [], mode: "online" });
+    mocks.db.topArchive.mockReturnValueOnce(null);
+    expect((await get("?board=archive&difficulty=easy&wind=light")).status).toBe(500);
   });
 });

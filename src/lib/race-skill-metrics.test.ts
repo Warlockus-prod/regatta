@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { measureRaceSkills, raceSkillBars, SKILL_BAR_SCALE, SKILL_WINDOWS, type RaceSkillInput, type SkillBar, type SkillBarId } from "./race-skill-metrics";
+import { METRIC_SKILL_BAR_SCALE, measureRaceSkills, raceSkillBars, skillBarScaleFor, SKILL_BAR_SCALE, SKILL_WINDOWS, type RaceSkillInput, type SkillBar, type SkillBarId } from "./race-skill-metrics";
 import { classifyManoeuvre, createManoeuvreState, inNoGoZone } from "./race-manoeuvres";
 import { calcTWA, makeStandardCourse, UNITS_PER_KNOT_SECOND } from "./race-physics";
 import { polarFor, targetSpeed } from "@/features/race-hud/target";
@@ -241,5 +241,29 @@ describe("race skill metrics (M4-1) on three synthetic races", () => {
     expect(s.start.goodSec).toBeLessThan(s.start.emptySec);
     expect(s.tacks.goodKn).toBeLessThan(s.tacks.emptyKn);
     expect(s.noGo.goodSec).toBeLessThan(s.noGo.emptySec);
+  });
+});
+
+// Contract (M5 step 7): the metric race reads its own, provisional tack row.
+// A clean metric tack (about 1.4 kn given away, M0-13) is good there, while
+// the legacy race keeps its scale and its bars byte for byte.
+describe("the metric race's skill bar scale (M5 step 7)", () => {
+  const tackBar = (lossKn: number, model: "legacy-race-v1" | "physical-cruiser-v1") => {
+    const metrics = { ...m.clean, tacks: { ...m.clean.tacks, avgSpeedLossKn: lossKn } };
+    return raceSkillBars(metrics, skillBarScaleFor(model)).find(b => b.id === "tacks")!;
+  };
+
+  it("calls a clean 1.4 kn metric tack good, and the same loss bad in the legacy race", () => {
+    expect(tackBar(1.4, "physical-cruiser-v1").good).toBe(true);
+    expect(tackBar(1.4, "legacy-race-v1").good).toBe(false);
+    expect(tackBar(2.5, "physical-cruiser-v1").good).toBe(false);
+  });
+
+  it("keeps the legacy scale and bars unchanged and the metric rows ordered", () => {
+    expect(skillBarScaleFor("legacy-race-v1")).toBe(SKILL_BAR_SCALE);
+    expect(raceSkillBars(m.clean, skillBarScaleFor("legacy-race-v1"))).toEqual(raceSkillBars(m.clean));
+    const s = METRIC_SKILL_BAR_SCALE;
+    expect(s.tacks.goodKn).toBeLessThan(s.tacks.emptyKn);
+    expect({ ...s, tacks: SKILL_BAR_SCALE.tacks }).toEqual(SKILL_BAR_SCALE);
   });
 });

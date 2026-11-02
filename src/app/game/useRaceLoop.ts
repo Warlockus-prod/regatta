@@ -54,7 +54,7 @@ import { recordDiagnostic } from "@/lib/diagnostics-controls";
 import { trackRaceEnd, trackRaceMark, trackRaceTack } from "@/lib/funnel";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { NATIVE_BEST_PENDING_LIMIT, type createPendingNativeBestCommands } from "@/lib/race-best-command";
-import { LEGACY_RACE_CONTEXT, physicalRaceContext, type PhysicalRaceProfile } from "@/lib/race-context";
+import { physicalRaceContext, raceContextFor, raceRecordsEnabled, type PhysicalRaceProfile, type RaceContext } from "@/lib/race-context";
 import { physicalCourseDefinition } from "@/lib/race-courses";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { physicalTrialSteering } from "@/lib/race-trial";
@@ -73,7 +73,7 @@ import type { NativeBestSaveState, NativeSaveStatus } from './RaceResults';
 import { finishHoldActive, finishHoldStore, scheduleFinishedScreen } from './race-finish-hold';
 import { raceOrientation, raceSummaryDiagnostics, withJudgeIncidents, type RaceSetupRecord, type RaceTally } from './race-diagnostic-summary';
 import {
-  localStore, planRouteGuidance, playerPlaceSettled, raceLogTally, recordSample, soloRaceWind, sortRaceResults,
+  localStore, planRouteGuidance, playerPlaceSettled, raceContextField, raceLogTally, recordSample, soloRaceWind, sortRaceResults,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type RouteGuidanceState, type Vec2,
 } from './race-model';
 
@@ -150,6 +150,10 @@ export interface RaceLoopRefs {
   boatsRef: RefObject<Boat[]>;
   courseRef: RefObject<Course>;
   physicalRef: RefObject<PhysicalRaceProfile | null>;
+  /** M5 step 7: the context of the race on the water, frozen by GameClient
+   * at the countdown; every record of this race is keyed on it. Without it
+   * (tests, older callers) the loop derives it from physicalRef. */
+  raceContextRef?: RefObject<RaceContext | null>;
   physicalNavRef: RefObject<ReadonlyMap<string, PhysicalBotState> | undefined>;
   fleetRef: RefObject<PhysicalFleetModule | null>;
   keysRef: RefObject<Set<string>>;
@@ -373,6 +377,11 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       const prevPositions = new Map<string, Vec2>();
 
       const physical = physicalRef.current;
+      // M5 step 7: the records of this race (best time, ghost, medal, home
+      // row, native history, funnel) key on its context and are written only
+      // when that context may record (switch A for the metric race).
+      const raceContext = refs.raceContextRef?.current ?? raceContextFor(physical);
+      const records = raceRecordsEnabled(raceContext);
       // M5: one scale model (race-scale.ts, cached per profile) for the judge,
       // the HUD speed, the edge pin and the contact cue of this tick's model.
       const scale = raceScale(physical);
@@ -496,7 +505,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         }
         if (boat.isPlayer && event === "mark") {
           logEventsRef.current.push({ type: "mark-rounded", t: raceClockRef.current, note: "windward-port" });
-          if (!physical) trackRaceMark(raceIdRef.current, raceClockRef.current);
+          if (records) trackRaceMark(raceIdRef.current, raceClockRef.current);
           playMarkRound();
           raceHaptic('mark');
         } else if (boat.isPlayer && event === "finish") {
@@ -550,7 +559,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           const byButton = t - lastButtonTurnT <= 1.5;
           logEventsRef.current.push({ type: kind, t, note: `${manoeuvres.side > 0 ? 'to-port-tack' : 'to-starboard-tack'}${byButton ? '-button' : ''}` });
           // First-race funnel: the first real tack or gybe.
-          if (!physical) trackRaceTack(raceIdRef.current, t);
+          if (records) trackRaceTack(raceIdRef.current, t);
           playTack();
           // Its cost: the best speed of the last 3 s against the slowest
           // after it. The boat settles up to a second after it crossed the
@@ -657,7 +666,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         const finishHoldShown = finishHoldActive(endedRaceId);
         if (finishHoldShown) recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "finish-hold", mode: racePrefsRef.current.mode });
         const assists = raceAssistRecord(refs.helmControlRef?.current ?? "wheels", helm.current.usage);
-        if (!physical) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
+        if (records) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
           totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length,
           helm: assists.helm, buttonTurns: assists.buttonTurns, bestVmgSec: assists.bestVmgSec });
         // Race ended cleanly - drop the resume offer so the next reload
@@ -667,17 +676,19 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         // Save / compare against personal-best for this (difficulty, wind)
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
-        // A physical trial is never recorded (PHYSICAL_RACE_EMISSION_ENABLED).
+        // A metric race records only with switch A (raceRecordsEnabled); every
+        // record below keys on this race's context, so a metric finish can
+        // never land in a legacy bucket.
         // M4-4: the splits against the ghost this race sailed with, before the
         // ghost row below may take this race as the new best.
-        set.setGhostSplits?.(physical ? [] : raceGhostSplits(ghostTrackRef.current, {
+        set.setGhostSplits?.(!records ? [] : raceGhostSplits(ghostTrackRef.current, {
           marks: markTimesRef.current.has("player") ? [markTimesRef.current.get("player")!] : [],
           finishSec: player.finishTime == null ? null : player.finishTime + (ruleStateRef.current.penalties.player ?? 0) }));
-        if (player.finishTime != null && !physical) {
+        if (player.finishTime != null && records) {
           // The ghost row is written in the iOS app too: its race bridge
           // (mobile/src/persistence/race-web-storage.ts) carries it to native
           // storage and injects it again before the next race page loads.
-          const track = makeGhostTrack(ghostClassKey({ raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode,
+          const track = makeGhostTrack(ghostClassKey({ raceContext, mode: racePrefsRef.current.mode,
             difficulty, windStrength, missionId: selectedMission?.id ?? null }),
             player.finishTime + (ruleStateRef.current.penalties.player ?? 0), logSamplesRef.current,
             logEventsRef.current.filter(e => e.type === "mark-rounded").map(e => e.t));
@@ -686,17 +697,19 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           if (remembered?.replaced) writeGhostStore(store, remembered.store);
         }
         // M4-5: the course medal, on the web and in the app (its race bridge
-        // carries the row). Never for the physical trial: it has no medal course.
-        if (!physical) {
+        // carries the row). A metric course has no thresholds before M5 step 10,
+        // so it awards nothing and leaves the row untouched.
+        if (records) {
           const store = localStore();
-          const awarded = awardRaceMedal(readMedalStore(store), { raceContext: LEGACY_RACE_CONTEXT, difficulty, windStrength },
+          const awarded = awardRaceMedal(readMedalStore(store), { raceContext, difficulty, windStrength },
             player.finishTime == null ? null : player.finishTime + (ruleStateRef.current.penalties.player ?? 0),
             refs.raceHintsRef?.current ?? true);
-          const saved = awarded ? writeMedalStore(store, awarded.store) : false;
+          // A full row refuses the new course (saved false, nothing evicted): no write then.
+          const saved = awarded && awarded.award.saved !== false ? writeMedalStore(store, awarded.store) : false;
           set.setMedalAward?.(awarded ? { ...awarded.award, saved } : null);
         } else set.setMedalAward?.(null);
-        if (player.finishTime != null && !isNativeRace() && !physical) {
-          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
+        if (player.finishTime != null && !isNativeRace() && records) {
+          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode, raceContext);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
         }
@@ -753,8 +766,8 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           // M4-6: the race menu's next step (src/lib/race-next-step.ts): this
           // race's day, its main mistake as the next goal, a finished daily
           // race. Web and app alike (the app's race bridge carries the row);
-          // never the physical trial.
-          if (!physical) {
+          // a metric race only with switch A.
+          if (records) {
             const store = localStore();
             writeRaceHomeStore(store, recordRaceEnd(readRaceHomeStore(store),
               { now: new Date(), goal: mainMistake, dailyDay, finished: player.finishTime != null }));
@@ -781,8 +794,11 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         const requestCoach = ({ playerRank, total, payload, localCoaching }: Coached) => {
           // Post within the finish tick, before a result/menu render can replace
           // the active refs. Keep the immutable payload until its own durable ack.
-          if (isNativeRace() && !physical && player.finishTime !== undefined && samples.length >= 2) {
+          if (isNativeRace() && records && player.finishTime !== undefined && samples.length >= 2) {
+            // A legacy snapshot stays as before (no context: historical absence);
+            // a metric one carries its context, which the native validator requires.
             const snapshot: NativeRaceSnapshot = { schema: 1, id: completedRaceId, mode: racePrefsRef.current.mode,
+              ...raceContextField(raceContext),
               difficulty, windStrength, missionId: selectedMission?.id ?? null,
               finishTimeSec: player.finishTime, position: playerRank, totalBoats: total,
               // The native validator (race-native.ts, also inside installed app
@@ -793,10 +809,10 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
             const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
             setNativeSave(sent ? "saving" : "error");
             recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "request", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
-            // This live engine is legacy. This explicit PB authority does not
+            // This explicit PB authority names the race's class; it does not
             // backfill the separate historical snapshot's absent provenance.
             const queued = pendingNativeBests.current.add({ schema: 1, id: snapshot.id,
-              comparison: { raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode, difficulty, windStrength },
+              comparison: { raceContext, mode: racePrefsRef.current.mode, difficulty, windStrength },
               rawFinishTimeSec: player.finishTime, penaltySeconds: snapshot.penaltySeconds ?? 0,
               finishTimeSec: player.finishTime + (snapshot.penaltySeconds ?? 0), course: snapshot.course });
             if (queued) requestNativeBest(snapshot.id);

@@ -25,6 +25,10 @@
  * first time the player uses it (the tack or gybe button, BEST VMG, the angle
  * hold), with the helm control and the race clock; `race.end` also carries the
  * helm control, the button turns and the whole seconds sailed with BEST VMG.
+ *
+ * M5 step 7 (ADR-0015): every race event of a live race also carries
+ * `raceClass`, the course class it was sailed on (the legacy course or a
+ * metric one), so the funnel never mixes the two models.
  */
 
 export const CLIENT_EVENTS = [
@@ -125,6 +129,8 @@ export type ClientKind = 'web' | 'app';
 export type RaceFunnelMode = 'simple' | 'pro';
 export type RaceFunnelDifficulty = 'easy' | 'medium' | 'hard';
 export type RaceFunnelWind = 'light' | 'medium' | 'heavy';
+/** M5 step 7: the race class of a race event (src/lib/race-context.ts RaceClassId). */
+export type RaceFunnelClass = 'legacy-race-v1:standard:r1' | 'physical-cruiser-v1:short:r1' | 'physical-cruiser-v1:medium:r1' | 'physical-cruiser-v1:long:r1';
 /**
  * Where a replay was opened: the finish screen of the race just sailed, a race
  * saved in the app's history, or a shared replay link (/r/CODE).
@@ -147,6 +153,7 @@ const CLIENT_KINDS: ReadonlySet<string> = new Set<ClientKind>(['web', 'app']);
 const RACE_MODES: ReadonlySet<string> = new Set<RaceFunnelMode>(['simple', 'pro']);
 const RACE_DIFFICULTIES: ReadonlySet<string> = new Set<RaceFunnelDifficulty>(['easy', 'medium', 'hard']);
 const RACE_WINDS: ReadonlySet<string> = new Set<RaceFunnelWind>(['light', 'medium', 'heavy']);
+const RACE_CLASSES: ReadonlySet<string> = new Set<RaceFunnelClass>(['legacy-race-v1:standard:r1', 'physical-cruiser-v1:short:r1', 'physical-cruiser-v1:medium:r1', 'physical-cruiser-v1:long:r1']);
 const REPLAY_SOURCES: ReadonlySet<string> = new Set<ReplaySource>(['result', 'saved', 'shared']);
 const RACE_HELMS: ReadonlySet<string> = new Set<RaceHelmField>(['arrows', 'wheels', 'sliders']);
 const RACE_ASSISTS: ReadonlySet<string> = new Set<RaceAssistKind>(['tack-button', 'gybe-button', 'best-vmg', 'angle-hold']);
@@ -184,6 +191,7 @@ const FIELD_CHECKS: Record<string, FieldCheck> = {
   wind: (v) => typeof v === 'string' && RACE_WINDS.has(v),
   missionId: (v) => typeof v === 'string' && ID_RE.test(v),
   daily: (v) => typeof v === 'boolean',
+  raceClass: (v) => typeof v === 'string' && RACE_CLASSES.has(v),
   atSec: (v) => isInt(v, 0, RACE_AT_SEC_MAX),
   finished: (v) => typeof v === 'boolean',
   position: (v) => isInt(v, 1, RACE_FLEET_MAX),
@@ -197,7 +205,7 @@ const FIELD_CHECKS: Record<string, FieldCheck> = {
 };
 
 const SHELL = ['embed', 'client'] as const;
-const RACE = [...SHELL, 'raceNo', 'mode', 'difficulty', 'wind', 'missionId', 'daily'] as const;
+const RACE = [...SHELL, 'raceNo', 'mode', 'difficulty', 'wind', 'missionId', 'daily', 'raceClass'] as const;
 
 const EVENT_FIELDS: Record<ClientEventName, readonly string[]> = {
   'page.view': [...SHELL, 'viewId'],

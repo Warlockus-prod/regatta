@@ -156,6 +156,18 @@ describe('race funnel field contract', () => {
     for (const v of good) expect(pickEventFields(evt, { [field]: v })).toEqual({ [field]: v });
   });
 
+  // M5 step 7: every race event names its course class; only the four
+  // registered classes pass, anything else is dropped.
+  it('carries the race class on every race event and only a registered one', () => {
+    for (const raceClass of ['legacy-race-v1:standard:r1', 'physical-cruiser-v1:short:r1', 'physical-cruiser-v1:medium:r1', 'physical-cruiser-v1:long:r1']) {
+      for (const evt of ['race.countdown', 'race.first_tack', 'race.first_mark', 'race.end', 'race.replay', 'race.assist'] as const) {
+        expect(pickEventFields(evt, { raceClass })).toEqual({ raceClass });
+      }
+    }
+    for (const bad of ['physical-cruiser-v1:sprint:r1', 'legacy-race-v1:standard:r2', 'LEGACY', 1]) expect(pickEventFields('race.end', { raceClass: bad })).toEqual({});
+    expect(pickEventFields('exam.start', { base: 'src', raceClass: 'legacy-race-v1:standard:r1' })).toEqual({ base: 'src' });
+  });
+
   it('accepts every mission id', () => {
     expect(missions.length).toBeGreaterThan(0);
     for (const m of missions) expect(pickEventFields('race.countdown', { missionId: m.id })).toEqual({ missionId: m.id });
@@ -192,6 +204,16 @@ describe('race funnel helpers', () => {
     expect(env.beacons[2]).toMatchObject({ assist: 'best-vmg', atSec: 30 });
     expect(env.beacons[3]).toMatchObject({ helm: 'arrows', buttonTurns: 2, bestVmgSec: 42 });
     expect(env.beacons[5]).toMatchObject({ assist: 'tack-button', helm: 'wheels', raceNo: 2 });
+  });
+
+  it('sends the race class of the countdown with every later step of that race (M5 step 7)', async () => {
+    const env = installBrowser('');
+    const f = await import('./funnel');
+    f.trackRaceCountdown('race_m', { ...setup, raceClass: 'physical-cruiser-v1:short:r1' });
+    f.trackRaceTack('race_m', 12);
+    f.trackRaceEnd('race_m', { finished: true, position: 1, totalBoats: 4 });
+    await flush();
+    expect(env.beacons.map((b) => b.raceClass)).toEqual(['physical-cruiser-v1:short:r1', 'physical-cruiser-v1:short:r1', 'physical-cruiser-v1:short:r1']);
   });
 
   it('sends each step once per race and numbers the races of this device', async () => {

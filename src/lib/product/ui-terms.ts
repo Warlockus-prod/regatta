@@ -33,7 +33,9 @@ import type { Label } from "./catalog";
  * The race helm's three control names (arrows, wheels, sliders) are
  * HELM_CONTROL_TERMS in src/data/helm-assist-copy.ts, part of this dictionary
  * in a module only the race chunk and the app read (package 13: UI_TERMS is
- * copied into many site chunks, the JS budget does not grow).
+ * copied into many site chunks, the JS budget does not grow). The
+ * multiplayer race's name "Быстрая онлайн-гонка" is QUICK_ONLINE_RACE in
+ * src/data/quick-online-race.ts for the same reason (M5 step 8).
  *
  * Pure data, no React or platform dependency (the app bundles it through
  * Metro, the offline WebView packages through esbuild).

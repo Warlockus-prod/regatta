@@ -73,12 +73,15 @@ function isMedalEntry(v: unknown, key: string): v is MedalEntry {
     && (e.bestNoHintsSec === null || (positive(e.bestNoHintsSec) && e.bestNoHintsSec >= e.bestSec));
 }
 
-/** Valid entries only; a corrupt row reads as no medals, never as an error. */
+/** Valid entries only, in their stored order; a corrupt row reads as no
+ * medals, never as an error. M5 step 7: nothing earned is sliced away on
+ * read (the bound applies on write, awardRaceMedal), and a read never
+ * writes. */
 export function parseMedalStore(raw: string | null | undefined): MedalStore {
   try {
     const parsed: unknown = raw ? JSON.parse(raw) : {};
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    return Object.fromEntries(Object.entries(parsed).filter(([key, entry]) => isMedalEntry(entry, key)).slice(-MAX_COURSES)) as MedalStore;
+    return Object.fromEntries(Object.entries(parsed).filter(([key, entry]) => isMedalEntry(entry, key))) as MedalStore;
   } catch { return {}; }
 }
 
@@ -109,7 +112,10 @@ export interface MedalAward {
 
 /** Records one finished race of a medal course. Null, and the store
  * untouched, for a class without thresholds (the physical trial) or a race
- * that did not finish. */
+ * that did not finish. M5 step 7 (ADR-0015 point 11): an earned medal is
+ * never evicted. A new course that finds the row full (MAX_COURSES courses,
+ * or past MEDAL_STORE_MAX_CHARS) leaves the store as it is and returns the
+ * award with `saved: false`, so the results say it was not kept. */
 export function awardRaceMedal(store: MedalStore, course: MedalCourse, finishSec: number | null | undefined, hintsUsed: boolean)
   : { store: MedalStore; award: MedalAward } | null {
   const t = medalThresholds(course);
@@ -125,11 +131,14 @@ export function awardRaceMedal(store: MedalStore, course: MedalCourse, finishSec
   const bestNoHintsSec = hintsUsed ? current?.bestNoHintsSec ?? null : Math.min(current?.bestNoHintsSec ?? Infinity, finishSec);
   const entry: MedalEntry = { schema: 1, raceClass: raceClassId(course.raceContext), thresholdsRevision: MEDAL_THRESHOLDS_REVISION,
     medal, bestSec, bestNoHintsSec };
-  // The course moves to the end; the oldest other courses drop past the bound.
+  const award: MedalAward = { earned, previous, medal, improved: rank(medal) > rank(previous), entry };
+  // The course moves to the end. Nothing else is ever dropped: a row that
+  // would pass the bound by count or size is refused whole.
   const next: MedalStore = Object.fromEntries([...Object.entries(store).filter(([k]) => k !== key), [key, entry]]);
-  const keys = Object.keys(next);
-  while (keys.length > MAX_COURSES) delete next[keys.shift()!];
-  return { store: next, award: { earned, previous, medal, improved: rank(medal) > rank(previous), entry } };
+  if (Object.keys(next).length > MAX_COURSES || JSON.stringify(next).length > MEDAL_STORE_MAX_CHARS) {
+    return { store, award: { ...award, saved: false } };
+  }
+  return { store: next, award };
 }
 
 /** The course medal, or null before the first finish. */

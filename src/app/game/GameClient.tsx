@@ -31,7 +31,7 @@ import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
 import { useFirstRaceHints } from '@/features/race-hud/useFirstRaceHints';
 import { hasSeenRaceIntro, markRaceIntroSeen, raceIntroDue, raceIntroEndRecordsSeen, raceIntroRequested, stepAfterRaceIntro, type RaceIntroEnd, type RaceIntroOpen } from '@/features/race-hud/race-intro';
 import { helmProfileFor, polarFor, raceUpwind, targetSpeed } from '@/features/race-hud/target';
-import { measureRaceSkills, raceSkillBars } from '@/lib/race-skill-metrics';
+import { measureRaceSkills, raceSkillBars, skillBarScaleFor } from '@/lib/race-skill-metrics';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
 import type { RaceBoat } from "@/lib/race-physics";
@@ -70,7 +70,7 @@ import { trackRaceAssist, trackRaceCountdown, trackRaceReplay } from "@/lib/funn
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { createPendingNativeBestCommands, nativeBestFailure } from "@/lib/race-best-command";
-import { LEGACY_RACE_CONTEXT, type PhysicalRaceProfile } from "@/lib/race-context";
+import { raceClassId, raceContextFor, raceRecordsEnabled, type PhysicalRaceProfile, type RaceContext } from "@/lib/race-context";
 import { physicalFleetSpawns } from "@/lib/race-courses";
 import { legacyRaceSpawns, raceBotSpeedMul, type RaceSpawn } from "@/lib/race-spawn";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
@@ -78,7 +78,7 @@ import { readPhysicalTrial } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, readGhostStore, type GhostTrack } from "@/lib/race-ghost";
 import type { MedalAward } from "@/lib/race-medals";
 import type { GhostSplit } from "@/lib/race-ghost-splits";
-import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, planRouteGuidance, raceLogTally, recordSample, formatTime,
+import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, planRouteGuidance, raceContextField, raceLogTally, recordSample, formatTime,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type RouteGuidanceState } from "./race-model";
 import { useRaceLoop, type AiCoachPayload } from "./useRaceLoop";
 import { RaceFinishHoldPlate } from "./RaceFinishPlate";
@@ -257,8 +257,16 @@ export default function GamePage() {
   // Opt-in physical trial (ADR-0014, `?race=short|medium|long`): the player's
   // boat is the trainer's boat in metres. Nothing from it is recorded.
   const physicalRef = useRef<PhysicalRaceProfile | null>(null);
+  // M5 step 7: the context of the race on the water, frozen at the countdown;
+  // every record of the race (leaderboard, replay, ghost, medal, best time,
+  // native history, funnel) keys on it, and it records only when
+  // raceRecordsEnabled says so (switch A for the metric race).
+  const raceContextRef = useRef<RaceContext | null>(null);
+  const recordContext = () => raceContextRef.current ?? raceContextFor(physicalRef.current);
   const physicalNavRef = useRef<ReadonlyMap<string, PhysicalBotState> | undefined>(undefined);
   const [physicalTrial, setPhysicalTrial] = useState<PhysicalRaceProfile | null>(null);
+  // The course profile of a saved native replay (the app's race history).
+  const [replayProfile, setReplayProfile] = useState<PhysicalRaceProfile | null>(null);
   // Personal ghost (P09): your best finished race of the same class, drawn
   // from its own ref, outside the fleet, ranks, collisions and rules.
   const ghostTrackRef = useRef<GhostTrack | null>(null);
@@ -486,7 +494,8 @@ export default function GamePage() {
 
   // Save finished race result to leaderboard (depends on all the state above)
   const saveResult = useCallback((withNickname?: string) => {
-    if (physicalRef.current) return; // A physical trial is never recorded.
+    const raceContext = recordContext();
+    if (!raceRecordsEnabled(raceContext)) return; // A metric race records only with switch A.
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2 || player.finishTime == null) {
       recordDiagnostic({ type: "race.save", surface: "race", outcome: "rejected", action: "request", target: "leaderboard", reason: "not-ready" });
@@ -506,11 +515,11 @@ export default function GamePage() {
     }
     const { tacks, noGoEntries, topSpeed } = raceLogTally(logEventsRef.current, logSamplesRef.current);
     const playerRank = results.findIndex((r) => r.isPlayer) + 1;
-    // A free race on the standard course is a classified Simple or Pro result,
-    // so the leaderboard keeps the two modes apart (M1-7). Missions and the
-    // daily race stay unclassified, as the API requires.
+    // A free race is a classified Simple or Pro result of its course class, so
+    // the leaderboard keeps the two modes and the courses apart (M1-7, M5).
+    // Missions and the daily race stay unclassified, as the API requires.
     const classified = !selectedMission && dailyDay === null
-      ? { raceContext: LEGACY_RACE_CONTEXT, mode: lockedMode ?? racePrefsRef.current.mode, course: courseRef.current,
+      ? { raceContext, mode: lockedMode ?? racePrefsRef.current.mode, course: courseRef.current,
         rawFinishTimeSec: finishTime, penaltySeconds: completedPenalty }
       : {};
 
@@ -571,7 +580,7 @@ export default function GamePage() {
   // (M1-4), so leaving in the hold does not lose the save or the replay upload.
   const raceOver = gameState === 'finished' || (gameState === 'racing' && results.length > 0);
   useEffect(() => {
-    if (!raceOver || isNativeRace() || physicalRef.current) return;
+    if (!raceOver || isNativeRace() || !raceRecordsEnabled(recordContext())) return;
     if (saveAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
@@ -592,7 +601,8 @@ export default function GamePage() {
 
   // Auto-save replay on finish (fire and forget)
   useEffect(() => {
-    if (!raceOver || isNativeRace() || physicalRef.current) return;
+    const raceContext = recordContext();
+    if (!raceOver || isNativeRace() || !raceRecordsEnabled(raceContext)) return;
     if (replayAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
@@ -610,6 +620,9 @@ export default function GamePage() {
         finishTimeSec: player.finishTime,
         mode: racePrefsRef.current.mode,
         penaltySeconds: ruleStateRef.current.penalties.player ?? 0,
+        // A legacy replay is posted as before (no context: the stored legacy
+        // default); a metric one names its class, which /api/replay checks.
+        ...raceContextField(raceContext),
         samples: logSamplesRef.current,
         events: logEventsRef.current,
         course: courseRef.current,
@@ -720,7 +733,7 @@ export default function GamePage() {
     // Look up the user's best for this (difficulty, wind) bucket so the
     // briefing can show a "Your best: 1:27" badge - small motivator without
     // being competitive about it.
-    setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
+    setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode, raceContextFor(physicalRef.current)));
     setIsNewRecord(false); // reset from any previous race
     // Persist the user's INTENT to localStorage so we can offer to resume
     // after a reload. We refresh on every phase transition so the saved
@@ -757,21 +770,25 @@ export default function GamePage() {
     // race and the metric trial keep their own entries, the app its own hub.
     if (!physicalRef.current && dailyDay === null && !isNativeRace()) rememberLastRaceSetup(localStore(),
       selectedMission ? { kind: "mission", missionId: selectedMission.id } : { kind: "free", difficulty, wind: windStrength });
+    const raceContext = raceContextFor(physicalRef.current);
+    raceContextRef.current = raceContext;
+    const records = raceRecordsEnabled(raceContext);
     raceSetupRef.current = { ...raceSetupRef.current,
       race: physicalRef.current ? "trial" : selectedMission ? "mission" : dailyDay !== null ? "daily" : "free" };
     // M4-4: in the iOS app too; its race bridge injects the native ghost row
     // into this page's localStorage before it loads (race-web-storage.ts).
-    const ghost = physicalRef.current ? null : readGhostStore(localStore())[ghostClassKey({
-      raceContext: LEGACY_RACE_CONTEXT, mode: racePrefs.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null })] ?? null;
+    const ghost = !records ? null : readGhostStore(localStore())[ghostClassKey({
+      raceContext, mode: racePrefs.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null })] ?? null;
     ghostTrackRef.current = ghost;
     ghostBoatsRef.current = ghost ? [{ id: "ghost", name: "", color: "#9aa7b4", ...ghostPose(ghost, 0) }] : [];
     setGhostTime(ghost?.finishTimeSec ?? null);
     setCountdown(SOLO_COUNTDOWN_FROM);
     setGameState('countdown');
     recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "countdown", mode: racePrefs.mode });
-    // M0-12 first-race funnel; the metric trial is not a counted race.
-    if (!physicalRef.current) trackRaceCountdown(raceIdRef.current, { mode: racePrefs.mode, difficulty, wind: windStrength,
-      missionId: selectedMission?.id ?? null, daily: dailyDay !== null });
+    // M0-12 first-race funnel; a metric race counts only with switch A, and
+    // every race event names its class (M5 step 7).
+    if (records) trackRaceCountdown(raceIdRef.current, { mode: racePrefs.mode, difficulty, wind: windStrength,
+      missionId: selectedMission?.id ?? null, daily: dailyDay !== null, raceClass: raceClassId(raceContext) });
   }, [difficulty, windStrength, selectedMission, racePrefs.mode, dailyDay]);
 
   // M1-1: one entry for every start request. The lobby's start opens the
@@ -833,7 +850,9 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState !== 'countdown' || paused || !sceneReady) return;
     if (countdown === 0) {
-      if (!physicalRef.current) postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
+      const raceContext = recordContext();
+      if (raceRecordsEnabled(raceContext)) postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength,
+        missionId: selectedMission?.id ?? null, ...raceContextField(raceContext) });
       logEventsRef.current.push({ type: "start", t: 0 });
       const player = boatsRef.current.find(b => b.isPlayer);
       if (player) logSamplesRef.current.push(recordSample(player, 0, windDirRef.current));
@@ -934,7 +953,7 @@ export default function GamePage() {
   // end of the finish hold (results), in the replay, when muted and on unmount.
   useRaceSoundscapeLifecycle(soundscape, gameState, paused, raceSoundOn);
   useRaceLoop({ gameState, difficulty, windStrength, selectedMission, dailyDay, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall, showHint,
-    refs: { boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
+    refs: { boatsRef, courseRef, physicalRef, raceContextRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
       racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
       startedAtRef, copyRef, ghostTrackRef, ghostBoatsRef, markTimesRef, logSamplesRef, logEventsRef, lastSampleTimeRef,
       wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
@@ -1034,6 +1053,8 @@ export default function GamePage() {
     const race = readNativeRaceReplay();
     if (!race) return;
     nativeReplayHydrated.current = true;
+    // M5 step 7: a saved metric race replays at its own scale.
+    setReplayProfile(race.raceContext?.model === "physical-cruiser-v1" ? race.raceContext.profile : null);
     courseRef.current = race.course; logSamplesRef.current = race.samples; logEventsRef.current = race.events;
     setDifficulty(race.difficulty); setWindStrength(race.windStrength); setCoaching(race.coaching ?? null);
     setElapsed(race.finishTimeSec); setGameState("replay"); trackRaceReplay("saved");
@@ -1100,17 +1121,22 @@ export default function GamePage() {
   const introUpwindTwa = useMemo(() => intro === "closed" || physicalTrial ? undefined : raceUpwind(12 * windStrengthMul).twa,
     [intro, physicalTrial, windStrengthMul]);
   // M4-1 skill bars on the result screen, from this race's log against the
-  // same polar target. None for the physical trial (no target, never ranked).
+  // polar target of the race's own boat (M5 step 7: the cruiser polar and the
+  // provisional metric scale for a metric race). None for a metric race
+  // before switch A, which shows exactly what it did before.
+  const setupContext = raceContextFor(physicalTrial);
+  const setupRecords = raceRecordsEnabled(setupContext);
   const skillBars = useMemo(() => {
-    if (gameState !== "finished" || physicalTrial) return null;
-    const polar = polarFor(12 * windStrengthMul), course = courseRef.current;
+    if (gameState !== "finished" || !setupRecords) return null;
+    const polar = polarFor(12 * windStrengthMul, setupContext.model === "physical-cruiser-v1" ? "cruiser" : "classic"), course = courseRef.current;
     return raceSkillBars(measureRaceSkills({ samples: logSamplesRef.current, events: logEventsRef.current,
       course: { windwardMark: course.marks[0].pos, startLine: course.startLine }, targetKn: (twa) => targetSpeed(polar, twa),
-      startedAt: startedAtRef.current ?? null }));
-  }, [gameState, physicalTrial, results, windStrengthMul]);
-  // M4-5: the medal course of the setup (class, level, wind); none for the physical trial.
-  const medalCourse = useMemo(() => physicalTrial ? null : { raceContext: LEGACY_RACE_CONTEXT, difficulty, windStrength },
-    [physicalTrial, difficulty, windStrength]);
+      startedAt: startedAtRef.current ?? null }), skillBarScaleFor(setupContext.model));
+  }, [gameState, setupContext, setupRecords, results, windStrengthMul]);
+  // M4-5: the medal course of the setup (class, level, wind). A metric class
+  // has no thresholds before M5 step 10, so it shows no medal yet.
+  const medalCourse = useMemo(() => setupRecords ? { raceContext: setupContext, difficulty, windStrength } : null,
+    [setupContext, setupRecords, difficulty, windStrength]);
 
   // M1-2 game layer (owner decision C1): countdown, race and replay hide the
   // site header and take the whole viewport. Menu, briefing and results stay
@@ -1275,12 +1301,12 @@ export default function GamePage() {
           replayCode={replayCode} nickname={nickname} difficulty={difficulty} windStrength={windStrength}
           selectedMission={selectedMission} replayDisabled={logSamplesRef.current.length < 5}
           onMenu={backToMenu} onReplay={() => openReplay(null)} onWatch={logSamplesRef.current.length < 5 ? undefined : openReplay} onAgain={() => startRace("again")}
-          // M4-2: a physical trial is never a return target: its links would lead
-          // to an ordinary, recorded race (PHYSICAL_RACE_EMISSION_ENABLED).
-          practiceReturn={physicalTrial ? null : raceReturnFor({ difficulty, windStrength, missionId: selectedMission?.id, dailyDay, fromLesson: readRaceSearch().get("fromLesson") })} />
+          // M4-2: the practice links return to this race; a metric race only
+          // with switch A, and then to the same metric course (M5 step 7).
+          practiceReturn={!setupRecords ? null : raceReturnFor({ difficulty, windStrength, missionId: selectedMission?.id, dailyDay, fromLesson: readRaceSearch().get("fromLesson"), race: physicalTrial })} />
       )}
 
-      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current}
+      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current} raceProfile={replayProfile ?? physicalTrial}
         autoplay={replayOpen.autoplay} startAt={replayOpen.at} events={logEventsRef.current} judgeItems={judgeDebrief?.items} onClose={() => {
         if (!nativeReplayHydrated.current) setGameState("finished");
         else if (!navigateNativeRace("/history")) backToMenu();

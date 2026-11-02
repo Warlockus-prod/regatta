@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { UI_TERMS } from "@/lib/product/ui-terms";
-import { sharedReplay, type SharedReplay } from "@/lib/race-replay";
+import { replayRaceProfile, sharedReplay, type SharedReplay } from "@/lib/race-replay";
 import { RaceReplay } from "@/app/game/RaceReplay";
 import { trackRaceReplay } from "@/lib/funnel";
 
@@ -50,7 +50,8 @@ export default function ReplayViewer() {
     </div>
     <div className="relative min-h-0 flex-1" data-testid="shared-replay-3d">
       {/* M4-3: the replay owns its speeds (0.5x-4x) and the event ribbon from the shared log. */}
-      <RaceReplay key={data.code} samples={data.samples} course={data.course} events={data.events} onClose={() => router.push("/game")} />
+      <RaceReplay key={data.code} samples={data.samples} course={data.course} events={data.events} onClose={() => router.push("/game")}
+        raceProfile={replayRaceProfile(data)} />
     </div>
   </div>;
 }

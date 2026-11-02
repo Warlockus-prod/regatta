@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { topByDifficulty, topByMission, topByRaceClass } from '@/lib/db';
+import { topArchive, topByDifficulty, topByMission, topByRaceClass, topOnline } from '@/lib/db';
+import { RACE_ARCHIVE_CUTOVER_MS } from '@/lib/race-archive';
 import { publicRows } from '@/lib/race-submission';
 import { raceContextForClassId, readRaceComparison } from "@/lib/race-record-class";
 import { raceClassId } from "@/lib/race-context";
@@ -17,6 +18,8 @@ async function markMine<T extends { sid: string }>(
 
 /**
  * GET /api/leaderboard?difficulty=easy&wind=medium[&mission=sub-90]
+ * GET /api/leaderboard?raceClass=...&raceMode=simple|pro&difficulty&wind (a class board)
+ * GET /api/leaderboard?board=archive|online&difficulty&wind (M5 step 8)
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -45,6 +48,25 @@ export async function GET(req: Request) {
       race_class_id: classId, race_mode: mode, raw_finish_time_sec: row.raw_finish_time_sec, penalty_seconds: row.penalty_seconds,
     })));
     return NextResponse.json({ rows, mode: "free", difficulty, wind, raceClass: classId, raceMode: mode, raceContext });
+  }
+  // M5 step 8 (ADR-0015 point 12): the frozen archive of results saved without
+  // a mode, and the quick online race board. New selectors only; a request
+  // without `board` keeps every answer old apps and links read.
+  if (query.has("board")) {
+    if (["board", "difficulty", "wind"].some(key => query.getAll(key).length !== 1)
+      || ["raceClass", "raceMode", "mission", "daily", "dailyDay", "day"].some(key => query.has(key))) {
+      return NextResponse.json({ error: "Invalid board selectors" }, { status: 400 });
+    }
+    const board = query.get("board"), difficulty = query.get("difficulty")!, wind = query.get("wind")!;
+    if ((board !== "archive" && board !== "online") || !['easy', 'medium', 'hard'].includes(difficulty) || !['light', 'medium', 'heavy'].includes(wind)) {
+      return NextResponse.json({ error: "Invalid board" }, { status: 400 });
+    }
+    const selected = board === "archive" ? topArchive(difficulty, wind, RACE_ARCHIVE_CUTOVER_MS, 20) : topOnline(difficulty, wind, 20);
+    if (selected === null) return NextResponse.json({ error: "Leaderboard unavailable" }, { status: 500 });
+    const rows = await markMine(selected.map(row => ({ nickname: row.nickname, sid: row.sid, difficulty: row.difficulty, wind_strength: row.wind_strength,
+      mission_id: row.mission_id, finish_time_sec: row.finish_time_sec, score: row.score, ts: row.ts })));
+    return NextResponse.json(board === "archive" ? { rows, mode: "archive", difficulty, wind, cutoverTs: RACE_ARCHIVE_CUTOVER_MS }
+      : { rows, mode: "online", difficulty, wind });
   }
   const mission = url.searchParams.get('mission');
   if (mission && (mission.length > 40 || !/^[a-z0-9_-]+$/i.test(mission))) {

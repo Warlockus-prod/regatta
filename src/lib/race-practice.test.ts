@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PHYSICAL_RACE_PROFILES } from "./race-context";
 import { RACE_COACH_PRACTICE, RACE_JUDGE_PRACTICE } from "../data/race-practice";
 import { bootcampLessonHeads } from "../data/bootcamp-index";
 import {
@@ -129,5 +130,30 @@ describe("the return of a lesson race (lesson 8, the mini race)", () => {
     expect(raceLessonLinks("tacking", "en", false)?.next).toEqual({ href: "/start?lesson=jibing&step=understand", label: "Next lesson: Jibing (gybing)" });
     expect(raceLessonLinks("tacking", "en", true)?.next.href).toBe("/bootcamp/jibing");
     expect(raceLessonLinks("unknown", "en", false)).toBeNull();
+  });
+});
+
+// Contract (M5 step 7): a metric race's practice return sails the same metric
+// course again; a legacy return keeps its build 74 token and link.
+describe("the practice return of a metric course (M5 step 7)", () => {
+  it("knows every metric course of the race context", () => {
+    for (const profile of PHYSICAL_RACE_PROFILES) expect(decodeRaceSetup(`easy.light.${profile}`)).toMatchObject({ race: profile });
+  });
+
+  it("round-trips the course profile and links back to it", () => {
+    const ret = raceReturnFor({ difficulty: "hard", windStrength: "light", race: "long" });
+    expect(ret.setup).toEqual({ kind: "conditions", difficulty: "hard", wind: "light", race: "long" });
+    expect(encodeRaceSetup(ret.setup)).toBe("hard.light.long");
+    expect(decodeRaceSetup("hard.light.long")).toEqual(ret.setup);
+    expect(raceReturnHref(ret)).toBe("/game?difficulty=hard&wind=light&race=long");
+  });
+
+  it("keeps the legacy token and refuses an unknown course or a course on a mission", () => {
+    const legacy = raceReturnFor({ difficulty: "medium", windStrength: "light", race: null });
+    expect(encodeRaceSetup(legacy.setup)).toBe("medium.light");
+    expect(raceReturnHref(legacy)).toBe("/game?difficulty=medium&wind=light");
+    expect(decodeRaceSetup("medium.light.sprint")).toBeNull();
+    expect(decodeRaceSetup("mission.sub-90.short")).toBeNull();
+    expect(raceReturnFor({ difficulty: "easy", windStrength: "light", missionId: "sub-90", race: "short" }).setup).toEqual({ kind: "mission", id: "sub-90" });
   });
 });

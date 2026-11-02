@@ -349,8 +349,16 @@ describe("POST /api/race-result - classified identity", () => {
   });
 
   it.each(PHYSICAL_RACE_PROFILES)("returns422 for canonical disabled %s physical writes before player lookup", async profile => {
-    const body = { ...result(), raceContext: physicalRaceContext(profile), course: makePhysicalRaceCourse(profile) };
+    // A sailed time above every metric floor (M5 step 8); under it the result is a 400 (below).
+    const body = { ...result(), raceContext: physicalRaceContext(profile), course: makePhysicalRaceCourse(profile),
+      rawFinishTimeSec: 400, penaltySeconds: 5, finishTimeSec: 405 };
     expect((await POST(makeReq(body))).status).toBe(422); noDatabaseWork();
+  });
+
+  it("refuses a metric finish under its course floor as invalid, before the disabled response (M5 step 8)", async () => {
+    const body = { ...result(), raceContext: physicalRaceContext("medium"), course: makePhysicalRaceCourse("medium"),
+      rawFinishTimeSec: 140, penaltySeconds: 5, finishTimeSec: 145 };
+    expect((await POST(makeReq(body))).status).toBe(400); noDatabaseWork();
   });
 
   it.each(["geometry", "raw-time", "score", "daily"])("checks invalid physical %s before the disabled response", async error => {
@@ -373,5 +381,41 @@ describe("POST /api/race-result - classified identity", () => {
     for (let i = 0; i < 60; i++) expect((await POST(makeReq(legacy))).status).toBe(200);
     expect((await POST(makeReq(result()))).status).toBe(429);
     expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
+  });
+});
+
+// Contract (M5 step 8, ADR-0015 point 12): ws-server tags a quick online race
+// result `source: 'online'` (display grouping only). Through the real route a
+// free online result is stored with the tag, a mission one without it; the
+// tag is refused on a classified result and in any other form, so it never
+// confers a class; an old client that sends no tag stores exactly as before.
+describe("POST /api/race-result - the quick online race tag (M5 step 8)", () => {
+  const room = (missionId: string | null) => ({ difficulty: "easy", windStrength: "light", missionId, results: [{ id: "p1" }, { id: "p2" }],
+    stats: new Map([["p1", { tacks: 4, noGoEntries: 0, topSpeed: 6.2 }]]) });
+
+  it("stores a ws-server free result with the online tag, in the event meta too", async () => {
+    const body = buildRaceResultBody(room(null), { id: "p1", nickname: "Ola", boat: { finishTime: 101.4 } })!;
+    expect(body.source).toBe("online");
+    const res = await POST(makeReq(body));
+    expect(res.status).toBe(200);
+    expect(mocks.db.insertRaceResult).toHaveBeenCalledWith(expect.objectContaining({ missionId: null, finishTimeSec: 101.4, source: "online" }));
+    expect(mocks.db.insertEvent.mock.calls[0][0].meta).toMatchObject({ source: "online" });
+    expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
+  });
+
+  it("stores a ws-server mission result on its mission board without the tag", async () => {
+    const body = buildRaceResultBody(room("sub-90"), { id: "p1", nickname: "Ola", boat: { finishTime: 89 } })!;
+    expect((await POST(makeReq(body))).status).toBe(200);
+    expect(mocks.db.insertRaceResult.mock.calls[0][0]).not.toHaveProperty("source");
+  });
+
+  it.each([
+    ["with a race context", { raceContext: LEGACY_RACE_CONTEXT, mode: "simple", course: makeStandardCourse(), rawFinishTimeSec: 90, penaltySeconds: 0 }],
+    ["as another value", { source: "solo" }],
+    ["as a non-string", { source: 1 }],
+  ])("refuses the tag %s", async (_name, patch) => {
+    const res = await POST(makeReq({ finishTimeSec: 90, difficulty: "easy", windStrength: "light", source: "online", ...patch }));
+    expect(res.status).toBe(400);
+    expect(mocks.db.insertRaceResult).not.toHaveBeenCalled(); expect(mocks.db.insertClassifiedRaceResult).not.toHaveBeenCalled();
   });
 });

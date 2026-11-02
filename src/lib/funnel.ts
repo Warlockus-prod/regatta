@@ -17,6 +17,7 @@ import {
   type ClientKind,
   type ExamBase,
   type LessonCourse,
+  type RaceFunnelClass,
   type RaceFunnelDifficulty,
   type RaceFunnelMode,
   type RaceFunnelWind,
@@ -110,6 +111,9 @@ export interface RaceFunnelSetup {
   missionId?: string | null;
   /** True for the daily challenge. */
   daily?: boolean;
+  /** M5 step 7: the race class (src/lib/race-context.ts raceClassId), so
+   * every race event of a metric course is told apart from the legacy one. */
+  raceClass?: RaceFunnelClass;
 }
 
 export interface RaceFunnelEnd {
@@ -177,6 +181,7 @@ export function trackRaceCountdown(raceId: string, setup: RaceFunnelSetup): void
     wind: setup.wind,
     missionId: setup.missionId ?? undefined,
     daily: setup.daily ? true : undefined,
+    raceClass: setup.raceClass,
   });
   activeRace = { id: raceId, fields, tacked: false, marked: false, ended: false, replayed: false };
   clientInfo('race.countdown', { ...detectShell(), ...fields });

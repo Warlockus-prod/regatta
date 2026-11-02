@@ -359,6 +359,26 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('heading', { name: /(Таблица|Leaderboard|Ranking)/ })).toBeVisible();
   });
 
+  // M5 step 8 (ADR-0015 point 12): the archive and the quick online race board
+  // answer, the page opens on the classic course with its folded archive, and
+  // the online board asks for its own rows (no archive under it).
+  test('/leaderboard course filter, archive and online board', async ({ page, request }) => {
+    for (const q of ['board=archive&difficulty=medium&wind=medium', 'board=online&difficulty=medium&wind=medium']) {
+      const res = await request.get('/api/leaderboard?' + q);
+      expect(res.ok()).toBeTruthy();
+      expect(Array.isArray((await res.json()).rows)).toBe(true);
+    }
+    expect((await request.get('/api/leaderboard?board=future&difficulty=medium&wind=medium')).status()).toBe(400);
+    await page.goto('/leaderboard');
+    await expect(page.getByTestId('leaderboard-archive')).toBeVisible();
+    await expect(page.getByRole('radio', { name: /^(Классическая трасса|Classic course|Klasyczna trasa)$/ })).toHaveAttribute('aria-checked', 'true');
+    const asked: string[] = [];
+    page.on('request', r => { if (r.url().includes('/api/leaderboard')) asked.push(r.url()); });
+    await page.getByRole('radio', { name: /^(Быстрая онлайн-гонка|Quick online race|Szybki wyścig online)$/ }).click();
+    await expect.poll(() => asked.some(u => u.includes('board=online'))).toBe(true);
+    await expect(page.getByTestId('leaderboard-archive')).toHaveCount(0);
+  });
+
   test('save nickname via /api/player end-to-end', async ({ request, baseURL }) => {
     // Writes a players row. The pre-deploy run on localhost covers it; on prod
     // it only filled the table with E2E_Tester_* players.

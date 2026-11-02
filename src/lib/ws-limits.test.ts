@@ -113,6 +113,8 @@ describe('buildRaceResultBody', () => {
       difficulty: 'medium', windStrength: 'medium', missionId: null, finishTimeSec: 92.5,
       position: 1, totalBoats: 2, tacks: 3, noGoEntries: 1, topSpeed: 6, score: null,
       nicknameFallback: 'Player',
+      // M5 step 8: the quick online race board's tag (display grouping only).
+      source: 'online',
     });
   });
 

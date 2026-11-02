@@ -38,6 +38,7 @@ vi.mock("./useRaceLoop", () => ({ useRaceLoop: () => {} }));
 vi.mock("@/lib/race-skill-metrics", () => ({
   measureRaceSkills: (input: RaceSkillInput) => { capture.inputs.push(input); return { marker: true }; },
   raceSkillBars: (metrics: { marker?: boolean }) => metrics.marker ? capture.bars : [],
+  skillBarScaleFor: () => ({}),
 }));
 import GameClient from "./GameClient";
 import { makeStandardCourse } from "@/lib/race-physics";

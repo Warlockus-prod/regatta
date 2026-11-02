@@ -205,6 +205,12 @@ function initializeDatabase(database: Database.Database): void {
   // Package 13 (ADR-0022): the helm control and assists of a result, JSON
   // (race-helm.ts RaceAssistRecord); NULL for results saved before.
   safeAlter('ALTER TABLE race_results ADD COLUMN helm_assists TEXT');
+  // M5 step 8 (ADR-0015 point 12): where an unclassified result was sailed,
+  // 'online' for the quick online race (set by ws-server through
+  // /api/race-result), NULL for every other row, old rows included. Display
+  // grouping only: it never classifies a result or ranks it anywhere else.
+  safeAlter('ALTER TABLE race_results ADD COLUMN race_source TEXT');
+  safeAlter('CREATE INDEX IF NOT EXISTS idx_race_source_board ON race_results(race_source, difficulty, wind_strength, finish_time_sec)');
 
   ensureRaceResultClassSchema(database);
 }
@@ -973,7 +979,13 @@ export interface RaceResultInsert {
   score?: number | null;
   /** Package 13: the helm and assists this result was sailed with. */
   assists?: RaceAssistRecord | null;
+  /** M5 step 8: 'online' for a quick online race result (ws-server); stored
+   * only on an unclassified free result, anything else stores NULL. */
+  source?: RaceResultSource | null;
 }
+
+/** M5 step 8: the only stored race source (race_results.race_source). */
+export type RaceResultSource = "online";
 
 /** The stored helm_assists value: the checked record as JSON, else NULL. */
 function assistsJson(assists: unknown): string | null {
@@ -988,12 +1000,13 @@ export function insertRaceResult(r: RaceResultInsert): number | null {
     const d = db();
     const info = d.prepare(`
       INSERT INTO race_results (ts, sid, nickname, difficulty, wind_strength, mission_id,
-        finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score, helm_assists)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score, helm_assists, race_source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       Date.now(), r.sid, r.nickname, r.difficulty, r.windStrength,
       r.missionId ?? null, r.finishTimeSec, r.position ?? null, r.totalBoats ?? null,
       r.tacks ?? null, r.noGoEntries ?? null, r.topSpeed ?? null, r.score ?? null, assistsJson(r.assists),
+      r.source === "online" && r.missionId == null ? "online" : null,
     );
     return info.lastInsertRowid as number;
   } catch {
@@ -1102,6 +1115,64 @@ export function topByMission(missionId: string, limit = 20): LeaderboardRow[] {
   } catch {
     return [];
   }
+}
+
+/** M5 step 8 (ADR-0015 point 12): the frozen archive of the free race, the
+ * results saved without a recorded mode ("Архив: режим не записан"). The
+ * same rows as topByDifficulty minus the quick online race, and with a
+ * cutover (src/lib/race-archive.ts) only rows saved before it. A view, not a
+ * migration: no row is changed. topByDifficulty itself stays as old apps
+ * read it. */
+export function topArchive(difficulty: string, wind: string, beforeTs: number | null, limit = 20): LeaderboardRow[] | null {
+  if (beforeTs !== null && !(Number.isFinite(beforeTs) && beforeTs > 0)) return null;
+  try {
+    return db().prepare(`
+      WITH ranked AS (
+        SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+               r.finish_time_sec, r.score, r.ts,
+               ROW_NUMBER() OVER (
+                 PARTITION BY r.sid
+                 ORDER BY r.finish_time_sec ASC, r.ts DESC
+               ) AS rn
+        FROM race_results r
+        WHERE r.difficulty = ? AND r.wind_strength = ? AND r.mission_id IS NULL AND r.race_class_id IS NULL
+          AND (r.race_source IS NULL OR r.race_source <> 'online')
+          AND (? IS NULL OR r.ts < ?)
+      )
+      SELECT nickname, sid, difficulty, wind_strength, mission_id,
+             finish_time_sec, score, ts
+      FROM ranked
+      WHERE rn = 1
+      ORDER BY finish_time_sec ASC
+      LIMIT ?
+    `).all(difficulty, wind, beforeTs, beforeTs, limit) as LeaderboardRow[];
+  } catch { return null; }
+}
+
+/** M5 step 8: the quick online race board, the free multiplayer results that
+ * ws-server tagged 'online'. Never a solo, classified or mission row. */
+export function topOnline(difficulty: string, wind: string, limit = 20): LeaderboardRow[] | null {
+  try {
+    return db().prepare(`
+      WITH ranked AS (
+        SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+               r.finish_time_sec, r.score, r.ts,
+               ROW_NUMBER() OVER (
+                 PARTITION BY r.sid
+                 ORDER BY r.finish_time_sec ASC, r.ts DESC
+               ) AS rn
+        FROM race_results r
+        WHERE r.race_source = 'online' AND r.difficulty = ? AND r.wind_strength = ?
+          AND r.mission_id IS NULL AND r.race_class_id IS NULL
+      )
+      SELECT nickname, sid, difficulty, wind_strength, mission_id,
+             finish_time_sec, score, ts
+      FROM ranked
+      WHERE rn = 1
+      ORDER BY finish_time_sec ASC
+      LIMIT ?
+    `).all(difficulty, wind, limit) as LeaderboardRow[];
+  } catch { return null; }
 }
 
 export interface ClassifiedLeaderboardRow extends LeaderboardRow {

@@ -53,20 +53,51 @@ export function isGhostTrack(v: unknown, classKey?: string): v is GhostTrack {
   return (g.samples as GhostSample[]).every((s, i, all) => i === 0 || s.t >= all[i - 1].t);
 }
 
-/** A finished race as a compact track, or null when it cannot be a fair ghost. */
+type RecordedSample = { t: number; x: number; y: number; heading: number; speed: number; lap: number };
+
+/** M5 step 7: at most `max` samples spread evenly over the race clock, the
+ * first and the last always kept (the start and the finish). Each target
+ * time takes the nearest recorded sample not taken yet, so times still never
+ * run backwards. A track within the bound is returned as it is. */
+export function decimateGhostSamples<T extends { t: number }>(samples: readonly T[], max = GHOST_MAX_SAMPLES): T[] {
+  if (samples.length <= max) return [...samples];
+  if (max < 2) return samples.length ? [samples[0]] : [];
+  const first = samples[0].t, last = samples[samples.length - 1].t;
+  const out: T[] = [samples[0]];
+  let at = 0;
+  for (let k = 1; k < max - 1; k++) {
+    const target = first + (last - first) * k / (max - 1);
+    // Leave room for the samples still to pick and for the last one.
+    const limit = samples.length - (max - k);
+    let i = at + 1;
+    while (i < limit && Math.abs(samples[i + 1].t - target) <= Math.abs(samples[i].t - target)) i++;
+    out.push(samples[i]); at = i;
+  }
+  out.push(samples[samples.length - 1]);
+  return out;
+}
+
+/** A finished race as a compact track, or null when it cannot be a fair ghost.
+ * M5 step 7: a race longer than GHOST_MAX_SAMPLES samples (a long metric
+ * course) is decimated evenly by time instead of dropped; the mark times stay
+ * exact in `marks`. */
 export function makeGhostTrack(classKey: string, finishTimeSec: number,
-  samples: readonly { t: number; x: number; y: number; heading: number; speed: number; lap: number }[],
+  samples: readonly RecordedSample[],
   markTimes: readonly number[] = []): GhostTrack | null {
   const round = (n: number) => Math.round(n * 100) / 100;
-  const compact = samples.slice(0, GHOST_MAX_SAMPLES).map(s => ({ t: round(s.t), x: round(s.x), y: round(s.y),
+  const compact = decimateGhostSamples(samples).map(s => ({ t: round(s.t), x: round(s.x), y: round(s.y),
     heading: round(s.heading), speed: round(s.speed), lap: s.lap }));
   const marks = markTimes.map(round);
   const track: GhostTrack = { schema: 1 as const, classKey, finishTimeSec, samples: compact, ...(marks.length ? { marks } : {}) };
-  return isGhostTrack(track, classKey) && samples.length <= GHOST_MAX_SAMPLES ? track : null;
+  return isGhostTrack(track, classKey) ? track : null;
 }
 
-/** The faster finished race of the same class wins. Other classes are kept. */
-export function rememberGhost(store: GhostStore, track: GhostTrack): { store: GhostStore; replaced: boolean } {
+/** The faster finished race of the same class wins. Other classes are kept.
+ * M5 step 7: when the row must shed classes, those this build cannot sail
+ * any more (`isPlayable` false) go first, each group oldest first. Until
+ * switch B every class is playable, so the order is the build 74 one. */
+export function rememberGhost(store: GhostStore, track: GhostTrack,
+  isPlayable: (classKey: string) => boolean = () => true): { store: GhostStore; replaced: boolean } {
   const current = store[track.classKey];
   if (isGhostTrack(current, track.classKey) && current.finishTimeSec <= track.finishTimeSec) return { store, replaced: false };
   if (JSON.stringify({ [track.classKey]: track }).length > GHOST_STORE_MAX_CHARS) return { store, replaced: false };
@@ -74,7 +105,8 @@ export function rememberGhost(store: GhostStore, track: GhostTrack): { store: Gh
   // last got a new best; storage is bounded by dropping the least recently
   // improved other classes first, by count and by size (on the web as well).
   const next: GhostStore = Object.fromEntries([...Object.entries(store).filter(([key]) => key !== track.classKey), [track.classKey, track]]);
-  const others = Object.keys(next).filter(key => key !== track.classKey);
+  const rest = Object.keys(next).filter(key => key !== track.classKey);
+  const others = [...rest.filter(key => !isPlayable(key)), ...rest.filter(key => isPlayable(key))];
   while (others.length && (others.length + 1 > GHOST_MAX_CLASSES || JSON.stringify(next).length > GHOST_STORE_MAX_CHARS)) delete next[others.shift()!];
   return { store: next, replaced: true };
 }

@@ -15,6 +15,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NativeRaceSnapshot } from "@/lib/race-native";
+import type { PhysicalRaceProfile } from "@/lib/race-context";
 import { RACE_CAMERAS, type Race3DBoat, type RaceCamera } from "@/features/race-3d/pose";
 import { useVenue } from "@/features/venues/useVenue";
 import { useRaceView } from "@/features/race-3d/useRaceView";
@@ -107,7 +108,7 @@ export function ReplayControls({ playing, time, first, total, rate, ribbon, pinn
   </>;
 }
 
-export function RaceReplay({ samples, course, onClose, autoplay = false, startAt = null, events = NO_EVENTS, judgeItems }: {
+export function RaceReplay({ samples, course, onClose, autoplay = false, startAt = null, events = NO_EVENTS, judgeItems, raceProfile = null }: {
   samples: NativeRaceSnapshot["samples"]; course: NativeRaceSnapshot["course"]; onClose: () => void;
   /** M4-3: start playing on open (from the results screen). */
   autoplay?: boolean;
@@ -117,6 +118,10 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
   events?: readonly SkillEvent[];
   /** The training judge's items of this race, for the ribbon. */
   judgeItems?: readonly RaceJudgeItem[];
+  /** M5 step 7: the metric course of a metric race's replay (its stored
+   * raceContext), so the scene draws it at that model's scale; null or
+   * absent for a legacy replay, which renders exactly as before. */
+  raceProfile?: PhysicalRaceProfile | null;
 }) {
   const { tl, lang } = useI18n();
   const c = useReplayCopy();
@@ -233,7 +238,7 @@ export function RaceReplay({ samples, course, onClose, autoplay = false, startAt
         className="inline-flex min-h-11 min-w-11 items-center justify-center"><CameraIcon size={22} /></button>
       <button type="button" onClick={() => { setCameraRevision(value => value + 1); recordControlChange("replay", "camera", camera); }}>{c.resetCamera}</button>
     </div>
-    <div className={styles.scene} style={{ flex: 1 }} data-testid="replay-scene" {...sceneTap}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={labels} onReady={onSceneReady} softLight={softLight} />
+    <div className={styles.scene} style={{ flex: 1 }} data-testid="replay-scene" {...sceneTap}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={labels} onReady={onSceneReady} softLight={softLight} raceProfile={raceProfile} />
       {navigation && <div className={corner.instruments}><RaceMiniMapButton navigation={navigation} onOpenMap={() => setBigMap(true)} you={you} fleet={fleet} /></div>}
       {bigMap && <RaceBigMap snapshot={navigation} track={track} you={you} fleet={fleet} onClose={() => setBigMap(false)} />}
     </div>

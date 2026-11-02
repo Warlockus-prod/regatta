@@ -197,11 +197,29 @@ export const SKILL_BAR_SCALE = {
   noGo: { emptySec: 30, goodSec: 3 },
 } as const;
 
+export type SkillBarScale = { [K in keyof typeof SKILL_BAR_SCALE]: { [F in keyof typeof SKILL_BAR_SCALE[K]]: number } };
+
+/** M5 step 7 (ADR-0015): the metric race's bars. PROVISIONAL: only the tack
+ * row differs, because the cruiser at real speed gives away more in a tack
+ * (M0-13 measured about 1.4 kn for a clean one), so the legacy 0.8 kn would
+ * mark every clean tack bad. The same ratios as the legacy row (good at about
+ * 1.35x a clean tack, empty at about 3.3x). Retune on recorded metric races
+ * (after switch A) and with the M6 tack cost. */
+export const METRIC_SKILL_BAR_SCALE: SkillBarScale = {
+  ...SKILL_BAR_SCALE,
+  tacks: { emptyKn: 4.5, goodKn: 1.9 },
+};
+
+/** The bar scale of a race model. */
+export function skillBarScaleFor(model: "legacy-race-v1" | "physical-cruiser-v1"): SkillBarScale {
+  return model === "physical-cruiser-v1" ? METRIC_SKILL_BAR_SCALE : SKILL_BAR_SCALE;
+}
+
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 /** The bars this race can fill, in screen order; a bar without data is left out. */
-export function raceSkillBars(m: RaceSkillMetrics): SkillBar[] {
-  const S = SKILL_BAR_SCALE;
+export function raceSkillBars(m: RaceSkillMetrics, scale: SkillBarScale = SKILL_BAR_SCALE): SkillBar[] {
+  const S = scale;
   const bars: SkillBar[] = [];
   if (m.start.lateSec !== null) {
     const late = m.start.lateSec;

@@ -223,6 +223,19 @@ describe("a write of one entry keeps every other entry byte for byte", () => {
     for (const text of [addedText, JSON.stringify(faster.store)]) expect(isGhostStoreText74(text)).toBe(true);
   });
 
+  it("ghosts: a decimated long metric race appends under its own class and build 74 keeps every class (M5 step 7)", () => {
+    const store = readGhostStore(new MemoryStorage({ [GHOST_STORAGE_KEY]: BUILD74_GHOST_ROW }));
+    const samples = Array.from({ length: 2600 }, (_, i) => ({ t: i * .5, x: 400 + i * .1, y: 1100 - i * .3, heading: 45, speed: 5.5, lap: i === 2599 ? 2 : i >= 1800 ? 1 : 0 }));
+    const key = ghostClassKey({ raceContext: physicalRaceContext("long"), mode: "simple", difficulty: "easy", windStrength: "light", missionId: null });
+    const track = makeGhostTrack(key, 1299.5, samples, [900])!;
+    expect(track.samples.length).toBe(1600);
+    const added = rememberGhost(store, track);
+    const text = JSON.stringify(added.store);
+    expectOthersByteForByte(BUILD74_GHOST_ROW, text, key);
+    expect(isGhostStoreText74(text)).toBe(true);
+    expect(isGhostStoreText(text)).toBe(true);
+  });
+
   it("race home: writing the row leaves every other race row of the device untouched", () => {
     const storage = new MemoryStorage(BUILD74_RACE_ROWS);
     const home = recordRaceEnd(readRaceHomeStore(storage), { now: new Date(2026, 10, 1, 12, 0), goal: "no-go", dailyDay: null, finished: true });
@@ -233,14 +246,18 @@ describe("a write of one entry keeps every other entry byte for byte", () => {
     expect(isRaceHomeStoreText74(after[RACE_HOME_STORAGE_KEY])).toBe(true);
   });
 
-  it("an award on a full medal row still evicts only by the build 74 rule (pinned until M5 step m5-07-context-producers changes it)", () => {
-    // 64 courses: the oldest other course drops. ADR-0015 point 11 forbids
-    // that for an earned medal; the step that changes eviction must flip this.
+  it("an award on a full medal row evicts nothing: the new course is refused, every earned medal kept (M5 step 7)", () => {
+    // 64 courses: build 74 dropped the oldest other course here. ADR-0015
+    // point 11 forbids that for an earned medal, so M5 step 7 refuses the
+    // new course instead (saved false) and the row stays byte for byte.
     const full: MedalStore = {};
     for (let i = 0; i < 64; i++) full[`legacy-race-v1:standard:r1|x${i}`] = { schema: 1, raceClass: "legacy-race-v1:standard:r1", thresholdsRevision: 2, medal: "bronze", bestSec: 100, bestNoHintsSec: null };
+    const before = JSON.stringify(full);
     const awarded = awardRaceMedal(full, { raceContext: LEGACY_RACE_CONTEXT, difficulty: "easy", windStrength: "light" }, 230, false)!;
-    expect(Object.keys(awarded.store)).toHaveLength(64);
-    expect(awarded.store["legacy-race-v1:standard:r1|x0"]).toBeUndefined();
+    expect(awarded.award.saved).toBe(false);
+    expect(JSON.stringify(awarded.store)).toBe(before);
+    expect(awarded.store["legacy-race-v1:standard:r1|x0"]).toBeDefined();
+    expect(isMedalStoreText74(JSON.stringify(awarded.store))).toBe(true);
   });
 });
 

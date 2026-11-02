@@ -4,16 +4,23 @@ import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
-import { missions } from '@/data/missions';
+import { MISSION_TITLE_LIST as missions } from '@/data/mission-titles';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import { FlagIcon, TargetIcon } from '@/features/race-hud/RaceIcons';
+import { PHYSICAL_RACE_EMISSION_ENABLED } from '@/lib/race-context';
 import { useLeaderboardCopy } from './leaderboard-copy';
 import { LeaderboardTable } from './LeaderboardTable';
-import { leaderboardUrl, unrecordedModeUrl, type LeaderboardBoard, type LeaderboardRow, type LeaderboardSelection } from './leaderboard-model';
+import {
+  DEFAULT_LEADERBOARD_COURSE, LEADERBOARD_COURSES, archiveUrl, leaderboardUrl, showsArchive,
+  type LeaderboardBoard, type LeaderboardCourse, type LeaderboardRow, type LeaderboardSelection,
+} from './leaderboard-model';
 
-// M1-7: Simple and Pro are ranked in separate tables, results without a
-// recorded mode sit in their own folded list, and the page fits a 390 px
-// phone: 20 px gutters, 44 px choices, names that wrap instead of scrolling.
+// M1-7: Simple and Pro are ranked in separate tables, and the page fits a 390
+// px phone: 20 px gutters, 44 px choices, names that wrap instead of
+// scrolling. M5 step 8 (ADR-0015 point 12): the free race is ranked per
+// course (the metric courses and the classic one), results without a recorded
+// mode are the classic course's folded archive, and the quick online race has
+// its own board.
 
 function useRows(url: string | null) {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
@@ -38,12 +45,12 @@ function useRows(url: string | null) {
 
 function Choices<T extends string>({ label, value, options, onChange, columns = 'flex' }: {
   label: string; value: T; options: Array<{ id: T; label: string; icon?: ReactNode }>;
-  onChange: (value: T) => void; columns?: 'flex' | 'grid';
+  onChange: (value: T) => void; columns?: 'flex' | 'grid' | 'grid3';
 }) {
   return (
     <div className="min-w-0">
       <div className="mb-1 text-sm text-[var(--text-secondary)]" aria-hidden="true">{label}</div>
-      <div role="radiogroup" aria-label={label} className={columns === 'grid' ? 'grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:grid-cols-4' : 'flex gap-2'}>
+      <div role="radiogroup" aria-label={label} className={columns === 'grid' ? 'grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:grid-cols-4' : columns === 'grid3' ? 'grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:grid-cols-3' : 'flex gap-2'}>
         {options.map((o) => {
           const active = o.id === value;
           return (
@@ -67,13 +74,18 @@ export default function LeaderboardPage() {
   const { lang } = useI18n();
   const copy = useLeaderboardCopy();
   const [selection, setSelection] = useState<LeaderboardSelection>({
-    board: 'free', mode: 'simple', difficulty: 'medium', wind: 'medium', missionId: missions[0]?.id ?? '',
+    board: 'free', course: DEFAULT_LEADERBOARD_COURSE, mode: 'simple', difficulty: 'medium', wind: 'medium', missionId: missions[0]?.id ?? '',
   });
-  const [unrecordedOpen, setUnrecordedOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const update = (patch: Partial<LeaderboardSelection>) => setSelection((s) => ({ ...s, ...patch }));
   const main = useRows(leaderboardUrl(selection));
-  const unrecorded = useRows(selection.board === 'free' && unrecordedOpen ? unrecordedModeUrl(selection) : null);
-  const free = selection.board === 'free';
+  const archived = showsArchive(selection);
+  const archive = useRows(archived && archiveOpen ? archiveUrl(selection) : null);
+  const free = selection.board === 'free', online = selection.board === 'online';
+  const courseLabel: Record<LeaderboardCourse, string> = { short: copy.courseShort, medium: copy.courseMedium, long: copy.courseLong, classic: copy.courseClassic };
+  // A metric course while switch A is off: an empty but valid board, said plainly.
+  const metricClosed = free && selection.course !== 'classic' && !PHYSICAL_RACE_EMISSION_ENABLED;
+  const tableName = free ? `${courseLabel[selection.course]}: ${selection.mode === 'pro' ? copy.pro : copy.simple}` : online ? copy.online : copy.missions;
 
   return (
     <div className="page-enter max-w-3xl mx-auto px-5 sm:px-6 py-10" data-testid="leaderboard-page">
@@ -83,12 +95,16 @@ export default function LeaderboardPage() {
       <div className="card p-3 mb-4 space-y-4">
         <Choices<LeaderboardBoard> label={copy.raceType} value={selection.board} onChange={(board) => update({ board })} options={[
           { id: 'free', label: copy.free, icon: <FlagIcon size={20} /> },
+          { id: 'online', label: copy.online },
           { id: 'mission', label: copy.missions, icon: <TargetIcon size={20} /> },
-        ]} />
-        {free ? <>
-          <Choices label={copy.controlMode} value={selection.mode} onChange={(mode) => update({ mode })} options={[
+        ]} columns="grid3" />
+        {free || online ? <>
+          {free && <Choices<LeaderboardCourse> label={copy.course} value={selection.course} onChange={(course) => update({ course })} columns="grid"
+            options={LEADERBOARD_COURSES.map((id) => ({ id, label: courseLabel[id] }))} />}
+          {free && <Choices label={copy.controlMode} value={selection.mode} onChange={(mode) => update({ mode })} options={[
             { id: 'simple', label: copy.simple }, { id: 'pro', label: copy.pro },
-          ]} />
+          ]} />}
+          {online && <p className="text-sm leading-5 text-[var(--text-muted)]" data-testid="leaderboard-online-note">{copy.onlineNote}</p>}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Choices label={copy.difficulty} value={selection.difficulty} onChange={(difficulty) => update({ difficulty })} options={[
               { id: 'easy', label: copy.easy }, { id: 'medium', label: copy.medium }, { id: 'hard', label: copy.hard },
@@ -104,21 +120,21 @@ export default function LeaderboardPage() {
         </>}
       </div>
 
-      <section className="card p-3" aria-label={free ? `${copy.free}: ${selection.mode === 'pro' ? copy.pro : copy.simple}` : copy.missions}>
+      <section className="card p-3" aria-label={tableName} data-board={selection.board} data-course={free ? selection.course : undefined}>
         {main.loading
           ? <div className="py-10 text-center text-base text-[var(--text-muted)]" role="status">{copy.loading}</div>
-          : <LeaderboardTable rows={main.rows} copy={copy} lang={lang} testId="leaderboard-rows" empty={<>
+          : <LeaderboardTable rows={main.rows} copy={copy} lang={lang} testId="leaderboard-rows" empty={metricClosed ? copy.metricEmpty : <>
               {copy.empty}
-              <div className="mt-3"><Link href="/game" className="inline-flex min-h-11 items-center font-semibold text-[var(--accent-cyan)] hover:underline">{copy.toRace}</Link></div>
+              <div className="mt-3"><Link href={online ? '/multiplayer' : '/game'} className="inline-flex min-h-11 items-center font-semibold text-[var(--accent-cyan)] hover:underline">{copy.toRace}</Link></div>
             </>} />}
       </section>
 
-      {free && <details className="card p-3 mt-4" data-testid="leaderboard-unrecorded" onToggle={(e) => setUnrecordedOpen(e.currentTarget.open)}>
-        <summary className="flex min-h-11 cursor-pointer items-center text-base font-semibold text-[var(--text-primary)]">{copy.unrecordedTitle}</summary>
+      {archived && <details className="card p-3 mt-4" data-testid="leaderboard-archive" onToggle={(e) => setArchiveOpen(e.currentTarget.open)}>
+        <summary className="flex min-h-11 cursor-pointer items-center text-base font-semibold text-[var(--text-primary)]">{copy.archiveTitle}</summary>
         <p className="mb-2 text-sm leading-5 text-[var(--text-muted)]">{copy.unrecordedNote}</p>
-        {unrecordedOpen && (unrecorded.loading
+        {archiveOpen && (archive.loading
           ? <div className="py-6 text-center text-base text-[var(--text-muted)]" role="status">{copy.loading}</div>
-          : <LeaderboardTable rows={unrecorded.rows} copy={copy} lang={lang} testId="leaderboard-unrecorded-rows" />)}
+          : <LeaderboardTable rows={archive.rows} copy={copy} lang={lang} testId="leaderboard-archive-rows" />)}
       </details>}
 
       <div className="text-center mt-6">

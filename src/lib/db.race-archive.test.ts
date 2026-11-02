@@ -49,10 +49,11 @@ beforeAll(async () => {
     stats: new Map([["p1", { tacks: 5, noGoEntries: 2, topSpeed: 6.789 }]]) };
   const body = buildRaceResultBody(room, { id: "p1", nickname: "Online Olek", boat: { finishTime: 101.4 } })!;
   expect(body).toEqual({ difficulty: "easy", windStrength: "light", missionId: null, finishTimeSec: 101.4, position: 2, totalBoats: 2,
-    tacks: 5, noGoEntries: 2, topSpeed: 6.8, score: null, nicknameFallback: "Online Olek" });
+    tacks: 5, noGoEntries: 2, topSpeed: 6.8, score: null, nicknameFallback: "Online Olek", source: "online" });
+  // As production stores it after M5 step 8: tagged 'online' (the old snapshot below must not change).
   insert(at("2026-10-05T18:00:00Z"), { sid: "mp-olek", nickname: body.nicknameFallback, difficulty: body.difficulty, windStrength: body.windStrength,
     missionId: body.missionId, finishTimeSec: body.finishTimeSec, position: body.position, totalBoats: body.totalBoats, tacks: body.tacks,
-    noGoEntries: body.noGoEntries, topSpeed: body.topSpeed, score: body.score });
+    noGoEntries: body.noGoEntries, topSpeed: body.topSpeed, score: body.score, source: "online" });
   // Mission races.
   insert(at("2026-10-10T08:00:00Z"), { sid: "mission-a", nickname: "Ania", difficulty: "medium", windStrength: "medium", missionId: "clean-laps", finishTimeSec: 88, score: 50 });
   insert(at("2026-10-11T08:00:00Z"), { sid: "mission-d", nickname: "Dawid", difficulty: "medium", windStrength: "medium", missionId: "clean-laps", finishTimeSec: 84.5, score: 52 });
@@ -126,5 +127,52 @@ describe("old board query shapes over every production row kind", () => {
     expect(sources.length).toBeGreaterThan(100);
     const offenders = sources.filter(file => /\b(update|delete\s+from|replace\s+into)\s+race_results\b/i.test(readFileSync(file, "utf8")));
     expect(offenders).toEqual([]);
+  });
+});
+
+// M5 step 8 (ADR-0015 point 12): the new board shapes over the same rows.
+// Contract: the archive is the unclassified free pool minus the quick online
+// race and, with a cutover, only rows saved before it; the online board holds
+// only the tagged multiplayer result; a metric or classified row is in
+// neither, and an unclassified row is in no class board. Nothing is rewritten.
+describe("the archive, the online board and the cutover (M5 step 8)", () => {
+  const names = (rows: { nickname: string }[] | null) => rows?.map(r => r.nickname) ?? null;
+
+  it("archive: the old pool without the online race, every old solo row kept", () => {
+    expect(names(db.topArchive("easy", "light", null))).toEqual(["Ania", "Borys"]);
+    expect(names(db.topByDifficulty("easy", "light"))).toEqual(["Ania", "Online Olek", "Borys"]);
+    expect(names(db.topArchive("hard", "heavy", null))).toEqual(["Celia"]);
+    // The daily day's free rows are free results of their settings: in the archive, like the old pool.
+    expect(db.topArchive(daily.difficulty, daily.windStrength, null)).toEqual(db.topByDifficulty(daily.difficulty, daily.windStrength));
+  });
+
+  it("archive: a cutover keeps only rows saved before it", () => {
+    // Ania's best is from 2026-09-02, Borys from 2026-09-03.
+    expect(names(db.topArchive("easy", "light", at("2026-09-03T10:00:00Z")))).toEqual(["Ania"]);
+    expect(names(db.topArchive("easy", "light", at("2026-09-02T10:00:00Z")))).toEqual(["Ania"]);
+    expect(db.topArchive("easy", "light", at("2026-09-02T10:00:00Z"))![0].finish_time_sec).toBe(95.5);
+    expect(db.topArchive("easy", "light", at("2026-09-01T10:00:00Z"))).toEqual([]);
+    expect(db.topArchive("easy", "light", Number.NaN)).toBeNull();
+  });
+
+  it("online: only the tagged multiplayer result, never a solo, mission, classified or metric row", () => {
+    expect(names(db.topOnline("easy", "light"))).toEqual(["Online Olek"]);
+    expect(db.topOnline("hard", "heavy")).toEqual([]);
+    for (const [d, w] of [["medium", "medium"], [daily.difficulty, daily.windStrength]] as const) expect(db.topOnline(d, w)).toEqual([]);
+    // And the online and solo rows never reach a class board, a metric row never an old board.
+    for (const cls of ["legacy-race-v1:standard:r1", "physical-cruiser-v1:short:r1"] as const) {
+      expect(names(db.topByRaceClass(cls, "simple", "easy", "light"))).not.toContain("Online Olek");
+    }
+    expect(names(db.topArchive("easy", "light", null))).not.toContain("METRIC");
+    expect(names(db.topOnline("easy", "light"))).not.toContain("METRIC");
+  });
+
+  it("stores the tag only on a free unclassified result", () => {
+    const tag = (sid: string) => (raw.prepare("SELECT race_source FROM race_results WHERE sid = ?").get(sid) as { race_source: string | null }).race_source;
+    expect(tag("mp-olek")).toBe("online");
+    expect(tag("solo-a")).toBeNull();
+    expect(tag("class-s")).toBeNull();
+    expect(db.insertRaceResult({ sid: "mp-mission", nickname: "Misja", difficulty: "easy", windStrength: "light", missionId: "sub-90", finishTimeSec: 90, source: "online" })).not.toBeNull();
+    expect(tag("mp-mission")).toBeNull();
   });
 });

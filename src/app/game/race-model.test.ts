@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WIND_DIRECTION_BASE } from "@/lib/race-physics";
-import { LEGACY_RACE_CONTEXT } from "@/lib/race-context";
+import { LEGACY_RACE_CONTEXT, physicalRaceContext } from "@/lib/race-context";
 import { readClassifiedRaceResult } from "@/lib/race-result-eligibility";
 import { formatTime, makeCourse, playerPlaceSettled, raceLogTally, recordSample, soloRaceWind, sortRaceResults, type Boat } from "./race-model";
 
@@ -101,5 +101,15 @@ describe("leaderboard save of a free race (M1-7)", () => {
         raceContext: LEGACY_RACE_CONTEXT, mode, course: makeCourse(), rawFinishTimeSec: 90.5, penaltySeconds: 5 });
       expect(read.ok, mode).toBe(true);
     }
+  });
+});
+
+// Contract (M5 step 7): a legacy record message carries no context, exactly
+// as build 74 sent it; a metric one names its class.
+describe("the context field of a record message (M5 step 7)", () => {
+  it("is absent for the legacy race and the metric context otherwise", async () => {
+    const { raceContextField } = await import("./race-model");
+    expect(raceContextField(LEGACY_RACE_CONTEXT)).toEqual({});
+    expect(raceContextField(physicalRaceContext("short"))).toEqual({ raceContext: physicalRaceContext("short") });
   });
 });

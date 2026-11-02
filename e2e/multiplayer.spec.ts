@@ -15,7 +15,7 @@ test.describe('Multiplayer smoke', () => {
       try { window.localStorage.setItem('regatta.lang.v1', 'ru'); } catch {}
     });
     await page.goto('/multiplayer');
-    await expect(page.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: 'Быстрая онлайн-гонка' })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('button', { name: 'Создать лобби' })).toBeVisible();
     await expect(page.getByPlaceholder('XXXX')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Войти' })).toBeVisible();
@@ -119,7 +119,7 @@ test.describe('Multiplayer smoke', () => {
     }));
 
     await h.goto('/multiplayer');
-    await expect(h.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await expect(h.getByRole('heading', { name: 'Быстрая онлайн-гонка' })).toBeVisible({ timeout: 10_000 });
     const hostNick = 'Host_' + Date.now().toString(36);
     // A fresh context has no stored nickname: the prefilled default name shows
     // that hydration and the session are ready before we type.
@@ -137,7 +137,7 @@ test.describe('Multiplayer smoke', () => {
     // Guest joins
     await g.setViewportSize({ width: 390, height: 844 });
     await g.goto('/multiplayer?embed=1');
-    await expect(g.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await expect(g.getByRole('heading', { name: 'Быстрая онлайн-гонка' })).toBeVisible({ timeout: 10_000 });
     const guestNick = 'Guest_' + Date.now().toString(36);
     await expect(g.getByPlaceholder('Введи ник')).not.toHaveValue('');
     await g.getByPlaceholder('Введи ник').fill(guestNick);

@@ -933,7 +933,7 @@ Date: 2026-11-01. Status: accepted for implementation (план игры M5, р�
 
 ### References
 
-ADR-0001, ADR-0002, ADR-0004, ADR-0007, ADR-0009, ADR-0010, ADR-0011, ADR-0013, ADR-0014; `docs/audits/2026-10-30-game-roadmap.md` (M5, решения 8 и 12-16); `docs/audits/2026-10-30/m0-13-metric-race-hang.md`; `docs/audits/2026-10-30/m0-13-tack-cost.md`; `src/lib/race-context.ts`, `src/lib/race-courses.ts`, `src/lib/race-physical-response.ts`, `src/lib/race-physical-bot.ts`, `src/lib/race-physical-fleet.ts`, `src/lib/race-physical-progress.ts`, `src/lib/race-completion.ts`, `src/lib/race-rules.ts`, `src/lib/race-guidance.ts`, `src/features/race-scene/tactics.ts`, `src/features/race-3d/pose.ts`, `src/lib/race-ghost.ts`, `src/lib/race-medals.ts`, `src/data/race-medals.ts`, `src/lib/db.ts`, `mobile/src/persistence/race-web-storage.ts`.
+ADR-0001, ADR-0002, ADR-0004, ADR-0007, ADR-0009, ADR-0010, ADR-0011, ADR-0013, ADR-0014; план шагов 7-12 (что, готово когда, риски, ответы владельца) `docs/design/m5-steps-7-12.md`; `docs/audits/2026-10-30-game-roadmap.md` (M5, решения 8 и 12-16); `docs/audits/2026-10-30/m0-13-metric-race-hang.md`; `docs/audits/2026-10-30/m0-13-tack-cost.md`; `src/lib/race-context.ts`, `src/lib/race-courses.ts`, `src/lib/race-physical-response.ts`, `src/lib/race-physical-bot.ts`, `src/lib/race-physical-fleet.ts`, `src/lib/race-physical-progress.ts`, `src/lib/race-completion.ts`, `src/lib/race-rules.ts`, `src/lib/race-guidance.ts`, `src/features/race-scene/tactics.ts`, `src/features/race-3d/pose.ts`, `src/lib/race-ghost.ts`, `src/lib/race-medals.ts`, `src/data/race-medals.ts`, `src/lib/db.ts`, `mobile/src/persistence/race-web-storage.ts`.
 
 ## ADR-0019 - Procedural race sound on the one race AudioContext
 

@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
 import { sections } from '@/lib/product/catalog';
+import { QUICK_ONLINE_RACE } from '@/data/quick-online-race';
 import type { CreateBlocker, ShareOutcome } from './lobby';
 import { RACE_INTRO_TITLE } from '@/data/race-intro-title';
 import { HintIcon } from '@/features/race-hud/RaceIcons';
@@ -56,7 +57,7 @@ export function MultiplayerMenu(p: {
         className="inline-flex min-h-11 items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
         <span aria-hidden="true">&larr;</span> {RACE_SECTION.title[lang] ?? RACE_SECTION.title.en}
       </Link>}
-      <h1 className="text-3xl font-bold mt-4 mb-2">{tp('Мультиплеер', 'Multiplayer', 'Multiplayer', { es: 'Multijugador', fr: 'Multijoueur', de: 'Mehrspieler', it: 'Multigiocatore' })}</h1>
+      <h1 className="text-3xl font-bold mt-4 mb-2">{tl(QUICK_ONLINE_RACE)}</h1>
       <p className="text-base text-[var(--text-secondary)] mb-6">
         {tp(
           'До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. Можно добавить ботов.',

@@ -335,8 +335,8 @@
     },
     {
       "path": "src/lib/product/ui-terms.ts",
-      "bytes": 4432,
-      "sha256": "65c0711cdf597b1bec49af4b58c05721f6a9f2ec51a7b4109f5a32fe9dfc3f48"
+      "bytes": 4594,
+      "sha256": "181aa9d3ed69cd20492378498ba28eadee170a0a8688bb2c1eca1cf2ab62ee22"
     },
     {
       "path": "src/lib/race-visual-prefs.ts",

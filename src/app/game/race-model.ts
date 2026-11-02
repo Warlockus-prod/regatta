@@ -6,7 +6,7 @@ import type { NativeRaceSnapshot } from "@/lib/race-native";
 import type { RaceBoat } from "@/lib/race-physics";
 import { makeStandardCourse, calcTWA } from "@/lib/race-physics";
 import { makePhysicalRaceCourse } from "@/lib/race-courses";
-import { physicalRaceContext, type PhysicalRaceProfile } from "@/lib/race-context";
+import { physicalRaceContext, type PhysicalRaceProfile, type RaceContext } from "@/lib/race-context";
 import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import type { PhysicalRaceGuidanceState, planPhysicalRaceGuidance } from "@/lib/race-guidance-physical";
 import type { CoachGoalKind } from "@/lib/fallback-coach";
@@ -103,6 +103,14 @@ export interface Coaching {
  * left first and the time is the boat's mean-VMG estimate (Infinity when it
  * would not make the limit). Legacy rows never carry either key. */
 export interface RaceResultRow { name: string; time: number; color: string; isPlayer: boolean; pending?: boolean; estimated?: boolean }
+
+/** M5 step 7: the context field a record message carries. A legacy race
+ * sends none, exactly as before (an absent context reads as legacy: the
+ * historical default of the replay, native history and start telemetry); a
+ * metric race names its class, which the readers require. */
+export function raceContextField(context: RaceContext): { raceContext?: RaceContext } {
+  return context.model === "legacy-race-v1" ? {} : { raceContext: context };
+}
 
 /** The browser's localStorage, or null where reading it throws. */
 export const localStore = () => { try { return window.localStorage; } catch { return null; } };

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { LEGACY_RACE_CONTEXT, physicalRaceContext } from "./race-context";
-import { GHOST_MAX_SAMPLES, GHOST_STORAGE_KEY, GHOST_STORE_MAX_CHARS, ghostClassKey, ghostMarkTimes, ghostPose, isGhostStoreText, isGhostTrack,
+import { GHOST_MAX_SAMPLES, GHOST_STORAGE_KEY, GHOST_STORE_MAX_CHARS, decimateGhostSamples, ghostClassKey, ghostMarkTimes, ghostPose, isGhostStoreText, isGhostTrack,
   makeGhostTrack, readGhostStore, rememberGhost, writeGhostStore, type GhostTrack } from "./race-ghost";
 
 const conditions = { raceContext: LEGACY_RACE_CONTEXT, mode: "simple" as const, difficulty: "easy", windStrength: "medium", missionId: null };
@@ -42,7 +42,8 @@ describe("personal ghost", () => {
 
   it("refuses unfair or corrupt tracks instead of guessing", () => {
     expect(makeGhostTrack(key, 80, [{ t: 0, x: 0, y: 0, heading: 0, speed: 0, lap: 0 }])).toBeNull();
-    expect(makeGhostTrack(key, 80, Array.from({ length: GHOST_MAX_SAMPLES + 1 }, (_, i) => ({ t: i, x: 0, y: 0, heading: 0, speed: 0, lap: 0 })))).toBeNull();
+    // A track running backwards in time is refused; a long one is decimated (M5 step 7, below).
+    expect(makeGhostTrack(key, 80, [{ t: 2, x: 0, y: 0, heading: 0, speed: 0, lap: 0 }, { t: 1, x: 0, y: 0, heading: 0, speed: 0, lap: 0 }])).toBeNull();
     const backwards = { ...track(80), samples: [...track(80).samples].reverse() };
     expect(isGhostTrack(backwards)).toBe(false);
     expect(isGhostTrack(track(80), "other-class")).toBe(false);
@@ -113,5 +114,82 @@ describe("personal ghost row for splits and the iOS app", () => {
   it("is listed for the iOS app's race storage bridge", () => {
     const file = readFileSync(join(process.cwd(), "mobile/src/persistence/race-web-storage.ts"), "utf8");
     expect(file).toContain(`"${GHOST_STORAGE_KEY}"`);
+  });
+});
+
+// Contract (M5 step 7, ADR-0015 point 11): a race longer than the ghost's
+// sample bound (a long metric course) keeps a ghost: its track is decimated
+// evenly by time to at most GHOST_MAX_SAMPLES, the start and the finish kept,
+// the mark times exact, and the decimated ghost stays within 2 m of the
+// sailed track at any race time. When the row must shed classes, classes the
+// build cannot sail go first; with every class playable the order is the
+// build 74 one.
+describe("long races and the eviction order (M5 step 7)", () => {
+  const metricKey = ghostClassKey({ ...conditions, raceContext: physicalRaceContext("long") });
+  const M = 0.6;
+  // 1300 s of a metric race logged every 0.5 s: a beat with tacks every 40 s and a run home, about 3 m/s.
+  const sailed = Array.from({ length: 2601 }, (_, i) => {
+    const t = i * .5, leg = Math.floor(t / 40), turn = leg % 2 ? 45 : 315;
+    const heading = t < 900 ? turn : 180 + 15 * Math.sin(t / 30);
+    return { t, heading, speed: 5.8 + .4 * Math.sin(t / 7), lap: t < 900 ? 0 : t < 1300 ? 1 : 2 };
+  }).reduce<{ t: number; x: number; y: number; heading: number; speed: number; lap: number }[]>((out, s, i) => {
+    const prev = out[i - 1];
+    const step = prev ? (prev.speed * 0.514444 * .5) / M : 0, r = (prev?.heading ?? s.heading) * Math.PI / 180;
+    out.push({ ...s, x: prev ? prev.x + Math.sin(r) * step : 400, y: prev ? prev.y - Math.cos(r) * step : 1000 });
+    return out;
+  }, []);
+
+  it("keeps a 1300 s race as at most 1600 samples, the start, the finish and the exact mark times", () => {
+    const ghost = makeGhostTrack(metricKey, 1300, sailed, [900.123])!;
+    expect(ghost).not.toBeNull();
+    expect(ghost.samples.length).toBeLessThanOrEqual(GHOST_MAX_SAMPLES);
+    expect(ghost.samples.length).toBe(GHOST_MAX_SAMPLES);
+    expect(ghost.samples[0]).toEqual({ t: 0, x: 400, y: 1000, heading: 315, speed: 5.8, lap: 0 });
+    expect(ghost.samples.at(-1)!.t).toBe(1300);
+    expect(ghost.samples.at(-1)!.lap).toBe(2);
+    expect(ghost.marks).toEqual([900.12]);
+    expect(isGhostStoreText(JSON.stringify({ [metricKey]: ghost }))).toBe(true);
+    // Evenly by time: no gap is more than two recorded steps wide.
+    const gaps = ghost.samples.slice(1).map((s, i) => s.t - ghost.samples[i].t);
+    expect(Math.min(...gaps)).toBeGreaterThan(0);
+    expect(Math.max(...gaps)).toBeLessThanOrEqual(1);
+  });
+
+  it("stays within 2 m of the sailed track at any race time", () => {
+    const ghost = makeGhostTrack(metricKey, 1300, sailed)!;
+    const full = { schema: 1 as const, classKey: metricKey, finishTimeSec: 1300, samples: sailed };
+    let worst = 0;
+    for (let t = 0; t <= 1300; t += .13) {
+      const a = ghostPose(ghost, t).pos, b = ghostPose(full, t).pos;
+      worst = Math.max(worst, Math.hypot(a.x - b.x, a.y - b.y) * M);
+    }
+    expect(worst).toBeLessThanOrEqual(2);
+  });
+
+  it("leaves a track within the bound exactly as it was", () => {
+    const short = sailed.slice(0, GHOST_MAX_SAMPLES);
+    expect(decimateGhostSamples(short)).toEqual(short);
+    expect(decimateGhostSamples(sailed, 3).map(s => s.t)).toEqual([0, 650, 1300]);
+  });
+
+  it("evicts the classes the build cannot sail first, then the oldest; with all playable, the build 74 order", () => {
+    const longTrack = (finish: number, k: string) => makeGhostTrack(k, finish,
+      Array.from({ length: 1200 }, (_, i) => ({ t: i * .5, x: 400.123 + i, y: 1000.456 - i, heading: 123.45, speed: 5.67, lap: i < 600 ? 0 : 1 })))!;
+    const keys = Array.from({ length: 14 }, (_, i) => ghostClassKey({ ...conditions, difficulty: `k${i}` }));
+    let all: Record<string, GhostTrack> = {}, picky: Record<string, GhostTrack> = {};
+    // k1 and k3 are classes this build no longer sails.
+    const playable = (k: string) => k !== keys[1] && k !== keys[3];
+    for (const k of keys) {
+      all = rememberGhost(all, longTrack(700, k)).store;
+      picky = rememberGhost(picky, longTrack(700, k), playable).store;
+    }
+    const keptAll = Object.keys(all);
+    expect(keptAll).toEqual(keys.slice(-keptAll.length));
+    const keptPicky = Object.keys(picky);
+    expect(keptPicky).not.toContain(keys[1]);
+    expect(keptPicky).not.toContain(keys[3]);
+    // The unplayable classes went first, so one more playable old class survives.
+    expect(keptPicky.length).toBe(keptAll.length);
+    expect(keptPicky[0]).toBe(keys.filter(playable)[keys.filter(playable).length - keptPicky.length]);
   });
 });

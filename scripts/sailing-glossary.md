@@ -250,6 +250,14 @@ debrief. `src/app/game/race-terms.test.ts` pins the mark terms.
   "Wyścig swobodny" (short "Swobodny"), never "Wolny wyścig", which reads as
   "slow race". The training toggles are "Przepisy treningowe", "Kary
   treningowe", "Sędzia treningowy".
+- Multiplayer (M5 step 8, ADR-0015): "Быстрая онлайн-гонка" / "Quick online
+  race" / "Szybki wyścig online" (one race: "wyścig") / "Regata rápida en
+  línea" / "Course rapide en ligne" / "Schnelles Online-Rennen" / "Regata
+  veloce online", one term in `QUICK_ONLINE_RACE` (`src/data/quick-online-race.ts`). The legacy course of
+  the leaderboard is "Классическая трасса" / "Classic course" / "Klasyczna
+  trasa" / "Recorrido clásico" / "Parcours classique" / "Klassischer Kurs" /
+  "Percorso classico"; course lengths agree with the noun (PL "Krótka", ES
+  "Corto", FR "Court", DE "Kurz", IT "Corto").
 - Keep clear, Polish: "Ustąp drogi" (glossary "ustąpić drogi"), not "utrzymuje
   się z dala".
 - Wind levels: EN "Light / Medium / Strong" in the lobby, the app hub and the

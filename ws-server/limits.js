@@ -133,5 +133,8 @@ export function buildRaceResultBody(room, player) {
     topSpeed: Math.round((stats.topSpeed ?? 0) * 10) / 10,
     score: null,
     nicknameFallback: safeNickname(player.nickname),
+    // M5 step 8 (ADR-0015 point 12): the result goes on the quick online race
+    // board. Display grouping only; the route stores it on free results.
+    source: 'online',
   };
 }

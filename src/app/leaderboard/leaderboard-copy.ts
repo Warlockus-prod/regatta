@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/lib/i18n";
 import { RACE_MODE_LABELS } from "@/app/game/race-mode-labels";
+import { QUICK_ONLINE_RACE } from "@/data/quick-online-race";
 
 export function useLeaderboardCopy() {
   const { tl } = useI18n();
@@ -12,6 +13,15 @@ export function useLeaderboardCopy() {
     raceType: tl({ ru: "Тип гонки", en: "Race type", pl: "Rodzaj wyścigu", es: "Tipo de regata", fr: "Type de course", de: "Rennart", it: "Tipo di regata" }),
     free: tl({ ru: "Свободная гонка", en: "Free race", pl: "Wyścig swobodny", es: "Regata libre", fr: "Course libre", de: "Freies Rennen", it: "Regata libera" }),
     missions: tl({ ru: "Миссии", en: "Missions", pl: "Misje", es: "Misiones", fr: "Missions", de: "Missionen", it: "Missioni" }),
+    // M5 step 8 (ADR-0015 point 12): the course filter, the quick online race board and the archive.
+    online: tl(QUICK_ONLINE_RACE),
+    course: tl({ ru: "Трасса", en: "Course", pl: "Trasa", es: "Recorrido", fr: "Parcours", de: "Kurs", it: "Percorso" }),
+    courseShort: tl({ ru: "Короткая", en: "Short", pl: "Krótka", es: "Corto", fr: "Court", de: "Kurz", it: "Corto" }),
+    courseMedium: tl({ ru: "Средняя", en: "Medium", pl: "Średnia", es: "Medio", fr: "Moyen", de: "Mittel", it: "Medio" }),
+    courseLong: tl({ ru: "Длинная", en: "Long", pl: "Długa", es: "Largo", fr: "Long", de: "Lang", it: "Lungo" }),
+    courseClassic: tl({ ru: "Классическая трасса", en: "Classic course", pl: "Klasyczna trasa", es: "Recorrido clásico", fr: "Parcours classique", de: "Klassischer Kurs", it: "Percorso classico" }),
+    metricEmpty: tl({ ru: "Пробная гонка в метрах пока не сохраняет результаты.", en: "The trial race in real metres does not save results yet.", pl: "Wyścig próbny w metrach jeszcze nie zapisuje wyników.", es: "La regata de prueba en metros aún no guarda resultados.", fr: "La course d'essai en mètres n'enregistre pas encore de résultats.", de: "Die Probewettfahrt in Metern speichert noch keine Ergebnisse.", it: "La regata di prova in metri non salva ancora i risultati." }),
+    onlineNote: tl({ ru: "Онлайн-гонка не записывает режим: Простой и Pro здесь вместе.", en: "The online race does not record the mode: Simple and Pro are together here.", pl: "Wyścig online nie zapisuje trybu: Prosty i Pro są tu razem.", es: "La regata en línea no registra el modo: Sencillo y Pro van juntos.", fr: "La course en ligne n'enregistre pas le mode : Simple et Pro sont ensemble ici.", de: "Das Online-Rennen erfasst den Modus nicht: Einfach und Pro stehen hier zusammen.", it: "La regata online non registra la modalità: Semplice e Pro sono insieme." }),
     controlMode: tl({ ru: "Режим управления", en: "Control mode", pl: "Tryb sterowania", es: "Modo de control", fr: "Mode de pilotage", de: "Steuermodus", it: "Modalità di controllo" }),
     simple: tl(RACE_MODE_LABELS.simple),
     pro: tl(RACE_MODE_LABELS.pro),
@@ -25,7 +35,7 @@ export function useLeaderboardCopy() {
     heavy: tl({ ru: "Сильный", en: "Strong", pl: "Silny", es: "Fuerte", fr: "Fort", de: "Stark", it: "Forte" }),
     mission: tl({ ru: "Миссия", en: "Mission", pl: "Misja", es: "Misión", fr: "Mission", de: "Mission", it: "Missione" }),
     missionNote: tl({ ru: "Миссии пока не записывают режим, поэтому Простой и Pro здесь вместе.", en: "Missions do not record the mode yet, so Simple and Pro are together here.", pl: "Misje nie zapisują jeszcze trybu, więc Prosty i Pro są tu razem.", es: "Las misiones aún no registran el modo, así que Sencillo y Pro van juntos.", fr: "Les missions n'enregistrent pas encore le mode : Simple et Pro sont donc ensemble ici.", de: "Missionen erfassen den Modus noch nicht, daher stehen Einfach und Pro hier zusammen.", it: "Le missioni non registrano ancora la modalità, quindi Semplice e Pro sono insieme." }),
-    unrecordedTitle: tl({ ru: "Результаты без записанного режима", en: "Results without a recorded mode", pl: "Wyniki bez zapisanego trybu", es: "Resultados sin modo registrado", fr: "Résultats sans mode enregistré", de: "Ergebnisse ohne erfassten Modus", it: "Risultati senza modalità registrata" }),
+    archiveTitle: tl({ ru: "Архив: режим не записан", en: "Archive: mode not recorded", pl: "Archiwum: tryb niezapisany", es: "Archivo: modo no registrado", fr: "Archives : mode non enregistré", de: "Archiv: Modus nicht erfasst", it: "Archivio: modalità non registrata" }),
     unrecordedNote: tl({ ru: "Для этих гонок режим не записан, поэтому Простой и Pro здесь вместе.", en: "These races have no recorded mode, so Simple and Pro are together here.", pl: "Te wyścigi nie mają zapisanego trybu, więc Prosty i Pro są tu razem.", es: "Estas regatas no tienen modo registrado, así que Sencillo y Pro van juntos.", fr: "Ces courses n'ont pas de mode enregistré : Simple et Pro sont donc ensemble ici.", de: "Für diese Rennen ist kein Modus erfasst, daher stehen Einfach und Pro hier zusammen.", it: "Per queste regate la modalità non è registrata, quindi Semplice e Pro sono insieme." }),
     loading: tl({ ru: "Загружаю...", en: "Loading...", pl: "Ładowanie...", es: "Cargando...", fr: "Chargement...", de: "Wird geladen...", it: "Caricamento..." }),
     empty: tl({ ru: "Пока никто не финишировал. Стань первым!", en: "No results yet. Be the first!", pl: "Nikt jeszcze nie dopłynął do mety. Bądź pierwszy!", es: "Aún no hay resultados. ¡Sé el primero!", fr: "Pas encore de résultats. Sois le premier !", de: "Noch keine Ergebnisse. Sei der Erste!", it: "Ancora nessun risultato. Sii il primo!" }),

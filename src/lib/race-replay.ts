@@ -1,6 +1,6 @@
 import type { NativeRaceSnapshot } from "./race-native";
 import { makeStandardCourse } from "./race-physics";
-import { readRaceContext, type RaceContext, type ReadRaceContext } from "./race-context";
+import { readRaceContext, type PhysicalRaceProfile, type RaceContext, type ReadRaceContext } from "./race-context";
 import { matchesPhysicalRaceCourse } from "./race-courses";
 import { physicalRaceSamplesValid } from "./physical-race-record";
 export { replayFrame } from "./race-replay-frame";
@@ -121,6 +121,13 @@ export function replayEvents(raw: unknown): ReplayEvent[] {
     }
   }
   return out;
+}
+
+/** M5 step 7: the metric course a shared replay was sailed on (its stored
+ * raceContext), for the scene's scale; null for a legacy replay. */
+export function replayRaceProfile(replay: Pick<SharedReplay, "metadata">): PhysicalRaceProfile | null {
+  const context = replay.metadata.raceContext;
+  return context?.model === "physical-cruiser-v1" ? context.profile : null;
 }
 
 /** Read both old rows and new rows. Bad legacy scenery cannot block the track. */
