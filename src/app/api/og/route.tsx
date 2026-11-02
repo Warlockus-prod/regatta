@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { isLang, type Lang } from '@/lib/languages';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 // Localized OpenGraph/Twitter share image. The language lives in the URL
 // (/api/og?lang=xx) because a link-preview crawler fetches og:image by its own
@@ -15,12 +16,12 @@ const SIZE = { width: 1200, height: 630 };
 // twitter strings. ASCII-only punctuation (project rule); diacritics kept for
 // es/fr/de/it, none for pl.
 const STRINGS: Record<Lang, { headline: string; sub: string; pills: string[] }> = {
-  ru: { headline: 'До регаты неделя?', sub: 'Успеешь разобраться.', pills: ['45 мин', 'AI-тренер', 'Гонка с соперниками', '7 языков'] },
+  ru: { headline: 'До регаты неделя?', sub: 'Успеешь разобраться.', pills: ['45 мин', 'ИИ-тренер', 'Гонка с соперниками', '7 языков'] },
   en: { headline: 'Racing next week?', sub: 'You can still prep.', pills: ['45 min', 'AI coach', 'Race with rivals', '7 languages'] },
   pl: { headline: 'Regaty za tydzien?', sub: 'Zdazysz sie przygotowac.', pills: ['45 min', 'Trener AI', 'Wyscig z rywalami', '7 jezykow'] },
   es: { headline: 'Regata la proxima semana?', sub: 'Aun tienes tiempo de prepararte.', pills: ['45 min', 'Entrenador IA', 'Regata con rivales', '7 idiomas'] },
   fr: { headline: 'Regate la semaine prochaine ?', sub: 'Tu peux encore te preparer.', pills: ['45 min', 'Coach IA', 'Course contre rivaux', '7 langues'] },
-  de: { headline: 'Regatta naechste Woche?', sub: 'Du kannst dich noch vorbereiten.', pills: ['45 Min', 'KI-Coach', 'Rennen gegen Rivalen', '7 Sprachen'] },
+  de: { headline: 'Regatta naechste Woche?', sub: 'Du kannst dich noch vorbereiten.', pills: ['45 Min', 'KI-Trainer', 'Rennen gegen Rivalen', '7 Sprachen'] },
   it: { headline: 'Regata la prossima settimana?', sub: 'Hai ancora tempo per prepararti.', pills: ['45 min', 'Coach IA', 'Regata con rivali', '7 lingue'] },
 };
 
@@ -52,7 +53,7 @@ export function GET(req: Request) {
             <path d="M2 20l8-2-6-6-2 8z" />
             <path d="M18 4l2 2-8 8" />
           </svg>
-          <span>REGATTA · SAILING TRAINER</span>
+          <span>{UI_TERMS.brand.en}</span>
         </div>
 
         {/* Main headline (wraps within the padded width for longer languages) */}

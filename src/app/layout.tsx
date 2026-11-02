@@ -53,9 +53,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogByLang: Record<Lang, { title: string; description: string; locale: string; twitter: string }> = {
     ru: {
       title: 'Week to Regatta - тренажёр парусного спорта',
-      description: 'Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. AI-тренер разбирает твою гонку.',
+      description: 'Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. ИИ-тренер разбирает твою гонку.',
       locale: 'ru_RU',
-      twitter: 'До регаты неделя? Успеешь разобраться. AI-тренер + гонка с соперниками в браузере.',
+      twitter: 'До регаты неделя? Успеешь разобраться. ИИ-тренер + гонка с соперниками в браузере.',
     },
     en: {
       title: 'Week to Regatta - Sailing Simulator',
@@ -83,9 +83,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     de: {
       title: 'Week to Regatta - Segelsimulator',
-      description: 'Interaktiver Segeltrainer für alle, die bald eine Regatta segeln. Wind, Kurse, Segel und Taktik in 45 Minuten. Ein KI-Coach analysiert dein Rennen.',
+      description: 'Interaktiver Segeltrainer für alle, die bald eine Regatta segeln. Wind, Kurse, Segel und Taktik in 45 Minuten. Ein KI-Trainer analysiert dein Rennen.',
       locale: 'de_DE',
-      twitter: 'Regatta nächste Woche? Du kannst dich noch vorbereiten. KI-Coach + Rennen gegen Gegner im Browser.',
+      twitter: 'Regatta nächste Woche? Du kannst dich noch vorbereiten. KI-Trainer + Rennen gegen Gegner im Browser.',
     },
     it: {
       title: 'Week to Regatta - simulatore di vela',

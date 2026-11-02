@@ -990,6 +990,9 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/weather/index.ts` - выбор провайдера и общий вход.
 - `src/lib/product/catalog.ts` - информационная архитектура: 5 разделов, маршруты, подписи на 7 языках.
 - `src/lib/product/catalog.test.ts` - тесты маршрутов и поиска по каталогу.
+- `src/lib/product/ui-terms.ts` - единый словарь слов UI сайта и приложения (пакет 10): режимы «Простой» и «Pro», «Ещё раз», «Разбор гонки», «ИИ-тренер», бренд «Week to Regatta» и короткий логотип «Regatta», раздел и одна гонка (PL «Regaty» / «Wyścig»), единицы уз / м / с / мин; реэкспорт из `src/lib/product/catalog.ts`, `RACE_UNITS` и `RACE_MODE_LABELS` (`RACE_MODES`) это те же объекты, без копий.
+- `src/lib/product/ui-terms.test.ts` - сайт и приложение показывают одни слова: значения сайта и `mobile/src/game/copy.ts`, `mobile/src/home/copy.ts` равны словарю, экраны с термином внутри читают `UI_TERMS`, в копирайте приложения нет своей копии слова словаря.
+- `src/lib/product/ui-terms-variants.test.ts` - сканер синтаксического дерева `src/`, `mobile/src`, `mobile/app` (только видимый текст, без идентификаторов, комментариев и банка sternik): нет «Обычный» как режима, RU «Про», DE «Profi», «AI-тренер», «Еще раз», «REGATTA» заглавными, латинских kn / m / min в русском тексте и в шаблоне только из числа и единицы.
 - `src/lib/product/copy.ts` - общие тексты оболочки.
 - `src/lib/sternik-progress.ts` - прогресс курса sternik в localStorage.
 - `src/lib/db.leaderboard.test.ts` - SQL лидербордов на настоящем файле SQLite: одна настоящая лучшая строка на sid, миссии не попадают в свободные бакеты, полуоткрытое окно дня.

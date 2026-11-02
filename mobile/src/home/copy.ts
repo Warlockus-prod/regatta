@@ -1,4 +1,4 @@
-import { words, type Label } from "../../../src/lib/product/catalog";
+import { UI_TERMS, words, type Label } from "../../../src/lib/product/catalog";
 import { homeEntryCopy } from "../../../src/lib/product/home-entry";
 import { raceHubCopy } from "../../../src/lib/product/race-hub";
 
@@ -9,7 +9,8 @@ import { raceHubCopy } from "../../../src/lib/product/race-hub";
  * rules.
  */
 export const homeCopy = {
-  brand: "WEEK TO REGATTA",
+  // Package 10: the product name as the site writes it (src/lib/product/ui-terms.ts).
+  brand: UI_TERMS.brand,
   // Package 9: the first entry uses the website's words (src/lib/product/home-entry.ts).
   value: homeEntryCopy.value,
   valueDetail: homeEntryCopy.valueDetail,

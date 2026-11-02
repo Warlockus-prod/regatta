@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { useI18n } from '@/lib/i18n';
+import { RACE_UNITS } from '@/features/race-hud/units';
 import { legacyPick } from '@/lib/languages';
 import type { CameraView } from "../simulator-3d/camera";
 import { getBoatParams } from '@/lib/sailing-physics';
@@ -533,7 +534,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                   helm={helmTarget}
                   hideHint={Boolean(ui.mainTrim)}
                   main={ui.mainTrim ? mainTrimWheelTarget(ui.mainTrim, sim.session.mainTrim?.pose.yaw ?? sim.liveMainAngle,
-                    workingLength => setUi(p => p.mainTrim ? { ...p, mainTrim: { ...p.mainTrim, workingLength } } : p)) : {
+                    workingLength => setUi(p => p.mainTrim ? { ...p, mainTrim: { ...p.mainTrim, workingLength } } : p), RACE_UNITS.metres[lang]) : {
                     ease: Math.min(1, Math.max(0, ui.mainAngle / params.mainMaxOff)),
                     angleDeg: ui.mainAngle,
                     setEase: (v) => setUi((p) => ({ ...p, mainAngle: Math.round(v * params.mainMaxOff * 10) / 10 })),

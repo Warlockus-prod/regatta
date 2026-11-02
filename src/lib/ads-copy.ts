@@ -31,7 +31,7 @@ export const adsCopy = {
   clear: words("Очистить журнал", "Clear journal", "Wyczyść dziennik", "Borrar registro", "Effacer le journal", "Protokoll leeren", "Svuota registro"),
   empty: words("Действий пока нет", "No actions yet", "Brak działań", "Aún no hay acciones", "Aucune action", "Noch keine Aktionen", "Nessuna azione"),
   loading: words("Загружаем сцену", "Loading scene", "Ładowanie sceny", "Cargando escena", "Chargement de la scène", "Szene wird geladen", "Caricamento scena"),
-  error: words("Не удалось открыть 3D. Попробуй еще раз или вернись в настройки.", "Could not open 3D. Try again or return to Settings.", "Nie udało się otworzyć 3D. Spróbuj ponownie lub wróć do ustawień.", "No se pudo abrir el 3D. Inténtalo de nuevo o vuelve a Ajustes.", "Impossible d'ouvrir la 3D. Réessayez ou revenez aux réglages.", "3D konnte nicht geöffnet werden. Erneut versuchen oder zu den Einstellungen zurückkehren.", "Impossibile aprire il 3D. Riprova o torna alle Impostazioni."),
-  retry: words("Попробовать еще раз", "Try again", "Spróbuj ponownie", "Reintentar", "Réessayer", "Erneut versuchen", "Riprova"),
+  error: words("Не удалось открыть 3D. Попробуй ещё раз или вернись в настройки.", "Could not open 3D. Try again or return to Settings.", "Nie udało się otworzyć 3D. Spróbuj ponownie lub wróć do ustawień.", "No se pudo abrir el 3D. Inténtalo de nuevo o vuelve a Ajustes.", "Impossible d'ouvrir la 3D. Réessayez ou revenez aux réglages.", "3D konnte nicht geöffnet werden. Erneut versuchen oder zu den Einstellungen zurückkehren.", "Impossibile aprire il 3D. Riprova o torna alle Impostazioni."),
+  retry: words("Попробовать ещё раз", "Try again", "Spróbuj ponownie", "Reintentar", "Réessayer", "Erneut versuchen", "Riprova"),
   back: words("Вернуться в настройки", "Return to Settings", "Wróć do ustawień", "Volver a Ajustes", "Retour aux réglages", "Zu den Einstellungen", "Torna alle Impostazioni"),
 };

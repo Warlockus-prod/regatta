@@ -17,6 +17,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { formatRecordTime, type BestRecord } from '@/lib/best-times';
 import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
 import { raceJudgeCopy } from '@/data/race-judge-copy';
@@ -319,8 +320,7 @@ export function RaceResults({
   const ai = coachingSource === "ai";
   const stage = summary.finished ? null : dnfStage(playerLapDone);
   const practice = (mistake: Coaching['mistakes'][number] | undefined) => practiceReturn ? practiceForCoachMistake(mistake) : null;
-  const coachLabel = coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
-    { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' });
+  const coachLabel = coachingSource === "local" ? copy.debrief : tl(UI_TERMS.aiCoach);
   return (
         <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
           <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
@@ -505,8 +505,7 @@ export function RaceResults({
                   {aiCoachingLoading && <AnalyzingProgress />}
                   {aiCoachingError && !aiCoaching && <p className="mt-2 text-sm text-[var(--text-muted)]">{aiCoachingError}</p>}
                   {aiCoaching && <>
-                    <h3 className="mb-2 text-sm font-semibold text-[var(--text-secondary)]">{tp('AI-тренер', 'AI coach', 'Trener AI',
-                      { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' })}</h3>
+                    <h3 className="mb-2 text-sm font-semibold text-[var(--text-secondary)]">{tl(UI_TERMS.aiCoach)}</h3>
                     <AiDisclosure />
                     <CoachingDetails coaching={aiCoaching} practice={practice} practiceReturn={practiceReturn} nativeRace={nativeRace}
                       onWatch={replayDisabled ? undefined : onWatch} />

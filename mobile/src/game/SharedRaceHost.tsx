@@ -6,6 +6,7 @@ import { Button, Screen, Text } from "../../src/design-system/components";
 import { AppSurface, appStackOptions } from "../../src/design-system/surface";
 import { colors } from "../../src/design-system/tokens";
 import { useI18n } from "../../src/i18n/context";
+import { UI_TERMS } from "../../../src/lib/product/catalog";
 import { raceEntryQuery, raceNativeDestination } from "../../src/navigation/race-entry";
 import { loadRaceById } from "../../src/persistence/race-history";
 import { saveNativeRace, raceHistoryResponse, raceHistoryFailure } from "../../src/persistence/race-native";
@@ -145,7 +146,7 @@ export default function SharedRaceHost({ savedReplayId }: { savedReplayId?: stri
     }
   }, [lang, query.daily, query.fromLesson, replayId, router, persistStorage, analytics, storageEpoch, acceptBestStore]);
 
-  const title = tp("Гонка", "Race", "Wyścig", { es: "Regata", fr: "Course", de: "Rennen", it: "Regata" });
+  const title = UI_TERMS.race[lang];
   if (!storage.ready || !replayReady) return <AppSurface><Screen>
     <Stack.Screen options={{ ...appStackOptions, headerShown: true, title, headerBackVisible: false,
       headerLeft: () => query.fromLesson

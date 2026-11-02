@@ -128,9 +128,21 @@ function sailByHint(profile: PhysicalRaceProfile, windStrengthMul = 1, planner: 
 const PROFILES: readonly PhysicalRaceProfile[] = ["short", "medium", "long"];
 const WINDS = [0.65, 1, 1.3] as const;
 
+// A hint-following race is deterministic, so the closed-loop, baseline and
+// first-race-hint tests share one run per profile and wind instead of each
+// sailing it again (the long first-race test sailed three long races and
+// timed out under full-suite load, 2.1 s alone).
+const hintRuns = new Map<string, HintRun>();
+function hintRun(profile: PhysicalRaceProfile, wind: number): HintRun {
+  const key = `${profile}:${wind}`;
+  let run = hintRuns.get(key);
+  if (!run) hintRuns.set(key, run = sailByHint(profile, wind));
+  return run;
+}
+
 describe("metric route hint followed by course assist (closed loop)", () => {
   for (const profile of PROFILES) for (const wind of WINDS) it(`${profile} x${wind}: finishes in gate order with few tacks, outside the no-go`, () => {
-    const run = sailByHint(profile, wind);
+    const run = hintRun(profile, wind);
     const label = JSON.stringify({ ...run, hints: undefined });
     if (process.env.RACE_GATE_TRACE === "1") console.log(`LOOP ${profile} x${wind} finish ${run.finishTime?.toFixed(1)} tacks ${run.tacksOnBeat} x ${run.minX.toFixed(0)}..${run.maxX.toFixed(0)} minTWA ${run.minHintTwa.toFixed(1)}`);
     expect(run.samples).toBeGreaterThan(100);
@@ -153,7 +165,7 @@ describe("metric route hint followed by course assist (closed loop)", () => {
   // tacks well over the hint's limit on medium and long.
   const HINT_TACKS: Record<PhysicalRaceProfile, number> = { short: 2, medium: 2, long: 3 };
   for (const profile of PROFILES) it(`${profile}: tacks far less than the bots' planner followed the same way (baseline, M5 prototype 3 / 8 / 15)`, () => {
-    const bot = sailByHint(profile, 1, "bot").tacksOnBeat, hint = sailByHint(profile, 1).tacksOnBeat;
+    const bot = sailByHint(profile, 1, "bot").tacksOnBeat, hint = hintRun(profile, 1).tacksOnBeat;
     if (process.env.RACE_GATE_TRACE === "1") console.log("TACKS", profile, "bot", bot, "hint", hint);
     expect(hint).toBe(HINT_TACKS[profile]);
     if (profile !== "short") expect(bot).toBeGreaterThan(TACK_LIMIT[profile]);
@@ -164,19 +176,17 @@ describe("metric route hint followed by course assist (closed loop)", () => {
   // and each side of a metric tack is shorter than noGoSec), the first tack
   // and the mark approach fire, and the approach comes while the toast can
   // still be read before the zone: 3-8 s measured (4 hull lengths).
-  for (const profile of PROFILES) it(`${profile}: first race hints fire at real speed, never no-go on an ordinary tack`, () => {
-    for (const wind of WINDS) {
-      const run = sailByHint(profile, wind);
-      const ids = run.hints.map(h => h.id);
-      expect(ids, `${wind}`).not.toContain("no-go");
-      expect(ids, `${wind}`).toContain("first-tack");
-      expect(ids, `${wind}`).toContain("mark-approach");
-      const approach = run.hints.find(h => h.id === "mark-approach")!.t;
-      const lead = run.zoneAt! - approach;
-      if (process.env.RACE_GATE_TRACE === "1") console.log("LEAD", profile, wind, lead.toFixed(1), run.hints.map(h => `${h.id}@${h.t.toFixed(1)}`).join(" "));
-      expect(lead, `${profile} x${wind} lead ${lead.toFixed(1)} s`).toBeGreaterThanOrEqual(HINT_TIMING.readSec);
-      expect(lead, `${profile} x${wind} lead ${lead.toFixed(1)} s`).toBeLessThanOrEqual(HINT_TIMING.gapSec);
-    }
+  for (const profile of PROFILES) for (const wind of WINDS) it(`${profile} x${wind}: first race hints fire at real speed, never no-go on an ordinary tack`, () => {
+    const run = hintRun(profile, wind);
+    const ids = run.hints.map(h => h.id);
+    expect(ids, `${wind}`).not.toContain("no-go");
+    expect(ids, `${wind}`).toContain("first-tack");
+    expect(ids, `${wind}`).toContain("mark-approach");
+    const approach = run.hints.find(h => h.id === "mark-approach")!.t;
+    const lead = run.zoneAt! - approach;
+    if (process.env.RACE_GATE_TRACE === "1") console.log("LEAD", profile, wind, lead.toFixed(1), run.hints.map(h => `${h.id}@${h.t.toFixed(1)}`).join(" "));
+    expect(lead, `${profile} x${wind} lead ${lead.toFixed(1)} s`).toBeGreaterThanOrEqual(HINT_TIMING.readSec);
+    expect(lead, `${profile} x${wind} lead ${lead.toFixed(1)} s`).toBeLessThanOrEqual(HINT_TIMING.gapSec);
   });
 });
 
@@ -191,9 +201,11 @@ describe("metric route hint followed by course assist (closed loop)", () => {
 // design line (15 of 3192, mostly x1.3 with the gate overstood on starboard)
 // still sail past the narrow gate and come round again: open, ADR-0015.
 describe("metric route hint never sails into the windward mark", () => {
-  for (const wind of WINDS) it(`short x${wind}: from 90 starts below the mark, the gate is crossed without touching the mark`, () => {
+  // One test per wind and start heading (45 starts each), so no single test
+  // carries all 90 races under full-suite load.
+  for (const wind of WINDS) for (const heading of [45, 315]) it(`short x${wind}, heading ${heading}: from 45 starts below the mark, the gate is crossed without touching the mark`, () => {
     const misses: string[] = [];
-    for (const east of [-40, -30, -20, -10, 0, 10, 20, 30, 40]) for (const south of [15, 20, 30, 40, 60]) for (const heading of [45, 315]) {
+    for (const east of [-40, -30, -20, -10, 0, 10, 20, 30, 40]) for (const south of [15, 20, 30, 40, 60]) {
       // A start already inside touching distance plus a hull cannot be helped.
       if (Math.hypot(east, south) < 14) continue;
       const run = sailByHint("short", wind, "hint", { eastMetres: east, southMetres: south, heading, speedKn: 5 });

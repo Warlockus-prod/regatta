@@ -5,6 +5,7 @@
 
 import type { Lang } from "@/lib/languages";
 import type { BestRecord } from "@/lib/best-times";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { formatTime, type RaceResultRow } from "./race-model";
 
 type Copy = Record<Lang, string>;
@@ -135,7 +136,7 @@ export const FINISH_COPY = {
     es: "Del entrenador IA, puede equivocarse", fr: "Du coach IA, peut se tromper", de: "Vom KI-Trainer, kann sich irren", it: "Dal coach IA, può sbagliare",
   },
   nextGoal: { ru: "Следующая цель", en: "Next goal", pl: "Następny cel", es: "Próximo objetivo", fr: "Prochain objectif", de: "Nächstes Ziel", it: "Prossimo obiettivo" },
-  again: { ru: "Еще раз", en: "Again", pl: "Jeszcze raz", es: "Otra vez", fr: "Rejouer", de: "Noch mal", it: "Di nuovo" },
+  again: UI_TERMS.again,
   judge: { ru: "Судья", en: "Judge", pl: "Sędzia", es: "Juez", fr: "Juge", de: "Schiedsrichter", it: "Giudice" },
   fleet: { ru: "Результаты флота", en: "Fleet results", pl: "Wyniki floty", es: "Resultados de la flota", fr: "Résultats de la flotte", de: "Ergebnisse der Flotte", it: "Risultati della flotta" },
   share: { ru: "Поделиться повтором", en: "Share the replay", pl: "Udostępnij powtórkę", es: "Compartir la repetición", fr: "Partager le replay", de: "Wiederholung teilen", it: "Condividi il replay" },

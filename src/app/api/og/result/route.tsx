@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { rateLimitWithGlobal, clientIpKey } from '@/lib/rate-limit';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 export const runtime = 'nodejs';
 
@@ -71,7 +72,7 @@ export async function GET(req: Request) {
             <path d="M2 20l8-2-6-6-2 8z" />
             <path d="M18 4l2 2-8 8" />
           </svg>
-          <span>REGATTA</span>
+          <span>{UI_TERMS.brand.en}</span>
         </div>
 
         {/* main */}

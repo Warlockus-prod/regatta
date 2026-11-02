@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import {
   Button,
   Card,
@@ -90,7 +91,7 @@ type LoadState =
   | { status: 'error' };
 
 export default function Spots() {
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   // Track the in-flight request's index so a slow earlier response can't
@@ -150,7 +151,8 @@ export default function Spots() {
     },
   );
 
-  const unitKn = tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' });
+  // Package 10: the knot sign of the shared dictionary ("уз", "w.", "nd", "kn").
+  const unitKn = tl(UI_TERMS.knots);
 
   const fromLabel = tp('от', 'from', 'z', {
     es: 'del',
@@ -450,6 +452,7 @@ function WindReadout({
   waveLabel,
   currentLabel,
 }: WindReadoutProps) {
+  const { tl } = useI18n();
   const speed = Math.round(data.wind.speedKn);
   const dirDeg = Math.round(data.wind.dirDeg);
   return (
@@ -481,9 +484,7 @@ function WindReadout({
           <View style={styles.metaItem}>
             <Text variant="muted" style={styles.metaLabel}>{waveLabel}</Text>
             <Text style={styles.metaValue}>
-              {`${data.wave.heightM.toFixed(1)} m / ${Math.round(
-                data.wave.periodS,
-              )} s`}
+              {`${data.wave.heightM.toFixed(1)} ${tl(UI_TERMS.metres)} / ${Math.round(data.wave.periodS)} ${tl(UI_TERMS.seconds)}`}
             </Text>
           </View>
         ) : null}

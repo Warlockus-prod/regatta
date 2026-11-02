@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import {
   Button,
   Card,
@@ -44,7 +45,7 @@ type LoadState =
  * a stack of Cards (overall, mistakes, strengths, next goal).
  */
 export default function Coach() {
-  const { tp, lang } = useI18n();
+  const { tp, tl, lang } = useI18n();
   const analytics = useAnalytics();
   const router = useRouter();
   const params = useLocalSearchParams<{ raceId?: string }>();
@@ -177,12 +178,8 @@ export default function Coach() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.kind]);
 
-  const title = validateNativeRace(race?.webRace) ? tp("Разбор гонки", "Race debrief", "Omówienie regat", { es: "Análisis de la regata", fr: "Bilan de la course", de: "Rennauswertung", it: "Analisi della regata" }) : tp('AI тренер', 'AI coach', 'Trener AI', {
-    es: 'Coach IA',
-    fr: 'Coach IA',
-    de: 'KI-Coach',
-    it: 'Coach IA',
-  });
+  // Package 10: the same two titles as the site (src/lib/product/ui-terms.ts).
+  const title = tl(validateNativeRace(race?.webRace) ? UI_TERMS.raceDebrief : UI_TERMS.aiCoach);
   const loadingLabel = tp(
     'Тренер анализирует гонку...',
     'Coach is analysing the race...',

@@ -170,7 +170,7 @@ export default function ChapterCheck({
             className="min-h-[46px] rounded-xl border px-5 text-sm font-bold"
             style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
           >
-            {radioText(tp("Пройти еще раз", "Try again", "Spróbuj ponownie"))}
+            {radioText(tp("Пройти ещё раз", "Try again", "Spróbuj ponownie"))}
           </button>
           <Link
             href={chapter.practiceHref}

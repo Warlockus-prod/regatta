@@ -218,11 +218,18 @@ debrief. `src/app/game/race-terms.test.ts` pins the mark terms.
   regata"; FR keeps the title "Revoir la course" and the noun "replay" ("Partager
   le replay"). Russian never writes "replay" in Latin letters.
 - Russian "ё": optional in Russian. The race dictionaries do not write it
-  ("Еще раз", "пересек", "развернут"), and the TestFlight notes quote the
-  buttons the same way, so the result button stays "Еще раз". Fixed names keep
-  it ("Тренажёр трима", the difficulty "Лёгкий"), and so does the briefing,
-  which was written with it ("мёртвая зона", "Идёшь", "ведёт"). Inside one
-  string use one spelling only.
+  ("пересек", "развернут"). Exception since package 10: the repeat button is
+  "Ещё раз" everywhere, site and app (`UI_TERMS.again` in
+  `src/lib/product/ui-terms.ts`, most of the RU UI already wrote it so; a test
+  rejects "Еще раз"). Fixed names keep it ("Тренажёр трима", the difficulty
+  "Лёгкий"), and so does the briefing, which was written with it ("мёртвая
+  зона", "Идёшь", "ведёт"). Inside one string use one spelling only.
+- One UI dictionary (package 10): race modes "Простой" / "Pro" in every
+  language (ES "Sencillo"), never "Обычный", RU "Про" or DE "Profi"; RU
+  "ИИ-тренер", never "AI-тренер"; the product name in copy is "Week to
+  Regatta", "Regatta" only as the short header logo, never "REGATTA" in
+  capitals (the radio call "REGATTA FLEET" is a radio phrase). Units come from
+  `UI_TERMS`: Russian "уз", "м", "мин", never "kn", "m", "min".
 - Sheets in key hints always named in full (FR "Q/A écoute de grand-voile, W/S
   écoute de foc"), per the sheet rule above.
 

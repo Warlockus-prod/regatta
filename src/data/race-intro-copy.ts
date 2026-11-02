@@ -68,7 +68,7 @@ export const RACE_INTRO_COPY = {
         "In Pro liegen Großschot und Fockschot neben dem Steuer: Hol sie dicht oder fier sie, damit die Segel ziehen. Tasten Q/A und W/S.",
         "In Pro accanto al timone ci sono la scotta della randa e la scotta del fiocco: cazzale e lascale perché le vele spingano. Tasti Q/A e W/S."),
       simple: w(
-        "В режиме «Обычный» паруса настраиваются сами. В Pro по бокам от руля будут гика-шкот и стаксель-шкот.",
+        "В режиме «Простой» паруса настраиваются сами. В Pro по бокам от руля будут гика-шкот и стаксель-шкот.",
         "In Simple mode the sails trim themselves. In Pro the mainsheet and the jib sheet sit beside the helm.",
         "W trybie Prosty żagle ustawiają się same. W Pro obok steru są szot grota i szot foka.",
         "En el modo Sencillo las velas se ajustan solas. En Pro, junto al timón están la escota de mayor y la escota de foque.",

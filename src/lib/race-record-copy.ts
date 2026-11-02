@@ -1,4 +1,5 @@
 import type { Lang } from "./languages";
+import { UI_TERMS } from "./product/ui-terms";
 import type { RaceClassId } from "./race-context";
 import { raceContextForClassId, type RaceComparison } from "./race-record-class";
 
@@ -19,8 +20,8 @@ export const RACE_RECORD_COPY = {
   physicalShort: { ru: "Короткая дистанция", en: "Short course", pl: "Krótka trasa", es: "Recorrido corto", fr: "Parcours court", de: "Kurze Bahn", it: "Percorso breve" },
   physicalMedium: { ru: "Средняя дистанция", en: "Medium course", pl: "Średnia trasa", es: "Recorrido medio", fr: "Parcours moyen", de: "Mittlere Bahn", it: "Percorso medio" },
   physicalLong: { ru: "Длинная дистанция", en: "Long course", pl: "Długa trasa", es: "Recorrido largo", fr: "Parcours long", de: "Lange Bahn", it: "Percorso lungo" },
-  simple: { ru: "Обычный", en: "Simple", pl: "Prosty", es: "Sencillo", fr: "Simple", de: "Einfach", it: "Semplice" },
-  pro: { ru: "Pro", en: "Pro", pl: "Pro", es: "Pro", fr: "Pro", de: "Pro", it: "Pro" },
+  simple: UI_TERMS.modeSimple,
+  pro: UI_TERMS.modePro,
   easy: { ru: "Лёгкий", en: "Easy", pl: "Łatwy", es: "Fácil", fr: "Facile", de: "Leicht", it: "Facile" },
   difficultyMedium: { ru: "Средний", en: "Medium", pl: "Średni", es: "Medio", fr: "Moyen", de: "Mittel", it: "Medio" },
   hard: { ru: "Сложный", en: "Hard", pl: "Trudny", es: "Difícil", fr: "Difficile", de: "Schwer", it: "Difficile" },

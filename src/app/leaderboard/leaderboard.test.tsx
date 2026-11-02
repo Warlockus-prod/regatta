@@ -60,7 +60,7 @@ describe("leaderboard page", () => {
     expect(html).toContain('data-testid="leaderboard-unrecorded"');
     expect(html.match(/role="radiogroup"/g)).toHaveLength(4);
     expect(html.match(/role="radio"/g)).toHaveLength(2 + 2 + 3 + 3);
-    expect(html).toMatch(/role="radio" aria-checked="true"[^>]*>(Обычный|Simple|Prosty|Sencillo|Einfach|Semplice)</);
+    expect(html).toMatch(/role="radio" aria-checked="true"[^>]*>(Простой|Simple|Prosty|Sencillo|Einfach|Semplice)</);
     expect(html).toMatch(/role="radio" aria-checked="false"[^>]*>Pro</);
     expect(html).not.toMatch(EMOJI);
     if (lang !== "en") expect(html).not.toMatch(/>(Leaderboard|Free race|Control mode|Loading\.\.\.)</);

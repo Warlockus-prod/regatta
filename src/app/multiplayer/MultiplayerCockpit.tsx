@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { useControlLabels } from "@/features/trainer-controls/labels";
 import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/prefs";
 import { WheelDeck } from "@/features/trainer-controls/WheelDeck";
@@ -100,7 +101,7 @@ export function MultiplayerCockpit(p: {
   return <div className={styles.cockpit} data-testid="multiplayer-cockpit">
     <header className={styles.toolbar}>
       <button type="button" onClick={p.onLeave}>{c.menu}</button>
-      <strong>REGATTA <span>{online}</span></strong>
+      <strong>{tl(UI_TERMS.brandShort)} <span>{online}</span></strong>
       <span className={local.identity}>{p.code}</span>
     </header>
     <div className={styles.metrics}>

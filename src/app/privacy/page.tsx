@@ -339,7 +339,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong>
-                {tp('OpenAI (AI-тренер и чат-ассистенты)', 'OpenAI (AI coach and chat assistants)', 'OpenAI (trener AI i asystenci czatu)',
+                {tp('OpenAI (ИИ-тренер и чат-ассистенты)', 'OpenAI (AI coach and chat assistants)', 'OpenAI (trener AI i asystenci czatu)',
                   { es: 'OpenAI (entrenador IA y asistentes de chat)', fr: 'OpenAI (coach IA et assistants de chat)', de: 'OpenAI (KI-Trainer und Chat-Assistenten)', it: 'OpenAI (coach IA e assistenti di chat)' })}
               </strong>: {tp(
                 'когда ты запрашиваешь AI-разбор гонки, лог гонки (без личных данных) отправляется в OpenAI. Когда ты пишешь AI-ассистенту (чат на этом сайте, AI-инструктор на /sternik, который также получает текущий вопрос, и «Спросить ассистента» в приложении для iPhone), твой текст и переписка идут через наш сервер в OpenAI, который пишет ответ. Мы этот текст не храним. По условиям API OpenAI не использует такие запросы для обучения моделей и может хранить их до 30 дней для контроля злоупотреблений.',
@@ -431,7 +431,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section
-          title={tp('AI-тренер и ассистенты: дополнительно', 'AI coach and assistants: additional notes', 'Trener AI i asystenci: dodatkowe informacje',
+          title={tp('ИИ-тренер и ассистенты: дополнительно', 'AI coach and assistants: additional notes', 'Trener AI i asystenci: dodatkowe informacje',
             { es: 'Entrenador IA y asistentes: notas adicionales', fr: 'Coach IA et assistants : informations complémentaires', de: 'KI-Trainer und Assistenten: weitere Hinweise', it: 'Coach IA e assistenti: note aggiuntive' })}
         >
           <p className="text-sm">
@@ -525,7 +525,7 @@ export default function PrivacyPage() {
           </p>
           <p className="text-sm">
             {tp(
-              '2026-10-19: поставщиком AI-тренера и всех чат-ассистентов указан OpenAI (раньше по ошибке был указан Anthropic); добавлены сетевые запросы приложения для iPhone, голосовые ответы на тренировке устного экзамена /sternik, сроки хранения cookie (включая cookie Google Analytics), сохраняемые технические поля, сообщения, которые ты нам отправляешь, PostHog, Telegram и YouTube; regatta_sid назван псевдонимным идентификатором; исправлено описание резервных копий.',
+              '2026-10-19: поставщиком ИИ-тренера и всех чат-ассистентов указан OpenAI (раньше по ошибке был указан Anthropic); добавлены сетевые запросы приложения для iPhone, голосовые ответы на тренировке устного экзамена /sternik, сроки хранения cookie (включая cookie Google Analytics), сохраняемые технические поля, сообщения, которые ты нам отправляешь, PostHog, Telegram и YouTube; regatta_sid назван псевдонимным идентификатором; исправлено описание резервных копий.',
               '2026-10-19: OpenAI is named as the provider of the AI coach and all chat assistants (the page wrongly named Anthropic); added the iPhone app\'s network use, voice answers in the /sternik oral exam practice, cookie lifetimes (including the Google Analytics cookies), the stored technical fields, messages you send us, PostHog, Telegram and YouTube; regatta_sid is described as a pseudonymous identifier; corrected the backup description.',
               '2026-10-19: jako dostawcę trenera AI i wszystkich asystentów czatu wskazaliśmy OpenAI (wcześniej błędnie podano Anthropic); dodaliśmy połączenia sieciowe aplikacji na iPhone, odpowiedzi głosowe w ćwiczeniu egzaminu ustnego na /sternik, czas przechowywania plików cookie (także plików cookie Google Analytics), zapisywane pola techniczne, wiadomości, które do nas wysyłasz, PostHog, Telegram i YouTube; regatta_sid opisaliśmy jako identyfikator pseudonimowy; poprawiliśmy opis kopii zapasowych.',
               {

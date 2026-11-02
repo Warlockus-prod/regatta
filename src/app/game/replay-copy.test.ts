@@ -20,8 +20,12 @@ const baseline = {
   de: "df6d896852a4ce72ffc5e979a76b5dd265b448cea8cbaa627af3ffe49c8a8f2d",
   it: "a454eeee89235726fa6ca0b24da18501cc87d327742e324f8fa43ac4da2f54da",
 } satisfies Record<Lang, string>;
-/** [current wording, wording the baseline was taken with], 2026-10-31 language pass. */
+/** [current wording, wording the baseline was taken with], 2026-10-31 language pass
+ * and package 10 (the one UI dictionary: the Simple mode is "Простой", owner R-12). */
 const LANGUAGE_PASS: Partial<Record<Lang, ReadonlyArray<readonly [string, string]>>> = {
+  ru: [
+    ['"Простой"', '"Обычный"'],
+  ],
   pl: [
     ["Przepisy treningowe", "Przepisy w treningu"],
     ["Omówienie wyścigu", "Omówienie regat"],

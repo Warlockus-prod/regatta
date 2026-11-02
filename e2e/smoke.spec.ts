@@ -191,11 +191,11 @@ test.describe('Smoke: critical user flows', () => {
     const play = page.locator('main a[data-action="primary"]');
     await expect(play).toHaveCount(1);
     await expect(play).toHaveAttribute("href", "/game?difficulty=easy&wind=medium&play=1");
-    await expect(page.getByTestId("race-play-summary")).toHaveText("Лёгкий · средний ветер · Обычный");
+    await expect(page.getByTestId("race-play-summary")).toHaveText("Лёгкий · средний ветер · Простой");
     await page.evaluate(() => localStorage.setItem("regatta.race.last-setup.v1", JSON.stringify({ v: 1, kind: "free", difficulty: "hard", wind: "light" })));
     await page.reload();
     await expect(play).toHaveAttribute("href", "/game?difficulty=hard&wind=light&play=1");
-    await expect(page.getByTestId("race-play-summary")).toHaveText("Сложный · слабый ветер · Обычный");
+    await expect(page.getByTestId("race-play-summary")).toHaveText("Сложный · слабый ветер · Простой");
     await page.getByRole("link", { name: "Изменить", exact: true }).click();
     await expect(page).toHaveURL(/\/game\?difficulty=hard&wind=light$/);
     await expect(page.getByTestId("race-lobby")).toBeVisible();
@@ -290,7 +290,7 @@ test.describe('Smoke: critical user flows', () => {
       // Another tab may change preferences for the next race, never this race's classification.
       const other = await page.context().newPage();
       await other.goto("/game?embed=1");
-      await other.getByRole("radio", { name: "Обычный", exact: true }).click();
+      await other.getByRole("radio", { name: "Простой", exact: true }).click();
       await other.close();
       await expect(page.getByTestId("race-cockpit").locator("header")).toContainText("PRO");
       // Keyboard sheets work in slider mode and after opening another utility tab.
@@ -308,11 +308,11 @@ test.describe('Smoke: critical user flows', () => {
       await page.getByRole("button", { name: "Продолжить", exact: true }).click();
       await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
       // A mode cannot change after starting and recategorize an auto-trim record.
-      await expect(page.getByRole("radio", { name: "Обычный", exact: true })).toHaveCount(0);
+      await expect(page.getByRole("radio", { name: "Простой", exact: true })).toHaveCount(0);
       await page.getByRole("button", { name: "Меню", exact: true }).click();
       await page.getByRole("button", { name: "Выйти", exact: true }).click();
       await page.getByRole("button", { name: "Выйти", exact: true }).click();
-      await page.getByRole("radio", { name: "Обычный", exact: true }).click();
+      await page.getByRole("radio", { name: "Простой", exact: true }).click();
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
       // The classic course was briefed on the first start: the second goes straight to the countdown.
       await expect(page.getByRole("heading", { name: "Брифинг", exact: true })).toHaveCount(0);

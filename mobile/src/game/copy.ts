@@ -1,10 +1,11 @@
-import { words } from '../../../src/lib/product/catalog';
+import { UI_TERMS, words } from '../../../src/lib/product/catalog';
 
 /** Race setup and race screen strings (7 languages). */
 export const raceCopy = {
   mode: words('Режим гонки', 'Race mode', 'Tryb wyścigu', 'Modo de regata', 'Mode de course', 'Rennmodus', 'Modalità regata'),
-  simple: words('Простой', 'Simple', 'Prosty', 'Sencillo', 'Simple', 'Einfach', 'Semplice'),
-  pro: words('Про', 'Pro', 'Pro', 'Pro', 'Pro', 'Profi', 'Pro'),
+  // Package 10: the mode names are the site's (src/lib/product/ui-terms.ts).
+  simple: UI_TERMS.modeSimple,
+  pro: UI_TERMS.modePro,
   simpleNote: words(
     'Паруса настраиваются сами, ты только рулишь.',
     'The sails trim themselves, you just steer.',

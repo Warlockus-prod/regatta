@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { destinations, type Language } from "@/lib/product/catalog";
+import { UI_TERMS, destinations, type Language } from "@/lib/product/catalog";
 import { copy } from "@/lib/product/copy";
 import { appStoreUrl, trackAppStoreClick } from "@/lib/funnel";
 import { SCENE_STILL_SIZE, SCENE_STILL_WEB, hasMeaningfulStep, homeEntryCopy } from "@/lib/product/home-entry";
@@ -25,7 +25,7 @@ export function HomeView({ lang, snapshot, error, onRetry, raceHref }: { lang: L
   return <div className={styles.page}>
     <div className={styles.intro}>
       <header className={styles.header}>
-        <p className={styles.wordmark}>WEEK TO REGATTA</p>
+        <p className={styles.wordmark}>{UI_TERMS.brand[lang]}</p>
         <h1>{e.value[lang]}</h1>
         <p className={styles.lead}>{e.valueDetail[lang]}</p>
       </header>

@@ -1,12 +1,13 @@
 'use client';
 
 import { useI18n, type Lang } from "@/lib/i18n";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 
 /** Canonical labels shared with the full racing UI, without its rules copy. */
 export const REPLAY_COPY_RESOURCES = {
   view: { ru: "Камера", en: "Camera", pl: "Kamera", es: "Cámara", fr: "Caméra", de: "Kamera", it: "Camera" },
   /** Package 8: the default race camera (R-9). */
-  race: { ru: "Гонка", en: "Race", pl: "Wyścig", es: "Regata", fr: "Course", de: "Regatta", it: "Regata" },
+  race: UI_TERMS.race,
   orbit: { ru: "Вокруг лодки", en: "Around the boat", pl: "Wokół łodzi", es: "Alrededor del barco", fr: "Autour du bateau", de: "Um das Boot", it: "Attorno alla barca" },
   resetCamera: { ru: "Вернуть ракурс", en: "Reset view", pl: "Przywróć widok", es: "Restablecer vista", fr: "Rétablir la vue", de: "Ansicht zurücksetzen", it: "Ripristina vista" },
   high: { ru: "Сверху", en: "Above", pl: "Z góry", es: "Desde arriba", fr: "En hauteur", de: "Von oben", it: "Dall'alto" },

@@ -24,7 +24,7 @@ describe("website Race hub", () => {
     expect(primaries[0][0]).toContain('href="/game?difficulty=easy&amp;wind=medium&amp;play=1"');
     expect(html).toContain(">Играть<");
     expect(html).toMatch(/<a href="\/game\?difficulty=easy&amp;wind=medium"[^>]*>Изменить<\/a>/);
-    expect(html).toContain("Лёгкий · средний ветер · Обычный");
+    expect(html).toContain("Лёгкий · средний ветер · Простой");
     expect(html).toContain(`src="${SCENE_STILL_WEB}"`);
     expect(html).not.toContain('href="/game"');
     expect(html).toContain('href="/multiplayer"');

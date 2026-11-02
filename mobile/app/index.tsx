@@ -127,7 +127,7 @@ export default function Home() {
         <LinearGradient colors={["rgba(8, 40, 60, 0.62)", "rgba(8, 40, 60, 0)"]} locations={[0, 0.42]} style={StyleSheet.absoluteFill} />
         <View style={styles.brand}>
           <Icon name="sail" size={22} color={colors.onPhoto} />
-          <Text style={styles.brandText} maxFontSizeMultiplier={1.3}>{homeCopy.brand}</Text>
+          <Text style={styles.brandText} maxFontSizeMultiplier={1.3}>{homeCopy.brand[lang]}</Text>
         </View>
       </ImageBackground>
 
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   statusStrip: { position: "absolute", top: 0, left: 0, right: 0, backgroundColor: colors.bgPrimary, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderCyanFaint },
   hero: { paddingHorizontal: 20, backgroundColor: "#0c4f6e" },
   brand: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 32 },
-  brandText: { color: colors.onPhoto, fontSize: 13, fontWeight: "700", letterSpacing: 1.6 },
+  brandText: { color: colors.onPhoto, fontSize: 15, fontWeight: "700", letterSpacing: 0.2 },
   sheet: { marginTop: -20, borderTopLeftRadius: radii.sheet, borderTopRightRadius: radii.sheet, backgroundColor: colors.bgPrimary, paddingTop: 20, paddingHorizontal: 20, gap: 24, maxWidth: 760, width: "100%", alignSelf: "center" },
   valueBlock: { gap: 8 },
   value: { fontSize: 28, lineHeight: 34, fontWeight: "700", letterSpacing: -0.4, color: colors.textPrimary },

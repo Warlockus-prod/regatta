@@ -6,6 +6,7 @@
 // (raceUsesHints): only the route and trim hints cost gold.
 
 import type { HintLogKind } from "@/features/race-hud/hint-log";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 
 type Text = { ru: string; en: string; pl: string; es: string; fr: string; de: string; it: string };
 
@@ -30,7 +31,7 @@ export const RACE_HINT_LOG_COPY = {
     hint: { ru: "Подсказка", en: "Hint", pl: "Wskazówka", es: "Consejo", fr: "Conseil", de: "Hinweis", it: "Consiglio" },
     route: { ru: "Маршрут", en: "Route", pl: "Trasa", es: "Ruta", fr: "Parcours", de: "Route", it: "Rotta" },
     trim: { ru: "Трим", en: "Trim", pl: "Trym", es: "Trimado", fr: "Réglage", de: "Trimm", it: "Trim" },
-    race: { ru: "Гонка", en: "Race", pl: "Wyścig", es: "Regata", fr: "Course", de: "Rennen", it: "Regata" },
+    race: UI_TERMS.race,
   } satisfies Record<HintLogKind, Text>,
 } as const;
 

@@ -60,7 +60,7 @@ export const raceMedalCopy = {
   },
   /** Results: the time was fast enough for gold, but hints were on. Gold needs
    * another race with them off; switching them off now grants nothing. */
-  goldWithHints: w("Время было на золото, но подсказки были включены. Проплыви еще раз без них",
+  goldWithHints: w("Время было на золото, но подсказки были включены. Проплыви ещё раз без них",
     "Your time was fast enough for gold, but hints were on. Race again with them off",
     "Twój czas wystarczał na złoto, ale wskazówki były włączone. Popłyń jeszcze raz bez nich",
     "Tu tiempo bastaba para el oro, pero los consejos estaban activados. Vuelve a correr sin ellos",

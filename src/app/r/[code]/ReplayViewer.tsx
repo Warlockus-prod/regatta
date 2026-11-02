@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { sharedReplay, type SharedReplay } from "@/lib/race-replay";
 import { RaceReplay } from "@/app/game/RaceReplay";
 import { trackRaceReplay } from "@/lib/funnel";
 
 export default function ReplayViewer() {
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
   const params = useParams();
   const router = useRouter();
   const rawCode = Array.isArray(params?.code) ? params.code[0] : params?.code;
@@ -43,8 +44,8 @@ export default function ReplayViewer() {
         <button type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href).catch(() => {}); }} className="shrink-0 min-h-11 text-xs text-[var(--accent-cyan)]">{tp("Копировать ссылку", "Copy link", "Kopiuj link", { es: "Copiar enlace", fr: "Copier le lien", de: "Link kopieren", it: "Copia link" })}</button>
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--text-muted)]">
-        <span>{date} · {data.metadata.mode === "pro" ? "Pro" : tp("Обычный", "Simple", "Prosty", { es: "Sencillo", fr: "Simple", de: "Einfach", it: "Semplice" })}</span>
-        {result !== null && <span>{tp("Результат", "Result", "Wynik", { es: "Resultado", fr: "Résultat", de: "Ergebnis", it: "Risultato" })} {formatTime(result)}{data.metadata.penaltySeconds ? ` (+${data.metadata.penaltySeconds} s)` : ""}</span>}
+        <span>{date} · {tl(data.metadata.mode === "pro" ? UI_TERMS.modePro : UI_TERMS.modeSimple)}</span>
+        {result !== null && <span>{tp("Результат", "Result", "Wynik", { es: "Resultado", fr: "Résultat", de: "Ergebnis", it: "Risultato" })} {formatTime(result)}{data.metadata.penaltySeconds ? ` (+${data.metadata.penaltySeconds} ${tl(UI_TERMS.seconds)})` : ""}</span>}
       </div>
     </div>
     <div className="relative min-h-0 flex-1" data-testid="shared-replay-3d">

@@ -17,7 +17,10 @@ describe("foundation content relocation preserves the reviewed native source", (
   });
   it("retains the seven existing guides and module order while adding the reviewed first lesson", () => {
     const { "wind-direction": wind, ...previousGuides } = foundationGuides;
-    expect(sha({ guides: previousGuides, copy: foundationCopy, modules: foundationModules })).toBe("7f8316e30db2e22513cb303b1d77da4b6af76997dda1b37ca3222588e95065e1");
+    // Package 10 changed one spelling only (the one UI dictionary writes "ещё раз"); undo it and the reviewed bytes match.
+    const reviewed = JSON.stringify({ guides: previousGuides, copy: foundationCopy, modules: foundationModules });
+    expect(reviewed).toContain("Попробуй ещё раз перед выходом");
+    expect(createHash("sha256").update(reviewed.split("Попробуй ещё раз перед выходом").join("Попробуй еще раз перед выходом")).digest("hex")).toBe("7f8316e30db2e22513cb303b1d77da4b6af76997dda1b37ca3222588e95065e1");
     expect(wind.goal).toBe(foundationWindLesson.goal);
     expect(wind.explanation).toBe(foundationWindLesson.explanation);
     expect(wind.states).toEqual(windDirectionScene.states.map(state => state.label));

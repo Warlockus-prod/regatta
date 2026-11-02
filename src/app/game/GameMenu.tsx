@@ -151,7 +151,7 @@ export function GameMenu({
       )}
       <div className="mb-5">
         <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
-          {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
+          {raceCopy.race}
         </h1>
         <p className="text-base text-[var(--text-secondary)]">
           {tl({ ru: 'Выбери режим гонки', en: 'Pick a race mode', pl: 'Wybierz tryb wyścigu', es: 'Elige un modo de regata', fr: 'Choisis un mode de course', de: 'Wähle einen Rennmodus', it: 'Scegli una modalità di regata' })}

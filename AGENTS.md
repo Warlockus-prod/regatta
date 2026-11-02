@@ -360,6 +360,7 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
 - Хелперы: для нового кода `tl({ru, en, pl, es, fr, de, it})`; `tp(ru, en, pl,
   {...})` - безопасный путь апгрейда существующих вызовов; `t(ru, en)` - legacy,
   новых вызовов не добавлять.
+- Новые слова UI (режимы, единицы, бренд, повторяющиеся кнопки) только через словарь `UI_TERMS` в `src/lib/product/ui-terms.ts` (реэкспорт из `src/lib/product/catalog.ts`): сайт и приложение читают его, а не свой литерал.
 - Данные: строки в файлах данных лежат как `fieldRu/En/Pl` (обязательные) плюс
   `fieldEs/Fr/De/It` (опциональные), тип `LegacyLocalized`, чтение через
   `legacyPick(obj, 'field', lang)`.

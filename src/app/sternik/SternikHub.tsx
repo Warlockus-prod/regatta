@@ -4,6 +4,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 // Types only, from the bank-free module: the questions never ride in this
 // chunk (page.tsx computes the counts on the server).
 import type { SternikCatId, SternikCategory } from '@/data/sternik-core';
@@ -123,7 +124,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile value={String(exam.questions)} label={tp('вопросов (A/B/C)', 'questions (A/B/C)', 'pytań (A/B/C)')} />
-          <StatTile value={`${exam.minutes} min`} label={tp('на весь тест', 'for the whole test', 'na cały test')} />
+          <StatTile value={`${exam.minutes} ${UI_TERMS.minutes[lang]}`} label={tp('на весь тест', 'for the whole test', 'na cały test')} />
           <StatTile
             value={`${exam.passCorrect}/${exam.questions}`}
             label={tp(`порог сдачи (${exam.passPct}%)`, `pass mark (${exam.passPct}%)`, `próg zdania (${exam.passPct}%)`)}

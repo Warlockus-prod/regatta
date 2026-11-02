@@ -5,13 +5,15 @@
 // Pure module: the race event texts (events.ts) and the React copy hooks
 // (src/app/game/race-copy.ts, navigation-copy.ts) read the same resource.
 
-import type { Lang } from "@/lib/languages";
+// Package 10: the signs themselves live in the one UI dictionary
+// (src/lib/product/ui-terms.ts), shared with Boat 3D, the trim trainer, the
+// spots pages and the app.
 
-export const RACE_UNITS = {
-  knots: { ru: "уз", en: "kn", pl: "w.", es: "kn", fr: "nd", de: "kn", it: "kn" },
-  seconds: { ru: "с", en: "s", pl: "s", es: "s", fr: "s", de: "s", it: "s" },
-  metres: { ru: "м", en: "m", pl: "m", es: "m", fr: "m", de: "m", it: "m" },
-} as const satisfies Record<string, Record<Lang, string>>;
+import type { Lang } from "@/lib/languages";
+import { UI_TERMS } from "@/lib/product/ui-terms";
+
+/** The dictionary itself, typed to its unit signs (no copy, so no second truth). */
+export const RACE_UNITS: Pick<typeof UI_TERMS, "knots" | "seconds" | "metres"> = UI_TERMS;
 
 /** "4.2 уз", "4.2 kn": a speed with one decimal by default. */
 export function knotsText(lang: Lang, knots: number, digits = 1): string {

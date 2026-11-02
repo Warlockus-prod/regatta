@@ -389,7 +389,7 @@ type RaceEntry = { mode?: "simple" | "pro"; embed?: boolean; viewport?: { width:
 
 async function startRace(page: Page, context: BrowserContext, entry: RaceEntry = {}) {
   const mode = entry.mode ?? "simple";
-  const modeLabel = mode === "pro" ? "Pro" : "Обычный";
+  const modeLabel = mode === "pro" ? "Pro" : "Простой";
   // Each journey uses its own real scene, ordinary input and unchanged deadlines.
   await context.addInitScript(() => {
     try {

@@ -9,6 +9,7 @@ import { useSailAudio } from "./audio/useSailAudio";
 import { WindDial } from "./ui/WindDial";
 import { WindGlyph, WindReadout } from "./ui/WindReadout";
 import { useI18n } from "@/lib/i18n";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { PICKABLE_VENUES, shoreLabel, venueLabel } from "../../data/venues/venues";
 import { useVenue } from "../venues/useVenue";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
@@ -115,6 +116,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [guide, setGuide] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
   const { lang, tl } = useI18n();
+  // Package 10: the knot sign of the reader's language ("уз" in Russian), not a fixed "kn".
+  const kn = UI_TERMS.knots[lang];
   const poseLabels = {
     mode: tl({ ru: "Осмотр формы", en: "Inspect shape", pl: "Oglądaj kształt", es: "Explorar forma", fr: "Observer la forme", de: "Form ansehen", it: "Esplora la forma" }),
     boom: tl({ ru: "Угол гика", en: "Boom angle", pl: "Kąt bomu", es: "Ángulo de botavara", fr: "Angle de bôme", de: "Baumwinkel", it: "Angolo del boma" }),
@@ -219,7 +222,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   </>;
   const windReadout = <>
         {mode === "sail" && <WindReadout awa={t.awaSigned} aws={t.awsKn} tws={sim.wind.twsKn}
-          showFlow={showFlow} onToggle={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }} labels={L.scene} />}
+          showFlow={showFlow} onToggle={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }} labels={L.scene} knots={kn} />}
   </>;
   const viewport = <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
@@ -232,7 +235,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         </div>;
   const readouts = mode === "sail" ? <>
           <div className={styles.stats}>
-            <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />
+            <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} ${kn}`} />
             <Readout label={L.heel} value={degrees(t.heelDeg)} />
             <Readout label={L.scene.heading} value={degrees(t.heading)} />
           </div>
@@ -253,14 +256,14 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   </>;
   const reefSlider = <Slider label={L.reef} value={sim.controls.reef} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("reef", v)} />;
   const windControls = <>
-            <Slider label={L.windSpeed} value={sim.wind.twsKn} min={0} max={28} step={1} fmt={(v) => `${v} kn`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
+            <Slider label={L.windSpeed} value={sim.wind.twsKn} min={0} max={28} step={1} fmt={(v) => `${v} ${kn}`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
             <Slider label={L.wind} value={sim.wind.fromDeg} min={0} max={359} step={1} fmt={degrees} onChange={(v) => sim.setWind((w) => ({ ...w, fromDeg: v }))} />
   </>;
   const instruments = <div>
             <WindDial twaSigned={t.twaSigned} awaSigned={t.awaSigned} label={L.scene.windDial} />
-            <Readout label={L.scene.target} value={`${t.targetSpeedKn.toFixed(1)} kn`} />
-            <Readout label="VMG" value={`${t.vmg.toFixed(1)} kn`} />
-            <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} kn / ${degrees(t.awaDeg)}`} />
+            <Readout label={L.scene.target} value={`${t.targetSpeedKn.toFixed(1)} ${kn}`} />
+            <Readout label="VMG" value={`${t.vmg.toFixed(1)} ${kn}`} />
+            <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} ${kn} / ${degrees(t.awaDeg)}`} />
             <Readout label={L.bestVmg} value={degrees(t.vmgTargetAngle)} />
           </div>;
   // toggle() saves the race sound choice first, so this trainer write cannot mute the race (M3-2).
@@ -351,7 +354,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
       <div className={styles.statsRow}>
         {!wheels && <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />}
         <div className={styles.stats4}>
-          <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />
+          <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} ${kn}`} />
           <Readout label={L.heel} value={degrees(t.heelDeg)} />
           <Readout label={L.scene.heading} value={degrees(t.heading)} />
           <div className={styles.readout}><span>AWA</span><strong className={styles.windCell}>
