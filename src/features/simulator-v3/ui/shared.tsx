@@ -94,15 +94,17 @@ export interface SimulationModel {
 // stalled equilibrium if we seed with bad trim (low bs -> AWA stays close to
 // TWA -> sail AoA in stall zone -> low drive -> low bs...). Picking sane
 // default sail angles avoids that bad-first-impression.
-// At TWA=90, TWS=12, a steady-state bs ~6 kn gives AWA ~65. Main at ~52 deg
-// and jib at ~54 deg put both AoA in the 12-14 deg sweet spot.
+// Package 13 stage D: the sheets are the one solver's answer for this beam
+// reach (src/lib/helm-trim.ts restingTrim at TWA 90, 12 kn: main sheet 0.575,
+// jib sheet 0.4, 7.8 kn), so the default opens at a 100% trim. The former
+// 52 / 54 deg, tuned for the classic profile, read 80% on the cruiser.
 export const DEFAULT_UI: UiState = {
   twa: 90,
   tack: 'starboard',
   windSpeed: 12,
   windMode: 'steady',
-  mainAngle: 52,
-  jibAngle: 54,
+  mainAngle: 36,
+  jibAngle: 43,
   jibFurlPct: 100,
   reefLevel: 0,
   mainTwistPct: 18,

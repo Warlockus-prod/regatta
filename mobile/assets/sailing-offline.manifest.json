@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "9cabd42c2563",
-  "sha256": "20f9b1d7f1e0b472f3ca26010f88c0329f8d2d201e7f8333aadcdb130387dfe0",
-  "bytes": 7010821,
+  "version": "78c2c2b1b0d7",
+  "sha256": "545c53dacc1020b73acb9d8e6196b4af9d59deec2b5f302bbce2d09ddeb2a668",
+  "bytes": 7017670,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -826,13 +826,13 @@
     "src/features/simulator-v3/hooks/use-trainer-checkpoint.ts",
     "src/features/simulator-v3/hooks/use-trim-assessment.ts",
     "src/features/simulator-v3/hooks/use-trim-study.ts",
+    "src/features/simulator-v3/runtime/auto-trim.ts",
     "src/features/simulator-v3/runtime/create-runtime-state.ts",
     "src/features/simulator-v3/runtime/deep-link.ts",
     "src/features/simulator-v3/runtime/drill-clock.ts",
     "src/features/simulator-v3/runtime/feedback.ts",
     "src/features/simulator-v3/runtime/scenario-presets.ts",
     "src/features/simulator-v3/runtime/step-runtime.ts",
-    "src/features/simulator-v3/runtime/trim-heuristics.ts",
     "src/features/simulator-v3/runtime/wind-dynamics.ts",
     "src/features/simulator-v3/ui/CommentaryLine.tsx",
     "src/features/simulator-v3/ui/GlossaryFooter.tsx",
@@ -901,6 +901,7 @@
     "src/lib/harbour-physics/yacht.ts",
     "src/lib/helm-angles.ts",
     "src/lib/helm-assist.ts",
+    "src/lib/helm-trim.ts",
     "src/lib/languages.ts",
     "src/lib/learning/foundation-navigation.ts",
     "src/lib/physical-race-record.ts",
@@ -2151,13 +2152,13 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 49883,
-      "sha256": "d294df451cf8083cd92d4c1f1a3730df66ab14f6379ecef21eb55198f0f0a70b"
+      "bytes": 52644,
+      "sha256": "40a3d626ba0fba39882def87d7f07c837ec31a79a7b1faa130234b62b4bf8c58"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
-      "bytes": 15935,
-      "sha256": "433217a5604a5454584e65f0106e0db916430360b6cadad461976bcfcefa8084"
+      "bytes": 15903,
+      "sha256": "5e337c39e698b37635867cd2ff548ceb1454590a2154b99bb274021c0f8cd0ac"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-trainer-checkpoint.ts",
@@ -2175,6 +2176,11 @@
       "sha256": "69c3627247381e76a6c41036efbd030538ddf8b8e03d967bcb6bee1c5efe5fe5"
     },
     {
+      "path": "src/features/simulator-v3/runtime/auto-trim.ts",
+      "bytes": 3885,
+      "sha256": "9230c446388a028fbd02b1ecab4b0102d8213442fa688d24c306291d4eb459b1"
+    },
+    {
       "path": "src/features/simulator-v3/runtime/create-runtime-state.ts",
       "bytes": 2550,
       "sha256": "74d2972afb595bd20809f730d514963e9644f551321673f83e361d4ea75d3c82"
@@ -2186,8 +2192,8 @@
     },
     {
       "path": "src/features/simulator-v3/runtime/drill-clock.ts",
-      "bytes": 596,
-      "sha256": "c3c99577d2793e1d5c6167bc0f9d4806f7f1d01415b6db37bb868819a1c27be2"
+      "bytes": 1996,
+      "sha256": "fa42c2c46f833bab6e9fcee9c9d85c38100db92dce3283405fcba480f1e39659"
     },
     {
       "path": "src/features/simulator-v3/runtime/feedback.ts",
@@ -2196,18 +2202,13 @@
     },
     {
       "path": "src/features/simulator-v3/runtime/scenario-presets.ts",
-      "bytes": 4910,
-      "sha256": "9b5ee633210d9d49bad589b3f9c5a06ecb70361ead893c328c47fe52c1ea521a"
+      "bytes": 5058,
+      "sha256": "4fa65de3fe78b2b92acedb3712b0ff119633c6268c127416ad33d56dd534cece"
     },
     {
       "path": "src/features/simulator-v3/runtime/step-runtime.ts",
       "bytes": 1244,
       "sha256": "3aea77b576d74282688aef7365087139628bdff302308b9b9b3a56bf8875ce9a"
-    },
-    {
-      "path": "src/features/simulator-v3/runtime/trim-heuristics.ts",
-      "bytes": 1325,
-      "sha256": "6b7e7c4fff339ad4f8bd16d49cff5cb7bc8727e4849b9926d2cd36313a41c0be"
     },
     {
       "path": "src/features/simulator-v3/runtime/wind-dynamics.ts",
@@ -2231,8 +2232,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/MetricsStrip.tsx",
-      "bytes": 3435,
-      "sha256": "0004406a2ecfe2ee48451962cef6fff622c4c54e19b1290a21534de81bfc32c5"
+      "bytes": 3521,
+      "sha256": "9f463066358142d473560fa4d3b4c17ed8406586366de690407db95c3633daf4"
     },
     {
       "path": "src/features/simulator-v3/ui/SceneElevation.tsx",
@@ -2281,8 +2282,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/panels/DrillCard.tsx",
-      "bytes": 6890,
-      "sha256": "15cb749b48ef70494c9dbb5583ec8b382af5c8bdeb02feca99792b1d36eace5f"
+      "bytes": 9352,
+      "sha256": "5374148fddc1013cf7c32205dd498e640713e26acee043698554f10ec0e9b2bc"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/ModeBar.tsx",
@@ -2336,8 +2337,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/pods/ViewPod.tsx",
-      "bytes": 9550,
-      "sha256": "22e5b2d84d69167584c88b03dcf810c9e3898ac5bc7ac54eb7338b83d1b37c1b"
+      "bytes": 11874,
+      "sha256": "9233a6a386edf46fead5ee688eafd01ae412ab0035d35ccbd92f05c28e8b65f2"
     },
     {
       "path": "src/features/simulator-v3/ui/pods/WindPod.tsx",
@@ -2351,8 +2352,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/shared.tsx",
-      "bytes": 13704,
-      "sha256": "451141cbe0ad2168a561c71a49d3bd1d8fd6d0107cff72c3c2352ebfff383e59"
+      "bytes": 13865,
+      "sha256": "827692ba595520730b443fff2a8d3ffc4f771ed7ee3abc13bfc38d2c01cc0df9"
     },
     {
       "path": "src/features/simulator-v3/ui/trainer-wind.ts",
@@ -2550,6 +2551,11 @@
       "sha256": "bdc100157566bddd1ac676cb4ec9b64b9d9ec7f44a3685c7eccf4c95e7547e97"
     },
     {
+      "path": "src/lib/helm-trim.ts",
+      "bytes": 4053,
+      "sha256": "26f2cb1130bc86642e817409dde1faaa5b2a6c0a16e78ca295b2808e22581e57"
+    },
+    {
       "path": "src/lib/languages.ts",
       "bytes": 6127,
       "sha256": "d8dbe0eb5cf45295b19d1c6b1e8121c8509decd0a43eda31c585500463728944"
@@ -2576,8 +2582,8 @@
     },
     {
       "path": "src/lib/product/trainer-terms.ts",
-      "bytes": 1083,
-      "sha256": "08317e67161c7560b048d1880362e3180d5a6b1baac3b143fc43ec41e58ff93d"
+      "bytes": 1744,
+      "sha256": "cd45bba08777a673a65bfa3bbc570daaf42e13fd3644f35a4c949b1ae150cedc"
     },
     {
       "path": "src/lib/product/ui-terms.ts",

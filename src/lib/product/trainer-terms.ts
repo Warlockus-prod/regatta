@@ -18,4 +18,10 @@ export const TRAINER_TERMS = {
   compassE: label("В", "E", "E", "E", "E", "O", "E"),
   compassS: label("Ю", "S", "S", "S", "S", "S", "S"),
   compassW: label("З", "W", "W", "O", "O", "W", "O"),
+  /** Package 13 stage D: the switch that lets the crew trim the sheets (the race crew's solver). */
+  autoTrim: label("Автотрим", "Auto-trim", "Autotrym", "Trimado automático", "Réglage auto", "Autotrimm", "Regolazione automatica"),
+  /** The course preset of best VMG (the angle BEST VMG sails in the race). */
+  bestVmg: label("Лучший VMG", "Best VMG", "Najlepszy VMG", "Mejor VMG", "Meilleur VMG", "Bestes VMG", "Miglior VMG"),
+  /** In a lesson task: the auto-trim shows the right setting; the attempt does not count. */
+  showMe: label("Покажи мне", "Show me", "Pokaż mi", "Muéstrame", "Montre-moi", "Zeig es mir", "Mostrami"),
 } as const satisfies Record<string, Label>;

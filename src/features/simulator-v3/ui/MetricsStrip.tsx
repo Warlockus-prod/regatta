@@ -68,6 +68,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         color={ui.mainTrim ? "var(--text-primary)" : trimColor}
         divider
         dense={dense}
+        testId="trainer-trim-score"
       />
     </div>
   );
@@ -80,6 +81,7 @@ function MetricChip({
   color,
   divider,
   dense,
+  testId,
 }: {
   label: string;
   value: string;
@@ -87,9 +89,10 @@ function MetricChip({
   color: string;
   divider?: boolean;
   dense?: boolean;
+  testId?: string;
 }) {
   return (
-    <div className={`relative ${dense ? 'px-2 py-1.5' : 'px-2 py-2 sm:px-3 sm:py-3'}`}>
+    <div className={`relative ${dense ? 'px-2 py-1.5' : 'px-2 py-2 sm:px-3 sm:py-3'}`} data-testid={testId}>
       {divider && (
         <div
           className="absolute left-0 top-2 bottom-2 w-px"

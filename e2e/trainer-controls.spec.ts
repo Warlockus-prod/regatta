@@ -95,7 +95,10 @@ test("wheel mode: the helm and both sheets are keyboard sliders on the Trainer",
   const main = page.getByRole("slider", { name: "Mainsheet", exact: true });
   const eased = Number(await main.getAttribute("aria-valuenow"));
   await main.press("ArrowDown");
-  await expect(main).toHaveAttribute("aria-valuenow", String(Math.round(eased - 5)));
+  // A step is 5% of sheet; the sheet angle keeps tenths of a degree, so the
+  // percent lands on the whole step only after rounding (the default 36 deg
+  // main of package 13 is 42.35%, one step down 31.5 deg = 37.06%).
+  await expect.poll(async () => Math.round(Number(await main.getAttribute("aria-valuenow")))).toBe(Math.round(eased) - 5);
 });
 
 // Owner rule 2026-10-21: on a phone nothing is drawn over the boat. Status and
@@ -358,4 +361,28 @@ test("the race wind card sits over the 3D and top views and follows the boat", a
     await chooseView(name);
     await expect(scene.getByTestId("trainer-wind-box")).toHaveCount(0);
   }
+});
+
+// Package 13 stage D: "Show me" in the lesson drill (bootcamp "how a sail
+// works" opens /simulator-v3?drill=hold-trim). The auto-trim really trims the
+// sails past the drill's 85% for longer than its 10 s hold, and the attempt
+// still never passes: only "Now you", a new attempt, can.
+test("Show me in a drill trims the sails but never passes the attempt", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/simulator-v3?drill=hold-trim&lang=en");
+  const showMe = page.getByTestId("drill-show-me");
+  await expect(showMe).toBeVisible({ timeout: 20_000 });
+  const trim = page.getByTestId("trainer-trim-score").first();
+  const trimValue = async () => Number((await trim.innerText()).match(/\d+/)?.[0] ?? 0);
+  expect(await trimValue()).toBeLessThan(85);
+  await showMe.click();
+  await expect(page.getByTestId("drill-shown")).toBeVisible();
+  await expect.poll(trimValue).toBeGreaterThanOrEqual(85);
+  await page.waitForTimeout(10_500);
+  expect(await trimValue()).toBeGreaterThanOrEqual(85);
+  await expect(page.getByTestId("drill-shown")).toBeVisible();
+  await expect(page.getByText("DONE", { exact: true })).toHaveCount(0);
+  await page.getByTestId("drill-restart").click();
+  await expect(page.getByTestId("drill-show-me")).toBeVisible();
+  await expect(page.getByTestId("drill-shown")).toHaveCount(0);
 });

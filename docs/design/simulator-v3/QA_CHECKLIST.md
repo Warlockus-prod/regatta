@@ -67,13 +67,21 @@ From any arbitrary state, click Reset:
 Click "Drills" tab:
 
 - [ ] Picker lists 3 drills in the active language
-- [ ] Start "Hold trim" - UI snaps to its initial state (main 40, jib 40, TWA 90)
+- [ ] Start "Hold trim" - UI snaps to its initial state (main 60, jib 60, TWA 90, trim about 64%)
 - [ ] Timer ticks down from 40s
 - [ ] Hold meter stays at 0 while trim is below 85%
 - [ ] Drag sliders toward optimal: hold meter starts filling
 - [ ] Reach 10 s hold: card turns green, "DONE" state, Retry + Pick-another buttons
 - [ ] Retry resets the drill deterministically
 - [ ] Let timer run out on a failed attempt: card turns red, "FAILED"
+- [ ] "Show me" (package 13 stage D): the sheets travel to the solver's setting, trim climbs past 85%, the card says "SHOWN" and the hold meter stays at 0; "Now you" starts a new attempt with auto-trim off
+- [ ] "Best", a course preset or Auto-trim on during an attempt also end it as "SHOWN"
+
+## Auto-trim and Best VMG (package 13 stage D)
+
+- [ ] Session settings: "Auto-trim: off" toggles to on, the sheets move to the solver's setting; touching a sheet turns it off
+- [ ] "Best" lands on the same sheets the auto-trim reaches on a settled course
+- [ ] "Sails and courses" > "Best VMG" sets the best VMG angle for the wind on the same tack (upwind from 90 deg or higher, downwind below; upwind 45 deg in 6 kn, 42 deg, the no-go edge, in 12 kn and more) and no "too close to the wind" warning appears
 
 ## Scenarios (PR-4)
 

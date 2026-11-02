@@ -4,7 +4,6 @@ import { pointsOfSail } from '@/data/sailing-data';
 import { createRuntimeState, uiToControls } from './create-runtime-state';
 import { stepRuntime, approachHeading, interpolateControls } from './step-runtime';
 import { CONTROL_RATES, HEADING_TURN_RATE_DEG_PER_S } from './runtime-types';
-import { recommendedTrim } from './trim-heuristics';
 import { pickPrimaryFeedback } from './feedback';
 import { DEFAULT_UI, FREE_TRAINER_UI } from '../ui/shared';
 import { DRILLS, SCENARIO_PRESETS, pickText } from './scenario-presets';
@@ -202,36 +201,9 @@ describe('stepRuntime', () => {
   });
 });
 
-describe('recommendedTrim', () => {
-  it('returns angles inside the boat\'s sheet range', () => {
-    for (const tws of [6, 12, 20]) {
-      for (const awa of [30, 60, 90, 120, 160]) {
-        for (const reef of [0, 1, 2] as const) {
-          const r = recommendedTrim(awa, tws, reef, params);
-          expect(r.mainAngle).toBeGreaterThanOrEqual(0);
-          expect(r.mainAngle).toBeLessThanOrEqual(params.mainMaxOff);
-          expect(r.jibAngle).toBeGreaterThanOrEqual(params.jibMinOff);
-          expect(r.jibAngle).toBeLessThanOrEqual(params.jibMaxOff);
-          expect(r.mainTwistPct).toBeGreaterThanOrEqual(0);
-          expect(r.mainTwistPct).toBeLessThanOrEqual(100);
-        }
-      }
-    }
-  });
-
-  it('eases sails as AWA grows (more open broad reach)', () => {
-    const close = recommendedTrim(40, 12, 0, params);
-    const broad = recommendedTrim(120, 12, 0, params);
-    expect(broad.mainAngle).toBeGreaterThan(close.mainAngle);
-    expect(broad.jibAngle).toBeGreaterThan(close.jibAngle);
-  });
-
-  it('adds twist in heavy air', () => {
-    const light = recommendedTrim(60, 8, 0, params);
-    const heavy = recommendedTrim(60, 22, 0, params);
-    expect(heavy.mainTwistPct).toBeGreaterThan(light.mainTwistPct);
-  });
-});
+// The former recommendedTrim heuristic is gone (package 13 stage D): the
+// sheets come from the one solver, tested in auto-trim.test.ts and
+// src/lib/helm-trim.test.ts.
 
 describe('pickPrimaryFeedback', () => {
   const tp = (ru: string) => ru;

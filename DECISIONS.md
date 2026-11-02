@@ -1465,8 +1465,51 @@ saved choice, records), `helm-assist.scenario.test.ts` (bot levels),
 off on an arrow) and `npm run check:ui` at 390 px with the wheels and with the
 arrows (`race-simple-arrows`, `race-pro-arrows`).
 
+### Stage D: the Trainer on the same solvers (2026-11-02)
+Lane V3, no engine constant changes. Before: "Best" and the course presets
+applied a piecewise table of the apparent wind (`trim-heuristics.ts`, main at
+AWA minus 14-16 deg), tuned for the classic profile; on the cruiser it was
+33-40% slow on the beat (6 / 12 / 20 kn at the best VMG angle: 2.6 / 4.2 / 4.5 against 4.4 / 6.2 / 7.1 kn) and the trim score
+measured against it. Now:
+1. **One sheet solver.** `src/lib/helm-trim.ts`: `crewTrim` is the race crew's
+   `trimForDrive` on the boat's own apparent wind with the twist of a wind
+   table (the table the heuristic had); `restingTrim` repeats settle and solve
+   until the sheets stop moving. The auto-trim switch runs `crewTrim` on the
+   live boat every 0.5 s (the race crew's cadence) and the runtime eases the
+   sheets there at winch speed; a sheet or twist the learner touches turns it
+   off. "Best", the course presets and the trim score's 100% are
+   `restingTrim`; the ghost is `crewTrim` on the live boat. The heuristic is
+   removed. Measured on the cruiser: TWA 60 sheets main / jib 0.85 / 0.85 at
+   6 kn (5.34 kn), 0.80 / 0.75 at 12 kn (7.35 kn), 0.725 / 0.65 at 20 kn
+   (8.24 kn); the auto-trim sailing the Trainer from the old default lands on
+   the same sheets (within 0.5 deg) on all three.
+2. **"Best VMG"** is a course preset: the best VMG angle of `src/lib/helm-angles.ts`
+   on the race's cruiser polar (`helmProfileFor`), upwind when the boat sails
+   90 deg or higher, downwind below, on the tack it is on, with the sheets of
+   `restingTrim` there. Upwind it stops at the edge of the cruiser's no-go
+   zone (42 deg, the cone the Trainer draws and warns inside): the polar's
+   optimum is 45 deg in 6 kn but 40 deg in 12 and 20 kn, and 42 deg makes good
+   within 1% of it. The race's BEST VMG still sails 40 deg there; whether the
+   zone or the polar moves is for package 6 (left to the owner).
+3. **The default and a drill retuned to the new 100%.** The free Trainer opens
+   with the solver's beam-reach sheets (36 / 43 deg instead of 52 / 54, which
+   read 80%); the drill "Hold trim" starts from 60 / 60 deg (64%), because its
+   former 40 / 40 read 99% and passed with no action.
+4. **"Show me" is not a pass.** In a drill (the lesson drill of "How a sail
+   works" included) "Show me" turns the auto-trim on; the attempt ends as
+   "shown" and never passes (`src/features/simulator-v3/runtime/drill-clock.ts` `showDrill`), as do "Best", a
+   preset or the auto-trim during an attempt. Only a new attempt passes. The
+   recorded lesson results (`src/features/sailing-lab/lessons/practice-results.ts`: mainsheet study, twist and
+   depth checks, line bench) are rig-control tasks the auto-trim does not
+   touch and keep their own completion rules.
+Verification: `src/lib/helm-trim.test.ts`,
+`src/features/simulator-v3/runtime/auto-trim.test.ts`,
+`src/features/simulator-v3/runtime/drill-clock.test.ts`,
+`src/features/simulator-v3/ui/panels/DrillCard.test.tsx`, the "Show me" case
+of `e2e/trainer-controls.spec.ts`.
+
 ### References
 ADR-0009, ADR-0014, ADR-0015, ADR-0021; `docs/design/race-game-logic-2026-11-01.md`
 (sections 1, 3, 4); `docs/audits/2026-11-01-harsh-audit.md` (B17, top-6);
 `src/lib/helm-angles.ts`, `src/lib/helm-assist.ts`, `src/lib/race-helm.ts`,
-`src/lib/race-line-time.ts`.
+`src/lib/race-line-time.ts`, `src/lib/helm-trim.ts`.

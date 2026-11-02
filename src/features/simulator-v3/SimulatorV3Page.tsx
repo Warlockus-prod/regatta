@@ -30,8 +30,9 @@ import {
   type DrillDefinition,
   type ScenarioPreset,
 } from './runtime/scenario-presets';
-import { recommendedTrim } from './runtime/trim-heuristics';
-import { advanceDrillClock } from './runtime/drill-clock';
+import { autoTrimStep, bestVmgTwa, trainerOptimum, trimDiffers } from './runtime/auto-trim';
+import { AUTO_TRIM_PERIOD_S } from '@/lib/helm-trim';
+import { advanceDrillAttempt, newDrillAttempt, showDrill, type DrillAttempt } from './runtime/drill-clock';
 import { CommentaryLine } from './ui/CommentaryLine';
 import { GlossaryFooter } from './ui/GlossaryFooter';
 import { MetricsStrip } from './ui/MetricsStrip';
@@ -139,9 +140,20 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const [ui, setUiState] = useState<UiState>(FREE_TRAINER_UI);
   const uiRef = useRef(ui);
   uiRef.current = ui;
-  const setUi = useCallback((action: SetStateAction<UiState>) => {
+  // Package 13 stage D: the auto-trim. A sheet or twist the learner moves
+  // switches it off; "assist" marks a change the solver made (auto-trim,
+  // "Best", a course preset), which leaves it on.
+  const [autoTrim, setAutoTrimState] = useState(false);
+  const autoTrimRef = useRef(false);
+  const setAutoTrim = useCallback((on: boolean) => {
+    if (autoTrimRef.current === on) return;
+    autoTrimRef.current = on; setAutoTrimState(on);
+  }, []);
+  const setUi = useCallback((action: SetStateAction<UiState>, source?: "assist") => {
     const previous = uiRef.current, next = typeof action === "function" ? action(previous) : action;
     uiRef.current = next; setUiState(action);
+    if (source !== "assist" && autoTrimRef.current && (next.mainAngle !== previous.mainAngle || next.jibAngle !== previous.jibAngle
+      || next.mainTwistPct !== previous.mainTwistPct || next.jibTwistPct !== previous.jibTwistPct || next.mainTrim)) setAutoTrim(false);
     for (const [key, control, divisor] of [["twa", "twa", 1], ["windSpeed", "wind-speed", 1], ["mainAngle", "main-angle", 1], ["jibAngle", "jib-angle", 1], ["mainTwistPct", "main-twist", 100], ["jibTwistPct", "jib-twist", 100]] as const) if (next[key] !== previous[key]) recordControlChange("trainer", control, next[key] / divisor, previous[key] / divisor);
     if (next.reefLevel !== previous.reefLevel || next.jibFurlPct !== previous.jibFurlPct) {
       const before = uiToControls(previous, params), after = uiToControls(next, params);
@@ -162,7 +174,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       if (next.mainTrim.outhaulEase !== previous.mainTrim?.outhaulEase) recordControlChange("trainer", "outhaul", next.mainTrim.outhaulEase ?? .5, previous.mainTrim?.outhaulEase ?? .5);
       if (next.mainTrim.vangSpan !== previous.mainTrim?.vangSpan && next.mainTrim.vangSpan !== undefined) recordControlChange("trainer", "vang-span", next.mainTrim.vangSpan, previous.mainTrim?.vangSpan);
     }
-  }, [params]);
+  }, [params, setAutoTrim]);
   const [boatView, setBoatView] = useState<CameraView>("sails");
   const selectBoatView = (view: CameraView) => { setBoatView(view); recordControlChange("trainer", "camera", view, boatView); };
   const activeBoatView = boatView === "mainsheet" && !ui.mainTrim ? "sails" : boatView;
@@ -271,9 +283,12 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const simRef = useRef<SimulationModel>(sim);
   simRef.current = sim;
 
+  // The attempt itself is the pure machine in runtime/drill-clock.ts: an
+  // attempt the solver trimmed for the learner ends as "shown" and never passes.
+  const drillAttemptRef = useRef<DrillAttempt>(newDrillAttempt());
   useEffect(() => {
     if (mode !== 'drill' || !activeDrill || drillResult !== 'pending') return;
-    let progress = { time: simRef.current.session.simTime, heldFor: 0 };
+    drillAttemptRef.current = newDrillAttempt(simRef.current.session.simTime);
     const tickMs = 100;
     const iv = setInterval(() => {
       const s = simRef.current;
@@ -285,24 +300,36 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
         mainStalled: s.result.diag.mainStalled,
         jibStalled: s.result.diag.jibStalled,
       });
-      progress = advanceDrillClock(progress, elapsed, ok);
+      const attempt = advanceDrillAttempt(drillAttemptRef.current, elapsed, ok, activeDrill);
+      drillAttemptRef.current = attempt;
       setDrillElapsed(elapsed);
-      setDrillHeldFor(progress.heldFor);
-      if (progress.heldFor >= activeDrill.holdDuration) {
-        setDrillResult('win');
-        clearInterval(iv);
-      } else if (elapsed >= activeDrill.timeLimit) {
-        setDrillResult('fail');
+      setDrillHeldFor(attempt.heldFor);
+      if (attempt.outcome !== 'pending') {
+        setDrillResult(attempt.outcome);
         clearInterval(iv);
       }
     }, tickMs);
     return () => clearInterval(iv);
   }, [mode, activeDrill, drillResult]);
 
+  // "Show me", "Best", a course preset or the auto-trim trimmed the boat for
+  // the learner: a running or failed attempt ends as shown (no pass); only a
+  // new attempt the learner sails can pass.
+  const markAssisted = () => {
+    if (mode !== 'drill' || !activeDrill) return;
+    const shown = showDrill({ ...drillAttemptRef.current, outcome: drillResult });
+    drillAttemptRef.current = shown;
+    if (shown.outcome !== drillResult) {
+      setDrillHeldFor(shown.heldFor);
+      setDrillResult(shown.outcome);
+    }
+  };
+
   const startDrill = (def: DrillDefinition) => {
     trimAssessment.cancel();
     trimStudy.cancel();
     setPaused(false);
+    setAutoTrim(false);
     setActiveDrill(def);
     setDrillElapsed(0);
     setDrillHeldFor(0);
@@ -328,6 +355,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     trimStudy.cancel();
     setPaused(false);
     setActiveScenarioId(s.id);
+    setAutoTrim(false);
     setUi(s.ui);
     reset(s.ui);
   };
@@ -387,32 +415,47 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reset, initialSearch]);
 
+  // Course presets, "Best VMG" and "Best" all read the one sheet solver
+  // (runtime/auto-trim.ts): the auto-trim at rest on the course they set.
   const setPreset = (twa: number) => {
-    const preset = recommendedTrim(Math.max(25, twa - 18), ui.windSpeed, ui.reefLevel, params);
-    setUi((prev) => ({
-      ...prev,
-      twa,
-      mainAngle: preset.mainAngle,
-      jibAngle: preset.jibAngle,
-      mainTwistPct: preset.mainTwistPct,
-      jibTwistPct: preset.jibTwistPct,
-    }));
+    const { trim } = trainerOptimum(uiRef.current, params, twa);
+    setUi((prev) => ({ ...prev, twa, ...trim }), "assist");
+    markAssisted();
   };
+  const setBestVmg = () => setPreset(bestVmgTwa(uiRef.current));
 
   const applyOptimal = () => {
-    setUi((prev) => ({
-      ...prev,
-      mainAngle: sim.optimal.mainAngle,
-      jibAngle: sim.optimal.jibAngle,
-      mainTwistPct: sim.optimal.mainTwistPct,
-      jibTwistPct: sim.optimal.jibTwistPct,
-    }));
+    const { trim } = trainerOptimum(uiRef.current, params);
+    setUi((prev) => ({ ...prev, ...trim }), "assist");
+    markAssisted();
   };
+  const toggleAutoTrim = () => {
+    const on = !autoTrimRef.current;
+    setAutoTrim(on);
+    if (on) markAssisted();
+  };
+  const showMe = () => { setAutoTrim(true); markAssisted(); };
+  // The auto-trim: every AUTO_TRIM_PERIOD_S the crew solves the sheets on the
+  // live boat and the controls move there; the runtime eases the sails at
+  // winch speed, so the learner sees the sheets travel.
+  useEffect(() => {
+    if (!autoTrim || paused || ui.mainTrim) return;
+    const step = () => {
+      const current = uiRef.current;
+      if (current.mainTrim) return;
+      const trim = autoTrimStep(simRef.current.session.boat, current, params);
+      if (trimDiffers(current, trim)) setUi((prev) => ({ ...prev, ...trim }), "assist");
+    };
+    step();
+    const iv = setInterval(step, AUTO_TRIM_PERIOD_S * 1000);
+    return () => clearInterval(iv);
+  }, [autoTrim, paused, ui.mainTrim, params, setUi]);
 
   const resetAll = () => {
     trimAssessment.cancel();
     trimStudy.cancel();
     setPaused(false);
+    setAutoTrim(false);
     setUi(FREE_TRAINER_UI);
     reset(FREE_TRAINER_UI);
     exitDrill();
@@ -472,10 +515,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     panel.querySelector("summary")?.focus({ preventScroll: true });
   };
 
-  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />
+  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} setBestVmg={setBestVmg} autoTrim={autoTrim} toggleAutoTrim={toggleAutoTrim} />
     {ui.view === "3d" && <BoatViewPresets view={activeBoatView} onSelect={selectBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp} />}
   </>;
-  const sessionPanel = <ViewPod section="session" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>;
+  const sessionPanel = <ViewPod section="session" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} setBestVmg={setBestVmg} autoTrim={autoTrim} toggleAutoTrim={toggleAutoTrim}>{checkpointPanel}</ViewPod>;
   const controlsLabel = tp("Управление парусами", "Sail controls", "Obsługa żagli", { es: "Controles de velas", fr: "Commandes des voiles", de: "Segelbedienung", it: "Comandi delle vele" });
   const conditionsLabel = tp("Условия: ветер и курс", "Conditions: wind and course", "Warunki: wiatr i kurs", { es: "Condiciones: viento y rumbo", fr: "Conditions : vent et cap", de: "Bedingungen: Wind und Kurs", it: "Condizioni: vento e rotta" });
   const sessionLabel = tp("Настройки и сохранение", "Settings and saving", "Ustawienia i zapis", { es: "Ajustes y guardado", fr: "Réglages et sauvegarde", de: "Einstellungen und Speichern", it: "Impostazioni e salvataggio" });
@@ -754,7 +797,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           node: (
             <div className="space-y-2">
               {modePanel}
-              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} />}
+              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} onShowMe={showMe} />}
               {mode === 'scenario' && <ScenarioPicker activeId={activeScenarioId} onPick={pickScenario} lang={lang} tp={tp} />}
             </div>
           ),
@@ -811,6 +854,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               onStart={startDrill}
               onRestart={restartDrill}
               onExit={exitDrill}
+              onShowMe={showMe}
             />
           )}
           {mode === 'scenario' && (

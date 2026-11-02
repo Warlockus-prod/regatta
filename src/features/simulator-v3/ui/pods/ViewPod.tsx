@@ -1,6 +1,8 @@
 'use client';
 
 import type { CameraView } from "../../../simulator-3d/camera";
+import { TRAINER_TERMS } from '@/lib/product/trainer-terms';
+import { useI18n } from '@/lib/i18n';
 import {
   COURSE_PRESETS,
   PodCard,
@@ -52,6 +54,11 @@ export function ViewPod(props: {
   applyOptimal: () => void;
   resetAll: () => void;
   setPreset: (twa: number) => void;
+  /** Package 13 stage D: the course of best VMG with the solver's sheets. */
+  setBestVmg?: () => void;
+  /** The auto-trim switch (the race crew's solver on the live boat). */
+  autoTrim?: boolean;
+  toggleAutoTrim?: () => void;
   compact?: boolean;
   paused: boolean;
   togglePause: () => void;
@@ -59,6 +66,7 @@ export function ViewPod(props: {
   section: "camera" | "session";
 }) {
   const { ui, setUi, tp, applyOptimal, resetAll, setPreset, compact, paused, togglePause } = props;
+  const { lang } = useI18n();
   return (
     <PodCard compact={compact}>
       {props.section === "camera" && <>
@@ -130,8 +138,21 @@ export function ViewPod(props: {
           </button>
         ))}
       </div>
+      {props.setBestVmg && <button type="button" onClick={props.setBestVmg} data-testid="trainer-best-vmg"
+        className="min-h-11 w-full rounded-md border px-2 text-sm font-semibold transition"
+        style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-primary)' }}>
+        {TRAINER_TERMS.bestVmg[lang]}
+      </button>}
         </div>
       </details>
+      {!ui.mainTrim && props.toggleAutoTrim && <div className="space-y-1">
+        <button type="button" onClick={props.toggleAutoTrim} aria-pressed={Boolean(props.autoTrim)} data-testid="trainer-auto-trim"
+          className="min-h-11 w-full rounded-md border px-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+          style={{ borderColor: props.autoTrim ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.22)', color: props.autoTrim ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+          {TRAINER_TERMS.autoTrim[lang]}{lang === 'fr' ? ' : ' : ': '}{props.autoTrim ? tp('вкл', 'on', 'wł.', { es: 'sí', fr: 'oui', de: 'an', it: 'sì' }) : tp('выкл', 'off', 'wył.', { es: 'no', fr: 'non', de: 'aus', it: 'no' })}
+        </button>
+        {props.autoTrim && <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{tp('Шкоты ведет экипаж, как в гонке. Тронь шкот, и управление снова твое.', 'The crew trims the sheets as in the race. Touch a sheet to take over.', 'Szoty prowadzi załoga, jak w regatach. Dotknij szotu, aby przejąć.', { es: 'La tripulación ajusta las escotas como en la regata. Toca una escota para tomar el control.', fr: "L'équipage règle les écoutes comme en régate. Touche une écoute pour reprendre la main.", de: 'Die Crew trimmt die Schoten wie im Rennen. Berühre eine Schot, um zu übernehmen.', it: "L'equipaggio regola le scotte come in regata. Tocca una scotta per riprendere il controllo." })}</p>}
+      </div>}
       <div className={`grid ${ui.mainTrim ? "grid-cols-1" : "grid-cols-2"} gap-1`}>
         {!ui.mainTrim && <button
           onClick={applyOptimal}
