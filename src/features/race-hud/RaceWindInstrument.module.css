@@ -7,6 +7,11 @@
 /* F2: the side reads as a word under the angle ("правый борт"), at the
    secondary size; it breaks between words, never inside one. */
 .side { display:block; font-size:14px; line-height:1.3; font-weight:600; color:var(--text-primary); overflow-wrap:normal; }
+/* Package 12: the Simple race's words ("80° от носа"); the phrase may move under
+   the number on a narrow box, it never breaks inside itself. */
+.from { font-size:14px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
+.instrument[data-words] .bearing { flex-wrap:wrap; row-gap:0; white-space:normal; }
+.instrument[data-words] .bearing>span { white-space:nowrap; }
 .metadata { display:flex; flex-wrap:wrap; gap:0 8px; font-size:14px; line-height:1.4; color:var(--text-secondary); }
 .metadata>span { white-space:nowrap; }
 .speed { font-size:inherit; line-height:inherit; }

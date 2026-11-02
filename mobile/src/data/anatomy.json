@@ -466,13 +466,13 @@
       "descFr": "Un aileron immergé et lesté. Il empêche le chavirage et limite la dérive. Le Bavaria 46 a en général un tirant d'eau de 2,05 m.",
       "descDe": "Eine Unterwasserflosse mit Ballast. Sie verhindert Kentern und Abdrift. Die Bavaria 46 hat meist 2,05 m Tiefgang.",
       "descIt": "Una pinna immersa con zavorra. Impedisce che la barca si rovesci e limita lo scarroccio. Il Bavaria 46 ha di solito un pescaggio di 2,05 m.",
-      "useOnBoardRu": "Балласт киля сопротивляется крену и возвращает яхту на ровный киль (восстанавливающий момент), а плавник не даёт её сносить вбок (дрейф). При сильном крене - откренивайся (hike).",
-      "useOnBoardEn": "The keel's ballast resists heel and brings the boat back upright (righting moment), and the fin stops her sliding sideways (leeway). When heeling hard, hike out (get your weight to windward).",
-      "useOnBoardPl": "Balast kilu przeciwdziała przechyłowi i przywraca jacht do pionu (moment prostujący), a płetwa nie pozwala mu dryfować w bok. Przy dużym przechyle balastuj (przenieś ciężar na nawietrzną burtę).",
-      "useOnBoardEs": "El lastre de la quilla se opone a la escora y adriza el barco (par adrizante), y la aleta impide que abata de lado (abatimiento). Con mucha escora, haz banda (tu peso a barlovento).",
-      "useOnBoardFr": "Le lest de la quille s'oppose à la gîte et redresse le bateau (couple de redressement), et l'aileron l'empêche de glisser de côté (dérive). Quand ça gîte fort, fais du rappel (ton poids au vent).",
-      "useOnBoardDe": "Der Ballast des Kiels wirkt der Krängung entgegen und richtet das Boot wieder auf (aufrichtendes Moment), die Flosse verhindert seitliches Abdriften (Abdrift). Bei starker Krängung: ausreiten (Gewicht nach Luv).",
-      "useOnBoardIt": "La zavorra della chiglia si oppone allo sbandamento e raddrizza la barca (momento raddrizzante), e la pinna le impedisce di scivolare di lato (scarroccio). Con sbandamento forte, fai contrappeso (peso sopravvento)."
+      "useOnBoardRu": "Балласт киля сопротивляется крену и возвращает яхту на ровный киль (восстанавливающий момент), а плавник не даёт её сносить вбок (дрейф). При сильном крене экипаж садится на наветренный борт: его вес уменьшает крен.",
+      "useOnBoardEn": "The keel's ballast resists heel and brings the boat back upright (righting moment), and the fin stops her sliding sideways (leeway). When she heels hard, the crew sits on the windward side: their weight reduces the heel.",
+      "useOnBoardPl": "Balast kilu przeciwdziała przechyłowi i przywraca jacht do pionu (moment prostujący), a płetwa nie pozwala mu dryfować w bok. Przy dużym przechyle załoga siada na nawietrznej burcie: jej ciężar zmniejsza przechył.",
+      "useOnBoardEs": "El lastre de la quilla se opone a la escora y adriza el barco (par adrizante), y la aleta impide que abata de lado (abatimiento). Con mucha escora, la tripulación se sienta en la banda de barlovento: su peso reduce la escora.",
+      "useOnBoardFr": "Le lest de la quille s'oppose à la gîte et redresse le bateau (couple de redressement), et l'aileron l'empêche de glisser de côté (dérive). Quand ça gîte fort, l'équipage s'assoit au vent : son poids réduit la gîte.",
+      "useOnBoardDe": "Der Ballast des Kiels wirkt der Krängung entgegen und richtet das Boot wieder auf (aufrichtendes Moment), die Flosse verhindert seitliches Abdriften (Abdrift). Bei starker Krängung setzt sich die Crew auf die Luvseite: ihr Gewicht verringert die Krängung.",
+      "useOnBoardIt": "La zavorra della chiglia si oppone allo sbandamento e raddrizza la barca (momento raddrizzante), e la pinna le impedisce di scivolare di lato (scarroccio). Con sbandamento forte, l'equipaggio si siede sopravvento: il suo peso riduce lo sbandamento."
     },
     {
       "id": "fender",

@@ -5,9 +5,15 @@ import type { RaceWindReading } from "./navigation-model";
 import { useRaceNavigationCopy } from "./navigation-copy";
 import styles from "./RaceWindInstrument.module.css";
 import { bowRelativeWind } from "./wind-dial";
+import type { WindWords } from "./wind-words";
 
-export function RaceWindInstrument({ reading, display, compact = false }: {
-  reading: RaceWindReading | null; display: WindDisplay; compact?: boolean;
+/** `words` (package 12, audit B3): the Simple race leads with words, "80° от
+ * носа" over "ветер слева", and drops the TWA tag; Pro and the trainer keep the
+ * instrument notation. TWD stays small on the second line in both. The words
+ * come resolved from the race cockpit (wind-words.ts), so the other users of
+ * this instrument do not carry them. */
+export function RaceWindInstrument({ reading, display, compact = false, words = null }: {
+  reading: RaceWindReading | null; display: WindDisplay; compact?: boolean; words?: WindWords | null;
 }) {
   const c = useRaceNavigationCopy();
   const angle = (value: number | null | undefined) => value == null ? c.unknown : `${Math.round(value)}°`;
@@ -19,8 +25,10 @@ export function RaceWindInstrument({ reading, display, compact = false }: {
   const twa = wind ? wind.degrees : null;
   const side = wind?.side ?? null;
   const sideLabel = side === "ahead" ? c.fromBow : side === "astern" ? c.fromStern : side === "port" ? c.fromPort : c.fromStarboard;
-  const sideWord = side === "ahead" ? c.aheadSide : side === "astern" ? c.asternSide : side === "port" ? c.portSide : c.starboardSide;
-  return <div className={styles.instrument} data-compact={compact || undefined} data-available={Boolean(reading)} data-testid="race-wind-instrument" aria-label={c.trueWind}>
+  const sideWord = words
+    ? side === "ahead" ? words.ahead : side === "astern" ? words.astern : side === "port" ? words.left : words.right
+    : side === "ahead" ? c.aheadSide : side === "astern" ? c.asternSide : side === "port" ? c.portSide : c.starboardSide;
+  return <div className={styles.instrument} data-compact={compact || undefined} data-words={words ? true : undefined} data-available={Boolean(reading)} data-testid="race-wind-instrument" aria-label={c.trueWind}>
     {compass && reading && wind && <svg className={styles.compass} viewBox="0 0 100 100" role="img"
       aria-label={`${c.relativeWind}: ${angle(twa)}; ${sideLabel}; ${c.windFrom} ${angle(reading.trueFrom)}; ${c.heading} ${angle(reading.heading)}`} data-testid="race-wind-compass">
       <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="2" />
@@ -38,8 +46,9 @@ export function RaceWindInstrument({ reading, display, compact = false }: {
     <div className={styles.readings}>
       {!compact && <div className={styles.caption}>{c.trueWind}</div>}
       <b className={styles.bearing}>
-        <span className={styles.kind} aria-hidden="true">TWA</span><span className="sr-only">{c.relativeWind}: </span>
+        {!words && <span className={styles.kind} aria-hidden="true">TWA</span>}<span className="sr-only">{c.relativeWind}: </span>
         <span data-testid="race-true-wind-angle">{angle(twa)}</span>
+        {words && twa !== null && <span className={styles.from} data-testid="race-true-wind-from-bow">{words.offBow}</span>}
       </b>
       {side && <span className={styles.side} data-testid="race-true-wind-side" data-side={side} title={sideLabel}>
         <span aria-hidden="true">{sideWord}</span><span className="sr-only">{sideLabel}</span>

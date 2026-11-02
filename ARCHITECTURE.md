@@ -379,6 +379,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/features/race-hud/useFirstRaceHints.ts` - M4-7: React-обвязка подсказок первой гонки: запись для цикла (ref с ревизией), showHint в шину отзывов, отметка «показана» только когда тост пробыл на экране 2 с без паузы (`paused` из GameClient), «Показать подсказки снова»
 - `src/features/race-hud/useFirstRaceHints.test.ts` - M4-7: подсказка уходит в шину тостом `info` с id; ожидающая в очереди не считается показанной, на экране записывается через 2 с чтения; истекшая за паузой не записывается, чтение до паузы засчитывается; сброс очищает строку и поднимает ревизию
 - `src/features/race-hud/speed-target.ts` - speed against the polar target (on, near, below, none) and the translated target speed label
+- `src/features/race-hud/wind-words.ts` - пакет 12 (Б3): слова прибора ветра в Простой гонке на 7 языках («80° от носа», «ветер слева / справа / в нос / в корму»); читает только кокпит одиночной гонки, TWA остается в Pro и тренажере.
 - `src/features/race-hud/units.ts` - знаки единиц гонки на 7 языках (уз / w. / nd / kn, с / s, м / m) и форматтеры скорости, дистанции, штрафа и отрыва; единый источник для race-copy, navigation-copy и текстов событий (M1-7).
 - `src/features/race-hud/useRaceFeedback.ts` - React hook for the bus: state, post, contact, clear, one timer to the next change
 - `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
@@ -636,6 +637,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/data/bootcamp-index.test.ts` - сверяет головы, порядок ключей (bootcamp.json приложения) и маршруты с `bootcampLessons`.
 - `src/data/bootcamp-quiz-key.ts` - ключ ответов квизов буткемпа (id вопросов и вариантов, верный вариант) и порог сдачи: по нему проверяется сохраненный прогресс без текста квизов.
 - `src/data/bootcamp-quiz-key.test.ts` - сверяет ключ ответов с `BOOTCAMP_QUIZZES` и один порог сдачи.
+- `src/data/beginner-terms.test.ts` - пакет 12 (Б3, эксперт C1-C6): проверка урока 1 без аббревиатур и с прежними id, ни одного шуточного варианта в банке, VMG против ветра и VMC к знаку, «перекрытие» вместо «связки» и латиницы в RU-правилах, ни «права дороги», ни «приоритета» в тексте МППСС, шкипер и рулевой раздельно, стартовая линия от судна комиссии до пина, без «откренивания».
 - `src/data/onboard.ts` - "первая неделя на борту", 12 разделов, в том числе выход из гавани, возвращение, типы швартовки, газ и пожар.
 - `src/data/checklist.ts` - чек-лист перед выходом, 9 разделов, в том числе готовность яхты у причала.
 - `src/data/missions.ts` - миссии гонки, оцениваются после финиша по логу.
@@ -1645,7 +1647,7 @@ CoursePreview wind text suppresses the inherited arrow stroke.
 - `src/features/race-hud/navigation-copy.ts` - all map/wind/style labels in
   RU/EN/PL/ES/FR/DE/IT: bow-relative true TWA, absolute TWD and distinct apparent air arrows.
 - `src/features/race-hud/RaceWindInstrument.tsx` - bow-up true-wind instrument,
-  signed-side TWA, separate absolute TWD/TWS and detailed apparent speed; all four saved visual aid choices retained.
+  signed-side TWA, separate absolute TWD/TWS and detailed apparent speed; all four saved visual aid choices retained. Package 12: with `words` (the Simple race) it leads with words and drops the TWA tag, TWD stays small.
 - `src/features/race-hud/RaceWindInstrument.module.css` - compact/detailed
   instruments,44px choices and wrapping unknown values on narrow screens.
 - `src/features/race-hud/RaceWindInstrument.test.tsx` - bow/arrow/side/wrap/endpoints,

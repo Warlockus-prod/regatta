@@ -310,11 +310,12 @@ describe('pickPrimaryFeedback', () => {
     expect(r.text).toMatch(/перетянут|сорв/i);
   });
 
-  it('reads healthy slot when nothing is wrong', () => {
+  it('reads healthy slot when nothing is wrong, in words (package 12: no "слот")', () => {
     const args = makeArgs({}, { slotHealth: 0.85 });
     const r = pickPrimaryFeedback(args);
     expect(r.tone).toBe('good');
-    expect(r.text).toMatch(/слот/i);
+    expect(r.text).toMatch(/паруса работают хорошо/i);
+    expect(r.text).not.toMatch(/слот/i);
   });
 
   it('appends a recovery suffix when trim is rising', () => {

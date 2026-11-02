@@ -2,6 +2,7 @@
 
 import { RaceOverviewMap } from "./RaceOverviewMap";
 import { RaceWindInstrument } from "./RaceWindInstrument";
+import type { WindWords } from "./wind-words";
 import { useRaceNavigationCopy } from "./navigation-copy";
 import type { RaceNavigationSnapshot, RaceWindReading } from "./navigation-model";
 import type { WindDisplay } from "@/lib/race-visual-prefs";
@@ -23,15 +24,17 @@ export function RaceMiniMapButton({ navigation, onOpenMap, you, fleet }: {
 }
 
 /** Read the existing HUD snapshots, never another simulation or render loop. */
-export function RaceCornerInstruments({ navigation, wind, windDisplay, miniMap, onOpenMap, you, fleet }: {
+export function RaceCornerInstruments({ navigation, wind, windDisplay, miniMap, onOpenMap, you, fleet, words = null }: {
   navigation: RaceNavigationSnapshot | null; wind: RaceWindReading | null;
   windDisplay: WindDisplay; miniMap: boolean; onOpenMap: () => void; you: string; fleet: string;
+  /** Package 12: the Simple race reads the wind in words (RaceWindInstrument). */
+  words?: WindWords | null;
 }) {
   const c = useRaceNavigationCopy();
   return <section className={styles.instruments} aria-label={`${c.map} · ${c.wind}`} data-testid="race-corner-instruments">
     <div className={styles.wind} data-testid="race-corner-wind">
       <span className={styles.label}>{c.wind}</span>
-      <RaceWindInstrument reading={wind} display={windDisplay} compact />
+      <RaceWindInstrument reading={wind} display={windDisplay} compact words={words} />
     </div>
     {miniMap && navigation && <RaceMiniMapButton navigation={navigation} onOpenMap={onOpenMap} you={you} fleet={fleet} />}
   </section>;

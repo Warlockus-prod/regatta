@@ -45,6 +45,7 @@ import { RACE_INTRO_TITLE } from "@/data/race-intro-title";
 import { RaceHintLogPanel } from "@/features/race-hud/RaceHintLog";
 import { LOGGED_ROUTE_ACTIONS, type HintLogEntry } from "@/features/race-hud/hint-log";
 import { RouteCaption } from "@/features/race-hud/RouteCaption";
+import { windWordsFor } from "@/features/race-hud/wind-words";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -118,7 +119,7 @@ export function RaceCockpit(p: {
   hintLog?: readonly HintLogEntry[];
 }) {
   const c = useRaceCopy();
-  const { tl } = useI18n();
+  const { tl, lang } = useI18n();
   const pc = useRacePauseCopy();
   const haptics = useRaceHapticsCopy();
   const nav = useRaceNavigationCopy();
@@ -180,6 +181,8 @@ export function RaceCockpit(p: {
   const resume = () => { p.onPause(); menuRef.current?.focus(); };
   const mapping = helmMappingFor(controls, "boat");
   const pro = p.prefs.mode === "pro";
+  // Package 12 (audit B3): the Simple race reads the wind in words.
+  const windWords = pro ? null : windWordsFor(lang);
   const versus = speedVersusTarget(p.speed, p.targetSpeed);
   const course = p.autopilot ? p.targetHeading : p.heading;
   const helm = { mapping, value: mapping === "rudder" ? `${Math.round(p.rudder * 35)}°` : `${Math.round(course)}°`, unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
@@ -205,7 +208,7 @@ export function RaceCockpit(p: {
       <div className={styles.scene} data-testid="race-3d" {...sceneTap}>{p.children}
         <div className={styles.instrumentsArea}>
           <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.prefs.windDisplay}
-            miniMap={p.prefs.miniMap} onOpenMap={openBigMap} you={c.you} fleet={c.fleet} />
+            miniMap={p.prefs.miniMap} onOpenMap={openBigMap} you={c.you} fleet={c.fleet} words={windWords} />
         </div>
         {bigMap && <RaceBigMap snapshot={p.navigation} track={p.track?.()} guidance={p.prefs.guidance ? p.guidance : null}
           you={c.you} fleet={c.fleet} onClose={() => setBigMapRace(null)} note={tl(RACE_MAP_COPY.raceRunning)} className={styles.bigMap} />}
@@ -301,7 +304,7 @@ export function RaceCockpit(p: {
           </div>}
           {tab === "map" && <div className={styles.mapPanel}>
             <RaceOverviewMap snapshot={p.navigation} labels={{ ...nav, title: nav.map, you: c.you, fleet: c.fleet }} />
-            <RaceWindInstrument reading={p.windReading} display={p.prefs.windDisplay} />
+            <RaceWindInstrument reading={p.windReading} display={p.prefs.windDisplay} words={windWords} />
             <h2>{c.fleet}</h2>
             <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id} data-player={r.isPlayer || undefined}><b>{i + 1}</b><span className={styles.fleetDot} style={{ background: r.color }} aria-hidden="true" /><span className={styles.fleetName}>{r.isPlayer ? c.you : r.name}</span></li>)}</ol>
           </div>}

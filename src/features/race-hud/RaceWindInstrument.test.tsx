@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { raceWindReading } from "./navigation-model";
 import { RaceWindInstrument, RaceWindSettings } from "./RaceWindInstrument";
+import { windWordsFor } from "./wind-words";
 
 const locale = vi.hoisted(() => ({ value: "en" }));
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ tl: (copy: Record<string, string>) => copy[locale.value] }) }));
@@ -176,4 +177,35 @@ it("names a head or following wind with the same phrase it shows, in every langu
       expect(decode(found![1]).endsWith(decode(found![2])), `${lang} ${windFrom}: ${found![1]} / ${found![2]}`).toBe(true);
     }
   }
+});
+
+// Package 12 (audit B3): the Simple race reads the wind in words first, the
+// Pro instrument keeps its TWA tag; TWD stays on the small second line in both.
+it("leads with words in the Simple race and keeps the abbreviations for Pro", () => {
+  const port = raceWindReading({ heading: 80, windFrom: 0, boatSpeedKn: 5, windKnots: 12 })!;
+  const words = {
+    ru: ["от носа", "ветер слева"], en: ["off the bow", "wind from the left"], pl: ["od dziobu", "wiatr z lewej"],
+    es: ["de la proa", "viento por la izquierda"], fr: ["de l&#x27;avant", "vent à gauche"], de: ["vom Bug", "Wind von links"], it: ["dalla prua", "vento da sinistra"],
+  };
+  for (const [lang, [offBow, side]] of Object.entries(words)) {
+    locale.value = lang;
+    for (const compact of [true, false]) {
+      const simple = renderToStaticMarkup(<RaceWindInstrument reading={port} display="compass" compact={compact} words={windWordsFor(lang as "ru")} />);
+      expect(simple).toContain('data-testid="race-true-wind-angle">80°');
+      expect(simple).toContain(`data-testid="race-true-wind-from-bow">${offBow}<`);
+      expect(simple).toMatch(new RegExp(`data-testid="race-true-wind-side" data-side="port"[^>]*><span aria-hidden="true">${side}</span>`));
+      expect(simple).not.toMatch(/aria-hidden="true">TWA</);
+      expect(simple).toContain('<span aria-hidden="true">TWD </span>');
+      const pro = renderToStaticMarkup(<RaceWindInstrument reading={port} display="compass" compact={compact} />);
+      expect(pro).toContain('aria-hidden="true">TWA</span>');
+      expect(pro).not.toContain("race-true-wind-from-bow");
+    }
+  }
+  locale.value = "ru";
+  const ahead = renderToStaticMarkup(<RaceWindInstrument reading={raceWindReading({ heading: 0, windFrom: 0, boatSpeedKn: 5, windKnots: 12 })!} display="off" compact words={windWordsFor("ru")} />);
+  expect(ahead).toContain('<span aria-hidden="true">ветер в нос</span>');
+  const astern = renderToStaticMarkup(<RaceWindInstrument reading={raceWindReading({ heading: 0, windFrom: 180, boatSpeedKn: 5, windKnots: 12 })!} display="off" compact words={windWordsFor("ru")} />);
+  expect(astern).toContain('<span aria-hidden="true">ветер в корму</span>');
+  const absent = renderToStaticMarkup(<RaceWindInstrument reading={null} display="compass" compact words={windWordsFor("ru")} />);
+  expect(absent).not.toContain("race-true-wind-from-bow");
 });
