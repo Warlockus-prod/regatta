@@ -13,7 +13,7 @@ SRC: ŚWIADECTWO OPERATORA RADIOTELEFONISTY VHF
 
 - 324 oficjalne pytania egzaminacyjne z tłumaczeniami do nauki, teoria i praktyka w siedmiu językach. Standardowe komunikaty radiowe pozostają angielskie.
 - Symulator radiostacji z oceną głosu: ćwiczysz MAYDAY, PAN-PAN i SECURITE na głos.
-- Od wersji 1.7.0, kompilacja 59, kurs rozpoznaje mowę dostępnym lokalnym modelem angielskim. Bez modelu sprawdzisz wpisany tekst offline.
+- Kurs rozpoznaje mowę dostępnym lokalnym modelem angielskim. Bez modelu sprawdzisz wpisany tekst offline.
 
 NAUKA ŻEGLARSTWA W 7 DNI
 

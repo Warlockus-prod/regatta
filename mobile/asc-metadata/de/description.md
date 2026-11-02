@@ -39,7 +39,7 @@ BOOT UND REGELN
 
 SCHEINE UND ZEUGNISSE
 
-- SRC-Seefunk: 324 offizielle Prüfungsfragen mit Lernübersetzungen, Theorie und Praxis in sieben Sprachen. Standardfunksprüche bleiben Englisch. Ab Version 1.7.0, Build 59, nutzt die Erkennung ein verfügbares lokales Englischmodell; ohne Modell lässt sich eingegebener Text offline prüfen.
+- SRC-Seefunk: 324 offizielle Prüfungsfragen mit Lernübersetzungen, Theorie und Praxis in sieben Sprachen. Standardfunksprüche bleiben Englisch. Die Spracherkennung nutzt ein verfügbares lokales Englischmodell; ohne Modell lässt sich eingegebener Text offline prüfen.
 - Sternik motorowodny (auf Polnisch): 879 Prüfungsfragen, Theorie und eine komplette Probeprüfung mit 75 Fragen in 90 Minuten. Funktioniert offline; schriftliche polnische Antworten für die mündliche Prüfung werden lokal geprüft.
 
 DATENSCHUTZ

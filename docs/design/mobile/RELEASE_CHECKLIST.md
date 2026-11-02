@@ -220,6 +220,18 @@ submitted:
   page check does not end with `OK`, if any text promises more than the
   switch does, or if the version claims do not hold for the submitted build.
 
+### G4c - Store binary and Apple questionnaires (learned on 1.7.0 build 77)
+- Store builds are made WITHOUT `EXPO_PUBLIC_ADS_DEMO` (prebuild and archive):
+  the Podfile must read `use_expo_modules!(exclude: ['vox-ads', 'vox-prebid'])`,
+  `Podfile.lock` must have no VOX or Prebid pod, and the binary no `VOXAds` /
+  `hybrid.ai` strings. The store description and review notes promise no ads.
+- Apple adds required age-rating questions over time (2026: `socialMedia`).
+  A missing answer makes `POST /v1/reviewSubmissionItems` fail with 409 whose
+  real cause is in `meta.associatedErrors`; `scripts/asc-submit.mjs` prints it.
+  Answer it in App Store Connect > App Information > Age Rating (or PATCH
+  `ageRatingDeclarations/<appInfo id>`) consistently with the other answers,
+  then rerun the submit, which also finishes a version left READY_FOR_REVIEW.
+
 ### G5 - Submit
 ```sh
 cd mobile
