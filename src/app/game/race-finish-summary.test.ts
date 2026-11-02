@@ -13,7 +13,7 @@ describe("finish summary (M1-4)", () => {
   });
 
   it("a winner gets the lead over second, a new record no delta, no record nothing", () => {
-    const won = summariseFinish([row("You", 95, true), row("A", 98)], { timeSec: 95, ts: 1 }, true);
+    const won = summariseFinish([row("You", 95, true), row("A", 98)], { timeSec: 95, ts: 1 }, true, true);
     expect(won.behindWinner).toBeNull();
     expect(won.aheadOfSecond).toBeCloseTo(3);
     expect(won.newRecord).toBe(true);
@@ -21,6 +21,17 @@ describe("finish summary (M1-4)", () => {
     const alone = summariseFinish([row("You", 95, true), row("A", Infinity)], null, false);
     expect(alone.aheadOfSecond).toBeNull();
     expect(alone.recordDelta).toBeNull();
+  });
+
+  it("a personal best needs a comparable earlier attempt (package 7)", () => {
+    const rows = [row("A", 98), row("You", 101.5, true)], best = { timeSec: 101.5, ts: 1 };
+    // Faster than an earlier attempt on the same course, wind and mode.
+    expect(summariseFinish(rows, best, true, true)).toMatchObject({ newRecord: true, recordDelta: null });
+    // The first finish of this course: stored silently, neither a record nor a delta.
+    expect(summariseFinish(rows, best, true, false)).toMatchObject({ newRecord: false, recordDelta: null, recordTime: null });
+    expect(summariseFinish(rows, best, true)).toMatchObject({ newRecord: false, recordDelta: null });
+    expect(FINISH_COPY.newRecord.ru).toBe("Личный рекорд");
+    expect(FINISH_COPY.newRecord.en).toBe("Personal best");
   });
 
   it("a did-not-finish has no time, gap or record", () => {

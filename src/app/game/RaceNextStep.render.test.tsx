@@ -58,7 +58,7 @@ describe("the race lobby's next step", () => {
     expect(c).toContain('data-step="goal"');
     expect(c).toContain("Next step");
     expect(c).toContain("Stay out of the no-go zone");
-    expect(c).toContain("keep at least 40° to the wind");
+    expect(c).toContain("follow the suggested course");
     // Only the solo race writes the row, so the goal names it (not multiplayer).
     expect(c).toContain("In your last solo race");
     expect(c).toContain('href="/start?lesson=wind-direction&amp;step=understand&amp;fromRace=easy.medium"');

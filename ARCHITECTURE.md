@@ -255,7 +255,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/game/race-model.ts` - типы и чистые помощники одиночной гонки (лодка, трасса, журнал, разбор, строка результата), подписи знаков, `soloRaceWind` (реэкспорт из `src/lib/race-solo-wind.ts`), `sortRaceResults`, `raceLogTally`, `formatTime`, `localStore`. M5 шаг 5: `playerPlaceSettled` (место игрока окончательно, пока ни один бот на дистанции не может прийти раньше по времени со штрафом); строка результата может быть `pending` (бот метрической гонки еще на дистанции, ставится после строк со временем и до сошедших) или `estimated` (оценка «~» по среднему VMG, место по ней со штрафом); без третьего аргумента строки прежние.; M5 шаг 6: `planRouteGuidance` выбирает планировщик подсказки маршрута по модели гонки (метрический из модуля флота или прежний) и отдает каждому только его память (`RouteGuidanceState`)
 - `src/app/game/race-model.test.ts` - фиксирует формулу ветра, порядок таблицы финиша со штрафами, подсчет журнала, подписи знаков и формат времени; M5 шаг 5: строки `pending` и `estimated`, место игрока со штрафом не окончательно, пока бот на дистанции может прийти в окне штрафа.
 - `src/app/game/RaceBriefing.tsx` - экран брифинга `/game`: схема трассы, правила, выбор Simple/Pro, выбор трассы пробной гонки и `PhysicalTrialNote`.
-- `src/app/game/RaceResults.tsx` - экран финиша `/game`: место и время, медаль трассы (M4-5), полосы навыков (M4-1), разбор судьи, таблица флота, миссия, коуч, сохранение в лидерборд, ссылка на повтор.
+- `src/app/game/RaceResults.tsx` - экран финиша `/game`: место и время, медаль трассы (M4-5), полосы навыков (M4-1), разбор судьи, таблица флота, миссия, коуч, сохранение в лидерборд, ссылка на повтор. Пакет 7: один главный совет (самая большая измеренная потеря локального коуча), ИИ-тренер отдельным блоком по кнопке, «Личный рекорд» только при прошлой попытке той же трассы, ветра и режима.
 - `src/app/game/RaceGhostSplits.tsx` - сплиты против твоего лучшего на экране финиша (M4-4), под полосами навыков: строка на каждый пройденный знак и на финиш, твое время и разница, впереди зеленым, позади красным, всегда со знаком и словом, без cyan; без призрака ничего не рисует.
 - `src/app/game/RaceGhostSplits.render.test.tsx` - на экране финиша знак зеленый «-2.4 s, ahead», финиш красный «+1.1 s, behind», без призрака секции нет; плашка HUD со своим источником и теми же словами.
 - `src/app/game/GameClient.ghost.test.tsx` - настоящий GameClient на старте отсчета ищет призрака класса и в приложении, и на сайте (M4-4).
@@ -335,6 +335,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/game/race-finish-hold.ts` - M1-4 finish hold: FINISH_HOLD_MS (2.5 s), the plate store and scheduleFinishedScreen(), which the race loop calls instead of setGameState('finished') (a timeout shows the results at once); M5 step 5: the hold carries `stillRacing`, the count of metric bots still being resolved
 - `src/app/game/race-finish-summary.test.ts` - tests of the result numbers, gap and place formatting, and that every text exists in 7 languages
 - `src/app/game/race-finish-summary.ts` - result screen numbers and 7-language texts: place, gap to the winner, difference to the record, place ordinals, DNF texts and tips
+- `src/app/game/first-race.scenario.test.ts` - пакет 7 (К3): игрок, который держит рекомендуемый курс подсказки, в «Первой гонке» (легкий уровень) и на среднем уровне в трех ветрах финиширует и обгоняет хотя бы одного бота; боты на прежнем планировщике
 - `src/app/game/race-fullscreen.test.ts` - full-screen support detection and the offered-once flag
 - `src/app/game/race-fullscreen.ts` - desktop full-screen offer: support check, click-only request, offered-once flag `regatta.race.fullscreen-offer.v1`
 - `src/app/game/race-layer.test.ts` - game-layer phases and pause keys
@@ -419,7 +420,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/api/replay/route.ts` - сохранение реплея, выдача кода; потолки размера `samples`, `events`, `course`, `missionId` только короткий слаг.
 - `src/app/api/replay/route.test.ts` - контракт: потолки размера, слаг миссии, санитайзер ника, ротация cookie не снимает лимит.
 - `src/app/api/replay/[code]/route.ts` - чтение реплея по коду.
-- `src/app/api/coach/route.ts` - ИИ-коуч на финише, событие `coach.requested`; каждая ошибка называет вид (`no-go`, `tacks`, `close-hauled` или `other`), чтобы экран финиша дал ей практику (M4-2).
+- `src/app/api/coach/route.ts` - ИИ-коуч на финише, событие `coach.requested`; каждая ошибка называет вид (`no-go`, `tacks`, `close-hauled` или `other`), чтобы экран финиша дал ей практику (M4-2). Пакет 7 ([Р-11]): вызывается только кнопкой «Спросить ИИ-тренера» (`GameClient` `askAiCoach`), главный совет финиша всегда от локального коуча; промпт не называет угол мертвой зоны и советует рекомендуемый курс.
 - `src/app/api/coach/sanitize.ts` - `sanitizeRaceLog()`: каждое поле лога гонки до промпта приводится к конечному числу, enum или обрезанной строке.
 - `src/app/api/coach/route.test.ts` - контракт: враждебное тело дает 4xx или чистый промпт, а не исключение.
 - `src/app/api/ai-chat/route.ts` - общий ИИ-чат по учебным темам.
@@ -623,6 +624,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 ### 4.8 Контент `src/data`
 
 - `src/data/sailing-data.ts` - курсы относительно ветра (5), галсы, маневры (6; у оверштага и фордевинда необязательные массивы `commands*`, `steps*`, `mistakes*` для `/courses#turns`, читаются `legacyPickArray`), глоссарий (51 термин), категории, правила гонок, стратегии.
+- `src/data/no-go-zone.ts` - пакет 7 (К4): один термин мертвой зоны на 7 языках, число из `NO_GO_HALF_DEG`, id и ссылка единственной статьи глоссария (`/glossary#no-go-zone`)
+- `src/data/no-go-copy.test.ts` - все учебные строки `src/data` о мертвой зоне и бейдевинде называют `NO_GO_HALF_DEG`, тексты гонки (знакомство, миссии, следующий шаг, финиш, коуч, брифинг, промпт ИИ) угла не называют, учебные модули число не печатают
 - `src/data/rules.ts` - сценарии расхождения и правил, 21 карточка (сцена, вопрос, ответ, почему).
 - `src/data/anatomy.ts` - части яхты с координатами в SVG 1000x500 и подписями.
 - `src/data/bootcamp.ts` - 8 уроков буткемпа по ~5 минут; голова каждого урока (id, порядок, эмодзи, название) берется из `src/data/bootcamp-index.ts`.
@@ -875,6 +878,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/race-scene/race-scene.test.ts` - контракты: камера ставит лодку чуть ниже середины экрана телефона и смотрит на ветер, поле берега ноль на суше и растет от пляжа, след расширяется и гаснет, качество только снижается, песок только на пляже.
 - `src/features/race-hud/RaceHud.tsx` - HUD гонки (аудит C2): скорость против цели на этом курсе, компас ветра относительно лодки с сектором мертвой зоны, таблица мест со временем, всплывающее событие.
 - `src/features/race-hud/target.ts` - целевая скорость из поляры движка: таблица через 5 градусов на силу ветра, интерполяция.
+- `src/lib/upwind-vmg.ts` - пакет 7: один решатель VMG (лучший угол к ветру и по ветру по поляре, целые градусы); по нему рекомендуемый курс старой гонки (`raceUpwind` в `src/features/race-hud/target.ts`, `src/lib/race-guidance.ts`), полоски навыков и оценка бейдевинда коучем
+- `src/lib/upwind-vmg.test.ts` - подсказка на лавировке, полоски навыков и коуч дают один угол и один VMG по таблице старой гонки в трех ветрах; лучший VMG крейсера в 6 и 12 уз лежит в окне упражнений бейдевинда
 - `src/features/race-hud/target.test.ts` - контракт: цель ноль в мертвой зоне, на галфвинде выше, чем в бейдевинд, лодка гонки выходит на цель с точностью 10%.
 - `src/features/race-hud/events.ts` - тексты событий гонки на 7 языках (цена поворота, отрыв на знаке, обгон) с порядковыми числительными.
 - `src/features/race-hud/events.test.ts` - контракт: события на всех 7 языках несут измеренные числа, порядковые числа по правилам языка.

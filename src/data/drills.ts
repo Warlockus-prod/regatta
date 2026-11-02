@@ -16,9 +16,17 @@
 // for reference and future logic unification; the runtimes keep their own
 // literals until the shared-package extraction (ADR-0003) lands.
 //
-// This file must stay import-free (or type-only imports) so Node can run it
-// under --experimental-strip-types from mobile/scripts/sync-content.ts.
+// mobile/scripts/sync-content.mjs bundles this file with esbuild (aliases
+// resolve), so it may import plain constants such as the no-go number.
 // ============================================================================
+
+import { NO_GO_HALF_DEG } from "@/lib/sailing-physics/constants";
+
+/** Close-hauled window of the native drills: from the no-go edge (the shared
+ * NO_GO_HALF_DEG, ADR-0021) to 8 degrees freer. The native trainer reads it
+ * from the synced catalog (mobile/src/simulator/missions.ts catalogParam). */
+const CLOSE_HAULED_MIN = NO_GO_HALF_DEG;
+const CLOSE_HAULED_MAX = NO_GO_HALF_DEG + 8;
 
 /** All 7 languages required - the catalog is the one place text must be
  *  complete (enforced by src/features/simulator-v3/runtime/trainer-catalog.test.ts). */
@@ -223,52 +231,54 @@ export const trainerCatalog: TrainerCatalogEntry[] = [
   // Native Trainer drills (mobile/src/simulator/missions.ts keeps check()).
   // --------------------------------------------------------------------------
   {
+    // Id stays 'twa45' (lesson links, progress); the window starts at the
+    // no-go edge (NO_GO_HALF_DEG, ADR-0021), not inside it (expert review B1).
     id: 'twa45',
     kind: 'drill',
     platforms: ['mobile'],
     title: {
-      ru: 'Удерживай TWA 45 град',
-      en: 'Hold TWA 45°',
-      pl: 'Utrzymaj TWA 45°',
-      es: 'Mantén TWA 45°',
-      fr: 'Tiens un TWA de 45°',
-      de: 'Halte TWA 45°',
-      it: 'Tieni TWA 45°',
+      ru: 'Держи бейдевинд',
+      en: 'Hold close-hauled',
+      pl: 'Trzymaj bajdewind',
+      es: 'Mantén la ceñida',
+      fr: 'Tiens le près',
+      de: 'Halte hoch am Wind',
+      it: 'Tieni la bolina',
     },
     goal: {
-      ru: 'Курс крутой бейдевинд: TWA в коридоре 40-50 град.',
-      en: 'Close-hauled: keep TWA in the 40-50° window.',
-      pl: 'Ostry bajdewind: TWA w przedziale 40-50°.',
-      es: 'Ceñida: mantén el TWA entre 40 y 50°.',
-      fr: 'Au près : garde un TWA entre 40 et 50°.',
-      de: 'Hoch am Wind: TWA zwischen 40 und 50° halten.',
-      it: 'Bolina stretta: TWA tra 40 e 50°.',
+      ru: `Бейдевинд у границы мёртвой зоны: TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
+      en: `Close-hauled at the edge of the no-go zone: TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
+      pl: `Bajdewind na granicy kąta martwego: TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
+      es: `Ceñida en el borde de la zona muerta: TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
+      fr: `Au près, au bord de la zone morte : TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
+      de: `Hoch am Wind am Rand des toten Winkels: TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
+      it: `Bolina al bordo dell'angolo morto: TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°.`,
     },
-    params: { targetSec: 30, twaMinDeg: 40, twaMaxDeg: 50 },
+    params: { targetSec: 30, twaMinDeg: CLOSE_HAULED_MIN, twaMaxDeg: CLOSE_HAULED_MAX },
   },
   {
     id: 'noGo',
     kind: 'drill',
     platforms: ['mobile'],
     title: {
-      ru: 'Избегай no-go зоны',
-      en: 'Avoid the no-go zone',
-      pl: 'Unikaj kąta martwego',
-      es: 'Evita la zona muerta',
-      fr: 'Évite la zone morte',
-      de: 'Meide den toten Winkel',
-      it: "Evita l'angolo morto",
+      ru: 'Не заходи в мёртвую зону',
+      en: 'Stay out of the no-go zone',
+      pl: 'Nie wchodź w kąt martwy',
+      es: 'No entres en la zona muerta',
+      fr: 'Reste hors de la zone morte',
+      de: 'Bleib aus dem toten Winkel',
+      it: "Resta fuori dall'angolo morto",
     },
     goal: {
-      ru: 'Не подходи ближе 30 град к ветру 60 секунд.',
-      en: 'Stay more than 30° off the wind for 60 seconds.',
-      pl: 'Przez 60 sekund nie podchodź bliżej niż 30° do wiatru.',
-      es: 'Durante 60 segundos, no te acerques a menos de 30° del viento.',
-      fr: 'Pendant 60 secondes, ne remonte pas à moins de 30° du vent.',
-      de: 'Geh 60 Sekunden lang nicht höher als 30° an den Wind.',
-      it: 'Per 60 secondi resta ad almeno 30° dal vento.',
+      ru: `60 секунд вне мёртвой зоны: не ближе ${NO_GO_HALF_DEG}° к ветру.`,
+      en: `60 seconds outside the no-go zone: no closer than ${NO_GO_HALF_DEG}° to the wind.`,
+      pl: `60 sekund poza kątem martwym: nie bliżej niż ${NO_GO_HALF_DEG}° do wiatru.`,
+      es: `60 segundos fuera de la zona muerta: a no menos de ${NO_GO_HALF_DEG}° del viento.`,
+      fr: `60 secondes hors de la zone morte : pas plus près que ${NO_GO_HALF_DEG}° du vent.`,
+      de: `60 Sekunden außerhalb des toten Winkels: nicht höher als ${NO_GO_HALF_DEG}° zum Wind.`,
+      it: `60 secondi fuori dall'angolo morto: non più vicino di ${NO_GO_HALF_DEG}° al vento.`,
     },
-    params: { targetSec: 60, minTwaDeg: 30 },
+    params: { targetSec: 60, minTwaDeg: NO_GO_HALF_DEG },
   },
   {
     id: 'reach90',
@@ -308,15 +318,15 @@ export const trainerCatalog: TrainerCatalogEntry[] = [
       it: 'Reagisci al salto di vento',
     },
     goal: {
-      ru: 'Ветер ходит каждые 10 сек. Держи TWA 40-50 на новом галсе.',
-      en: 'Wind shifts every 10 s. Hold TWA 40-50° on the new tack.',
-      pl: 'Wiatr zmienia kierunek co 10 s. Trzymaj TWA 40-50° na nowym halsie.',
-      es: 'El viento rola cada 10 s. Mantén el TWA en 40-50° con la nueva amura.',
-      fr: 'Le vent bascule toutes les 10 s. Tiens un TWA de 40-50° sur le nouveau bord.',
-      de: 'Der Wind dreht alle 10 s. Halte TWA 40-50° auf dem neuen Bug.',
-      it: 'Il vento ruota ogni 10 s. Tieni il TWA a 40-50° sulle nuove mure.',
+      ru: `Ветер ходит каждые 10 сек. Держи бейдевинд, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, на новом галсе.`,
+      en: `Wind shifts every 10 s. Hold close-hauled, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, on the new tack.`,
+      pl: `Wiatr zmienia kierunek co 10 s. Trzymaj bajdewind, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, na nowym halsie.`,
+      es: `El viento rola cada 10 s. Mantén la ceñida, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, con la nueva amura.`,
+      fr: `Le vent bascule toutes les 10 s. Tiens le près, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, sur le nouveau bord.`,
+      de: `Der Wind dreht alle 10 s. Halte hoch am Wind, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, auf dem neuen Bug.`,
+      it: `Il vento ruota ogni 10 s. Tieni la bolina, TWA ${CLOSE_HAULED_MIN}-${CLOSE_HAULED_MAX}°, sulle nuove mure.`,
     },
-    params: { targetSec: 60, twaMinDeg: 40, twaMaxDeg: 50 },
+    params: { targetSec: 60, twaMinDeg: CLOSE_HAULED_MIN, twaMaxDeg: CLOSE_HAULED_MAX },
   },
   {
     id: 'gustTrim',

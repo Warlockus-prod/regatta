@@ -66,10 +66,21 @@ function copyMemory(memory: AutopilotState): AutopilotState {
   return { ...memory, dip: memory.dip && { ...memory.dip }, finishLoop: memory.finishLoop && { ...memory.finishLoop } };
 }
 
+/** The bots' planner sails its beat at this true wind angle (race-physics.ts
+ * AUTOPILOT.closeHauled; that file is the server's generated physics and is
+ * not changed). The hint recognises a close-hauled plan heading by it. */
+export const PLANNER_CLOSE_HAULED_TWA = 45;
+
 /** Read-only advice with independent tack/recovery memory. The caller resets
  * state for a new race. Only a shallow boat copy is passed to the shared
- * planner: it writes autopilot memory, never position, trim, helm or gates. */
-export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number, previous?: RaceGuidanceState | null): {
+ * planner: it writes autopilot memory, never position, trim, helm or gates.
+ * Package 7: with `upwindTwa` (the race's best VMG angle, raceUpwind in
+ * features/race-hud/target.ts on the same upwind-vmg.ts solver the skill bars
+ * and the coach grade with) a close-hauled plan heading is sailed at that
+ * angle on the same tack, so the suggested course is the course the race
+ * grades as best. Without it the hint is the planner's own, as before. */
+export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number, previous?: RaceGuidanceState | null,
+  upwindTwa?: number): {
   guidance: RaceGuidance | null; state: RaceGuidanceState | null;
 } {
   if (!supportedCourse(course) || !boat || !pointIsFinite(boat.pos) || ![boat.heading, boat.speed, boat.lapDone, windDir].every(Number.isFinite)
@@ -110,11 +121,27 @@ export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: nu
       : boat.roundPhase === 1 ? { x: mark.pos.x, y: center.y - radius }
         : { x: mark.pos.x - offset, y: mark.pos.y + 1 };
   }
-  const guidance = guidanceToTarget(boat, target, windDir, 45, leg);
-  applyHeading(guidance, boat.heading, windDir, leg === "complete" ? boat.heading : plan.heading);
+  const closeHauled = upwindCloseHauled(upwindTwa);
+  const guidance = guidanceToTarget(boat, target, windDir, closeHauled ?? PLANNER_CLOSE_HAULED_TWA, leg);
+  applyHeading(guidance, boat.heading, windDir, leg === "complete" ? boat.heading : beatHeading(plan.heading, windDir, closeHauled));
   guidance.path = plan.path;
   guidance.beating = plan.beating;
   return { guidance, state: { courseKey, autopilot: copyMemory(probe.autopilot!) } };
+}
+
+/** A usable solver angle (the hint never points inside 35 or freer than 60,
+ * the same clamp guidanceToTarget applies), else null. */
+function upwindCloseHauled(twa: number | undefined): number | null {
+  return typeof twa === "number" && Number.isFinite(twa) ? Math.max(35, Math.min(60, twa)) : null;
+}
+
+/** The planner's heading, or the solver's close-hauled angle on the same tack
+ * when the planner holds its own close-hauled course. */
+function beatHeading(planHeading: number, windDir: number, closeHauled: number | null): number {
+  if (closeHauled === null) return planHeading;
+  const off = angleDiff(windDir, planHeading);
+  if (Math.abs(Math.abs(off) - PLANNER_CLOSE_HAULED_TWA) > 0.01) return planHeading;
+  return normalizeAngle(windDir + Math.sign(off) * closeHauled);
 }
 
 /** Initial read-only snapshot; live races retain planRaceGuidance.state. */

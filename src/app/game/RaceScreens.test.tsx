@@ -205,15 +205,19 @@ describe("solo race screens", () => {
     expect(html).not.toMatch(/<details[^>]*\sopen/);
   });
 
-  it("the record line: new record, slower or faster than the record, and none without a record (M1-4)", () => {
-    const fresh = results({ isNewRecord: true, bestRecord: { timeSec: 101.5, ts: 1 } });
-    expect(fresh).toContain("New record");
+  it("the record line: personal best, slower or faster than the record, and none without a record (M1-4, package 7)", () => {
+    const fresh = results({ isNewRecord: true, hadComparableBest: true, bestRecord: { timeSec: 101.5, ts: 1 } });
+    expect(fresh).toContain("Personal best");
     expect(fresh).not.toContain("your record");
+    // The first finish of a course: no comparable attempt, so neither a record nor a record line.
+    const first = results({ isNewRecord: true, hadComparableBest: false, bestRecord: { timeSec: 101.5, ts: 1 } });
+    expect(first).not.toContain("Personal best");
+    expect(first).not.toContain('data-testid="race-results-record"');
     expect(results({ bestRecord: { timeSec: 100, ts: 1 } })).toContain("+1.5 s off your record (1:40)");
     expect(results({ bestRecord: { timeSec: 103, ts: 1 } })).toContain("1.5 s faster than your record (1:43)");
     const none = results();
     expect(none).not.toContain('data-testid="race-results-record"');
-    expect(none).not.toContain("New record");
+    expect(none).not.toContain("Personal best");
     // A winner sees the lead over second place, not a gap to themselves.
     const won = results({ results: [{ name: "You", time: 95, color: "#0df", isPlayer: true }, { name: "Nautilus", time: 98, color: "#f68", isPlayer: false }] });
     expect(won).toContain("You won, 3.0 s ahead of second place");
@@ -237,7 +241,7 @@ describe("solo race screens", () => {
     expect(summary).toContain("The race closed before you rounded the windward mark.");
     expect(summary).toContain("Many first races end this way.");
     expect(summary).toContain("One thing to try");
-    expect(summary).toContain("Sail close-hauled, about 45 degrees off the wind, and tack when the mark is abeam.");
+    expect(summary).toContain("Sail close-hauled on the suggested course and tack when the mark is abeam.");
     expect(summary).not.toMatch(/--danger|data-medal|Did not finish/);
     expect(summary).not.toMatch(EMOJI);
     // The player's own DNF row in the fleet table has no medal either.
@@ -329,5 +333,65 @@ describe("solo race screens", () => {
     expect(inResults).toContain('aria-labelledby="race-judge-title"');
     // Elsewhere the card keeps its visible heading.
     expect(renderToStaticMarkup(<RaceJudgeReview debrief={debrief} />)).toMatch(/<h2 id="race-judge-title" class="text-lg[^"]*">Training judge<\/h2>/);
+  });
+});
+
+// Package 7 (audit K3, owner decision R-11), D1 contract: the finish screen
+// shows ONE deterministic main advice, the local coach's largest measured
+// loss of this race; the AI coach is only a button beside the debrief and its
+// answer never replaces that advice; "Personal best" only beats a comparable
+// earlier attempt.
+describe("the finish screen's one main advice (package 7)", () => {
+  const log = (noGoSec: number) => ({ difficulty: "easy", courseInfo: { windDirection: 0, windwardMark: { x: 400, y: 100 }, startY: 1050 },
+    finishTime: 120, position: 2, totalBoats: 3,
+    // noGoSec of stalls head to wind, then a steady beat; 12 tacks every 6 s.
+    samples: Array.from({ length: 240 }, (_, i) => ({ t: i * 0.5, x: 400, y: 1000 - i, heading: 0,
+      twa: i * 0.5 < noGoSec ? 10 : 44, speed: i * 0.5 < noGoSec ? 0.4 : 5, lap: 0 })),
+    events: [{ type: "start" as const, t: 0 }, ...Array.from({ length: 12 }, (_, i) => ({ type: "tack" as const, t: 20 + i * 6 }))] });
+  const main = (html: string) => html.slice(html.indexOf('data-testid="race-results-main-mistake"'), html.indexOf('data-testid="race-results-actions"'));
+  const ai: Coaching = { overall: "AI says hi.", score: 50, strengths: [], nextGoalRu: "AI goal",
+    mistakes: [{ timeStart: 0, timeEnd: 5, severity: "major", titleRu: "AI mistake title", explanationRu: "AI explains.", fixRu: "AI fix: keep TWA at least 40." }] };
+
+  it("is the local coach's largest measured loss, whichever finding that is", async () => {
+    const { analyseRaceLocallyWithFocus, measureRaceLog } = await import("@/lib/fallback-coach");
+    for (const noGoSec of [0, 40]) {
+      const race = log(noGoSec), m = measureRaceLog(race);
+      const { coaching, mainMistake } = analyseRaceLocallyWithFocus(race, "en");
+      const largest = ([["no-go", m.noGoLossSec], ["tacks", m.extraTackLossSec]] as const)
+        .filter(([kind]) => coaching.mistakes.some((x) => x.kind === kind))
+        .reduce((a, b) => ((b[1] ?? 0) > (a[1] ?? 0) ? b : a))[0];
+      expect(mainMistake).toBe(largest);
+      const html = results({ coaching, aiCoaching: ai, onAskAiCoach: noop });
+      expect(html.match(/data-testid="race-results-main-mistake"/g)).toHaveLength(1);
+      expect(main(html)).toContain(coaching.mistakes[0].fix!);
+      expect(main(html)).not.toContain("AI");
+    }
+  });
+
+  it("asks the AI coach only from its button, and shows the answer beside the debrief", () => {
+    const local = { overall: "Local.", score: 70, strengths: [], nextGoalRu: "Follow the suggested course.",
+      mistakes: [{ timeStart: 0, timeEnd: 3, severity: "minor" as const, titleRu: "Local title", explanationRu: "Local explains.", fixRu: "Local fix." }] };
+    const offered = results({ coaching: local, onAskAiCoach: noop });
+    expect(offered).toContain('data-testid="race-results-ask-ai"');
+    expect(offered).toContain("Ask the AI coach");
+    expect(offered).not.toContain("Generated by an OpenAI language model");
+    const answered = results({ coaching: local, aiCoaching: ai, onAskAiCoach: noop });
+    expect(main(answered)).toContain("Local fix.");
+    expect(main(answered)).not.toContain("AI fix");
+    const aiBlock = answered.slice(answered.indexOf('data-testid="race-results-ai-coach"'));
+    expect(aiBlock).toContain("AI fix: keep TWA at least 40.");
+    expect(aiBlock).toContain("Generated by an OpenAI language model");
+    expect(aiBlock).not.toContain('data-testid="race-results-ask-ai"');
+    // No AI where there is none to ask (the app): no button, no AI block.
+    expect(results({ coaching: local })).not.toContain('data-testid="race-results-ai-coach"');
+  });
+
+  it("says Personal best only after a comparable earlier attempt, and nothing on the first one", () => {
+    const best = { timeSec: 101.5, ts: 1 };
+    expect(results({ isNewRecord: true, hadComparableBest: true, bestRecord: best })).toContain("Personal best");
+    const first = results({ isNewRecord: true, hadComparableBest: false, bestRecord: best });
+    expect(first).not.toContain("Personal best");
+    expect(first).not.toContain("your record");
+    expect(first).not.toContain("New record");
   });
 });

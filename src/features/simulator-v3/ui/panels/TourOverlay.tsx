@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Lang } from '@/lib/languages';
 import { type TpFn } from '../shared';
+import { NO_GO_HALF_DEG } from '@/lib/sailing-physics/constants';
 
 // ---------------------------------------------------------------------------
 // V3 guided tour - appears on first visit to /simulator-v3, can be re-
@@ -72,19 +73,19 @@ const STEPS: TourStep[] = [
     titleDe: 'Der Wind kommt von oben',
     titleIt: 'Il vento arriva dall\'alto',
     bodyRu:
-      'Красный конус NO-GO - мёртвая зона (против ветра). Туда идти нельзя. Синяя стрелка TW показывает истинный ветер, AW - что чувствует лодка на ходу.',
+      `Красный конус - мёртвая зона, ±${NO_GO_HALF_DEG}° от ветра. Туда идти нельзя. Синяя стрелка TW показывает истинный ветер, AW - что чувствует лодка на ходу.`,
     bodyEn:
-      'The red NO-GO cone is the no-go zone (straight into the wind): you cannot sail there. The blue TW arrow is the true wind; AW is the apparent wind the moving boat feels.',
+      `The red cone is the no-go zone, ±${NO_GO_HALF_DEG}° from the wind: you cannot sail there. The blue TW arrow is the true wind; AW is the apparent wind the moving boat feels.`,
     bodyPl:
-      'Czerwony stożek NO-GO to kąt martwy (prosto pod wiatr): tam nie popłyniesz. Niebieska strzałka TW to wiatr prawdziwy, AW to wiatr pozorny, który czuje płynący jacht.',
+      `Czerwony stożek to kąt martwy, ±${NO_GO_HALF_DEG}° od wiatru: tam nie popłyniesz. Niebieska strzałka TW to wiatr prawdziwy, AW to wiatr pozorny, który czuje płynący jacht.`,
     bodyEs:
-      'El cono rojo NO-GO es la zona muerta (contra el viento): por ahí no se puede navegar. La flecha azul TW es el viento real; AW, el viento aparente que siente el barco en movimiento.',
+      `El cono rojo es la zona muerta, ±${NO_GO_HALF_DEG}° respecto al viento: por ahí no se puede navegar. La flecha azul TW es el viento real; AW, el viento aparente que siente el barco en movimiento.`,
     bodyFr:
-      "Le cône rouge NO-GO est la zone morte (face au vent) : impossible d'y naviguer. La flèche bleue TW est le vent réel, AW le vent apparent ressenti par le bateau en mouvement.",
+      `Le cône rouge est la zone morte, ±${NO_GO_HALF_DEG}° du vent : impossible d'y naviguer. La flèche bleue TW est le vent réel, AW le vent apparent ressenti par le bateau en mouvement.`,
     bodyDe:
-      'Der rote NO-GO-Kegel ist der tote Winkel (gegen den Wind): Dorthin kannst du nicht segeln. Der blaue TW-Pfeil ist der wahre Wind, AW der scheinbare Wind, den das fahrende Boot spürt.',
+      `Der rote Kegel ist der tote Winkel, ±${NO_GO_HALF_DEG}° zum Wind: Dorthin kannst du nicht segeln. Der blaue TW-Pfeil ist der wahre Wind, AW der scheinbare Wind, den das fahrende Boot spürt.`,
     bodyIt:
-      "Il cono rosso NO-GO è l'angolo morto (controvento): lì non si naviga. La freccia blu TW è il vento reale, AW il vento apparente che sente la barca in movimento.",
+      `Il cono rosso è l'angolo morto, ±${NO_GO_HALF_DEG}° dal vento: lì non si naviga. La freccia blu TW è il vento reale, AW il vento apparente che sente la barca in movimento.`,
   },
   {
     icon: '🧭',

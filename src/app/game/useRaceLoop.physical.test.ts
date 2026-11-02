@@ -442,7 +442,10 @@ describe("the metric race's fleet after the player's finish", () => {
 // the coach request and the race.summary row then wait for the settled rows;
 // an unpenalised player's place is final at the finish and coached at once.
 describe("the metric race's place of a penalised player", () => {
-  const coachBodies = (fetch: ReturnType<typeof vi.fn>) => fetch.mock.calls.map(([, init]) => JSON.parse((init as RequestInit).body as string) as { position: number; totalBoats: number });
+  // Package 7 (R-11): the loop offers the settled race log to the AI coach's
+  // button (setAiCoachPayload) and never POSTs it by itself.
+  const coachBodies = (set: RaceLoopInput["set"]) => vi.mocked(set.setAiCoachPayload!).mock.calls.map(([payload]) => payload as { position: number; totalBoats: number })
+    .filter(Boolean);
   const summaries = () => vi.mocked(recordWebDiagnostic).mock.calls.map(([row]) => row)
     .filter((row): row is Extract<typeof row, { type: "race.summary"; action: "result" }> => row.type === "race.summary" && row.action === "result");
   let fetch: ReturnType<typeof vi.fn>;
@@ -455,7 +458,7 @@ describe("the metric race's place of a penalised player", () => {
   const race = (penalties: Record<string, number>) => sail({ others: [["ai0", 422, 950, 90, 0], ["ai1", 444, 950, 90, 0]], frames: 10, penalties,
     finish: (t, b) => b.isPlayer ? t === 30 : b.id === "ai0" && t === 330 });
 
-  it("waits with a 30 s penalty, then coaches, asks the coach and journals the resolved 2nd place", () => {
+  it("waits with a 30 s penalty, then coaches, offers the AI coach the log and journals the resolved 2nd place", () => {
     const { set, drive, pendingFrame } = race({ player: 30 });
     // The finish tick: rows say 1st, but ai0 can still finish inside the penalty window.
     expect(finishHoldStore.get()).toMatchObject({ place: 1 });
@@ -466,19 +469,21 @@ describe("the metric race's place of a penalised player", () => {
     drive(100);
     expect(pendingFrame()).toBe(false);
     expect(set.setCoaching).toHaveBeenCalledTimes(1);
-    expect(coachBodies(fetch)).toEqual([expect.objectContaining({ position: 2, totalBoats: 3 })]);
+    expect(coachBodies(set)).toEqual([expect.objectContaining({ position: 2, totalBoats: 3 })]);
+    expect(fetch).not.toHaveBeenCalled();
     expect(summaries()).toEqual([expect.objectContaining({ place: 2, total: 3, botsFinished: 1, penaltySeconds: 30 })]);
   });
 
   it("coaches an unpenalised player at once: the bots still racing cannot pass", () => {
     const { set, drive } = race({});
     expect(set.setCoaching).toHaveBeenCalledTimes(1);
-    expect(coachBodies(fetch)).toEqual([expect.objectContaining({ position: 1, totalBoats: 3 })]);
+    expect(coachBodies(set)).toEqual([expect.objectContaining({ position: 1, totalBoats: 3 })]);
     // The race.summary row waits for the resolved fleet (botsFinished), with the same place.
     expect(summaries()).toEqual([]);
     drive(100);
     expect(set.setCoaching).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(coachBodies(set)).toHaveLength(1);
+    expect(fetch).not.toHaveBeenCalled();
     expect(summaries()).toEqual([expect.objectContaining({ place: 1, botsFinished: 1 })]);
   });
 

@@ -1283,6 +1283,16 @@ Other consequences:
   +-45 against the drawn +-42 (`src/data/bootcamp-quiz.ts`, mobile
   `LessonDiagram.tsx`). The legacy race's 30 deg copy is right for the classic
   boat; whether the legacy race keeps 30 or shows 42 is an owner question.
+  Done in package 7 (2026-11-02, uncommitted): every item above is fixed.
+  Teaching copy reads `NO_GO_HALF_DEG` (`src/data/no-go-zone.ts`, one glossary
+  article `no-go-zone`), the drills' thresholds come from the same catalog
+  params on web and in the app, the app's lesson diagram and trainer cone
+  draw it. The legacy race keeps its 30 deg zone (backlog default) and its
+  copy (intro, briefing, dial, missions, next step, finish, both coaches)
+  states no number: it points to the suggested course, which now beats at
+  the race's best VMG angle from `src/lib/upwind-vmg.ts`, the solver the
+  skill bars and the coach grade with. `src/data/no-go-copy.test.ts` fails if
+  a string drifts.
 
 ### Verification
 - `src/lib/sailing-physics/cruiser.test.ts` (13 contracts on three inputs

@@ -31,6 +31,12 @@ interface RaceLog {
   totalBoats: number;
   samples: LogSample[];
   events: LogEvent[];
+  /** Package 7: the race's best course to windward at its wind (raceUpwind,
+   * the solver the route hint sails, src/lib/upwind-vmg.ts). With it the
+   * close-hauled grade is the VMG against that optimum, the same grade the
+   * skill bars give; older logs and the server without it keep the fixed
+   * 4.5 kn reference. */
+  upwindTarget?: { twa: number; speedKn: number; vmgKn: number };
 }
 
 /**
@@ -107,7 +113,11 @@ export interface RaceLogMeasures {
   extraTackLossSec: number | null;
   closeHauledSamples: number;
   closeHauledAvgKn: number | null;
-  /** Loss against the 4.5 kn the coach calls good close-hauled speed. */
+  /** Close-hauled VMG over the race's best upwind VMG (upwindTarget); null
+   * without a target or close-hauled samples. */
+  closeHauledVmgRatio: number | null;
+  /** Loss against the race's best upwind VMG (upwindTarget), else against the
+   * 4.5 kn the coach calls good close-hauled speed. */
   slowCloseHauledLossSec: number | null;
 }
 
@@ -117,7 +127,17 @@ const GOOD_CLOSE_HAULED_KN = 4.5;
 const ENOUGH_TACKS = 4;
 const TOO_MANY_TACKS = 10;
 
-export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events'>): RaceLogMeasures {
+/** A usable upwind target, else null. */
+function upwindOf(log: Pick<RaceLog, 'upwindTarget'>): { twa: number; speedKn: number; vmgKn: number } | null {
+  const t = log.upwindTarget;
+  return t && [t.twa, t.speedKn, t.vmgKn].every(Number.isFinite) && t.vmgKn > 0 && t.twa > 0 && t.twa < 90 ? t : null;
+}
+
+/** Close-hauled VMG ratio the coach praises, and below which it criticises. */
+const GOOD_UPWIND_RATIO = 0.9;
+const SLOW_UPWIND_RATIO = 0.75;
+
+export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events' | 'upwindTarget'>): RaceLogMeasures {
   const samples = log.samples, w = sampleWeights(samples);
   const duration = w.reduce((sum, x) => sum + x, 0);
   // No-go: entries are rising edges of the predicate. The live log catches
@@ -146,12 +166,20 @@ export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events'>): RaceLo
   }
   const extra = Math.max(0, tackTimes.length - ENOUGH_TACKS);
   const extraTackLossSec = measuredTacks && extra ? (tackLoss / measuredTacks) * extra : null;
-  // Close-hauled: 35..55 degrees to the wind.
-  let chLoss = 0, chSum = 0, chCount = 0;
+  // Close-hauled: 35..55 degrees to the wind, or around the race's best VMG
+  // angle when the log has it (10 higher, 15 freer). With the target the loss
+  // is VMG given away against the optimum the route hint sails.
+  const upwind = upwindOf(log);
+  const [chLo, chHi] = upwind ? [Math.max(20, upwind.twa - 10), Math.min(75, upwind.twa + 15)] : [35, 55];
+  let chLoss = 0, chSum = 0, chCount = 0, chVmg = 0, chWeight = 0;
   samples.forEach((s, i) => {
-    if (Math.abs(s.twa) < 35 || Math.abs(s.twa) > 55) return;
+    if (Math.abs(s.twa) < chLo || Math.abs(s.twa) > chHi) return;
     chCount++; chSum += s.speed;
-    chLoss += w[i] * Math.max(0, 1 - s.speed / GOOD_CLOSE_HAULED_KN);
+    if (upwind) {
+      const vmg = Math.max(0, s.speed) * Math.cos(Math.abs(s.twa) * Math.PI / 180);
+      chVmg += w[i] * vmg; chWeight += w[i];
+      chLoss += w[i] * Math.max(0, 1 - vmg / upwind.vmgKn);
+    } else chLoss += w[i] * Math.max(0, 1 - s.speed / GOOD_CLOSE_HAULED_KN);
   });
   return {
     noGoEntries,
@@ -162,6 +190,7 @@ export function measureRaceLog(log: Pick<RaceLog, 'samples' | 'events'>): RaceLo
     extraTackLossSec,
     closeHauledSamples: chCount,
     closeHauledAvgKn: chCount ? chSum / chCount : null,
+    closeHauledVmgRatio: upwind && chWeight > 0 ? chVmg / chWeight / upwind.vmgKn : null,
     slowCloseHauledLossSec: chCount ? chLoss : null,
   };
 }
@@ -231,25 +260,25 @@ export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'
         },
       ),
       explanationRu: pick(
-        'Несколько раз нос яхты оказывался ближе 30° к ветру, а скорость падала ниже 2 узлов. В этой зоне паруса заполаскивают и яхта теряет ход.',
-        'Several times the bow was within 30° of the wind and the speed fell below 2 knots. In this zone the sails luff and the boat loses way.',
-        'Kilka razy dziób znalazł się bliżej niż 30° od wiatru, a prędkość spadła poniżej 2 węzłów. W tej strefie żagle łopoczą, a jacht traci prędkość.',
+        'Несколько раз нос яхты уходил в мёртвую зону, а скорость падала ниже 2 узлов. Там паруса полощут, и яхта теряет ход.',
+        'Several times the bow went into the no-go zone and the speed fell below 2 knots. There the sails luff and the boat loses way.',
+        'Kilka razy dziób wszedł w kąt martwy, a prędkość spadła poniżej 2 węzłów. Tam żagle łopoczą, a jacht traci prędkość.',
         {
-          es: 'Varias veces la proa quedó a menos de 30° del viento y la velocidad bajó de 2 nudos. En esa zona las velas flamean y el barco pierde velocidad.',
-          fr: 'Plusieurs fois, l\'étrave était à moins de 30° du vent et la vitesse est tombée sous 2 nœuds. Dans cette zone, les voiles faseyent et le bateau perd de la vitesse.',
-          de: 'Mehrmals stand der Bug weniger als 30° zum Wind und die Fahrt fiel unter 2 Knoten. Dort killen die Segel und das Boot verliert Fahrt.',
-          it: 'Più volte la prua è arrivata a meno di 30° dal vento e la velocità è scesa sotto i 2 nodi. In quella zona le vele fileggiano e la barca perde velocità.',
+          es: 'Varias veces la proa entró en la zona muerta y la velocidad bajó de 2 nudos. Allí las velas flamean y el barco pierde velocidad.',
+          fr: 'Plusieurs fois, l\'étrave est entrée dans la zone morte et la vitesse est tombée sous 2 nœuds. Là, les voiles faseyent et le bateau perd de la vitesse.',
+          de: 'Mehrmals geriet der Bug in den toten Winkel und die Fahrt fiel unter 2 Knoten. Dort killen die Segel und das Boot verliert Fahrt.',
+          it: 'Più volte la prua è entrata nell\'angolo morto e la velocità è scesa sotto i 2 nodi. Lì le vele fileggiano e la barca perde velocità.',
         },
       ),
       fixRu: pick(
-        'Держи угол к ветру минимум 40° при лавировке. Если попал в левентик - сразу увалить на ~50°, чтобы паруса снова потянули.',
-        'Keep at least 40° to the wind when beating upwind. If you end up head to wind, bear away ~50° right away so the sails fill again.',
-        'Na halsówce trzymaj co najmniej 40° do wiatru. Jeśli wpadniesz w łopot, od razu odpadnij o ~50°, żeby żagle znów zaczęły pracować.',
+        'На лавировке держи рекомендуемый курс: он идет у самой границы мёртвой зоны. Если яхта встала носом к ветру, уваливайся, пока паруса не наполнятся.',
+        'On the beat follow the suggested course: it runs right at the edge of the no-go zone. If the boat stops head to wind, bear away until the sails fill.',
+        'Na halsówce trzymaj się sugerowanego kursu: prowadzi tuż przy granicy kąta martwego. Jeśli jacht stanie dziobem do wiatru, odpadaj, aż żagle się wypełnią.',
         {
-          es: 'En ceñida mantén al menos 40° respecto al viento. Si te quedas proa al viento, arriba enseguida unos 50° para que las velas vuelvan a portar.',
-          fr: 'Au louvoyage, garde au moins 40° par rapport au vent. Si tu te retrouves vent debout, abats tout de suite d\'environ 50° pour que les voiles portent à nouveau.',
-          de: 'Halte beim Kreuzen mindestens 40° zum Wind. Stehst du im Wind, fall sofort etwa 50° ab, damit die Segel wieder ziehen.',
-          it: 'Di bolina tieni almeno 40° dal vento. Se finisci prua al vento, poggia subito di circa 50° perché le vele tornino a portare.',
+          es: 'En la ceñida sigue el rumbo recomendado: va justo por el borde de la zona muerta. Si el barco se para proa al viento, arriba hasta que las velas se llenen.',
+          fr: 'Au louvoyage, suis le cap conseillé : il longe le bord de la zone morte. Si le bateau s\'arrête vent debout, abats jusqu\'à ce que les voiles se gonflent.',
+          de: 'Folge an der Kreuz dem empfohlenen Kurs: Er führt direkt am Rand des toten Winkels entlang. Bleibt das Boot im Wind stehen, fall ab, bis die Segel sich füllen.',
+          it: 'Di bolina segui la rotta consigliata: corre proprio al bordo dell\'angolo morto. Se la barca si ferma prua al vento, poggia finché le vele si riempiono.',
         },
       ),
     });
@@ -349,25 +378,25 @@ export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'
         },
       ),
       explanationRu: pick(
-        `Около ${Math.round(noGoFraction * 100)}% гонки скорость была ниже 2 узлов с углом к ветру меньше 30°. Это прямые потери времени.`,
-        `For about ${Math.round(noGoFraction * 100)}% of the race you were below 2 knots at under 30° to the wind. That is pure time lost.`,
-        `Przez około ${Math.round(noGoFraction * 100)}% wyścigu prędkość była poniżej 2 węzłów przy kącie do wiatru poniżej 30°. To czysta strata czasu.`,
+        `Около ${Math.round(noGoFraction * 100)}% гонки яхта стояла в мёртвой зоне на скорости ниже 2 узлов. Это прямые потери времени.`,
+        `For about ${Math.round(noGoFraction * 100)}% of the race the boat was stuck in the no-go zone below 2 knots. That is pure time lost.`,
+        `Przez około ${Math.round(noGoFraction * 100)}% wyścigu jacht tkwił w kącie martwym poniżej 2 węzłów. To czysta strata czasu.`,
         {
-          es: `Durante cerca del ${Math.round(noGoFraction * 100)}% de la regata fuiste a menos de 2 nudos y a menos de 30° del viento. Es tiempo perdido sin más.`,
-          fr: `Pendant environ ${Math.round(noGoFraction * 100)} % de la course, tu étais sous 2 nœuds à moins de 30° du vent. C'est du temps perdu, tout simplement.`,
-          de: `Etwa ${Math.round(noGoFraction * 100)} % des Rennens warst du unter 2 Knoten bei weniger als 30° zum Wind. Das ist reiner Zeitverlust.`,
-          it: `Per circa il ${Math.round(noGoFraction * 100)}% della regata la velocità è rimasta sotto i 2 nodi con meno di 30° dal vento. È tempo perso e basta.`,
+          es: `Durante cerca del ${Math.round(noGoFraction * 100)}% de la regata el barco estuvo parado en la zona muerta a menos de 2 nudos. Es tiempo perdido sin más.`,
+          fr: `Pendant environ ${Math.round(noGoFraction * 100)} % de la course, le bateau est resté bloqué dans la zone morte sous 2 nœuds. C'est du temps perdu, tout simplement.`,
+          de: `Etwa ${Math.round(noGoFraction * 100)} % des Rennens steckte das Boot unter 2 Knoten im toten Winkel fest. Das ist reiner Zeitverlust.`,
+          it: `Per circa il ${Math.round(noGoFraction * 100)}% della regata la barca è rimasta bloccata nell'angolo morto sotto i 2 nodi. È tempo perso e basta.`,
         },
       ),
       fixRu: pick(
-        'Следи за углом к ветру на HUD. Как только TWA опускается ниже 35° - сразу увалить.',
-        'Watch the wind angle on the HUD. As soon as TWA drops below 35°, bear away.',
-        'Pilnuj kąta do wiatru na HUD. Gdy tylko TWA spadnie poniżej 35°, od razu odpadnij.',
+        'Следи за ветром на HUD и держи рекомендуемый курс. Как только яхта тормозит носом к ветру, сразу уваливайся.',
+        'Watch the wind on the HUD and follow the suggested course. As soon as the boat slows pointing into the wind, bear away.',
+        'Pilnuj wiatru na HUD i trzymaj się sugerowanego kursu. Gdy tylko jacht zwalnia dziobem do wiatru, od razu odpadnij.',
         {
-          es: 'Vigila el ángulo al viento en el HUD. En cuanto el TWA baje de 35°, arriba enseguida.',
-          fr: 'Surveille l\'angle au vent sur le HUD. Dès que le TWA passe sous 35°, abats tout de suite.',
-          de: 'Behalte den Windwinkel im HUD im Blick. Sobald der TWA unter 35° fällt, sofort abfallen.',
-          it: 'Tieni d\'occhio l\'angolo al vento sull\'HUD. Appena il TWA scende sotto i 35°, poggia subito.',
+          es: 'Vigila el viento en el HUD y sigue el rumbo recomendado. En cuanto el barco frene con la proa al viento, arriba enseguida.',
+          fr: 'Surveille le vent sur le HUD et suis le cap conseillé. Dès que le bateau ralentit face au vent, abats tout de suite.',
+          de: 'Behalte den Wind im HUD im Blick und folge dem empfohlenen Kurs. Sobald das Boot mit dem Bug im Wind langsamer wird, sofort abfallen.',
+          it: 'Tieni d\'occhio il vento sull\'HUD e segui la rotta consigliata. Appena la barca rallenta con la prua al vento, poggia subito.',
         },
       ),
     });
@@ -377,7 +406,12 @@ export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'
   // ----- Close-hauled speed -----
   if (m.closeHauledSamples > 5 && m.closeHauledAvgKn !== null) {
     const avgSpeed = m.closeHauledAvgKn;
-    if (avgSpeed >= GOOD_CLOSE_HAULED_KN) {
+    // With the race's upwind target the grade is the VMG ratio (the skill
+    // bars' grade); the fixed speeds are the fallback for older logs.
+    const ratio = m.closeHauledVmgRatio;
+    const good = ratio !== null ? ratio >= GOOD_UPWIND_RATIO : avgSpeed >= GOOD_CLOSE_HAULED_KN;
+    const slow = ratio !== null ? ratio < SLOW_UPWIND_RATIO : avgSpeed < 3;
+    if (good) {
       if (finished) praised.add('close-hauled');
       if (finished) strengths.push(pick(
         `Хорошая скорость в бейдевинде: в среднем ${dec(avgSpeed)} уз`,
@@ -390,7 +424,7 @@ export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'
           it: `Buona velocità di bolina: ${dec(avgSpeed)} kn di media`,
         },
       ));
-    } else if (avgSpeed < 3) {
+    } else if (slow) {
       mistakes.push({
         lossSec: m.slowCloseHauledLossSec,
         goal: 'close-hauled',
@@ -420,14 +454,14 @@ export function analyseRaceLocallyWithFocus(log: RaceLog, lang: CoachLang = 'ru'
           },
         ),
         fixRu: pick(
-          'Попробуй увалить на 5-10° от текущего курса. Скорость в бейдевинде важнее узкого угла.',
-          'Try bearing away 5-10° from your current heading. Close-hauled, speed matters more than a tight angle.',
-          'Spróbuj odpaść o 5-10° od obecnego kursu. Na bajdewindzie prędkość jest ważniejsza niż ostry kąt.',
+          'Держи рекомендуемый курс: это лучший угол к ветру для этой лодки. Острее него она теряет больше скорости, чем выигрывает в угле.',
+          'Follow the suggested course: it is this boat\'s best angle to the wind. Pointing higher costs more speed than it gains in angle.',
+          'Trzymaj się sugerowanego kursu: to najlepszy kąt do wiatru dla tej łodzi. Ostrzej traci więcej prędkości, niż zyskuje na kącie.',
           {
-            es: 'Prueba a arribar 5-10° respecto al rumbo actual. En ceñida, la velocidad importa más que un ángulo cerrado.',
-            fr: 'Essaie d\'abattre de 5-10° par rapport à ton cap actuel. Au près, la vitesse compte plus qu\'un angle serré.',
-            de: 'Versuch, 5-10° vom aktuellen Kurs abzufallen. Hoch am Wind ist Fahrt wichtiger als ein enger Winkel.',
-            it: 'Prova a poggiare di 5-10° rispetto alla rotta attuale. Di bolina la velocità conta più di un angolo stretto.',
+            es: 'Sigue el rumbo recomendado: es el mejor ángulo al viento de este barco. Más orzado pierdes más velocidad de la que ganas en ángulo.',
+            fr: 'Suis le cap conseillé : c\'est le meilleur angle au vent de ce bateau. Plus haut, tu perds plus de vitesse que tu ne gagnes en cap.',
+            de: 'Folge dem empfohlenen Kurs: Er ist der beste Winkel zum Wind für dieses Boot. Höher verlierst du mehr Fahrt, als du an Höhe gewinnst.',
+            it: 'Segui la rotta consigliata: è il miglior angolo al vento di questa barca. Più stretto perdi più velocità di quanto guadagni in angolo.',
           },
         ),
       });
@@ -621,14 +655,14 @@ function goalFor(kind: GoalKind, lossSec: number | null, pick: PickFn): string {
   const s = lossSec !== null && lossSec >= 1 ? Math.round(lossSec) : null;
   if (kind === 'no-go') {
     const goal = pick(
-      'Держись вне мёртвой зоны: на лавировке не меньше 40° к ветру.',
-      'Stay out of the no-go zone: at least 40° to the wind when beating.',
-      'Trzymaj się poza kątem martwym: na halsówce co najmniej 40° do wiatru.',
+      'Держись вне мёртвой зоны: на лавировке держи рекомендуемый курс.',
+      'Stay out of the no-go zone: on the beat follow the suggested course.',
+      'Trzymaj się poza kątem martwym: na halsówce trzymaj się sugerowanego kursu.',
       {
-        es: 'Mantente fuera de la zona muerta: en ceñida, al menos 40° respecto al viento.',
-        fr: 'Reste hors de la zone morte : au louvoyage, au moins 40° du vent.',
-        de: 'Bleib aus dem toten Winkel: beim Kreuzen mindestens 40° zum Wind.',
-        it: 'Resta fuori dall\'angolo morto: di bolina almeno 40° dal vento.',
+        es: 'Mantente fuera de la zona muerta: en la ceñida sigue el rumbo recomendado.',
+        fr: 'Reste hors de la zone morte : au louvoyage, suis le cap conseillé.',
+        de: 'Bleib aus dem toten Winkel: Folge an der Kreuz dem empfohlenen Kurs.',
+        it: 'Resta fuori dall\'angolo morto: di bolina segui la rotta consigliata.',
       },
     );
     return s === null ? goal : `${goal} ${pick(
@@ -668,14 +702,14 @@ function goalFor(kind: GoalKind, lossSec: number | null, pick: PickFn): string {
     )}`;
   }
   const goal = pick(
-    'Скорость в бейдевинде: уваливайся на 5-10°, пока не пойдёшь быстрее 4,5 уз.',
-    'Close-hauled speed: bear away 5-10° until you sail faster than 4.5 kn.',
-    'Prędkość na bajdewindzie: odpadnij o 5-10°, aż popłyniesz szybciej niż 4,5 kn.',
+    'Скорость в бейдевинде: держи рекомендуемый курс, это лучший угол к ветру для этой лодки.',
+    'Close-hauled speed: follow the suggested course, the best angle to the wind for this boat.',
+    'Prędkość na bajdewindzie: trzymaj się sugerowanego kursu, to najlepszy kąt do wiatru dla tej łodzi.',
     {
-      es: 'Velocidad en ceñida: arriba 5-10° hasta ir a más de 4,5 kn.',
-      fr: 'Vitesse au près : abats de 5-10° jusqu\'à dépasser 4,5 kn.',
-      de: 'Fahrt hoch am Wind: fall 5-10° ab, bis du schneller als 4,5 kn segelst.',
-      it: 'Velocità di bolina: poggia di 5-10° finché non superi i 4,5 kn.',
+      es: 'Velocidad en ceñida: sigue el rumbo recomendado, el mejor ángulo al viento de este barco.',
+      fr: 'Vitesse au près : suis le cap conseillé, le meilleur angle au vent de ce bateau.',
+      de: 'Fahrt hoch am Wind: Folge dem empfohlenen Kurs, dem besten Winkel zum Wind für dieses Boot.',
+      it: 'Velocità di bolina: segui la rotta consigliata, il miglior angolo al vento di questa barca.',
     },
   );
   return s === null ? goal : `${goal} ${pick(

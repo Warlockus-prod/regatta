@@ -7,7 +7,9 @@
 // briefing only shows it. It opens by itself the first time on a course and
 // from the lobby's "i" button.
 
+import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
+import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from '@/data/no-go-zone';
 import { formatRecordTime, type BestRecord } from '@/lib/best-times';
 import { PHYSICAL_RACE_PROFILES, type PhysicalRaceProfile } from "@/lib/race-context";
 import { physicalCourseDefinition } from "@/lib/race-courses";
@@ -112,15 +114,18 @@ export function RaceBriefing({
           </div>
           <ul className="space-y-4 self-center">
             {[
+              // Package 7: no no-go number here (src/data/no-go-zone.ts): the
+              // suggested course beats at the race's best VMG angle, and the
+              // term links to its one glossary article.
               { icon: 'nogo', text: tl({
-                ru: '±30° к ветру - мёртвая зона: паруса не тянут. Если лодка встала, уваливайся примерно на 50°.',
-                en: 'Within 30° of the wind is the no-go zone: the sails do not pull. If you stop, bear away about 50°.',
-                pl: '±30° od wiatru to kąt martwy: żagle nie pracują. Jeśli staniesz, odpadnij o jakieś 50°.',
-                es: 'A ±30° del viento está la zona muerta: las velas no tiran. Si te paras, arriba unos 50°.',
-                fr: "À ±30° du vent, c'est la zone morte : les voiles ne portent pas. Si tu t'arrêtes, abats d'environ 50°.",
-                de: '±30° zum Wind ist der tote Winkel: Die Segel ziehen nicht. Wenn du stehst, fall etwa 50° ab.',
-                it: "A ±30° dal vento c'è l'angolo morto: le vele non portano. Se ti fermi, poggia di circa 50°.",
-              }) },
+                ru: 'Прямо против ветра мёртвая зона: паруса не тянут. На лавировке держи рекомендуемый курс, а если лодка встала, уваливайся, пока паруса не наполнятся.',
+                en: 'Straight into the wind is the no-go zone: the sails do not pull. On the beat follow the suggested course, and if you stop, bear away until the sails fill.',
+                pl: 'Prosto pod wiatr jest kąt martwy: żagle nie pracują. Na halsówce trzymaj się sugerowanego kursu, a jeśli staniesz, odpadaj, aż żagle się wypełnią.',
+                es: 'Justo contra el viento está la zona muerta: las velas no tiran. En la ceñida sigue el rumbo recomendado y, si te paras, arriba hasta que las velas se llenen.',
+                fr: "Face au vent, c'est la zone morte : les voiles ne portent pas. Au louvoyage, suis le cap conseillé et, si tu t'arrêtes, abats jusqu'à ce que les voiles se gonflent.",
+                de: 'Direkt gegen den Wind liegt der tote Winkel: Die Segel ziehen nicht. Folge an der Kreuz dem empfohlenen Kurs, und wenn du stehst, fall ab, bis die Segel sich füllen.',
+                it: "Dritto controvento c'è l'angolo morto: le vele non portano. Di bolina segui la rotta consigliata e, se ti fermi, poggia finché le vele si riempiono.",
+              }), link: true },
               { icon: 'tack', text: tl({
                 ru: 'Длинные галсы: каждый поворот стоит скорости, HUD покажет сколько.',
                 en: 'Long tacks: every turn costs speed, and the HUD shows how much.',
@@ -151,7 +156,11 @@ export function RaceBriefing({
             ].map((rule) => (
               <li key={rule.icon} className="flex items-start gap-3">
                 <BriefingIcon kind={rule.icon as 'nogo' | 'tack' | 'steer' | 'sheets'} />
-                <span className="text-sm leading-relaxed text-[var(--text-secondary)]">{rule.text}</span>
+                <span className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                  {rule.text}
+                  {'link' in rule && rule.link && <> <Link href={NO_GO_GLOSSARY_HREF} className="inline-flex min-h-11 items-center text-[var(--accent-cyan)] underline underline-offset-2"
+                    data-testid="briefing-no-go-link">{tl(NO_GO_LINK)}</Link></>}
+                </span>
               </li>
             ))}
           </ul>

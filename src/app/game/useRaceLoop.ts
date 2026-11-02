@@ -8,7 +8,8 @@
 import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { playTack, playMarkRound, playFinish, playNoGo, readRaceSound } from '@/lib/sounds';
 import { raceHaptic } from '@/lib/race-haptics';
-import { analyseRaceLocally, analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
+import { analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
+import { raceUpwind } from '@/features/race-hud/target';
 import { evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import type { useI18n } from '@/lib/i18n';
 import { tryUpdateBestRecord, type BestRecord } from '@/lib/best-times';
@@ -194,6 +195,9 @@ export interface RaceLoopRefs {
   firstHintsRef?: RefObject<FirstRaceHintsRecord>;
 }
 
+/** What the AI coach reads (POST /api/coach): the local coach's race log. */
+export type AiCoachPayload = Parameters<typeof analyseRaceLocallyWithFocus>[0] & { lang: string };
+
 /** The state setters the loop publishes to; all owned by GameClient. */
 export interface RaceLoopSetters {
   setAutopilotOn: SetState<boolean>;
@@ -209,6 +213,11 @@ export interface RaceLoopSetters {
   setCoachingSource: SetState<"local" | "ai">;
   setCoachingLoading: SetState<boolean>;
   setCoachingError: SetState<string | null>;
+  /** Package 7 (owner decision R-11): the race log the AI coach may read. The
+   * finish screen asks the AI only when the player presses its button; the
+   * main advice stays the local coach's. Null for a race the AI never reads
+   * (the app, a race left before its place settled). */
+  setAiCoachPayload?: SetState<AiCoachPayload | null>;
   setNativeSave: SetState<NativeSaveStatus>;
   setNativeBestSave: SetState<NativeBestSaveState>;
   setPlayerTWA: SetState<number>;
@@ -250,7 +259,7 @@ export interface RaceLoopInput {
   set: RaceLoopSetters;
 }
 
-export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, dailyDay = null, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall, showHint, refs, set }: RaceLoopInput) {
+export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, dailyDay = null, lang, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall, showHint, refs, set }: RaceLoopInput) {
   const {
     boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
     racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
@@ -686,6 +695,9 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
             samples,
             events,
             lang,
+            // Package 7: the race's best course to windward, the angle the
+            // route hint sails; the coach grades the beat against its VMG.
+            ...(physical ? {} : { upwindTarget: raceUpwind(12 * windStrengthRef.current) }),
           };
           const { coaching: localCoaching, mainMistake } = analyseRaceLocallyWithFocus(payload, langRef.current);
           if (isCompletedRace()) setCoaching(localCoaching);
@@ -746,33 +758,11 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
             }
           }
           if (!isCompletedRace()) return;
-          setCoachingLoading(!isNativeRace());
-          if (!isNativeRace()) fetch('/api/coach', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          })
-            .then((r) => r.json())
-            .then((data) => {
-              if (raceIdRef.current !== completedRaceId) return;
-              if (data.coaching) {
-                setCoaching(data.coaching); setCoachingSource(data.fallback ? "local" : "ai");
-              } else {
-                // Fall back to local rule-based analysis so the user still gets feedback
-                const local = analyseRaceLocally(payload, lang);
-                setCoaching(local);
-                if (data.fallback) setCoachingError(null);
-                else setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
-              }
-            })
-            .catch(() => {
-              if (raceIdRef.current !== completedRaceId) return;
-              // Network error - use local analysis
-              const local = analyseRaceLocally(payload, lang);
-              setCoaching(local);
-              setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
-            })
-            .finally(() => { if (raceIdRef.current === completedRaceId) setCoachingLoading(false); });
+          // Package 7 (R-11): the local analysis above is the finish screen's
+          // one main advice; the AI coach is asked only from its button
+          // (GameClient askAiCoach), never automatically. The app has no AI.
+          setCoachingLoading(false);
+          set.setAiCoachPayload?.(isNativeRace() ? null : payload);
         };
 
         if (resolver && fleetPending?.size) {
@@ -825,7 +815,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           // M5 step 6: the planner of the race's model (race-model.ts planRouteGuidance).
           const metric = physicalRef.current;
           const advisory = planRouteGuidance(player, courseRef.current, windDirRef.current, guidanceStateRef.current,
-            metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null);
+            metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null, metric ? undefined : raceUpwind(12 * windStrengthRef.current).twa);
           guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
         }
         if (isRacing) setElapsed(raceClockRef.current);

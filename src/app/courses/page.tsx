@@ -2,7 +2,8 @@
 
 import { Fragment, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { legacyPick, legacyPickArray, type Lang } from '@/lib/languages';
+import { legacyPick, legacyPickArray, pickLocalized, type Lang } from '@/lib/languages';
+import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from '@/data/no-go-zone';
 import { maneuvers, pointsOfSail, type Maneuver, type PointOfSail } from '@/data/sailing-data';
 import { manoeuvres } from '@/data/sailing-lab/sources';
 import { useI18n } from '@/lib/i18n';
@@ -915,6 +916,11 @@ export default function CoursesPage() {
                 <p className="text-xs text-[var(--text-muted)] mt-0.5">{activePoint.nameEn}</p>
               )}
               <p className="text-xs text-[var(--text-secondary)] mt-2">{posSailWork(activePoint, lang)}</p>
+              {/* Package 7: the no-go sector links its one glossary article. */}
+              {activePoint.id === 'in-irons' && (
+                <Link href={NO_GO_GLOSSARY_HREF} className="mt-1 inline-flex min-h-11 items-center text-sm text-[var(--accent-cyan)] underline underline-offset-2"
+                  data-testid="courses-no-go-link">{pickLocalized(lang, NO_GO_LINK)}</Link>
+              )}
             </div>
           )}
         </div>

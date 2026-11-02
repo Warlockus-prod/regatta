@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } fr
 import type { Lang } from '@/lib/languages';
 import { RACE_UNITS } from '../../race-hud/units';
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
+import { NO_GO_TERM } from '@/data/no-go-zone';
 import { sailDimensions, SAIL_PLAN } from '@/lib/sailing-physics/sail-plan';
 import {
   clamp,
@@ -364,7 +365,8 @@ export function SceneTop({
         spacing="0.12em"
         testId="trainer-top-nogo"
       >
-        NO-GO
+        {/* Package 7 (audit K4): the one term in the reader's language, not Latin "NO-GO". */}
+        {NO_GO_TERM[lang].toUpperCase()}
       </SceneLabel>
 
       {/* Layer 4: wind arc (wider, fainter, includes the no-go - the actual wind

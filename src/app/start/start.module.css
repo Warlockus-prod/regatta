@@ -24,6 +24,7 @@
 .diagram img { width: 100%; height: auto; border-radius: 8px; background: #f8f7f3; }
 .diagramControls { margin: 12px 0; }
 .diagram figcaption { min-height: 72px; }
+.glossaryLink { display: inline-flex; min-height: 44px; align-items: center; color: var(--accent-cyan); text-decoration: underline; text-underline-offset: 2px; }
 .legend { display: flex; gap: 8px 24px; flex-wrap: wrap; padding-left: 20px; margin: 12px 0 24px; list-style: disc; color: var(--text-secondary); }
 .primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; border-radius: 6px; background: var(--accent-cyan); color: var(--accent-ink); font-weight: 600; margin-top: 16px; text-align: center; line-height: 24px; }
 .next { display: block; margin-top: 16px; }

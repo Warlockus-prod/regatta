@@ -532,11 +532,13 @@ function Simulator() {
     return Skia.Path.Make();
   }, [windMapMode, sceneW, sceneH, sim.tickN]);
 
+  // The no-go wedge opens around the true wind (NO_GO_HALF_DEG either side),
+  // the same zone the wind rose, the drills and the lessons state.
   const noGoPath = useMemo(() => {
-    const awaScreenRad =
-      sim.boat.heading + (sim.boatExt.awaDeg * Math.PI) / 180;
-    return buildNoGoPath(sim.boat.x, sim.boat.y, awaScreenRad, 112);
-  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, sim.tickN]);
+    const twaScreenRad =
+      sim.boat.heading + (sim.boatExt.twaDeg * Math.PI) / 180;
+    return buildNoGoPath(sim.boat.x, sim.boat.y, twaScreenRad, 112);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.twaDeg, sim.tickN]);
 
   const apparentArrowPath = useMemo(() => {
     const awaScreenRad =

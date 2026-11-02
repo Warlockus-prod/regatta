@@ -197,26 +197,26 @@
         "mobile"
       ],
       "title": {
-        "ru": "Удерживай TWA 45 град",
-        "en": "Hold TWA 45°",
-        "pl": "Utrzymaj TWA 45°",
-        "es": "Mantén TWA 45°",
-        "fr": "Tiens un TWA de 45°",
-        "de": "Halte TWA 45°",
-        "it": "Tieni TWA 45°"
+        "ru": "Держи бейдевинд",
+        "en": "Hold close-hauled",
+        "pl": "Trzymaj bajdewind",
+        "es": "Mantén la ceñida",
+        "fr": "Tiens le près",
+        "de": "Halte hoch am Wind",
+        "it": "Tieni la bolina"
       },
       "goal": {
-        "ru": "Курс крутой бейдевинд: TWA в коридоре 40-50 град.",
-        "en": "Close-hauled: keep TWA in the 40-50° window.",
-        "pl": "Ostry bajdewind: TWA w przedziale 40-50°.",
-        "es": "Ceñida: mantén el TWA entre 40 y 50°.",
-        "fr": "Au près : garde un TWA entre 40 et 50°.",
-        "de": "Hoch am Wind: TWA zwischen 40 und 50° halten.",
-        "it": "Bolina stretta: TWA tra 40 e 50°."
+        "ru": "Бейдевинд у границы мёртвой зоны: TWA 42-50°.",
+        "en": "Close-hauled at the edge of the no-go zone: TWA 42-50°.",
+        "pl": "Bajdewind na granicy kąta martwego: TWA 42-50°.",
+        "es": "Ceñida en el borde de la zona muerta: TWA 42-50°.",
+        "fr": "Au près, au bord de la zone morte : TWA 42-50°.",
+        "de": "Hoch am Wind am Rand des toten Winkels: TWA 42-50°.",
+        "it": "Bolina al bordo dell'angolo morto: TWA 42-50°."
       },
       "params": {
         "targetSec": 30,
-        "twaMinDeg": 40,
+        "twaMinDeg": 42,
         "twaMaxDeg": 50
       }
     },
@@ -227,26 +227,26 @@
         "mobile"
       ],
       "title": {
-        "ru": "Избегай no-go зоны",
-        "en": "Avoid the no-go zone",
-        "pl": "Unikaj kąta martwego",
-        "es": "Evita la zona muerta",
-        "fr": "Évite la zone morte",
-        "de": "Meide den toten Winkel",
-        "it": "Evita l'angolo morto"
+        "ru": "Не заходи в мёртвую зону",
+        "en": "Stay out of the no-go zone",
+        "pl": "Nie wchodź w kąt martwy",
+        "es": "No entres en la zona muerta",
+        "fr": "Reste hors de la zone morte",
+        "de": "Bleib aus dem toten Winkel",
+        "it": "Resta fuori dall'angolo morto"
       },
       "goal": {
-        "ru": "Не подходи ближе 30 град к ветру 60 секунд.",
-        "en": "Stay more than 30° off the wind for 60 seconds.",
-        "pl": "Przez 60 sekund nie podchodź bliżej niż 30° do wiatru.",
-        "es": "Durante 60 segundos, no te acerques a menos de 30° del viento.",
-        "fr": "Pendant 60 secondes, ne remonte pas à moins de 30° du vent.",
-        "de": "Geh 60 Sekunden lang nicht höher als 30° an den Wind.",
-        "it": "Per 60 secondi resta ad almeno 30° dal vento."
+        "ru": "60 секунд вне мёртвой зоны: не ближе 42° к ветру.",
+        "en": "60 seconds outside the no-go zone: no closer than 42° to the wind.",
+        "pl": "60 sekund poza kątem martwym: nie bliżej niż 42° do wiatru.",
+        "es": "60 segundos fuera de la zona muerta: a no menos de 42° del viento.",
+        "fr": "60 secondes hors de la zone morte : pas plus près que 42° du vent.",
+        "de": "60 Sekunden außerhalb des toten Winkels: nicht höher als 42° zum Wind.",
+        "it": "60 secondi fuori dall'angolo morto: non più vicino di 42° al vento."
       },
       "params": {
         "targetSec": 60,
-        "minTwaDeg": 30
+        "minTwaDeg": 42
       }
     },
     {
@@ -296,17 +296,17 @@
         "it": "Reagisci al salto di vento"
       },
       "goal": {
-        "ru": "Ветер ходит каждые 10 сек. Держи TWA 40-50 на новом галсе.",
-        "en": "Wind shifts every 10 s. Hold TWA 40-50° on the new tack.",
-        "pl": "Wiatr zmienia kierunek co 10 s. Trzymaj TWA 40-50° na nowym halsie.",
-        "es": "El viento rola cada 10 s. Mantén el TWA en 40-50° con la nueva amura.",
-        "fr": "Le vent bascule toutes les 10 s. Tiens un TWA de 40-50° sur le nouveau bord.",
-        "de": "Der Wind dreht alle 10 s. Halte TWA 40-50° auf dem neuen Bug.",
-        "it": "Il vento ruota ogni 10 s. Tieni il TWA a 40-50° sulle nuove mure."
+        "ru": "Ветер ходит каждые 10 сек. Держи бейдевинд, TWA 42-50°, на новом галсе.",
+        "en": "Wind shifts every 10 s. Hold close-hauled, TWA 42-50°, on the new tack.",
+        "pl": "Wiatr zmienia kierunek co 10 s. Trzymaj bajdewind, TWA 42-50°, na nowym halsie.",
+        "es": "El viento rola cada 10 s. Mantén la ceñida, TWA 42-50°, con la nueva amura.",
+        "fr": "Le vent bascule toutes les 10 s. Tiens le près, TWA 42-50°, sur le nouveau bord.",
+        "de": "Der Wind dreht alle 10 s. Halte hoch am Wind, TWA 42-50°, auf dem neuen Bug.",
+        "it": "Il vento ruota ogni 10 s. Tieni la bolina, TWA 42-50°, sulle nuove mure."
       },
       "params": {
         "targetSec": 60,
-        "twaMinDeg": 40,
+        "twaMinDeg": 42,
         "twaMaxDeg": 50
       }
     },

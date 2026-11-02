@@ -209,7 +209,9 @@ export default function GlossaryPage() {
               return (
                 <div
                   key={term.id}
-                  className="card p-5 flex flex-col gap-3"
+                  // Deep link target (/glossary#no-go-zone, src/data/no-go-zone.ts).
+                  id={term.id}
+                  className="card p-5 flex flex-col gap-3 scroll-mt-24"
                   style={{
                     animation: `cardFadeIn 0.3s ease-out ${index * 0.03}s both`,
                   }}

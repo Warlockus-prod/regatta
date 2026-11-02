@@ -13,7 +13,7 @@
 // the wind dial's geometry (wind-dial.ts) and the race icons. They are hidden
 // from screen readers: the card text says the same. No animation.
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { RACE_INTRO_COPY, raceIntroStepLabel } from "@/data/race-intro-copy";
 import { RACE_INTRO_CARDS, raceIntroMove, type RaceIntroCard, type RaceIntroEnd, type RaceIntroOpen } from "./race-intro";
@@ -26,9 +26,12 @@ export interface RaceIntroProps {
   /** Pro: the steering card shows the sheets as the player's own. */
   pro: boolean;
   onEnd: (end: RaceIntroEnd) => void;
+  /** Package 7: the solo race's best VMG angle to windward (raceUpwind), where
+   * the wind card's sector ends; online it is the hint's planner angle. */
+  upwindTwa?: number;
 }
 
-export function RaceIntro({ open, pro, onEnd }: RaceIntroProps) {
+export function RaceIntro({ open, pro, onEnd, upwindTwa }: RaceIntroProps) {
   const { tl, lang } = useI18n();
   const [index, setIndex] = useState(0);
   const first = open === "first";
@@ -85,7 +88,7 @@ export function RaceIntro({ open, pro, onEnd }: RaceIntroProps) {
           {first ? tl(RACE_INTRO_COPY.skip) : tl(RACE_INTRO_COPY.close)}
         </button>
       </div>
-      <div className={styles.picture} aria-hidden="true"><IntroPicture card={card} pro={pro && !online} online={online} /></div>
+      <div className={styles.picture} aria-hidden="true"><IntroPicture card={card} pro={pro && !online} online={online} upwindTwa={upwindTwa} /></div>
       <div className={styles.text} aria-live="polite">
         <h2 id={titleId}>{tl(card === "steer" && online ? RACE_INTRO_COPY.cards.steer.titleOnline : copy.title)}</h2>
         <p id={bodyId}>{tl(copy.body)}{extra && ` ${tl(extra)}`}</p>
@@ -132,10 +135,10 @@ export const INTRO_INK = {
   mark: "#ffaa00", run: "#44ff88", port: "#e5484d", starboard: "#30a46c",
 } as const;
 
-function IntroPicture({ card, pro, online }: { card: RaceIntroCard; pro: boolean; online: boolean }) {
+function IntroPicture({ card, pro, online, upwindTwa }: { card: RaceIntroCard; pro: boolean; online: boolean; upwindTwa?: number }) {
   return <svg viewBox="0 0 240 150" className={styles.svg} data-testid={`race-intro-picture-${card}`} focusable="false">
     <rect width="240" height="150" rx="10" fill={INTRO_INK.water} />
-    {card === "goal" ? <GoalPicture /> : card === "steer" ? <SteerPicture pro={pro} online={online} /> : card === "wind" ? <WindPicture /> : <HudPicture online={online} />}
+    {card === "goal" ? <GoalPicture /> : card === "steer" ? <SteerPicture pro={pro} online={online} /> : card === "wind" ? <WindPicture upwindTwa={upwindTwa} /> : <HudPicture online={online} />}
   </svg>;
 }
 
@@ -181,11 +184,20 @@ function SteerPicture({ pro, online }: { pro: boolean; online: boolean }) {
   </g>;
 }
 
-/** The race wind dial, bow up, wind from port, the no-go zone either side of the bow; beside it, tacking up to the mark. */
-function WindPicture() {
-  const wind = bowRelativeWind(-45)!;
-  // 30 degrees either side of the bow on the dial's 42-unit rim (race-manoeuvres.ts NO_GO).
-  const rimX = 42 * Math.sin(Math.PI / 6), rimY = 42 * Math.cos(Math.PI / 6);
+/** The online hint's beat angle (race-guidance.ts guidanceToTarget default,
+ * PLANNER_CLOSE_HAULED_TWA); not imported, so the intro chunk stays light. */
+const ONLINE_CLOSE_HAULED_TWA = 45;
+
+/** The race wind dial, bow up, wind from port, the sector the boat cannot make
+ * good either side of the bow; beside it, tacking up to the mark. */
+function WindPicture({ upwindTwa }: { upwindTwa?: number }) {
+  // Package 7: the picture states no no-go number. Its sector ends where the
+  // suggested course sails on the beat: the solo race passes its best VMG
+  // angle (raceUpwind, the solver the hint and the grade share); online the
+  // hint beats at the planner's own angle.
+  const half = useMemo(() => (upwindTwa ?? ONLINE_CLOSE_HAULED_TWA) * Math.PI / 180, [upwindTwa]);
+  const wind = bowRelativeWind(-half * 180 / Math.PI - 8)!;
+  const rimX = 42 * Math.sin(half), rimY = 42 * Math.cos(half);
   return <g>
     <g transform="translate(8 5) scale(1.4)">
       <path d={`M50 50 L${50 - rimX} ${50 - rimY} A42 42 0 0 1 ${50 + rimX} ${50 - rimY} Z`} fill={INTRO_INK.port} opacity=".28" />

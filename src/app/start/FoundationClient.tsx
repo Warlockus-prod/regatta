@@ -13,6 +13,7 @@ import { getQuizForLesson, isQuizPassed, pickPrompt } from "@/data/bootcamp-quiz
 import { foundationCopy, foundationModules } from "@/data/foundation-copy";
 import type { FoundationGuide } from "@/data/foundation-guide";
 import { useI18n } from "@/lib/i18n";
+import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from "@/data/no-go-zone";
 import { RaceReturn } from "@/components/RaceReturn";
 import { legacyPick } from "@/lib/languages";
 import { renderScene, SCENE_HEIGHT, SCENE_WIDTH, type SceneId } from "@/lib/learning/foundation-drawings";
@@ -22,6 +23,9 @@ import { saveLearningBookmark } from "@/lib/product/learning-web";
 import { foundationWebCopy as copy } from "./copy";
 import { announceFoundation, useFoundationProgress } from "./useFoundationProgress";
 import styles from "./start.module.css";
+
+/** Lessons whose text names the no-go zone (src/data/foundation-wind.ts, foundation-guide.ts). */
+const NO_GO_LESSONS = new Set(["wind-direction", "points-of-sail", "tacking"]);
 
 export default function FoundationClient({ guides, shapeCopy }: { guides: Record<string, FoundationGuide>; shapeCopy: SailShapeContent }) {
   const { lang } = useI18n();
@@ -57,6 +61,8 @@ export default function FoundationClient({ guides, shapeCopy }: { guides: Record
                 {([0, 1, 2] as const).map(diagram => <button key={diagram} disabled={state.readError || state.saveError} aria-pressed={position.diagram === diagram} onClick={() => state.write(previous => ({ ...previous, positions: { ...previous.positions, [id]: { step: "understand", diagram } } }))}>{guides[id]?.states[diagram][lang] ?? `${[0, 90, 180][diagram]}°`}</button>)}
               </div>
               <figcaption>{guides[id]?.notes[position.diagram][lang] ?? legacyPick(lesson, "focus", lang)}</figcaption>
+              {/* Package 7: the lessons that name the no-go zone link its one glossary article. */}
+              {NO_GO_LESSONS.has(id) && <Link className={styles.glossaryLink} href={NO_GO_GLOSSARY_HREF} data-testid="lesson-no-go-link">{NO_GO_LINK[lang]}</Link>}
             </figure> : null;
   const checked = passedFoundationIds(state.progress);
   return <div className={styles.page}>

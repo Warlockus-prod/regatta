@@ -26,6 +26,20 @@ function catalogText(id: string, field: 'title' | 'goal'): (tp: Tp) => string {
 }
 
 /**
+ * A drill's angle from the same synced catalog, so the check and the goal
+ * text read one number (package 7: the close-hauled window and the no-go
+ * limit come from NO_GO_HALF_DEG in the web catalog). Throws like
+ * catalogText on a drift.
+ */
+function catalogParam(id: string, key: string): number {
+  const value = trainerCatalog.find((e) => e.id === id)?.params?.[key];
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`[missions] trainer catalog "${id}" has no param "${key}" - run: npm run sync-content`);
+  }
+  return value;
+}
+
+/**
  * Wind regime auto-set by a drill on start. The simulator screen reads
  * the active drill's `windMode` and pins the wind-mode pill so the
  * exercise matches the curriculum description (e.g. shift drill always
@@ -125,6 +139,9 @@ export interface DrillDef {
   setup?: (ctx: DrillSetupContext) => DrillSetupResult;
 }
 
+const TWA45_MIN = catalogParam('twa45', 'twaMinDeg');
+const TWA45_MAX = catalogParam('twa45', 'twaMaxDeg');
+
 const DRILL_TWA45: DrillDef = {
   id: 'twa45',
   targetSec: 30,
@@ -132,7 +149,7 @@ const DRILL_TWA45: DrillDef = {
   hint: catalogText('twa45', 'goal'),
   check: (ctx) => {
     const a = Math.abs(ctx.twaDeg);
-    return a >= 40 && a <= 50;
+    return a >= TWA45_MIN && a <= TWA45_MAX;
   },
   progressLabel: (p, t, tp) =>
     tp(
@@ -148,12 +165,14 @@ const DRILL_TWA45: DrillDef = {
     ),
 };
 
+const NO_GO_MIN_TWA = catalogParam('noGo', 'minTwaDeg');
+
 const DRILL_NO_GO: DrillDef = {
   id: 'noGo',
   targetSec: 60,
   title: catalogText('noGo', 'title'),
   hint: catalogText('noGo', 'goal'),
-  check: (ctx) => Math.abs(ctx.twaDeg) >= 30,
+  check: (ctx) => Math.abs(ctx.twaDeg) >= NO_GO_MIN_TWA,
   progressLabel: (p, t, tp) =>
     tp(
       `Чисто: ${Math.floor(p)} / ${t} сек`,
@@ -191,11 +210,14 @@ const DRILL_REACH90: DrillDef = {
     ),
 };
 
+const SHIFT_MIN = catalogParam('shiftReact', 'twaMinDeg');
+const SHIFT_MAX = catalogParam('shiftReact', 'twaMaxDeg');
+
 /**
  * Sprint 8 drill: react to a wind shift. The simulator pins wind mode to
  * `shift` so the wind direction sweeps across the screen. The user must
- * keep the boat within +/- 5 deg of optimal close-hauled (TWA = 45 deg
- * on whichever tack the wind has just rolled into).
+ * keep the boat close-hauled, in the catalog's window from the no-go edge
+ * (twaMinDeg..twaMaxDeg) on whichever tack the wind has just rolled into.
  */
 const DRILL_SHIFT_REACT: DrillDef = {
   id: 'shiftReact',
@@ -206,7 +228,7 @@ const DRILL_SHIFT_REACT: DrillDef = {
   hint: catalogText('shiftReact', 'goal'),
   check: (ctx) => {
     const a = Math.abs(ctx.twaDeg);
-    return a >= 40 && a <= 50;
+    return a >= SHIFT_MIN && a <= SHIFT_MAX;
   },
   progressLabel: (p, t, tp) =>
     tp(

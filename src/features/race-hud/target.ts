@@ -4,6 +4,7 @@
 
 import { solvePolarPoint } from "@/lib/sailing-physics/polar";
 import { CLASSIC_BOAT } from "@/lib/sailing-physics/boat";
+import { bestVmg, type VmgOptimum } from "@/lib/upwind-vmg";
 
 // The table serves the legacy race only (GameClient skips the metric trial),
 // so it is solved on the boat that race sails: the classic profile (ADR-0021).
@@ -40,4 +41,20 @@ export function polarFor(tws: number): PolarTable {
     cache.set(key, table);
   }
   return table;
+}
+
+const upwindCache = new Map<number, VmgOptimum>();
+/** The legacy race's best course to windward at this wind (package 7): the
+ * one VMG solver (upwind-vmg.ts) on this race's own target table. The route
+ * hint sails this angle on the beat and the skill bars and the coach grade
+ * against the VMG it makes, so the advice and the grade are one number. */
+export function raceUpwind(tws: number): VmgOptimum {
+  const key = Math.round(tws * 10) / 10;
+  let best = upwindCache.get(key);
+  if (!best) {
+    const table = polarFor(key);
+    best = bestVmg((twa) => targetSpeed(table, twa), 1);
+    upwindCache.set(key, best);
+  }
+  return best;
 }

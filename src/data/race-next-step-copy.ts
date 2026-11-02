@@ -5,8 +5,10 @@ import type { CoachGoalKind } from "../lib/fallback-coach";
  * src/lib/race-next-step.ts) on the website lobby and the app's Race hub.
  * Only what the race measures: the coach's measured mistake of the last race
  * (no-go zone entries, too many tacks, a slow close-hauled beat), a finish
- * time, the days with a solo race on this device. The numbers in the goals are
- * the race coach's own (src/lib/fallback-coach.ts goalFor). Gentle on
+ * time, the days with a solo race on this device. The goals match the race
+ * coach's own (src/lib/fallback-coach.ts goalFor) and, like all race copy,
+ * state no no-go number: they point to the suggested course, which beats at
+ * the race's best VMG angle (src/data/no-go-zone.ts, package 7). Gentle on
  * purpose: a count of days, never a streak, never "you missed". {course} is
  * the level and the wind, {time} a race time like 1:42. Relative imports:
  * the app reads it through Metro. */
@@ -19,13 +21,13 @@ export const raceNextStepCopy = {
     "no-go": {
       title: w("Держись вне мёртвой зоны", "Stay out of the no-go zone", "Trzymaj się poza kątem martwym", "Mantente fuera de la zona muerta",
         "Reste hors de la zone morte", "Bleib aus dem toten Winkel", "Resta fuori dall'angolo morto"),
-      body: w("В прошлой одиночной гонке яхта заходила в мёртвую зону и теряла ход. На лавировке держи не меньше 40° к ветру.",
-        "In your last solo race the boat sailed into the no-go zone and lost way. When beating, keep at least 40° to the wind.",
-        "W poprzednim wyścigu solo jacht wchodził w kąt martwy i tracił prędkość. Na halsówce trzymaj co najmniej 40° do wiatru.",
-        "En tu última regata individual el barco entró en la zona muerta y perdió velocidad. En ceñida, mantén al menos 40° respecto al viento.",
-        "Lors de ta dernière course solo, le bateau est entré dans la zone morte et a perdu de la vitesse. Au louvoyage, garde au moins 40° du vent.",
-        "In deinem letzten Einzelrennen geriet das Boot in den toten Winkel und verlor Fahrt. Halte beim Kreuzen mindestens 40° zum Wind.",
-        "Nell'ultima regata singola la barca è entrata nell'angolo morto e ha perso velocità. Di bolina tieni almeno 40° dal vento."),
+      body: w("В прошлой одиночной гонке яхта заходила в мёртвую зону и теряла ход. На лавировке держи рекомендуемый курс: он идет у самой ее границы.",
+        "In your last solo race the boat sailed into the no-go zone and lost way. On the beat follow the suggested course: it runs right at its edge.",
+        "W poprzednim wyścigu solo jacht wchodził w kąt martwy i tracił prędkość. Na halsówce trzymaj się sugerowanego kursu: prowadzi tuż przy jego granicy.",
+        "En tu última regata individual el barco entró en la zona muerta y perdió velocidad. En la ceñida sigue el rumbo recomendado: va justo por su borde.",
+        "Lors de ta dernière course solo, le bateau est entré dans la zone morte et a perdu de la vitesse. Au louvoyage, suis le cap conseillé : il longe son bord.",
+        "In deinem letzten Einzelrennen geriet das Boot in den toten Winkel und verlor Fahrt. Folge an der Kreuz dem empfohlenen Kurs: Er führt direkt an seinem Rand entlang.",
+        "Nell'ultima regata singola la barca è entrata nell'angolo morto e ha perso velocità. Di bolina segui la rotta consigliata: corre proprio al suo bordo."),
     },
     tacks: {
       title: w("Меньше поворотов на лавировке", "Fewer tacks on the beat", "Mniej zwrotów na halsówce", "Menos viradas en la ceñida",
@@ -41,13 +43,13 @@ export const raceNextStepCopy = {
     "close-hauled": {
       title: w("Быстрее в бейдевинд", "Faster close-hauled", "Szybciej na bajdewindzie", "Más rápido en ceñida",
         "Plus vite au près", "Schneller am Wind", "Più veloce di bolina"),
-      body: w("В прошлой одиночной гонке бейдевинд был медленным. Уваливайся на 5-10°, пока не пойдёшь быстрее 4,5 уз.",
-        "In your last solo race the close-hauled legs were slow. Bear away 5-10° until you sail faster than 4.5 kn.",
-        "W poprzednim wyścigu solo bajdewind był wolny. Odpadnij o 5-10°, aż popłyniesz szybciej niż 4,5 kn.",
-        "En tu última regata individual la ceñida fue lenta. Arriba 5-10° hasta ir a más de 4,5 kn.",
-        "Lors de ta dernière course solo, le près était lent. Abats de 5-10° jusqu'à dépasser 4,5 nœuds.",
-        "In deinem letzten Einzelrennen warst du am Wind langsam. Fall 5-10° ab, bis du schneller als 4,5 kn segelst.",
-        "Nell'ultima regata singola la bolina è stata lenta. Poggia di 5-10° finché non superi i 4,5 nodi."),
+      body: w("В прошлой одиночной гонке бейдевинд был медленным. Держи рекомендуемый курс: это лучший угол к ветру для этой лодки, острее него она теряет скорость.",
+        "In your last solo race the close-hauled legs were slow. Follow the suggested course: it is this boat's best angle to the wind, and higher than that she loses speed.",
+        "W poprzednim wyścigu solo bajdewind był wolny. Trzymaj się sugerowanego kursu: to najlepszy kąt do wiatru dla tej łodzi, ostrzej traci ona prędkość.",
+        "En tu última regata individual la ceñida fue lenta. Sigue el rumbo recomendado: es el mejor ángulo al viento de este barco, y más orzado pierde velocidad.",
+        "Lors de ta dernière course solo, le près était lent. Suis le cap conseillé : c'est le meilleur angle au vent de ce bateau, et plus haut il perd de la vitesse.",
+        "In deinem letzten Einzelrennen warst du am Wind langsam. Folge dem empfohlenen Kurs: Er ist der beste Winkel zum Wind für dieses Boot, höher verliert es Fahrt.",
+        "Nell'ultima regata singola la bolina è stata lenta. Segui la rotta consigliata: è il miglior angolo al vento di questa barca, più stretta perde velocità."),
     },
   } satisfies Record<CoachGoalKind, { title: NextStepText; body: NextStepText }>,
   /** The daily card's line and the daily entry's caption. */

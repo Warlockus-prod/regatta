@@ -28,7 +28,7 @@ import { useRaceHintLog } from '@/features/race-hud/RaceHintLog';
 import { useRaceFeedback } from '@/features/race-hud/useRaceFeedback';
 import { useFirstRaceHints } from '@/features/race-hud/useFirstRaceHints';
 import { hasSeenRaceIntro, markRaceIntroSeen, raceIntroDue, raceIntroEndRecordsSeen, raceIntroRequested, stepAfterRaceIntro, type RaceIntroEnd, type RaceIntroOpen } from '@/features/race-hud/race-intro';
-import { polarFor, targetSpeed } from '@/features/race-hud/target';
+import { polarFor, raceUpwind, targetSpeed } from '@/features/race-hud/target';
 import { measureRaceSkills, raceSkillBars } from '@/lib/race-skill-metrics';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
@@ -76,7 +76,7 @@ import type { MedalAward } from "@/lib/race-medals";
 import type { GhostSplit } from "@/lib/race-ghost-splits";
 import { AI_COLORS, AI_NAMES, PLAYER_COLOR, localStore, makeCourse, planRouteGuidance, raceLogTally, recordSample, formatTime,
   type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type RouteGuidanceState } from "./race-model";
-import { useRaceLoop } from "./useRaceLoop";
+import { useRaceLoop, type AiCoachPayload } from "./useRaceLoop";
 import { RaceFinishHoldPlate } from "./RaceFinishPlate";
 import { finishHoldActive } from "./race-finish-hold";
 import { claimGameLayer } from "@/components/game-layer";
@@ -206,6 +206,11 @@ export default function GamePage() {
   // finish modal and a "Your best: 1:27" badge in the briefing.
   const [bestRecord, setBestRecord] = useState<BestRecord | null>(null);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  // Package 7: "Personal best" only beats a comparable earlier attempt (same
+  // race model, mode, level and wind: the best-times bucket). Captured when
+  // the race counts down, before the finish may write this race as the best.
+  const [hadComparableBest, setHadComparableBest] = useState(false);
+  useEffect(() => { if (gameState === "countdown") setHadComparableBest(bestRecord !== null); }, [gameState, bestRecord]);
   const acceptNativeBestReply = useCallback((raw: unknown) => {
     const reply = pendingNativeBests.current.settle(raw);
     if (!reply) return;
@@ -329,6 +334,33 @@ export default function GamePage() {
   const [coaching, setCoaching] = useState<Coaching | null>(null);
   const [coachingLoading, setCoachingLoading] = useState(false);
   const [coachingError, setCoachingError] = useState<string | null>(null);
+  // Package 7 (R-11): the AI coach only on its button. The local coaching
+  // above stays the finish screen's one main advice; the AI answer is shown
+  // beside it, never instead of it.
+  const [aiCoachPayload, setAiCoachPayload] = useState<AiCoachPayload | null>(null);
+  const [aiCoaching, setAiCoaching] = useState<Coaching | null>(null);
+  const [aiCoachingLoading, setAiCoachingLoading] = useState(false);
+  const [aiCoachingError, setAiCoachingError] = useState<string | null>(null);
+  // Package 7 (R-11): POST the finished race's log to the AI coach on request.
+  // A fallback or a failure says so and leaves the local analysis in place.
+  const askAiCoach = useCallback(() => {
+    if (!aiCoachPayload || aiCoachingLoading) return;
+    const raceId = raceIdRef.current;
+    const unavailable = tl({ ru: "ИИ-тренер сейчас недоступен. Разбор выше остается в силе.", en: "The AI coach is not available right now. The debrief above still stands.",
+      pl: "Trener AI jest teraz niedostępny. Omówienie powyżej pozostaje aktualne.", es: "El entrenador IA no está disponible ahora. El análisis de arriba sigue valiendo.",
+      fr: "Le coach IA n'est pas disponible pour l'instant. Le débrief ci-dessus reste valable.", de: "Der KI-Trainer ist gerade nicht erreichbar. Die Auswertung oben gilt weiter.",
+      it: "Il coach IA ora non è disponibile. L'analisi qui sopra resta valida." });
+    setAiCoachingLoading(true); setAiCoachingError(null);
+    fetch('/api/coach', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(aiCoachPayload) })
+      .then((r) => r.json())
+      .then((data) => {
+        if (raceIdRef.current !== raceId) return;
+        if (data?.coaching && !data.fallback) setAiCoaching(data.coaching);
+        else setAiCoachingError(unavailable);
+      })
+      .catch(() => { if (raceIdRef.current === raceId) setAiCoachingError(unavailable); })
+      .finally(() => { if (raceIdRef.current === raceId) setAiCoachingLoading(false); });
+  }, [aiCoachPayload, aiCoachingLoading, tl]);
 
   // Mission pass/fail state (set on finish)
   const [missionResult, setMissionResult] = useState<{ passed: boolean; reasons: string[]; mission: Mission } | null>(null);
@@ -634,7 +666,7 @@ export default function GamePage() {
     // M5 step 6: the route hint planner of the race's model (race-model.ts).
     const metric = physicalRef.current;
     const initialGuidance = planRouteGuidance(boats[0], course, WIND_DIRECTION, null,
-      metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null);
+      metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null, metric ? undefined : raceUpwind(12 * windStrengthRef.current).twa);
     guidanceStateRef.current = initialGuidance.state; setRouteGuidance(initialGuidance.guidance);
     raceIdRef.current = `race_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     startupGate.current.reset(raceIdRef.current);
@@ -649,6 +681,7 @@ export default function GamePage() {
     setPlayerSpeed(0); // a restart must not show the last race's speed
     setCoaching(null); setCoachingSource("local");
     setCoachingError(null);
+    setAiCoachPayload(null); setAiCoaching(null); setAiCoachingLoading(false); setAiCoachingError(null);
     logSamplesRef.current = [];
     logEventsRef.current = [];
     markTimesRef.current = new Map();
@@ -883,7 +916,7 @@ export default function GamePage() {
       wasInNoGoRef, lastTackSignRef, speedLogRef, turnRef, standingsKeyRef, shownRankRef, pendingRankRef, raceIdRef,
       pendingNativeSaves, pendingNativeBests, guidanceStateRef, rafRef, simulationClockRef, startupGate, pausedRef, langRef, raceSetupRef, raceTallyRef, raceHintsRef, firstHintsRef },
     set: { setAutopilotOn, setPenalty, setStandings, setResults, setJudgeDebrief, setGameState, setBestRecord,
-      setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setNativeSave,
+      setIsNewRecord, setMissionResult, setCoaching, setCoachingSource, setCoachingLoading, setCoachingError, setAiCoachPayload, setNativeSave,
       setNativeBestSave, setPlayerTWA, setPlayerSpeed, setWindReading, setNavigation, setRouteGuidance, setElapsed, setGhostSplits, setMedalAward } });
 
   // -----------------------------------------------------------------------
@@ -998,6 +1031,10 @@ export default function GamePage() {
   const racePolar = useMemo(() => (gameState === "racing" || gameState === "countdown") && !physicalTrial ? polarFor(12 * windStrengthMul) : null,
     [gameState, physicalTrial, windStrengthMul]);
   const raceTarget = racePolar ? targetSpeed(racePolar, playerTWA) : null;
+  // Package 7: the intro's wind card draws the suggested course's beat angle,
+  // solved only while the intro is open (cached for the race that follows).
+  const introUpwindTwa = useMemo(() => intro === "closed" || physicalTrial ? undefined : raceUpwind(12 * windStrengthMul).twa,
+    [intro, physicalTrial, windStrengthMul]);
   // M4-1 skill bars on the result screen, from this race's log against the
   // same polar target. None for the physical trial (no target, never ranked).
   const skillBars = useMemo(() => {
@@ -1100,7 +1137,7 @@ export default function GamePage() {
           native={nativeRace} medalCourse={medalCourse}
           onShowIntro={() => setIntro("lobby")}
         />
-        {(intro === "first" || intro === "lobby" || intro === "hub") && <RaceIntro open={intro} pro={racePrefs.mode === "pro"} onEnd={endIntro} />}
+        {(intro === "first" || intro === "lobby" || intro === "hub") && <RaceIntro open={intro} pro={racePrefs.mode === "pro"} onEnd={endIntro} upwindTwa={introUpwindTwa} />}
       </div>
     );
   }
@@ -1162,16 +1199,18 @@ export default function GamePage() {
           {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
         </RaceCockpit>
       )}
-      {(gameState === "countdown" || gameState === "racing") && intro === "race" && <RaceIntro open={intro} pro={playingPrefs.mode === "pro"} onEnd={endIntro} />}
+      {(gameState === "countdown" || gameState === "racing") && intro === "race" && <RaceIntro open={intro} pro={playingPrefs.mode === "pro"} onEnd={endIntro} upwindTwa={introUpwindTwa} />}
 
       {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (
         <RaceResults copy={copy} trialProfile={physicalTrial} judgeDebrief={judgeDebrief} boatsRef={boatsRef} playerLapDone={hudPlayer?.lapDone} skillBars={skillBars} ghostSplits={ghostSplits}
           medal={medalCourse && { award: medalAward, course: medalCourse, mode: lockedMode ?? racePrefs.mode, hintsUsed: raceHintsRef.current }}
           nativeRace={nativeRace} nativeSave={nativeSave} retryNativeSave={retryNativeSave} nativeBestSave={nativeBestSave}
-          sceneRaceId={sceneRaceId} requestNativeBest={requestNativeBest} results={results} isNewRecord={isNewRecord}
+          sceneRaceId={sceneRaceId} requestNativeBest={requestNativeBest} results={results} isNewRecord={isNewRecord} hadComparableBest={hadComparableBest}
           bestRecord={bestRecord} missionResult={missionResult} coachingSource={coachingSource} coaching={coaching}
-          coachingLoading={coachingLoading} coachingError={coachingError} saveState={saveState} setSaveState={setSaveState}
+          coachingLoading={coachingLoading} coachingError={coachingError}
+          aiCoaching={aiCoaching} aiCoachingLoading={aiCoachingLoading} aiCoachingError={aiCoachingError} onAskAiCoach={aiCoachPayload ? askAiCoach : undefined}
+          saveState={saveState} setSaveState={setSaveState}
           saveError={saveError} saveResult={saveResult} nicknameInput={nicknameInput} setNicknameInput={setNicknameInput}
           replayCode={replayCode} nickname={nickname} difficulty={difficulty} windStrength={windStrength}
           selectedMission={selectedMission} replayDisabled={logSamplesRef.current.length < 5}

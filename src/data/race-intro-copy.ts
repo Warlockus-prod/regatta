@@ -9,8 +9,10 @@
 // cockpit: the Helm tab (trainer-controls labels), the mode names
 // (race-mode-labels.ts), the route hint of the big map (race-map-copy.ts) and
 // the hint log (race-hint-log-copy.ts). The rules match the briefing and the
-// course: the windward mark is left to port, the no-go zone is 30 degrees
-// (race-manoeuvres.ts NO_GO).
+// course: the windward mark is left to port. Package 7: race copy states no
+// no-go number (the legacy race sails the classic boat with its own zone,
+// src/data/no-go-zone.ts); it points to the suggested course, which beats at
+// the race's best VMG angle (race-guidance.ts, upwind-vmg.ts).
 
 import type { Lang } from "@/lib/languages";
 import { raceStartCopy } from "./race-start-copy";
@@ -86,13 +88,13 @@ export const RACE_INTRO_COPY = {
     wind: {
       title: w("Ветер относительно носа", "The wind, seen from the bow", "Wiatr względem dziobu", "El viento respecto a la proa", "Le vent par rapport à l'avant", "Der Wind relativ zum Bug", "Il vento rispetto alla prua"),
       body: w(
-        "Прибор ветра в углу: нос лодки наверху, стрелка идет с той стороны, откуда дует. Ближе 30° к ветру мертвая зона, паруса не тянут. Поэтому к верхнему знаку идут зигзагом, поворотами оверштаг.",
-        "The wind box in the corner: the bow points up and the arrow comes from where the wind blows. Within 30° of the wind is the no-go zone: the sails do not pull. So you reach the windward mark in a zigzag, tacking.",
-        "Wskaźnik wiatru w rogu: dziób u góry, strzałka biegnie od strony, z której wieje. Bliżej niż 30° od wiatru jest kąt martwy, żagle nie pracują. Dlatego do znaku nawietrznego płyniesz zygzakiem, robiąc zwroty przez sztag.",
-        "El indicador de viento en la esquina: la proa apunta arriba y la flecha viene de donde sopla. A menos de 30° del viento está la zona muerta: las velas no empujan. Por eso a la baliza de barlovento se llega en zigzag, virando por avante.",
-        "L'indicateur de vent dans le coin : l'avant pointe vers le haut et la flèche vient d'où souffle le vent. À moins de 30° du vent, c'est la zone morte : les voiles ne portent pas. On rejoint donc la bouée au vent en zigzag, en virant de bord.",
-        "Die Windanzeige in der Ecke: Der Bug zeigt nach oben, der Pfeil kommt von dort, woher der Wind weht. Näher als 30° am Wind liegt der tote Winkel: Die Segel ziehen nicht. Darum kreuzt du im Zickzack zur Luvtonne und wendest dabei.",
-        "L'indicatore del vento nell'angolo: la prua è in alto e la freccia arriva da dove soffia il vento. A meno di 30° dal vento c'è l'angolo morto: le vele non spingono. Per questo alla boa di bolina si arriva a zigzag, virando."),
+        "Прибор ветра в углу: нос лодки наверху, стрелка идет с той стороны, откуда дует. Прямо против ветра лежит мёртвая зона, там паруса не тянут. Поэтому к верхнему знаку идут зигзагом, поворотами оверштаг, а лучший угол к ветру показывает рекомендуемый курс.",
+        "The wind box in the corner: the bow points up and the arrow comes from where the wind blows. Straight into the wind lies the no-go zone, where the sails do not pull. So you reach the windward mark in a zigzag, tacking, and the suggested course shows the best angle to the wind.",
+        "Wskaźnik wiatru w rogu: dziób u góry, strzałka biegnie od strony, z której wieje. Prosto pod wiatr leży kąt martwy, w którym żagle nie pracują. Dlatego do znaku nawietrznego płyniesz zygzakiem, robiąc zwroty przez sztag, a najlepszy kąt do wiatru pokazuje sugerowany kurs.",
+        "El indicador de viento en la esquina: la proa apunta arriba y la flecha viene de donde sopla. Justo contra el viento está la zona muerta, donde las velas no empujan. Por eso a la baliza de barlovento se llega en zigzag, virando por avante, y el rumbo recomendado te marca el mejor ángulo al viento.",
+        "L'indicateur de vent dans le coin : l'avant pointe vers le haut et la flèche vient d'où souffle le vent. Face au vent se trouve la zone morte, où les voiles ne portent pas. On rejoint donc la bouée au vent en zigzag, en virant de bord, et le cap conseillé indique le meilleur angle au vent.",
+        "Die Windanzeige in der Ecke: Der Bug zeigt nach oben, der Pfeil kommt von dort, woher der Wind weht. Direkt gegen den Wind liegt der tote Winkel, dort ziehen die Segel nicht. Darum kreuzt du im Zickzack zur Luvtonne und wendest dabei, und der empfohlene Kurs zeigt dir den besten Winkel zum Wind.",
+        "L'indicatore del vento nell'angolo: la prua è in alto e la freccia arriva da dove soffia il vento. Dritto controvento c'è l'angolo morto, dove le vele non spingono. Per questo alla boa di bolina si arriva a zigzag, virando, e la rotta consigliata indica il miglior angolo al vento."),
     },
     hud: {
       title: w("Карта, знак и подсказки", "Map, mark and hints", "Mapa, znak i wskazówki", "Mapa, baliza y consejos", "Carte, bouée et conseils", "Karte, Bahnmarke und Hinweise", "Mappa, boa e consigli"),

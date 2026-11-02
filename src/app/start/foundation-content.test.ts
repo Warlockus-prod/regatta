@@ -11,7 +11,8 @@ const sha = (value: unknown) => createHash("sha256").update(JSON.stringify(value
 describe("foundation content relocation preserves the reviewed native source", () => {
   it("retains all 19 questions, stable IDs, option IDs and answer truth", () => {
     expect(Object.values(BOOTCAMP_QUIZZES).flat()).toHaveLength(19);
-    expect(sha(BOOTCAMP_QUIZZES)).toBe("8364800f668704e3b309ea63be87728b7fc1df7b53d6e8ec2f5e98f486a01b46");
+    // Package 7: the no-go and close-hauled answers state NO_GO_HALF_DEG (was 45 / ~90); ids and answers below unchanged.
+    expect(sha(BOOTCAMP_QUIZZES)).toBe("b4ce81407991d867d1131a33407bbb050bd841437b608638bf9a5cae16cd00cb");
     expect(Object.fromEntries(Object.entries(BOOTCAMP_QUIZZES).map(([id, questions]) => [id, questions.map(question => ({ id: question.id, correct: question.options.filter(option => option.correct).map(option => option.id) }))]))).toEqual({"wind-direction": [{"id": "wd-q1", "correct": ["wd-q1-a"]}, {"id": "wd-q2", "correct": ["wd-q2-b"]}, {"id": "wd-q3", "correct": ["wd-q3-b"]}], "points-of-sail": [{"id": "pos-q1", "correct": ["pos-q1-b"]}, {"id": "pos-q2", "correct": ["pos-q2-a"]}, {"id": "pos-q3", "correct": ["pos-q3-b"]}], "how-sail-works": [{"id": "hs-q1", "correct": ["hs-q1-a"]}, {"id": "hs-q2", "correct": ["hs-q2-b"]}], "tacking": [{"id": "tk-q1", "correct": ["tk-q1-a"]}, {"id": "tk-q2", "correct": ["tk-q2-a"]}], "jibing": [{"id": "jb-q1", "correct": ["jb-q1-a"]}, {"id": "jb-q2", "correct": ["jb-q2-b"]}], "vmg-beating": [{"id": "vmg-q1", "correct": ["vmg-q1-a"]}, {"id": "vmg-q2", "correct": ["vmg-q2-b"]}], "simple-rules": [{"id": "sr-q1", "correct": ["sr-q1-a"]}, {"id": "sr-q2", "correct": ["sr-q2-b"]}, {"id": "sr-q3", "correct": ["sr-q3-a"]}], "mini-race": [{"id": "mr-q1", "correct": ["mr-q1-a"]}, {"id": "mr-q2", "correct": ["mr-q2-a"]}]});
   });
   it("retains the seven existing guides and module order while adding the reviewed first lesson", () => {

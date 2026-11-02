@@ -22,6 +22,7 @@
 // tack metric reports the speed lost, never time or distance lost.
 
 import { measureRaceLog } from "./fallback-coach";
+import { bestVmg } from "./upwind-vmg";
 import { TACK_WINDOWS, finite, mean, measureTacks, usableSkillSamples, type SkillEvent, type SkillSample, type TackMetric } from "./race-tack-metrics";
 
 // The tack measurement lives in race-tack-metrics.ts (M4-3: the replay ribbon
@@ -84,11 +85,10 @@ function weights(samples: readonly SkillSample[]): number[] {
 }
 
 /** Best VMG along the wind (upwind: +1, downwind: -1) the target speed table
- * at whole degrees allows. */
-function bestVmg(table: readonly number[], along: 1 | -1): number {
-  let best = 0;
-  for (let a = 0; a <= 180; a++) best = Math.max(best, table[a] * along * Math.cos(rad(a)));
-  return best;
+ * at whole degrees allows: the one solver the route hint also sails
+ * (upwind-vmg.ts, package 7). */
+function tableBestVmg(table: readonly number[], along: 1 | -1): number {
+  return bestVmg((a) => table[a], along).vmgKn;
 }
 
 /** Time-weighted VMG along the wind of the picked samples against the best the
@@ -97,7 +97,7 @@ function bestVmg(table: readonly number[], along: 1 | -1): number {
  * course is windward-leeward, so the wind axis is the mark's axis. */
 function legVmg(samples: readonly SkillSample[], w: readonly number[], pick: (s: SkillSample) => boolean, along: 1 | -1,
   table: readonly number[]): VmgMetric | null {
-  const best = bestVmg(table, along);
+  const best = tableBestVmg(table, along);
   let player = 0, seconds = 0;
   samples.forEach((s, i) => {
     if (!w[i] || !pick(s)) return;

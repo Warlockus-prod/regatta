@@ -217,12 +217,16 @@ const isPhysicalGuidanceState = (s: RouteGuidanceState | null | undefined): s is
  * race (a profile and its lazily loaded planner) gets planPhysicalRaceGuidance,
  * every other race the legacy planRaceGuidance, exactly as before; each one
  * only ever receives its own memory. Without the loaded metric planner a
- * metric race has no route hint yet (the legacy planner refuses its course). */
+ * metric race has no route hint yet (the legacy planner refuses its course).
+ * Package 7: `upwindTwa` is the legacy race's best VMG angle at its wind
+ * (raceUpwind in features/race-hud/target.ts, the solver the skill bars and
+ * the coach grade with); the legacy hint beats at it. The metric hint keeps
+ * its own no-go floor (no-go + margin, race-guidance-physical.ts). */
 export function planRouteGuidance(player: RaceBoat, course: Course, windDir: number, previous: RouteGuidanceState | null | undefined,
-  physical: { profile: PhysicalRaceProfile; plan?: typeof planPhysicalRaceGuidance } | null): { guidance: RaceGuidance | null; state: RouteGuidanceState | null } {
+  physical: { profile: PhysicalRaceProfile; plan?: typeof planPhysicalRaceGuidance } | null, upwindTwa?: number): { guidance: RaceGuidance | null; state: RouteGuidanceState | null } {
   if (physical) {
     if (!physical.plan) return { guidance: null, state: null };
     return physical.plan(player, course, physicalRaceContext(physical.profile), windDir, isPhysicalGuidanceState(previous) ? previous : null);
   }
-  return planRaceGuidance(player, course, windDir, isPhysicalGuidanceState(previous) ? null : previous);
+  return planRaceGuidance(player, course, windDir, isPhysicalGuidanceState(previous) ? null : previous, upwindTwa);
 }

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ENABLED_LANGUAGES } from "@/lib/languages";
-import { NO_GO } from "@/lib/race-manoeuvres";
+import { NO_GO_TERM } from "@/data/no-go-zone";
 import { RACE_INTRO_COPY, raceIntroStepLabel } from "@/data/race-intro-copy";
 import {
   RACE_INTRO_CARDS, RACE_INTRO_KEY, hasSeenRaceIntro, markRaceIntroSeen, raceIntroDue, raceIntroEndRecordsSeen, raceIntroMove, raceIntroRequested,
@@ -117,7 +117,12 @@ describe("the intro copy", () => {
   });
   it("has a card for every step and says the rules the race applies", () => {
     expect(Object.keys(RACE_INTRO_COPY.cards)).toEqual([...RACE_INTRO_CARDS]);
-    for (const lang of LANGS) expect(RACE_INTRO_COPY.cards.wind.body[lang]).toContain(`${NO_GO.angleDeg}°`);
+    // Package 7: race copy names the zone, states no number and points to the suggested course.
+    for (const lang of LANGS) {
+      expect(RACE_INTRO_COPY.cards.wind.body[lang].toLowerCase()).toContain(NO_GO_TERM[lang].replace("toter", "tote").toLowerCase());
+      expect(RACE_INTRO_COPY.cards.wind.body[lang]).not.toMatch(/\d+\s*°/);
+    }
+    expect(RACE_INTRO_COPY.cards.wind.body.en).toContain("suggested course");
     expect(RACE_INTRO_COPY.cards.goal.body.en).toContain("leaving it to port");
     expect(RACE_INTRO_COPY.cards.goal.body.pl).toContain("po lewej burcie");
   });
