@@ -28,10 +28,15 @@ screen. "VOX SDK 2" is the planned Prebid-based SDK and is not part of this.
 
 ## Build
 
-`ios/` is generated, so after pulling run:
+The Ads demo is off by default (`src/config/ads-demo.ts`): without
+`EXPO_PUBLIC_ADS_DEMO=1` the plugin excludes `vox-ads` and `vox-prebid` from
+autolinking, so neither VOXSDK nor PrebidMobile is in the binary, and Settings
+has no Ads entry. App Store builds are made that way (1.7.0 build 77 on). For
+an Ads demo build set the variable for prebuild AND the archive (Metro bundles
+the JS inside xcodebuild). `ios/` is generated, so after pulling run:
 
 ```bash
-cd mobile && npx expo prebuild -p ios --no-install && (cd ios && LANG=en_US.UTF-8 pod install)
+cd mobile && EXPO_PUBLIC_ADS_DEMO=1 npx expo prebuild -p ios --no-install && (cd ios && LANG=en_US.UTF-8 pod install)
 ```
 
 The VOX repository is private: `pod install` uses this Mac's git credentials.

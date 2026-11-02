@@ -13,20 +13,37 @@ const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
 const VOX_SDK_COMMIT = 'fc523af9fe88ddbf811653a34842f50dee5ff88b';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
+// The ad pods are linked only for an Ads demo build (EXPO_PUBLIC_ADS_DEMO=1,
+// src/config/ads-demo.ts). Otherwise the local ad modules are excluded from
+// autolinking, so a store binary carries neither VOXSDK nor PrebidMobile.
+const AD_MODULES = ['vox-ads', 'vox-prebid'];
+const EXCLUDE_MARKER = '# Ads demo off (plugins/with-vox-sdk.js)';
+
+function patchPodfile(podfile, adsDemo) {
+  if (podfile.includes(MARKER) || podfile.includes(EXCLUDE_MARKER)) return podfile;
+  const anchor = /^(\s*)use_expo_modules!.*$/m;
+  if (!anchor.test(podfile)) {
+    throw new Error('with-vox-sdk: use_expo_modules! not found in Podfile');
+  }
+  if (!adsDemo) {
+    const list = AD_MODULES.map((name) => `'${name}'`).join(', ');
+    return podfile.replace(
+      anchor,
+      (line, indent) => `${indent}${EXCLUDE_MARKER}\n${indent}use_expo_modules!(exclude: [${list}])`,
+    );
+  }
+  const local = process.env.VOX_SDK_IOS_PATH;
+  const source = local ? `:path => '${local}'` : `:git => '${VOX_SDK_GIT}', :commit => '${VOX_SDK_COMMIT}'`;
+  return podfile.replace(
+    anchor,
+    (line, indent) => `${line}\n${indent}${MARKER}\n${indent}pod 'VOXSDK', ${source}`,
+  );
+}
+
 module.exports = function withVoxSdk(config) {
   return withPodfile(config, (cfg) => {
-    const podfile = cfg.modResults.contents;
-    if (podfile.includes(MARKER)) return cfg;
-    const anchor = /^(\s*)use_expo_modules!.*$/m;
-    if (!anchor.test(podfile)) {
-      throw new Error('with-vox-sdk: use_expo_modules! not found in Podfile');
-    }
-    const local = process.env.VOX_SDK_IOS_PATH;
-    const source = local ? `:path => '${local}'` : `:git => '${VOX_SDK_GIT}', :commit => '${VOX_SDK_COMMIT}'`;
-    cfg.modResults.contents = podfile.replace(
-      anchor,
-      (line, indent) => `${line}\n${indent}${MARKER}\n${indent}pod 'VOXSDK', ${source}`,
-    );
+    cfg.modResults.contents = patchPodfile(cfg.modResults.contents, process.env.EXPO_PUBLIC_ADS_DEMO === '1');
     return cfg;
   });
 };
+module.exports.patchPodfile = patchPodfile;

@@ -5,6 +5,12 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 const mockPush = jest.fn();
+let mockAdsDemo = true;
+jest.mock('../../src/config/ads-demo', () => ({
+  get ADS_DEMO_ENABLED() {
+    return mockAdsDemo;
+  },
+}));
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => ({
@@ -61,10 +67,18 @@ afterEach(() => {
 
 describe('Settings screen', () => {
   it('opens the Ads formats from its named Settings entry', async () => {
+    mockAdsDemo = true;
     const view = renderWithProviders(<Settings />);
     const button = await waitFor(() => view.getByRole('button', { name: 'Ads' }));
     fireEvent.press(button);
     expect(mockPush).toHaveBeenCalledWith('/ads');
+  });
+  it('has no Ads entry in a store build (EXPO_PUBLIC_ADS_DEMO unset)', async () => {
+    mockAdsDemo = false;
+    const view = renderWithProviders(<Settings />);
+    await waitFor(() => view.getByText('Polski'));
+    expect(view.queryByRole('button', { name: 'Ads' })).toBeNull();
+    mockAdsDemo = true;
   });
   it('renders all 7 enabled languages', async () => {
     const view = renderWithProviders(<Settings />);

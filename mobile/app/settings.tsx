@@ -40,6 +40,7 @@ import {
 import { useControlPrefs } from '../src/persistence/controls';
 import { clearNativeRegattaData } from '../src/persistence/clear-native-data';
 import { useAdsText } from '../src/ads/strings';
+import { ADS_DEMO_ENABLED } from '../src/config/ads-demo';
 import { recordNativeDiagnostic } from '../src/diagnostics/journal';
 
 const SUPPORT_EMAIL = 'support@gtframe.io';
@@ -287,10 +288,12 @@ export default function Settings() {
 
         <TrainersSection />
 
-        <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
-          <Text variant="subtitle">Ads</Text>
-          <Text variant="caption">{adsText.settingsHint}</Text>
-        </Card>
+        {ADS_DEMO_ENABLED ? (
+          <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
+            <Text variant="subtitle">Ads</Text>
+            <Text variant="caption">{adsText.settingsHint}</Text>
+          </Card>
+        ) : null}
 
         <Card onPress={() => router.push("/diagnostics")} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel={diagnosticText(diagnosticCopy.title, lang)}>
           <Text variant="subtitle">{diagnosticText(diagnosticCopy.title, lang)}</Text>
