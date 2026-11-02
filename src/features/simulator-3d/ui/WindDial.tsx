@@ -29,7 +29,7 @@ function WindArrow({ angle, color, dashed, label }: { angle: number; color: stri
     <g>
       <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={color} strokeWidth={2.4} strokeDasharray={dashed ? '4 3' : undefined} strokeLinecap="round" />
       <polygon points={`${head.x},${head.y} ${left.x},${left.y} ${right.x},${right.y}`} fill={color} />
-      <text x={rim(angle, R + 6).x} y={rim(angle, R + 6).y} fill={color} fontSize={9} fontWeight={700} textAnchor="middle" dominantBaseline="middle">{label}</text>
+      <text x={rim(angle, R + 6).x} y={rim(angle, R + 6).y} fill={color} fontSize={11} fontWeight={700} textAnchor="middle" dominantBaseline="middle">{label}</text>
     </g>
   );
 }
@@ -55,7 +55,9 @@ export function WindDial({
   void a;
 
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={label}>
+    <svg width={size} height={size} viewBox="-8 -8 116 116" role="img" aria-label={label}>
+      {/* Package 11: the T and A letters sit outside the rim; the view box leaves them room (the svg cut "T" at its edge) and a dark band under them keeps them at 4.5:1 on the paper theme too. */}
+      <circle cx={C} cy={C} r={57.5} fill="rgba(4,22,30,0.88)" />
       <circle cx={C} cy={C} r={R} fill="rgba(4,22,30,0.7)" stroke="rgba(255,255,255,0.18)" strokeWidth={1} />
       {/* no-go wedge at the top */}
       <path d={noGoPath} fill="rgba(229,72,77,0.18)" stroke="rgba(229,72,77,0.35)" strokeWidth={0.5} />

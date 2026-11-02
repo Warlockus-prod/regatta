@@ -20,6 +20,7 @@ import { useRaceNavigationCopy } from "@/features/race-hud/navigation-copy";
 import type { RaceNavigationSnapshot, RaceWindReading } from "@/features/race-hud/navigation-model";
 import type { WindDisplay } from "@/lib/race-visual-prefs";
 import { GearIcon } from "@/features/trainer-controls/GearIcon";
+import { useOwnRaceHeader } from "@/lib/native-race-header";
 import { recordControlChange } from "@/lib/diagnostics-controls";
 import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
 import { RaceBigMap } from "@/features/race-hud/RaceBigMap";
@@ -46,6 +47,8 @@ export function MultiplayerCockpit(p: {
   /** F3: the player's track this race, recorded by the client (the online race keeps no log). */
   track?: () => readonly Readonly<{ x: number; y: number }>[];
 }) {
+  // Package 11 (K6): the cockpit's status row is the header; the app hides its own meanwhile.
+  useOwnRaceHeader();
   const c = useRaceCopy();
   const nav = useRaceNavigationCopy();
   const labels = useControlLabels();

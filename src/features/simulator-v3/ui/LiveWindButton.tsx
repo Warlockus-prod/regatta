@@ -110,7 +110,7 @@ export function LiveWindButton(props: {
       {(state === 'idle' || state === 'ok' || state === 'error') && (
         <button
           onClick={loadLive}
-          className="w-full px-2 py-1 text-[10px] rounded-md border font-semibold transition uppercase tracking-wider"
+          className="w-full px-2 py-1 text-xs rounded-md border font-semibold transition uppercase tracking-wider"
           style={{
             borderColor: 'rgba(0, 212, 255, 0.22)',
             background: 'rgba(0, 212, 255, 0.08)',
@@ -134,7 +134,7 @@ export function LiveWindButton(props: {
       )}
 
       {state === 'loading' && (
-        <div className="text-[10px] text-[var(--text-muted)] px-0.5">
+        <div className="text-xs text-[var(--text-muted)] px-0.5">
           {tp('Загружаю живой ветер...', 'Loading live wind...', 'Pobieram wiatr na żywo...', {
             es: 'Cargando viento en vivo...',
             fr: 'Chargement du vent en direct...',
@@ -145,7 +145,7 @@ export function LiveWindButton(props: {
       )}
 
       {state === 'error' && (
-        <div className="text-[10px] px-0.5">
+        <div className="text-xs px-0.5">
           <span style={{ color: 'var(--warning)' }}>
             {tp('Нет данных о ветре.', 'No wind data.', 'Brak danych o wietrze.', {
               es: 'Sin datos de viento.',
@@ -166,7 +166,7 @@ export function LiveWindButton(props: {
       )}
 
       {state === 'ok' && data && (
-        <div className="text-[10px] text-[var(--text-muted)] px-0.5 leading-relaxed">
+        <div className="text-xs text-[var(--text-muted)] px-0.5 leading-relaxed">
           <span style={{ color: 'var(--accent-cyan)' }}>
             {tp('Живой', 'Live', 'Na żywo', { es: 'En vivo', fr: 'En direct', de: 'Live', it: 'Live' })}:
           </span>{' '}

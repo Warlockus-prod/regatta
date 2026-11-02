@@ -71,7 +71,7 @@ export function WindPod(props: {
         onChange={(v) => setUi((p) => ({ ...p, windSpeed: v }))}
       />}
       {wind && <details className="pt-1">
-        <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">
+        <summary className="min-h-11 cursor-pointer py-3 text-sm text-[var(--text-secondary)]">
           {tp("Порывы и живой ветер", "Gusts and live wind", "Podmuchy i wiatr na żywo", { es: "Rachas y viento en vivo", fr: "Rafales et vent en direct", de: "Böen und Live-Wind", it: "Raffiche e vento live" })}
         </summary>
         <div className="space-y-2 pb-2">
@@ -124,11 +124,12 @@ export function WindPod(props: {
         onClick={() =>
           setUi((p) => ({ ...p, tack: p.tack === 'starboard' ? 'port' : 'starboard' }))
         }
-        className={`w-full min-h-11 ${comfortable ? 'px-3 text-xs' : compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} rounded-md border font-semibold transition uppercase tracking-wider`}
+        className={`w-full min-h-11 ${comfortable ? 'px-3 text-xs' : compact ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded-md border font-semibold transition uppercase tracking-wider`}
         style={{
           borderColor: 'rgba(0, 212, 255, 0.22)',
           background: 'rgba(0, 212, 255, 0.08)',
-          color: 'var(--accent-cyan)',
+          // The deeper action cyan: the plain one read 4.46:1 on this tint (package 11).
+          color: 'var(--accent-cyan-dim, var(--accent-cyan))',
         }}
       >
         {tackLabel}

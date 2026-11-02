@@ -273,7 +273,7 @@ export function PodCard({ children, compact }: { children: React.ReactNode; comp
 export function PodLabel({ text, compact }: { text: string; compact?: boolean }) {
   return (
     <div
-      className={`${compact ? 'text-[9px]' : 'text-[10px]'} uppercase tracking-wider font-bold`}
+      className={`${compact ? 'text-xs' : 'text-xs'} uppercase tracking-wider font-bold`}
       style={{ color: 'var(--accent-cyan)' }}
     >
       {text}
@@ -305,11 +305,11 @@ export function PodSlider(props: {
   return (
     <label className="block">
       <div className={`flex items-center justify-between gap-2 ${compact ? 'mb-0.5' : 'mb-1'}`}>
-        <span className={`${comfortable ? "text-sm" : compact ? "text-[10px]" : "text-[11px]"} text-[var(--text-secondary)] ${comfortable ? "min-w-0 whitespace-normal" : "truncate"}`}>
+        <span className={`${comfortable ? "text-sm" : compact ? "text-xs" : "text-xs"} text-[var(--text-secondary)] ${comfortable ? "min-w-0 whitespace-normal" : "truncate"}`}>
           {label}
         </span>
         <span
-          className={`${compact ? 'text-[10px]' : 'text-[11px]'} font-mono font-bold tabular-nums`}
+          className={`${compact ? 'text-xs' : 'text-xs'} font-mono font-bold tabular-nums`}
           style={{ color }}
         >
           {value}
@@ -344,12 +344,12 @@ export function PodSegmented<T extends string | number>(props: {
           aria-pressed={active === opt.value}
           onClick={() => onSelect(opt.value)}
           className={`${
-            compact ? 'px-1.5 py-1 text-[9px]' : 'px-2 py-2 text-xs min-h-11'
+            compact ? 'px-1.5 py-1 text-xs' : 'px-2 py-2 text-xs min-h-11'
           } rounded-md border font-semibold transition whitespace-normal leading-snug`}
           style={{
             borderColor: active === opt.value ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.22)',
-            background: active === opt.value ? 'rgba(0, 212, 255, 0.14)' : 'transparent',
-            color: active === opt.value ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+            background: active === opt.value ? 'var(--accent-cyan)' : 'transparent',
+            color: active === opt.value ? 'var(--accent-ink)' : 'var(--text-secondary)',
           }}
         >
           {opt.label}
@@ -372,7 +372,7 @@ export function StatusDot({
     tone === 'danger' ? 'var(--danger)' : tone === 'warn' ? 'var(--warning)' : 'var(--success)';
   return (
     <div
-      className={`flex items-center gap-1.5 ${compact ? 'text-[9px]' : 'text-[10px]'} font-bold uppercase tracking-wider`}
+      className={`flex items-center gap-1.5 ${compact ? 'text-xs' : 'text-xs'} font-bold uppercase tracking-wider`}
       style={{ color }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />

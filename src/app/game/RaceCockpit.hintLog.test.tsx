@@ -34,6 +34,7 @@ vi.mock("@/features/trainer-controls/prefs", () => ({ useControlPrefs: () => ({ 
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: hooks.lang, tl: (value: Record<string, string>) => value[hooks.lang] }) }));
 vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
 import { RaceCockpit } from "./RaceCockpit";
+import { RaceSetupSettings } from "./RaceSetupSettings";
 import { RacePauseSheet } from "./RacePauseSheet";
 
 type Node = ReactElement<Record<string, unknown>>;
@@ -63,6 +64,8 @@ function props(patch: Partial<Props["prefs"]> = {}): Props {
     autopilot: false, onAutopilot: vi.fn(), muted: true, onSound: vi.fn(), penalty: 0, hintLog: LOG, raceId: "race-1" };
 }
 const render = (p: Props) => { hooks.cursor = 0; return RaceCockpit(p); };
+// Package 11: graphics, wind, mini-map, controls and rules are set before the start.
+const setup = (p: Props) => { hooks.cursor = 0; return RaceSetupSettings({ prefs: p.prefs, updatePrefs: p.updatePrefs }); };
 const click = (node: Node | undefined) => (node!.props.onClick as () => void)();
 const sheet = (tree: ReactNode) => nodes(tree).find(node => node.type === RacePauseSheet);
 const panel = (tree: ReactNode) => nodes(tree).find(node => node.type === RaceHintLogPanel);
@@ -179,13 +182,16 @@ describe("race Settings: Hints and Graphics groups (F4)", () => {
     const tree = settings(p);
     (switchRow(tree, "Coach line")!.props.onChange as (on: boolean) => void)(false);
     (switchRow(tree, "First race hints")!.props.onChange as (on: boolean) => void)(false);
-    (switchRow(tree, "Softer light, clearer marks")!.props.onChange as (on: boolean) => void)(true);
+    (switchRow(setup(p), "Softer light, clearer marks")!.props.onChange as (on: boolean) => void)(true);
     expect(p.updatePrefs).toHaveBeenNthCalledWith(1, { coachStrip: false });
     expect(p.updatePrefs).toHaveBeenNthCalledWith(2, { firstRaceHints: false });
     expect(p.updatePrefs).toHaveBeenNthCalledWith(3, { softLight: true });
     expect(switchRow(settings(props({ coachStrip: false, firstRaceHints: false, softLight: true })), "Coach line")!.props.checked).toBe(false);
-    expect(switchRow(settings(props({ softLight: true })), "Softer light, clearer marks")!.props.checked).toBe(true);
-    expect(byTestId(tree, "race-graphics-group")).toBeDefined();
+    expect(switchRow(setup(props({ softLight: true })), "Softer light, clearer marks")!.props.checked).toBe(true);
+    // Package 11 (audit B9): the race keeps camera, sound and hints; graphics moved before the start.
+    expect(byTestId(tree, "race-graphics-group")).toBeUndefined();
+    expect(byTestId(setup(p), "race-graphics-group")).toBeDefined();
+    for (const id of ["race-camera-group", "race-sound-group", "race-hints-group"]) expect(byTestId(tree, id), id).toBeDefined();
   });
 
   it("switches the first race hints back on when asked to show them again", () => {
@@ -214,12 +220,37 @@ describe("race Settings: Wind on the sails (F6)", () => {
 
   it("is a switch in the Graphics group, off by default, written through the race preferences", () => {
     const p = props();
-    const graphics = byTestId(settings(p), "race-graphics-group")!.props.children as ReactNode;
+    const graphics = byTestId(setup(p), "race-graphics-group")!.props.children as ReactNode;
     const row = switchRow(graphics, "Wind on the sails")!;
     expect(row.props.checked).toBe(false);
     expect(text(graphics)).toContain("coloured like telltales");
     (row.props.onChange as (on: boolean) => void)(true);
     expect(p.updatePrefs).toHaveBeenCalledWith({ sailFlow: true });
-    expect(switchRow(settings(props({ sailFlow: true })), "Wind on the sails")!.props.checked).toBe(true);
+    expect(switchRow(setup(props({ sailFlow: true })), "Wind on the sails")!.props.checked).toBe(true);
+  });
+});
+
+// Package 11 (audit B9): in Pro the Sails tab holds the sheets, written through the same trim.
+describe("race Sails tab (package 11)", () => {
+  const sails = (p: Props) => {
+    const tab = nodes(render(p)).find(node => node.type === "button" && Children.toArray(node.props.children as ReactNode).some(child => isValidElement(child) && (child.props as { children?: unknown }).children === "Sails"));
+    click(tab);
+    return render(p);
+  };
+  const sheet = (tree: ReactNode, name: string) => nodes(tree).find(node => node.type === "input" && node.props["aria-label"] === name);
+
+  it("shows the mainsheet and jib sheet in Pro and writes them as trim", () => {
+    const p = { ...props({ mode: "pro" }), setTrim: vi.fn() };
+    const tree = sails(p);
+    const main = sheet(tree, "Mainsheet")!, jib = sheet(tree, "Jibsheet")!;
+    expect(main).toBeDefined();
+    expect(jib).toBeDefined();
+    (main.props.onChange as (event: unknown) => void)({ target: { value: "0.25" } });
+    expect(p.setTrim).toHaveBeenCalledWith({ mainSheet: 0.75 });
+  });
+
+  it("keeps them out of Simple, where the sails trim themselves", () => {
+    const tree = sails(props());
+    expect(sheet(tree, "Mainsheet")).toBeUndefined();
   });
 });

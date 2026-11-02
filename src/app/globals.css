@@ -118,13 +118,14 @@
   --accent-cyan-dim: #005a88;
   --accent-teal: #006d70;
   --accent-ink: #ffffff;
-  --hl-amber: #8a6100;
+  --hl-amber: #7a5500;
   --text-primary: #123247;
   --text-secondary: #526675;
-  --text-muted: #5f7280;
+  /* Package 11: 4.5:1 on the paper tints of docks and chips (#5f7280 gave 4.2:1). */
+  --text-muted: #52636f;
   --danger: #b3261e;
   --success: #006d70;
-  --warning: #8a6100;
+  --warning: #7a5500;
   --wind-color: #006ea6;
   --sail-color: #1a2d4d;
   --water-light: #cfe6f5;
@@ -132,9 +133,9 @@
   --nav-bg: rgba(255, 255, 255, 0.85);
   --hover-bg: rgba(12, 34, 51, 0.05);
   --border-subtle: rgba(12, 34, 51, 0.12);
-  --cat-cyan: #006ea6;
+  --cat-cyan: #005f92;
   --cat-green: #006d70;
-  --cat-amber: #8a6100;
+  --cat-amber: #7a5500;
   /* teal, blue and orange are text colours on the chips (sternik, glossary,
      courses, cheat sheet): darkened to reach 4.5:1 on the light tints. Teal
      is not #0b6b5c, which would read as the same colour as --cat-green. */

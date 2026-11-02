@@ -220,7 +220,7 @@
 /* Wheels */
 .deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .deckArea { position: relative; flex: 1 1 auto; min-height: 196px; }
-.deckNote { flex: 0 0 auto; margin: 0; padding-bottom: 2px; text-align: center; font-size: 12px; line-height: 16px; color: var(--text-muted); }
+.deckNote { flex: 0 0 auto; margin: 0; padding-bottom: 2px; text-align: center; font-size: 14px; line-height: 18px; color: var(--text-muted); }
 .wheel {
   position: absolute;
   touch-action: none;
@@ -256,7 +256,7 @@
 }
 .wheelCaption b { display: block; color: var(--text-primary); font-size: 13px; }
 .wheelCaption span { display: block; font-family: var(--font-geist-mono, ui-monospace, monospace); color: var(--accent-cyan); font-variant-numeric: tabular-nums; }
-.wheelCaption small { display: block; font-size: 11px; color: var(--text-muted); }
+.wheelCaption small { display: block; font-size: 12px; color: var(--text-muted); }
 .wheelSmall .wheelCaption { width: 104px; }
 .wheelSmall .wheelCaption small { display: none; }
 

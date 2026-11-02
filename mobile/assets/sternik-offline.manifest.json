@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "743b21315872",
+  "version": "40260ce0a342",
   "lang": "pl",
-  "sha256": "9c7738b09bba3b48e7fbe57f0780dd1694e76de0ad890181a4933699e18f8169",
+  "sha256": "fa64c2b943009bf99cd447b5ff9daa61ae170b3a7dc808f9bb0c04bbe39c27de",
   "bytes": 2591819,
   "routes": [
     "/sternik",
@@ -185,8 +185,8 @@
     },
     {
       "path": "src/app/globals.css",
-      "bytes": 16553,
-      "sha256": "7eea95720aa75b885d1233311787b3a4566ec6c7d1a253dea03a7c90cc54f318"
+      "bytes": 16639,
+      "sha256": "58a53e7eca8663739c25540e7148277d3adcc8c1340f0cc6ce078b351a119eb1"
     },
     {
       "path": "src/app/radio/rozmowa/dialogueGrading.ts",
@@ -335,8 +335,8 @@
     },
     {
       "path": "src/lib/product/ui-terms.ts",
-      "bytes": 3981,
-      "sha256": "d45f7a97311b7ac52b2cfb28afe6105a3356b4d3c993862a285fde6789c150db"
+      "bytes": 4144,
+      "sha256": "460d2dd67d6fb45cef2324494026cd6c7166455b32cc9718bf4749e0c89eea97"
     },
     {
       "path": "src/lib/race-visual-prefs.ts",

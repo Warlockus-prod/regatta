@@ -66,7 +66,6 @@
 
 /* The same mode picker is also used outside the live cockpit. */
 .modePicker .segmented button { min-height:44px; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 12px; color:var(--text-secondary); font-size:14px; cursor:pointer; }
-.modePicker .segmented button[aria-checked=true] { color:var(--accent-cyan); border-color:var(--accent-cyan); background:var(--bg-card); }
 .modePicker .segmented button:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
 
 /* The size-contained portrait panel contributes a 168px deck plus its padding
@@ -81,6 +80,14 @@
 @media(max-height:480px) and (orientation:landscape) {
  .notice { max-height:96px; overflow-y:auto; overscroll-behavior:contain; }
  .panel .wheels { flex:1 1 auto; height:auto; min-height:168px; max-height:196px; }
+}
+
+/* Package 11: the portrait race dock (see the note at the end of this file). */
+@media(max-width:767px) and (orientation:portrait) {
+ .gameLayer .panel { min-height:clamp(154px, calc(25dvh - 50px), 172px); height:clamp(154px, calc(25dvh - 50px), 172px); }
+ .gameLayer .panel .wheels { min-height:0; max-height:none; }
+ .gameLayer .tabs { padding:0 4px; }
+ .gameLayer .wheels :global([data-testid="wheel-deck"]) { min-height:0; }
 }
 
 /* M1-2 game layer. The site header steps aside during the race, so the scene
@@ -188,3 +195,21 @@
    lies over the sheet (after it in the markup, same layer). */
 .scene .hintLog { top:calc(var(--race-status-h) + 4px); }
 .scene .overPause { z-index:8; }
+
+/* Package 11 (audit K6, top-5): on a portrait phone the race dock is one row
+   of tabs and the helm, no taller than a quarter of the screen, so the scene
+   keeps three quarters with the status row, instruments and coach line over
+   it. A tab label stays on one line (a row that cannot fit still wraps whole
+   tabs, never letters). The helm panel shrinks to 25dvh minus the tab row, but
+   never below the smallest helm (96 px) with its 50 px caption reserve. */
+.tabs button>span { white-space:nowrap; }
+
+/* Race settings before the start (RaceSetupSettings in the lobby): the same
+   controls as the cockpit, outside its button scope. */
+.options[data-setup] .segmented button { min-height:44px; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 12px; font-size:16px; line-height:1.25; color:var(--text-secondary); background:var(--bg-secondary); cursor:pointer; }
+.options[data-setup] .segmented button:focus-visible,.options[data-setup] input:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
+/* Package 11 (audit B9): a chosen segment is the active control, so it is
+   filled cyan with the accent ink (an outline against a grey fill did not say
+   which one was chosen). Same in the race, the lobby mode picker and the race
+   settings before the start. */
+.segmented button[aria-checked=true],.segmented button[aria-checked=true]:hover { color:var(--accent-ink); background:var(--accent-cyan); border-color:var(--accent-cyan); }

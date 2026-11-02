@@ -7,6 +7,8 @@ import { useRaceCopy } from "./race-copy";
 import { useI18n } from '@/lib/i18n';
 import { missions, type Mission } from '@/data/missions';
 import { RaceModePicker } from "./RaceCockpit";
+import { RaceSetupSettings } from "./RaceSetupSettings";
+import { RACE_SETUP_COPY } from "@/data/race-setup-copy";
 import type { RacePrefs } from "./race-prefs";
 import { LobbyVenues } from "./LobbyVenues";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
@@ -320,6 +322,12 @@ export function GameMenu({
         <div className="mb-4"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
       )}
       {!native && <LobbyVenues />}
+
+      {/* Package 11 (audit B9): what is set before the start; the race's own Settings keep camera, sound and hints. */}
+      <details className="mb-4 rounded-xl border border-[var(--border-subtle)] px-4" data-testid="race-setup">
+        <summary className="min-h-11 flex items-center cursor-pointer text-base font-semibold text-[var(--text-primary)]">{tl(RACE_SETUP_COPY.setupTitle)}</summary>
+        <div className="pb-4"><RaceSetupSettings prefs={racePrefs} updatePrefs={updateRacePrefs} /></div>
+      </details>
 
       {/* One primary action, pinned to the bottom of the lobby's scroll area. */}
       <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 flex gap-2 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]">

@@ -28,6 +28,9 @@ import type { Label } from "./catalog";
  *   "мин" in Russian. Instrument readouts read them from here (RACE_UNITS in
  *   src/features/race-hud/units.ts is this same object).
  *
+ * The trainer's drawing words (sails, compass points) are TRAINER_TERMS in
+ * trainer-terms.ts, part of this dictionary in a module of their own (package 11).
+ *
  * Pure data, no React or platform dependency (the app bundles it through
  * Metro, the offline WebView packages through esbuild).
  */

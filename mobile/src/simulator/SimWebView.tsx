@@ -23,7 +23,7 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
-import { isRaceShell, raceFrameInsets, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, useKeepAwakeWhileFocused } from './race-shell';
+import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, useKeepAwakeWhileFocused } from './race-shell';
 import { ActivityBack } from '../navigation/ActivityBack';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
@@ -181,7 +181,10 @@ export function SimWebView({
   useKeepAwakeWhileFocused(isRaceShell(path));
   // The context, not useSafeAreaInsets: a host without a provider renders unpadded.
   const safeArea = useContext(SafeAreaInsetsContext);
-  const frameInsets = raceFrameInsets(safeArea, fullScreen);
+  // Package 11 (K6): a race page with its own header (the live room's cockpit) hides the native one.
+  const [webHeader, setWebHeader] = useState(false);
+  const ownHeader = fullScreen || (isRaceShell(path) && webHeader);
+  const frameInsets = raceFrameInsets(safeArea, ownHeader);
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
@@ -230,8 +233,8 @@ export function SimWebView({
   // process (memory pressure, a long background) and says so.
   const autoReloadAt = useRef<number | null>(null);
   const [processNotice, setProcessNotice] = useState(false);
-  const headerShown = !fullScreen || loading || failed;
-  const overlayInsets = raceOverlayInsets(safeArea, fullScreen, headerShown);
+  const headerShown = !ownHeader || loading || failed;
+  const overlayInsets = raceOverlayInsets(safeArea, ownHeader, headerShown);
 
   const params = new URLSearchParams({ lang, embed: '1', ...(query ?? {}) });
   const uri = `${ORIGIN}${path}?${params.toString()}`;
@@ -312,7 +315,7 @@ export function SimWebView({
   }, [processNotice]);
 
   return (
-    <AppSurface><Screen noTopInset={!fullScreen} style={frameInsets}>
+    <AppSurface><Screen noTopInset={!ownHeader} style={frameInsets}>
       <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false,
         headerLeft: () => returnLesson
           ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
@@ -379,6 +382,8 @@ export function SimWebView({
           if (handleNativeDiagnosticMessage(status, diagnosticSurface)) return;
           // M3-4: race events vibrate through expo-haptics; only race screens may ask, never passed on.
           if (nativeRaceHaptics.handle(path, status) !== null) return;
+          const ownRaceHeader = isRaceShell(path) ? raceHeaderMessage(status) : null;
+          if (ownRaceHeader !== null) { setWebHeader(ownRaceHeader); return; }
           if (offlineSource && status.startsWith("{")) {
             const owner = webRef.current;
             onOfflineMessage?.(status, script => { if (owner && webRef.current === owner) owner.injectJavaScript(script); });

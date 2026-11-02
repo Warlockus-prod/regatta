@@ -6,6 +6,7 @@ import { RACE_UNITS } from '../../race-hud/units';
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
 import { NO_GO_TERM } from '@/data/no-go-zone';
 import { sailDimensions, SAIL_PLAN } from '@/lib/sailing-physics/sail-plan';
+import { TRAINER_TERMS } from '@/lib/product/trainer-terms';
 import {
   clamp,
   finite,
@@ -94,10 +95,6 @@ export function SceneTop({
   const driveEnd = polarPoint(cx, cy, 34 + driveScale * 110, boatRotation);
   const sideSignAngle = sim.result.diag.side >= 0 ? 90 : -90;
   const sideEnd = polarPoint(cx, cy, 26 + sideScale * 70, boatRotation + sideSignAngle);
-  // Force labels sit just past their arrow heads along the arrow, so they
-  // do not land on a sail or its name.
-  const driveLabel = beyondTip(cx, cy, 34 + driveScale * 110 + px(8), boatRotation);
-  const sideLabel = beyondTip(cx, cy, 26 + sideScale * 70 + px(8), boatRotation + sideSignAngle);
   const twLabel = `TW ${Math.round(liveTws)} ${RACE_UNITS.knots[lang]}`;
   // Monospace bold glyphs are about 0.62 em wide.
   const twLabelHalf = twLabel.length * 0.62 * px(15) / 2;
@@ -146,6 +143,25 @@ export function SceneTop({
   const hasMain = sim.session.live.mainHoisted !== false;
   const hasJib = sim.session.live.jibFurl < 0.9;
   const mainVisualScale = sailDimensions("main", sim.session.live.reef).height / SAIL_PLAN.main.height;
+  // Force labels sit past their arrow heads along the arrow. Package 11: they
+  // step further out until they clear the sail names and the corner wind card
+  // (TestFlight 76: "тяга" lay half under the card; "бок" touched MAIN).
+  const forceLabelPx = MIN_TOP_LABEL_PX;
+  const sailNames = { jib: TRAINER_TERMS.jib[lang], main: TRAINER_TERMS.mainsail[lang] };
+  const sailLabelSize = px(MIN_TOP_LABEL_PX);
+  const sailLabels = sailLabelPlaces({
+    cx, cy, boatRotation, sailSide, windIntensity, mainVisualScale, size: sailLabelSize,
+    main: hasMain ? { angle: sim.session.rig.main, name: sailNames.main } : null,
+    jib: hasJib ? { angle: sim.session.rig.jib, name: sailNames.jib } : null,
+  });
+  const sailBoxes = sailLabels.map(label => label.box);
+  const card = { l: 0, t: 0, r: 128 * unitsPerPx, b: 168 * unitsPerPx };
+  // The boat in units round its mast step: the transom 160 aft, the bow 96 and the jib about 164 forward.
+  const keepOut = 166;
+  const driveText = lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciąg' : lang === 'es' ? 'empuje' : lang === 'fr' ? 'poussée' : lang === 'de' ? 'Vortrieb' : lang === 'it' ? 'spinta' : 'drive';
+  const sideText = lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : lang === 'es' ? 'lateral' : lang === 'fr' ? 'latérale' : lang === 'de' ? 'Seitenkraft' : lang === 'it' ? 'laterale' : 'side';
+  const driveLabel = placeForceLabel({ cx, cy, tip: 34 + driveScale * 110, angle: boatRotation, gap: px(8), size: px(forceLabelPx), chars: driveText.length, avoid: [card, ...sailBoxes], bounds: { width, height }, keepOut });
+  const sideLabel = placeForceLabel({ cx, cy, tip: 26 + sideScale * 70, angle: boatRotation + sideSignAngle, gap: px(8), size: px(forceLabelPx), chars: sideText.length, avoid: [card, ...sailBoxes, driveLabel.box], bounds: { width, height }, keepOut });
   const jibVisualOpacity = clamp(1 - sim.session.live.jibFurl, 0.18, 1);
 
   // Wind-shadow factor from main onto jib. On broad reach (TWA > 130) the
@@ -323,16 +339,18 @@ export function SceneTop({
         strokeWidth={1.2}
         strokeDasharray="2 6"
       />
-      {['N', 'E', 'S', 'W'].map((label, i) => {
+      {(['N', 'E', 'S', 'W'] as const).map((label, i) => {
         const p = polarPoint(cx, cy, sceneRadius * 0.96, i * 90);
         // N sits on the TW label line, right of it: on the ring it would sit
         // on the true-wind shaft or under the AW label.
         const north = i === 0;
+        // Package 11: on a narrow phone W sits under the corner wind card; it moves below the card on the ring's side.
+        const westUnderCard = label === 'W' && p.y - px(MIN_TOP_LABEL_PX) < card.b && p.x - px(MIN_TOP_LABEL_PX) < card.r;
         return (
           <SceneLabel
             key={label}
             x={north ? cx + twLabelHalf + px(10) : p.x}
-            y={north ? tw.start.y - px(6) : p.y}
+            y={north ? tw.start.y - px(6) : westUnderCard ? card.b + px(MIN_TOP_LABEL_PX) : p.y}
             anchor={north ? 'start' : 'middle'}
             baseline={north ? 'auto' : 'central'}
             fill={SEA.compass}
@@ -340,7 +358,7 @@ export function SceneTop({
             halo={px(3)}
             testId={`trainer-top-compass-${label}`}
           >
-            {label}
+            {TRAINER_TERMS[`compass${label}`][lang]}
           </SceneLabel>
         );
       })}
@@ -486,7 +504,6 @@ export function SceneTop({
           windIntensity={windIntensity}
           mainStalled={sim.result.diag.mainStalled}
           jibStalled={sim.result.diag.jibStalled}
-          labelSize={Math.min(px(11), 16)}
         />
       </g>
 
@@ -499,6 +516,21 @@ export function SceneTop({
         <Arrow from={{ x: cx, y: cy }} to={sideEnd} color={SEA.side} width={2.6} />
       </g>
       <g data-testid="trainer-top-labels">
+        {sailLabels.map(label => (
+          <SceneLabel
+            key={label.sail}
+            x={label.x}
+            y={label.y}
+            anchor="middle"
+            baseline="central"
+            fill={label.sail === 'jib' ? '#9ad6ff' : '#ffd7a8'}
+            size={sailLabelSize}
+            halo={px(3)}
+            testId={`trainer-top-sail-${label.sail}`}
+          >
+            {label.name}
+          </SceneLabel>
+        ))}
         <SceneLabel
           x={cx}
           y={tw.start.y - px(6)}
@@ -535,7 +567,7 @@ export function SceneTop({
           halo={px(3)}
           testId="trainer-top-drive"
         >
-          {lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciąg' : lang === 'es' ? 'empuje' : lang === 'fr' ? 'poussée' : lang === 'de' ? 'Vortrieb' : lang === 'it' ? 'spinta' : 'drive'}
+          {driveText}
         </SceneLabel>
         <SceneLabel
           x={sideLabel.x}
@@ -547,7 +579,7 @@ export function SceneTop({
           halo={px(3)}
           testId="trainer-top-side"
         >
-          {lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : lang === 'es' ? 'lateral' : lang === 'fr' ? 'latérale' : lang === 'de' ? 'Seitenkraft' : lang === 'it' ? 'laterale' : 'side'}
+          {sideText}
         </SceneLabel>
       </g>
     </svg>
@@ -586,8 +618,6 @@ function BoatTop(args: {
   windIntensity: number;
   mainStalled: boolean;
   jibStalled: boolean;
-  /** Sail name size in viewBox units; capped so the pill never hides the sail. */
-  labelSize: number;
 }) {
   const {
     mainAngleDeg,
@@ -601,10 +631,7 @@ function BoatTop(args: {
     windIntensity,
     mainStalled,
     jibStalled,
-    labelSize,
   } = args;
-  const jibPillW = labelSize * 3.1, jibPillH = labelSize * 1.35;
-  const mainPillW = labelSize * 4, mainPillH = labelSize * 1.4;
   const mainSide = Math.abs(mainAngleDeg) < 0.5 ? sailSide : Math.sign(mainAngleDeg);
   const jibSide = Math.abs(jibAngleDeg) < 0.5 ? sailSide : Math.sign(jibAngleDeg);
   // Unique prefix so jib/main gradient IDs don't collide across the twin
@@ -839,27 +866,6 @@ function BoatTop(args: {
             strokeWidth={1.6}
             strokeLinecap="round"
           />
-          {/* Label with pill background so it reads on any sail tint */}
-          <rect
-            x={jibSide * 18 * jibBelly - jibPillW / 2}
-            y={56 - jibPillH / 2}
-            width={jibPillW}
-            height={jibPillH}
-            rx={3}
-            fill="rgba(10, 22, 40, 0.85)"
-          />
-          <text
-            x={jibSide * 18 * jibBelly}
-            y={56}
-            dominantBaseline="central"
-            fill="#9ad6ff"
-            fontSize={labelSize.toFixed(1)}
-            fontWeight="800"
-            textAnchor="middle"
-            style={{ letterSpacing: '0.12em' }}
-          >
-            JIB
-          </text>
         </g>
       )}
 
@@ -993,27 +999,6 @@ function BoatTop(args: {
             strokeWidth={1.8}
             strokeLinecap="round"
           />
-          {/* Label with pill background */}
-          <rect
-            x={mainSide * 34 * mainBelly - mainPillW / 2}
-            y={93 - mainPillH / 2}
-            width={mainPillW}
-            height={mainPillH}
-            rx={3}
-            fill="rgba(10, 22, 40, 0.85)"
-          />
-          <text
-            x={mainSide * 34 * mainBelly}
-            y={93}
-            dominantBaseline="central"
-            fill="#ffd7a8"
-            fontSize={labelSize.toFixed(1)}
-            fontWeight="800"
-            textAnchor="middle"
-            style={{ letterSpacing: '0.1em' }}
-          >
-            MAIN
-          </text>
         </g>
       )}
 
@@ -1092,6 +1077,102 @@ function beyondTip(cx: number, cy: number, r: number, angleDeg: number): { x: nu
   const p = polarPoint(cx, cy, r, angleDeg);
   const dx = Math.sin(finite(angleDeg) * Math.PI / 180);
   return { x: p.x, y: p.y, anchor: dx > 0.35 ? 'start' : dx < -0.35 ? 'end' : 'middle' };
+}
+
+type LabelBox = { l: number; t: number; r: number; b: number };
+/** SVG rotate(deg) of a point about the origin. */
+const turn = (x: number, y: number, deg: number) => {
+  const a = finite(deg) * Math.PI / 180;
+  return { x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) };
+};
+const overlaps = (a: LabelBox, b: LabelBox) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+
+/** Width of a sail name in viewBox units: bold sans glyphs are about 0.62 em wide. */
+const nameWidth = (chars: number, size: number) => size * 0.62 * chars;
+
+/**
+ * Package 11 (audit B11, TestFlight 76): the sail names sit level beside the
+ * sails, in the reader's language and at the scene's label size. They were
+ * pills inside the turning sails ("JIB / MAIN", 8 px on a phone) and at a
+ * readable size they covered the sails and each other. Each name starts at its
+ * sail's belly (the same transforms BoatTop draws the sail with: the jib from
+ * the forestay, the main from the mast) and moves outward from the boat until
+ * it clears the hull. Pure, so it is unit tested.
+ */
+export function sailLabelPlaces({ cx, cy, boatRotation, sailSide, windIntensity, mainVisualScale, size, main, jib }: {
+  cx: number; cy: number; boatRotation: number; sailSide: 1 | -1; windIntensity: number; mainVisualScale: number; size: number;
+  main: { angle: number; name: string } | null; jib: { angle: number; name: string } | null;
+}): { sail: 'jib' | 'main'; name: string; x: number; y: number; box: LabelBox }[] {
+  const place = (sail: 'jib' | 'main', name: string, local: { x: number; y: number }) => {
+    const at = turn(local.x, local.y, boatRotation);
+    const len = Math.hypot(at.x, at.y) || 1;
+    const half = { w: nameWidth(name.length, size) / 2 + size * 0.3, h: size * 0.75 };
+    // Out along the line from the boat's centre until the hull (about 110 units
+    // from the centre) is behind the name's nearest edge.
+    const reach = Math.max(len, 110) + Math.abs(at.x / len) * half.w + Math.abs(at.y / len) * half.h;
+    // Kept on the drawing (centred in a 2cx by 2cy view box).
+    const x = Math.min(2 * cx - half.w, Math.max(half.w, cx + at.x / len * reach));
+    const y = Math.min(2 * cy - half.h, Math.max(half.h, cy + at.y / len * reach));
+    return { sail, name, x, y, box: { l: x - half.w, r: x + half.w, t: y - half.h, b: y + half.h } };
+  };
+  const out: ReturnType<typeof sailLabelPlaces> = [];
+  if (jib) {
+    const side = Math.abs(jib.angle) < 0.5 ? sailSide : Math.sign(jib.angle);
+    const belly = finite(1 - 0.4 * windIntensity, 1);
+    const p = turn(side * 18 * belly, 56, -jib.angle);
+    out.push(place('jib', jib.name, { x: p.x, y: p.y - 58 }));
+  }
+  if (main) {
+    const side = Math.abs(main.angle) < 0.5 ? sailSide : Math.sign(main.angle);
+    const belly = finite((1 - 0.5 * windIntensity) * mainVisualScale, 1);
+    out.push(place('main', main.name, turn(side * 34 * belly, 93 * mainVisualScale, -main.angle)));
+  }
+  // Two names on one side can meet: the main moves down past the jib.
+  if (out.length === 2 && overlaps(out[0].box, out[1].box)) {
+    const [j, m] = out;
+    const dy = (m.y >= j.y ? 1 : -1) * ((j.box.b - j.box.t) + 2 * size * 0.2);
+    const y = j.y + dy;
+    out[1] = { ...m, y, box: { ...m.box, t: y - (m.box.b - m.box.t) / 2, b: y + (m.box.b - m.box.t) / 2 } };
+  }
+  return out;
+}
+
+/**
+ * A force label ("drive", "side") past its arrow head, stepped further out
+ * along the arrow until it clears the boxes to avoid (the corner wind card,
+ * the sail names, the other force label), stays off the boat and on the
+ * scene. Pure, so it is unit tested.
+ */
+export function placeForceLabel({ cx, cy, tip, angle, gap, size, chars, avoid, bounds, keepOut = 0 }: {
+  cx: number; cy: number; tip: number; angle: number; gap: number; size: number; chars: number;
+  avoid: readonly LabelBox[]; bounds: { width: number; height: number };
+  /** Radius round the scene centre that holds the hull and the sails: a light hull or sail under a label hides it. */
+  keepOut?: number;
+}): { x: number; y: number; anchor: 'start' | 'middle' | 'end'; box: LabelBox } {
+  const onBoat = (b: LabelBox) => Math.hypot(Math.max(b.l - cx, 0, cx - b.r), Math.max(b.t - cy, 0, cy - b.b)) < keepOut;
+  const textWidth = size * 0.6 * chars;
+  // `side` moves the label across the arrow (beside its head) instead of along it.
+  const at = (r: number, side = 0, flip = false) => {
+    const tipPoint = beyondTip(cx, cy, r, angle);
+    const a = finite(angle) * Math.PI / 180;
+    const anchor: 'start' | 'middle' | 'end' = !flip ? tipPoint.anchor : tipPoint.anchor === 'end' ? 'start' : tipPoint.anchor === 'start' ? 'end' : 'middle';
+    const p = { ...tipPoint, anchor, x: tipPoint.x + Math.cos(a) * side, y: tipPoint.y + Math.sin(a) * side };
+    const l = p.anchor === 'start' ? p.x : p.anchor === 'end' ? p.x - textWidth : p.x - textWidth / 2;
+    return { ...p, box: { l, r: l + textWidth, t: p.y - size * 0.6, b: p.y + size * 0.6 } };
+  };
+  const inside = (b: LabelBox) => b.l >= 0 && b.t >= 0 && b.r <= bounds.width && b.b <= bounds.height;
+  const clear = (b: LabelBox) => inside(b) && !onBoat(b) && !avoid.some(other => overlaps(b, other));
+  const first = at(tip + gap);
+  // Nearest first: along the arrow, then beside it (the text running either way).
+  for (let step = 0; step < 12; step++) {
+    for (const k of [0, 1.2, -1.2, 2.4, -2.4, 3.6, -3.6]) {
+      for (const flip of [false, true]) {
+        const candidate = at(tip + gap + step * size * 0.9, k * size, flip);
+        if (clear(candidate.box)) return candidate;
+      }
+    }
+  }
+  return first;
 }
 
 /** AW label size, CSS px; monospace bold glyphs are about 0.62 em wide. */

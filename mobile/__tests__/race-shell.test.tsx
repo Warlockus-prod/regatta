@@ -2,7 +2,7 @@ import { act, fireEvent, render } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SimWebView } from "../src/simulator/SimWebView";
-import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions } from "../src/simulator/race-shell";
+import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions } from "../src/simulator/race-shell";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
@@ -145,6 +145,30 @@ it("keeps the native overlays inside the same safe frame as the race", async () 
   expect(StyleSheet.flatten(view.getByTestId("race-process-notice").props.style)).toMatchObject({ top: 12, left: 75, right: 75 });
   fireEvent(view.getByTestId("webview"), "contentProcessDidTerminate", { nativeEvent: {} });
   expect(StyleSheet.flatten(view.getByTestId("sim-failed").props.style)).toMatchObject({ left: 59, right: 59 });
+});
+
+// Package 11 (audit K6): the live room was squeezed between the native header
+// and the cockpit's own status row. While the cockpit is on screen it says so
+// and the native header steps aside; back in the lobby the header returns.
+it("hides the native header while the live room's cockpit draws its own, and only on a race screen", async () => {
+  const portrait = { insets: { top: 59, left: 0, right: 0, bottom: 34 }, frame: { x: 0, y: 0, width: 393, height: 852 } };
+  const view = render(<SafeAreaProvider initialMetrics={portrait}><SimWebView path="/multiplayer" title="Multiplayer" /></SafeAreaProvider>);
+  await act(async () => {});
+  const web = () => view.getByTestId("webview");
+  fireEvent(web(), "message", { nativeEvent: { data: "ready" } });
+  expect(lastOptions().headerShown).toBe(true);
+  fireEvent(web(), "message", { nativeEvent: { data: JSON.stringify({ type: "race-header", own: true }) } });
+  expect(lastOptions().headerShown).toBe(false);
+  fireEvent(web(), "message", { nativeEvent: { data: JSON.stringify({ type: "race-header", own: false }) } });
+  expect(lastOptions().headerShown).toBe(true);
+  view.unmount();
+  const trainer = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" />);
+  await act(async () => {});
+  fireEvent(trainer.getByTestId("webview"), "message", { nativeEvent: { data: "ready" } });
+  fireEvent(trainer.getByTestId("webview"), "message", { nativeEvent: { data: JSON.stringify({ type: "race-header", own: true }) } });
+  expect(lastOptions().headerShown).toBe(true);
+  expect(raceHeaderMessage('{"type":"race-header","own":"yes"}')).toBeNull();
+  expect(raceHeaderMessage("ready")).toBeNull();
 });
 
 it("drops the memory notice below the island once the portrait race hides its header", async () => {

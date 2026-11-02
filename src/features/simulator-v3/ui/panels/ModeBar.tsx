@@ -25,13 +25,13 @@ export function ModeBar({
       key={m}
       aria-pressed={active === m}
       onClick={() => onChange(m)}
-      className="flex-1 min-w-0 min-h-11 px-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-md border transition"
+      className="flex-1 min-w-0 min-h-11 px-1 py-2 text-xs font-bold uppercase tracking-wider rounded-md border transition"
       style={{
         borderColor:
           active === m ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.22)',
         background:
-          active === m ? 'rgba(0, 212, 255, 0.14)' : 'transparent',
-        color: active === m ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+          active === m ? 'var(--accent-cyan)' : 'transparent',
+        color: active === m ? 'var(--accent-ink)' : 'var(--text-secondary)',
       }}
     >
       {label}

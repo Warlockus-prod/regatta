@@ -96,7 +96,7 @@ function MetricChip({
           style={{ background: 'rgba(139, 167, 184, 0.18)' }}
         />
       )}
-      <div className="text-[8px] sm:text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
+      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold">
         {label}
       </div>
       <div className="mt-0.5 flex items-baseline gap-1">
@@ -106,7 +106,7 @@ function MetricChip({
         >
           {value}
         </span>
-        <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-semibold">{unit}</span>
+        <span className="text-xs text-[var(--text-muted)] font-semibold">{unit}</span>
       </div>
     </div>
   );

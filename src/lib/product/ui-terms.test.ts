@@ -3,6 +3,7 @@ import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { UI_TERMS, sections, type Language } from "./catalog";
+import { TRAINER_TERMS } from "./trainer-terms";
 import { RACE_MODE_LABELS } from "@/app/game/race-mode-labels";
 import { FINISH_COPY } from "@/app/game/race-finish-summary";
 import { RACE_RECORD_COPY } from "@/lib/race-record-copy";
@@ -111,7 +112,7 @@ describe("one UI dictionary (package 10)", () => {
     expect(files).toEqual(expect.arrayContaining(["mobile/src/game/copy.ts", "mobile/src/home/copy.ts"]));
     // Distinctive dictionary words (Russian and the brand): a literal equal to one is a fork.
     const words = new Map<string, string>();
-    for (const [term, label] of Object.entries(UI_TERMS)) {
+    for (const [term, label] of Object.entries({ ...UI_TERMS, ...TRAINER_TERMS })) {
       if (/[А-Яа-яЁё]{3,}/.test(label.ru)) words.set(label.ru, term);
     }
     words.set(UI_TERMS.brand.en, "brand");

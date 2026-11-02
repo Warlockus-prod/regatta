@@ -23,7 +23,6 @@ import { recordControlChange } from "@/lib/diagnostics-controls";
 import { RaceCornerInstruments } from "@/features/race-hud/RaceCornerInstruments";
 import { RaceBigMap } from "@/features/race-hud/RaceBigMap";
 import { RACE_MAP_COPY } from "@/data/race-map-copy";
-import { RACE_SAIL_FLOW_COPY } from "@/data/race-sail-flow-copy";
 import { finishHoldActive, finishHoldStore } from "./race-finish-hold";
 import { RacePauseSheet } from "./RacePauseSheet";
 import { useRacePauseCopy } from "./race-pause-copy";
@@ -41,6 +40,7 @@ import { CameraIcon, HintIcon } from "@/features/race-hud/RaceIcons";
 import { RaceHapticsToggle, useRaceHapticsCopy } from "@/features/race-hud/RaceHapticsToggle";
 import { FIRST_RACE_HINT_COPY } from "@/data/race-first-hints-copy";
 import { RACE_HINT_LOG_COPY, RACE_HINT_SETTINGS_COPY } from "@/data/race-hint-log-copy";
+import { RACE_SETUP_COPY } from "@/data/race-setup-copy";
 import { RACE_INTRO_TITLE } from "@/data/race-intro-title";
 import { RaceHintLogPanel } from "@/features/race-hud/RaceHintLog";
 import { LOGGED_ROUTE_ACTIONS, type HintLogEntry } from "@/features/race-hud/hint-log";
@@ -274,7 +274,7 @@ export function RaceCockpit(p: {
           {trimLine && <small className={styles.trimAdvice}>{p.trimAdvice}</small>}
         </div>}
         <nav className={styles.tabs} aria-label={labels.controlsTitle}>
-          {(["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)}>{t === "settings" && <GearIcon size={22} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.map : c[t]}</span></button>)}
+          {(["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)} aria-label={t === "map" ? nav.map : undefined}>{t === "settings" && <GearIcon size={22} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.mapShort : c[t]}</span></button>)}
           <button type="button" aria-pressed={p.autopilot} onClick={p.onAutopilot} disabled={holding}><span>{c.auto}</span></button>
         </nav>
         {/* F2: the Helm panel is pinned (never scrolls, no page pan or zoom from it); the other tabs scroll inside their own panel. */}
@@ -291,6 +291,9 @@ export function RaceCockpit(p: {
               </div>}
           </>}
           {tab === "sails" && <div className={styles.options}>
+            {/* Package 11 (audit B9): in Pro the Sails tab holds the sheets too (the same trim as the Helm wheels). */}
+            {pro && range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}
+            {pro && range(labels.jibsheet, 1 - p.trim.jibSheet, v => p.setTrim({ jibSheet: 1 - v }))}
             <Toggle label={c.main} checked={p.trim.mainHoisted !== false} onChange={mainHoisted => p.setTrim({ mainHoisted })} />
             <Toggle label={c.jib} checked={p.trim.jibFurl < .5} onChange={on => p.setTrim({ jibFurl: on ? 0 : 1 })} />
             {range(c.reef, p.trim.reef, reef => p.setTrim({ reef }))}
@@ -302,21 +305,22 @@ export function RaceCockpit(p: {
             <h2>{c.fleet}</h2>
             <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id} data-player={r.isPlayer || undefined}><b>{i + 1}</b><span className={styles.fleetDot} style={{ background: r.color }} aria-hidden="true" /><span className={styles.fleetName}>{r.isPlayer ? c.you : r.name}</span></li>)}</ol>
           </div>}
+          {/* Package 11 (audit B9): in the race only camera, sound and hints
+              (with the wind display and the mini-map); controls, graphics and
+              rules are set before the start (RaceSetupSettings in the lobby). */}
           {tab === "settings" && <div className={styles.options}>
-            <div className={styles.modePicker}>
-              <strong>{pro ? c.pro : c.simple}</strong>
-              <p>{pro ? c.proNote : c.simpleNote}</p>
-            </div>
-            <div className={styles.segmented} role="radiogroup" aria-label={labels.controlsTitle}>{(["wheels", "sliders"] as const).map(mode => <button key={mode} type="button" role="radio" aria-checked={controls.mode === mode} onClick={() => update({ mode })}>{labels[mode]}</button>)}</div>
-            <div className={styles.segmented} role="radiogroup" aria-label={labels.helmSets}>{(["rudder", "course"] as const).map(m => <button key={m} type="button" role="radio" aria-checked={mapping === m} onClick={() => update({ helmMapping: { ...controls.helmMapping, boat: m } })}>{labels[m]}</button>)}</div>
-            <Toggle label={labels.returnCenter} checked={controls.helmReturnToCenter} onChange={helmReturnToCenter => update({ helmReturnToCenter })} />
-            <Toggle label={labels.jibRight} checked={controls.jibSheetSide === "right"} onChange={on => update({ jibSheetSide: on ? "right" : "left" })} />
-            <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={controls.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
-            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{RACE_CAMERAS.map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
-            <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
-            <p>{c.cameraGesture} {tl(RACE_CAMERA_TAP_HINT)}</p>
-            <RaceWindSettings display={p.prefs.windDisplay} onChange={windDisplay => p.updatePrefs({ windDisplay })} />
-            <Toggle label={nav.miniMapSetting} checked={p.prefs.miniMap} onChange={miniMap => p.updatePrefs({ miniMap })} />
+            <section className={styles.group} data-testid="race-camera-group">
+              <h2 className={styles.groupTitle}>{c.view}</h2>
+              <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{RACE_CAMERAS.map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
+              <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
+              <p>{c.cameraGesture} {tl(RACE_CAMERA_TAP_HINT)}</p>
+            </section>
+            <section className={styles.group} data-testid="race-sound-group">
+              <h2 className={styles.groupTitle}>{c.sound}</h2>
+              <Toggle label={c.sound} checked={!p.muted} onChange={p.onSound} />
+              {p.haptics && <Toggle label={haptics.label} checked={p.haptics.on} onChange={p.haptics.setOn} />}
+              <Toggle label={labels.sound} checked={controls.sound} onChange={sound => update({ sound })} />
+            </section>
             {/* F4: one Hints group: route, Pro trim, the coach line, the first race hints and the log. */}
             <section className={styles.group} data-testid="race-hints-group">
               <h2 className={styles.groupTitle}>{tl(RACE_HINT_SETTINGS_COPY.hintsGroup)}</h2>
@@ -333,21 +337,11 @@ export function RaceCockpit(p: {
               {p.hintLog && <button type="button" className="min-h-11" onClick={openHintLog} data-testid="race-hint-log-settings">{`${tl(RACE_HINT_LOG_COPY.open)} (${hintCount})`}</button>}
               {p.onShowIntro && <button type="button" className="min-h-11" onClick={p.onShowIntro} aria-haspopup="dialog" data-testid="race-intro-settings">{tl(RACE_INTRO_TITLE)}</button>}
               <p>{tl(RACE_HINT_SETTINGS_COPY.goldNote)}</p>
+              {/* The wind display and the corner mini-map are on-screen help too ("no hint" is one of the wind choices). */}
+              <RaceWindSettings display={p.prefs.windDisplay} onChange={windDisplay => p.updatePrefs({ windDisplay })} />
+              <Toggle label={nav.miniMapSetting} checked={p.prefs.miniMap} onChange={miniMap => p.updatePrefs({ miniMap })} />
             </section>
-            <section className={styles.group} data-testid="race-graphics-group">
-              <h2 className={styles.groupTitle}>{tl(RACE_HINT_SETTINGS_COPY.graphicsGroup)}</h2>
-              <Toggle label={tl(RACE_HINT_SETTINGS_COPY.softLight)} checked={p.prefs.softLight === true} onChange={softLight => p.updatePrefs({ softLight })} />
-              <p>{tl(RACE_HINT_SETTINGS_COPY.softLightNote)}</p>
-              {/* F6: apparent-wind ribbons along the player's sails in the 3D scene. */}
-              <Toggle label={tl(RACE_SAIL_FLOW_COPY.label)} checked={p.prefs.sailFlow === true} onChange={sailFlow => p.updatePrefs({ sailFlow })} />
-              <p>{tl(RACE_SAIL_FLOW_COPY.note)}</p>
-            </section>
-            <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />
-            <Toggle label={c.penalties} checked={p.prefs.penalties} onChange={penalties => p.updatePrefs({ penalties })} />
-            <Toggle label={c.sound} checked={!p.muted} onChange={p.onSound} />
-            {p.haptics && <Toggle label={haptics.label} checked={p.haptics.on} onChange={p.haptics.setOn} />}
-            <Toggle label={labels.sound} checked={controls.sound} onChange={sound => update({ sound })} />
-            <p>{c.rulesNote}</p>
+            <p data-testid="race-setup-note">{tl(RACE_SETUP_COPY.setupNote)}</p>
             <DiagnosticAccess />
           </div>}
         </div>

@@ -459,7 +459,7 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
         </div>
 
         <div
-          className="mt-4 text-[10px] text-center"
+          className="mt-4 text-xs text-center"
           style={{ color: 'var(--text-muted)' }}
         >
           {tp(

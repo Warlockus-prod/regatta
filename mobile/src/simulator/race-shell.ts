@@ -44,6 +44,20 @@ export function raceOverlayInsets(insets: Pick<EdgeInsets, "top" | "left" | "rig
   return { top: headerShown ? 0 : Math.max(0, insets.top), left: Math.max(0, insets.left), right: Math.max(0, insets.right) };
 }
 
+/**
+ * Package 11 (audit K6): a race page that draws its own header says so
+ * ({"type":"race-header","own":true}, src/lib/native-race-header.ts) and the
+ * native header hides while it lasts, so the live room is not squeezed
+ * between two headers. Returns the flag, or null for any other message.
+ */
+export function raceHeaderMessage(message: string): boolean | null {
+  if (message.length > 64 || !message.startsWith('{"type":"race-header"')) return null;
+  try {
+    const data = JSON.parse(message) as { type?: unknown; own?: unknown };
+    return data.type === "race-header" && typeof data.own === "boolean" ? data.own : null;
+  } catch { return null; }
+}
+
 /** Within this time after an automatic reload, a second process loss shows Retry instead of looping. */
 export const RACE_PROCESS_RELOAD_WINDOW_MS = 60_000;
 

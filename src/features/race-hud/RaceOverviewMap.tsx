@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { raceMapProjection, type RaceNavigationSnapshot } from "./navigation-model";
 import { PLAYER_COLOR } from "./boat-colors";
 import { radarBounds } from "./radar";
@@ -42,6 +42,8 @@ export interface RaceOverviewMapProps {
 const number = (value: number) => Number(value.toFixed(2));
 // Cyan is for actions only (M1-7): the player has its own race colour and the
 // wind arrow is a reading, drawn in the primary text colour.
+/** Smallest map letter on screen, CSS px (DESIGN.md labels). */
+const MIN_MAP_TEXT_PX = 12;
 const SECONDARY = "var(--text-secondary, #a2b4c4)", WIND = "var(--text-primary, #e8f4f8)";
 const BOAT_PATH = "M0-7 L-4 6 L0 4 L4 6 Z";
 /** The route hint's colour, the same yellow as the route on the water
@@ -51,7 +53,8 @@ const ROUTE = "#ffd23f";
 /** Pixel radius of the rounding arrow round a mark. */
 const ROUNDING_PX = 14;
 /** The radar's own dark glass in both themes, so the scene shows through it. */
-const RADAR_FILL = "rgba(4, 14, 22, 0.58)";
+// Package 11: 0.72 (was 0.58) keeps the radar letters at 4.5:1 over a bright sky or wake.
+const RADAR_FILL = "rgba(4, 14, 22, 0.72)";
 /** Fixed light ink on that glass: the theme's text tokens turn dark in the
  * light theme and would vanish on it. A solid halo keeps mark numbers legible. */
 const RADAR_INK = "#c3d3dd", RADAR_STRONG = "#eef5f8", RADAR_HALO = "#04101a", RADAR_LAND = "rgba(150, 170, 180, 0.3)";
@@ -60,6 +63,27 @@ const RADAR_INK = "#c3d3dd", RADAR_STRONG = "#eef5f8", RADAR_HALO = "#04101a", R
 export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, compact = false, radar = compact, focus, hullLength,
   view = null, track, route = null, caption = !compact, testId }: RaceOverviewMapProps) {
   const clip = `race-map-${useId().replace(/:/g, "")}`;
+  // Package 11: the Map tab draws this map in whatever height the dock has
+  // left, so a 10-unit word could reach the screen at 4 px. Text is sized
+  // from the rendered scale to at least 12 CSS px.
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [onScreen, setOnScreen] = useState(1);
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
+      const box = svg.getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) setOnScreen(Math.min(box.width / width, box.height / height));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [width, height]);
+  const text = (units: number) => number(Math.max(units, MIN_MAP_TEXT_PX / Math.max(onScreen, .05)));
+  const northSize = text(compact ? 14 : view ? 12 : 10);
+  // The radar's letter keeps clear of its rounded corner, where the scene shows through.
+  const northBaseline = number(Math.max(compact ? 18 : 14, northSize * .9));
   // A snapshot may carry the player's next target itself (navigation-model).
   const snapshotFocus = (snapshot as { readonly focus?: Vec2 | null } | null)?.focus;
   const zoom = snapshot && radar && !view ? radarBounds(snapshot, focus !== undefined ? focus : snapshotFocus, { hull: hullLength }) : null;
@@ -89,7 +113,7 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, c
   const ordinals: { x: number; y: number; ordinal: number }[] = [];
   return <Container className="m-0" data-testid={testId ?? (compact ? "race-mini-map" : "race-overview-map")} data-map-mode={zoom ? "radar" : "course"}
     data-map-rotation={view ? turn(0) : undefined}>
-    <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label={labels.title}
+    <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label={labels.title}
       style={{ width: "100%", height: "var(--race-map-height, auto)", display: "block", color: ink }}>
       <title>{labels.title}</title>
       <defs><clipPath id={clip}><rect x={clipViewport.x} y={clipViewport.y} width={clipViewport.width} height={clipViewport.height} /></clipPath></defs>
@@ -140,13 +164,15 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220, c
           </g>;
         })}
         {/* Mark numbers last: a boat glyph never covers them. */}
-        {ordinals.map(({ x, y, ordinal }) => <text key={ordinal} data-map-ordinal="" x={number(x + (view ? 10 : 7))} y={number(y + (view ? 18 : -5))} fontSize={view || compact ? 14 : 10} fill={zoom ? strong : SECONDARY}
+        {ordinals.map(({ x, y, ordinal }) => <text key={ordinal} data-map-ordinal="" x={number(x + (view ? 10 : 7))} y={number(y + (view ? 18 : -5))} fontSize={text(view || compact ? 14 : 10)} fill={zoom ? strong : SECONDARY}
           stroke={zoom ? RADAR_HALO : undefined} strokeWidth={zoom ? 2 : undefined} paintOrder={zoom ? "stroke" : undefined}>{ordinal}</text>)}
       </g>
-      <g aria-hidden="true" fill={ink} stroke="none">
-        <text x={compact ? 10 : 12} y={14} fontSize={compact ? 14 : view ? 12 : 10}>{labels.north}</text>
-        {/* Bow up turns only the arrow; the label stays level and readable. */}
-        <path data-map-north="" d="M18 19 L14 28 L18 25 L22 28 Z" transform={rotation ? `rotate(${turn(0)} 18 23.5)` : undefined} />
+      <g aria-hidden="true" fill={zoom ? strong : ink} stroke="none">
+        <text x={compact ? 14 : 12} y={northBaseline} fontSize={northSize}>{labels.north}</text>
+        {/* Bow up turns only the arrow; the label stays level and readable. The arrow moves down under a scaled-up label. */}
+        <g transform={northBaseline > 14 ? `translate(0 ${number(northBaseline - 14)})` : undefined}>
+          <path data-map-north="" d="M18 19 L14 28 L18 25 L22 28 Z" transform={rotation ? `rotate(${turn(0)} 18 23.5)` : undefined} />
+        </g>
       </g>
       {snapshot.windFrom !== null && <g data-map-wind="" transform={`translate(${width - 24} 27)`}>
         <title>{`${labels.windFrom}: ${Math.round(snapshot.windFrom)}°`}</title>

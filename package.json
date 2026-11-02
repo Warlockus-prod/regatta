@@ -18,6 +18,7 @@
     "test": "vitest run",
     "check:dash": "node scripts/check-no-dash.mjs src docs scripts .githooks .github mobile ws-server e2e ops AGENTS.md ARCHITECTURE.md CHANGELOG.md CLAUDE.md README.md DECISIONS.md PATTERNS.md DESIGN.md",
     "check:map": "node scripts/check-project-map.mjs",
+    "check:ui": "node scripts/check-ui-sizes.mjs",
     "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs",
     "build:race-server": "node scripts/build-race-server.mjs",
     "test:multiplayer": "npm ci --prefix ws-server --no-audit --no-fund && node scripts/test-multiplayer.mjs",

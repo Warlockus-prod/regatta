@@ -580,7 +580,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       >
         <div className="hidden sm:flex items-center gap-2 min-w-0">
           <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase shrink-0"
             style={{
               background: 'rgba(0, 212, 255, 0.16)',
               color: 'var(--accent-cyan)',
@@ -664,7 +664,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               <nav>
               <a
                 href="/simulator"
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+                className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
                 style={{
                   borderColor: 'rgba(139, 167, 184, 0.22)',
                   color: 'var(--text-secondary)',
@@ -678,7 +678,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 })}
               </a>
               <span
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border"
+                className="text-xs font-semibold px-2 py-1 rounded-md border"
                 style={{
                   background: 'rgba(0, 212, 255, 0.14)',
                   borderColor: 'rgba(0, 212, 255, 0.35)',
@@ -694,7 +694,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               </span>
               <a
                 href="/simulator2"
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+                className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
                 style={{
                   borderColor: 'rgba(139, 167, 184, 0.22)',
                   color: 'var(--text-secondary)',

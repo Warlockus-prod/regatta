@@ -78,9 +78,9 @@ export function ViewPod(props: {
       </>}
       {props.section === "session" && <>
       <PodLabel text={tp("НАСТРОЙКИ СЕССИИ", "SESSION SETTINGS", "USTAWIENIA SESJI", { es: "AJUSTES DE SESIÓN", fr: "RÉGLAGES DE SESSION", de: "SITZUNGSEINSTELLUNGEN", it: "IMPOSTAZIONI SESSIONE" })} />
-      <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Учебная помощь: курс удерживается, паруса переходят сами. Смена вида не сбрасывает лодку.", "Teaching assistance: course is held and sails transfer automatically. Changing view keeps the same boat state.", "Pomoc szkoleniowa: kurs jest utrzymywany, żagle przechodzą automatycznie. Zmiana widoku zachowuje stan jachtu.", { es: "Ayuda de aprendizaje: el rumbo se mantiene y las velas cambian de banda solas. Cambiar de vista no reinicia el barco.", fr: "Aide pédagogique : le cap est tenu et les voiles changent de bord seules. Changer de vue ne réinitialise pas le bateau.", de: "Lernhilfe: Der Kurs wird gehalten, die Segel gehen automatisch über. Ein Ansichtswechsel setzt das Boot nicht zurück.", it: "Aiuto didattico: la rotta è mantenuta e le vele passano da sole. Cambiare vista non azzera la barca." })}</p>
+      <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{tp("Учебная помощь: курс удерживается, паруса переходят сами. Смена вида не сбрасывает лодку.", "Teaching assistance: course is held and sails transfer automatically. Changing view keeps the same boat state.", "Pomoc szkoleniowa: kurs jest utrzymywany, żagle przechodzą automatycznie. Zmiana widoku zachowuje stan jachtu.", { es: "Ayuda de aprendizaje: el rumbo se mantiene y las velas cambian de banda solas. Cambiar de vista no reinicia el barco.", fr: "Aide pédagogique : le cap est tenu et les voiles changent de bord seules. Changer de vue ne réinitialise pas le bateau.", de: "Lernhilfe: Der Kurs wird gehalten, die Segel gehen automatisch über. Ein Ansichtswechsel setzt das Boot nicht zurück.", it: "Aiuto didattico: la rotta è mantenuta e le vele passano da sole. Cambiare vista non azzera la barca." })}</p>
       <details>
-        <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Паруса и курсы", "Sails and courses", "Żagle i kursy", { es: "Velas y rumbos", fr: "Voiles et allures", de: "Segel und Kurse", it: "Vele e andature" })}</summary>
+        <summary className="min-h-11 cursor-pointer py-3 text-sm text-[var(--text-secondary)]">{tp("Паруса и курсы", "Sails and courses", "Żagle i kursy", { es: "Velas y rumbos", fr: "Voiles et allures", de: "Segel und Kurse", it: "Vele e andature" })}</summary>
         <div className="space-y-2 pb-2">
       <PodSegmented
         compact={compact}
@@ -107,7 +107,7 @@ export function ViewPod(props: {
             key={preset.id}
             onClick={() => setPreset(preset.twa)}
             className={`min-h-11 ${
-              compact ? 'px-0.5 py-0.5 text-[8px]' : 'px-1 py-1 text-[9px]'
+              compact ? 'px-0.5 py-0.5 text-xs' : 'px-1 py-1 text-xs'
             } rounded-md border font-semibold uppercase tracking-wider transition truncate`}
             style={{
               borderColor:
@@ -115,9 +115,9 @@ export function ViewPod(props: {
                   ? 'var(--accent-cyan)'
                   : 'rgba(139, 167, 184, 0.22)',
               background:
-                Math.abs(ui.twa - preset.twa) < 2 ? 'rgba(0, 212, 255, 0.12)' : 'transparent',
+                Math.abs(ui.twa - preset.twa) < 2 ? 'var(--accent-cyan)' : 'transparent',
               color:
-                Math.abs(ui.twa - preset.twa) < 2 ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                Math.abs(ui.twa - preset.twa) < 2 ? 'var(--accent-ink)' : 'var(--text-muted)',
             }}
           >
             {preset.id === 'close'
@@ -136,21 +136,21 @@ export function ViewPod(props: {
         {!ui.mainTrim && <button
           onClick={applyOptimal}
           disabled={Boolean(ui.mainTrim)}
-          className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
+          className={`${compact ? 'px-1 py-0.5 text-xs' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: 'var(--success)' }}
         >
           {tp('Оптим', 'Best', 'Optimum', { es: 'Óptimo', fr: 'Optimal', de: 'Optimal', it: 'Ottimo' })}
         </button>}
         <button
           onClick={resetAll}
-          className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
+          className={`${compact ? 'px-1 py-0.5 text-xs' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-muted)' }}
         >
           {ui.mainTrim ? tp("Новая простая сессия", "New simple session", "Nowa prosta sesja", { es: "Nueva sesión simple", fr: "Nouvelle session simple", de: "Neue einfache Sitzung", it: "Nuova sessione semplice" }) : tp('Сброс', 'Reset', 'Reset', { es: 'Reiniciar', fr: 'Remise à zéro', de: 'Zurücksetzen', it: 'Azzera' })}
         </button>
       </div>
       {ui.view === "top" && !ui.mainTrim && <label
-        className={`flex items-center gap-2 ${compact ? 'text-[9px]' : 'text-[10px]'} text-[var(--text-secondary)] cursor-pointer`}
+        className="flex min-h-11 items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer"
       >
         <input
           type="checkbox"

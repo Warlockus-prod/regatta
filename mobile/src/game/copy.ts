@@ -1,4 +1,5 @@
 import { UI_TERMS, words } from '../../../src/lib/product/catalog';
+import { TRAINER_TERMS } from '../../../src/lib/product/trainer-terms';
 
 /** Race setup and race screen strings (7 languages). */
 export const raceCopy = {
@@ -35,8 +36,9 @@ export const raceCopy = {
   ),
   mainsheet: words('Гика-шкот', 'Mainsheet', 'Szot grota', 'Escota de mayor', 'Écoute de grand-voile', 'Großschot', 'Scotta della randa'),
   jibsheet: words('Стаксель-шкот', 'Jib sheet', 'Szot foka', 'Escota de foque', 'Écoute de foc', 'Fockschot', 'Scotta del fiocco'),
-  main: words('Грот', 'Main', 'Grot', 'Mayor', 'GV', 'Groß', 'Randa'),
-  jib: words('Стаксель', 'Jib', 'Fok', 'Foque', 'Foc', 'Fock', 'Fiocco'),
+  // Package 11: the sail names are the site's (UI_TERMS, the trainer's top view).
+  main: TRAINER_TERMS.mainsail,
+  jib: TRAINER_TERMS.jib,
   sheetScale: words('0% выбран · 100% потравлен', '0% sheeted in · 100% eased out', '0% wybrany · 100% poluzowany', '0% cazada · 100% lascada', '0% bordée · 100% choquée', '0% dichtgeholt · 100% gefiert', '0% cazzata · 100% lascata'),
   luff: words('заполаскивает', 'luffing', 'łopocze', 'flamea', 'faseye', 'killt', 'fileggia'),
   stall: words('срыв потока', 'stalled', 'zerwany przepływ', 'en pérdida', 'décroché', 'Strömungsabriss', 'in stallo'),

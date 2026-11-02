@@ -9,6 +9,8 @@ export function useRaceNavigationCopy() {
     miniMapSetting: tl({ ru: "Мини-карта в углу", en: "Mini-map in the corner", pl: "Minimapa w rogu", es: "Minimapa en la esquina", fr: "Mini-carte dans le coin", de: "Minikarte in der Ecke", it: "Minimappa nell'angolo" }),
     openMap: tl({ ru: "Открыть карту трассы", en: "Open course map", pl: "Otwórz mapę trasy", es: "Abrir el mapa del recorrido", fr: "Ouvrir la carte du parcours", de: "Kurskarte öffnen", it: "Apri la mappa del percorso" }),
     map: tl({ ru: "Карта трассы", en: "Course map", pl: "Mapa trasy", es: "Mapa del recorrido", fr: "Carte du parcours", de: "Kurskarte", it: "Mappa del percorso" }),
+    /** Package 11: the dock tab's visible word (its accessible name stays "map"), so the tabs fit one row on a phone. */
+    mapShort: tl({ ru: "Карта", en: "Map", pl: "Mapa", es: "Mapa", fr: "Carte", de: "Karte", it: "Mappa" }),
     north: tl({ ru: "Север", en: "North", pl: "Północ", es: "Norte", fr: "Nord", de: "Nord", it: "Nord" }),
     northShort: tl({ ru: "С", en: "N", pl: "N", es: "N", fr: "N", de: "N", it: "N" }),
     start: tl({ ru: "Старт", en: "Start", pl: "Start", es: "Salida", fr: "Départ", de: "Start", it: "Partenza" }),

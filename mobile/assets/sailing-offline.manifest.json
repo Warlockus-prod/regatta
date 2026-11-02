@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "77bab77ddc86",
-  "sha256": "43a02f4128f423a93ca2408925f0a3be361053cdc002339ebac0afefa663086e",
-  "bytes": 6959817,
+  "version": "f405c046d30e",
+  "sha256": "32cdaf53ddbcc3a2ad5c9e7350b3567a9bab2a2e1f7c8dfb1c71a27b03e916ad",
+  "bytes": 6965360,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -610,6 +610,7 @@
     "src/app/game/RacePracticeLink.tsx",
     "src/app/game/RaceReplay.tsx",
     "src/app/game/RaceResults.tsx",
+    "src/app/game/RaceSetupSettings.tsx",
     "src/app/game/RaceSkillBars.tsx",
     "src/app/game/WatchMomentButton.tsx",
     "src/app/game/config.ts",
@@ -660,6 +661,7 @@
     "src/data/race-next-step-copy.ts",
     "src/data/race-practice.ts",
     "src/data/race-sail-flow-copy.ts",
+    "src/data/race-setup-copy.ts",
     "src/data/race-skill-copy.ts",
     "src/data/race-start-copy.ts",
     "src/data/replay-teaching-copy.ts",
@@ -898,6 +900,7 @@
     "src/lib/physical-race-record.ts",
     "src/lib/product/catalog.ts",
     "src/lib/product/copy.ts",
+    "src/lib/product/trainer-terms.ts",
     "src/lib/product/ui-terms.ts",
     "src/lib/race-best-command.ts",
     "src/lib/race-completion.ts",
@@ -1006,8 +1009,8 @@
     },
     {
       "path": "src/app/game/GameMenu.tsx",
-      "bytes": 24468,
-      "sha256": "0401b1c6eabfcdfe4fc86c8f6ae8867c30752547fd513129fa079ce4bcaacb54"
+      "bytes": 25104,
+      "sha256": "33cea067bb7896222ad992a63f12e8b994549ab7c78038ba59f1b55e6e969c9f"
     },
     {
       "path": "src/app/game/LobbyVenues.tsx",
@@ -1021,13 +1024,13 @@
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 17951,
-      "sha256": "349c22ef702a3442960c0713025d5a5b71d36c719f33305cde4b92b76a35f8a0"
+      "bytes": 19732,
+      "sha256": "6da4f396e584c174fbd8c1a801b9c9f9f751de514b79756f39f95bf3700c7415"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 29580,
-      "sha256": "2130cc7e06424b4d56a7ff6600084b2db748d8283af0da4a34bb548e1330dfb2"
+      "bytes": 28341,
+      "sha256": "e5879e952ea144759554e86e1cacadbde214d39e6418f0a536891c7c79817943"
     },
     {
       "path": "src/app/game/RaceFinishPlate.tsx",
@@ -1078,6 +1081,11 @@
       "path": "src/app/game/RaceResults.tsx",
       "bytes": 45805,
       "sha256": "9f9df0ed5f1f96872c5a8cda39ba84e67308b3120dd099e145e27f801c472622"
+    },
+    {
+      "path": "src/app/game/RaceSetupSettings.tsx",
+      "bytes": 3698,
+      "sha256": "c8998a7aeecad82145ea548c59736f79e7fc48c6ad44a14427b638193064c1e6"
     },
     {
       "path": "src/app/game/RaceSkillBars.tsx",
@@ -1171,13 +1179,13 @@
     },
     {
       "path": "src/app/globals.css",
-      "bytes": 16553,
-      "sha256": "7eea95720aa75b885d1233311787b3a4566ec6c7d1a253dea03a7c90cc54f318"
+      "bytes": 16639,
+      "sha256": "58a53e7eca8663739c25540e7148277d3adcc8c1340f0cc6ce078b351a119eb1"
     },
     {
       "path": "src/app/simulator/page.tsx",
-      "bytes": 57367,
-      "sha256": "3e4a265bd26e716f2af23aaaf72a4bfb838fe024b203e5e29d4c5bcad2dc64f7"
+      "bytes": 57681,
+      "sha256": "8a95202c2e3fcc4ddf55dc7708060384011aac3d474624691829dac6b06b6131"
     },
     {
       "path": "src/components/AnatomyPosters.tsx",
@@ -1333,6 +1341,11 @@
       "path": "src/data/race-sail-flow-copy.ts",
       "bytes": 2512,
       "sha256": "e40b95d6405585bdec8307b1a47b5b6a65ab388a212b36c36b5afbd63656bb61"
+    },
+    {
+      "path": "src/data/race-setup-copy.ts",
+      "bytes": 1137,
+      "sha256": "09117f83187097723be44cc42221b9ba639452f87a10c2688bcc6a374b235ba5"
     },
     {
       "path": "src/data/race-skill-copy.ts",
@@ -1586,8 +1599,8 @@
     },
     {
       "path": "src/features/race-hud/RaceOverviewMap.tsx",
-      "bytes": 12183,
-      "sha256": "27648183b498d42d72bff9a4e29b62df2cd0bdefb03967ea59c2fe11f56ecfb2"
+      "bytes": 13665,
+      "sha256": "828e63637b94a1f2bf3050a2d52048f0270138779458d44626afe8f2f5cef4d6"
     },
     {
       "path": "src/features/race-hud/RaceSoundToggle.tsx",
@@ -1646,8 +1659,8 @@
     },
     {
       "path": "src/features/race-hud/navigation-copy.ts",
-      "bytes": 7011,
-      "sha256": "080f210505c6242e6c0f008e9839bdefad420b88f7378a6f3d7db28d8e8136c1"
+      "bytes": 7247,
+      "sha256": "e83ced585a46337ed4924b64401cdb429dad38862501f82ed2b6e2809df4a68b"
     },
     {
       "path": "src/features/race-hud/navigation-model.ts",
@@ -1996,8 +2009,8 @@
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.module.css",
-      "bytes": 9006,
-      "sha256": "8ac1dfe1ca1d3c1c5c5936d1505fcc885c7c2c979bf635046a08bd6fba663bc4"
+      "bytes": 9192,
+      "sha256": "5a3b7efa24f63df3e91b81b75568cc87d7a2ba84f21a75af9921179f12abebd7"
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.tsx",
@@ -2086,8 +2099,8 @@
     },
     {
       "path": "src/features/simulator-3d/ui/WindDial.tsx",
-      "bytes": 3188,
-      "sha256": "f1c6cf345796cff8df7573ba98d15012281911084545554c032e67468f65fbcb"
+      "bytes": 3455,
+      "sha256": "9203ff649a2928af24ce7048a07fe292143ab1fa31a657adbc08e618ba8c4986"
     },
     {
       "path": "src/features/simulator-3d/ui/WindReadout.tsx",
@@ -2111,8 +2124,8 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 49899,
-      "sha256": "6d17a7ba2152685389f5c011f8e14d0c3175d5c6b4cedbbdab3d7990c2d365dd"
+      "bytes": 49883,
+      "sha256": "d294df451cf8083cd92d4c1f1a3730df66ab14f6379ecef21eb55198f0f0a70b"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -2181,28 +2194,28 @@
     },
     {
       "path": "src/features/simulator-v3/ui/GlossaryFooter.tsx",
-      "bytes": 17812,
-      "sha256": "52bc245c3f24b0f9cadd2b014636d0466ee29d684acf65753b09c090677e7fbe"
+      "bytes": 17789,
+      "sha256": "a75d8cfe7414a45fd8e7bd03f1000b440cdf3d86254cc71e54a99c5c9f026dee"
     },
     {
       "path": "src/features/simulator-v3/ui/LiveWindButton.tsx",
-      "bytes": 10313,
-      "sha256": "a2bd3a5594002c3b6ffb852e3f92fcad9243d421f3dd42aebcdea9a55a44c8d0"
+      "bytes": 10297,
+      "sha256": "1dbab5a5789c137a53da761b8f0f50ec508317424f11f41fbcce68e527c764c8"
     },
     {
       "path": "src/features/simulator-v3/ui/MetricsStrip.tsx",
-      "bytes": 3468,
-      "sha256": "4a9b537f594ab3e56ec08a760e7c4ca363cc8d4a78370d5c8f73118cb063cc38"
+      "bytes": 3435,
+      "sha256": "0004406a2ecfe2ee48451962cef6fff622c4c54e19b1290a21534de81bfc32c5"
     },
     {
       "path": "src/features/simulator-v3/ui/SceneElevation.tsx",
       "bytes": 12043,
-      "sha256": "539d10a31539a1009a0867582d410d77a0461dc97aaa2ae05d407837b0e41e88"
+      "sha256": "0109022c482e33000145aa3b3ef43e6e7c60adb5af0e9e7809dabd445abcbb27"
     },
     {
       "path": "src/features/simulator-v3/ui/SceneOverlayLabels.tsx",
-      "bytes": 1786,
-      "sha256": "7b1c755373e95cb74ea7da65b59f05529e3758a777a93489cf7b8e9b1626e53b"
+      "bytes": 1782,
+      "sha256": "be5dc53db0b382d73a852641ac481ffa5397e882844ab54a69e6884822dc8e89"
     },
     {
       "path": "src/features/simulator-v3/ui/SceneRear.tsx",
@@ -2216,8 +2229,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/SceneTop.tsx",
-      "bytes": 49208,
-      "sha256": "4b9f28ff5ddd5c83bbf418a9e34cde32a1675d98c7b292510bb0eb060631a2eb"
+      "bytes": 55292,
+      "sha256": "9da2ea62aaca68b636b47885b6f12fa3fa76995401bd6110f518c2e2d6015796"
     },
     {
       "path": "src/features/simulator-v3/ui/TrainerBoat3D.tsx",
@@ -2236,33 +2249,33 @@
     },
     {
       "path": "src/features/simulator-v3/ui/panels/CheckpointPanel.tsx",
-      "bytes": 7790,
-      "sha256": "d20c27bb55619806f2360f303043037260292b70a74b61cd22e59332ba2d235f"
+      "bytes": 7799,
+      "sha256": "45917d213d03bc15e0e95cc31cd9cc9c17450911c45f187e3fdb97e9facd815b"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/DrillCard.tsx",
-      "bytes": 6925,
-      "sha256": "a71278eaefd226495692bdebbd893ee169a715408b2a1e9fe52dde36b3492ddb"
+      "bytes": 6890,
+      "sha256": "15cb749b48ef70494c9dbb5583ec8b382af5c8bdeb02feca99792b1d36eace5f"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/ModeBar.tsx",
-      "bytes": 2135,
-      "sha256": "d9626d17c6c2dfffd742c1d8d34d4954f107cbbeeb940b0a9a9b3536461c65de"
+      "bytes": 2125,
+      "sha256": "c8e22b083311c6ca3a5bbeb1f623d95e883c13409a351fb0c01a6381b95d3375"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/ScenarioPicker.tsx",
-      "bytes": 2363,
-      "sha256": "0c3ac2f07e847a3133f0ecf903a79eedd492edfa19b8fba6e393ee91e632f9fe"
+      "bytes": 2351,
+      "sha256": "90d3a38b983e6f036cc6e8d3970428aae3109306d382ee649afaa2445988ec10"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/TourOverlay.tsx",
-      "bytes": 25134,
-      "sha256": "2715c827301af43a71da61a63292cecfd61f9919f11c710f8a2c99ab2e2263e7"
+      "bytes": 25130,
+      "sha256": "b072f043a04cd35c1fbdc23e787dbd4d161cee36bdfac7de0734d806f372410d"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/TrimAssessmentPanel.tsx",
       "bytes": 5534,
-      "sha256": "201c565454097fdf02716b9d99c97d93e1d5ab98ec0ce250105de84326dbf944"
+      "sha256": "b1ddb8ec04711407dd3de069fd617a603db62f81d5becec758df3da96c0f75a8"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/TrimStudyPanel.tsx",
@@ -2271,8 +2284,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/pods/HelmPod.tsx",
-      "bytes": 5377,
-      "sha256": "ea32159a61729120077396a242c0cf072e0c18aac1254a356e29f77456724196"
+      "bytes": 5277,
+      "sha256": "64afb55a1c8dca275eb5984e68d35bee7d0ff97cde42a8cf59e1116d38335596"
     },
     {
       "path": "src/features/simulator-v3/ui/pods/JibPod.tsx",
@@ -2282,7 +2295,7 @@
     {
       "path": "src/features/simulator-v3/ui/pods/MainPod.tsx",
       "bytes": 5665,
-      "sha256": "28620c02fd9ad8bbf9db9985e235879378deeb79cfd4e695ed52dc77dc75f595"
+      "sha256": "62cf8f458c2193b17fe354977b5d2c5abb810523867e62a447d756128522185a"
     },
     {
       "path": "src/features/simulator-v3/ui/pods/MainTrimPod.tsx",
@@ -2292,17 +2305,17 @@
     {
       "path": "src/features/simulator-v3/ui/pods/ShapeTrimControls.tsx",
       "bytes": 8032,
-      "sha256": "0800c9f0056f41d819e1395822e729eb79c0d2fb3364febbc2459ec41ccc7bee"
+      "sha256": "89bc3e5cd60733996e817a5747a629d50a20fba314479881968fa5126b835d28"
     },
     {
       "path": "src/features/simulator-v3/ui/pods/ViewPod.tsx",
-      "bytes": 9586,
-      "sha256": "fcdd075339089a91f4edb41a1610860e73fe10986e8d5ba319d394b673c10a5d"
+      "bytes": 9550,
+      "sha256": "22e5b2d84d69167584c88b03dcf810c9e3898ac5bc7ac54eb7338b83d1b37c1b"
     },
     {
       "path": "src/features/simulator-v3/ui/pods/WindPod.tsx",
-      "bytes": 4512,
-      "sha256": "3dc8bb07b595d340316390b7c88e8cbad058b1e2d55560e9086570b61668bd49"
+      "bytes": 4628,
+      "sha256": "1d439630d2b6937cb3679031be37d3eaa3e02723efeaeecff1f965b38d27024d"
     },
     {
       "path": "src/features/simulator-v3/ui/sail-projection.ts",
@@ -2311,8 +2324,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/shared.tsx",
-      "bytes": 13743,
-      "sha256": "6a9546a27b1ed7d2c55133e1d548a290f138b63ecd9f6a2f160937f6b3221189"
+      "bytes": 13704,
+      "sha256": "451141cbe0ad2168a561c71a49d3bd1d8fd6d0107cff72c3c2352ebfff383e59"
     },
     {
       "path": "src/features/simulator-v3/ui/trainer-wind.ts",
@@ -2347,7 +2360,7 @@
     {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
       "bytes": 14995,
-      "sha256": "b922b4c9a355d741a0909fb44bf9f8fb3f455c78972c5fb129b06ffb3c968d92"
+      "sha256": "f350cfeb0d5cd56240cb9a895c1fa85c350ce181e5fa50e78812d4c28f639639"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
@@ -2525,9 +2538,14 @@
       "sha256": "c686cc7b4351a082c4894c45a05e966737cecbcea5390552d39aafe6eba2ccff"
     },
     {
+      "path": "src/lib/product/trainer-terms.ts",
+      "bytes": 1083,
+      "sha256": "08317e67161c7560b048d1880362e3180d5a6b1baac3b143fc43ec41e58ff93d"
+    },
+    {
       "path": "src/lib/product/ui-terms.ts",
-      "bytes": 3981,
-      "sha256": "d45f7a97311b7ac52b2cfb28afe6105a3356b4d3c993862a285fde6789c150db"
+      "bytes": 4144,
+      "sha256": "460d2dd67d6fb45cef2324494026cd6c7166455b32cc9718bf4749e0c89eea97"
     },
     {
       "path": "src/lib/race-best-command.ts",

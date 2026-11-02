@@ -64,7 +64,9 @@ describe("race lobby", () => {
     expect(html).toContain(`src="${LOBBY_HERO_SRC}"`);
     expect(html).toContain('data-testid="mode-picker"');
     expect(html).toContain('data-testid="race-lobby-venues"');
-    expect(html.match(/role="radio"/g)?.length).toBe(4); // the four venue cards
+    // The four venue cards; the closed "Race settings" disclosure after them holds the setup choices (package 11).
+    expect(html.split('data-testid="race-setup"')[0].match(/role="radio"/g)?.length).toBe(4);
+    expect(html).toMatch(/<details[^>]*data-testid="race-setup"/);
     expect(html.match(/data-testid="race-lobby-start"/g)?.length).toBe(1);
     expect(html.match(/background:var\(--accent-cyan\)/g)?.length).toBe(1);
     expect(html).toContain("Start your first race");

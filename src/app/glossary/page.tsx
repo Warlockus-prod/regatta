@@ -106,7 +106,7 @@ export default function GlossaryPage() {
             placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...', { es: 'Buscar términos...', fr: 'Rechercher des termes...', de: 'Begriffe suchen...', it: 'Cerca termini...' })}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="search-input w-full pl-11 pr-4 py-3 text-sm"
+            className="search-input w-full min-h-11 pl-11 pr-4 py-3 text-base"
           />
           {search && (
             <button
@@ -132,7 +132,7 @@ export default function GlossaryPage() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
+        <div className="flex flex-wrap gap-2">
           {allCategories.map((cat) => {
             const isActive = activeCategory === cat;
             const colors = cat !== 'all' ? categoryColors[cat] : null;
@@ -140,13 +140,13 @@ export default function GlossaryPage() {
               <button
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
-                className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200"
+                className="shrink-0 min-h-11 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
                 style={
                   isActive
                     ? cat === 'all'
                       ? {
                           background: 'rgba(0, 212, 255, 0.15)',
-                          color: 'var(--accent-cyan)',
+                          color: 'var(--cat-cyan)',
                           border: '1px solid rgba(0, 212, 255, 0.3)',
                         }
                       : {
@@ -156,7 +156,7 @@ export default function GlossaryPage() {
                         }
                     : {
                         background: 'var(--hover-bg)',
-                        color: 'var(--text-muted)',
+                        color: 'var(--text-secondary)',
                         border: '1px solid var(--border-subtle)',
                       }
                 }
@@ -168,7 +168,7 @@ export default function GlossaryPage() {
         </div>
 
         {/* Stats bar */}
-        <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+        <div className="flex items-center justify-between text-sm text-[var(--text-muted)]">
           <span>
             {filteredTerms.length === glossaryTerms.length
               ? tp(
@@ -249,7 +249,7 @@ export default function GlossaryPage() {
                       {pickDef(term)}
                     </p>
                     {lang !== 'en' && (
-                      <p className="text-xs leading-relaxed text-[var(--text-muted)]">
+                      <p className="text-sm leading-relaxed text-[var(--text-muted)]">
                         {term.definitionEn}
                       </p>
                     )}
@@ -280,7 +280,7 @@ export default function GlossaryPage() {
               {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono', { es: 'Sin resultados', fr: 'Aucun résultat', de: 'Nichts gefunden', it: 'Nessun risultato' })}
             </p>
             {lang !== 'en' && (
-              <p className="text-xs text-[var(--text-muted)]" style={{ opacity: 0.7 }}>
+              <p className="text-sm text-[var(--text-muted)]">
                 No terms match your search
               </p>
             )}
@@ -290,7 +290,7 @@ export default function GlossaryPage() {
                 setActiveCategory('all');
                 setAnimationKey((k) => k + 1);
               }}
-              className="mt-2 text-xs px-4 py-1.5 rounded-full transition-colors"
+              className="mt-2 min-h-11 text-sm px-4 py-1.5 rounded-full transition-colors"
               style={{
                 color: 'var(--accent-cyan)',
                 background: 'rgba(0, 212, 255, 0.1)',

@@ -181,6 +181,7 @@ npm run test:multiplayer     # живой ws-server: жизненный цикл
 npx playwright test          # все browser-сценарии (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
+BASE_URL=http://localhost:3025 npm run check:ui   # кегль, цели, контраст, обрезка и раскладка на 390 px (гонка, тренажеры, глоссарий)
 ```
 
 - Проверки идут на Mac перед каждым push (правило владельца): GitHub только

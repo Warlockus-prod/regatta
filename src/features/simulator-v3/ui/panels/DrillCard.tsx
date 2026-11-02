@@ -47,7 +47,7 @@ export function DrillCard({
         }}
       >
         <div
-          className="text-[10px] uppercase tracking-wider font-bold"
+          className="text-xs uppercase tracking-wider font-bold"
           style={{ color: 'var(--accent-cyan)' }}
         >
           {tp('Выбери упражнение', 'Pick a drill', 'Wybierz ćwiczenie', {
@@ -68,12 +68,12 @@ export function DrillCard({
               }}
             >
               <div
-                className="text-[11px] font-bold"
+                className="text-xs font-bold"
                 style={{ color: 'var(--accent-cyan)' }}
               >
                 {pickText(d.title, lang)}
               </div>
-              <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-snug">
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-snug">
                 {pickText(d.goal, lang)}
               </div>
             </button>
@@ -118,7 +118,7 @@ export function DrillCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div
-          className="text-[11px] uppercase tracking-wider font-bold"
+          className="text-xs uppercase tracking-wider font-bold"
           style={{
             color:
               result === 'win'
@@ -131,7 +131,7 @@ export function DrillCard({
           {title}
         </div>
         <div
-          className="text-[10px] font-mono tabular-nums shrink-0"
+          className="text-xs font-mono tabular-nums shrink-0"
           style={{
             color:
               result === 'pending' && timeLeft < 5
@@ -143,7 +143,7 @@ export function DrillCard({
         </div>
       </div>
 
-      <div className="text-[11px] text-[var(--text-secondary)] leading-snug">
+      <div className="text-xs text-[var(--text-secondary)] leading-snug">
         {goal}
       </div>
 
@@ -159,7 +159,7 @@ export function DrillCard({
           }}
         />
       </div>
-      <div className="flex items-center justify-between text-[9px] text-[var(--text-muted)]">
+      <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
         <span>
           {tp('удержание', 'hold', 'utrzymanie', {
             es: 'mantenido',
@@ -198,7 +198,7 @@ export function DrillCard({
         <div className="flex items-center gap-2">
           <button
             onClick={onRestart}
-            className="flex-1 text-[10px] uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
+            className="flex-1 text-xs uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
             style={{
               borderColor: 'rgba(0, 212, 255, 0.4)',
               color: 'var(--accent-cyan)',
@@ -213,7 +213,7 @@ export function DrillCard({
           </button>
           <button
             onClick={onExit}
-            className="flex-1 text-[10px] uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
+            className="flex-1 text-xs uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
             style={{
               borderColor: 'rgba(139, 167, 184, 0.22)',
               color: 'var(--text-muted)',

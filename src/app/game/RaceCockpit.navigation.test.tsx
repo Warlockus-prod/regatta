@@ -51,7 +51,8 @@ function text(tree: ReactNode): string {
   return Children.toArray(tree).map(node => isValidElement(node) ? text((node.props as { children?: ReactNode }).children) : String(node)).join("");
 }
 function button(tree: ReactNode, label: string): Node {
-  const node = nodes(tree).find(node => node.type === "button" && text(node.props.children as ReactNode) === label);
+  // Package 11: the Map tab shows "Map" and keeps "Course map" as its accessible name.
+  const node = nodes(tree).find(node => node.type === "button" && (text(node.props.children as ReactNode) === label || node.props["aria-label"] === label));
   expect(node, `button ${label}`).toBeDefined();
   return node!;
 }
@@ -309,7 +310,7 @@ describe("solo game layer: status row and pause sheet", () => {
     expect(props.onRestart).toHaveBeenCalledTimes(1);
     click(button(view, "Race settings"));
     const settings = render(props);
-    expect(nodes(settings).some(node => node.type === RaceWindSettings)).toBe(true);
+    expect(nodes(settings).some(node => node.props["data-testid"] === "race-camera-group")).toBe(true);
     expect(props.onExit).not.toHaveBeenCalled();
   });
 

@@ -59,6 +59,13 @@ const COLORS = {
   boomColor: '#8899aa',
 };
 
+// Package 11: DOM text reads the theme tokens (the canvas keeps COLORS). On the
+// paper theme the ocean colours above were 1.2-1.7:1 on cream; the point-of-sail
+// and tack colours are mixed toward the text colour so they keep their hue at 4.5:1.
+const TEXT = { primary: 'var(--text-primary)', secondary: 'var(--text-secondary)', muted: 'var(--text-muted)', accent: 'var(--accent-cyan)' };
+const ink = (color: string) => `color-mix(in srgb, ${color} 35%, var(--text-primary))`;
+const TACK_INK = { starboard: ink('#44ff88'), port: ink('#ff8844') };
+
 // ---- Helpers ----
 function degToRad(d: number) { return (d * Math.PI) / 180; }
 function radToDeg(r: number) { return (r * 180) / Math.PI; }
@@ -880,10 +887,10 @@ export default function SimulatorPage() {
   const headingControl = (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+              <span className="text-xs" style={{ color: TEXT.secondary }}>
                 {tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' })}
               </span>
-              <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
+              <span className="text-xs font-mono font-bold" style={{ color: TEXT.accent }}>
                 {Math.round(boatAngle)}°
               </span>
             </div>
@@ -896,9 +903,9 @@ export default function SimulatorPage() {
               onChange={onSliderChange}
               aria-label={tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' })}
               className="w-full accent-[#00d4ff] h-11 lg:h-auto"
-              style={{ accentColor: COLORS.accentCyan }}
+              style={{ accentColor: TEXT.accent }}
             />
-            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
+            <div className="flex justify-between text-xs" style={{ color: TEXT.muted }}>
               <span>0°</span>
               <span>90°</span>
               <span>180°</span>
@@ -910,10 +917,10 @@ export default function SimulatorPage() {
   const windControl = (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+              <span className="text-xs" style={{ color: TEXT.secondary }}>
                 {tp('Откуда дует ветер', 'Wind from', 'Skąd wieje wiatr', { es: 'De dónde sopla el viento', fr: "D'où vient le vent", de: 'Woher der Wind weht', it: 'Da dove soffia il vento' })}
               </span>
-              <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
+              <span className="text-xs font-mono font-bold" style={{ color: TEXT.accent }}>
                 {Math.round(windDir)}°
               </span>
             </div>
@@ -926,9 +933,9 @@ export default function SimulatorPage() {
               onChange={(e) => setWindDir(Number(e.target.value))}
               aria-label={tp('Направление ветра', 'Wind direction', 'Kierunek wiatru', { es: 'Dirección del viento', fr: 'Direction du vent', de: 'Windrichtung', it: 'Direzione del vento' })}
               className="w-full h-11 lg:h-auto"
-              style={{ accentColor: COLORS.accentCyan }}
+              style={{ accentColor: TEXT.accent }}
             />
-            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
+            <div className="flex justify-between text-xs" style={{ color: TEXT.muted }}>
               <span>N</span>
               <span>E</span>
               <span>S</span>
@@ -944,7 +951,7 @@ export default function SimulatorPage() {
               className="flex-1 min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:brightness-110"
               style={{
                 background: 'rgba(0, 212, 255, 0.12)',
-                color: COLORS.accentCyan,
+                color: TEXT.accent,
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}
             >
@@ -964,7 +971,7 @@ export default function SimulatorPage() {
               className="min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:brightness-110"
               style={{
                 background: 'rgba(255, 68, 68, 0.12)',
-                color: COLORS.danger,
+                color: "var(--danger)",
                 border: '1px solid rgba(255, 68, 68, 0.2)',
               }}
             >
@@ -978,27 +985,27 @@ export default function SimulatorPage() {
           </div>
   );
   const dragHint = (
-          <div className="mt-3 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
+          <div className="mt-3 text-sm leading-relaxed" style={{ color: TEXT.muted }}>
             {lang === 'ru' && (
-              <>Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span>, чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span>, чтобы поменять направление ветра. Ползунки и стрелки клавиатуры тоже работают.</>
+              <>Тащи <span style={{ color: TEXT.accent }}>за лодку</span>, чтобы её повернуть, или <span style={{ color: TEXT.accent }}>за стрелку ветра</span>, чтобы поменять направление ветра. Ползунки и стрелки клавиатуры тоже работают.</>
             )}
             {lang === 'en' && (
-              <>Drag <span style={{ color: COLORS.accentCyan }}>the boat</span> to rotate it, or <span style={{ color: COLORS.accentCyan }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
+              <>Drag <span style={{ color: TEXT.accent }}>the boat</span> to rotate it, or <span style={{ color: TEXT.accent }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
             )}
             {lang === 'pl' && (
-              <>Przeciągnij <span style={{ color: COLORS.accentCyan }}>łódkę</span>, aby ją obrócić, albo <span style={{ color: COLORS.accentCyan }}>strzałkę wiatru</span>, aby zmienić kierunek wiatru. Suwaki i strzałki na klawiaturze też działają.</>
+              <>Przeciągnij <span style={{ color: TEXT.accent }}>łódkę</span>, aby ją obrócić, albo <span style={{ color: TEXT.accent }}>strzałkę wiatru</span>, aby zmienić kierunek wiatru. Suwaki i strzałki na klawiaturze też działają.</>
             )}
             {lang === 'es' && (
-              <>Arrastra <span style={{ color: COLORS.accentCyan }}>el barco</span> para girarlo, o <span style={{ color: COLORS.accentCyan }}>la flecha del viento</span> para cambiar la dirección del viento. Los deslizadores y las flechas del teclado también funcionan.</>
+              <>Arrastra <span style={{ color: TEXT.accent }}>el barco</span> para girarlo, o <span style={{ color: TEXT.accent }}>la flecha del viento</span> para cambiar la dirección del viento. Los deslizadores y las flechas del teclado también funcionan.</>
             )}
             {lang === 'fr' && (
-              <>Fais glisser <span style={{ color: COLORS.accentCyan }}>le bateau</span> pour le faire pivoter, ou <span style={{ color: COLORS.accentCyan }}>la flèche du vent</span> pour changer la direction du vent. Les curseurs et les flèches du clavier fonctionnent aussi.</>
+              <>Fais glisser <span style={{ color: TEXT.accent }}>le bateau</span> pour le faire pivoter, ou <span style={{ color: TEXT.accent }}>la flèche du vent</span> pour changer la direction du vent. Les curseurs et les flèches du clavier fonctionnent aussi.</>
             )}
             {lang === 'de' && (
-              <>Ziehe <span style={{ color: COLORS.accentCyan }}>das Boot</span>, um es zu drehen, oder <span style={{ color: COLORS.accentCyan }}>den Windpfeil</span>, um die Windrichtung zu ändern. Schieberegler und Pfeiltasten funktionieren auch.</>
+              <>Ziehe <span style={{ color: TEXT.accent }}>das Boot</span>, um es zu drehen, oder <span style={{ color: TEXT.accent }}>den Windpfeil</span>, um die Windrichtung zu ändern. Schieberegler und Pfeiltasten funktionieren auch.</>
             )}
             {lang === 'it' && (
-              <>Trascina <span style={{ color: COLORS.accentCyan }}>la barca</span> per ruotarla, o <span style={{ color: COLORS.accentCyan }}>la freccia del vento</span> per cambiare la direzione del vento. Funzionano anche i cursori e i tasti freccia.</>
+              <>Trascina <span style={{ color: TEXT.accent }}>la barca</span> per ruotarla, o <span style={{ color: TEXT.accent }}>la freccia del vento</span> per cambiare la direzione del vento. Funzionano anche i cursori e i tasti freccia.</>
             )}
           </div>
   );
@@ -1019,10 +1026,10 @@ export default function SimulatorPage() {
         {/* Course Name */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
-               style={{ color: COLORS.textMuted }}>
+               style={{ color: TEXT.muted }}>
             {tp('КУРС', 'POINT OF SAIL', 'KURS', { es: 'RUMBO', fr: 'ALLURE', de: 'KURS', it: 'ANDATURA' })}
           </div>
-          <div className="text-2xl font-bold mb-1" style={{ color: pos.color }}>
+          <div className="text-2xl font-bold mb-1" style={{ color: ink(pos.color) }}>
             {legacyPick(pos, 'name', lang)}
           </div>
         </div>
@@ -1032,13 +1039,13 @@ export default function SimulatorPage() {
           {/* Wind Angle */}
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
-                 style={{ color: COLORS.textMuted }}>
+                 style={{ color: TEXT.muted }}>
               {tp('УГОЛ К ВЕТРУ', 'WIND ANGLE', 'KĄT DO WIATRU', { es: 'ÁNGULO AL VIENTO', fr: 'ANGLE AU VENT', de: 'WINDWINKEL', it: 'ANGOLO AL VENTO' })}
             </div>
-            <div className="text-3xl font-bold font-mono" style={{ color: COLORS.accentCyan }}>
+            <div className="text-3xl font-bold font-mono" style={{ color: TEXT.accent }}>
               {Math.round(wa)}°
             </div>
-            <div className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+            <div className="text-xs mt-1" style={{ color: TEXT.muted }}>
               {tp('Угол к ветру', 'Wind angle', 'Kąt do wiatru', {
                 es: 'Ángulo al viento',
                 fr: 'Angle au vent',
@@ -1051,11 +1058,11 @@ export default function SimulatorPage() {
           {/* Tack */}
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
-                 style={{ color: COLORS.textMuted }}>
+                 style={{ color: TEXT.muted }}>
               {tp('ГАЛС', 'TACK', 'HALS', { es: 'AMURA', fr: 'AMURE', de: 'BUG', it: 'MURE' })}
             </div>
             <div className="text-lg font-bold"
-                 style={{ color: tack === 'starboard' ? '#44ff88' : '#ff8844' }}>
+                 style={{ color: tack === 'starboard' ? TACK_INK.starboard : TACK_INK.port }}>
               {tack === 'starboard'
                 ? tp('Правый', 'Starboard', 'Prawy', { es: 'Estribor', fr: 'Tribord', de: 'Steuerbord', it: 'Dritta' })
                 : tp('Левый', 'Port', 'Lewy', { es: 'Babor', fr: 'Bâbord', de: 'Backbord', it: 'Sinistra' })}
@@ -1070,10 +1077,10 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-medium tracking-wider"
-                 style={{ color: COLORS.textMuted }}>
+                 style={{ color: TEXT.muted }}>
               {tp('СКОРОСТЬ', 'SPEED', 'PRĘDKOŚĆ', { es: 'VELOCIDAD', fr: 'VITESSE', de: 'FAHRT', it: 'VELOCITÀ' })}
             </div>
-            <div className="text-sm font-bold font-mono" style={{ color: COLORS.accentCyan }}>
+            <div className="text-sm font-bold font-mono" style={{ color: TEXT.accent }}>
               {speed.toFixed(1)} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
             </div>
           </div>
@@ -1087,8 +1094,8 @@ export default function SimulatorPage() {
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-xs" style={{ color: COLORS.textMuted }}>0</span>
-            <span className="text-xs" style={{ color: COLORS.textMuted }}>
+            <span className="text-xs" style={{ color: TEXT.muted }}>0</span>
+            <span className="text-xs" style={{ color: TEXT.muted }}>
               {MAX_SPEED_KTS} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
             </span>
           </div>
@@ -1100,17 +1107,17 @@ export default function SimulatorPage() {
         {/* Sail Work */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
-               style={{ color: COLORS.textMuted }}>
+               style={{ color: TEXT.muted }}>
             {tp('РАБОТА ПАРУСОВ', 'SAIL TRIM', 'USTAWIENIE ŻAGLI', { es: 'TRIMADO', fr: 'RÉGLAGE DES VOILES', de: 'SEGELTRIMM', it: 'REGOLAZIONE VELE' })}
           </div>
-          <div className="text-sm font-medium mb-1" style={{ color: COLORS.textPrimary }}>
+          <div className="text-sm font-medium mb-1" style={{ color: TEXT.primary }}>
             {legacyPick(pos, 'sailWork', lang)}
           </div>
           <div className="mt-3 flex items-center gap-2">
             <div className="text-xs px-2 py-0.5 rounded-full"
                  style={{
                    background: pos.color + '20',
-                   color: pos.color,
+                   color: ink(pos.color),
                    border: `1px solid ${pos.color}30`,
                  }}>
               {tp('Угол паруса:', 'Sail angle:', 'Kąt żagla:', {
@@ -1126,10 +1133,10 @@ export default function SimulatorPage() {
         {/* Description */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
-               style={{ color: COLORS.textMuted }}>
+               style={{ color: TEXT.muted }}>
             {tp('ОПИСАНИЕ', 'DESCRIPTION', 'OPIS', { es: 'DESCRIPCIÓN', fr: 'DESCRIPTION', de: 'BESCHREIBUNG', it: 'DESCRIZIONE' })}
           </div>
-          <p className="text-sm leading-relaxed mb-2" style={{ color: COLORS.textPrimary }}>
+          <p className="text-sm leading-relaxed mb-2" style={{ color: TEXT.primary }}>
             {legacyPick(pos, 'description', lang)}
           </p>
         </div>
@@ -1140,7 +1147,7 @@ export default function SimulatorPage() {
         {/* Point of Sail Legend */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
-               style={{ color: COLORS.textMuted }}>
+               style={{ color: TEXT.muted }}>
             {tp('КУРСЫ / COURSES', 'COURSES', 'KURSY / COURSES', { es: 'RUMBOS', fr: 'ALLURES', de: 'KURSE', it: 'ANDATURE' })}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -1155,14 +1162,14 @@ export default function SimulatorPage() {
               >
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
                 <div className="flex-1">
-                  <span className="text-xs font-medium" style={{ color: pos.id === p.id ? p.color : COLORS.textPrimary }}>
+                  <span className="text-xs font-medium" style={{ color: pos.id === p.id ? ink(p.color) : TEXT.primary }}>
                     {legacyPick(p, 'name', lang)}
                   </span>
-                  <span className="text-xs ml-2" style={{ color: COLORS.textMuted }}>
+                  <span className="text-xs ml-2" style={{ color: TEXT.muted }}>
                     {p.angleMin}°-{p.angleMax}°
                   </span>
                 </div>
-                <span className="text-xs font-mono" style={{ color: COLORS.textMuted }}>
+                <span className="text-xs font-mono" style={{ color: TEXT.muted }}>
                   {(p.speedFactor * 100).toFixed(0)}%
                 </span>
               </div>
@@ -1178,7 +1185,7 @@ export default function SimulatorPage() {
       <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
            style={{ background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="hidden sm:inline text-xs truncate" style={{ color: COLORS.textMuted }}>
+          <span className="hidden sm:inline text-xs truncate" style={{ color: TEXT.muted }}>
             {tp(
               'Простая лодка на круге: крути лодку и ветер, смотри, что происходит.',
               'Simple boat on a circle: spin the boat and the wind, watch what happens.',
@@ -1193,16 +1200,16 @@ export default function SimulatorPage() {
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <span className="text-[11px] font-semibold px-2 py-1 rounded-md border"
-                style={{ background: 'rgba(0, 212, 255, 0.14)', borderColor: 'rgba(0, 212, 255, 0.35)', color: COLORS.accentCyan }}>
+          <span className="text-xs font-semibold px-2 py-1 rounded-md border"
+                style={{ background: 'rgba(0, 212, 255, 0.14)', borderColor: 'rgba(0, 212, 255, 0.35)', color: TEXT.accent }}>
             {tp('Основы', 'Basics', 'Podstawy', { es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi' })}
           </span>
-          <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: '#44ff88' }}>
+          <a href="/simulator-v3" className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
+             style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: TACK_INK.starboard }}>
             {tp('Тренажёр', 'Trainer', 'Trenażer', { es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione' })}
           </a>
-          <a href="/simulator2" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: COLORS.textSecondary }}>
+          <a href="/simulator2" className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
+             style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: TEXT.secondary }}>
             {tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' })}
           </a>
         </div>
@@ -1273,14 +1280,14 @@ export default function SimulatorPage() {
           scene={canvasBox}
           readouts={
             <div className="flex items-center justify-between gap-3 px-4 py-2 border-t border-[var(--border-subtle)] text-sm">
-              <span className="font-bold" style={{ color: pos.color }}>{legacyPick(pos, 'name', lang)}</span>
-              <span className="font-mono" style={{ color: COLORS.accentCyan }}>{Math.round(wa)}°</span>
-              <span style={{ color: tack === 'starboard' ? '#44ff88' : '#ff8844' }}>
+              <span className="font-bold" style={{ color: ink(pos.color) }}>{legacyPick(pos, 'name', lang)}</span>
+              <span className="font-mono" style={{ color: TEXT.accent }}>{Math.round(wa)}°</span>
+              <span style={{ color: tack === 'starboard' ? TACK_INK.starboard : TACK_INK.port }}>
                 {tack === 'starboard'
                   ? tp('Правый галс', 'Starboard tack', 'Prawy hals', { es: 'Amurado a estribor', fr: 'Tribord amures', de: 'Steuerbordbug', it: 'Mure a dritta' })
                   : tp('Левый галс', 'Port tack', 'Lewy hals', { es: 'Amurado a babor', fr: 'Bâbord amures', de: 'Backbordbug', it: 'Mure a sinistra' })}
               </span>
-              <span className="font-mono" style={{ color: COLORS.accentCyan }}>{speed.toFixed(1)} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}</span>
+              <span className="font-mono" style={{ color: TEXT.accent }}>{speed.toFixed(1)} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}</span>
             </div>
           }
           dock={
@@ -1320,7 +1327,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="flex items-start justify-between gap-2">
           <div className="text-xs font-medium tracking-wider mb-3"
-               style={{ color: COLORS.textMuted }}>
+               style={{ color: TEXT.muted }}>
             {tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}
           </div>
             <GearButton label={controlLabels.openSettings} onClick={() => setSettingsOpen(true)} className="-mt-3" />

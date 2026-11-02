@@ -293,25 +293,39 @@ test.describe('Smoke: critical user flows', () => {
       await other.getByRole("radio", { name: "Простой", exact: true }).click();
       await other.close();
       await expect(page.getByTestId("race-cockpit").locator("header")).toContainText("PRO");
-      // Keyboard sheets work in slider mode and after opening another utility tab.
-      await page.getByRole("radio", { name: "Ползунки", exact: true }).click();
-      await page.getByRole("radio", { name: "Курс", exact: true }).click();
-      await page.getByRole("button", { name: "Руль", exact: true }).click();
-      await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible();
-      const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
-      const beforeKey = await mainSlider.inputValue();
-      await page.keyboard.press("q");
-      await expect(mainSlider).not.toHaveValue(beforeKey);
-      await page.getByRole("button", { name: "Настройки", exact: true }).click();
-      await page.getByRole("radio", { name: "Штурвалы", exact: true }).click();
-      await page.getByRole("radio", { name: "Перо руля", exact: true }).click();
+      // Package 11 (audit B9): the race keeps camera, sound and hints; the
+      // steering controls are chosen before the start, in the lobby.
+      await expect(page.getByRole("radio", { name: "Ползунки", exact: true })).toHaveCount(0);
       await page.getByRole("button", { name: "Продолжить", exact: true }).click();
       await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
       // A mode cannot change after starting and recategorize an auto-trim record.
       await expect(page.getByRole("radio", { name: "Простой", exact: true })).toHaveCount(0);
-      await page.getByRole("button", { name: "Меню", exact: true }).click();
-      await page.getByRole("button", { name: "Выйти", exact: true }).click();
-      await page.getByRole("button", { name: "Выйти", exact: true }).click();
+      const leave = async () => {
+        await page.getByRole("button", { name: "Меню", exact: true }).click();
+        await page.getByRole("button", { name: "Выйти", exact: true }).click();
+        await page.getByRole("button", { name: "Выйти", exact: true }).click();
+      };
+      const lobbySettings = async (...choices: string[]) => {
+        const setup = page.getByTestId("race-setup");
+        if (!(await setup.evaluate(details => (details as HTMLDetailsElement).open))) await setup.locator("summary").click();
+        for (const name of choices) {
+          await setup.getByRole("radio", { name, exact: true }).click();
+          await expect(setup.getByRole("radio", { name, exact: true })).toHaveAttribute("aria-checked", "true");
+        }
+      };
+      await leave();
+      // Keyboard sheets work in slider mode, chosen in the lobby's race settings.
+      await lobbySettings("Ползунки", "Курс");
+      // The other tab chose Simple for the next race; this one is Pro again (the sheets are Pro).
+      await page.getByRole("radio", { name: "Pro", exact: true }).click();
+      await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+      await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible({ timeout: 25_000 });
+      const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
+      const beforeKey = await mainSlider.inputValue();
+      await page.keyboard.press("q");
+      await expect(mainSlider).not.toHaveValue(beforeKey);
+      await leave();
+      await lobbySettings("Штурвалы", "Перо руля");
       await page.getByRole("radio", { name: "Простой", exact: true }).click();
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
       // The classic course was briefed on the first start: the second goes straight to the countdown.

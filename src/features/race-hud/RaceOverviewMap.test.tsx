@@ -144,7 +144,7 @@ describe("race overview SVG", () => {
     const focus = { x: 400, y: 450 };
     const html = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} compact width={128} height={128} focus={focus} />);
     expect(html).toContain('data-map-mode="radar"');
-    expect(html).toContain('fill="rgba(4, 14, 22, 0.58)"');
+    expect(html).toContain('fill="rgba(4, 14, 22, 0.72)"');
     expect(html).not.toContain("var(--bg-card");
     // The glass is dark in both themes, so the radar's ink is fixed light, never a theme text token.
     expect(html).not.toMatch(/var\(--text-(secondary|primary)/);
