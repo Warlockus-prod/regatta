@@ -79,6 +79,12 @@
 ## Что осталось
 
 - Other Data в ярлыке App Privacy (владелец, см. выше).
-- `app-ads.txt` на weektoregatta.com: нужна строка продавца от Hybrid.
-- Адрес политики в App Store Connect на weektoregatta.com/privacy (владелец;
-  оба адреса отдают одну и ту же страницу).
+- `app-ads.txt` на weektoregatta.com: нужна строка продавца от Hybrid
+  (публичного `sellers.json` у Hybrid нет, в README VOX SDK формат не указан).
+  Файл ляжет в `public/app-ads.txt`, на сайте нигде не виден, нужен только
+  по адресу https://weektoregatta.com/app-ads.txt (домен Marketing URL);
+  станет живым с обновлением сайта.
+
+Адрес политики: владелец сменил en-US на https://weektoregatta.com/privacy,
+остальные 7 локалей выровнены через API 2026-11-03 (PATCH
+appInfoLocalizations, все 200).
