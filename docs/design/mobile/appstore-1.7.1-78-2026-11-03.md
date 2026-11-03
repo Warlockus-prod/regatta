@@ -56,14 +56,29 @@
   AFTER_APPROVAL. G4 `fastlane gate` (precheck) без замечаний.
   `asc-submit.mjs --dry`: все условия выполнены.
 
-## Что осталось до отправки на ревью
+## Отправка на ревью
 
-- G4b шаг 2, владелец: App Store Connect > App Privacy, добавить к ответам
-  Product Interaction цель Third-Party Advertising и новый тип Other Data с
-  целью Third-Party Advertising (оба Not Linked, Not Used for Tracking), затем
-  Publish. Через API этого не сделать.
-- Политика на сайте (`src/app/privacy/page.tsx`) обновлена в ветке, но на
-  `weektoregatta.com/privacy` появится только с обновлением сайта (нужно «да»
-  владельца на деплой).
+- Политика: по «да» владельца на `main` ушел только `src/app/privacy/page.tsx`
+  (`f25d4dbd` поверх `41348ddb`), деплой ручным `deploy.yml` 2026-11-03
+  (run 41602279442). Проверка с Mac: weektoregatta.com/privacy и
+  regatta.icoffio.com/privacy отдают 200 с Hybrid, VOX SDK и датой
+  2026-11-03, `/` 200. Прод-Playwright 109 из 110: упал двухклиентный
+  `multiplayer.spec.ts` «create lobby + guest joins by code», тот же тест упал
+  и в деплое 2026-10-31 до этой правки.
+- Ярлык App Privacy (публичная страница App Store, US): в «Data Not Linked to
+  You» есть Third-Party Advertising с Usage Data > Product Interaction. Типа
+  Other Data в ярлыке нет, хотя манифест его объявляет (G4b не полностью
+  зеленый). Владелец добавляет Other Data с целью Third-Party Advertising (Not
+  Linked, Not Used for Tracking) в App Store Connect; ярлык правится отдельно от
+  версии, без новой сборки.
+- `asc-submit.mjs --version 1.7.1`: reviewSubmission
+  `7b9d3cbd-e93d-49cc-b36b-5c8b6315e2ff`, отправлено 2026-11-03 14:51:26 UTC.
+  Независимый GET 14:51:37 UTC: 1.7.1 WAITING_FOR_REVIEW. Выпуск
+  AFTER_APPROVAL.
+
+## Что осталось
+
+- Other Data в ярлыке App Privacy (владелец, см. выше).
 - `app-ads.txt` на weektoregatta.com: нужна строка продавца от Hybrid.
-- Отправка на ревью (`asc-submit.mjs --version 1.7.1`) после ярлыка.
+- Адрес политики в App Store Connect на weektoregatta.com/privacy (владелец;
+  оба адреса отдают одну и ту же страницу).
