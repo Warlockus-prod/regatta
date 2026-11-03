@@ -13,13 +13,17 @@ const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
 const VOX_SDK_COMMIT = 'fc523af9fe88ddbf811653a34842f50dee5ff88b';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
-// The ad pods are linked only for an Ads demo build (EXPO_PUBLIC_ADS_DEMO=1,
-// src/config/ads-demo.ts). Otherwise the local ad modules are excluded from
-// autolinking, so a store binary carries neither VOXSDK nor PrebidMobile.
+// The ad pods are linked only for a build with the Ads section
+// (EXPO_PUBLIC_ADS_DEMO=1, src/config/ads-demo.ts; App Store builds from 1.7.1
+// on). Without it the local ad modules are excluded from autolinking, so the
+// binary carries neither VOXSDK nor PrebidMobile. VOX SDK 2 (vox-prebid,
+// PrebidMobile) needs the Prebid Server on this Mac, so it is linked only with
+// VOX_PREBID=1 for local tests and never ships.
 const AD_MODULES = ['vox-ads', 'vox-prebid'];
+const PREBID_MODULES = ['vox-prebid'];
 const EXCLUDE_MARKER = '# Ads demo off (plugins/with-vox-sdk.js)';
 
-function patchPodfile(podfile, adsDemo) {
+function patchPodfile(podfile, adsDemo, prebid = false) {
   if (podfile.includes(MARKER) || podfile.includes(EXCLUDE_MARKER)) return podfile;
   const anchor = /^(\s*)use_expo_modules!.*$/m;
   if (!anchor.test(podfile)) {
@@ -34,15 +38,16 @@ function patchPodfile(podfile, adsDemo) {
   }
   const local = process.env.VOX_SDK_IOS_PATH;
   const source = local ? `:path => '${local}'` : `:git => '${VOX_SDK_GIT}', :commit => '${VOX_SDK_COMMIT}'`;
+  const exclude = PREBID_MODULES.map((name) => `'${name}'`).join(', ');
   return podfile.replace(
     anchor,
-    (line, indent) => `${line}\n${indent}${MARKER}\n${indent}pod 'VOXSDK', ${source}`,
+    (line, indent) => `${prebid ? line : `${indent}use_expo_modules!(exclude: [${exclude}])`}\n${indent}${MARKER}\n${indent}pod 'VOXSDK', ${source}`,
   );
 }
 
 module.exports = function withVoxSdk(config) {
   return withPodfile(config, (cfg) => {
-    cfg.modResults.contents = patchPodfile(cfg.modResults.contents, process.env.EXPO_PUBLIC_ADS_DEMO === '1');
+    cfg.modResults.contents = patchPodfile(cfg.modResults.contents, process.env.EXPO_PUBLIC_ADS_DEMO === '1', process.env.VOX_PREBID === '1');
     return cfg;
   });
 };

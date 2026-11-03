@@ -44,15 +44,17 @@ describe('iOS privacy manifest', () => {
     expect(manifest).toBeDefined();
   });
 
-  // Must match the App Privacy label published in App Store Connect on
-  // 2026-10-19 (release gate G4b): same six types and purposes, none linked
-  // to identity, none used for tracking.
-  it('declares exactly the six types of the published App Privacy label', () => {
+  // Must match the App Privacy label in App Store Connect (release gate G4b):
+  // the six types published 2026-10-19 plus, from 1.7.1 (Ads section, VOX SDK 1,
+  // whose own manifest declares the same), Product Interaction and Other Data
+  // for third-party advertising. None linked to identity, none used for tracking.
+  it('declares exactly the types of the App Privacy label', () => {
     const byType = Object.fromEntries(
       manifest!.NSPrivacyCollectedDataTypes.map((t) => [t.NSPrivacyCollectedDataType, t.NSPrivacyCollectedDataTypePurposes]),
     );
     expect(byType).toEqual({
-      NSPrivacyCollectedDataTypeProductInteraction: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
+      NSPrivacyCollectedDataTypeProductInteraction: ['NSPrivacyCollectedDataTypePurposeAnalytics', 'NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising'],
+      NSPrivacyCollectedDataTypeOtherDataTypes: ['NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising'],
       NSPrivacyCollectedDataTypeOtherDiagnosticData: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
       NSPrivacyCollectedDataTypeCoarseLocation: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
       NSPrivacyCollectedDataTypeGameplayContent: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],

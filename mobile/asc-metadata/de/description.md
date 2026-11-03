@@ -5,7 +5,7 @@ WARUM ES FUNKTIONIERT
 - Ein klarer Plan: 8 Lektionen in 7 Tagen, vom Wind und den Kursen bis zum ersten Rennen.
 - Ein ehrlicher Simulator: Die Yacht folgt einem VPP-Physikmodell, derselben Mathematik, mit der Segeldesigner arbeiten.
 - Üben, bis es sitzt: Drills für Trimm, Böen, Winddreher und Kreuzen.
-- Komplett kostenlos. Keine Werbung, kein Konto, keine Bezahlschranke.
+- Komplett kostenlos. Kein Konto, keine Bezahlschranke.
 
 DER 7-TAGE-PLAN
 
@@ -44,7 +44,7 @@ SCHEINE UND ZEUGNISSE
 
 DATENSCHUTZ
 
-Keine Werbung, kein Konto, kein app-übergreifendes Tracking. Dein Fortschritt bleibt auf deinem Gerät. Die App sendet Nutzungsstatistiken, die nicht mit dir verknüpft sind, und die Analyse der App kannst du in den Einstellungen abschalten.
+Kein Konto und kein app-übergreifendes Tracking. Dein Fortschritt bleibt auf deinem Gerät. Die App sendet Nutzungsstatistiken, die nicht mit dir verknüpft sind, und die Analyse der App kannst du in den Einstellungen abschalten. Werbung gibt es nur im Bereich Ads am Ende der Einstellungen, der Werbeformate von VOX SDK 1 von Hybrid Adtech zeigt: Sie ist nicht personalisiert und nutzt keine Werbe-ID. Der Rest der App ist werbefrei.
 
 SPRACHEN
 

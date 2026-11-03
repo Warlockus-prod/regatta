@@ -1,6 +1,6 @@
 # Week to Regatta - Privacy Policy
 
-Last updated: 2026-10-24.
+Last updated: 2026-11-03.
 
 The published policy is the page https://weektoregatta.com/privacy (the
 Privacy Policy URL of the App Store listing). This file is its app-side source
@@ -9,8 +9,11 @@ commit.
 
 ## TL;DR
 
-Week to Regatta does not track you across other apps or websites, shows no ads
-and has no account. Your learning progress stays on your phone. The app sends
+Week to Regatta does not track you across other apps or websites and has no
+account. From app 1.7.1, ads appear only in the Ads section at the end of
+Settings; they are non-personalised and use no advertising identifier (see
+"Ads" below). The rest of the app has no ads. Your learning progress stays on
+your phone. The app sends
 pseudonymous product analytics (tied to a random install id, not to you), and
 you can turn the app's analytics off in Settings -> Data -> Anonymous
 analytics. From app 1.7.0 build 59, bundled SRC recognizes English VHF speech
@@ -94,6 +97,32 @@ Settings -> Data -> Anonymous analytics is a switch. What it covers:
   network", because those are the features themselves.
 
 No account, no prompt, no friction.
+
+## Ads (Settings -> Ads, from app 1.7.1)
+
+Settings -> Ads, the last entry of Settings, lists ad formats: display
+banners, interstitial, rewarded video, in-content VAST video and in-game. The
+app requests an ad only when you open one of these format screens, never
+before and nowhere else; the rest of the app has no ads.
+
+- SDK and server: VOX SDK 1 by Hybrid Adtech; requests go to Hybrid SSP
+  (ssp.hybrid.ai).
+- Each request carries the ad placement id, device type, manufacturer and
+  model, operating system and version, screen size, app language and
+  time-zone offset. Like any server, the SSP sees the IP address of the
+  connection.
+- No advertising identifier (IDFA), no vendor identifier, no name or contact
+  details, no tracking across other companies' apps or websites. The app does
+  not ask for App Tracking Transparency because it does not track.
+- Every request is sent with `gdpr=1` and no consent string, so the SSP
+  serves only non-personalised ads.
+- In the App Privacy label and the privacy manifest this is Product
+  Interaction and Other Data for Third-Party Advertising, not linked to you
+  and not used for tracking.
+
+The analytics switch in Settings does not cover ad requests; they happen only
+while you are on an Ads format screen. Older app versions (1.7.0 and earlier)
+have no Ads section in the App Store build.
 
 ## What stays on your device
 
@@ -191,6 +220,9 @@ all initiated by you:
    identity) may be posted to weektoregatta.com so the global board can show
    it. From app 1.7.0 build 59, bundled solo results stay on the device and are
    not posted to the online leaderboard.
+10. **Ads**, from app 1.7.1: only on the Settings -> Ads format screens, an
+    ad request to Hybrid SSP (ssp.hybrid.ai) through VOX SDK 1, as described
+    under "Ads" above.
 
 If you are offline, all of the above are silently skipped.
 
@@ -204,13 +236,16 @@ We do not receive any of this data from Apple.
 
 ## Children
 
-The app has no in-app purchases and no advertising. The Ask assistant sends
+The app has no in-app purchases. From app 1.7.1, ads appear only on the
+Settings -> Ads screens; they are non-personalised, use no advertising
+identifier and do not track, as described under "Ads". The Ask assistant sends
 your question to OpenAI as described above. Website radio and sternik oral
 practice send a recording you start to OpenAI for transcription; we do not
 store it. Bundled SRC from app 1.7.0 build 59 uses local recognition and an
 offline typed fallback instead. Bundled Sternik uses typed local practice
 without the microphone. Live multiplayer shows your nickname to
-other players in the room. Apart from these, the only data
+other players in the room. Apart from these and the ad requests
+of the Ads screens, the only data
 collected is the pseudonymous usage analytics described above (the app's own
 and that of the course pages), which the analytics switch in Settings turns
 off as described under "Turning it off". The other requests under "What we
@@ -223,6 +258,10 @@ change here. If we ever start collecting anything that identifies you, we
 will also ask you to opt in inside the app, and the opt-out switch stays in
 Settings -> Data.
 
+- 2026-11-03: added the Ads section of app 1.7.1 (Settings -> Ads, VOX SDK 1
+  by Hybrid Adtech, Hybrid SSP): what each ad request carries, gdpr=1 without
+  a consent string so ads are non-personalised, no IDFA and no tracking, and
+  the two label entries for Third-Party Advertising. Removed "shows no ads".
 - 2026-10-24: separated local SRC speech recognition, typed fallback, local
   Sternik theory/tests/exams/typed practice and solo coaching in app 1.7.0
   build 59 and later from the online website and older app builds. Local speech does not upload or

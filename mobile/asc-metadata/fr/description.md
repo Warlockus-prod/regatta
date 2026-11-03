@@ -5,7 +5,7 @@ POURQUOI ÇA MARCHE
 - Un plan clair : 8 leçons en 7 jours, du vent et des allures jusqu'à votre première course.
 - Un simulateur honnête : le voilier suit un modèle physique VPP, la même famille de calculs que celle des architectes de voiles.
 - De la pratique jusqu'au réflexe : exercices de réglage, de rafales, de bascules de vent et de louvoyage.
-- Entièrement gratuit. Sans pub, sans compte, sans abonnement.
+- Entièrement gratuit. Sans compte, sans abonnement.
 
 LE PLAN SUR 7 JOURS
 
@@ -44,7 +44,7 @@ PERMIS ET CERTIFICATS
 
 CONFIDENTIALITÉ
 
-Sans pub, sans compte, sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie des statistiques d'usage qui ne sont pas liées à vous, et vous pouvez désactiver les statistiques de l'app dans les Réglages.
+Sans compte et sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie des statistiques d'usage qui ne sont pas liées à vous, et vous pouvez désactiver les statistiques de l'app dans les Réglages. La publicité n'apparaît que dans la section Ads, à la fin des Réglages, qui présente des formats publicitaires de VOX SDK 1 de Hybrid Adtech : elle n'est pas personnalisée et n'utilise pas d'identifiant publicitaire. Le reste de l'app est sans publicité.
 
 LANGUES
 

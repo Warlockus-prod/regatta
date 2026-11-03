@@ -5,7 +5,7 @@ PERCHÉ FUNZIONA
 - Un piano chiaro: 8 lezioni in 7 giorni, dal vento e dalle andature fino alla tua prima regata.
 - Un simulatore onesto: la barca segue un modello fisico VPP, la stessa famiglia di calcoli usata dai progettisti di vele.
 - Pratica fino all'automatismo: esercizi di regolazione, raffiche, salti di vento e bordeggio.
-- Completamente gratis. Niente pubblicità, niente account, niente abbonamenti.
+- Completamente gratis. Niente account, niente abbonamenti.
 
 IL PIANO DI 7 GIORNI
 
@@ -44,7 +44,7 @@ PATENTI E CERTIFICATI
 
 PRIVACY
 
-Niente pubblicità, niente account, nessun tracciamento tra app. I tuoi progressi restano sul dispositivo. L'app invia statistiche d'uso non collegate a te, e puoi disattivare le statistiche dell'app nelle Impostazioni.
+Niente account e nessun tracciamento tra app. I tuoi progressi restano sul dispositivo. L'app invia statistiche d'uso non collegate a te, e puoi disattivare le statistiche dell'app nelle Impostazioni. La pubblicità compare solo nella sezione Ads, alla fine delle Impostazioni, che mostra formati pubblicitari di VOX SDK 1 di Hybrid Adtech: non è personalizzata e non usa l'identificativo pubblicitario. Nel resto dell'app non c'è pubblicità.
 
 LINGUE
 

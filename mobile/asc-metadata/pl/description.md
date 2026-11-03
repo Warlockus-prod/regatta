@@ -1,4 +1,4 @@
-Przygotuj się do egzaminu na sternika motorowodnego i świadectwo SRC, a przy okazji naucz się żeglować i stań na starcie pierwszych regat. Wszystko za darmo, bez reklam i bez zakładania konta.
+Przygotuj się do egzaminu na sternika motorowodnego i świadectwo SRC, a przy okazji naucz się żeglować i stań na starcie pierwszych regat. Wszystko za darmo i bez zakładania konta.
 
 STERNIK MOTOROWODNY
 
@@ -48,7 +48,7 @@ JACHT I PRZEPISY
 
 PRYWATNOŚĆ
 
-Bez reklam, bez konta, bez śledzenia między aplikacjami. Postępy zostają na Twoim telefonie. Aplikacja wysyła statystyki użycia, które nie są powiązane z Tobą, a analitykę aplikacji możesz wyłączyć w Ustawieniach.
+Bez konta i bez śledzenia między aplikacjami. Postępy zostają na Twoim telefonie. Aplikacja wysyła statystyki użycia, które nie są powiązane z Tobą, a analitykę aplikacji możesz wyłączyć w Ustawieniach. Reklamy są tylko w sekcji Ads na końcu Ustawień, która pokazuje formaty reklam VOX SDK 1 firmy Hybrid Adtech: nie są spersonalizowane i nie korzystają z identyfikatora reklamowego. W pozostałej części aplikacji reklam nie ma.
 
 Aplikacja ma charakter edukacyjny i nie jest oficjalnym narzędziem egzaminacyjnym.
 

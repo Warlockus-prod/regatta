@@ -5,7 +5,7 @@ WHY SAILORS USE IT
 - One clear plan: 8 lessons over 7 days, from wind and points of sail to your first race.
 - A simulator that answers honestly: the yacht runs on a VPP physics model, the same family of math sail designers use.
 - Practice that sticks: drills for trim, gusts, wind shifts and tacking until they become automatic.
-- Completely free. No ads, no account, no paywall.
+- Completely free. No account, no paywall.
 
 THE 7-DAY PLAN
 
@@ -44,7 +44,7 @@ LICENSE COURSES
 
 PRIVACY
 
-No ads, no account, no tracking across apps. Your progress stays on your device. The app sends usage statistics that are not linked to you, and you can turn off the app's analytics in Settings.
+No account and no tracking across apps. Your progress stays on your device. The app sends usage statistics that are not linked to you, and you can turn off the app's analytics in Settings. Ads appear only in the Ads section at the end of Settings, which shows ad formats from VOX SDK 1 by Hybrid Adtech: they are not personalised and use no advertising identifier. The rest of the app has no ads.
 
 LANGUAGES
 

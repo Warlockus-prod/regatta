@@ -20,7 +20,8 @@ public class VoxAdsModule: Module {
         }
         do {
           let model = FullScreenBannerModel(
-            requestModel: AdRequestModel(placeId: placeId),
+            // gdpr 1 with no consent string: non-personalised ads only, as in VoxAdView.
+            requestModel: AdRequestModel(placeId: placeId, gdpr: 1),
             presentingViewController: controller,
             closeButtonDelay: closeButtonDelay
           )

@@ -8,13 +8,13 @@ export function useAdsText() {
     () => ({
       title: tl({ ru: 'Реклама', en: 'Ads', pl: 'Reklamy', es: 'Anuncios', fr: 'Publicités', de: 'Werbung', it: 'Pubblicità' }),
       intro: tl({
-        ru: 'Форматы рекламы на экранах приложения. Каждый формат делает настоящий запрос VOX SDK 1 к Hybrid SSP, запросы уходят только с этих экранов.',
-        en: 'Ad formats on app screens. Each format sends a real VOX SDK 1 request to Hybrid SSP, and requests leave only from these screens.',
-        pl: 'Formaty reklam na ekranach aplikacji. Każdy format wysyła prawdziwe żądanie VOX SDK 1 do Hybrid SSP, a żądania wychodzą tylko z tych ekranów.',
-        es: 'Formatos de anuncios en las pantallas de la app. Cada formato envía una solicitud real de VOX SDK 1 a Hybrid SSP y las solicitudes solo salen de estas pantallas.',
-        fr: "Formats publicitaires sur les écrans de l'app. Chaque format envoie une vraie requête VOX SDK 1 à Hybrid SSP, et les requêtes ne partent que de ces écrans.",
-        de: 'Werbeformate auf App-Bildschirmen. Jedes Format sendet eine echte VOX-SDK-1-Anfrage an Hybrid SSP, Anfragen gehen nur von diesen Bildschirmen aus.',
-        it: "Formati pubblicitari sulle schermate dell'app. Ogni formato invia una vera richiesta VOX SDK 1 a Hybrid SSP e le richieste partono solo da queste schermate.",
+        ru: 'Форматы рекламы на экранах приложения. Каждый формат делает настоящий запрос VOX SDK 1 к Hybrid SSP, запросы уходят только с этих экранов. Реклама здесь не персонализирована.',
+        en: 'Ad formats on app screens. Each format sends a real VOX SDK 1 request to Hybrid SSP, and requests leave only from these screens. Ads here are not personalised.',
+        pl: 'Formaty reklam na ekranach aplikacji. Każdy format wysyła prawdziwe żądanie VOX SDK 1 do Hybrid SSP, a żądania wychodzą tylko z tych ekranów. Reklamy tutaj nie są spersonalizowane.',
+        es: 'Formatos de anuncios en las pantallas de la app. Cada formato envía una solicitud real de VOX SDK 1 a Hybrid SSP y las solicitudes solo salen de estas pantallas. Aquí los anuncios no son personalizados.',
+        fr: "Formats publicitaires sur les écrans de l'app. Chaque format envoie une vraie requête VOX SDK 1 à Hybrid SSP, et les requêtes ne partent que de ces écrans. Ici, les publicités ne sont pas personnalisées.",
+        de: 'Werbeformate auf App-Bildschirmen. Jedes Format sendet eine echte VOX-SDK-1-Anfrage an Hybrid SSP, Anfragen gehen nur von diesen Bildschirmen aus. Die Werbung hier ist nicht personalisiert.',
+        it: "Formati pubblicitari sulle schermate dell'app. Ogni formato invia una vera richiesta VOX SDK 1 a Hybrid SSP e le richieste partono solo da queste schermate. Qui gli annunci non sono personalizzati.",
       }),
       unavailable: tl({
         ru: 'Нативного модуля VOX нет в этой сборке (Android или Expo Go). Слоты показывают только разметку.',

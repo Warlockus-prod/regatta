@@ -29,14 +29,14 @@ export default function PrivacyPage() {
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
           {tp(
-             "Обновлено: 2026-10-30",
-             "Updated: 2026-10-30",
-             "Aktualizacja: 2026-10-30",
+             "Обновлено: 2026-11-03",
+             "Updated: 2026-11-03",
+             "Aktualizacja: 2026-11-03",
              {
-               es: "Actualizado: 2026-10-30",
-               fr: "Mis à jour : 2026-10-30",
-               de: "Aktualisiert: 2026-10-30",
-               it: "Aggiornato: 2026-10-30",
+               es: "Actualizado: 2026-11-03",
+               fr: "Mis à jour : 2026-11-03",
+               de: "Aktualisiert: 2026-11-03",
+               it: "Aggiornato: 2026-11-03",
              },
            )}
         </p>
@@ -47,10 +47,14 @@ export default function PrivacyPage() {
             (PostHog EU, opt-out in Settings) and uses the network for the
             online course pages, Ask, online AI review, online speech,
             multiplayer, gallery and spot weather. App 1.7.0 build 59 adds local
-            bundled SRC recognition, typed Sternik practice and solo coaching. This MUST stay consistent with
+            bundled SRC recognition, typed Sternik practice and solo coaching.
+            App 1.7.1 adds the Ads section (Settings -> Ads, VOX SDK 1 by
+            Hybrid Adtech, Hybrid SSP, gdpr=1 without consent string, so
+            non-personalised ads, no IDFA, no ATT). This MUST stay consistent with
             the App Store App Privacy label (Data Collected: Usage Data /
             Product Interaction and Diagnostics / Other Diagnostic Data, purpose
-            Analytics, not linked, not tracking), with NSPrivacyCollectedDataTypes
+            Analytics; from 1.7.1 also Product Interaction and Other Data for
+            Third-Party Advertising; all not linked, not tracking), with NSPrivacyCollectedDataTypes
             in mobile/app.json, with mobile/asc-metadata/PRIVACY_POLICY.md and
             with the in-app Settings text. The sections below describe the
             WEBSITE, which uses GA4. */}
@@ -93,9 +97,9 @@ export default function PrivacyPage() {
                  "Strony kursów online w witrynie i starszych kompilacjach aplikacji ładują się z weektoregatta.com i wysyłają opisane niżej zdarzenia strony. Od wersji 1.7.0, kompilacja 59, wbudowane kursy SRC i Sternik, wyścig solo i jego lokalna analiza nie wymagają pobrania strony z serwera. Teoria, testy, egzaminy i pisemne ćwiczenia odpowiedzi ustnych na sternika działają lokalnie po polsku, bez mikrofonu.",
                  {
                    es: "Las páginas de cursos en línea del sitio y de compilaciones anteriores de la app se cargan desde weektoregatta.com y envían los eventos del sitio descritos abajo. Desde la versión 1.7.0, compilación 59, los cursos SRC y Sternik integrados, la regata individual y su análisis local no necesitan una página del servidor. La teoría, los tests, los exámenes y la práctica escrita de respuestas orales de Sternik funcionan localmente en polaco, sin micrófono.",
-                   fr: "Les pages de cours en ligne du site et des anciens builds de l’app viennent de weektoregatta.com et envoient les événements du site décrits ci-dessous. À partir de la version 1.7.0, build 59, les cours SRC et Sternik intégrés, la course solo et son analyse locale ne nécessitent pas de page du serveur. La théorie, les tests, les examens et la préparation écrite des réponses orales Sternik fonctionnent localement en polonais, sans microphone.",
+                   fr: "Les pages de cours en ligne du site et des anciens builds de l'app viennent de weektoregatta.com et envoient les événements du site décrits ci-dessous. À partir de la version 1.7.0, build 59, les cours SRC et Sternik intégrés, la course solo et son analyse locale ne nécessitent pas de page du serveur. La théorie, les tests, les examens et la préparation écrite des réponses orales Sternik fonctionnent localement en polonais, sans microphone.",
                    de: "Online-Kursseiten auf der Website und in älteren App-Builds werden von weektoregatta.com geladen und senden die unten beschriebenen Website-Ereignisse. Ab Version 1.7.0, Build 59, benötigen die integrierten Kurse SRC und Sternik, das Solorennen und seine lokale Auswertung keine Seite vom Server. Sternik-Theorie, Tests, Prüfungen und schriftliche Übungen für mündliche Antworten laufen lokal auf Polnisch, ohne Mikrofon.",
-                   it: "Le pagine dei corsi online sul sito e nelle build precedenti dell’app vengono caricate da weektoregatta.com e inviano gli eventi del sito descritti sotto. Dalla versione 1.7.0, build 59, i corsi SRC e Sternik integrati, la regata in solitaria e la sua analisi locale non richiedono una pagina dal server. Teoria, test, esami ed esercitazioni scritte per le risposte orali di Sternik funzionano localmente in polacco, senza microfono.",
+                   it: "Le pagine dei corsi online sul sito e nelle build precedenti dell'app vengono caricate da weektoregatta.com e inviano gli eventi del sito descritti sotto. Dalla versione 1.7.0, build 59, i corsi SRC e Sternik integrati, la regata in solitaria e la sua analisi locale non richiedono una pagina dal server. Teoria, test, esami ed esercitazioni scritte per le risposte orali di Sternik funzionano localmente in polacco, senza microfono.",
                  },
                )}
             </li>
@@ -174,6 +178,19 @@ export default function PrivacyPage() {
                   fr: "Météo du spot choisi : une requête à weektoregatta.com sans identifiant (les coordonnées du spot, jamais les tiennes). Les anciens builds téléchargent aussi le défi du jour ; à partir de la version 1.7.0, build 59, il est calculé localement.",
                   de: "Wetter für dein gewähltes Revier: eine Anfrage an weektoregatta.com ohne Kennung (die Koordinaten des Reviers, nie deine). Ältere Builds laden auch die Tages-Challenge; ab Version 1.7.0, Build 59, wird sie lokal berechnet.",
                   it: "Meteo dello spot scelto: una richiesta a weektoregatta.com senza identificativi (le coordinate dello spot, mai le tue). Le build precedenti scaricano anche la sfida del giorno; dalla versione 1.7.0, build 59, viene calcolata localmente.",
+                },
+              )}
+            </li>
+            <li>
+              {tp(
+                "Реклама, с версии 1.7.1: в Настройки -> Ads собраны форматы рекламы (баннеры, полноэкранная, видео с наградой, видео в контенте VAST, реклама в игре). Приложение запрашивает рекламу, только когда ты открываешь экран формата: через VOX SDK 1 компании Hybrid Adtech у Hybrid SSP (ssp.hybrid.ai). В остальном приложении рекламы нет. Каждый запрос содержит идентификатор рекламного места, тип устройства, производителя и модель, операционную систему и ее версию, размер экрана, язык приложения и смещение часового пояса; IP-адрес соединения SSP видит, как любой сервер. Рекламный идентификатор (IDFA), идентификатор поставщика, имя и контакты не передаются, отслеживания между приложениями и сайтами нет, поэтому запроса App Tracking Transparency нет. Каждый запрос отмечен как подпадающий под GDPR (gdpr=1) и идет без строки согласия, поэтому SSP показывает только неперсонализированную рекламу. Переключатель аналитики эти запросы не затрагивает: пока ты не открываешь эти экраны, запросов рекламы нет.",
+                "Ads, from version 1.7.1: Settings -> Ads lists ad formats (display banners, interstitial, rewarded video, in-content VAST video, in-game). The app requests an ad only when you open a format screen, through VOX SDK 1 by Hybrid Adtech, from Hybrid SSP (ssp.hybrid.ai). The rest of the app has no ads. Each request carries the ad placement id, device type, manufacturer and model, operating system and version, screen size, app language and time-zone offset; like any server, the SSP sees the IP address of the connection. No advertising identifier (IDFA) or vendor identifier, no name or contact details are sent, and there is no tracking across apps or websites, so the app shows no App Tracking Transparency prompt. Every request is marked as subject to the GDPR (gdpr=1) and carries no consent string, so the SSP serves only non-personalised ads. The analytics switch does not cover these requests: as long as you do not open those screens, no ad is requested.",
+                "Reklamy, od wersji 1.7.1: w Ustawienia -> Ads są zebrane formaty reklam (banery, reklama pełnoekranowa, wideo z nagrodą, wideo w treści VAST, reklama w grze). Aplikacja pobiera reklamę tylko wtedy, gdy otworzysz ekran formatu: przez VOX SDK 1 firmy Hybrid Adtech z Hybrid SSP (ssp.hybrid.ai). W pozostałej części aplikacji nie ma reklam. Każde żądanie zawiera identyfikator miejsca reklamowego, typ urządzenia, producenta i model, system operacyjny i jego wersję, rozmiar ekranu, język aplikacji i przesunięcie strefy czasowej; adres IP połączenia SSP widzi jak każdy serwer. Identyfikator reklamowy (IDFA), identyfikator dostawcy, imię i dane kontaktowe nie są wysyłane, a śledzenia między aplikacjami i stronami nie ma, dlatego aplikacja nie wyświetla pytania App Tracking Transparency. Każde żądanie jest oznaczone jako objęte RODO (gdpr=1) i nie zawiera zapisu zgody, więc SSP wyświetla tylko reklamy niespersonalizowane. Przełącznik analityki nie obejmuje tych żądań: dopóki nie otwierasz tych ekranów, aplikacja nie pobiera reklam.",
+                {
+                  es: "Anuncios, desde la versión 1.7.1: Ajustes -> Ads reúne formatos de anuncios (banners, intersticial, vídeo con recompensa, vídeo VAST en el contenido, anuncios en el juego). La app solo pide un anuncio cuando abres la pantalla de un formato, a través de VOX SDK 1 de Hybrid Adtech, a Hybrid SSP (ssp.hybrid.ai). En el resto de la app no hay anuncios. Cada solicitud lleva el identificador del espacio publicitario, el tipo de dispositivo, el fabricante y el modelo, el sistema operativo y su versión, el tamaño de pantalla, el idioma de la app y la diferencia de zona horaria; como cualquier servidor, la SSP ve la dirección IP de la conexión. No se envían el identificador de publicidad (IDFA) ni el identificador del proveedor, ni nombre ni datos de contacto, y no hay seguimiento entre apps ni sitios web, por eso la app no muestra el aviso de App Tracking Transparency. Cada solicitud se marca como sujeta al RGPD (gdpr=1) y no lleva cadena de consentimiento, así que la SSP solo sirve anuncios no personalizados. El interruptor de analítica no afecta a estas solicitudes: mientras no abras esas pantallas, no se pide ningún anuncio.",
+                  fr: "Publicités, à partir de la version 1.7.1 : Réglages -> Ads regroupe des formats publicitaires (bannières, interstitiel, vidéo récompensée, vidéo VAST dans le contenu, publicité en jeu). L'app ne demande une publicité que lorsque tu ouvres l'écran d'un format, via VOX SDK 1 de Hybrid Adtech, auprès de Hybrid SSP (ssp.hybrid.ai). Le reste de l'app n'a pas de publicité. Chaque requête contient l'identifiant de l'emplacement publicitaire, le type d'appareil, le fabricant et le modèle, le système d'exploitation et sa version, la taille de l'écran, la langue de l'app et le décalage horaire ; comme tout serveur, la SSP voit l'adresse IP de la connexion. Ni identifiant publicitaire (IDFA), ni identifiant fournisseur, ni nom ou coordonnées ne sont envoyés, et il n'y a aucun suivi entre applis ou sites : l'app n'affiche donc pas de demande App Tracking Transparency. Chaque requête est marquée comme soumise au RGPD (gdpr=1) et ne contient pas de chaîne de consentement, si bien que la SSP ne diffuse que des publicités non personnalisées. Le bouton des statistiques ne concerne pas ces requêtes : tant que tu n'ouvres pas ces écrans, aucune publicité n'est demandée.",
+                  de: "Werbung, ab Version 1.7.1: Unter Einstellungen -> Ads findest du Werbeformate (Banner, Interstitial, Video mit Belohnung, VAST-Video im Inhalt, In-Game-Werbung). Die App fordert nur dann eine Anzeige an, wenn du den Bildschirm eines Formats öffnest, über VOX SDK 1 von Hybrid Adtech bei Hybrid SSP (ssp.hybrid.ai). Im Rest der App gibt es keine Werbung. Jede Anfrage enthält die ID des Werbeplatzes, Gerätetyp, Hersteller und Modell, Betriebssystem und Version, Bildschirmgröße, App-Sprache und Zeitzonenversatz; wie jeder Server sieht die SSP die IP-Adresse der Verbindung. Werbe-ID (IDFA), Anbieter-ID, Name und Kontaktdaten werden nicht gesendet, und es gibt kein Tracking über Apps oder Websites hinweg, deshalb zeigt die App keine Abfrage zu App Tracking Transparency. Jede Anfrage ist als DSGVO-pflichtig markiert (gdpr=1) und enthält keinen Einwilligungsstring, daher liefert die SSP nur nicht personalisierte Werbung. Der Analyse-Schalter betrifft diese Anfragen nicht: Solange du diese Bildschirme nicht öffnest, wird keine Anzeige angefordert.",
+                  it: "Pubblicità, dalla versione 1.7.1: in Impostazioni -> Ads ci sono i formati pubblicitari (banner, interstitial, video con premio, video VAST nel contenuto, pubblicità nel gioco). L'app chiede un annuncio solo quando apri la schermata di un formato, tramite VOX SDK 1 di Hybrid Adtech, a Hybrid SSP (ssp.hybrid.ai). Nel resto dell'app non c'è pubblicità. Ogni richiesta contiene l'identificativo dello spazio pubblicitario, tipo di dispositivo, produttore e modello, sistema operativo e versione, dimensioni dello schermo, lingua dell'app e differenza di fuso orario; come qualsiasi server, la SSP vede l'indirizzo IP della connessione. Non vengono inviati l'identificativo pubblicitario (IDFA), l'identificativo del fornitore, nome o contatti, e non c'è tracciamento tra app o siti: per questo l'app non mostra la richiesta App Tracking Transparency. Ogni richiesta è segnata come soggetta al GDPR (gdpr=1) e non contiene una stringa di consenso, quindi la SSP serve solo annunci non personalizzati. L'interruttore delle statistiche non riguarda queste richieste: finché non apri quelle schermate, non viene richiesto alcun annuncio.",
                 },
               )}
             </li>
@@ -383,6 +400,22 @@ export default function PrivacyPage() {
               )}
             </li>
             <li>
+              <strong>
+                {tp('Hybrid Adtech (VOX SDK 1, реклама в приложении для iPhone)', 'Hybrid Adtech (VOX SDK 1, ads in the iPhone app)', 'Hybrid Adtech (VOX SDK 1, reklamy w aplikacji na iPhone)',
+                  { es: 'Hybrid Adtech (VOX SDK 1, anuncios en la app para iPhone)', fr: "Hybrid Adtech (VOX SDK 1, publicités dans l'app iPhone)", de: 'Hybrid Adtech (VOX SDK 1, Werbung in der iPhone-App)', it: "Hybrid Adtech (VOX SDK 1, pubblicità nell'app per iPhone)" })}
+              </strong>: {tp(
+                'с версии 1.7.1 только экраны в Настройки -> Ads запрашивают рекламу у Hybrid SSP (ssp.hybrid.ai). Запрос несет идентификатор рекламного места и данные об устройстве, перечисленные в разделе о приложении выше, без рекламного идентификатора и без строки согласия, поэтому реклама неперсонализированная. Данные не связаны с твоей личностью и не используются для отслеживания.',
+                'from version 1.7.1, only the screens under Settings -> Ads request ads from Hybrid SSP (ssp.hybrid.ai). A request carries the ad placement id and the device data listed in the app section above, without an advertising identifier and without a consent string, so the ads are non-personalised. The data is not linked to your identity and is not used for tracking.',
+                'od wersji 1.7.1 tylko ekrany w Ustawienia -> Ads pobierają reklamy z Hybrid SSP (ssp.hybrid.ai). Żądanie zawiera identyfikator miejsca reklamowego i dane o urządzeniu wymienione w sekcji o aplikacji powyżej, bez identyfikatora reklamowego i bez zapisu zgody, więc reklamy są niespersonalizowane. Dane nie są powiązane z Twoją tożsamością i nie służą do śledzenia.',
+                {
+                  es: 'desde la versión 1.7.1, solo las pantallas de Ajustes -> Ads piden anuncios a Hybrid SSP (ssp.hybrid.ai). La solicitud lleva el identificador del espacio publicitario y los datos del dispositivo indicados en la sección de la app más arriba, sin identificador de publicidad ni cadena de consentimiento, así que los anuncios no son personalizados. Los datos no se vinculan a tu identidad ni se usan para el seguimiento.',
+                  fr: "à partir de la version 1.7.1, seuls les écrans de Réglages -> Ads demandent des publicités à Hybrid SSP (ssp.hybrid.ai). La requête contient l'identifiant de l'emplacement publicitaire et les données de l'appareil indiquées dans la partie sur l'app ci-dessus, sans identifiant publicitaire ni chaîne de consentement : les publicités ne sont donc pas personnalisées. Ces données ne sont pas liées à ton identité et ne servent pas au suivi.",
+                  de: 'ab Version 1.7.1 fordern nur die Bildschirme unter Einstellungen -> Ads Werbung bei Hybrid SSP (ssp.hybrid.ai) an. Die Anfrage enthält die ID des Werbeplatzes und die oben im Abschnitt zur App genannten Gerätedaten, ohne Werbe-ID und ohne Einwilligungsstring, daher ist die Werbung nicht personalisiert. Die Daten sind nicht mit deiner Identität verknüpft und werden nicht für Tracking verwendet.',
+                  it: "dalla versione 1.7.1 solo le schermate in Impostazioni -> Ads richiedono annunci a Hybrid SSP (ssp.hybrid.ai). La richiesta contiene l'identificativo dello spazio pubblicitario e i dati del dispositivo elencati nella sezione sull'app più sopra, senza identificativo pubblicitario né stringa di consenso, quindi gli annunci non sono personalizzati. I dati non sono collegati alla tua identità e non vengono usati per il tracciamento.",
+                },
+              )}
+            </li>
+            <li>
               <strong>Telegram</strong>: {tp(
                 'копия каждого обращения со страницы поддержки пересылается в наш закрытый чат в Telegram через сервис ботов Telegram, поэтому Telegram обрабатывает его содержимое.',
                 'a copy of each message from the support page is forwarded to our private Telegram chat through the Telegram bot service, so Telegram processes its content.',
@@ -499,6 +532,19 @@ export default function PrivacyPage() {
           </p>
           <p className="text-sm mb-2">
             {tp(
+              "2026-11-03: добавлен раздел Ads приложения для iPhone с версии 1.7.1 (VOX SDK 1 компании Hybrid Adtech, Hybrid SSP): что несет каждый запрос рекламы, только неперсонализированная реклама, без рекламного идентификатора и без отслеживания.",
+              "2026-11-03: added the Ads section of the iPhone app from version 1.7.1 (VOX SDK 1 by Hybrid Adtech, Hybrid SSP): what each ad request carries, non-personalised ads only, no advertising identifier and no tracking.",
+              "2026-11-03: dodano sekcję Ads aplikacji na iPhone od wersji 1.7.1 (VOX SDK 1 firmy Hybrid Adtech, Hybrid SSP): co zawiera każde żądanie reklamy, tylko reklamy niespersonalizowane, bez identyfikatora reklamowego i bez śledzenia.",
+              {
+                es: "2026-11-03: se añade la sección Ads de la app para iPhone desde la versión 1.7.1 (VOX SDK 1 de Hybrid Adtech, Hybrid SSP): qué lleva cada solicitud de anuncio, solo anuncios no personalizados, sin identificador de publicidad y sin seguimiento.",
+                fr: "2026-11-03 : ajout de la section Ads de l'app iPhone à partir de la version 1.7.1 (VOX SDK 1 de Hybrid Adtech, Hybrid SSP) : ce que contient chaque requête publicitaire, publicités non personnalisées uniquement, sans identifiant publicitaire et sans suivi.",
+                de: "2026-11-03: Der Bereich Ads der iPhone-App ab Version 1.7.1 wurde ergänzt (VOX SDK 1 von Hybrid Adtech, Hybrid SSP): was jede Werbeanfrage enthält, nur nicht personalisierte Werbung, ohne Werbe-ID und ohne Tracking.",
+                it: "2026-11-03: aggiunta la sezione Ads dell'app per iPhone dalla versione 1.7.1 (VOX SDK 1 di Hybrid Adtech, Hybrid SSP): cosa contiene ogni richiesta di annuncio, solo annunci non personalizzati, senza identificativo pubblicitario e senza tracciamento.",
+              },
+            )}
+          </p>
+          <p className="text-sm mb-2">
+            {tp(
               "2026-10-30: в учебные события сайта добавлены шаги гонки (отсчет, первый поворот, первый знак, финиш, повтор) и номер гонки на устройстве.",
               "2026-10-30: website learning events now include race steps (countdown, first tack, first mark, finish, replay) and the race's number on the device.",
               "2026-10-30: do zdarzeń nauki na stronie dodano etapy wyścigu (odliczanie, pierwszy zwrot, pierwszy znak, meta, powtórka) i numer wyścigu na urządzeniu.",
@@ -519,7 +565,7 @@ export default function PrivacyPage() {
                 es: "2026-10-24: se aclaran el reconocimiento SRC local, la alternativa escrita, la teoría, los tests, los exámenes y la práctica escrita local de Sternik, y el análisis individual desde la versión 1.7.0, compilación 59. Se describen por separado las funciones en línea del sitio y las compilaciones anteriores.",
                 fr: "2026-10-24 : précisions sur la reconnaissance SRC locale, la saisie de texte, la théorie, les tests, les examens et la pratique écrite locale Sternik, ainsi que les conseils de course solo à partir de la version 1.7.0, build 59. Les fonctions en ligne du site et des anciens builds sont décrites séparément.",
                 de: "2026-10-24: Lokale SRC-Erkennung, Texteingabe als Alternative, lokale Sternik-Theorie, Tests, Prüfungen und schriftliche Übungen sowie Solo-Rennauswertung ab Version 1.7.0, Build 59, wurden erläutert. Netzwerkfunktionen der Website und älterer Builds werden gesondert beschrieben.",
-                it: "2026-10-24: chiariti il riconoscimento SRC locale, l’alternativa scritta, la teoria, i test, gli esami e la pratica scritta locale di Sternik, e i consigli per la regata in solitaria dalla versione 1.7.0, build 59. Le funzioni online del sito e delle build precedenti sono descritte separatamente.",
+                it: "2026-10-24: chiariti il riconoscimento SRC locale, l'alternativa scritta, la teoria, i test, gli esami e la pratica scritta locale di Sternik, e i consigli per la regata in solitaria dalla versione 1.7.0, build 59. Le funzioni online del sito e delle build precedenti sono descritte separatamente.",
               },
             )}
           </p>

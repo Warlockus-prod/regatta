@@ -91,7 +91,8 @@ class VoxAdView: ExpoView {
     Self.detachAds(in: self)
     subviews.forEach { $0.removeFromSuperview() }
 
-    let requestModel = AdRequestModel(placeId: placeId)
+    // gdpr 1 with no consent string: the SSP serves only non-personalised ads (owner 2026-11-03).
+    let requestModel = AdRequestModel(placeId: placeId, gdpr: 1)
     let width = bounds.width
     let delay = closeButtonDelay
 

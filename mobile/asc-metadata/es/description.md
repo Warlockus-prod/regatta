@@ -5,7 +5,7 @@ POR QUÉ FUNCIONA
 - Un plan claro: 8 lecciones en 7 días, desde el viento y los rumbos hasta tu primera regata.
 - Un simulador honesto: el velero sigue un modelo físico VPP, la misma familia de cálculos que usan los diseñadores de velas.
 - Practica hasta que te salga solo: ejercicios de trimado, rachas, roladas del viento y bordos.
-- Totalmente gratis. Sin anuncios, sin cuenta, sin pagos.
+- Totalmente gratis. Sin cuenta, sin pagos.
 
 EL PLAN DE 7 DÍAS
 
@@ -44,7 +44,7 @@ TITULACIONES
 
 PRIVACIDAD
 
-Sin anuncios, sin cuenta, sin rastreo entre apps. Tu progreso se queda en tu dispositivo. La app envía estadísticas de uso no vinculadas a ti, y puedes desactivar la analítica de la app en Ajustes.
+Sin cuenta y sin rastreo entre apps. Tu progreso se queda en tu dispositivo. La app envía estadísticas de uso no vinculadas a ti, y puedes desactivar la analítica de la app en Ajustes. Solo hay anuncios en la sección Ads, al final de Ajustes, que muestra formatos de anuncios de VOX SDK 1 de Hybrid Adtech: no son personalizados y no usan el identificador de publicidad. En el resto de la app no hay anuncios.
 
 IDIOMAS
 

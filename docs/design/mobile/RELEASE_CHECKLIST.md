@@ -162,11 +162,15 @@ submitted:
    ```sh
    npx expo config --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=(JSON.parse(s).ios||{}).privacyManifests;const t=(m&&m.NSPrivacyCollectedDataTypes)||[];if(!t.length){console.error("FAIL: ios.privacyManifests.NSPrivacyCollectedDataTypes is empty");process.exit(1)}for(const x of t)console.log(x.NSPrivacyCollectedDataType,"linked="+x.NSPrivacyCollectedDataTypeLinked,"tracking="+x.NSPrivacyCollectedDataTypeTracking,(x.NSPrivacyCollectedDataTypePurposes||[]).join(","))})'
    ```
-   It must list exactly the six types published in App Store Connect on
-   2026-10-19: ProductInteraction, OtherDiagnosticData and CoarseLocation
-   (purpose Analytics) plus GameplayContent, OtherUserContent and AudioData
-   (purpose AppFunctionality), all linked=false, tracking=false
-   (`mobile/__tests__/app-config.test.ts` enforces it). After `expo prebuild`, the
+   From 1.7.1 (Ads section, VOX SDK 1) it must list exactly seven types:
+   ProductInteraction (purposes Analytics and ThirdPartyAdvertising),
+   OtherDataTypes (purpose ThirdPartyAdvertising), OtherDiagnosticData and
+   CoarseLocation (purpose Analytics), plus GameplayContent, OtherUserContent
+   and AudioData (purpose AppFunctionality), all linked=false, tracking=false
+   (`mobile/__tests__/app-config.test.ts` enforces it). Of the six types
+   published in App Store Connect on 2026-10-19 only ProductInteraction
+   changes; its advertising purpose and the OtherDataTypes entry are new and
+   must be added in step 2 before the 1.7.1 submission. After `expo prebuild`, the
    generated `ios/*/PrivacyInfo.xcprivacy` must contain the same types.
 2. App Store Connect > App Privacy
    (https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy):
@@ -221,10 +225,15 @@ submitted:
   switch does, or if the version claims do not hold for the submitted build.
 
 ### G4c - Store binary and Apple questionnaires (learned on 1.7.0 build 77)
-- Store builds are made WITHOUT `EXPO_PUBLIC_ADS_DEMO` (prebuild and archive):
-  the Podfile must read `use_expo_modules!(exclude: ['vox-ads', 'vox-prebid'])`,
-  `Podfile.lock` must have no VOX or Prebid pod, and the binary no `VOXAds` /
-  `hybrid.ai` strings. The store description and review notes promise no ads.
+- Up to 1.7.0 (build 77) store builds were made WITHOUT `EXPO_PUBLIC_ADS_DEMO`:
+  Podfile `use_expo_modules!(exclude: ['vox-ads', 'vox-prebid'])`, no VOX or
+  Prebid pod, no Ads entry. From 1.7.1 (build 78, owner decision 2026-11-03)
+  store builds set `EXPO_PUBLIC_ADS_DEMO=1` for prebuild and archive and leave
+  `VOX_PREBID` unset: the Podfile must read
+  `use_expo_modules!(exclude: ['vox-prebid'])`, `Podfile.lock` must have VOXSDK
+  and no PrebidMobile pod, and Settings must end with the Ads entry. The store
+  description, the policy texts and the review notes describe that Ads section
+  (non-personalised, VOX SDK 1, no IDFA), not "no ads".
 - Apple adds required age-rating questions over time (2026: `socialMedia`).
   A missing answer makes `POST /v1/reviewSubmissionItems` fail with 409 whose
   real cause is in `meta.associatedErrors`; `scripts/asc-submit.mjs` prints it.
