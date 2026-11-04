@@ -46,7 +46,8 @@ class VoxAdView: ExpoView {
 
   func loadIfNeeded() {
     guard !placeId.isEmpty else { return }
-    guard bounds.width > 0 else {
+    // Off screen there is no owning controller yet, and ads load only on screen.
+    guard bounds.width > 0, window != nil else {
       pendingLoad = true
       return
     }
@@ -85,6 +86,21 @@ class VoxAdView: ExpoView {
     }
   }
 
+  /// The controller that owns this view, found through the responder chain.
+  /// The SDK adds its player as a child of the controller it is given and puts
+  /// the player's view inside our container. UIKit throws, and the app dies,
+  /// if that controller is not an ancestor of the container, so the app's
+  /// "current" controller must not be used here: under the native stack it can
+  /// be a different one from the screen that holds this slot.
+  private func owningViewController() -> UIViewController? {
+    var responder: UIResponder? = self
+    while let current = responder {
+      if let controller = current as? UIViewController { return controller }
+      responder = current.next
+    }
+    return nil
+  }
+
   private func load() {
     generation += 1
     let current = generation
@@ -97,10 +113,10 @@ class VoxAdView: ExpoView {
     let delay = closeButtonDelay
 
     Task { @MainActor [weak self] in
-      guard let self else { return }
+      guard let self, current == self.generation else { return }
       do {
         if self.kind == "video" {
-          guard let controller = self.appContext?.utilities?.currentViewController() else {
+          guard let controller = self.owningViewController() else {
             throw VoxBridgeError.noController
           }
           let container = UIView(frame: self.bounds)
@@ -114,7 +130,13 @@ class VoxAdView: ExpoView {
             closeButtonDelay: delay
           )
           try await VOXAds.createVASTVideo(with: model)
-          guard current == self.generation else { return }
+          // The slot left the screen during the request: the SDK has just attached
+          // and started a player in the old container, so it must be stopped here.
+          guard current == self.generation else {
+            Self.detachAds(in: container)
+            container.removeFromSuperview()
+            return
+          }
           self.onAdLoaded(["width": width, "height": self.bounds.height])
         } else {
           let model = BannerModel(

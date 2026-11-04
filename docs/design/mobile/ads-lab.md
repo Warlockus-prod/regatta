@@ -185,8 +185,12 @@ requests. Bugs found and fixed on the way:
   document start. Full screen centres the creative on black. Video places
   answer raw VAST XML instead of JSON, which SDK 1.2.3 failed to decode and
   the bridge showed as no fill; the SDK now accepts VAST XML (an empty VAST
-  is no fill). Not yet seen playing in the app: by then every request from
-  the Mac answered 204.
+  is no fill). Once a video place filled, the app crashed (found 2026-11-04,
+  builds 78 and 79): the bridge gave the SDK the app's current controller as
+  the player's parent, and UIKit throws when that controller is not an
+  ancestor of the slot. The bridge now finds the owning controller through the
+  responder chain. Checked on iOS 27 in the simulator: 16:9, 9:16 and rewarded
+  play, leaving the screen stops playback.
 - VOX SDK 2 (Prebid Server): Hybrid bids only with `cur` and
   `imp.bidfloorcur` in PLN; its banner iframe has no size and its VAST
   declares the wrong encoding. Fixed in the local server, details in
