@@ -1,0 +1,21 @@
+Week to Regatta is an educational sailing app. No account, sign-in or test credentials are required. Version 1.7.2 build 80:
+
+1. Race: a bundled 3D solo race for Solo, daily challenges and missions, calculated and stored locally. Simple uses automatic sail trim, Pro manual sheets. New installs steer with on-screen arrows; a Tack / Gybe button turns onto the mirrored angle; the wheel or sliders can be chosen in Race settings. Multiplayer (Quick online race) is a separate online room.
+
+2. Practice: bundled Basics, sail-trim (with optional Auto-trim and Show me) and 3D boat trainers, the 3D yacht anatomy viewer and Manoeuvres (berthing under engine, drills under sail).
+
+3. Learn / SRC radio: the full bundled course in 7 languages; the official Polish question original stays accessible and standard on-air phrases stay English. Microphone practice starts only on request, needs an installed English on-device recognition model and microphone permission, does not download a model, send audio to a server or save an audio file. Without a model or permission a labelled typed check works offline and is not presented as a microphone test.
+
+4. Learn / Motorboat skipper: the bundled Polish-only Sternik course (879 questions, theory, tests, 75-question/90-minute mock exam, typed oral practice with a local rubric, no microphone, no transcription). Educational practice, not an official exam.
+
+5. Ads. Settings > Ads, the last entry of Settings, lists ad formats: display banners, interstitial, rewarded video, in-content VAST video and in-game. Each format screen shows real ads from VOX SDK 1 by Hybrid Adtech, requested from Hybrid SSP (ssp.hybrid.ai). Ads are requested only on those screens and never before the user opens a format screen; the rest of the app, including the race, shows no ads. Every request is sent with gdpr=1 and no consent string, so the SSP serves only non-personalised ads. The app does not access the advertising identifier (IDFA) or the vendor identifier and does not track users across apps or websites, so App Tracking Transparency is not needed and no ATT prompt is shown. A request carries the placement id, device type, manufacturer and model, OS and version, screen size, app language and time-zone offset; the server sees the IP address as with any connection. The App Privacy label and the privacy manifest declare Product Interaction and Other Data for Third-Party Advertising, not linked to the user and not used for tracking. If no campaign is available for a placement, the screen says so (no fill, 204).
+
+New in 1.7.2, Settings > Ads > In-game: a bundled 3D scene with an ad board floating on the water. The app itself requests the ad from the same SSP with gdpr=1, plus the app's website address (https://weektoregatta.com/) and the screen size, and draws the returned image on the board. Hybrid's counters fire only after the board shows the image and the view is counted (1.5% of the screen for 1 second); tap Full screen to see it.
+
+Also fixed: the VAST video screens no longer close the app when an ad arrives. This replaces 1.7.1 (build 78), withdrawn for that reason.
+
+Privacy: no cross-app tracking. Pseudonymous product analytics (PostHog EU, random install identifier) are on by default and can be disabled in Settings > Data > Anonymous analytics; the switch also covers embedded course pages, not the ad requests of the Ads screens. Progress stays on the device; Settings > Data > Clear all data clears it and keeps an analytics opt-out.
+
+Online features: live multiplayer, Ask the assistant, spot weather, remote gallery/video and the Ads screens need a connection. Website and older-app radio/Sternik voice practice send a recording the user starts through our server to OpenAI for transcription, without storing it; this explains the retained Audio Data declaration and is not a fallback for the bundled SRC recognizer.
+
+No demonstration data or login is required to reach the features above.
