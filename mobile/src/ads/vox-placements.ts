@@ -27,6 +27,8 @@ export const VOX_PLACEMENTS: readonly VoxPlacement[] = [
   { key: 'banner300x600', placeId: '6ae4bdb3810d986308d66830', kind: 'banner', width: 300, height: 600 },
   { key: 'banner728x90', placeId: '6ae4bdbf810d986308d66832', kind: 'banner', width: 728, height: 90 },
   { key: 'interstitial', placeId: '6ae4bdc570e7b23ad0981d9a', kind: 'fullscreen', width: 0, height: 0 },
+  // A real full screen. Created 2026-11-04, our own campaign; the request names the app (full-screen.ts).
+  { key: 'fullScreen1080x1920', placeId: '6aebb2d970e7b21a6c36178f', kind: 'fullscreen', width: 0, height: 0 },
   { key: 'videoHorizontal', placeId: '6ae4bdf070e7b23ad0981d9c', kind: 'video', width: 16, height: 9 },
   { key: 'videoVertical', placeId: '6ae4bdf770e7b23ad0981d9e', kind: 'video', width: 9, height: 16 },
   { key: 'rewarded', placeId: '6ae4bdfd70e7b23ad0981da0', kind: 'video', width: 9, height: 16 },

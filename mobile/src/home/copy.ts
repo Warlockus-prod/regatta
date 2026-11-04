@@ -18,6 +18,7 @@ export const homeCopy = {
   straightToRace: homeEntryCopy.straightToRace,
   sceneCaption: homeEntryCopy.sceneCaption,
   sceneAlt: homeEntryCopy.sceneAlt,
+  heroAlt: words("Яхты на якоре в заливе, вид с дрона", "Yachts at anchor in a bay, seen from a drone", "Jachty na kotwicy w zatoce, widok z drona", "Yates fondeados en una bahía, vistos desde un dron", "Voiliers au mouillage dans une baie, vus d'un drone", "Yachten vor Anker in einer Bucht, von einer Drohne aus", "Yacht all'ancora in una baia, visti da un drone"),
   examQuestion: homeEntryCopy.examQuestion,
   // The Race hub's one start and its choices (src/lib/product/race-hub.ts).
   play: raceHubCopy.play,

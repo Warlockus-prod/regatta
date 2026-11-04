@@ -27,6 +27,7 @@ Details, SDK limits and release prerequisites: `ads-lab.md`.
 - `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry).
 - `mobile/src/ads/sdk.ts` - SDK switch (in memory, opens on SDK 1), Prebid Server URL and account, configID `wtr-<placement key>`, lazy Prebid start.
 - `mobile/modules/vox-prebid/` - local Expo module for VOX SDK 2: `VoxPrebidModule.swift` (start with an explicit status URL, interstitial, rewarded with the SDK reward event), `VoxPrebidBannerView.swift` (banner / outstream video, stops refresh off screen).
+- `mobile/src/ads/full-screen.ts` - full-screen ad order: the 1080x1920 place with the app's address, then the 320x480 place without it.
 - `mobile/src/ads/board-feed.ts` - in-game board feed for `mobile/app/ads/in-game.tsx`: asks Hybrid on that screen only, hands the image to the page as data, fires Hybrid's trackers only on the page's counted view.
 - `mobile/src/ads/strings.ts` - seven-language copy; `formats.ts` - format order and routes; `vox-placements.ts` - place IDs and endpoint; `FakeContent.tsx` - grey content blocks.
 - `mobile/modules/vox-ads/` - local Expo module: `VoxAdsModule.swift` (interstitial), `VoxAdView.swift` (banner / VAST view, HTTP 204 reported as `no-fill`; off screen it stops web creatives and detaches video players, because SDK 1.2.3 otherwise keeps them alive), `index.ts` (null when the native module is absent: Android, Expo Go, Jest).

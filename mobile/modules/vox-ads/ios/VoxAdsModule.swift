@@ -1,9 +1,25 @@
 import ExpoModulesCore
+import UIKit
 import VOXSDK
 
 /// Bridge to VOX SDK 1 (classic Hybrid SSP SDK). Used only by the ads demo
 /// screen (Settings -> Ads); nothing else in the app requests ads.
 public class VoxAdsModule: Module {
+  /// The address and screen of a request that names the app, the same fields as the board feed.
+  @MainActor
+  private static func browser(pageUrl: String?) -> BrowserModel? {
+    guard let pageUrl else { return nil }
+    let screen = UIScreen.main.bounds.size
+    return BrowserModel(
+      url: pageUrl,
+      referrer: "",
+      language: Locale.preferredLanguages.first ?? "en",
+      timezoneOffset: Float(-TimeZone.current.secondsFromGMT() / 60),
+      screenWidth: Int(screen.width),
+      screenHeight: Int(screen.height)
+    )
+  }
+
   public func definition() -> ModuleDefinition {
     Name("VoxAds")
 
@@ -12,7 +28,7 @@ public class VoxAdsModule: Module {
 
     // Interstitial: VOX presents its own full-screen controller on top of
     // the current one and resolves once the ad is on screen.
-    AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, promise: Promise) in
+    AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, pageUrl: String?, promise: Promise) in
       Task { @MainActor in
         guard let controller = self.appContext?.utilities?.currentViewController() else {
           promise.reject("E_NO_CONTROLLER", "No view controller to present the ad from")
@@ -21,7 +37,7 @@ public class VoxAdsModule: Module {
         do {
           let model = FullScreenBannerModel(
             // gdpr 1 with no consent string: non-personalised ads only, as in VoxAdView.
-            requestModel: AdRequestModel(placeId: placeId, gdpr: 1),
+            requestModel: AdRequestModel(placeId: placeId, browser: Self.browser(pageUrl: pageUrl), gdpr: 1),
             presentingViewController: controller,
             closeButtonDelay: closeButtonDelay
           )

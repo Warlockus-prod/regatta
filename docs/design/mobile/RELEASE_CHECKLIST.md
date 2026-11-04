@@ -81,6 +81,10 @@ Never submit a build no one has looked at.
 - Use XcodeBuildMCP or the verified direct `xcodebuild` path above
   (build -> boot simulator -> install -> launch). A successful compile is not
   an installed visual pass.
+- With the Ads section in the build, open EVERY format by hand on the installed
+  Release build and let a real ad arrive: all five display pages, interstitial,
+  rewarded, both videos and in-game. A live fill check by GET is not enough: 1.7.1
+  (78) passed it, and the app crashed as soon as a video ad arrived (2026-11-04).
 - Walk the changed screens and the main navigation. Confirm consistent native
   day chrome across Home, content, activities, loading and Back transitions,
   while preserving deliberate scene, LCD and hardware colors. Check short

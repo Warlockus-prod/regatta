@@ -191,6 +191,19 @@ requests. Bugs found and fixed on the way:
   ancestor of the slot. The bridge now finds the owning controller through the
   responder chain. Checked on iOS 27 in the simulator: 16:9, 9:16 and rewarded
   play, leaving the screen stops playback.
+- Owner's feedback on build 79 (2026-11-04), fixed in `vox-sdk-ios` `d197347`: a
+  banner wider than its slot scaled from the top centre and slid right (728x90
+  on a phone); it now scales from the top left. A full-screen creative stayed at
+  its own size, centred on black; it is now scaled to fit the view.
+- Full screen order (`mobile/src/ads/full-screen.ts`): place 1080x1920
+  (`6aebb2d970e7b21a6c36178f`, created 2026-11-04, in VOX moderation, answers 204
+  until approved) with the app's address, then the 320x480 place without it.
+- Address in requests, measured 2026-11-04 with 4 requests per place: without
+  `browser.url` all 10 places fill (Hybrid's own promo, recorded in Hybrid's
+  statistics under the fallback domain icoffio.com); with it every format answers
+  0 of 4 and only our own campaign on the in-game place fills. So the formats stay
+  without the address until Hybrid's promo or our campaigns cover weektoregatta.com
+  (decision Р-43).
 - VOX SDK 2 (Prebid Server): Hybrid bids only with `cur` and
   `imp.bidfloorcur` in PLN; its banner iframe has no size and its VAST
   declares the wrong encoding. Fixed in the local server, details in

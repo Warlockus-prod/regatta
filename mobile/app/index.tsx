@@ -20,8 +20,8 @@ import { DEFAULT_HUB_SETUP, hubRaceHref } from "../src/navigation/race-setup";
 import { readHubSetup } from "../src/persistence/race-hub-setup";
 
 const photos = {
-  // Package 9: a still of the real race scene (the same frame as the website), not a bay photo.
-  scene: require("../assets/design/race-scene.jpg"),
+  // Owner 2026-11-04: the drone photo of the bay reads better here than the frame of the race (package 9).
+  hero: require("../assets/design/home-hero.jpg"),
   basics: require("../assets/design/course-basics.jpg"),
   sails: require("../assets/design/course-sails.jpg"),
   rules: require("../assets/design/course-rules.jpg"),
@@ -76,7 +76,7 @@ function describe(target: ContinueTarget, lang: Language, tp: Tp): ContinueCard 
 }
 
 /**
- * Home (package 9, audit K1 and K2). A frame of the real race scene, one value
+ * Home (package 9, audit K1 and K2). A drone photo of the bay, one value
  * line and exactly ONE primary action: "Start from scratch" for a new learner,
  * the continue card only after a meaningful step (a lesson passed or a sail
  * theory check passed, src/lib/product/home-entry.ts). "Go straight to a race"
@@ -122,8 +122,8 @@ export default function Home() {
     <Stack.Screen options={{ headerShown: false, title: sections[0].title[lang], statusBarStyle: overPaper ? "dark" : "light", animation: "fade" }} />
     <ScrollView contentContainerStyle={styles.scroll} scrollEventThrottle={32}
       onScroll={e => { const next = e.nativeEvent.contentOffset.y > heroHeight - 20 - insets.top; if (next !== overPaper) setOverPaper(next); }}>
-      <ImageBackground source={photos.scene} resizeMode="cover" style={[styles.hero, { height: heroHeight, paddingTop: insets.top + 10 }]}
-        accessible accessibilityRole="image" accessibilityLabel={homeCopy.sceneAlt[lang]} accessibilityIgnoresInvertColors>
+      <ImageBackground source={photos.hero} resizeMode="cover" style={[styles.hero, { height: heroHeight, paddingTop: insets.top + 10 }]}
+        accessible accessibilityRole="image" accessibilityLabel={homeCopy.heroAlt[lang]} accessibilityIgnoresInvertColors>
         <LinearGradient colors={["rgba(8, 40, 60, 0.62)", "rgba(8, 40, 60, 0)"]} locations={[0, 0.42]} style={StyleSheet.absoluteFill} />
         <View style={styles.brand}>
           <Icon name="sail" size={22} color={colors.onPhoto} />
@@ -196,7 +196,7 @@ export default function Home() {
             {chevron}
           </Pressable>)}
         </View>
-        <Text style={styles.credit}>{homeCopy.sceneCaption[lang]}{paths.length ? `. ${homeCopy.photoCredit[lang]}` : ""}</Text>
+        <Text style={styles.credit}>{homeCopy.photoCredit[lang]}</Text>
       </View>
     </ScrollView>
     <View pointerEvents="none" style={[styles.statusStrip, { height: insets.top, opacity: overPaper ? 1 : 0 }]} />

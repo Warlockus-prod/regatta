@@ -13,7 +13,8 @@ import type { NativeSyntheticEvent, ViewProps } from 'react-native';
 type VoxAdsNative = {
   sdkName: string;
   sdkVersion: string;
-  showFullScreen(placeId: string, closeButtonDelay: number): Promise<void>;
+  /** `pageUrl` names the app in the request; null keeps the request without an address. */
+  showFullScreen(placeId: string, closeButtonDelay: number, pageUrl: string | null): Promise<void>;
 };
 
 export type VoxAdKind = 'banner' | 'video';

@@ -7,7 +7,8 @@ import { RequestPanel, statusFromFailure, type AdRequestState } from '../../src/
 import { ensurePrebidStarted, prebidConfigId, useAdSdk } from '../../src/ads/sdk';
 import { FakeParagraph } from '../../src/ads/FakeContent';
 import { useAdsText } from '../../src/ads/strings';
-import { placement } from '../../src/ads/vox-placements';
+import { fullScreenSteps, showFirstFullScreen } from '../../src/ads/full-screen';
+import { placement, type VoxPlacement } from '../../src/ads/vox-placements';
 import { Button, Card, Screen, Text } from '../../src/design-system/components';
 import { colors, spacing } from '../../src/design-system/tokens';
 
@@ -18,6 +19,7 @@ export default function AdsInterstitialScreen() {
   const text = useAdsText();
   const sdk = useAdSdk();
   const [state, setState] = useState<AdRequestState>({ status: 'idle' });
+  const [asked, setAsked] = useState<VoxPlacement>(INTERSTITIAL);
   const startedAt = useRef(0);
 
   const show = () => {
@@ -29,7 +31,12 @@ export default function AdsInterstitialScreen() {
     if (sdk === 'vox1') {
       if (!VoxAds) return setState({ status: 'error', detail: text.unavailable });
       setState({ status: 'loading' });
-      VoxAds.showFullScreen(INTERSTITIAL.placeId, 3).then(
+      const native = VoxAds;
+      showFirstFullScreen(
+        fullScreenSteps(),
+        (placeId, pageUrl) => native.showFullScreen(placeId, 3, pageUrl),
+        (step) => setAsked(step.placement),
+      ).then(
         () => setState({ status: 'loaded', ms: Date.now() - startedAt.current }),
         fail,
       );
@@ -54,7 +61,7 @@ export default function AdsInterstitialScreen() {
           <Button onPress={show} disabled={state.status === 'loading'}>{text.interstitial.next}</Button>
         </Card>
         <Text variant="caption" style={styles.explain}>{text.interstitial.explain}</Text>
-        <RequestPanel sdk={sdk} placement={INTERSTITIAL} state={state} text={text} />
+        <RequestPanel sdk={sdk} placement={asked} state={state} text={text} />
       </ScrollView>
     </Screen>
   );
