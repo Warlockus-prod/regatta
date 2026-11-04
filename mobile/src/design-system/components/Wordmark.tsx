@@ -1,4 +1,5 @@
 import { type StyleProp, type TextStyle } from 'react-native';
+import { UI_TERMS } from '../../../../src/lib/product/catalog';
 import { Text } from './Text';
 import { colors } from '../tokens';
 
@@ -22,7 +23,7 @@ const SIZE_PRESETS: Record<WordmarkSize, { fontSize: number; lineHeight: number 
 export function Wordmark({ size = 'm', style }: WordmarkProps) {
   return (
     <Text style={[{ color: colors.textPrimary, fontWeight: '700', letterSpacing: 0 }, SIZE_PRESETS[size], style]}>
-      Week to Regatta
+      {UI_TERMS.brand.en}
     </Text>
   );
 }

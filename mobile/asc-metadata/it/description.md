@@ -44,7 +44,7 @@ PATENTI E CERTIFICATI
 
 PRIVACY
 
-Niente account e nessun tracciamento tra app. I tuoi progressi restano sul dispositivo. L'app invia statistiche d'uso non collegate a te, e puoi disattivare le statistiche dell'app nelle Impostazioni. La pubblicità compare solo nella sezione Ads, alla fine delle Impostazioni, che mostra formati pubblicitari di VOX SDK 1 di Hybrid Adtech: non è personalizzata e non usa l'identificativo pubblicitario. Nel resto dell'app non c'è pubblicità.
+Niente account e nessun tracciamento tra app. I tuoi progressi restano sul dispositivo. L'app invia statistiche d'uso non collegate a te, e puoi disattivare le statistiche dell'app nelle Impostazioni. La pubblicità compare solo nella sezione Ads, all'inizio delle Impostazioni, che mostra formati pubblicitari di VOX SDK 1 di Hybrid Adtech: non è personalizzata e non usa l'identificativo pubblicitario. Nel resto dell'app non c'è pubblicità.
 
 LINGUE
 

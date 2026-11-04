@@ -63,7 +63,7 @@ Done for 1.7.1:
   `mobile/asc-metadata/PRIVACY_POLICY.md`, the store descriptions and
   promotional texts, the in-app privacy note in Settings, the Ads intro and
   the review notes `mobile/releases/review-notes-1.7.1.txt` describe the same.
-- The Settings entry stays visible to all users, as the last entry of Settings.
+- The Settings entry stays visible to all users, as the first entry of Settings.
 
 Still open (owner):
 

@@ -46,7 +46,7 @@
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
   1.7.0 (77) из `55a0c061` в продаже в App Store с 2026-11-02 и стоит в
   TestFlight Self (`docs/design/mobile/appstore-1.7.0-77-2026-11-02.md`).
-  Предыдущая публичная: 1.6.4 (48). Раздел рекламы (Настройки > Ads, последний
+  Предыдущая публичная: 1.6.4 (48). Раздел рекламы (Настройки > Ads, первый
   пункт, VOX SDK 1, неперсонализированная) идет в App Store с 1.7.1 (решение
   владельца 2026-11-03): prebuild и архив с `EXPO_PUBLIC_ADS_DEMO=1`, VOX SDK 2
   (Prebid) только локально с `VOX_PREBID=1` (`mobile/modules/vox-ads/README.md`).

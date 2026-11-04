@@ -44,7 +44,7 @@ LICENSE COURSES
 
 PRIVACY
 
-No account and no tracking across apps. Your progress stays on your device. The app sends usage statistics that are not linked to you, and you can turn off the app's analytics in Settings. Ads appear only in the Ads section at the end of Settings, which shows ad formats from VOX SDK 1 by Hybrid Adtech: they are not personalised and use no advertising identifier. The rest of the app has no ads.
+No account and no tracking across apps. Your progress stays on your device. The app sends usage statistics that are not linked to you, and you can turn off the app's analytics in Settings. Ads appear only in the Ads section at the top of Settings, which shows ad formats from VOX SDK 1 by Hybrid Adtech: they are not personalised and use no advertising identifier. The rest of the app has no ads.
 
 LANGUAGES
 
