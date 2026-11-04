@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import type { PerspectiveCamera } from "three";
 import type { OrbitControls } from "three-stdlib";
 import type { AdsCamera, AdsFov } from "../../lib/ads-preview";
 import { applySailingCameraPose, createSailingOrbitControls } from "../simulator-3d/orbit-controls";
@@ -44,10 +45,10 @@ export function AdsCameraRig({ view, fov, reset, command, onOrbit }: {
     lastCommand.current = command.seq;
     const position = rotateAdsCamera(camera.position, orbit.target, command.direction);
     const moved = position.distanceToSquared(camera.position) > 1e-10;
-    applySailingCameraPose(camera, orbit, { position, target: orbit.target.clone(), fov });
+    applySailingCameraPose(camera, orbit, { position, target: orbit.target.clone(), fov: (camera as PerspectiveCamera).fov });
     changed.current = true;
     report.current(moved ? "accepted" : "noop");
-  }, [camera, command, fov]);
+  }, [camera, command]);
   useFrame(() => controls.current?.update());
   return null;
 }

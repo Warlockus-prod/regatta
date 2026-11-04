@@ -2192,6 +2192,12 @@ Physical emission remains OFF. Shared replay uses its own native route/host, pre
 - `src/features/ads-lab/camera.test.ts` - declared lens/viewport fitting, directional geometry and seven-language copy coverage.
 - `src/lib/ads-copy.ts` - seven-language lab instructions/statuses; owner-requested Ads name and fixed test-card IDs remain technical labels.
 - `src/features/ads-lab/TestPlacements.tsx` - three local front-facing test cards with explicit texture disposal; no ad network/SDK.
+- `src/features/ads-lab/FloatingBoard.tsx` - floating in-game board: the creative as a texture, five samples a second of projection, angle and raycast occlusion, one count per creative.
+- `src/features/ads-lab/BoardMeter.tsx` - live viewability figures over the scene, with its own state so samples never re-render the Canvas.
+- `src/features/ads-lab/board-viewability.ts` - pure IAB/MRC in-game viewability: clipped screen share, axis angles, reasons, five samples in a row, board size.
+- `src/features/ads-lab/board-viewability.test.ts` - frame clipping, the 1.5% and 55 degree limits, occlusion, runs and pauses.
+- `src/lib/ads-board.ts` - parses the Hybrid getad answer and its Ad/Load frame into a board creative, HTTPS hybrid.ai only; the page and app message protocol.
+- `src/lib/ads-board.test.ts` - recorded answer shapes, foreign or HTML5 creatives refused, message validation.
 - `docs/design/mobile/ads-lab.md` - requested scope, actual evidence and SDK/release limits.
 
 `RegattaScene` accepts optional inspection content/camera composition; regular trainer callers retain their existing rig. Native offline sailing dispatch adds `/ads` without a public website route. `diagnostics` accepts only finite preview actions/tokens, never SDK payloads or ad-unit IDs. The 3D boards are still local test cards. Since 2026-10-30 the native app opens this lab as the In-game format of Settings -> Ads; the other formats (display, interstitial, rewarded, video) request real ads through VOX SDK 1, see `docs/design/mobile/ARCHITECTURE.md` section Ads.

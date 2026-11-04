@@ -193,15 +193,25 @@ test('the installed Ads preview uses real3D controls and local placements withou
   await expect(dock.getByRole('list')).toContainText(/orbit\s*·\s*accepted/);
   await dock.getByRole('button', { name: 'From the deck', exact: true }).click();
   await expect(dock.getByRole('button', { name: 'From the deck', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  // The board on the water is on from the start, the old cards on the yacht are off.
+  const floating = dock.getByRole('button', { name: 'Board on the water', exact: true });
+  await expect(floating).toHaveAttribute('aria-pressed', 'true');
+  await floating.click(); await expect(floating).toHaveAttribute('aria-pressed', 'false');
+  await expect(dock.getByRole('list')).toContainText(/hide.*floating-board/);
+  await floating.click(); await expect(floating).toHaveAttribute('aria-pressed', 'true');
   const bow = dock.getByRole('button', { name: 'Bow board', exact: true });
+  await expect(bow).toHaveAttribute('aria-pressed', 'false');
+  await bow.click(); await expect(bow).toHaveAttribute('aria-pressed', 'true');
+  await expect(dock.getByRole('list')).toContainText(/show.*bow-board/);
   await bow.click(); await expect(bow).toHaveAttribute('aria-pressed', 'false');
   await expect(dock.getByRole('list')).toContainText(/hide.*bow-board/);
-  await bow.click(); await expect(bow).toHaveAttribute('aria-pressed', 'true');
   await dock.getByRole('button', { name: 'Open water', exact: true }).click();
   await expect(dock.getByRole('button', { name: 'Open water', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await dock.getByRole('button', { name: 'Clear journal', exact: true }).click();
   await expect(dock.getByRole('list')).toHaveText('No actions yet');
-  await expect(dock.getByText('SDK not connected', { exact: true })).toBeVisible();
+  // Outside the app there is no feed: the page says so, offers no request and sends nothing.
+  await expect(dock.getByTestId('board-feed')).toContainText('No ad is requested outside the app');
+  await expect(dock.getByRole('button', { name: 'Request a new ad', exact: true })).toBeDisabled();
   expect(unexpected).toEqual([]);
 });
 

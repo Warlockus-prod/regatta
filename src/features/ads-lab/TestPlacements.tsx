@@ -2,15 +2,17 @@
 
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
-import { ADS_PLACEMENTS, type AdsPlacement } from "../../lib/ads-preview";
+import type { AdsPlacement } from "../../lib/ads-preview";
 
-const layout: Record<AdsPlacement, { position: [number, number, number]; yaw: number }> = {
+type TestCard = Exclude<AdsPlacement, "floating-board">;
+const TEST_CARDS: readonly TestCard[] = ["port-board", "bow-board", "stern-board"];
+const layout: Record<TestCard, { position: [number, number, number]; yaw: number }> = {
   "port-board": { position: [0, 4, -13], yaw: 0 },
   "bow-board": { position: [18, 4, 0], yaw: -Math.PI / 2 },
   "stern-board": { position: [-18, 4, 0], yaw: Math.PI / 2 },
 };
 
-function TestBoard({ placement }: { placement: AdsPlacement }) {
+function TestBoard({ placement }: { placement: TestCard }) {
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas"); canvas.width = 1024; canvas.height = 512;
     const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Local test texture unavailable");
@@ -33,5 +35,5 @@ function TestBoard({ placement }: { placement: AdsPlacement }) {
 
 /** Local, front-facing test cards only. No SDK texture or impression signal. */
 export function TestPlacements({ visible }: { visible: Readonly<Record<AdsPlacement, boolean>> }) {
-  return <>{ADS_PLACEMENTS.filter(id => visible[id]).map(id => <TestBoard key={id} placement={id} />)}</>;
+  return <>{TEST_CARDS.filter(id => visible[id]).map(id => <TestBoard key={id} placement={id} />)}</>;
 }

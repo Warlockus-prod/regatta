@@ -30,8 +30,10 @@ export const VOX_PLACEMENTS: readonly VoxPlacement[] = [
   { key: 'videoHorizontal', placeId: '6ae4bdf070e7b23ad0981d9c', kind: 'video', width: 16, height: 9 },
   { key: 'videoVertical', placeId: '6ae4bdf770e7b23ad0981d9e', kind: 'video', width: 9, height: 16 },
   { key: 'rewarded', placeId: '6ae4bdfd70e7b23ad0981da0', kind: 'video', width: 9, height: 16 },
-  // In-game boards (3D world): image creatives only; not wired to the scene yet.
+  // In-game boards (3D world): static image creatives only, fed by board-feed.ts.
   { key: 'inGame970x250', placeId: '6ae4bdcb810d986308d66834', kind: 'banner', width: 970, height: 250 },
+  // The board's own shape (VOX has no 2:1): readable on an upright phone. Created 2026-11-04.
+  { key: 'inGameBoard640x360', placeId: '6aea913270e7b28514d8f0c6', kind: 'banner', width: 640, height: 360 },
 ];
 
 export function placement(key: string): VoxPlacement {

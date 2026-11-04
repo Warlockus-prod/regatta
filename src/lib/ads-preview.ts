@@ -1,7 +1,7 @@
 export const ADS_SCENES = ["gocek", "open"] as const;
-export const ADS_CAMERAS = ["whole", "deck", "stern", "high"] as const;
+export const ADS_CAMERAS = ["race", "whole", "deck", "stern", "high"] as const;
 export const ADS_FOVS = [35, 60, 90] as const;
-export const ADS_PLACEMENTS = ["port-board", "bow-board", "stern-board"] as const;
+export const ADS_PLACEMENTS = ["floating-board", "port-board", "bow-board", "stern-board"] as const;
 export type AdsScene = typeof ADS_SCENES[number];
 export type AdsCamera = typeof ADS_CAMERAS[number];
 export type AdsPlacement = typeof ADS_PLACEMENTS[number];
@@ -10,7 +10,7 @@ export type AdsPreviewAction = "open" | "scene" | "camera" | "reset" | "orbit" |
 export interface AdsPreviewEvent { readonly seq: number; readonly source: "preview"; readonly action: AdsPreviewAction; readonly outcome: "accepted" | "noop"; readonly scene: AdsScene; readonly camera: AdsCamera; readonly fov: AdsFov; readonly placement?: AdsPlacement }
 export const ADS_PREVIEW_LIMIT = 40;
 
-/** Local preview operations only. There is no SDK/impression event conversion. */
+/** Local preview operations only. The board's counted view is measured apart, in board-viewability.ts. */
 export function appendAdsPreview(events: readonly AdsPreviewEvent[], value: Omit<AdsPreviewEvent, "seq" | "source">): readonly AdsPreviewEvent[] {
   if (!value || typeof value !== "object" || Array.isArray(value)
     || Object.keys(value).some(key => !["action", "outcome", "scene", "camera", "fov", "placement"].includes(key))

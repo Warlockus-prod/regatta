@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "d0ba33755f19",
-  "sha256": "2182b26abe30d5640ca00673a9bd8d1ec9c46905a1e4691869cb242653569c8d",
-  "bytes": 7019760,
+  "version": "63a65d9b84e5",
+  "sha256": "91c517b8ada2f84d9b0694299365d6d6dd93af6980641d0976bcc5e7c04c0d11",
+  "bytes": 7037851,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -692,7 +692,10 @@
     "src/features/ads-lab/AdsCameraRig.tsx",
     "src/features/ads-lab/AdsLab.module.css",
     "src/features/ads-lab/AdsLab.tsx",
+    "src/features/ads-lab/BoardMeter.tsx",
+    "src/features/ads-lab/FloatingBoard.tsx",
     "src/features/ads-lab/TestPlacements.tsx",
+    "src/features/ads-lab/board-viewability.ts",
     "src/features/ads-lab/camera.ts",
     "src/features/manoeuvres/Manoeuvres.module.css",
     "src/features/manoeuvres/ManoeuvresApp.tsx",
@@ -881,6 +884,7 @@
     "src/features/trainer-controls/sound-copy.ts",
     "src/features/trainer-controls/sound.ts",
     "src/features/venues/useVenue.ts",
+    "src/lib/ads-board.ts",
     "src/lib/ads-copy.ts",
     "src/lib/ads-preview.ts",
     "src/lib/analytics-events.ts",
@@ -1494,28 +1498,43 @@
     },
     {
       "path": "src/features/ads-lab/AdsCameraRig.tsx",
-      "bytes": 3085,
-      "sha256": "0e10e186ad62898574681fd524305e3c3b54db6793b91a906984c3a9a0eae357"
+      "bytes": 3163,
+      "sha256": "d207170fec654536b7a92a623b16c834e3be53add18fa447b962c6362ec6b8e3"
     },
     {
       "path": "src/features/ads-lab/AdsLab.module.css",
-      "bytes": 2468,
-      "sha256": "3391a7a48ded4a95c72a6ab98e8738380ef93f2f5aee95a45db60ca759d5cf9d"
+      "bytes": 3392,
+      "sha256": "cbe3c0707b3dbe8ee80e2dbea22d9b7af078b473b78cb2fb88e86fbe0ca27687"
     },
     {
       "path": "src/features/ads-lab/AdsLab.tsx",
-      "bytes": 6206,
-      "sha256": "3276f3120fe1d63b5c2df7f90b815166fa83ba1c799b6dccbac4f38da0b66213"
+      "bytes": 9641,
+      "sha256": "cc083503979db724930df2082278831024de6bc8049eccbbc5981822661bcff8"
+    },
+    {
+      "path": "src/features/ads-lab/BoardMeter.tsx",
+      "bytes": 2139,
+      "sha256": "d581df20cad79b4562b9d7fcbf3780fd94986781b2a361bac0b1cb562d29a0c0"
+    },
+    {
+      "path": "src/features/ads-lab/FloatingBoard.tsx",
+      "bytes": 9067,
+      "sha256": "d75031ff816190eefc2f6646d1455fca27bc26c66d5b16c58848e6f8a0f4ec6d"
     },
     {
       "path": "src/features/ads-lab/TestPlacements.tsx",
-      "bytes": 2226,
-      "sha256": "97ffcf4cab35fd9869a539cad340e5cbede4557ec86e83b761cfe7ce7163db95"
+      "bytes": 2339,
+      "sha256": "11c5a3a764876c83c29c70f48f32e21925112c85108c5e5cd72686f0d6f0360b"
+    },
+    {
+      "path": "src/features/ads-lab/board-viewability.ts",
+      "bytes": 5063,
+      "sha256": "1687a567d521c3473471b6a3b5d806c62a7a8e8a61184c526f49aa86368532fb"
     },
     {
       "path": "src/features/ads-lab/camera.ts",
-      "bytes": 1623,
-      "sha256": "6e9dcdac6ba953571c2afcc8ceab0d822a955c55ff353e13c7f75238a745d9f4"
+      "bytes": 2140,
+      "sha256": "c8cf4653e31fb6d4cbdada11706287c7c1b9fe6d6f6018e99cd8dcc1ba794f14"
     },
     {
       "path": "src/features/manoeuvres/Manoeuvres.module.css",
@@ -2453,14 +2472,19 @@
       "sha256": "8c8d19ba35bebd03b6d33a3c1d7462bca032ca5d04815b3047d62568899775dc"
     },
     {
+      "path": "src/lib/ads-board.ts",
+      "bytes": 4879,
+      "sha256": "7cf9991ddf2010421a3a3054da69d15c9ba42e8a6f8a06ae8157a3fbdd9ff544"
+    },
+    {
       "path": "src/lib/ads-copy.ts",
-      "bytes": 8012,
-      "sha256": "10da741239b88fc3899f94afd85462e42d18150e21389ec5133ccf604325a596"
+      "bytes": 14077,
+      "sha256": "47110ae287173d861dc1c84d9d57a036d9e3f4070abe98f46d5f07942a603c2b"
     },
     {
       "path": "src/lib/ads-preview.ts",
-      "bytes": 2241,
-      "sha256": "ea6dbc73e8c9cbea4d2777bc83036b5f0ae187920f3f4d0998f180c725d8256f"
+      "bytes": 2291,
+      "sha256": "07f64571f0074dd17e54e91600c2e2582c0910d5f03741338fe6f903b786d78d"
     },
     {
       "path": "src/lib/analytics-events.ts",

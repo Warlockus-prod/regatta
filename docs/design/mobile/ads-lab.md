@@ -104,8 +104,9 @@ What changed against the boundary above:
   callback. The app plays a full-screen VAST video and grants the reward after
   15 s of a loaded ad; closing earlier forfeits it.
 - In-game boards are not fed by SDK 1: it returns HTML creatives, a WebGL
-  board needs an image. That needs an image or native response (Prebid
-  native, or the `imageUrl` parameter of the Prebid Server `vox` adapter).
+  board needs an image. That needs an image response, see "In-game boards:
+  measured" below. The `imageUrl` parameter of the Prebid Server `vox` adapter
+  does not provide one: it is the picture a banner is laid over (InImage).
 
 Measured 2026-10-27 and 2026-10-30: all 12 sample place IDs answer HTTP 204
 (no campaign), from the simulator and from curl on the Mac. The slots then
@@ -211,3 +212,65 @@ campaigns in the same Hybrid cabinet (bid 99, no placement restriction); each
 app impression added exactly one to their daily count. The place IDs in the
 app match the `App · WTR ·` slots in the VOX panel. The phone build still has
 only the 3D lab under Ads; the format screens exist only in this branch.
+
+## In-game boards: measured (2026-11-04)
+
+Live requests from the Mac, no tracker fired: `getad` in-game 970x250 8/8,
+300x250 8/8, 320x50 7/8; OpenRTB 970x250 and 300x250 16/16 at 5 PLN. The sampled
+advertiser domain is `hybridadtech.com`, so fill says nothing about paid demand.
+
+- The answer is HTML with an iframe, and a native request to the OpenRTB endpoint
+  returns the same HTML (the `vox` adapter declares only banner and video). But
+  the iframe (`dsa-eu.hybrid.ai/Ad/Load`) holds a plain `<img id="tx_img">` on
+  `content.hybrid.ai`, and both answer with `Access-Control-Allow-Origin: *`. A
+  static creative can go on a board; an HTML5 one cannot and counts as no fill.
+- The markup carries hidden trackers (`SaveImpression2`, `SaveView2`, `seance/View`),
+  so a creative rendered off screen would count as shown. The board never renders
+  that HTML. The app fires them itself when the view is counted (`getad` also has
+  `actionUrls` separately).
+- Implemented: `mobile/src/ads/board-feed.ts` asks `getad` (same GET and `gdpr=1`
+  as SDK 1, no CORS in React Native), reads the frame, downloads the image and
+  hands it to the page as data (the page CSP allows no remote image);
+  `src/lib/ads-board.ts` parses the answers and keeps every call on HTTPS `hybrid.ai`;
+  `src/features/ads-lab/FloatingBoard.tsx` and `board-viewability.ts` measure.
+- This reads Hybrid's internal markup, not a contract: a change on their side
+  gives no fill, never a wrong count. Worth asking Hybrid for an image field.
+- Viewability (IAB/MRC In-Game Guidelines, August 2022): visible part at least
+  1.5% of the screen, angle at most 55 degrees per axis (recommended), samples
+  every 200 ms, five in a row for display.
+- Size, computed for 390x844, race camera 58 degrees, scene 633 px high, facing
+  the camera, no occlusion. The camera stands 68-86 m from the boat. An 8x4 m test
+  board from 80 m is 57x29 px, 0.50%, and fails; 16x8 m is 114x57 px, 1.98%; 24x12 m
+  is 171x86 px, 4.46%. So 2:1, larger than the 13 m yacht, a logo and a few words.
+  Not measured on an iPhone.
+
+Console, 2026-11-04 (the owner's Chrome session):
+- VOX slot `App · WTR · In-game board 640x360`, `6aea913270e7b28514d8f0c6`, Pending
+  moderation (VOX sizes have no 2:1; 640x360 is the nearest and reads on an upright
+  phone). The app asks it first and falls back to `inGame970x250` while it has no ad.
+- Hybrid campaign `TEST APP WTR in-game board 640x360`, advertiser TESTY POLSKA, bid
+  120, 10 PLN a day, 20 PLN in all, until 2026-11-07, images 640x360 and 970x250,
+  whitelist only `weektoregatta.com`.
+- `app-ads.txt`: the panel's Ads.txt button gives the line, now in `public/app-ads.txt`
+  (live only with a site update).
+
+Why app campaigns never won before, both measured side by side:
+- Domain: a request without `browser` is recorded on the fallback page
+  `https://icoffio.com/`, `PageSource 5` (nothing in the SDK or the app names it). With
+  `browser.url` it is `weektoregatta.com`, `PageSource 1`. The board feed sends it. VOX
+  SDK 1 formats still do not (`VoxAdView.swift`, `VoxAdsModule.swift`).
+- Consent: the campaign copied from an old template had `hasGoogleConsent: true`, and
+  requests without a consent string did not match it: 204 for 50 minutes. Set to false,
+  it won within minutes. Check this flag on any new campaign.
+
+Checked in the app (iOS 27 simulator): our campaign's banner on the board, 1.85% of the
+screen, view counted once. `vox_ssp.DistributedStatistics`: `inGame970x250` with Domain
+`weektoregatta.com`, 1 impression, the same as the counter; the earlier Hybrid promo
+test shows 1 on `icoffio.com`. The DSP table had not shown the impression yet at the time.
+
+The 1631 impressions and 8.16 PLN on `Banner 300x250` (2026-10-30 to 11-01) are test
+traffic: nearly all one visitor and one IP, about one every two minutes, so a test
+device with a banner left open on auto-refresh. Not revenue, not audience.
+
+Open items and order: `docs/BACKLOG.md` package 30. Owner brief with the SDK
+history and Prebid Server: shared separately, not in the repository.
