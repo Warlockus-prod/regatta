@@ -83,6 +83,8 @@ export const RegattaScene = memo(function RegattaScene({
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={errorLabel} retryLabel={retryLabel} onError={onError}>
     <SceneStartup label={loadingLabel} onReady={onReady}>{ready =>
     <Canvas
+      role="img"
+      aria-label={sceneLabel}
       fallback={<span>{sceneLabel}</span>}
       dpr={[1, maxDpr]}
       camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}

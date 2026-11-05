@@ -68,7 +68,7 @@ describe("cyan only on actions in the race screens (M1-7 leftovers)", () => {
 
   it("keeps the nickname prompt a neutral panel with a plain heading; Save stays the cyan action", () => {
     const prompt = block(results({ saveState: "prompting" }), "race-results-nickname-prompt");
-    expect(prompt).toContain("Save your result to the leaderboard?");
+    expect(prompt).toContain("You made the leaderboard!");
     expect(withoutActions(prompt)).not.toMatch(CYAN);
     expect(prompt).toMatch(/style="background:var\(--bg-secondary\);border:1px solid var\(--border-subtle\)"/);
     expect(prompt).toMatch(/<button[^>]*style="background:var\(--accent-cyan\)[^"]*"[^>]*>Save</);

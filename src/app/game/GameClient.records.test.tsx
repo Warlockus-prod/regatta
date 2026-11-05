@@ -87,6 +87,52 @@ async function finishAndSave(profile: "short" | null) {
   return bodies.find(b => b.url === "/api/race-result")?.body ?? null;
 }
 
+describe("the nickname is asked only when the result is on a visible board (R-12)", () => {
+  async function finishWithoutNickname(boardRows: { isMe: boolean }[]) {
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: { body?: string }) => {
+      bodies.push({ url, body: JSON.parse(init?.body ?? "{}") });
+      return { ok: true, json: async () => (url.startsWith("/api/leaderboard") ? { rows: boardRows } : { ok: true, nickname: "Ola" }) };
+    }));
+    render();
+    const refs = capture.loop!.refs;
+    refs.physicalRef.current = null;
+    refs.raceContextRef!.current = LEGACY_RACE_CONTEXT;
+    refs.courseRef.current = makeCourse(null);
+    refs.boatsRef.current = [{ id: "player", name: "You", color: "#fff", pos: { x: 400, y: 900 }, heading: 0, speed: 0, isPlayer: true,
+      lapDone: 2, finishTime: 301.5, speedMul: 1, started: true } as Boat];
+    capture.results!.saveResult();
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  const rows = (count: number, mine: boolean) => Array.from({ length: count }, (_, index) => ({ isMe: mine && index === 0 }));
+
+  it("saves the result at once under the neutral name, with no call to /api/player", async () => {
+    await finishWithoutNickname(rows(3, true));
+    expect(bodies.find(b => b.url === "/api/race-result")?.body).toMatchObject({ nicknameFallback: "Player", finishTimeSec: 301.5 });
+    expect(bodies.some(b => b.url === "/api/player")).toBe(false);
+  });
+
+  it("looks up the board this result landed on, by its class, mode, level and wind", async () => {
+    await finishWithoutNickname(rows(3, true));
+    const board = bodies.find(b => b.url.startsWith("/api/leaderboard"))?.url ?? "";
+    expect(board).toContain("raceClass=");
+    expect(board).toContain("raceMode=simple");
+  });
+
+  it("a name given in the prompt only names the saved result, it does not save the race twice", async () => {
+    await finishWithoutNickname(rows(10, true));
+    capture.results!.saveResult("Ola");
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(bodies.filter(b => b.url === "/api/race-result")).toHaveLength(1);
+    expect(bodies.filter(b => b.url === "/api/player").map(b => b.body)).toEqual([{ nickname: "Ola" }]);
+  });
+
+  it("does not look up a board when a nickname is known", async () => {
+    render();
+    await finishAndSave(null);
+    expect(bodies.some(b => b.url.startsWith("/api/leaderboard"))).toBe(false);
+  });
+});
+
 describe("the metric trial's records with the emission flag as shipped (false)", () => {
   it("shows no medal course, no skill bars and no practice return, and saves nothing", async () => {
     seededTrial();

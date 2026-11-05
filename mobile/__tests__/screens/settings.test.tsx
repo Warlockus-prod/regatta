@@ -73,6 +73,15 @@ describe('Settings screen', () => {
     fireEvent.press(button);
     expect(mockPush).toHaveBeenCalledWith('/ads');
   });
+  it('keeps Ads at the very bottom of Settings, below Data (owner 2026-11-05)', async () => {
+    mockAdsDemo = true;
+    const view = renderWithProviders(<Settings />);
+    await waitFor(() => view.getByRole('button', { name: 'Ads' }));
+    const tree = JSON.stringify(view.toJSON());
+    expect(tree.indexOf('"Ads"')).toBeGreaterThan(tree.indexOf('Polski'));
+    expect(tree.indexOf('"Ads"')).toBeGreaterThan(tree.indexOf('Clear all data'));
+    expect(tree.indexOf('"Ads"')).toBeLessThan(tree.lastIndexOf('Week to Regatta'));
+  });
   it('has no Ads entry in a store build (EXPO_PUBLIC_ADS_DEMO unset)', async () => {
     mockAdsDemo = false;
     const view = renderWithProviders(<Settings />);

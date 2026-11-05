@@ -44,7 +44,7 @@ TITULACIONES
 
 PRIVACIDAD
 
-Sin cuenta y sin rastreo entre apps. Tu progreso se queda en tu dispositivo. La app envía estadísticas de uso no vinculadas a ti, y puedes desactivar la analítica de la app en Ajustes. Solo hay anuncios en la sección Ads, al principio de Ajustes, que muestra formatos de anuncios de VOX SDK 1 de Hybrid Adtech: no son personalizados y no usan el identificador de publicidad. En el resto de la app no hay anuncios.
+Sin cuenta y sin rastreo entre apps. Tu progreso se queda en tu dispositivo. La app envía estadísticas de uso no vinculadas a ti, y puedes desactivar la analítica de la app en Ajustes. Solo hay anuncios en la sección Ads, al final de Ajustes, que muestra formatos de anuncios de VOX SDK 1 de Hybrid Adtech: no son personalizados y no usan el identificador de publicidad. En el resto de la app no hay anuncios.
 
 IDIOMAS
 

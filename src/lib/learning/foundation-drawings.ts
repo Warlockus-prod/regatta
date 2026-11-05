@@ -119,6 +119,44 @@ export interface RenderOptions {
   boom?: number;
 }
 
+export interface AngleTaskScene {
+  /** Heading off the wind in degrees: 0 head to wind, positive clockwise. */
+  angle: number;
+  boom: number;
+  /** The mark to reach, or null when the task is finished. */
+  target: number | null;
+  /** Half-angle of the no-go wedge, from the shared constant. */
+  noGo: number;
+  /** Shown number, 0 to 180. */
+  shownAngle: number;
+  windLabel: string;
+}
+
+/** One boat, one handle: the mini task of a lesson, wind always from the top. */
+export function renderAngleTask(scene: AngleTaskScene, theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const cx = 450, cy = 290, reach = 205;
+  const onCircle = (deg: number, r: number): [number, number] => [
+    fmt(cx + Math.sin((deg * Math.PI) / 180) * r),
+    fmt(cy - Math.cos((deg * Math.PI) / 180) * r),
+  ];
+  const [lx, ly] = onCircle(-scene.noGo, reach);
+  const [rx, ry] = onCircle(scene.noGo, reach);
+  const [hx, hy] = onCircle(scene.angle, reach);
+  const d =
+    path(`M${cx} ${cy}L${lx} ${ly}A${reach} ${reach} 0 0 1 ${rx} ${ry}Z`, p.faint, 2, '', p.faint) +
+    path(`M${cx} ${cy}L${hx} ${hy}`, p.muted, 2, '7 7') +
+    (scene.target === null ? '' : (() => {
+      const [tx, ty] = onCircle(scene.target, reach);
+      return circle(tx, ty, 17, p.bg, p.blue, 5);
+    })()) +
+    topBoat(cx, cy, scene.angle, p, 1.2, scene.boom) +
+    arrow(135, 120, 135, 225, p.blue, 6) +
+    label(135, 100, scene.windLabel, p.blue, 28) +
+    label(765, 120, `${scene.shownAngle}°`, p.ink, 56);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SCENE_WIDTH} ${SCENE_HEIGHT}"><rect width="${SCENE_WIDTH}" height="${SCENE_HEIGHT}" fill="${p.bg}"/>${d}</svg>`;
+}
+
 export function renderScene(id: SceneId, state: SceneState, theme: GraphicTheme = 'paper', options: RenderOptions = {}): string {
   const p = palettes[theme];
   const active = (i: number) => (i === state ? p.blue : p.muted);

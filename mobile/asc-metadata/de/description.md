@@ -44,7 +44,7 @@ SCHEINE UND ZEUGNISSE
 
 DATENSCHUTZ
 
-Kein Konto und kein app-übergreifendes Tracking. Dein Fortschritt bleibt auf deinem Gerät. Die App sendet Nutzungsstatistiken, die nicht mit dir verknüpft sind, und die Analyse der App kannst du in den Einstellungen abschalten. Werbung gibt es nur im Bereich Ads am Anfang der Einstellungen, der Werbeformate von VOX SDK 1 von Hybrid Adtech zeigt: Sie ist nicht personalisiert und nutzt keine Werbe-ID. Der Rest der App ist werbefrei.
+Kein Konto und kein app-übergreifendes Tracking. Dein Fortschritt bleibt auf deinem Gerät. Die App sendet Nutzungsstatistiken, die nicht mit dir verknüpft sind, und die Analyse der App kannst du in den Einstellungen abschalten. Werbung gibt es nur im Bereich Ads am Ende der Einstellungen, der Werbeformate von VOX SDK 1 von Hybrid Adtech zeigt: Sie ist nicht personalisiert und nutzt keine Werbe-ID. Der Rest der App ist werbefrei.
 
 SPRACHEN
 

@@ -152,7 +152,7 @@ export function GameMenu({
         </div>
       )}
       <div className="mb-5">
-        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
+        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1 outline-none">
           {raceCopy.race}
         </h1>
         <p className="text-base text-[var(--text-secondary)]">

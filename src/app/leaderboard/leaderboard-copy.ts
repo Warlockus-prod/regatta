@@ -3,10 +3,12 @@
 import { useI18n } from "@/lib/i18n";
 import { RACE_MODE_LABELS } from "@/app/game/race-mode-labels";
 import { QUICK_ONLINE_RACE } from "@/data/quick-online-race";
+import { LEADERBOARD_WAITING_COPY } from "@/data/leaderboard-waiting-copy";
 
 export function useLeaderboardCopy() {
   const { tl } = useI18n();
   const place = tl({ ru: "{n} место", en: "Place {n}", pl: "Miejsce {n}", es: "Puesto {n}", fr: "Place {n}", de: "Platz {n}", it: "Posizione {n}" });
+  const waitingCount = tl(LEADERBOARD_WAITING_COPY.count);
   return {
     title: tl({ ru: "Таблица лучших", en: "Leaderboard", pl: "Ranking", es: "Clasificación", fr: "Classement", de: "Bestenliste", it: "Classifica" }),
     intro: tl({ ru: "Лучшее время каждой сессии. Простой и Pro в отдельных таблицах.", en: "Best time per session. Simple and Pro have separate tables.", pl: "Najlepszy czas z każdej sesji. Prosty i Pro mają osobne tabele.", es: "El mejor tiempo de cada sesión. Sencillo y Pro tienen tablas separadas.", fr: "Meilleur temps par session. Simple et Pro ont des tableaux séparés.", de: "Beste Zeit pro Sitzung. Einfach und Pro haben getrennte Tabellen.", it: "Miglior tempo per sessione. Semplice e Pro hanno tabelle separate." }),
@@ -45,6 +47,12 @@ export function useLeaderboardCopy() {
     score: tl({ ru: "оценка", en: "score", pl: "ocena", es: "puntuación", fr: "note", de: "Bewertung", it: "punteggio" }),
     penalties: tl({ ru: "штрафы", en: "penalties", pl: "kary", es: "penalizaciones", fr: "pénalités", de: "Strafen", it: "penalità" }),
     place: (n: number) => place.replace("{n}", String(n)),
+    waitingTitle: tl(LEADERBOARD_WAITING_COPY.title),
+    waitingCount: (n: number) => waitingCount.replace("{n}", String(n)),
+    yourBest: tl(LEADERBOARD_WAITING_COPY.yourBest),
+    noBest: tl(LEADERBOARD_WAITING_COPY.noBest),
+    ghost: tl(LEADERBOARD_WAITING_COPY.ghost),
+    anonymous: tl(LEADERBOARD_WAITING_COPY.anonymous),
   };
 }
 export type LeaderboardCopy = ReturnType<typeof useLeaderboardCopy>;

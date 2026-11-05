@@ -20,12 +20,12 @@ test("menu searches every section and opens the requested screen directly", asyn
   const view = renderWithProviders(<Menu />);
   await waitFor(() => view.getByText("My progress"));
   fireEvent.changeText(view.getByLabelText("Search sections"), "radio");
-  expect(view.queryByText("3D Boat")).toBeNull();
+  expect(view.queryByText("Inspect the sail")).toBeNull();
   fireEvent.press(view.getByText("SRC radio"));
   expect(mockPush).toHaveBeenCalledWith("/kursy/radio?view=course");
   fireEvent.press(view.getByText("Clear search"));
   await waitFor(() => view.getByText("My progress"));
-  fireEvent.press(view.getByText("3D Boat"));
+  fireEvent.press(view.getByText("Inspect the sail"));
   expect(mockPush).toHaveBeenCalledWith("/simulator2");
 });
 
@@ -34,7 +34,7 @@ test("menu holds the reference material and settings, each destination once", as
   await waitFor(() => view.getByText("My progress"));
   expect(view.getByText("Library")).toBeTruthy();
   expect(view.getByText("App")).toBeTruthy();
-  for (const title of ["Sailing glossary", "Yacht anatomy", "Settings", "3D Boat", "SRC radio"]) {
+  for (const title of ["Sailing glossary", "Yacht anatomy", "Settings", "Inspect the sail", "SRC radio"]) {
     expect(view.getAllByText(title)).toHaveLength(1);
   }
   expect(view.queryByText("Main sections")).toBeNull();

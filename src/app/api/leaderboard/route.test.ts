@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => {
       topByRaceClass: vi.fn<(...args: unknown[]) => ReturnType<typeof classifiedRows> | null>(() => classifiedRows()),
       topArchive: vi.fn<(...args: unknown[]) => ReturnType<typeof rows> | null>(() => rows()),
       topOnline: vi.fn<(...args: unknown[]) => ReturnType<typeof rows> | null>(() => rows()),
+      getPlayer: vi.fn<(sid: string) => { nickname: string } | null>(() => null),
     },
   };
 });
@@ -45,6 +46,21 @@ beforeEach(() => {
   mocks.db.topByRaceClass.mockReset().mockImplementation(() => mocks.classifiedRows());
   mocks.db.topArchive.mockReset().mockImplementation(() => mocks.rows());
   mocks.db.topOnline.mockReset().mockImplementation(() => mocks.rows());
+});
+
+describe("GET /api/leaderboard - a result saved before its player chose a name (R-12)", () => {
+  it("shows the session's chosen name, leaves an unnamed result and a chosen name as they are", async () => {
+    mocks.db.topOnline.mockImplementationOnce(() => [
+      { ...mocks.rows()[0], nickname: "Player", sid: "named-later" },
+      { ...mocks.rows()[0], nickname: "Player", sid: "never-named" },
+      { ...mocks.rows()[0], nickname: "Ola", sid: "renamed-after" },
+    ]);
+    mocks.db.getPlayer.mockImplementation((sid: string) => (sid === "named-later" ? { nickname: "Jan" } : sid === "renamed-after" ? { nickname: "Nowa" } : null));
+    const body = await (await get("?board=online&difficulty=easy&wind=light")).json();
+    expect(body.rows.map((row: { nickname: string }) => row.nickname)).toEqual(["Jan", "Player", "Ola"]);
+    expect(JSON.stringify(body)).not.toContain("named-later");
+    mocks.db.getPlayer.mockReset().mockImplementation(() => null);
+  });
 });
 
 describe("GET /api/leaderboard - exact classified boards", () => {

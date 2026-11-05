@@ -25,6 +25,9 @@ export function createTapAction(input: { blocker: CreateBlocker; connecting: boo
   return input.blocker ? "ignore" : "create";
 }
 
+/** Bots a new lobby opens with (owner R-12); the host removes or adds them, guests still fit. */
+export const DEFAULT_LOBBY_BOTS = 3;
+
 const SAILOR: Record<Language, string> = {
   ru: "Моряк", en: "Sailor", pl: "Żeglarz", es: "Marinero", fr: "Marin", de: "Segler", it: "Velista",
 };

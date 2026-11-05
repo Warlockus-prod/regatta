@@ -407,19 +407,17 @@ export function RaceResults({
               {nativeBestSave.status === "error" && nativeBestSave.retryable && <button type="button" className="ml-2 underline" aria-label={copy.retryPersonalBest} onClick={() => requestNativeBest(nativeBestSave.id, "retry")}>{copy.retry}</button>}
             </div>}
 
-            {/* Nickname prompt: first finish without a stored nickname. The
-                nickname is stored server-side per session via POST /api/player
-                (same flow /multiplayer uses), API validates 2-20 chars.
-                Non-blocking: "skip" dismisses without saving. */}
+            {/* Nickname prompt (R-12): the result is saved and on a visible
+                board. The nickname is stored server-side per session via POST
+                /api/player, API validates 2-20 chars. Non-blocking: "skip"
+                leaves the result in the table under the neutral word. */}
             {!nativeRace && saveState === 'prompting' && (
               <div className="mb-4 p-3 rounded-lg" data-testid="race-results-nickname-prompt" style={NEUTRAL_PANEL}>
                 <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
-                  {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisać wynik w rankingu?',
-                    { es: '¿Guardar tu resultado en la clasificación?', fr: 'Enregistrer ton résultat au classement ?', de: 'Ergebnis in die Bestenliste eintragen?', it: 'Salvare il risultato in classifica?' })}
+                  {tl({ ru: 'Ты попал в таблицу лучших!', en: 'You made the leaderboard!', pl: 'Jesteś w rankingu!', es: '¡Has entrado en la clasificación!', fr: 'Tu entres au classement !', de: 'Du bist in der Bestenliste!', it: 'Sei entrato in classifica!' })}
                 </div>
                 <div className="text-xs text-[var(--text-muted)] mb-2">
-                  {tp('Введи ник (2-20 символов) - он будет виден в общем рейтинге.', 'Enter a nickname (2-20 chars) - it will show on the public leaderboard.', 'Podaj nick (2-20 znaków) - będzie widoczny w publicznym rankingu.',
-                    { es: 'Escribe un apodo (2-20 caracteres) - aparecerá en la clasificación pública.', fr: 'Entre un pseudo (2-20 caractères) - il sera visible dans le classement public.', de: 'Gib einen Nickname ein (2-20 Zeichen) - er erscheint in der öffentlichen Bestenliste.', it: 'Inserisci un nickname (2-20 caratteri) - sarà visibile nella classifica pubblica.' })}
+                  {tl({ ru: 'Введи ник (2-20 символов), его увидят все. Без ника в таблице будет «Моряк».', en: 'Enter a nickname (2-20 chars), everyone will see it. Without one the table shows "Sailor".', pl: 'Podaj nick (2-20 znaków), zobaczą go wszyscy. Bez nicku w tabeli będzie "Żeglarz".', es: 'Escribe un apodo (2-20 caracteres), todos lo verán. Sin él, la tabla mostrará "Marinero".', fr: 'Entre un pseudo (2-20 caractères), tout le monde le verra. Sans pseudo, le tableau affichera "Marin".', de: 'Gib einen Nickname ein (2-20 Zeichen), alle sehen ihn. Ohne ihn steht in der Tabelle "Segler".', it: 'Inserisci un nickname (2-20 caratteri), lo vedranno tutti. Senza, in tabella comparirà "Velista".' })}
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -447,7 +445,7 @@ export function RaceResults({
                   <div className="text-xs mt-2" style={{ color: 'var(--danger)' }}>{saveError}</div>
                 )}
                 <button
-                  onClick={() => setSaveState('idle')}
+                  onClick={() => setSaveState('saved')}
                   className="mt-2 text-xs text-[var(--text-muted)] underline hover:text-[var(--text-secondary)] transition"
                 >
                   {tp('Пропустить', 'Skip', 'Pomiń',
@@ -466,8 +464,7 @@ export function RaceResults({
             {!nativeRace && saveState === 'saved' && (
               <div className="mb-4 flex items-center gap-1 text-xs" style={{ color: 'var(--success)' }} data-testid="race-results-saved">
                 <CheckIcon className="shrink-0" />
-                <span>{tp('Результат сохранён в лидерборд', 'Result saved to the leaderboard', 'Wynik zapisany w rankingu',
-                  { es: 'Resultado guardado en la clasificación', fr: 'Résultat enregistré au classement', de: 'Ergebnis in der Bestenliste gespeichert', it: 'Risultato salvato in classifica' })}</span>
+                <span>{tl({ ru: 'Результат сохранен', en: 'Result saved', pl: 'Wynik zapisany', es: 'Resultado guardado', fr: 'Résultat enregistré', de: 'Ergebnis gespeichert', it: 'Risultato salvato' })}</span>
               </div>
             )}
             {!nativeRace && saveState === 'error' && saveError && (

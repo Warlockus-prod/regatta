@@ -71,6 +71,7 @@ import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { createPendingNativeBestCommands, nativeBestFailure } from "@/lib/race-best-command";
 import { raceClassId, raceContextFor, raceRecordsEnabled, type PhysicalRaceProfile, type RaceContext } from "@/lib/race-context";
+import { ANONYMOUS_NICKNAME, entersVisibleTable, resultBoardUrl } from "@/lib/leaderboard-visibility";
 import { physicalFleetSpawns } from "@/lib/race-courses";
 import { legacyRaceSpawns, raceBotSpeedMul, type RaceSpawn } from "@/lib/race-spawn";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
@@ -383,6 +384,8 @@ export default function GamePage() {
   const [saveState, setSaveState] = useState<LeaderboardSaveState>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
   const saveAttemptedRef = useRef(false);
+  // The race whose result is already stored: the nickname prompt then only names it.
+  const savedResultRaceRef = useRef<string | null>(null);
 
   // M4-3: how the replay opens. From the results it plays on open, from a
   // judge item or a coach mistake at that moment (5 s before it); the native
@@ -508,9 +511,24 @@ export default function GamePage() {
     const completedRaceId = raceIdRef.current;
     const completedPenalty = ruleStateRef.current.penalties.player ?? 0;
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
-    if (!effectiveNick) {
-      recordDiagnostic({ type: "race.save", surface: "race", outcome: "noop", action: "request", target: "leaderboard", reason: "not-ready" });
-      setSaveState('prompting');
+    const nicknameError = () => tp('Не удалось сохранить ник', 'Failed to save nickname', 'Nie udało się zapisać nicku', { es: 'No se pudo guardar el apodo', fr: 'Impossible d\'enregistrer le pseudo', de: 'Nickname konnte nicht gespeichert werden', it: 'Impossibile salvare il nickname' });
+    // R-12: the result is already stored and on a visible board, the prompt only
+    // names it. The board shows the session's chosen name for its unnamed results.
+    if (savedResultRaceRef.current === completedRaceId && effectiveNick) {
+      setSaveError(null);
+      void (async () => {
+        try {
+          const r = await fetch('/api/player', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname: effectiveNick }) });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || nicknameError());
+          if (raceIdRef.current !== completedRaceId) return;
+          setNickname(d.nickname);
+          setSaveState('saved');
+        } catch (err) {
+          if (raceIdRef.current !== completedRaceId) return;
+          setSaveError(err instanceof Error ? err.message : nicknameError());
+        }
+      })();
       return;
     }
     const { tacks, noGoEntries, topSpeed } = raceLogTally(logEventsRef.current, logSamplesRef.current);
@@ -529,14 +547,14 @@ export default function GamePage() {
 
     const doSave = async () => {
       try {
-        if (!nickname || nickname !== effectiveNick) {
+        if (effectiveNick && nickname !== effectiveNick) {
           const r = await fetch('/api/player', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nickname: effectiveNick }),
           });
           const d = await r.json();
-          if (!r.ok) throw new Error(d.error || tp('Не удалось сохранить ник', 'Failed to save nickname', 'Nie udało się zapisać nicku', { es: 'No se pudo guardar el apodo', fr: 'Impossible d\'enregistrer le pseudo', de: 'Nickname konnte nicht gespeichert werden', it: 'Impossibile salvare il nickname' }));
+          if (!r.ok) throw new Error(d.error || nicknameError());
           if (raceIdRef.current === completedRaceId) setNickname(d.nickname);
         }
         const res = await fetch('/api/race-result', {
@@ -553,7 +571,7 @@ export default function GamePage() {
             noGoEntries,
             topSpeed: Math.round(topSpeed * 10) / 10,
             score: coaching?.score ?? null,
-            nicknameFallback: effectiveNick,
+            nicknameFallback: effectiveNick || ANONYMOUS_NICKNAME,
             // Package 13: the helm and the assists this result was sailed with.
             assists: raceAssistRecord(helmControlRef.current, helmRef.current.usage),
             ...classified,
@@ -562,7 +580,15 @@ export default function GamePage() {
         const d = await res.json();
         if (!res.ok) throw new Error(d.error || tp('Не удалось сохранить результат', 'Failed to save result', 'Nie udało się zapisać wyniku', { es: 'No se pudo guardar el resultado', fr: 'Impossible d\'enregistrer le résultat', de: 'Ergebnis konnte nicht gespeichert werden', it: 'Impossibile salvare il risultato' }));
         recordDiagnostic({ type: "race.save", surface: "race", outcome: "accepted", action: "ack", target: "leaderboard" });
-        if (raceIdRef.current === completedRaceId) setSaveState('saved');
+        savedResultRaceRef.current = completedRaceId;
+        // R-12: no name yet. Ask for one only if this result is on a board people
+        // can see; a failed check just leaves the result unnamed, it is saved.
+        const board = effectiveNick ? null : resultBoardUrl({
+          missionId: selectedMission?.id ?? null, difficulty, wind: windStrength,
+          classified: "raceContext" in classified && classified.raceContext && classified.mode ? { raceClass: raceClassId(classified.raceContext), mode: classified.mode } : null,
+        });
+        const onBoard = board !== null && await fetch(board).then((r) => r.json()).then((b) => Array.isArray(b?.rows) && entersVisibleTable(b.rows)).catch(() => false);
+        if (raceIdRef.current === completedRaceId) setSaveState(onBoard ? 'prompting' : 'saved');
       } catch (err) {
         recordDiagnostic({ type: "race.save", surface: "race", outcome: "failed", action: "error", target: "leaderboard", reason: "connection" });
         if (raceIdRef.current !== completedRaceId) return;
@@ -573,9 +599,9 @@ export default function GamePage() {
     void doSave();
   }, [nickname, results, difficulty, windStrength, selectedMission, coaching, tp, dailyDay, lockedMode]);
 
-  // Auto-save when finished (once). With a stored nickname this saves
-  // silently; without one saveResult() flips saveState to 'prompting' and
-  // the finish overlay shows a skippable nickname prompt.
+  // Auto-save when finished (once), with or without a nickname. A result without
+  // one that lands on a visible board flips saveState to 'prompting' and the
+  // finish overlay shows a skippable nickname prompt (R-12).
   // The race is over from the finish tick, also during the 2.5 s finish hold
   // (M1-4), so leaving in the hold does not lose the save or the replay upload.
   const raceOver = gameState === 'finished' || (gameState === 'racing' && results.length > 0);

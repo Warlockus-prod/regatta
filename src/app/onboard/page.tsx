@@ -64,7 +64,6 @@ export default function OnboardPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{section.icon}</span>
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{title}</div>
                   </div>

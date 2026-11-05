@@ -37,7 +37,7 @@ for (const width of [320, 390, 1280]) {
     await expect(page.getByText("✓ Theory checked", { exact: true })).toBeVisible();
     await steps.getByRole("button", { name: "3 On the boat" }).click();
     await expect(page.getByText("Observation, not a skill assessment")).toBeVisible();
-    await expect(page.getByRole("link", { name: "3D Boat" })).toHaveAttribute("href", "/simulator2?lesson=rig-basics");
+    await expect(page.getByRole("link", { name: "Inspect the sail" })).toHaveAttribute("href", "/simulator2?lesson=rig-basics");
     await page.getByRole("link", { name: "Next lesson" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Which wind the sail feels");
     await steps.getByRole("button", { name: "2 Check" }).click();

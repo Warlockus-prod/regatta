@@ -239,7 +239,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
   return (
     <div data-testid="voice-panel" className="rounded-2xl p-4" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.25)' }}>
       <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-        🎙️ {radioText(t('Передача голосом - канал открыт', 'Voice transmission - the channel is open', 'Transmisja głosem - kanał otwarty'))}
+        {radioText(t('Передача голосом - канал открыт', 'Voice transmission - the channel is open', 'Transmisja głosem - kanał otwarty'))}
       </div>
 
       {!hideScript ? (

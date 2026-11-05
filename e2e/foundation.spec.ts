@@ -19,7 +19,9 @@ test.beforeEach(async ({ context }) => {
 
 test("legacy visits remain ungraded, original checks and draft resume survive reload, and practice returns to the same lesson", async ({ page }) => {
   await page.goto("/start?lesson=wind-direction&step=check");
-  await expect(page.getByText("Просмотрено: 8/8", { exact: true })).toBeVisible();
+  // Package 24: visits are no counter. Eight legacy visits still award nothing.
+  await expect(page.getByText("Просмотрено: 8/8", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("foundation-practice-count")).toHaveText("Выполнено заданий: 0/4");
   await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
   const first = questions[0].options.find(option => option.correct)!;
   await page.locator(`input[name="${questions[0].id}"][value="${first.id}"]`).check();
@@ -44,7 +46,7 @@ test("legacy visits remain ungraded, original checks and draft resume survive re
   await expect(courseReturn).toBeVisible();
   await courseReturn.click();
   await expect(page).toHaveURL(/\/start\?lesson=wind-direction&step=practice$/);
-  await expect(page.getByText("Раздел практики открывался, результат не оценивался.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Этот раздел уже открывался.", { exact: true })).toBeVisible();
   await page.goto("/");
   // Package 9: the passed check is a meaningful step, so the one primary action continues.
   const primary = page.locator('main a[data-action="primary"]');
@@ -85,8 +87,73 @@ test("first wind practice renders the whole yacht and returns after a real first
   await expect(courseReturn).toBeVisible();
   await courseReturn.click();
   await expect(page).toHaveURL(/\/start\?lesson=wind-direction&step=practice$/);
-  await expect(page.getByText("Раздел практики открывался, результат не оценивался.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Этот раздел уже открывался.", { exact: true })).toBeVisible();
   await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("foundation-practice-count")).toHaveText("Выполнено заданий: 0/4");
+});
+test("the mini task in the lesson counts only marks held on the handle, in order, and survives a reload", async ({ page }, testInfo) => {
+  await page.goto("/start?lesson=wind-direction&step=practice");
+  const status = page.getByTestId("mini-task-status");
+  const angle = page.getByTestId("mini-task-angle");
+  const count = page.getByTestId("foundation-practice-count");
+  await expect(status).toHaveText("Поставь нос прямо на ветер: 0°");
+  await expect(count).toHaveText("Выполнено заданий: 0/4");
+  // Opening the step, a later mark and a sweep past the mark award nothing.
+  await angle.fill("90");
+  await page.waitForTimeout(900);
+  await expect(status).toHaveText("Поставь нос прямо на ветер: 0°");
+  await angle.fill("0");
+  await angle.fill("60");
+  await page.waitForTimeout(900);
+  await expect(status).toHaveText("Поставь нос прямо на ветер: 0°");
+  // The error hint appears at the moment of the error: inside the no-go zone only.
+  await expect(page.getByTestId("mini-task-no-go")).toHaveCount(0);
+  await angle.fill("0");
+  await expect(page.getByTestId("mini-task-no-go")).toBeVisible();
+  await expect(status).toHaveText("Поверни так, чтобы ветер дул в борт: 90°");
+  await expect(page.getByTestId("mini-task-no-go")).toBeVisible();
+  await angle.fill("90");
+  await expect(status).toHaveText("Поверни так, чтобы ветер дул в корму: 180°");
+  await expect(count).toHaveText("Выполнено заданий: 0/4");
+  await angle.fill("180");
+  await expect(status).toContainText("Получилось");
+  await expect(count).toHaveText("Выполнено заданий: 1/4");
+  // A task never passes the theory check, and the result stays after a reload.
+  await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(count).toHaveText("Выполнено заданий: 1/4");
+  await expect(status).toContainText("Получилось");
+  // The control keeps the 44 px target and the page does not scroll sideways on a phone.
+  expect((await angle.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  if (testInfo.project.name.includes("mobile")) expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+test("tacking and gybing tasks cross the wind, and lessons without a task keep their link", async ({ page }) => {
+  await page.goto("/start?lesson=tacking&step=practice");
+  const angle = page.getByTestId("mini-task-angle");
+  await expect(angle).toHaveValue("45");
+  await angle.fill("0");
+  await expect(page.getByTestId("mini-task-status")).toHaveText("Продолжай поворот: 45° с другого борта");
+  await angle.fill("-45");
+  await expect(page.getByTestId("mini-task-status")).toContainText("Получилось");
+  await page.goto("/start?lesson=jibing&step=practice");
+  await expect(angle).toHaveValue("150");
+  await angle.fill("180");
+  await expect(page.getByTestId("mini-task-status")).toHaveText("Продолжай поворот: 150° с другого борта");
+  await angle.fill("210");
+  await expect(page.getByTestId("mini-task-status")).toContainText("Получилось");
+  await expect(page.getByTestId("foundation-practice-count")).toHaveText("Выполнено заданий: 2/4");
+  await page.goto("/start?lesson=how-sail-works&step=practice");
+  await expect(page.getByTestId("mini-task")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Открыть раздел для практики", exact: false })).toBeVisible();
+});
+test("every route carries its own tab title in the visitor's language", async ({ page }) => {
+  await page.goto("/glossary");
+  await expect(page).toHaveTitle("Морские термины | Week to Regatta");
+  await page.goto("/start?lang=pl");
+  await expect(page).toHaveTitle("Żeglarstwo od podstaw | Week to Regatta");
+  await page.goto("/simulator?lang=en");
+  await expect(page).toHaveTitle("Learn to steer | Week to Regatta");
+  await expect(page.getByRole("heading", { level: 1, name: "Learn to steer" })).toBeAttached();
 });
 
 test("failed durable check write keeps the counter unchanged and retries without losing the answers", async ({ page }) => {

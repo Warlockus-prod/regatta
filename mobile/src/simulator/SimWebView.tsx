@@ -13,6 +13,7 @@ import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-nati
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { Screen, Text } from '../design-system/components';
 import { useI18n } from '../i18n/context';
+import { TRAINER_NAMES } from '../../../src/lib/product/trainer-names';
 import { colors } from '../design-system/tokens';
 import { AppSurface, appStackOptions } from '../design-system/surface';
 import { APP_EMBED_THEME_SCRIPT } from '../design-system/embedded-theme';
@@ -202,27 +203,9 @@ export function SimWebView({
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
   // the back button pointing at the hub instead of stacking simulators.
   const tiers: { id: SimTier; route: string; label: string }[] = [
-    {
-      id: 'basics',
-      route: '/simulator-v1',
-      label: tp('Основы', 'Basics', 'Podstawy', {
-        es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
-      }),
-    },
-    {
-      id: 'trainer',
-      route: '/simulator-v3',
-      label: tp('Тренажёр', 'Trainer', 'Trenażer', {
-        es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione',
-      }),
-    },
-    {
-      id: 'boat3d',
-      route: '/simulator2',
-      label: tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
-        es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D',
-      }),
-    },
+    { id: 'basics', route: '/simulator-v1', label: TRAINER_NAMES.basics[lang] },
+    { id: 'trainer', route: '/simulator-v3', label: TRAINER_NAMES.trainer[lang] },
+    { id: 'boat3d', route: '/simulator2', label: TRAINER_NAMES.boat[lang] },
   ];
   const webRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
@@ -340,7 +323,7 @@ export function SimWebView({
                   pressed && !active && styles.btnPressed,
                 ]}
               >
-                <Text style={[styles.tierText, active && styles.tierTextActive]} numberOfLines={1}>
+                <Text style={[styles.tierText, active && styles.tierTextActive]} numberOfLines={2}>
                   {t.label}
                 </Text>
               </Pressable>
@@ -479,10 +462,10 @@ export function SimWebView({
               "Nie udało się otworzyć wyścigu. Spróbuj ponownie lub wróć do menu regat. Internet nie jest potrzebny.",
               { es: "No se pudo abrir la regata. Reintenta o vuelve al menú. No necesitas internet.", fr: "La course ne s'ouvre pas. Réessaie ou retourne au menu. Internet n'est pas nécessaire.", de: "Das Rennen konnte nicht geöffnet werden. Erneut versuchen oder zum Rennmenü zurückkehren. Kein Internet nötig.", it: "Impossibile aprire la regata. Riprova o torna al menu. Non serve internet." },
             ) : offlineSource ? tp(
-              "Не удалось открыть локальный симулятор. Повтори запуск или открой упрощенные Основы. Интернет не требуется.",
-              "The local simulator could not open. Retry or open simplified Basics. No internet is needed.",
-              "Nie udało się otworzyć lokalnego symulatora. Spróbuj ponownie lub otwórz uproszczone Podstawy. Internet nie jest potrzebny.",
-              { es: "No se pudo abrir el simulador local. Reintenta o abre Fundamentos simplificados. No necesitas internet.", fr: "Le simulateur local ne s'ouvre pas. Réessaie ou ouvre les Bases simplifiées. Internet n'est pas nécessaire.", de: "Der lokale Simulator konnte nicht geöffnet werden. Erneut versuchen oder vereinfachte Grundlagen öffnen. Kein Internet nötig.", it: "Impossibile aprire il simulatore locale. Riprova o apri le Basi semplificate. Non serve internet." },
+              "Не удалось открыть локальный симулятор. Повтори запуск или открой упрощенную версию ниже. Интернет не требуется.",
+              "The local simulator could not open. Retry or open the simple version below. No internet is needed.",
+              "Nie udało się otworzyć lokalnego symulatora. Spróbuj ponownie lub otwórz prostszą wersję poniżej. Internet nie jest potrzebny.",
+              { es: "No se pudo abrir el simulador local. Reintenta o abre la versión simple de abajo. No necesitas internet.", fr: "Le simulateur local ne s'ouvre pas. Réessaie ou ouvre la version simple ci-dessous. Internet n'est pas nécessaire.", de: "Der lokale Simulator konnte nicht geöffnet werden. Erneut versuchen oder die einfache Version unten öffnen. Kein Internet nötig.", it: "Impossibile aprire il simulatore locale. Riprova o apri la versione semplice qui sotto. Non serve internet." },
             ) : tp(
               'Не удалось загрузить симулятор. Нужен интернет.',
               'The simulator failed to load. An internet connection is required.',
@@ -562,6 +545,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '600',
+    textAlign: 'center',
   },
   tierTextActive: {
     color: colors.accentCyan,

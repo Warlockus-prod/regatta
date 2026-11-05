@@ -16,10 +16,12 @@ export interface FoundationProgress {
   positions: Record<string, { step: FoundationStep; diagram: 0 | 1 | 2 }>;
   checks: Record<string, { answers: FoundationAnswers; answeredAt: number }>;
   practiceOpened: string[];
+  /** Lessons whose in-lesson mini task was finished (src/lib/learning/mini-task.ts). */
+  practiceDone: string[];
   drafts: Record<string, FoundationAnswers>;
 }
 export interface FoundationStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
-export const emptyFoundation = (): FoundationProgress => ({ version: 1, current: null, visited: [], positions: {}, checks: {}, practiceOpened: [], drafts: {} });
+export const emptyFoundation = (): FoundationProgress => ({ version: 1, current: null, visited: [], positions: {}, checks: {}, practiceOpened: [], practiceDone: [], drafts: {} });
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const ids = (value: unknown): string[] => BOOTCAMP_LESSON_IDS.filter(id => Array.isArray(value) && value.includes(id));
 function partialAnswers(id: string, raw: unknown): FoundationAnswers | null {
@@ -56,7 +58,7 @@ export function readFoundationProgress(raw: string | null): FoundationProgress |
     if (!object(value) || value.version !== 1) return null;
     const result = emptyFoundation();
     result.current = isFoundationLesson(value.current) ? value.current : null;
-    result.visited = ids(value.visited); result.practiceOpened = ids(value.practiceOpened);
+    result.visited = ids(value.visited); result.practiceOpened = ids(value.practiceOpened); result.practiceDone = ids(value.practiceDone);
     for (const id of BOOTCAMP_LESSON_IDS) {
       const draft = partialAnswers(id, object(value.drafts) ? value.drafts[id] : null);
       if (draft && Object.keys(draft).length) result.drafts[id] = draft;
@@ -92,6 +94,10 @@ export function updateFoundationDraft(progress: FoundationProgress, id: string, 
   const answers = partialAnswers(id, raw);
   if (!answers) throw new Error("Valid lesson answers required");
   return { ...progress, drafts: { ...progress.drafts, [id]: answers } };
+}
+export function updateFoundationPractice(progress: FoundationProgress, id: string): FoundationProgress {
+  if (!isFoundationLesson(id)) throw new Error("Known lesson required");
+  return { ...progress, practiceDone: [...new Set([...progress.practiceDone, id])] };
 }
 export function updateFoundationCheck(progress: FoundationProgress, id: string, raw: FoundationAnswers, now = Date.now()): FoundationProgress {
   const answers = validAnswers(id, raw);

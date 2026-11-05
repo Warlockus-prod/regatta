@@ -48,13 +48,13 @@
       "summaryIt": "Prua al vento, bolina, traverso, lasco, poppa. Le tue 5 andature di base.",
       "estMinutes": 8,
       "route": "/simulator",
-      "focusRu": "Открой симулятор «Основы» и прокрути яхту через все пять курсов. Следи, как меняются название курса и угол парусов, запомни соответствие русских и английских названий.",
-      "focusEn": "Open the Basics simulator and steer the boat through all five points of sail. Watch the course name and sail angle change; memorize the name pairs.",
-      "focusPl": "Otwórz symulator \"Podstawy\" i przeprowadź jacht przez wszystkie pięć kursów. Obserwuj, jak zmieniają się nazwa kursu i kąt żagli, i zapamiętaj pary nazw: polską i angielską.",
-      "focusEs": "Abre el simulador \"Fundamentos\" y lleva el barco por los cinco rumbos. Fíjate en cómo cambian el nombre del rumbo y el ángulo de las velas, y memoriza cada nombre junto a su equivalente en inglés.",
-      "focusFr": "Ouvre le simulateur \"Bases\" et fais passer le bateau par les cinq allures. Observe comment changent le nom de l'allure et l'angle des voiles, et retiens chaque nom avec son équivalent anglais.",
-      "focusDe": "Öffne den Simulator \"Grundlagen\" und steuere das Boot durch alle fünf Kurse. Achte darauf, wie sich Kursname und Segelwinkel ändern, und merk dir die deutschen und englischen Namen als Paare.",
-      "focusIt": "Apri il simulatore \"Basi\" e porta la barca attraverso tutte e cinque le andature. Osserva come cambiano il nome dell'andatura e l'angolo delle vele, e memorizza ogni nome con il suo equivalente inglese."
+      "focusRu": "Открой тренажер «Научиться рулить» и прокрути яхту через все пять курсов. Следи, как меняются название курса и угол парусов, запомни соответствие русских и английских названий.",
+      "focusEn": "Open the \"Learn to steer\" trainer and steer the boat through all five points of sail. Watch the course name and sail angle change; memorize the name pairs.",
+      "focusPl": "Otwórz trenażer \"Naucz się sterować\" i przeprowadź jacht przez wszystkie pięć kursów. Obserwuj, jak zmieniają się nazwa kursu i kąt żagli, i zapamiętaj pary nazw: polską i angielską.",
+      "focusEs": "Abre el simulador \"Aprende a timonear\" y lleva el barco por los cinco rumbos. Fíjate en cómo cambian el nombre del rumbo y el ángulo de las velas, y memoriza cada nombre junto a su equivalente en inglés.",
+      "focusFr": "Ouvre le simulateur \"Apprendre à barrer\" et fais passer le bateau par les cinq allures. Observe comment changent le nom de l'allure et l'angle des voiles, et retiens chaque nom avec son équivalent anglais.",
+      "focusDe": "Öffne den Simulator \"Steuern lernen\" und steuere das Boot durch alle fünf Kurse. Achte darauf, wie sich Kursname und Segelwinkel ändern, und merk dir die deutschen und englischen Namen als Paare.",
+      "focusIt": "Apri il simulatore \"Impara a timonare\" e porta la barca attraverso tutte e cinque le andature. Osserva come cambiano il nome dell'andatura e l'angolo delle vele, e memorizza ogni nome con il suo equivalente inglese."
     },
     {
       "id": "how-sail-works",

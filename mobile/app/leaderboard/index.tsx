@@ -22,6 +22,8 @@
  */
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
+import { ANONYMOUS_NICKNAME, leaderboardVisible } from '../../../src/lib/leaderboard-visibility';
+import { LEADERBOARD_WAITING_COPY } from '../../../src/data/leaderboard-waiting-copy';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import {
@@ -457,7 +459,17 @@ export default function Leaderboard() {
               />
             ) : null}
 
-            {!gLoading && !gError && gRows
+            {/* R-12: a board with too few results says so instead of showing a near-empty table. */}
+            {!gLoading && !gError && gRows && gRows.length > 0 && !leaderboardVisible(gRows) ? (
+              <EmptyState
+                icon="leaderboard"
+                title={LEADERBOARD_WAITING_COPY.title[lang]}
+                subtitle={`${LEADERBOARD_WAITING_COPY.count[lang].replace('{n}', String(gRows.length))}\n${LEADERBOARD_WAITING_COPY.ghost[lang]}`}
+                cta={{ label: emptyCtaLabel, onPress: () => router.push('/game') }}
+              />
+            ) : null}
+
+            {!gLoading && !gError && gRows && leaderboardVisible(gRows)
               ? gRows.map((r, idx) => (
                   <GlobalRow
                     key={`${r.sid}-${idx}`}
@@ -557,7 +569,7 @@ function GlobalRow({
 }) {
   const tier = scoreTier(row.score ?? 0);
   const tierColor = SCORE_TIER_COLOR[tier];
-  const name = row.nickname && row.nickname.trim().length > 0 ? row.nickname : anonLabel;
+  const name = row.nickname && row.nickname.trim().length > 0 && row.nickname !== ANONYMOUS_NICKNAME ? row.nickname : anonLabel;
   return (
     <Card
       style={styles.row}

@@ -84,7 +84,7 @@ export function RaceBriefing({
           </div>
         </div>
 
-        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold mb-1">
+        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold mb-1 outline-none">
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
         <p className="mb-5 text-base leading-6 text-[var(--text-secondary)]">{mode === "pro" ? raceCopy.proNote : raceCopy.simpleNote}</p>
@@ -193,13 +193,13 @@ export function PhysicalTrialNote({ profile }: { profile: PhysicalRaceProfile | 
   return (
     <p className="card mb-5 p-3 text-sm text-[var(--text-secondary)]" role="note" data-testid="physical-trial-note">
       {tl({
-        ru: `Пробная гонка в метрах: лавировка ${physicalCourseDefinition(profile).legMetres} м, твоя лодка ведёт себя как в «Тренажёре трима». Результат, рекорд и запись гонки не сохраняются.`,
-        en: `Trial race in real metres: a ${physicalCourseDefinition(profile).legMetres} m beat, your boat handles as in the Sail trim trainer. The result, best time and race recording are not saved.`,
-        pl: `Wyścig próbny w metrach: halsówka ${physicalCourseDefinition(profile).legMetres} m, twój jacht prowadzi się jak w Trenażerze trymu. Wynik, rekord i nagranie wyścigu nie są zapisywane.`,
-        es: `Regata de prueba en metros reales: ceñida de ${physicalCourseDefinition(profile).legMetres} m, tu barco se comporta como en el Simulador de trimado. El resultado, el récord y la grabación no se guardan.`,
-        fr: `Course d'essai en mètres réels : louvoyage de ${physicalCourseDefinition(profile).legMetres} m, ton bateau se comporte comme dans Réglage des voiles. Le résultat, le record et l'enregistrement ne sont pas sauvegardés.`,
-        de: `Probewettfahrt in echten Metern: ${physicalCourseDefinition(profile).legMetres} m Kreuz, dein Boot verhält sich wie im Segeltrimm-Trainer. Ergebnis, Bestzeit und Aufzeichnung werden nicht gespeichert.`,
-        it: `Regata di prova in metri reali: bolina di ${physicalCourseDefinition(profile).legMetres} m, la tua barca si comporta come in Regolazione delle vele. Risultato, record e registrazione non vengono salvati.`,
+        ru: `Пробная гонка в метрах: лавировка ${physicalCourseDefinition(profile).legMetres} м, твоя лодка ведёт себя как в тренажере «Настроить паруса». Результат, рекорд и запись гонки не сохраняются.`,
+        en: `Trial race in real metres: a ${physicalCourseDefinition(profile).legMetres} m beat, your boat handles as in "Trim the sails". The result, best time and race recording are not saved.`,
+        pl: `Wyścig próbny w metrach: halsówka ${physicalCourseDefinition(profile).legMetres} m, twój jacht prowadzi się jak w trenażerze "Ustaw żagle". Wynik, rekord i nagranie wyścigu nie są zapisywane.`,
+        es: `Regata de prueba en metros reales: ceñida de ${physicalCourseDefinition(profile).legMetres} m, tu barco se comporta como en "Ajusta las velas". El resultado, el récord y la grabación no se guardan.`,
+        fr: `Course d'essai en mètres réels : louvoyage de ${physicalCourseDefinition(profile).legMetres} m, ton bateau se comporte comme dans "Régler les voiles". Le résultat, le record et l'enregistrement ne sont pas sauvegardés.`,
+        de: `Probewettfahrt in echten Metern: ${physicalCourseDefinition(profile).legMetres} m Kreuz, dein Boot verhält sich wie in "Segel trimmen". Ergebnis, Bestzeit und Aufzeichnung werden nicht gespeichert.`,
+        it: `Regata di prova in metri reali: bolina di ${physicalCourseDefinition(profile).legMetres} m, la tua barca si comporta come in "Regola le vele". Risultato, record e registrazione non vengono salvati.`,
       })}
     </p>
   );

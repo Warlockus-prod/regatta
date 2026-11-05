@@ -44,7 +44,7 @@ PERMIS ET CERTIFICATS
 
 CONFIDENTIALITÉ
 
-Sans compte et sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie des statistiques d'usage qui ne sont pas liées à vous, et vous pouvez désactiver les statistiques de l'app dans les Réglages. La publicité n'apparaît que dans la section Ads, au début des Réglages, qui présente des formats publicitaires de VOX SDK 1 de Hybrid Adtech : elle n'est pas personnalisée et n'utilise pas d'identifiant publicitaire. Le reste de l'app est sans publicité.
+Sans compte et sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie des statistiques d'usage qui ne sont pas liées à vous, et vous pouvez désactiver les statistiques de l'app dans les Réglages. La publicité n'apparaît que dans la section Ads, à la fin des Réglages, qui présente des formats publicitaires de VOX SDK 1 de Hybrid Adtech : elle n'est pas personnalisée et n'utilise pas d'identifiant publicitaire. Le reste de l'app est sans publicité.
 
 LANGUES
 

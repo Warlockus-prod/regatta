@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "e57ae8636005",
+  "version": "5d0283ac8991",
   "lang": "pl",
-  "sha256": "4c8233c2fe68ee00fa104d21195fece5d5fe46b033eed0e07ca7b210f256ee05",
-  "bytes": 2591949,
+  "sha256": "f5a4aced39f3ebc495644be93e3c4cc9d8f20868247726de3608cf85ca400a91",
+  "bytes": 2591372,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -215,13 +215,13 @@
     },
     {
       "path": "src/app/sternik/SternikHub.tsx",
-      "bytes": 20566,
-      "sha256": "6c9ebe640ea49c43f387f947fba8117c8a55f6d228971e2805ca4028c84fb612"
+      "bytes": 20394,
+      "sha256": "e80df261129fca7757c88680f0c6502aaba9110f8b5dfd51bfe2eaf0d9707d17"
     },
     {
       "path": "src/app/sternik/SternikSubnav.tsx",
-      "bytes": 2250,
-      "sha256": "45f8757ff52dd9a4ac7e064824939587af2b1b7728c38ee45d673a77afdc634c"
+      "bytes": 2076,
+      "sha256": "9a7e45e44fa5368fc2fde8162af0ad49280fb089de025fe3ff21bd361d697c22"
     },
     {
       "path": "src/app/sternik/analysis.ts",
@@ -255,8 +255,8 @@
     },
     {
       "path": "src/app/sternik/prefs.tsx",
-      "bytes": 17295,
-      "sha256": "66597bafb8e9c54ce4d0e0b2c1b2ed664990432dc13c3a930c5ded2e38b3c306"
+      "bytes": 14775,
+      "sha256": "8f8befb3154751b616a622aa4e9f1d6a9d2f54ad4e73c042e5fd7eabe1be01c9"
     },
     {
       "path": "src/app/sternik/quiz-utils.ts",

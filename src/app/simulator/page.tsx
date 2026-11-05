@@ -8,6 +8,8 @@ import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from '
 import { legacyPick } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
+import { TrainerSwitcher } from '@/components/product/TrainerSwitcher';
+import { TRAINER_NAMES } from '@/lib/product/trainer-names';
 // Shared no-go half-angle (42 deg) from the VPP engine so Basics, Trainer
 // and the 3D boat all teach the same cone.
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
@@ -1184,8 +1186,8 @@ export default function SimulatorPage() {
       {!isEmbed && (
       <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
            style={{ background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="hidden sm:inline text-xs truncate" style={{ color: TEXT.muted }}>
+        <div className="hidden sm:flex items-center gap-2 min-w-0">
+          <span className="text-xs truncate" style={{ color: TEXT.muted }}>
             {tp(
               'Простая лодка на круге: крути лодку и ветер, смотри, что происходит.',
               'Simple boat on a circle: spin the boat and the wind, watch what happens.',
@@ -1199,20 +1201,8 @@ export default function SimulatorPage() {
             )}
           </span>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <span className="text-xs font-semibold px-2 py-1 rounded-md border"
-                style={{ background: 'rgba(0, 212, 255, 0.14)', borderColor: 'rgba(0, 212, 255, 0.35)', color: TEXT.accent }}>
-            {tp('Основы', 'Basics', 'Podstawy', { es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi' })}
-          </span>
-          <a href="/simulator-v3" className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: TACK_INK.starboard }}>
-            {tp('Тренажёр', 'Trainer', 'Trenażer', { es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione' })}
-          </a>
-          <a href="/simulator2" className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: TEXT.secondary }}>
-            {tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' })}
-          </a>
-        </div>
+        {/* Isolated edit: the one trainer switcher (R-13, audit B2). */}
+        <TrainerSwitcher current="basics" lang={lang} className="w-full sm:w-[440px] sm:shrink-0" />
       </div>
       )}
     </>
@@ -1238,7 +1228,11 @@ export default function SimulatorPage() {
         ref={containerRef}
         className={isDesktop ? "flex-1 flex items-center justify-center p-2 sm:p-4 min-h-[400px]" : "absolute inset-0 flex items-center justify-center p-1"}
       >
+        {/* Isolated accessibility edit: the screen had no heading and an unnamed canvas (audit B13). */}
+        <h1 className="sr-only">{TRAINER_NAMES.basics[lang]}</h1>
         <canvas
+          role="img"
+          aria-label={tp('Лодка и ветер, вид сверху', 'Boat and wind, seen from above', 'Jacht i wiatr, widok z góry', { es: 'Barco y viento, vista cenital', fr: 'Bateau et vent, vue de dessus', de: 'Boot und Wind, von oben', it: "Barca e vento, vista dall'alto" })}
           ref={canvasRef}
           width={canvasSize.w * 2}
           height={canvasSize.h * 2}

@@ -22,7 +22,7 @@ import { recordTrackPoint } from "@/features/race-hud/map-view";
 import { useRacePrefs } from "../game/race-prefs";
 import { MultiplayerMenu, MultiplayerRoom, type LobbyPlayer } from "./MultiplayerLobby";
 import { QUICK_ONLINE_RACE } from "@/data/quick-online-race";
-import { canShareNatively, createLobbyBlocker, createShareFeedback, createTapAction, defaultSailorName, roomInviteUrl, shareRoomInvite, type ShareOutcome } from "./lobby";
+import { DEFAULT_LOBBY_BOTS, canShareNatively, createLobbyBlocker, createShareFeedback, createTapAction, defaultSailorName, roomInviteUrl, shareRoomInvite, type ShareOutcome } from "./lobby";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
 // F5: the race intro, only on request from the menu ("How to race"), never by itself here.
@@ -164,6 +164,7 @@ export default function MultiplayerClient() {
   // A Create tap made before the session arrived (see createLobby) runs here,
   // with the new session id, as soon as it is known.
   const pendingCreateRef = useRef(false);
+  const defaultBotsPendingRef = useRef(false);
   const createLobbyRef = useRef<((sessionId: string | null) => Promise<void>) | null>(null);
   useEffect(() => {
     const fallback = (id: string) => setNickname(current => current || defaultSailorName(langRef.current, id));
@@ -193,6 +194,12 @@ export default function MultiplayerClient() {
     switch (msg.type) {
       case 'joined':
         myIdRef.current = msg.id;
+        // R-12: a new lobby opens with bots, so a host alone can race at once.
+        // Only for a lobby this client has just created, never on a reconnect.
+        if (msg.isHost && defaultBotsPendingRef.current) {
+          defaultBotsPendingRef.current = false;
+          for (let bot = 0; bot < DEFAULT_LOBBY_BOTS; bot++) clientRef.current?.send({ type: 'add-bot' });
+        }
         setConnecting(false);
         setError(null);
         // msg.id is the server-assigned OPAQUE player id (never our sid). We
@@ -307,6 +314,7 @@ export default function MultiplayerClient() {
     setConnecting(true);
     try {
       const c = await ensureClient();
+      defaultBotsPendingRef.current = true;
       c.send({ type: 'create', nickname: cleanNickname, sid: sessionId });
     } catch {
       setConnecting(false);

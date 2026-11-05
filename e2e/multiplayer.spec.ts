@@ -149,15 +149,16 @@ test.describe('Multiplayer smoke', () => {
 
     // Both should see 2 players in the lobby
     await expect(g.getByText(/КОД ЛОББИ/)).toBeVisible({ timeout: 10_000 });
-    await expect(h.getByText(/ИГРОКИ · 2 \/ 10/)).toBeVisible({ timeout: 10_000 });
-    await expect(g.getByText(/ИГРОКИ · 2 \/ 10/)).toBeVisible({ timeout: 10_000 });
+    // A new lobby opens with 3 bots (R-12), so host + guest + 3 bots.
+    await expect(h.getByText(/ИГРОКИ · 5 \/ 10/)).toBeVisible({ timeout: 10_000 });
+    await expect(g.getByText(/ИГРОКИ · 5 \/ 10/)).toBeVisible({ timeout: 10_000 });
 
     const start = h.getByRole('button', { name: /Старт гонки/ });
     await expect(start).toBeDisabled();
     await g.getByRole('button', { name: 'Я готов', exact: true }).click();
     await expect(start).toBeEnabled();
     await h.getByRole('button', { name: 'Добавить бота' }).click();
-    await expect(h.getByText(/ИГРОКИ · 3 \/ 10/)).toBeVisible();
+    await expect(h.getByText(/ИГРОКИ · 6 \/ 10/)).toBeVisible();
     await start.click();
     await expect(h.getByTestId("multiplayer-cockpit")).toBeVisible();
     await expect(g.getByTestId("multiplayer-cockpit")).toBeVisible();

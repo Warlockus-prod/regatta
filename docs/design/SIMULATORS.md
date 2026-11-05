@@ -35,23 +35,28 @@ contradicts this one is stale; update it or link here.
 | 2. Trainer (Тренажёр) | `/simulator-v3` | `/simulator-v3` (WebView), `/simulator` offline fallback | Approximate force model, manual sail trim, drills, scenarios/missions, coach feedback, live weather wind. Step 2. |
 | 3D boat view (Лодка 3D) | `/simulator2` | `/simulator2` (WebView) | NOT a third simulator. The R3F + GLB sloop: orbit 360, anchored parametric sails, free-trim and sailing modes. The visual layer; long-term it becomes the Trainer's 3D view. |
 
-UI naming in all 7 languages (full names from `src/lib/product/catalog.ts`,
-owner decision 2026-10-21 for the chip and running-text forms):
+UI naming in all 7 languages (owner decision R-13, 2026-11-05, audit B2: each
+page is named by its task, one word source `src/lib/product/trainer-names.ts`,
+read by the catalog, the tab titles and the switchers). It replaces the forms of
+2026-10-21; the old names remain search aliases in `src/lib/product/catalog.ts`.
 
-| Language | Basics | Trainer: full name | Trainer: switcher chip | Trainer: in running text | 3D boat |
-|---|---|---|---|---|---|
-| RU | Основы | Тренажёр трима | Тренажёр | Тренажёр (трима) | Лодка 3D |
-| EN | Basics | Sail trim trainer | Trainer | the Trainer | 3D Boat |
-| PL | Podstawy | Trenażer trymu | Trenażer | Trenażer (trymu) | Łódka 3D |
-| ES | Fundamentos | Simulador de trimado | Trimado | el simulador de trimado | Barco 3D |
-| FR | Bases | Réglage des voiles | Réglage | le simulateur de réglage | Bateau 3D |
-| DE | Grundlagen | Segeltrimm-Trainer | Trainer | der Trainer | 3D-Boot |
-| IT | Basi | Regolazione delle vele | Regolazione | il simulatore di regolazione delle vele | Barca 3D |
+| Language | Basics | Trainer | 3D boat |
+|---|---|---|---|
+| RU | Научиться рулить | Настроить паруса | Рассмотреть парус |
+| EN | Learn to steer | Trim the sails | Inspect the sail |
+| PL | Naucz się sterować | Ustaw żagle | Obejrzyj żagiel |
+| ES | Aprende a timonear | Ajusta las velas | Observa la vela |
+| FR | Apprendre à barrer | Régler les voiles | Observer la voile |
+| DE | Steuern lernen | Segel trimmen | Segel ansehen |
+| IT | Impara a timonare | Regola le vele | Osserva la vela |
 
-Never PL "Trener" or ES "Entrenador" for the Trainer: both name a person (a
-coach), and ES collides with the AI coach "Entrenador IA". The internal
-V1/V2/V3 codenames stay in routes and code, but MUST NOT appear in
-user-facing UI.
+One switcher: `src/components/product/TrainerSwitcher.tsx` on the web pages (on a
+phone the Trainer keeps it in the More tab, so the scene keeps its height), and
+the same names in the app's native bar (`mobile/src/simulator/SimWebView.tsx`).
+Never PL "Trener" or ES "Entrenador": both name a person (a coach), and ES
+collides with the AI coach "Entrenador IA". The internal V1/V2/V3 codenames stay
+in routes and code, but MUST NOT appear in user-facing UI. "Basics", "Trainer"
+and "3D Boat" stay working names in documents and code.
 
 History note: "V1" used to name two DIFFERENT products (the static web
 points-of-sail page and the full-featured native trainer) - the 2026-07 audit

@@ -356,7 +356,41 @@ test.describe('Smoke: critical user flows', () => {
     expect(Array.isArray(body.rows)).toBe(true);
 
     await page.goto('/leaderboard');
-    await expect(page.getByRole('heading', { name: /(Таблица|Leaderboard|Ranking)/ })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /(Таблица|Leaderboard|Ranking)/ })).toBeVisible();
+  });
+
+  // R-12: a board shows only from ten results on; below that the player's own record.
+  test('/leaderboard hides a near-empty table and shows the full one', async ({ page }) => {
+    const row = (index: number, isMe = false) => ({ nickname: index === 0 ? 'Player' : `Sailor ${index}`, isMe, finish_time_sec: 300 + index, score: null });
+    let count = 9;
+    await page.route('**/api/leaderboard?*', route => route.fulfill({ json: { rows: Array.from({ length: count }, (_, index) => row(index, index === 2)) } }));
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/leaderboard?lang=en');
+    await expect(page.getByTestId('leaderboard-waiting')).toBeVisible();
+    await expect(page.getByTestId('leaderboard-waiting-count')).toHaveText('Results so far: 9');
+    await expect(page.getByTestId('leaderboard-my-best')).toContainText('5:02');
+    await expect(page.getByTestId('leaderboard-rows')).toHaveCount(0);
+
+    count = 10;
+    await page.goto('/leaderboard?lang=en');
+    await expect(page.getByTestId('leaderboard-rows')).toBeVisible();
+    await expect(page.getByTestId('leaderboard-waiting')).toHaveCount(0);
+    await expect(page.getByTestId('leaderboard-rows').getByText('Sailor', { exact: true })).toBeVisible();
+    await expect(page.getByText('Player', { exact: true })).toHaveCount(0);
+  });
+
+  // R-13: one switcher of one kind on the three trainer pages, named by task.
+  test('the three trainer pages share one switcher', async ({ page }) => {
+    for (const [path, current] of [['/simulator', 'Learn to steer'], ['/simulator2', 'Inspect the sail']] as const) {
+      await page.goto(`${path}?lang=en`);
+      const nav = page.getByTestId('trainer-switcher');
+      await expect(nav.getByRole('link')).toHaveText(['Learn to steer', 'Trim the sails', 'Inspect the sail']);
+      await expect(nav.locator('[aria-current="page"]')).toHaveText(current);
+      for (const box of await nav.getByRole('link').evaluateAll(links => links.map(link => link.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
+    }
+    await page.goto('/practice?lang=en');
+    await expect(page.getByRole('link', { name: /Learn to steer/ })).toBeVisible();
+    await expect(page.locator('main, body').getByText(/^0[1-9]$/)).toHaveCount(0);
   });
 
   // M5 step 8 (ADR-0015 point 12): the archive and the quick online race board

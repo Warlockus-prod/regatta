@@ -241,14 +241,6 @@ export default function Settings() {
     <Screen>
       <Stack.Screen options={{ title }} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Ads is the first entry of Settings (owner 2026-11-04), only in builds with the Ads section. */}
-        {ADS_DEMO_ENABLED ? (
-          <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.adsCard]} accessibilityLabel="Ads">
-            <Text variant="subtitle">Ads</Text>
-            <Text variant="caption">{adsText.settingsHint}</Text>
-          </Card>
-        ) : null}
-
         <Text variant="muted" style={styles.sectionLabel}>
           {langSectionLabel.toUpperCase()}
         </Text>
@@ -378,6 +370,14 @@ export default function Settings() {
           {dataSectionLabel.toUpperCase()}
         </Text>
         <DataSection />
+
+        {/* Ads is the last entry of Settings (owner 2026-11-03), only in builds with the Ads section. */}
+        {ADS_DEMO_ENABLED ? (
+          <Card onPress={() => { recordNativeDiagnostic({ type: "navigation", surface: "ads", action: "request", outcome: "accepted", source: "native", from: "settings", to: "ads" }); router.push("/ads"); }} style={[styles.privacyCard, styles.sectionLabelGap]} accessibilityLabel="Ads">
+            <Text variant="subtitle">Ads</Text>
+            <Text variant="caption">{adsText.settingsHint}</Text>
+          </Card>
+        ) : null}
 
         {/* Version footer: makes "which build am I on?" answerable at a
             glance (user feedback 2026-07-08 - TestFlight testers could not
@@ -1435,13 +1435,13 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   // section of mobile/asc-metadata/PRIVACY_POLICY.md and the iPhone box of
   // src/app/privacy/page.tsx. Shown only in builds that have the section.
   const ads = tl({
-    ru: 'Реклама есть только в разделе Ads в начале Настроек. Запрос уходит, только когда ты открываешь экран формата: через VOX SDK 1 компании Hybrid Adtech к Hybrid SSP. Он содержит идентификатор рекламного места, тип, производителя и модель устройства, систему и ее версию, размер экрана, язык приложения и смещение часового пояса; IP-адрес сервер видит, как при любом соединении. Рекламного идентификатора (IDFA), имени и контактов в запросе нет, отслеживания нет. Реклама не персонализирована. Переключатель аналитики эти запросы не затрагивает.',
-    en: 'Ads appear only in the Ads section at the top of Settings. A request is sent only when you open a format screen, through VOX SDK 1 by Hybrid Adtech to Hybrid SSP. It carries the ad placement id, device type, manufacturer and model, operating system and version, screen size, app language and time-zone offset; the server sees the IP address, as with any connection. No advertising identifier (IDFA), no name or contact details, no tracking. The ads are not personalised. The analytics switch does not cover these requests.',
-    pl: 'Reklamy są tylko w sekcji Ads na początku Ustawień. Żądanie wychodzi tylko wtedy, gdy otworzysz ekran formatu: przez VOX SDK 1 firmy Hybrid Adtech do Hybrid SSP. Zawiera identyfikator miejsca reklamowego, typ, producenta i model urządzenia, system i jego wersję, rozmiar ekranu, język aplikacji i przesunięcie strefy czasowej; adres IP serwer widzi jak przy każdym połączeniu. Bez identyfikatora reklamowego (IDFA), imienia i danych kontaktowych, bez śledzenia. Reklamy nie są spersonalizowane. Przełącznik analityki nie obejmuje tych żądań.',
-    es: 'Solo hay anuncios en la sección Ads, al principio de Ajustes. La solicitud solo se envía cuando abres la pantalla de un formato, a través de VOX SDK 1 de Hybrid Adtech a Hybrid SSP. Lleva el identificador del espacio publicitario, el tipo, el fabricante y el modelo del dispositivo, el sistema y su versión, el tamaño de pantalla, el idioma de la app y la diferencia de zona horaria; el servidor ve la dirección IP, como en cualquier conexión. Sin identificador de publicidad (IDFA), sin nombre ni contacto, sin seguimiento. Los anuncios no son personalizados. El interruptor de analítica no afecta a estas solicitudes.',
-    fr: "La publicité n'apparaît que dans la section Ads, au début des Réglages. Une requête ne part que lorsque tu ouvres l'écran d'un format, via VOX SDK 1 de Hybrid Adtech vers Hybrid SSP. Elle contient l'identifiant de l'emplacement publicitaire, le type, le fabricant et le modèle de l'appareil, le système et sa version, la taille de l'écran, la langue de l'app et le décalage horaire ; le serveur voit l'adresse IP, comme pour toute connexion. Pas d'identifiant publicitaire (IDFA), ni nom ni coordonnées, aucun suivi. Les publicités ne sont pas personnalisées. Le bouton des statistiques ne concerne pas ces requêtes.",
-    de: 'Werbung gibt es nur im Bereich Ads am Anfang der Einstellungen. Eine Anfrage geht nur raus, wenn du den Bildschirm eines Formats öffnest, über VOX SDK 1 von Hybrid Adtech an Hybrid SSP. Sie enthält die ID des Werbeplatzes, Typ, Hersteller und Modell des Geräts, System und Version, Bildschirmgröße, App-Sprache und Zeitzonenversatz; der Server sieht die IP-Adresse wie bei jeder Verbindung. Keine Werbe-ID (IDFA), kein Name, keine Kontaktdaten, kein Tracking. Die Werbung ist nicht personalisiert. Der Analyse-Schalter betrifft diese Anfragen nicht.',
-    it: "La pubblicità compare solo nella sezione Ads, all'inizio delle Impostazioni. Una richiesta parte solo quando apri la schermata di un formato, tramite VOX SDK 1 di Hybrid Adtech verso Hybrid SSP. Contiene l'identificativo dello spazio pubblicitario, tipo, produttore e modello del dispositivo, sistema e versione, dimensioni dello schermo, lingua dell'app e differenza di fuso orario; il server vede l'indirizzo IP, come in ogni connessione. Nessun identificativo pubblicitario (IDFA), nessun nome o contatto, nessun tracciamento. Gli annunci non sono personalizzati. L'interruttore delle statistiche non riguarda queste richieste.",
+    ru: 'Реклама есть только в разделе Ads в конце Настроек. Запрос уходит, только когда ты открываешь экран формата: через VOX SDK 1 компании Hybrid Adtech к Hybrid SSP. Он содержит идентификатор рекламного места, тип, производителя и модель устройства, систему и ее версию, размер экрана, язык приложения и смещение часового пояса; IP-адрес сервер видит, как при любом соединении. Рекламного идентификатора (IDFA), имени и контактов в запросе нет, отслеживания нет. Реклама не персонализирована. Переключатель аналитики эти запросы не затрагивает.',
+    en: 'Ads appear only in the Ads section at the end of Settings. A request is sent only when you open a format screen, through VOX SDK 1 by Hybrid Adtech to Hybrid SSP. It carries the ad placement id, device type, manufacturer and model, operating system and version, screen size, app language and time-zone offset; the server sees the IP address, as with any connection. No advertising identifier (IDFA), no name or contact details, no tracking. The ads are not personalised. The analytics switch does not cover these requests.',
+    pl: 'Reklamy są tylko w sekcji Ads na końcu Ustawień. Żądanie wychodzi tylko wtedy, gdy otworzysz ekran formatu: przez VOX SDK 1 firmy Hybrid Adtech do Hybrid SSP. Zawiera identyfikator miejsca reklamowego, typ, producenta i model urządzenia, system i jego wersję, rozmiar ekranu, język aplikacji i przesunięcie strefy czasowej; adres IP serwer widzi jak przy każdym połączeniu. Bez identyfikatora reklamowego (IDFA), imienia i danych kontaktowych, bez śledzenia. Reklamy nie są spersonalizowane. Przełącznik analityki nie obejmuje tych żądań.',
+    es: 'Solo hay anuncios en la sección Ads, al final de Ajustes. La solicitud solo se envía cuando abres la pantalla de un formato, a través de VOX SDK 1 de Hybrid Adtech a Hybrid SSP. Lleva el identificador del espacio publicitario, el tipo, el fabricante y el modelo del dispositivo, el sistema y su versión, el tamaño de pantalla, el idioma de la app y la diferencia de zona horaria; el servidor ve la dirección IP, como en cualquier conexión. Sin identificador de publicidad (IDFA), sin nombre ni contacto, sin seguimiento. Los anuncios no son personalizados. El interruptor de analítica no afecta a estas solicitudes.',
+    fr: "La publicité n'apparaît que dans la section Ads, à la fin des Réglages. Une requête ne part que lorsque tu ouvres l'écran d'un format, via VOX SDK 1 de Hybrid Adtech vers Hybrid SSP. Elle contient l'identifiant de l'emplacement publicitaire, le type, le fabricant et le modèle de l'appareil, le système et sa version, la taille de l'écran, la langue de l'app et le décalage horaire ; le serveur voit l'adresse IP, comme pour toute connexion. Pas d'identifiant publicitaire (IDFA), ni nom ni coordonnées, aucun suivi. Les publicités ne sont pas personnalisées. Le bouton des statistiques ne concerne pas ces requêtes.",
+    de: 'Werbung gibt es nur im Bereich Ads am Ende der Einstellungen. Eine Anfrage geht nur raus, wenn du den Bildschirm eines Formats öffnest, über VOX SDK 1 von Hybrid Adtech an Hybrid SSP. Sie enthält die ID des Werbeplatzes, Typ, Hersteller und Modell des Geräts, System und Version, Bildschirmgröße, App-Sprache und Zeitzonenversatz; der Server sieht die IP-Adresse wie bei jeder Verbindung. Keine Werbe-ID (IDFA), kein Name, keine Kontaktdaten, kein Tracking. Die Werbung ist nicht personalisiert. Der Analyse-Schalter betrifft diese Anfragen nicht.',
+    it: "La pubblicità compare solo nella sezione Ads, alla fine delle Impostazioni. Una richiesta parte solo quando apri la schermata di un formato, tramite VOX SDK 1 di Hybrid Adtech verso Hybrid SSP. Contiene l'identificativo dello spazio pubblicitario, tipo, produttore e modello del dispositivo, sistema e versione, dimensioni dello schermo, lingua dell'app e differenza di fuso orario; il server vede l'indirizzo IP, come in ogni connessione. Nessun identificativo pubblicitario (IDFA), nessun nome o contatto, nessun tracciamento. Gli annunci non sono personalizzati. L'interruttore delle statistiche non riguarda queste richieste.",
   });
 
   const webNote = tp(
@@ -1569,9 +1569,6 @@ const styles = StyleSheet.create({
   },
   privacyCard: {
     paddingVertical: spacing.md,
-  },
-  adsCard: {
-    marginBottom: spacing.xl,
   },
   privacyRow: {
     flexDirection: 'row',

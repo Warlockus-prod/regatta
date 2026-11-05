@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { topArchive, topByDifficulty, topByMission, topByRaceClass, topOnline } from '@/lib/db';
+import { getPlayer, topArchive, topByDifficulty, topByMission, topByRaceClass, topOnline } from '@/lib/db';
+import { ANONYMOUS_NICKNAME } from '@/lib/leaderboard-visibility';
 import { RACE_ARCHIVE_CUTOVER_MS } from '@/lib/race-archive';
 import { publicRows } from '@/lib/race-submission';
 import { raceContextForClassId, readRaceComparison } from "@/lib/race-record-class";
@@ -9,11 +10,14 @@ import { raceClassId } from "@/lib/race-context";
 export const runtime = 'nodejs';
 
 // Never expose the raw session id to clients (see publicRows()).
-async function markMine<T extends { sid: string }>(
+async function markMine<T extends { sid: string; nickname: string }>(
   rows: T[],
 ): Promise<Array<Omit<T, 'sid'> & { isMe: boolean }>> {
   const jar = await cookies();
-  return publicRows(rows, jar.get('regatta_sid')?.value);
+  // R-12: a result saved before its player chose a name shows that name. Stored
+  // results are never rewritten, the name is read at the moment of showing.
+  const named = rows.map(row => row.nickname === ANONYMOUS_NICKNAME ? { ...row, nickname: getPlayer(row.sid)?.nickname ?? row.nickname } : row);
+  return publicRows(named, jar.get('regatta_sid')?.value);
 }
 
 /**

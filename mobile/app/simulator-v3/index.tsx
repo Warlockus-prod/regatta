@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { SimWebView } from '../../src/simulator/SimWebView';
 import { useI18n } from '../../src/i18n/context';
 import { passthroughQuery } from '../../src/simulator/passthroughQuery';
+import { OPEN_BASICS_OFFLINE, TRAINER_NAMES } from '../../../src/lib/product/trainer-names';
 
 const OFFLINE_SAILING = require("../../assets/sailing-offline.html");
 
@@ -9,7 +10,7 @@ const OFFLINE_SAILING = require("../../assets/sailing-offline.html");
 // offline use. Deep-link parameters are injected before the local app mounts.
 
 export default function SimulatorV3Screen() {
-  const { tp } = useI18n();
+  const { lang } = useI18n();
   const params = useLocalSearchParams();
   return (
     <SimWebView
@@ -17,16 +18,9 @@ export default function SimulatorV3Screen() {
       tier="trainer"
       offlineSource={OFFLINE_SAILING}
       query={passthroughQuery(params)}
-      title={tp('Тренажёр', 'Trainer', 'Trenażer trymu', {
-        es: 'Simulador de trimado',
-        fr: 'Réglage des voiles',
-        de: 'Trainer',
-        it: 'Regolazione delle vele',
-      })}
+      title={TRAINER_NAMES.trainer[lang]}
       fallbackRoute="/simulator-basics"
-      fallbackLabel={tp("Открыть Основы (офлайн)", "Open Basics (offline)", "Otwórz Podstawy (offline)", {
-        es: "Abrir Fundamentos (sin conexión)", fr: "Ouvrir les Bases (hors ligne)", de: "Grundlagen öffnen (offline)", it: "Apri le Basi (offline)",
-      })}
+      fallbackLabel={OPEN_BASICS_OFFLINE[lang]}
     />
   );
 }

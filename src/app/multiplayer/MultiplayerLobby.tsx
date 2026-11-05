@@ -60,14 +60,14 @@ export function MultiplayerMenu(p: {
       <h1 className="text-3xl font-bold mt-4 mb-2">{tl(QUICK_ONLINE_RACE)}</h1>
       <p className="text-base text-[var(--text-secondary)] mb-6">
         {tp(
-          'До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. Можно добавить ботов.',
-          'Up to 10 players on one course. The host creates a lobby and shares the 4-character code. Bots can be added.',
-          'Do 10 graczy na jednej trasie. Host tworzy lobby i udostępnia 4-znakowy kod. Można dodać boty.',
+          'До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. В новом лобби уже есть боты, можно стартовать сразу.',
+          'Up to 10 players on one course. The host creates a lobby and shares the 4-character code. A new lobby already has bots, so you can start right away.',
+          'Do 10 graczy na jednej trasie. Host tworzy lobby i udostępnia 4-znakowy kod. W nowym lobby są już boty, możesz od razu ruszać.',
           {
-            es: 'Hasta 10 jugadores en el mismo recorrido. El anfitrión crea una sala y comparte el código de 4 caracteres. Se pueden añadir bots.',
-            fr: 'Jusqu\'à 10 joueurs sur le même parcours. L\'hôte crée un salon et partage le code à 4 caractères. Tu peux ajouter des bots.',
-            de: 'Bis zu 10 Spieler auf einer Bahn. Der Host erstellt eine Lobby und teilt den 4-stelligen Code. Bots lassen sich hinzufügen.',
-            it: 'Fino a 10 giocatori sullo stesso percorso. L\'host crea una lobby e condivide il codice di 4 caratteri. Puoi aggiungere dei bot.',
+            es: 'Hasta 10 jugadores en el mismo recorrido. El anfitrión crea una sala y comparte el código de 4 caracteres. Una sala nueva ya tiene bots, puedes empezar enseguida.',
+            fr: 'Jusqu\'à 10 joueurs sur le même parcours. L\'hôte crée un salon et partage le code à 4 caractères. Un nouveau salon a déjà des bots, tu peux partir tout de suite.',
+            de: 'Bis zu 10 Spieler auf einer Bahn. Der Host erstellt eine Lobby und teilt den 4-stelligen Code. Eine neue Lobby hat schon Bots, du kannst sofort starten.',
+            it: 'Fino a 10 giocatori sullo stesso percorso. L\'host crea una lobby e condivide il codice di 4 caratteri. Una nuova lobby ha già dei bot, puoi partire subito.',
           },
         )}
       </p>

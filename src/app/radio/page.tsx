@@ -69,7 +69,9 @@ export default function RadioCourseHome() {
     if (progress.theoryCompleted < progress.theoryTotal) {
       return {
         href: "/radio/teoria",
-        title: tp("Продолжить теорию", "Continue theory", "Kontynuuj teorię"),
+        title: progress.theoryCompleted === 0
+          ? tl({ pl: "Zacznij teorię", ru: "Начать теорию", en: "Start the theory", es: "Empezar la teoría", fr: "Commencer la théorie", de: "Mit der Theorie beginnen", it: "Inizia la teoria" })
+          : tp("Продолжить теорию", "Continue theory", "Kontynuuj teorię"),
         description: tp(
           "Следующая незакрытая глава, схема и проверка из трех вопросов.",
           "The next incomplete chapter, its diagram, and a three-question check.",
@@ -91,7 +93,9 @@ export default function RadioCourseHome() {
     if (progress.scenariosPassed < progress.scenariosTotal) {
       return {
         href: "/radio/symulator",
-        title: tp("Продолжить сценарии", "Continue scenarios", "Kontynuuj scenariusze"),
+        title: progress.scenariosPassed === 0
+          ? tl({ pl: "Zacznij scenariusze", ru: "Начать сценарии", en: "Start the scenarios", es: "Empezar los escenarios", fr: "Commencer les scénarios", de: "Mit den Szenarien beginnen", it: "Inizia gli scenari" })
+          : tp("Продолжить сценарии", "Continue scenarios", "Kontynuuj scenariusze"),
         description: tp(
           "Отработай процедуру и голос, затем разбери конкретные ошибки.",
           "Practise the procedure and voice call, then review the exact mistakes.",
@@ -108,7 +112,7 @@ export default function RadioCourseHome() {
         "10 pytań, po 5 z każdego przedmiotu, potem powtórka słabych punktów.",
       ),
     };
-  }, [progress, tp]);
+  }, [progress, tp, tl]);
 
   const path = [
     {
@@ -165,15 +169,8 @@ export default function RadioCourseHome() {
     <div id="radio-course-home">
       <header className="mb-8 grid gap-6 border-b pb-8 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--text-secondary)" }}>
+          <h1 className="max-w-3xl text-3xl font-bold leading-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
             {radioText(tl({ pl: "Kurs radiowy SRC", ru: "Курс радиосвязи SRC", en: "SRC radio course", es: "Curso de radio SRC", fr: "Cours de radio SRC", de: "SRC-Funkkurs", it: "Corso di radio SRC" }))}
-          </p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
-            {radioText(tp(
-              "От понимания системы до уверенной работы в эфире",
-              "From understanding the system to confident radio work",
-              "Od zrozumienia systemu do pewnej pracy w eterze",
-            ))}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             {radioText(tl({

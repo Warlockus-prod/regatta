@@ -285,7 +285,7 @@ describe("solo race screens", () => {
       expect(html.match(EMOJI)?.[0], passed ? "passed" : "failed").toBeUndefined();
       expect(html).not.toContain(mission.emoji);
       expect(html).toMatch(iconThen(passed ? "Mission passed: Clean race" : "Mission failed: Clean race"));
-      expect(html).toMatch(iconThen("Result saved to the leaderboard"));
+      expect(html).toMatch(iconThen("Result saved"));
       expect(html).toMatch(iconThen("Tack when the mark is abeam."));
       expect(html).toMatch(iconThen("Clean start"));
       expect(html).toMatch(iconThen("Share"));

@@ -231,6 +231,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/race/page.tsx` - хаб Race: одиночная гонка, мультиплеер, лидерборд.
 - `src/app/library/page.tsx` - хаб Library с поиском по всем разделам.
 - `src/app/start/page.tsx` - буткемп из 8 уроков "с нуля".
+- `src/app/start/MiniTask.tsx` - мини-задание внутри шага «Практика» (пакет 24): одна ручка, та же схема, засчитывается само. Контент `src/data/foundation-mini-tasks.ts` (ветер, курсы, оверштаг, фордевинд; остальные четыре урока ведут в тренажер или гонку), правила и гик `src/lib/learning/mini-task.ts`, тест `src/lib/learning/mini-task.test.ts`, рисунок `renderAngleTask` в `src/lib/learning/foundation-drawings.ts`. Результат пишется в `practiceDone` прогресса курса; открытие раздела и проверка теории его не дают.
 - `src/app/quick/page.tsx` - повторение за 15 минут.
 - `src/app/courses/page.tsx` - курсы относительно ветра (подписи по-русски намеренно) и раздел `#turns`: оверштаг и фордевинд как процедуры (команды, шаги с числами, ошибки) из `maneuvers`, врезка про румпель и штурвал, ссылка на хореографию экипажа в `/checklist#maneuvers`.
 - `src/app/rules/page.tsx` - правила гонок и расхождения, 21 сценарий; `?rule=<id>` из разбора гонки открывает карточку и прокручивает к ней, сверху «Вернуться к гонке».
@@ -238,7 +239,10 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 - `src/app/rules/rule-from-search.test.tsx` - ссылка открывает каждую карточку, на которую ведет гонка, и ничего больше; отрисованная страница открывает только эту карточку, прокручивает к ней и дает внутри нее «Вернуться к гонке» с той же гонкой, при неизвестной карточке остается как была.
 - `src/app/rules/CoursesSection.tsx` - блок курсов внутри страницы правил.
 - `src/app/racing/page.tsx` - тактика гонки.
-- `src/app/glossary/page.tsx` - глоссарий, 51 термин с категориями.
+- `src/app/anatomy/layout.tsx`, `src/app/checklist/layout.tsx`, `src/app/courses/layout.tsx`, `src/app/diagnostics/layout.tsx`, `src/app/gallery/layout.tsx`, `src/app/game/layout.tsx`, `src/app/glossary/layout.tsx`, `src/app/leaderboard/layout.tsx`, `src/app/learn/sails/layout.tsx`, `src/app/manoeuvres/layout.tsx`, `src/app/multiplayer/layout.tsx`, `src/app/offline/layout.tsx`, `src/app/onboard/layout.tsx`, `src/app/privacy/layout.tsx`, `src/app/quick/layout.tsx`, `src/app/racing/layout.tsx`, `src/app/rules/layout.tsx`, `src/app/spots/layout.tsx`, `src/app/support/layout.tsx` - только заголовок вкладки маршрута (`routeMetadata`), страницы этих разделов клиентские и сами `generateMetadata` объявить не могут.
+- `src/lib/product/trainer-names.ts` - имена трех страниц тренажеров по задаче (решение Р-13) на 7 языках: их читают каталог, заголовки вкладок и оба переключателя.
+- `src/lib/product/route-metadata.ts` - один список заголовков вкладок из слов каталога, `routeMetadata(id)` читает язык из `x-regatta-lang`; `src/lib/product/route-metadata.test.ts` падает, если у маршрута нет заголовка или два маршрута делят один.
+- `src/app/glossary/page.tsx` - глоссарий, 56 терминов с категориями; английский термин над русским, пояснение только на языке интерфейса.
 - `src/app/anatomy/page.tsx` - устройство яхты: 3D-модель плюс постеры.
 - `src/app/onboard/page.tsx` - первая неделя на борту.
 - `src/app/checklist/page.tsx` - чек-лист перед выходом. У каждого раздела якорь по его `id` (`/checklist#maneuvers`), из раздела про повороты ссылка на `/courses#turns`.
@@ -247,7 +251,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`. Текущи�
 
 ### 4.3 Тренажеры, гонка, реплей, статистика
 
-- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - описания тренажеров; viewport наследует корневую тему без fixed-dark переопределения.
+- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - заголовки вкладок тренажеров (`routeMetadata`); viewport наследует корневую тему без fixed-dark переопределения.
 - `src/app/simulator/page.tsx` - Основы (внутреннее имя V1), canvas, прод-поверхность; на телефоне холст закреплен, управление в общем доке (раскладка изменена с согласия владельца 2026-10-19, логика холста прежняя).
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
@@ -625,6 +629,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/components/ServiceWorkerRegistrar.tsx` - регистрация сервис-воркера и офлайн-фолбэка.
 - `src/components/AnatomyPosters.tsx` - два постера-инфографики на `/anatomy`.
 - `src/components/YachtViewer3D.tsx` - общий просмотрщик GLB-яхты (анатомия и тренажер, метры).
+- `src/components/product/TrainerSwitcher.tsx` - один переключатель трех тренажеров (Р-13, аудит Б2): вид, размер 44 px и порядок одинаковы, обычные ссылки, потому что Тренажер собирается и без Next-роутера; в приложении его заменяет нативная строка с теми же именами.
 - `src/components/product/ProductHub.tsx` - общий рендер хаба раздела по каталогу; в хабе «Гонка» (пакет 9, аудит Б10) кадр сцены, строка последних настроек, одна кнопка «Играть» (`play=1`) и «Изменить» (лобби `/game` с теми же настройками), без отдельной строки одиночной гонки.
 - `src/components/product/ProductHub.race.render.test.tsx` - одна «Играть» с первой гонкой по умолчанию, «Изменить» в лобби, кадр сцены, у других хабов нет «Играть».
 - `src/components/product/Product.module.css` - стили продуктовой оболочки.
@@ -984,6 +989,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/client-log.ts` - клиентский логгер через `sendBeacon`, молча падает; вне http(s) (офлайн-бандл) ничего не шлет.
 - `src/lib/rate-limit.ts` - скользящее окно в памяти (один контейнер, без Redis); `clientKeys()` дает ключ сессии и ключ IP (последний хоп X-Forwarded-For), оба бакета должны пропустить запрос.
 - `src/lib/rate-limit.test.ts` - контракт: свежая `regatta_sid` на каждый запрос не снимает лимит, отказ не списывает бюджет других слоев, короткое окно не стирает часовые бакеты.
+- `src/lib/leaderboard-visibility.ts` - решение Р-12: таблица видна от 10 результатов, ник спрашиваем, только если свой результат попал в видимую таблицу; имя результата без ника. `src/lib/leaderboard-visibility.test.ts` держит порог и случаи.
 - `src/lib/race-submission.ts` - общие проверки присланных гонок: санитайзер ника, правдоподобное время финиша, слаг миссии.
 - `src/lib/ws-limits.test.ts` - контракт `ws-server/limits.js`: последний хоп XFF и потолки комнат.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
@@ -1016,6 +1022,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/product/catalog.test.ts` - тесты маршрутов и поиска по каталогу.
 - `src/lib/product/trainer-terms.ts` - слова рисунка Тренажера (пакет 11): стороны света и названия парусов вида сверху на 7 языках (`TRAINER_TERMS`), с пакета 13 также «Автотрим», «Лучший VMG» и «Покажи мне», часть словаря UI с теми же правилами и тем же тестом сайта против приложения, но в своем модуле, чтобы чанки гонки и меню, читающие `UI_TERMS`, их не несли.
 - `src/lib/product/ui-terms.ts` - единый словарь слов UI сайта и приложения (пакет 10): режимы «Простой» и «Pro», «Ещё раз», «Разбор гонки», «ИИ-тренер», бренд «Week to Regatta» и короткий логотип «Regatta», раздел и одна гонка (PL «Regaty» / «Wyścig»), единицы уз / м / с / мин; реэкспорт из `src/lib/product/catalog.ts`, `RACE_UNITS` и `RACE_MODE_LABELS` (`RACE_MODES`) это те же объекты, без копий.
+- `src/data/leaderboard-waiting-copy.ts` - что таблица с малым числом результатов говорит вместо строк, на сайте и в приложении, 7 языков.
 - `src/data/quick-online-race.ts` - M5 шаг 8 (ADR-0015 п. 1): `QUICK_ONLINE_RACE`, одно имя мультиплеера «Быстрая онлайн-гонка» на 7 языках (каталог, лобби и приглашение, таблица лучших, экран приложения); часть словаря UI_TERMS в своем модуле, чтобы не копировать его во все чанки.
 - `src/data/mission-titles.ts` - названия миссий на 7 языках, один источник (M5 шаг 8): `src/data/missions.ts` берет их отсюда, выбор миссии в таблице лучших читает только их (`MISSION_TITLE_LIST`), поэтому страница таблицы не несет описания, подсказки и проверку миссий.
 - `src/lib/product/ui-terms.test.ts` - сайт и приложение показывают одни слова: значения сайта и `mobile/src/game/copy.ts`, `mobile/src/home/copy.ts` равны словарю, экраны с термином внутри читают `UI_TERMS`, в копирайте приложения нет своей копии слова словаря.
@@ -1231,7 +1238,9 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
   по умолчанию 12; фиксированный диапазон отклонен специально.
 - Старый `/simulator` держали живым во время Phase 1: замена была прогрессивной.
 - Названия V1 / V2 / V3 - внутренние кодовые имена маршрутов, в UI они не
-  появляются (в UI: Основы, Тренажер, Лодка 3D). Источник истины по модели -
+  появляются (в UI: «Научиться рулить», «Настроить паруса», «Рассмотреть парус»,
+  решение Р-13; «Основы», «Тренажер», «Лодка 3D» остались рабочими именами в
+  документах). Источник истины по модели -
   `docs/design/SIMULATORS.md`.
 - Мобильные V2/V3 показываются в WebView, а не нативным three.js (не рендерится
   под New Arch); V1 остается нативным.

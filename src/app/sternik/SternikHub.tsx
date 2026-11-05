@@ -94,7 +94,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
       {/* Hero */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold sm:text-4xl" style={{ color: 'var(--text-primary)' }}>
-          ⚓ <span lang="pl">Sternik motorowodny</span>
+          <span lang="pl">Sternik motorowodny</span>
         </h1>
         <p className="mt-2 max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
           {tp(
@@ -120,7 +120,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
       >
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          📋 {tp('Формат экзамена', 'Exam format', 'Format egzaminu')}
+          {tp('Формат экзамена', 'Exam format', 'Format egzaminu')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile value={String(exam.questions)} label={tp('вопросов (A/B/C)', 'questions (A/B/C)', 'pytań (A/B/C)')} />
@@ -151,7 +151,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
       {/* Progress */}
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          📈 {tp('Твой прогресс', 'Your progress', 'Twój postęp')}
+          {tp('Твой прогресс', 'Your progress', 'Twój postęp')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile value={String(answered)} label={tp('ответов дано', 'answers given', 'udzielonych odpowiedzi')} />
@@ -193,8 +193,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
           className="rounded-2xl p-5 transition hover:-translate-y-0.5"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="text-3xl">📖</div>
-          <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
             {tp('Теория', 'Theory', 'Teoria')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -210,8 +209,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
           className="rounded-2xl p-5 transition hover:-translate-y-0.5"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="text-3xl">🎯</div>
-          <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
             {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytań')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -230,8 +228,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
             border: '1px solid var(--border-subtle)',
           }}
         >
-          <div className="text-3xl">⏱️</div>
-          <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
             {tp('Пробный экзамен', 'Mock exam', 'Próbny egzamin')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>

@@ -32,8 +32,7 @@ export default function ProductHub({ section }: { section: "learn" | "practice" 
     <div className={section === "learn" ? styles.groupsGrid : undefined}>
       {groups.filter(g => g.entries.length).map(group => <section key={group.id} className={styles.section}>
         {group.title && <h2 className={styles.sectionTitle}>{group.title}</h2>}
-        <div className={styles.list}>{group.entries.map((entry, index) => <Link className={styles.row} key={entry.id} href={entry.web!}>
-          {section === "practice" && <span aria-hidden="true" className={styles.number}>{String(index + 1).padStart(2, "0")}</span>}
+        <div className={styles.list}>{group.entries.map((entry) => <Link className={styles.row} key={entry.id} href={entry.web!}>
           <div><strong>{entry.title[lang]}</strong>{entry.detail && <p className={styles.description}>{entry.detail[lang]}</p>}</div>
           <span className={styles.arrow} aria-hidden="true">→</span>
         </Link>)}</div>

@@ -76,7 +76,6 @@ export default function GlossaryPage() {
           >
             {tp('Глоссарий', 'Glossary', 'Słownik', { es: 'Glosario', fr: 'Glossaire', de: 'Glossar', it: 'Glossario' })}
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Słownik żeglarski', { es: 'Glosario de vela', fr: 'Glossaire de voile', de: 'Segellexikon', it: 'Glossario velico' })}</p>
         </div>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
@@ -106,7 +105,9 @@ export default function GlossaryPage() {
             placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...', { es: 'Buscar términos...', fr: 'Rechercher des termes...', de: 'Begriffe suchen...', it: 'Cerca termini...' })}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="search-input w-full min-h-11 pl-11 pr-4 py-3 text-base"
+            className="search-input w-full min-h-11 pr-4 py-3 text-base"
+            // .search-input is unlayered CSS and beats a pl-* utility: the icon sat on the placeholder.
+            style={{ paddingLeft: 44 }}
           />
           {search && (
             <button
@@ -242,18 +243,10 @@ export default function GlossaryPage() {
                     </span>
                   </div>
 
-                  {/* Definition in active language. EN shown as faint subtitle
-                      only in non-EN modes (keeps cards compact for EN readers). */}
-                  <div className="flex flex-col gap-1.5">
-                    <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                      {pickDef(term)}
-                    </p>
-                    {lang !== 'en' && (
-                      <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-                        {term.definitionEn}
-                      </p>
-                    )}
-                  </div>
+                  {/* The English term stays above; the explanation is in the reader's language only. */}
+                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                    {pickDef(term)}
+                  </p>
                 </div>
               );
             })}
@@ -279,11 +272,6 @@ export default function GlossaryPage() {
             <p className="text-sm text-[var(--text-muted)]">
               {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono', { es: 'Sin resultados', fr: 'Aucun résultat', de: 'Nichts gefunden', it: 'Nessun risultato' })}
             </p>
-            {lang !== 'en' && (
-              <p className="text-sm text-[var(--text-muted)]">
-                No terms match your search
-              </p>
-            )}
             <button
               onClick={() => {
                 setSearch('');

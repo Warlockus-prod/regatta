@@ -28,6 +28,14 @@
 .legend { display: flex; gap: 8px 24px; flex-wrap: wrap; padding-left: 20px; margin: 12px 0 24px; list-style: disc; color: var(--text-secondary); }
 .primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; border-radius: 6px; background: var(--accent-cyan); color: var(--accent-ink); font-weight: 600; margin-top: 16px; text-align: center; line-height: 24px; }
 .next { display: block; margin-top: 16px; }
+.miniTask { margin: 16px 0 32px; }
+.taskPrompt { font-weight: 600; min-height: 48px; }
+.taskControl { display: block; font-weight: 600; }
+.taskControl input { display: block; width: 100%; min-height: 44px; accent-color: var(--accent-cyan); }
+.taskSteps { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; color: var(--text-secondary); }
+.taskSteps li { min-width: 56px; padding: 4px 10px; text-align: center; border: 1px solid var(--border-subtle, rgba(139,167,184,.35)); border-radius: 6px; }
+.taskSteps li[aria-current="step"] { border-color: var(--accent-cyan); color: var(--text-primary); }
+.taskSteps li[data-reached] { color: var(--success); }
 .question { border: 0; padding: 0; margin: 24px 0 32px; min-width: 0; }
 .question legend { font-weight: 600; margin-bottom: 12px; }
 .option { display: flex; gap: 12px; align-items: flex-start; min-height: 44px; padding: 10px 12px; border-bottom: 1px solid var(--border-subtle, rgba(139,167,184,.25)); cursor: pointer; }

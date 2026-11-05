@@ -2,6 +2,8 @@
 
 import { FoundationReturn } from "@/components/FoundationReturn";
 import { RaceReturn } from "@/components/RaceReturn";
+import { TrainerSwitcher } from "@/components/product/TrainerSwitcher";
+import { TRAINER_NAMES } from "@/lib/product/trainer-names";
 
 import styles from "./SimulatorV3.module.css";
 import { SavePractice } from "../sailing-lab/ui/SavePractice";
@@ -702,56 +704,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               </button>}
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Also bundled without the Next router for offline use. Hidden in native embeds. */}
               <a href="/learn/sails" className={styles.courseLink}>{tp("К урокам", "Lessons", "Do lekcji", { es: "Lecciones", fr: "Leçons", de: "Lektionen", it: "Lezioni" })}</a>
-              <details className={styles.otherTools}>
-              <summary>{tp("Другие тренажёры", "Other simulators", "Inne symulatory", { es: "Otros simuladores", fr: "Autres simulateurs", de: "Andere Simulatoren", it: "Altri simulatori" })}</summary>
-              <nav>
-              <a
-                href="/simulator"
-                className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
-                style={{
-                  borderColor: 'rgba(139, 167, 184, 0.22)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                {tp('Основы', 'Basics', 'Podstawy', {
-                  es: 'Fundamentos',
-                  fr: 'Bases',
-                  de: 'Grundlagen',
-                  it: 'Basi',
-                })}
-              </a>
-              <span
-                className="text-xs font-semibold px-2 py-1 rounded-md border"
-                style={{
-                  background: 'rgba(0, 212, 255, 0.14)',
-                  borderColor: 'rgba(0, 212, 255, 0.35)',
-                  color: 'var(--accent-cyan)',
-                }}
-              >
-                {tp('Тренажёр', 'Trainer', 'Trenażer', {
-                  es: 'Trimado',
-                  fr: 'Réglage',
-                  de: 'Trainer',
-                  it: 'Regolazione',
-                })}
-              </span>
-              <a
-                href="/simulator2"
-                className="text-xs font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
-                style={{
-                  borderColor: 'rgba(139, 167, 184, 0.22)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                {tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
-                  es: 'Barco 3D',
-                  fr: 'Bateau 3D',
-                  de: '3D-Boot',
-                  it: 'Barca 3D',
-                })}
-              </a>
-              </nav>
-              </details>
+              {/* R-13, audit B2: the one switcher, also on the web; on a compact screen it sits in the More panel. */}
+              <TrainerSwitcher current="trainer" lang={lang} className={isDesktop ? "w-[440px] max-w-full" : "w-full"} />
             </>
           )}
         </div>
@@ -820,6 +774,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       }`}
       style={{ background: 'var(--bg-primary)' }}
     >
+      <h1 className="sr-only">{TRAINER_NAMES.trainer[lang]}</h1>
       <FoundationReturn bar initialSearch={initialSearch} />
       <RaceReturn bar initialSearch={initialSearch} />
       <LessonReturn lang={lang} initialSearch={initialSearch} />

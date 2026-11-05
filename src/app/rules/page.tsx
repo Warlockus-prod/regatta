@@ -193,20 +193,16 @@ export default function RulesPage() {
       <RaceReturn />
       {/* Header */}
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
-             style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
-          📖 {tp('Простые правила', 'Simple rules', 'Proste zasady', { es: 'Reglas simples', fr: 'Règles simples', de: 'Einfache Regeln', it: 'Regole semplici' })}
-        </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
           {tp(
-            'Правила на воде: RRS + МППСС',
-            'Rules on the water: RRS + COLREGS',
-            'Zasady na wodzie: RRS + MPZZM',
+            'Правила на воде',
+            'Rules on the water',
+            'Zasady na wodzie',
             {
-              es: 'Reglas en el agua: RRS + RIPA',
-              fr: "Règles sur l'eau : RRS + RIPAM",
-              de: 'Regeln auf dem Wasser: RRS + KVR',
-              it: 'Regole in acqua: RRS + COLREG',
+              es: 'Reglas en el agua',
+              fr: "Règles sur l'eau",
+              de: 'Regeln auf dem Wasser',
+              it: 'Regole in acqua',
             },
           )}
         </h1>
@@ -225,20 +221,11 @@ export default function RulesPage() {
         </p>
       </div>
 
-      {/* --- Kursy (patenty PL) ---------------------------------------------
-          The two Polish licence courses. They live here, in the theory section,
-          because that is where somebody who wants a certificate looks - and
-          because /radio was previously reachable only through a link buried
-          inside /sternik. The course CONTENT is Polish: these are Polish exams,
-          and a half-translated licence course would be worse than none. On the
-          Russian site version the courses additionally offer Russian commentary. */}
-      <CoursesSection />
-
       {/* --- RRS section --- */}
       <div className="mb-6 flex items-center gap-3">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(255, 170, 0, 0.12)', border: '1px solid rgba(255, 170, 0, 0.28)', color: 'var(--warning)' }}>
-          🏁 RRS
+          RRS
         </div>
         <h2 className="text-base sm:text-lg font-semibold">
           {tp('Гоночные правила (World Sailing)', 'Racing Rules of Sailing', 'Przepisy Regatowe Żeglarstwa (World Sailing)', { es: 'Reglamento de Regatas a Vela (World Sailing)', fr: 'Règles de course à la voile (World Sailing)', de: 'Wettfahrtregeln Segeln (World Sailing)', it: 'Regole di regata della vela (World Sailing)' })}
@@ -262,7 +249,6 @@ export default function RulesPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{r.icon}</span>
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{pickTitle(r)}</div>
                     {lang !== 'en' && (
@@ -352,7 +338,7 @@ export default function RulesPage() {
       <div className="mb-6 flex items-center gap-3">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.28)', color: 'var(--accent-cyan)' }}>
-          🌊 {tp('COLREGS / МППСС-72', 'COLREGS / IRPCS', 'COLREG / MPZZM', { es: 'COLREG / RIPA', fr: 'COLREG / RIPAM', de: 'COLREG / KVR', it: 'COLREG' })}
+          {tp('COLREGS / МППСС-72', 'COLREGS / IRPCS', 'COLREG / MPZZM', { es: 'COLREG / RIPA', fr: 'COLREG / RIPAM', de: 'COLREG / KVR', it: 'COLREG' })}
         </div>
         <h2 className="text-base sm:text-lg font-semibold">
           {tp(
@@ -398,7 +384,6 @@ export default function RulesPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{r.icon}</span>
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{pickTitle(r)}</div>
                     {lang !== 'en' && (
@@ -739,6 +724,10 @@ export default function RulesPage() {
           )}
         </p>
       </div>
+
+      {/* The licence courses, after the rules this page is for (audit: they used to
+          stand above the first rule card). */}
+      <CoursesSection />
 
       <ContentFooterNav page="/rules" />
     </div>

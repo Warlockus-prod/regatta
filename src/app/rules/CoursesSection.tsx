@@ -20,7 +20,6 @@ import { useI18n } from '@/lib/i18n';
 
 interface Course {
   href: string;
-  icon: string;
   /** the Polish name of the licence - never translated, it is what it is called */
   name: string;
   blurb: string;
@@ -33,7 +32,6 @@ export default function CoursesSection() {
   const courses: Course[] = [
     {
       href: '/sternik',
-      icon: '⚓',
       name: 'Sternik motorowodny',
       blurb: tp(
         'Патент на моторную лодку. Теория, банк из 879 вопросов, пробный экзамен.',
@@ -54,7 +52,6 @@ export default function CoursesSection() {
     },
     {
       href: '/radio',
-      icon: '📻',
       name: 'Radio SRC (VHF / DSC)',
       blurb: tp(
         'Свидетельство оператора SRC. Симулятор настоящей ICOM, 26 практических заданий, голосовая тренировка.',
@@ -82,7 +79,7 @@ export default function CoursesSection() {
           className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
           style={{ background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.28)', color: 'var(--accent-cyan)' }}
         >
-          🎓 {tp('Курсы', 'Courses', 'Kursy', { es: 'Cursos', fr: 'Cours', de: 'Kurse', it: 'Corsi' })}
+          {tp('Курсы', 'Courses', 'Kursy', { es: 'Cursos', fr: 'Cours', de: 'Kurse', it: 'Corsi' })}
         </div>
         <h2 className="text-base font-semibold sm:text-lg">
           {tp(
@@ -107,12 +104,9 @@ export default function CoursesSection() {
             className="card group flex flex-col p-4 transition-all sm:p-5"
             style={{ borderColor: 'var(--border-subtle)' }}
           >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">{c.icon}</span>
-              <div className="min-w-0">
-                <div className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{c.name}</div>
-                <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{c.blurb}</p>
-              </div>
+            <div className="min-w-0">
+              <div className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{c.name}</div>
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{c.blurb}</p>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -138,7 +132,7 @@ export default function CoursesSection() {
           discovered by surprise inside them. */}
       <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
         {lang === 'ru'
-          ? 'Курс sternik ведётся на польском - это язык экзамена. Внутри курса можно дополнительно включить русские комментарии: кнопка 💬 в подменю раздела. Курс радиосвязи SRC идёт на языке сайта.'
+          ? 'Курс sternik ведётся на польском - это язык экзамена. Внутри курса можно дополнительно включить русские комментарии: переключатель языка в подменю раздела. Курс радиосвязи SRC идёт на языке сайта.'
           : tp(
               '',
               'The sternik course is taught in Polish, the language of the exam. The SRC radio course follows the site language.',

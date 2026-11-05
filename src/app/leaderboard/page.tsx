@@ -8,10 +8,11 @@ import { MISSION_TITLE_LIST as missions } from '@/data/mission-titles';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import { FlagIcon, TargetIcon } from '@/features/race-hud/RaceIcons';
 import { PHYSICAL_RACE_EMISSION_ENABLED } from '@/lib/race-context';
-import { useLeaderboardCopy } from './leaderboard-copy';
+import { leaderboardVisible } from '@/lib/leaderboard-visibility';
+import { useLeaderboardCopy, type LeaderboardCopy } from './leaderboard-copy';
 import { LeaderboardTable } from './LeaderboardTable';
 import {
-  DEFAULT_LEADERBOARD_COURSE, LEADERBOARD_COURSES, archiveUrl, leaderboardUrl, showsArchive,
+  DEFAULT_LEADERBOARD_COURSE, LEADERBOARD_COURSES, archiveUrl, formatLeaderboardTime, leaderboardUrl, showsArchive,
   type LeaderboardBoard, type LeaderboardCourse, type LeaderboardRow, type LeaderboardSelection,
 } from './leaderboard-model';
 
@@ -70,6 +71,22 @@ function Choices<T extends string>({ label, value, options, onChange, columns = 
   );
 }
 
+/** R-12: a board with too few results shows the player's own record, not a near-empty table. */
+function LeaderboardWaiting({ rows, copy, showGhost, raceHref }: { rows: LeaderboardRow[]; copy: LeaderboardCopy; showGhost: boolean; raceHref: string }) {
+  const mine = rows.find((row) => row.isMe);
+  return (
+    <div className="px-1 py-3 text-base leading-6" data-testid="leaderboard-waiting">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{copy.waitingTitle}</h2>
+      <p className="text-[var(--text-secondary)]" data-testid="leaderboard-waiting-count">{copy.waitingCount(rows.length)}</p>
+      {mine
+        ? <p className="mt-3 text-[var(--text-primary)]" data-testid="leaderboard-my-best">{copy.yourBest}: <span className="font-mono font-semibold tabular-nums">{formatLeaderboardTime(mine.finish_time_sec)}</span></p>
+        : <p className="mt-3 text-[var(--text-secondary)]" data-testid="leaderboard-no-best">{copy.noBest}</p>}
+      {showGhost && <p className="mt-2 text-sm leading-5 text-[var(--text-muted)]">{copy.ghost}</p>}
+      <div className="mt-2"><Link href={raceHref} className="inline-flex min-h-11 items-center font-semibold text-[var(--accent-cyan)] hover:underline">{copy.toRace}</Link></div>
+    </div>
+  );
+}
+
 export default function LeaderboardPage() {
   const { lang } = useI18n();
   const copy = useLeaderboardCopy();
@@ -123,10 +140,11 @@ export default function LeaderboardPage() {
       <section className="card p-3" aria-label={tableName} data-board={selection.board} data-course={free ? selection.course : undefined}>
         {main.loading
           ? <div className="py-10 text-center text-base text-[var(--text-muted)]" role="status">{copy.loading}</div>
-          : <LeaderboardTable rows={main.rows} copy={copy} lang={lang} testId="leaderboard-rows" empty={metricClosed ? copy.metricEmpty : <>
-              {copy.empty}
-              <div className="mt-3"><Link href={online ? '/multiplayer' : '/game'} className="inline-flex min-h-11 items-center font-semibold text-[var(--accent-cyan)] hover:underline">{copy.toRace}</Link></div>
-            </>} />}
+          : metricClosed
+            ? <div className="py-8 text-center text-base text-[var(--text-muted)]" data-testid="leaderboard-rows-empty">{copy.metricEmpty}</div>
+            : leaderboardVisible(main.rows)
+              ? <LeaderboardTable rows={main.rows} copy={copy} lang={lang} testId="leaderboard-rows" />
+              : <LeaderboardWaiting rows={main.rows} copy={copy} showGhost={!online} raceHref={online ? '/multiplayer' : '/game'} />}
       </section>
 
       {archived && <details className="card p-3 mt-4" data-testid="leaderboard-archive" onToggle={(e) => setArchiveOpen(e.currentTarget.open)}>

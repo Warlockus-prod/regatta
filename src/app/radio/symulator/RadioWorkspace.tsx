@@ -155,7 +155,7 @@ export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle:
       className={styles.barButton}
       style={on ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)', borderColor: 'var(--accent-cyan)' } : undefined}
     >
-      <span aria-hidden>🔍</span><span className={styles.barLabel}>{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
+      <span className={styles.barLabel}>{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
     </button>
   );
 }
@@ -173,7 +173,10 @@ export function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () 
       title={radioText(tp('Звук', 'Sound', 'Dźwięk'))}
       className={`${styles.barButton} ${styles.barIcon}`}
     >
-      {radioText(muted ? '🔇' : '🔊')}
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 9v6h4l5 4V5L8 9H4Z" />
+        {muted ? <path d="m17 9 5 6m0-6-5 6" /> : <path d="M17 8.5a5 5 0 0 1 0 7M19.5 6a8.5 8.5 0 0 1 0 12" />}
+      </svg>
     </button>
   );
 }

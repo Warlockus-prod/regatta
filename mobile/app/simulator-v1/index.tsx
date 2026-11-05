@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { SimWebView } from '../../src/simulator/SimWebView';
 import { useI18n } from '../../src/i18n/context';
 import { passthroughQuery } from '../../src/simulator/passthroughQuery';
+import { OPEN_BASICS_OFFLINE, TRAINER_NAMES } from '../../../src/lib/product/trainer-names';
 
 const OFFLINE_SOURCE = require('../../assets/sailing-offline.html');
 
@@ -9,7 +10,7 @@ const OFFLINE_SOURCE = require('../../assets/sailing-offline.html');
 // The simplified native screen remains a recovery route for asset errors.
 
 export default function SimulatorV1Screen() {
-  const { tp } = useI18n();
+  const { lang } = useI18n();
   const params = useLocalSearchParams();
   return (
     <SimWebView
@@ -17,20 +18,10 @@ export default function SimulatorV1Screen() {
       tier="basics"
       query={passthroughQuery(params)}
       offlineSource={OFFLINE_SOURCE}
-      title={tp('Основы', 'Basics', 'Podstawy', {
-        es: 'Fundamentos',
-        fr: 'Bases',
-        de: 'Grundlagen',
-        it: 'Basi',
-      })}
+      title={TRAINER_NAMES.basics[lang]}
       scrollEnabled
       fallbackRoute="/simulator-basics"
-      fallbackLabel={tp('Основы офлайн (упрощённо)', 'Basics offline (simple)', 'Podstawy offline (uproszczone)', {
-        es: 'Fundamentos sin conexión (simple)',
-        fr: 'Bases hors ligne (simple)',
-        de: 'Grundlagen offline (einfach)',
-        it: 'Basi offline (semplice)',
-      })}
+      fallbackLabel={OPEN_BASICS_OFFLINE[lang]}
     />
   );
 }

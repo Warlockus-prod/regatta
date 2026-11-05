@@ -100,7 +100,7 @@ No account, no prompt, no friction.
 
 ## Ads (Settings -> Ads, from app 1.7.1)
 
-Settings -> Ads, the first entry of Settings, lists ad formats: display
+Settings -> Ads, the last entry of Settings, lists ad formats: display
 banners, interstitial, rewarded video, in-content VAST video and in-game. The
 app requests an ad only when you open one of these format screens, never
 before and nowhere else; the rest of the app has no ads.

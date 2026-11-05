@@ -6,6 +6,7 @@ import { Button, Screen, Text } from '../../src/design-system/components';
 import { AppSurface, appStackOptions } from '../../src/design-system/surface';
 import { colors } from '../../src/design-system/tokens';
 import { useI18n } from '../../src/i18n/context';
+import { OPEN_BASICS_OFFLINE } from '../../../src/lib/product/trainer-names';
 import { ActivityBack } from '../../src/navigation/ActivityBack';
 import { nativeDataEpoch } from '../../src/persistence/data-epoch';
 import { MANOEUVRES_STORAGE_BRIDGE_SCRIPT, parseManoeuvresStorageEntries, useManoeuvresWebStorage } from '../../src/persistence/manoeuvres-web-storage';
@@ -24,7 +25,7 @@ const OFFLINE_SAILING = require('../../assets/sailing-offline.html');
 // ============================================================================
 
 export default function ManoeuvresScreen() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const params = useLocalSearchParams<{ ex?: string | string[] }>();
   const ex = typeof params.ex === 'string' && /^[a-z0-9-]{1,48}$/.test(params.ex) ? params.ex : undefined;
   const query = useMemo(() => (ex ? { ex } : undefined), [ex]);
@@ -67,12 +68,7 @@ export default function ManoeuvresScreen() {
       title={title}
       scrollEnabled
       fallbackRoute="/simulator-basics"
-      fallbackLabel={tp('Открыть Основы (офлайн)', 'Open Basics (offline)', 'Otwórz Podstawy (offline)', {
-        es: 'Abrir Fundamentos (sin conexión)',
-        fr: 'Ouvrir les Bases (hors ligne)',
-        de: 'Grundlagen öffnen (offline)',
-        it: 'Apri le Basi (offline)',
-      })}
+      fallbackLabel={OPEN_BASICS_OFFLINE[lang]}
     />
   );
 }
