@@ -11,7 +11,7 @@ export const TRAINER_NAMES: Record<TrainerId, Label> = {
 };
 
 /** The switcher's name for a screen reader. */
-export const TRAINER_SWITCHER_LABEL: Label = { ru: "Тренажеры", en: "Trainers", pl: "Trenażery", es: "Simuladores", fr: "Simulateurs", de: "Trainer", it: "Simulatori" };
+export const TRAINER_SWITCHER_LABEL: Label = { ru: "Тренажеры", en: "Trainers", pl: "Trenażery", es: "Simuladores", fr: "Simulateurs", de: "Simulatoren", it: "Simulatori" };
 
 /** The way out of a failed local trainer: the simple version of the first one. */
 export const OPEN_BASICS_OFFLINE: Label = {

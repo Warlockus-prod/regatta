@@ -288,6 +288,38 @@ debrief. `src/app/game/race-terms.test.ts` pins the mark terms.
 - Sheets in key hints always named in full (FR "Q/A écoute de grand-voile, W/S
   écoute de foc"), per the sheet rule above.
 
+## In-lesson tasks and the leaderboard name (language pass of build 81, 2026-11-05)
+
+`src/data/foundation-mini-tasks.test.ts` pins these decisions.
+
+The three trainer pages are named by their task (owner decision R-13, one dictionary:
+`src/lib/product/trainer-names.ts`):
+
+| Page | Russian | English | Polish | Spanish | French | German | Italian |
+|---|---|---|---|---|---|---|---|
+| `/simulator` | Научиться рулить | Learn to steer | Naucz się sterować | Aprende a timonear | Apprendre à barrer | Steuern lernen | Impara a timonare |
+| `/simulator-v3` | Настроить паруса | Trim the sails | Ustaw żagle | Ajusta las velas | Régler les voiles | Segel trimmen | Regola le vele |
+| `/simulator2` | Рассмотреть парус | Inspect the sail | Obejrzyj żagiel | Observa la vela | Observer la voile | Segel ansehen | Osserva la vela |
+
+- The screen-reader name of the switcher is "Simulatoren" in German: "KI-Trainer" in
+  `UI_TERMS` is the AI coach, so a bare "Trainer" reads as a person.
+- The leaderboard has one name, the page heading, in the menu, the message under 10 results
+  and the nickname prompt: Leaderboard / Ranking / Clasificación / Classement / Bestenliste /
+  Classifica. Not "table", "tabela", "tabla", "tableau", "Tabelle", "tabella" or "Rangliste".
+  The word stays "table" only where the text really speaks of several tables.
+- A task inside a lesson is an exercise: ES "ejercicio", FR "exercice", IT "esercizio". ES
+  "tarea" and IT "compito" read as homework. PL "zadanie" and DE "Aufgabe" stay.
+- The slider is held at an angle ("Hold the boat at this angle"), never on a "mark", "znak",
+  "Marke", "marca" or "segno": in this product those mean a race mark or read like it.
+- Spanish imperatives: "Arriba" alone reads as "up", so the task says "Arriba hasta poner la
+  popa al viento". Past tense follows Spain: "¡Lo has logrado!", not "¡Lo lograste!".
+- Italian "until" needs the negative: "finché il vento non arriva"; without "non" it means "as
+  long as".
+- French buttons do not start with "Plus de...", which also reads as "no more...".
+
+Open for the owner: RU menu "Результаты гонок" against the page heading "Таблица лучших";
+PL "trenażer" against "symulator" in one product; DE "Am Wind" against "Hoch am Wind" (above).
+
 ## General style rules for translation
 
 1. **Adapt, do not transliterate.** Write what a native sailing instructor would say to a

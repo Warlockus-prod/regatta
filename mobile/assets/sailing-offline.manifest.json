@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "7d2db021c54c",
-  "sha256": "d982981d641e484e6a025bd8eb5c51943d75dfc7a7be6af58e9dd6c6aea1ab29",
-  "bytes": 7020050,
+  "version": "775dd8304a44",
+  "sha256": "51a56affcdaaab287ab09589faf7d7d3ccdb221d911fdc1927931b9a87260d4c",
+  "bytes": 7020082,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1101,8 +1101,8 @@
     },
     {
       "path": "src/app/game/RaceResults.tsx",
-      "bytes": 45726,
-      "sha256": "7b951a9fe30d0e016de1485b49c54ef17446366619813f39e0379a1a65132901"
+      "bytes": 45750,
+      "sha256": "ee815e73f741f4e5de2893db1681ab123840e84ea77ade186cc557134c791c32"
     },
     {
       "path": "src/app/game/RaceSetupSettings.tsx",
@@ -2621,8 +2621,8 @@
     },
     {
       "path": "src/lib/product/catalog.ts",
-      "bytes": 17375,
-      "sha256": "0f8bf6096375139fe26604fbcfb7fcb0f9e542e6ea387b5b3517100f75f5c77a"
+      "bytes": 17377,
+      "sha256": "50c5dc7912bed193c20e50e1dc16638804071744be9348a59c59fce5311c390e"
     },
     {
       "path": "src/lib/product/copy.ts",
@@ -2631,8 +2631,8 @@
     },
     {
       "path": "src/lib/product/trainer-names.ts",
-      "bytes": 1786,
-      "sha256": "3864f8a6d8dbeee95852df139c1f4c0645119aa7e1a45130991443e687c9ad6e"
+      "bytes": 1790,
+      "sha256": "64675f0982decf19fe6e8c3aa4b098448accd56dcdf285722321f01f21820e80"
     },
     {
       "path": "src/lib/product/trainer-terms.ts",

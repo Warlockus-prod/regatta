@@ -132,7 +132,7 @@ export default function SupportPage() {
                 {
                   es: 'Tu historial de regatas se queda en tu dispositivo. La clasificación global y el multijugador ya funcionan en línea, en la web y en la app.',
                   fr: "L'historique de tes courses reste sur ton appareil. Le classement général et le multijoueur fonctionnent déjà en ligne, sur le site et dans l'appli.",
-                  de: 'Dein Rennverlauf bleibt auf deinem Gerät. Die globale Rangliste und der Mehrspielermodus funktionieren bereits online, auf der Website und in der App.',
+                  de: 'Dein Rennverlauf bleibt auf deinem Gerät. Die globale Bestenliste und der Mehrspielermodus funktionieren bereits online, auf der Website und in der App.',
                   it: "La cronologia delle tue regate resta sul dispositivo. La classifica globale e il multiplayer funzionano già online, sul sito e nell'app.",
                 },
               )}

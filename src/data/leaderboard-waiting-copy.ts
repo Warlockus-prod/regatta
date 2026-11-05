@@ -6,12 +6,12 @@ type Label = Record<"ru" | "en" | "pl" | "es" | "fr" | "de" | "it", string>;
 export const LEADERBOARD_WAITING_COPY: { title: Label; count: Label; yourBest: Label; noBest: Label; ghost: Label; anonymous: Label } = {
   title: {
     ru: `Таблица откроется при ${LEADERBOARD_MIN_RECORDS} результатах`,
-    en: `The table opens at ${LEADERBOARD_MIN_RECORDS} results`,
-    pl: `Tabela otworzy się przy ${LEADERBOARD_MIN_RECORDS} wynikach`,
-    es: `La tabla se abre con ${LEADERBOARD_MIN_RECORDS} resultados`,
-    fr: `Le tableau s'ouvre à ${LEADERBOARD_MIN_RECORDS} résultats`,
-    de: `Die Tabelle öffnet sich ab ${LEADERBOARD_MIN_RECORDS} Ergebnissen`,
-    it: `La tabella si apre con ${LEADERBOARD_MIN_RECORDS} risultati`,
+    en: `The leaderboard opens at ${LEADERBOARD_MIN_RECORDS} results`,
+    pl: `Ranking otworzy się przy ${LEADERBOARD_MIN_RECORDS} wynikach`,
+    es: `La clasificación se abre con ${LEADERBOARD_MIN_RECORDS} resultados`,
+    fr: `Le classement s'ouvre à ${LEADERBOARD_MIN_RECORDS} résultats`,
+    de: `Die Bestenliste öffnet ab ${LEADERBOARD_MIN_RECORDS} Ergebnissen`,
+    it: `La classifica si apre con ${LEADERBOARD_MIN_RECORDS} risultati`,
   },
   count: { ru: "Сейчас результатов: {n}", en: "Results so far: {n}", pl: "Wyników do tej pory: {n}", es: "Resultados por ahora: {n}", fr: "Résultats pour l'instant : {n}", de: "Ergebnisse bisher: {n}", it: "Risultati finora: {n}" },
   yourBest: { ru: "Твой лучший результат", en: "Your best result", pl: "Twój najlepszy wynik", es: "Tu mejor resultado", fr: "Ton meilleur résultat", de: "Dein bestes Ergebnis", it: "Il tuo miglior risultato" },
