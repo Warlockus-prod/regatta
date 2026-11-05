@@ -123,10 +123,10 @@ export default function SupportPage() {
               )}
             />
             <Faq
-              q={tp('Лидерборд и онлайн-гонки?', 'Leaderboard and online races?', 'Ranking i wyścigi online?',
+              q={tp('Результаты гонок и мультиплеер?', 'Leaderboard and online races?', 'Ranking i wyścigi online?',
                 { es: '¿Clasificación y regatas en línea?', fr: 'Classement et courses en ligne ?', de: 'Bestenliste und Online-Rennen?', it: 'Classifica e gare online?' })}
               a={tp(
-                'История твоих гонок хранится на устройстве. Общий лидерборд и мультиплеер уже работают онлайн - на сайте и в приложении.',
+                'История твоих гонок хранится на устройстве. Общие результаты гонок и мультиплеер уже работают онлайн - на сайте и в приложении.',
                 'Your race history stays on your device. The global leaderboard and multiplayer already work online, on the website and in the app.',
                 'Historia Twoich wyścigów zostaje na urządzeniu. Globalny ranking i tryb multiplayer działają już online - na stronie i w aplikacji.',
                 {

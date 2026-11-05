@@ -97,7 +97,7 @@ describe("leaderboard page", () => {
   it.each(["ru", "en", "pl", "es", "fr", "de", "it"] as const)("renders the course, Simple / Pro choices and the folded archive in %s", lang => {
     const html = renderPage(lang);
     expect(html).toContain('data-testid="leaderboard-page"');
-    expect(html).toMatch(/<h1[^>]*>(Таблица лучших|Leaderboard|Ranking|Clasificación|Classement|Bestenliste|Classifica)<\/h1>/);
+    expect(html).toMatch(/<h1[^>]*>(Результаты гонок|Leaderboard|Ranking|Clasificación|Classement|Bestenliste|Classifica)<\/h1>/);
     expect(html).toContain('data-testid="leaderboard-archive"');
     expect(html).not.toMatch(/<details[^>]*data-testid="leaderboard-archive"[^>]* open/);
     expect(html).toMatch(/>(Архив: режим не записан|Archive: mode not recorded|Archiwum: tryb niezapisany|Archivo: modo no registrado|Archives : mode non enregistré|Archiv: Modus nicht erfasst|Archivio: modalità non registrata)</);

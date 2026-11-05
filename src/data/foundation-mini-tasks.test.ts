@@ -48,15 +48,22 @@ describe("in-lesson task words", () => {
 });
 
 describe("one name for the leaderboard", () => {
-  const named: Language[] = ["en", "pl", "es", "fr", "de", "it"];
+  const named: Language[] = ["ru", "en", "pl", "es", "fr", "de", "it"];
 
   it("the message under 10 results names the board the menu names", () => {
     for (const lang of named) expect(LEADERBOARD_WAITING_COPY.title[lang].toLowerCase()).toContain(board.title[lang].toLowerCase());
   });
 
-  it("the page heading and the menu agree outside Russian", () => {
+  it("the page heading and the menu agree in every language", () => {
     const heading = source("src/app/leaderboard/leaderboard-copy.ts");
     for (const lang of named) expect(heading).toContain(`${lang}: "${board.title[lang]}"`);
+  });
+
+  it("Russian says Результаты гонок everywhere, owner's decision 2026-11-05", () => {
+    expect(board.title.ru).toBe("Результаты гонок");
+    for (const path of ["src/app/leaderboard/leaderboard-copy.ts", "src/app/game/RaceResults.tsx", "src/app/multiplayer/MultiplayerClient.tsx", "src/app/support/page.tsx", "mobile/app/leaderboard/index.tsx"]) {
+      expect(source(path)).not.toMatch(/[Лл]идерборд|[Тт]аблиц\S* (лучших|лидеров)/);
+    }
   });
 
   it("the nickname prompt says the same word, and the old German word is gone", () => {

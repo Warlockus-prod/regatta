@@ -114,7 +114,7 @@ export default function Leaderboard() {
     };
   }, [tab, gDiff, gWind, gNonce]);
 
-  const screenTitle = tp('Таблица лидеров', 'Leaderboard', 'Ranking', {
+  const screenTitle = tp('Результаты гонок', 'Leaderboard', 'Ranking', {
     es: 'Clasificación',
     fr: 'Classement',
     de: 'Bestenliste',
@@ -223,7 +223,7 @@ export default function Leaderboard() {
     },
   );
   const emptySubtitle = tp(
-    'Финишируй гонку, и она встанет в таблицу. Лучший заезд по каждой трассе попадает на верх.',
+    'Финишируй гонку, и она появится здесь. Лучший заезд по каждой трассе попадает на верх.',
     'Finish a race and it will land here. The best run on each course tops the board.',
     'Ukończ wyścig, a pojawi się tutaj. Najlepszy wynik na każdej trasie trafia na górę.',
     {

@@ -10,7 +10,7 @@ export function useLeaderboardCopy() {
   const place = tl({ ru: "{n} место", en: "Place {n}", pl: "Miejsce {n}", es: "Puesto {n}", fr: "Place {n}", de: "Platz {n}", it: "Posizione {n}" });
   const waitingCount = tl(LEADERBOARD_WAITING_COPY.count);
   return {
-    title: tl({ ru: "Таблица лучших", en: "Leaderboard", pl: "Ranking", es: "Clasificación", fr: "Classement", de: "Bestenliste", it: "Classifica" }),
+    title: tl({ ru: "Результаты гонок", en: "Leaderboard", pl: "Ranking", es: "Clasificación", fr: "Classement", de: "Bestenliste", it: "Classifica" }),
     intro: tl({ ru: "Лучшее время каждой сессии. Простой и Pro в отдельных таблицах.", en: "Best time per session. Simple and Pro have separate tables.", pl: "Najlepszy czas z każdej sesji. Prosty i Pro mają osobne tabele.", es: "El mejor tiempo de cada sesión. Sencillo y Pro tienen tablas separadas.", fr: "Meilleur temps par session. Simple et Pro ont des tableaux séparés.", de: "Beste Zeit pro Sitzung. Einfach und Pro haben getrennte Tabellen.", it: "Miglior tempo per sessione. Semplice e Pro hanno tabelle separate." }),
     raceType: tl({ ru: "Тип гонки", en: "Race type", pl: "Rodzaj wyścigu", es: "Tipo de regata", fr: "Type de course", de: "Rennart", it: "Tipo di regata" }),
     free: tl({ ru: "Свободная гонка", en: "Free race", pl: "Wyścig swobodny", es: "Regata libre", fr: "Course libre", de: "Freies Rennen", it: "Regata libera" }),

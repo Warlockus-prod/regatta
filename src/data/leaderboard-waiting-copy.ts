@@ -5,7 +5,7 @@ type Label = Record<"ru" | "en" | "pl" | "es" | "fr" | "de" | "it", string>;
 // What a board with too few results says instead of the table, on the site and in the app.
 export const LEADERBOARD_WAITING_COPY: { title: Label; count: Label; yourBest: Label; noBest: Label; ghost: Label; anonymous: Label } = {
   title: {
-    ru: `Таблица откроется при ${LEADERBOARD_MIN_RECORDS} результатах`,
+    ru: `Результаты гонок откроются, когда их наберется ${LEADERBOARD_MIN_RECORDS}`,
     en: `The leaderboard opens at ${LEADERBOARD_MIN_RECORDS} results`,
     pl: `Ranking otworzy się przy ${LEADERBOARD_MIN_RECORDS} wynikach`,
     es: `La clasificación se abre con ${LEADERBOARD_MIN_RECORDS} resultados`,

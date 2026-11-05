@@ -540,7 +540,7 @@ export default function MultiplayerClient() {
               {!embed && <Link href="/leaderboard"
                 className="flex-1 py-2 rounded-lg border text-sm text-center"
                 style={{ borderColor: 'rgba(68,255,136,0.35)', color: 'var(--success)' }}>
-                {tp('Лидерборд', 'Leaderboard', 'Ranking', { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
+                {tp('Результаты гонок', 'Leaderboard', 'Ranking', { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
               </Link>}
             </div>
           </div>

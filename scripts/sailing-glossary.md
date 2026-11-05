@@ -304,9 +304,10 @@ The three trainer pages are named by their task (owner decision R-13, one dictio
 - The screen-reader name of the switcher is "Simulatoren" in German: "KI-Trainer" in
   `UI_TERMS` is the AI coach, so a bare "Trainer" reads as a person.
 - The leaderboard has one name, the page heading, in the menu, the message under 10 results
-  and the nickname prompt: Leaderboard / Ranking / Clasificación / Classement / Bestenliste /
-  Classifica. Not "table", "tabela", "tabla", "tableau", "Tabelle", "tabella" or "Rangliste".
-  The word stays "table" only where the text really speaks of several tables.
+  and the nickname prompt: Результаты гонок / Leaderboard / Ranking / Clasificación / Classement /
+  Bestenliste / Classifica (RU by the owner's decision 2026-11-05). Not "Таблица лучших",
+  "Таблица лидеров", "Лидерборд", "table", "tabela", "tabla", "tableau", "Tabelle", "tabella" or
+  "Rangliste". The word stays "table" only where the text really speaks of several tables.
 - A task inside a lesson is an exercise: ES "ejercicio", FR "exercice", IT "esercizio". ES
   "tarea" and IT "compito" read as homework. PL "zadanie" and DE "Aufgabe" stay.
 - The slider is held at an angle ("Hold the boat at this angle"), never on a "mark", "znak",
@@ -317,8 +318,7 @@ The three trainer pages are named by their task (owner decision R-13, one dictio
   long as".
 - French buttons do not start with "Plus de...", which also reads as "no more...".
 
-Open for the owner: RU menu "Результаты гонок" against the page heading "Таблица лучших";
-PL "trenażer" against "symulator" in one product; DE "Am Wind" against "Hoch am Wind" (above).
+Open for the owner: PL "trenażer" against "symulator" in one product; DE "Am Wind" against "Hoch am Wind" (above).
 
 ## General style rules for translation
 

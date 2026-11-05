@@ -414,10 +414,10 @@ export function RaceResults({
             {!nativeRace && saveState === 'prompting' && (
               <div className="mb-4 p-3 rounded-lg" data-testid="race-results-nickname-prompt" style={NEUTRAL_PANEL}>
                 <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
-                  {tl({ ru: 'Ты попал в таблицу лучших!', en: 'You made the leaderboard!', pl: 'Jesteś w rankingu!', es: '¡Has entrado en la clasificación!', fr: 'Tu entres au classement !', de: 'Du bist in der Bestenliste!', it: 'Sei in classifica!' })}
+                  {tl({ ru: 'Ты в результатах гонок!', en: 'You made the leaderboard!', pl: 'Jesteś w rankingu!', es: '¡Has entrado en la clasificación!', fr: 'Tu entres au classement !', de: 'Du bist in der Bestenliste!', it: 'Sei in classifica!' })}
                 </div>
                 <div className="text-xs text-[var(--text-muted)] mb-2">
-                  {tl({ ru: 'Введи ник (2-20 символов), его увидят все. Без ника в таблице будет «Моряк».', en: 'Enter a nickname (2-20 characters), everyone will see it. Without one the leaderboard shows "Sailor".', pl: 'Podaj nick (2-20 znaków), zobaczą go wszyscy. Bez nicku w rankingu będzie "Żeglarz".', es: 'Escribe un apodo (2-20 caracteres), todos lo verán. Sin él, la clasificación mostrará "Marinero".', fr: 'Entre un pseudo (2-20 caractères), tout le monde le verra. Sans pseudo, le classement affichera "Marin".', de: 'Gib einen Nickname ein (2-20 Zeichen), alle sehen ihn. Ohne ihn steht in der Bestenliste "Segler".', it: 'Inserisci un nickname (2-20 caratteri), lo vedranno tutti. Senza, in classifica comparirà "Velista".' })}
+                  {tl({ ru: 'Введи ник (2-20 символов), его увидят все. Без ника в результатах будет «Моряк».', en: 'Enter a nickname (2-20 characters), everyone will see it. Without one the leaderboard shows "Sailor".', pl: 'Podaj nick (2-20 znaków), zobaczą go wszyscy. Bez nicku w rankingu będzie "Żeglarz".', es: 'Escribe un apodo (2-20 caracteres), todos lo verán. Sin él, la clasificación mostrará "Marinero".', fr: 'Entre un pseudo (2-20 caractères), tout le monde le verra. Sans pseudo, le classement affichera "Marin".', de: 'Gib einen Nickname ein (2-20 Zeichen), alle sehen ihn. Ohne ihn steht in der Bestenliste "Segler".', it: 'Inserisci un nickname (2-20 caratteri), lo vedranno tutti. Senza, in classifica comparirà "Velista".' })}
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -563,7 +563,7 @@ export function RaceResults({
               href={nativeRace ? "/history" : "/leaderboard"}
               className="inline-flex min-h-11 items-center text-base leading-6 text-[var(--accent-cyan)] underline-offset-4 hover:underline"
             >
-              {nativeRace ? copy.history : tp('Лидерборд', 'Leaderboard', 'Ranking',
+              {nativeRace ? copy.history : tp('Результаты гонок', 'Leaderboard', 'Ranking',
                 { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
             </Link>
           </div>

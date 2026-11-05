@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "775dd8304a44",
-  "sha256": "51a56affcdaaab287ab09589faf7d7d3ccdb221d911fdc1927931b9a87260d4c",
-  "bytes": 7020082,
+  "version": "f21e326d1cec",
+  "sha256": "1b2543c3c15c0f079f7653ebf5b0ad07f43af90eac39f2fa26ada4f07df974d3",
+  "bytes": 7020130,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1101,8 +1101,8 @@
     },
     {
       "path": "src/app/game/RaceResults.tsx",
-      "bytes": 45750,
-      "sha256": "ee815e73f741f4e5de2893db1681ab123840e84ea77ade186cc557134c791c32"
+      "bytes": 45766,
+      "sha256": "76144d2cc5dc3a5874d6480a8a04247c0bd23a453e2bb67dc8e8e7970ecda704"
     },
     {
       "path": "src/app/game/RaceSetupSettings.tsx",
