@@ -11,6 +11,7 @@ import { fullScreenSteps, showFirstFullScreen } from '../../src/ads/full-screen'
 import { placement, type VoxPlacement } from '../../src/ads/vox-placements';
 import { Button, Card, Screen, Text } from '../../src/design-system/components';
 import { colors, spacing } from '../../src/design-system/tokens';
+import { useI18n } from '../../src/i18n/context';
 
 const INTERSTITIAL = placement('interstitial');
 
@@ -18,6 +19,7 @@ const INTERSTITIAL = placement('interstitial');
 export default function AdsInterstitialScreen() {
   const text = useAdsText();
   const sdk = useAdSdk();
+  const { lang } = useI18n();
   const [state, setState] = useState<AdRequestState>({ status: 'idle' });
   const [asked, setAsked] = useState<VoxPlacement>(INTERSTITIAL);
   const startedAt = useRef(0);
@@ -34,7 +36,7 @@ export default function AdsInterstitialScreen() {
       const native = VoxAds;
       showFirstFullScreen(
         fullScreenSteps(),
-        (placeId, pageUrl) => native.showFullScreen(placeId, 3, pageUrl),
+        (placeId, pageUrl) => native.showFullScreen(placeId, 3, pageUrl, lang),
         (step) => setAsked(step.placement),
       ).then(
         () => setState({ status: 'loaded', ms: Date.now() - startedAt.current }),

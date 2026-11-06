@@ -117,7 +117,7 @@ draw a dashed frame of the real size with "No fill (204)". SDK 1.2.3 turns
 Still required before any public release with this screen: Week to Regatta's
 own place IDs with a campaign, consent (TCF) passed to `AdRequestModel`, the
 App Store privacy label and `NSPrivacyCollectedDataTypes` for device data sent
-to the ad server, `app-ads.txt`, and a decision whether the Settings entry is
+to the ad server, and a decision whether the Settings entry is
 visible to everyone. Android has no VOX bridge yet.
 
 ## VOX SDK 2 and the "ads only in Ads" rule (2026-10-30, later the same day)
@@ -197,13 +197,14 @@ requests. Bugs found and fixed on the way:
   its own size, centred on black; it is now scaled to fit the view.
 - Full screen order (`mobile/src/ads/full-screen.ts`): place 1080x1920
   (`6aebb2d970e7b21a6c36178f`, created 2026-11-04, in VOX moderation, answers 204
-  until approved) with the app's address, then the 320x480 place without it.
+  until approved) with the app's address, then the 320x480 place without it. Since
+  2026-11-06 both name the app, see the last section.
 - Address in requests, measured 2026-11-04 with 4 requests per place: without
   `browser.url` all 10 places fill (Hybrid's own promo, recorded in Hybrid's
-  statistics under the fallback domain icoffio.com); with it every format answers
-  0 of 4 and only our own campaign on the in-game place fills. So the formats stay
-  without the address until Hybrid's promo or our campaigns cover weektoregatta.com
-  (decision Р-43).
+  statistics under the fallback domain icoffio.com); with `https://weektoregatta.com/`
+  every format answers 0 of 4 and only our own campaign on the in-game place fills. So the formats stayed
+  without the address until the owner decided otherwise on 2026-11-06 (decision Р-43,
+  last section).
 - VOX SDK 2 (Prebid Server): Hybrid bids only with `cur` and
   `imp.bidfloorcur` in PLN; its banner iframe has no size and its VAST
   declares the wrong encoding. Fixed in the local server, details in
@@ -268,14 +269,16 @@ Console, 2026-11-04 (the owner's Chrome session):
 - Hybrid campaign `TEST APP WTR in-game board 640x360`, advertiser TESTY POLSKA, bid
   120, 10 PLN a day, 20 PLN in all, until 2026-11-07, images 640x360 and 970x250,
   whitelist only `weektoregatta.com`.
-- `app-ads.txt`: the panel's Ads.txt button gives the line, now in `public/app-ads.txt`
-  (live only with a site update).
+- `app-ads.txt`: the panel's Ads.txt button gives the line, in `public/app-ads.txt`. Live:
+  on 2026-11-06 https://weektoregatta.com/app-ads.txt answers 200 with
+  `voxexchange.io, 63d93a3e4d506ea2dc1863ea, DIRECT`.
 
 Why app campaigns never won before, both measured side by side:
 - Domain: a request without `browser` is recorded on the fallback page
   `https://icoffio.com/`, `PageSource 5` (nothing in the SDK or the app names it). With
-  `browser.url` it is `weektoregatta.com`, `PageSource 1`. The board feed sends it. VOX
-  SDK 1 formats still do not (`VoxAdView.swift`, `VoxAdsModule.swift`).
+  `browser.url` it is `weektoregatta.com`, `PageSource 1`. The board feed sent it. VOX
+  SDK 1 formats did not until 2026-11-06 (`VoxAdView.swift`, `VoxAdsModule.swift`); the
+  address is now the bundle id, see the last section.
 - Consent: the campaign copied from an old template had `hasGoogleConsent: true`, and
   requests without a consent string did not match it: 204 for 50 minutes. Set to false,
   it won within minutes. Check this flag on any new campaign.
@@ -291,3 +294,109 @@ device with a banner left open on auto-refresh. Not revenue, not audience.
 
 Open items and order: `docs/BACKLOG.md` package 30. Owner brief with the SDK
 history and Prebid Server: shared separately, not in the repository.
+
+## The app as an app, not a website (2026-11-06)
+
+Owner 2026-11-06: we took this for an app integration, it was a web one; the app must be
+seen as an app, so campaigns can target it. Decision Р-43 is closed: send the app's identity.
+
+Measured 2026-11-06, live requests and the Hybrid warehouse:
+
+| Request | Recorded as |
+|---|---|
+| `getad` with no `browser.url` | Page `https://icoffio.com/`, Domain `icoffio.com`, PageSource 5 (publisher fallback). This is why the app looks like a website |
+| `getad`, `browser.url` `https://com.icoffio.regatta/` | Domain `com.icoffio.regatta`, PageSource 1 |
+| `getad`, `browser.url` `https://weektoregatta.com/` | Domain `weektoregatta.com` |
+| `getad`, an `ios-app://` address | empty Domain, so not used |
+| `getad`, `sdkInfo.applicationId` | ignored today, still `icoffio.com` |
+| OpenRTB `POST /prebid/server/v1/auction`, `app.bundle`, `app.storeurl`, `app.domain` | ignored, `icoffio.com`, PageSource 5; `site.page` is honoured |
+
+- A minimal `sdkInfo` costs no ad: `getad` with `{placeId, gdpr: 1, browser, sdkInfo:
+  {applicationId: "com.icoffio.regatta"}}` on place `6ae4bdcb810d986308d66834`
+  (`inGame970x250`) returned the same ad as the same request without `sdkInfo`, 3 of 3
+  against 3 of 3. So the in-game feed sends it. The 640x360 place, which the feed asks
+  first, was not part of this measurement.
+- The server model has `applicationId`: the Android SDK's internal `MobileSdkInfoModel`
+  declares it with language, timezone, connectionType, ifa and others. The iOS model lacks
+  them. The app's pin `d197347` sends no `applicationId`.
+- SSP Vox id 15: 894.9M DSP impressions in 30 days, 0 with an AppId. The VOX panel has no
+  app slot type. So a real in-app identity (DSP AppId, `onlyForMobileApp` campaigns, app
+  lists `15|<bundle>`) needs a server change at Hybrid. Campaign
+  `6aedd6247d25831d8c887437` (HybridMobileCampaign, `onlyForMobileApp`) has 0 bets for
+  that reason.
+
+What this address is: the bundle-shaped `browser.url` declares the app as a web page. It is
+a label for our own test campaigns only, not for real advertisers' money, until Hybrid's
+server takes real app identity.
+
+Two layers:
+
+1. Client only, now. Every VOX SDK 1 request carries the identity. The app sends `browser.url`
+   `https://com.icoffio.regatta/` on all formats (`VOX_APP_PAGE_URL`, display, video,
+   rewarded, both full-screen places, in-game), with `gdpr=1` and no consent string as
+   before. `browser` also carries the language chosen in the app (`lang` from `useI18n`,
+   as the board feed always did) and the time-zone offset. Inline formats sent neither
+   before: they had no `browser`, and the pinned SDK's `sdkInfo` has no such field. The
+   privacy texts list "app language and time-zone offset", which now holds on every SDK 1
+   request, and they now also name the app identifier and the web address made from it.
+   Builds up to 1.7.2 (81) send the device's language on the first full-screen request. The
+   in-game feed goes past the SDK and sends `sdkInfo.applicationId` itself, from the same
+   `VOX_APP_BUNDLE_ID` as the address. The other formats get it with the SDK: VOX SDK 1.3.0
+   (iOS) and 1.1.0 (Android) add only `sdkInfo.applicationId`, ignored today and ready for
+   the server change. They do not send `sdkInfo.language` or `sdkInfo.timezone`: the goal
+   needs only the app id, the server does not use those fields today, and the privacy texts
+   promise app language and time-zone offset only, while the SDK overwrites `sdkInfo` in every
+   mode, so the app could not override them. The SDK's default `browser` block stays (url from
+   the identity, referrer "", language, timezoneOffset, screen size) and an explicit caller
+   `browser` wins, so the bridge's own values still go out. The app's pin moves to 1.3.0 after
+   it is pushed (`mobile/modules/vox-ads/README.md`).
+2. Server change at Hybrid, a separate brief for their server team. Only then the app
+   exists as an app in the DSP. Until then the bundle id is a domain-level name in the
+   warehouse, not an AppId.
+
+VOX SDK 2 (Prebid, local tests only, never ships) is not changed and sends no identity, so
+a warehouse row from it on `icoffio.com` says nothing about this work.
+
+Cost, surfaced on purpose:
+
+- Expected, not measured with the bundle id: Hybrid's promo campaigns no longer fill these
+  places. The loss is measured as 0 of 4 with the address `weektoregatta.com` on 2026-11-04.
+  Until a campaign whitelists `com.icoffio.regatta`, the display, interstitial, video and
+  rewarded screens are expected to show "No fill (204)", and the in-game board its own "No
+  image ad right now".
+  The hint under "No fill (204)" now says "no campaign for this app on this placement right
+  now" in all seven languages: "for this placement" stopped being true once a campaign on
+  the place lacks the bundle id in its whitelist, the case below. On a 204 look at that
+  whitelist first.
+- Our own campaigns (`TEST APP WTR in-game board 640x360` and the one on the 1080x1920
+  place) whitelist only `weektoregatta.com`, so the board and that place are expected to stop
+  matching too until the bundle id is added to their whitelists.
+- A reviewer opening Settings > Ads in a build with this change is expected to see only no
+  fill unless a campaign runs. `mobile/releases/review-notes-1.7.2.txt` describes build 80,
+  which is on sale, and stays as it is. The next build is 1.7.3, and its review notes must
+  name the bundle id instead of `https://weektoregatta.com/`, say that every format sends it,
+  and stop promising real ads on each format screen unless a campaign runs.
+- Nothing changes for users until a new build: builds up to 1.7.2 (81) keep sending what they
+  sent, and 1.7.2 (80) is on sale since 2026-11-05. That train is closed, so the next build is
+  1.7.3. `mobile/app.json` here is still 1.7.2 (81) and has to be raised before the archive.
+
+How to set up a campaign for the app today, for our own test campaigns only (console,
+advertiser TESTY POLSKA):
+
+1. Ordinary display or video campaign. Not `HybridMobileCampaign` or `onlyForMobileApp`,
+   and no app list `15|<bundle>`: they have nothing to match until layer 2.
+2. Domain whitelist: `com.icoffio.regatta`, as recorded, no scheme and no slash. Keep
+   `weektoregatta.com` in the list while builds up to 1.7.2 (81) are in use: they send that
+   address from the in-game board and the first full-screen place. Placement and domain pairs
+   (`placementId|domain`) do not match VOX traffic in this cabinet.
+3. `hasGoogleConsent: false`. Requests carry no consent string, and with `true` they do not
+   match (204 for 50 minutes, 2026-11-04).
+4. Creatives of the place's size; a static image for an in-game board (HTML5 counts as no
+   fill), VAST for the video places. Places: `mobile/src/ads/vox-placements.ts`.
+5. Bid above 99 if Hybrid's own campaigns are also on the place (their bid on 2026-10-30).
+6. Check in `vox_ssp.DistributedStatistics` by PlaceId: Domain `com.icoffio.regatta`,
+   PageSource 1, the winning CampaignId. Fill is paced, so space the test requests.
+
+Not proven yet: the measurements come from direct requests, not from a build with this
+change, and no campaign has whitelisted this Domain, so a fill on `com.icoffio.regatta` is
+expected, not observed. The promo loss on the bundle id is expected too, see the cost above.

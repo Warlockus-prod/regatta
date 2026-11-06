@@ -5,15 +5,18 @@ import VOXSDK
 /// Bridge to VOX SDK 1 (classic Hybrid SSP SDK). Used only by the ads demo
 /// screen (Settings -> Ads); nothing else in the app requests ads.
 public class VoxAdsModule: Module {
-  /// The address and screen of a request that names the app, the same fields as the board feed.
+  /// The address, language and screen of a request, the same fields as the board feed. JS
+  /// gives the address (`VOX_APP_PAGE_URL`), so a request names the app whatever the SDK's
+  /// own default is; without it Hybrid records the request on its fallback website. JS also
+  /// gives the language chosen in the app, the "app language" of the privacy texts, which
+  /// the device's preferred language is not.
   @MainActor
-  private static func browser(pageUrl: String?) -> BrowserModel? {
-    guard let pageUrl else { return nil }
+  static func browser(pageUrl: String, language: String) -> BrowserModel {
     let screen = UIScreen.main.bounds.size
     return BrowserModel(
       url: pageUrl,
       referrer: "",
-      language: Locale.preferredLanguages.first ?? "en",
+      language: language,
       timezoneOffset: Float(-TimeZone.current.secondsFromGMT() / 60),
       screenWidth: Int(screen.width),
       screenHeight: Int(screen.height)
@@ -28,7 +31,7 @@ public class VoxAdsModule: Module {
 
     // Interstitial: VOX presents its own full-screen controller on top of
     // the current one and resolves once the ad is on screen.
-    AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, pageUrl: String?, promise: Promise) in
+    AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, pageUrl: String, language: String, promise: Promise) in
       Task { @MainActor in
         guard let controller = self.appContext?.utilities?.currentViewController() else {
           promise.reject("E_NO_CONTROLLER", "No view controller to present the ad from")
@@ -37,7 +40,7 @@ public class VoxAdsModule: Module {
         do {
           let model = FullScreenBannerModel(
             // gdpr 1 with no consent string: non-personalised ads only, as in VoxAdView.
-            requestModel: AdRequestModel(placeId: placeId, browser: Self.browser(pageUrl: pageUrl), gdpr: 1),
+            requestModel: AdRequestModel(placeId: placeId, browser: Self.browser(pageUrl: pageUrl, language: language), gdpr: 1),
             presentingViewController: controller,
             closeButtonDelay: closeButtonDelay
           )
@@ -57,6 +60,12 @@ public class VoxAdsModule: Module {
       }
       Prop("kind") { (view: VoxAdView, value: String) in
         view.kind = value
+      }
+      Prop("pageUrl") { (view: VoxAdView, value: String) in
+        view.pageUrl = value
+      }
+      Prop("language") { (view: VoxAdView, value: String) in
+        view.language = value
       }
       Prop("closeButtonDelay") { (view: VoxAdView, value: Double) in
         view.closeButtonDelay = value

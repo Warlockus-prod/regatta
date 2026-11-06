@@ -3,7 +3,7 @@ import { Dimensions, Linking } from "react-native";
 import { createBoardFeed, readImageAsDataUrl } from "../../src/ads/board-feed";
 import { useI18n } from "../../src/i18n/context";
 import { useAdsText } from "../../src/ads/strings";
-import { placement } from "../../src/ads/vox-placements";
+import { VOX_APP_PAGE_URL, placement } from "../../src/ads/vox-placements";
 import { SimWebView } from "../../src/simulator/SimWebView";
 
 const OFFLINE_SAILING = require("../../assets/sailing-offline.html");
@@ -18,7 +18,7 @@ export default function AdsInGameScreen() {
   const { lang } = useI18n();
   const feed = useMemo(() => createBoardFeed([placement("inGameBoard640x360").placeId, placement("inGame970x250").placeId], { fetch: (...args) => fetch(...args), readImage: readImageAsDataUrl, openUrl: url => Linking.openURL(url), browser: () => {
     const { width, height } = Dimensions.get("screen");
-    return { url: "https://weektoregatta.com/", referrer: "", language: lang, timezoneOffset: new Date().getTimezoneOffset(), screenWidth: Math.round(width), screenHeight: Math.round(height) };
+    return { url: VOX_APP_PAGE_URL, referrer: "", language: lang, timezoneOffset: new Date().getTimezoneOffset(), screenWidth: Math.round(width), screenHeight: Math.round(height) };
   } }), [lang]);
   useEffect(() => () => feed.dispose(), [feed]);
   return <SimWebView path="/ads" title="Ads" offlineSource={OFFLINE_SAILING}

@@ -1,10 +1,11 @@
 import { createBoardFeed } from "../src/ads/board-feed";
+import { VOX_APP_BUNDLE_ID, VOX_APP_PAGE_URL } from "../src/ads/vox-placements";
 
 const GETAD = "https://ssp.hybrid.ai/auction/getad";
 const FRAME = "https://dsa-eu.hybrid.ai/Ad/Load?sid=a";
 const IMAGE = "https://content.hybrid.ai/Hybrid/E6.png";
 const CLICK = "https://ssp.hybrid.ai/seance/Click/s";
-const BROWSER = { url: "https://weektoregatta.com/", referrer: "", language: "en", timezoneOffset: 0, screenWidth: 390, screenHeight: 844 };
+const BROWSER = { url: VOX_APP_PAGE_URL, referrer: "", language: "en", timezoneOffset: 0, screenWidth: 390, screenHeight: 844 };
 const answer = {
   adId: "ad1", adomain: ["hybridadtech.com"], width: 970, height: 250,
   content: `<img style="display:none" src="https://dsa-eu.hybrid.ai/DeliverySeance/SaveImpression2?sid=a" /><iframe src="${FRAME}"></iframe><script>var vu=["https://dsa-eu.hybrid.ai/DeliverySeance/SaveView2?sid=a"];</script>`,
@@ -40,11 +41,11 @@ describe("In-game board feed", () => {
     expect(calls).toEqual([]);
   });
 
-  it("asks non-personalised, as the app's own address, and hands over the image as data", async () => {
+  it("asks non-personalised, as the app itself, and hands over the image as data", async () => {
     const t = setup();
     t.send("ready"); await t.settle();
     const request = JSON.parse(decodeURIComponent(t.calls[0].split("request=")[1]));
-    expect(request).toEqual({ placeId: "place1", gdpr: 1, browser: BROWSER });
+    expect(request).toEqual({ placeId: "place1", gdpr: 1, browser: BROWSER, sdkInfo: { applicationId: VOX_APP_BUNDLE_ID } });
     expect(t.calls).toEqual([expect.stringContaining(GETAD), FRAME, IMAGE]); // A filled first place ends the search.
     expect(t.last()).toEqual({ status: "filled", id: "ad1", src: "data:image/png;base64,AA", width: 970, height: 250, advertiser: "hybridadtech.com", canOpen: true });
   });

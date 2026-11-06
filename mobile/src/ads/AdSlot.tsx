@@ -4,9 +4,10 @@ import { VoxAdView } from '../../modules/vox-ads';
 import { VoxPrebidBannerView } from '../../modules/vox-prebid';
 import { Text } from '../design-system/components';
 import { colors, radii, spacing } from '../design-system/tokens';
+import { useI18n } from '../i18n/context';
 import { PREBID_SERVER_URL, VOX_PREBID_ENDPOINT, ensurePrebidStarted, prebidConfigId, useAdSdk, type AdSdk } from './sdk';
 import type { AdsText } from './strings';
-import { VOX_ENDPOINT, sizeLabel, type VoxPlacement } from './vox-placements';
+import { VOX_APP_PAGE_URL, VOX_ENDPOINT, sizeLabel, type VoxPlacement } from './vox-placements';
 
 export type AdRequestStatus = 'idle' | 'loading' | 'loaded' | 'noFill' | 'error';
 
@@ -45,6 +46,7 @@ export function AdSlot({
   showRequest?: boolean;
 }) {
   const sdk = useAdSdk();
+  const { lang } = useI18n();
   const width = placement.kind === 'banner' ? Math.min(available, placement.width) : available;
   const estimated = Math.round((width * placement.height) / placement.width);
   const [height, setHeight] = useState(estimated);
@@ -98,6 +100,8 @@ export function AdSlot({
             style={{ width, height }}
             placeId={placement.placeId}
             kind={placement.kind === 'video' ? 'video' : 'banner'}
+            pageUrl={VOX_APP_PAGE_URL}
+            language={lang}
             closeButtonDelay={3}
             reloadKey={reloadKey}
             onAdLoaded={(event) => onLoaded(event.nativeEvent.height)}
