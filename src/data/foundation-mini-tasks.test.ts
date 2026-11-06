@@ -61,7 +61,7 @@ describe("one name for the leaderboard", () => {
 
   it("Russian says Результаты гонок everywhere, owner's decision 2026-11-05", () => {
     expect(board.title.ru).toBe("Результаты гонок");
-    for (const path of ["src/app/leaderboard/leaderboard-copy.ts", "src/app/game/RaceResults.tsx", "src/app/multiplayer/MultiplayerClient.tsx", "src/app/support/page.tsx", "mobile/app/leaderboard/index.tsx"]) {
+    for (const path of ["src/app/leaderboard/leaderboard-copy.ts", "src/app/game/RaceResults.tsx", "src/app/multiplayer/MultiplayerClient.tsx", "src/app/support/page.tsx", "src/app/privacy/page.tsx", "mobile/app/leaderboard/index.tsx"]) {
       expect(source(path)).not.toMatch(/[Лл]идерборд|[Тт]аблиц\S* (лучших|лидеров)/);
     }
   });
@@ -69,7 +69,7 @@ describe("one name for the leaderboard", () => {
   it("the nickname prompt says the same word, and the old German word is gone", () => {
     const prompt = source("src/app/game/RaceResults.tsx");
     expect(prompt).not.toMatch(/the table shows|w tabeli będzie|la tabla mostrará|le tableau affichera|in der Tabelle|in tabella/);
-    expect(source("src/app/support/page.tsx")).not.toContain("Rangliste");
+    for (const path of ["src/app/support/page.tsx", "src/app/privacy/page.tsx"]) expect(source(path)).not.toContain("Rangliste");
   });
 });
 

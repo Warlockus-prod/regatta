@@ -144,13 +144,13 @@ export default function PrivacyPage() {
             </li>
             <li>
               {tp(
-                'Мультиплеер: твой никнейм видят все в комнате; результаты финиша сохраняются в таблице лидеров с никнеймом и случайным идентификатором сессии.',
+                'Мультиплеер: твой никнейм видят все в комнате; результаты финиша сохраняются в разделе «Результаты гонок» с никнеймом и случайным идентификатором сессии.',
                 'Live multiplayer: everyone in the room sees your nickname; finish results are stored on the leaderboard with your nickname and a random session id.',
                 'Wyścig wieloosobowy: Twój pseudonim widzą wszyscy w pokoju; wyniki na mecie zapisujemy w rankingu z pseudonimem i losowym identyfikatorem sesji.',
                 {
                   es: 'Multijugador en directo: todos en la sala ven tu apodo; los resultados al terminar se guardan en la clasificación con tu apodo y un identificador de sesión aleatorio.',
                   fr: 'Multijoueur en direct : tout le monde dans le salon voit ton pseudo ; les résultats à l\'arrivée sont enregistrés au classement avec ton pseudo et un identifiant de session aléatoire.',
-                  de: 'Live-Mehrspieler: Alle im Raum sehen deinen Spitznamen; Zielergebnisse werden mit Spitznamen und einer zufälligen Sitzungs-ID in der Rangliste gespeichert.',
+                  de: 'Live-Mehrspieler: Alle im Raum sehen deinen Spitznamen; Zielergebnisse werden mit Spitznamen und einer zufälligen Sitzungs-ID in der Bestenliste gespeichert.',
                   it: 'Multigiocatore dal vivo: tutti nella stanza vedono il tuo nickname; i risultati all\'arrivo vengono salvati in classifica con il nickname e un identificativo di sessione casuale.',
                 },
               )}
@@ -248,13 +248,13 @@ export default function PrivacyPage() {
             </li>
             <li>
               {tp(
-                'Результаты гонок и реплеи: время финиша, уровень сложности, выбранный никнейм и, для завершенной гонки, трек лодки, чтобы работала ссылка на реплей. Сохраняются для лидерборда вместе со случайным идентификатором из cookie regatta_sid. Автоматически пока не удаляются; удаляем по запросу.',
+                'Результаты гонок и реплеи: время финиша, уровень сложности, выбранный никнейм и, для завершенной гонки, трек лодки, чтобы работала ссылка на реплей. Сохраняются для раздела «Результаты гонок» вместе со случайным идентификатором из cookie regatta_sid. Автоматически пока не удаляются; удаляем по запросу.',
                 'Race results and replays: finish time, difficulty level, chosen nickname and, for a finished race, the boat track so its replay link works. Stored for the leaderboard together with the random identifier from the regatta_sid cookie. They do not expire automatically yet; we delete them on request.',
                 'Wyniki wyścigów i powtórki: czas na mecie, poziom trudności, wybrany pseudonim oraz, dla ukończonego wyścigu, ślad łodzi, aby działał link do powtórki. Zapisujemy je na potrzeby rankingu razem z losowym identyfikatorem z pliku cookie regatta_sid. Na razie nie wygasają automatycznie; usuwamy je na prośbę.',
                 {
                   es: 'Resultados de regata y repeticiones: tiempo de llegada, nivel de dificultad, apodo elegido y, en una regata terminada, la traza del barco para que funcione el enlace a la repetición. Se guardan para la clasificación junto con el identificador aleatorio de la cookie regatta_sid. Por ahora no caducan automáticamente; los eliminamos si lo pides.',
                   fr: "Résultats de course et replays : temps à l'arrivée, niveau de difficulté, pseudo choisi et, pour une course terminée, la trace du bateau pour que le lien du replay fonctionne. Conservés pour le classement avec l'identifiant aléatoire du cookie regatta_sid. Ils n'expirent pas encore automatiquement ; nous les supprimons sur demande.",
-                  de: 'Rennergebnisse und Replays: Zielzeit, Schwierigkeitsstufe, gewählter Spitzname und bei einem beendeten Rennen die Bootsspur, damit der Replay-Link funktioniert. Gespeichert für die Rangliste zusammen mit der zufälligen Kennung aus dem Cookie regatta_sid. Sie laufen noch nicht automatisch ab; auf Anfrage löschen wir sie.',
+                  de: 'Rennergebnisse und Replays: Zielzeit, Schwierigkeitsstufe, gewählter Spitzname und bei einem beendeten Rennen die Bootsspur, damit der Replay-Link funktioniert. Gespeichert für die Bestenliste zusammen mit der zufälligen Kennung aus dem Cookie regatta_sid. Sie laufen noch nicht automatisch ab; auf Anfrage löschen wir sie.',
                   it: "Risultati delle regate e replay: tempo all'arrivo, livello di difficoltà, nickname scelto e, per una regata conclusa, la traccia della barca perché il link al replay funzioni. Salvati per la classifica insieme all'identificativo casuale del cookie regatta_sid. Per ora non scadono automaticamente; li eliminiamo su richiesta.",
                 },
               )}

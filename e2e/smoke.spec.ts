@@ -356,7 +356,7 @@ test.describe('Smoke: critical user flows', () => {
     expect(Array.isArray(body.rows)).toBe(true);
 
     await page.goto('/leaderboard');
-    await expect(page.getByRole('heading', { level: 1, name: /(Таблица|Leaderboard|Ranking)/ })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /(Результаты гонок|Leaderboard|Ranking)/ })).toBeVisible();
   });
 
   // R-12: a board shows only from ten results on; below that the player's own record.
