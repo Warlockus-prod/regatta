@@ -27,7 +27,7 @@ public class VoxAdsModule: Module {
     Name("VoxAds")
 
     Constant("sdkName") { "VOX SDK 1" }
-    Constant("sdkVersion") { "1.2.3" }
+    Constant("sdkVersion") { "1.3.0" }
 
     // Interstitial: VOX presents its own full-screen controller on top of
     // the current one and resolves once the ad is on screen.

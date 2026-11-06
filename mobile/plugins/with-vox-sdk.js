@@ -9,9 +9,8 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// Branch fix/in-app-ads-2026-10-30: viewport, full-screen layout, VAST XML, no-fill and lifetime fixes,
-// full-screen fit and wide banners in place (2026-11-04).
-const VOX_SDK_COMMIT = 'd197347d01b187812af02960e9eb581ff58e0438';
+// Branch feat/app-identity, 1.3.0: sdkInfo.applicationId on every request (2026-11-06).
+const VOX_SDK_COMMIT = '42cd227541cb1c99b8bad3a0c5ed5748bec915ba';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
 // The ad pods are linked only for a build with the Ads section

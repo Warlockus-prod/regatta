@@ -318,7 +318,7 @@ Measured 2026-11-06, live requests and the Hybrid warehouse:
   first, was not part of this measurement.
 - The server model has `applicationId`: the Android SDK's internal `MobileSdkInfoModel`
   declares it with language, timezone, connectionType, ifa and others. The iOS model lacks
-  them. The app's pin `d197347` sends no `applicationId`.
+  them. The old pin `d197347` sends no `applicationId`; the app is now on 1.3.0 (`42cd227`).
 - SSP Vox id 15: 894.9M DSP impressions in 30 days, 0 with an AppId. The VOX panel has no
   app slot type. So a real in-app identity (DSP AppId, `onlyForMobileApp` campaigns, app
   lists `15|<bundle>`) needs a server change at Hybrid. Campaign

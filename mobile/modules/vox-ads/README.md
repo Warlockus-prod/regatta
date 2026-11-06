@@ -56,10 +56,9 @@ campaign: `docs/design/mobile/ads-lab.md`, last section).
 - This is the client half. A real in-app identity (DSP AppId, `onlyForMobileApp`
   campaigns, app lists) needs a server change at Hybrid.
 
-SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` stays on `d197347`, which
-has a public `BrowserModel` and no identity of its own. Pin `d197347` sends no
-`applicationId`, so on the banner, video and full-screen requests the app id travels only
-inside the address. The pin moves to the VOX SDK 1.3.0 commit after that SDK is pushed. In
+SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is the VOX SDK 1.3.0 commit
+`42cd227` (branch `feat/app-identity`). Builds up to 1.7.2 (81) used `d197347`, which sends
+no `applicationId`, so there the app id travels only inside the address. In
 `sdkInfo`, 1.3.0 adds only `applicationId`: no `sdkInfo.language`, no `sdkInfo.timezone`
 (the privacy texts promise app language and time-zone offset only, and the SDK overwrites
 `sdkInfo`, so the app could not override them). Its default `browser` block is built from the
