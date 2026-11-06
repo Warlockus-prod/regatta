@@ -400,3 +400,31 @@ advertiser TESTY POLSKA):
 Not proven yet: the measurements come from direct requests, not from a build with this
 change, and no campaign has whitelisted this Domain, so a fill on `com.icoffio.regatta` is
 expected, not observed. The promo loss on the bundle id is expected too, see the cost above.
+The next section settles the fill on the bundle id; the promo loss stays unmeasured.
+
+## Our test campaigns on the bundle id (2026-11-06)
+
+The test campaigns live in another cabinet than the recipe above names:
+
+- Cabinet `Konglomerat-PL-API-test` (account `6a0c5305d7d32234504cb6e3`), advertiser
+  `Test 29-31.05` (`6a19bc177d2583481c768e39`).
+- Display `6aee38bc585ccf0a2420d385`, video `6aee38bc7d25831d8c8da6fb`.
+- Whitelist `com.icoffio.regatta` and `weektoregatta.com`, bid 120, until 2026-11-20. After that
+  date the format screens are expected to go back to "No fill (204)".
+
+Measured:
+
+- A domain whitelist on the bundle-shaped domain matches. Requests with `browser.url`
+  `https://com.icoffio.regatta/` were won by our campaigns.
+- The warehouse shows Domain `com.icoffio.regatta`, PageSource 1, our CampaignId, and real SDK
+  impressions at 0.005 PLN each.
+
+Seen on a simulator Release build: the 320x50 banner, video, the in-game board and full screen
+all show our creatives. Rewarded is not in that list. Two defects stay open:
+
+- The video slots do not separate 16:9 from 9:16, so a 16:9 slot can get the vertical clip.
+- The SDK close button sits over the banner's right side.
+
+Build 1.7.3 (82) carries this to TestFlight Self, `mobile/app.json` is raised there. It is not
+checked on a real iPhone here, and the bundle id stays a label for our own test campaigns, not
+for real advertisers' money, until Hybrid's server takes real app identity.

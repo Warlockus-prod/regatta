@@ -65,7 +65,7 @@ no `applicationId`, so there the app id travels only inside the address. In
 same identity, and an explicit caller `browser` wins, so the bridge keeps passing its own and
 the request changes by that one field.
 
-The next build is 1.7.3: 1.7.2 (80) is on sale, and that train is closed.
+1.7.3 (82) is the first build on this pin: 1.7.2 (80) is on sale, and that train is closed.
 
 ## Build
 
