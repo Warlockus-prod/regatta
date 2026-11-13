@@ -38,7 +38,8 @@ describe("yacht model without unused texture coordinates", () => {
     }
     expect(textured).toBe(2);
     // Measured: 1,304,944 bytes as exported, 1,152,492 shipped (gzip -9: 693,299 -> 677,411).
-    expect(shipped.byteLength).toBeLessThanOrEqual(1_152_492);
+    // 1 152 492 before package 32 stage D; the two seated crew and the sprayhood added 41 224 bytes of plain geometry.
+    expect(shipped.byteLength).toBeLessThanOrEqual(1_193_716);
   });
 
   it("changes no attribute, index, morph target or image byte of an exported model", () => {

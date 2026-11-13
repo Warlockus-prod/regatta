@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "bb04dc42ae50",
-  "sha256": "4a0fc23385c3a0f2365436d5f23ca04d2ffda5c74f023a46461a3f0f14c652d7",
-  "bytes": 7035816,
+  "version": "52cf7c1975a5",
+  "sha256": "8a1ee8ce3e45974c90ed697a5b751075aecbb54bd6102a7f835f8d9dea9fcd87",
+  "bytes": 7091220,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -14,10 +14,10 @@
     "/manoeuvres"
   ],
   "model": {
-    "sha256": "14d6e03feff2a3125d661629ab159209c0a6f41e9b93c18cb86a97c28225152e",
-    "bytes": 1152492,
-    "embeddedSha256": "4871d4ab96be7d01c03b42b4a3c4cd87676a75b0c7c77abc3275c6afd91745ae",
-    "embeddedBytes": 1168200
+    "sha256": "22dd5a90ba8ecdceb6594863fc14ea7016fa4bf329c3e857f5e2f288acab4598",
+    "bytes": 1193716,
+    "embeddedSha256": "91c5d8d4d6c71c18d9703959d4c6e7823a2a2af9b63504f9108822a5442d39a8",
+    "embeddedBytes": 1209428
   },
   "inputs": [
     "mobile/node_modules/react-dom/cjs/react-dom-client.production.js",
@@ -2060,8 +2060,8 @@
     },
     {
       "path": "src/features/simulator-3d/RegattaScene.tsx",
-      "bytes": 4584,
-      "sha256": "557f4369d099b4202161f195806eb7509138b0c72b8abe191d86d94a3e7bfa5b"
+      "bytes": 6102,
+      "sha256": "b8a4d0fbc21500f101ebe769bb4b832c4aca4a30b393e2090234657c1dc4a5c4"
     },
     {
       "path": "src/features/simulator-3d/SailingCameraRig.tsx",
@@ -2085,8 +2085,8 @@
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.tsx",
-      "bytes": 30575,
-      "sha256": "41decb3ebb26b0ec8df3bc304cb48562210b2faed19b2ec60b9fe36a46153419"
+      "bytes": 30687,
+      "sha256": "ef7f5e47db18de8ef7e5e61daf32a623f587dc22fce706f1401383e6439f355f"
     },
     {
       "path": "src/features/simulator-3d/SimulatorV2.tsx",
@@ -2311,7 +2311,7 @@
     {
       "path": "src/features/simulator-v3/ui/TrainerBoat3D.tsx",
       "bytes": 2049,
-      "sha256": "7c288d008ea63545f1b57a34938ad97972b9530c53b1075de48df80b51f685c4"
+      "sha256": "a470fc14eafb64352191bf27c47911e027f261c4763379c5fc3e02390b88a52a"
     },
     {
       "path": "src/features/simulator-v3/ui/TrainerWindInstrument.module.css",

@@ -113,7 +113,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [view, setView] = useState<CameraView>("whole");
   const [cameraRevision, setCameraRevision] = useState(0);
   const [showFlow, setShowFlow] = useState(true);
-  const [light, setLight] = useState(embed);
+  // Package 32 stage D: the quality ladder steps a slow phone down by itself, so the app no longer starts on the light picture.
+  const [light, setLight] = useState(false);
   const [guide, setGuide] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
   const { lang, tl } = useI18n();
@@ -228,7 +229,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const viewport = <div className={styles.viewport}>
           {/* Package 32 stage B: on a phone the stage carries the canvas under the bar, the readouts and the dock. */}
           <SceneStage>
-          <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
+          <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : 2} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry}
             venue={venue} />
           </SceneStage>

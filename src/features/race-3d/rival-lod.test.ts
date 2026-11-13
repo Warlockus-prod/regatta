@@ -58,8 +58,10 @@ describe("near rival: static parts merged per material", () => {
   const after = groups.length + drawn.filter((i) => !merged.has(i.id)).length + RUNTIME_EXTRAS;
 
   it("cuts a near rival's draw calls by more than half, drawing the same triangles", () => {
-    // Measured on the shipped GLB: 50 draw calls before, 22 after (24 with the exported texture coordinates).
-    expect({ before, after }).toEqual({ before: 50, after: 22 });
+    // Measured on the shipped GLB: 57 draw calls before, 22 after (24 with the exported texture coordinates).
+    // Package 32 stage D added two crew and a sprayhood (7 more parts): they reuse the model's materials,
+    // so the merged count stays 22 and a near rival costs no extra draw call.
+    expect({ before, after }).toEqual({ before: 57, after: 22 });
     // Each drawn mesh is in at most one merged mesh, so every triangle is drawn exactly once.
     expect(merged.size).toBe(groups.flat().length);
     expect(groups.every((g) => g.length > 1)).toBe(true);
@@ -88,8 +90,9 @@ describe("near rival: static parts merged per material", () => {
 describe("far rival", () => {
   it("is a few dozen triangles instead of the full yacht", () => {
     const full = glbItems().filter((i) => i.visible).reduce((sum, i) => sum + i.triangles, 0);
-    // Measured: the near rival draws 26751 GLB triangles (its runtime sails add more); the far boat 66.
-    expect(full).toBe(26751);
+    // Measured: the near rival draws 28315 GLB triangles (26751 before the crew and sprayhood of package 32
+    // stage D; its runtime sails add more); the far boat 66.
+    expect(full).toBe(28315);
     expect(farBoatTriangles()).toBe(66);
   });
 

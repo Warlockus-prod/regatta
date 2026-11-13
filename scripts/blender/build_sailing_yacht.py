@@ -201,6 +201,68 @@ for side in [-1,1]:
         poly.use_smooth = True
     tubes("Anatomy_Fender_Line_%s" % side,[[[-2.5,1.85,side*1.95],[-2.5,1.35,side*2.04]]],.012,steel)
 
+# Package 32 stage D (owner 2026-11-13: "a full, beautiful game simulator"): life on deck.
+# Two seated crew in the cockpit and a sprayhood over the companionway. Plain geometry in the model's
+# existing flat colours: no textures and no new materials, so the file grows by tens of
+# kilobytes, and nothing the runtime looks up by name is touched.
+def joined(name, parts):
+    bpy.ops.object.select_all(action="DESELECT")
+    for part in parts:
+        part.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]
+    bpy.ops.object.join()
+    obj = bpy.context.object
+    obj.name = name
+    for poly in obj.data.polygons:
+        poly.use_smooth = True
+    return obj
+
+def blob(position, dimensions, mat, segments=10, rings=6):
+    """An ellipsoid in game axes: position and dimensions are [fore-aft, up, side]."""
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=segments, ring_count=rings, location=xyz(position))
+    obj = bpy.context.object
+    obj.dimensions = (dimensions[0], dimensions[2], dimensions[1])
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    obj.data.materials.append(mat)
+    return obj
+
+skin = bpy.data.materials.get("Skin") or material("Skin", (.78,.55,.42), .55)
+trousers = bpy.data.materials.get("Pants") or material("Pants", (.13,.14,.18), .7)
+def seated_crew(name, x, side, jacket):
+    """Sits on the cockpit seat slats (top 1.5 m), feet in the well, head under the boom's sweep (2.57 m)."""
+    parts = [blob([x,1.63,side*.72],[.34,.24,.32],trousers), blob([x,1.93,side*.75],[.37,.54,.27],jacket), blob([x,2.31,side*.73],[.21,.24,.21],skin,12,8)]
+    for leg in [-.095,.095]:
+        parts.append(blob([x+leg,1.60,side*.50],[.15,.15,.48],trousers,8,5))
+        parts.append(blob([x+leg,1.27,side*.30],[.13,.64,.13],trousers,8,5))
+    for arm in [-.23,.23]:
+        parts.append(blob([x+arm,1.86,side*.66],[.11,.44,.12],jacket,8,5))
+    return joined(name, parts)
+# Jackets and the hood reuse materials the model already has: the race merges a rival's static
+# parts per material (src/features/race-3d/rival-lod.ts), so a new material is a new draw call
+# on every near boat.
+seated_crew("Crew_Starboard", -2.35, 1, bpy.data.materials["LifeRing_Red"])
+seated_crew("Crew_Port", -3.05, -1, gelcoat)
+
+# Sprayhood: low enough for the boom to swing over it (boom underside about 2.57 m).
+canvas = bpy.data.materials["Jacket"]
+hood_sections = [(-.25,2.14,2.21,.62), (-.55,2.02,2.38,.80), (-.95,1.75,2.46,.90), (-1.30,1.50,2.46,.93)]
+hood_arc = 10
+hood_verts, hood_faces = [], []
+for x, base, top, half in hood_sections:
+    for i in range(hood_arc + 1):
+        t = i / hood_arc * math.pi
+        hood_verts.append(xyz([x, base + (top - base) * math.sin(t) ** .55, -half * math.cos(t)]))
+for s in range(len(hood_sections) - 1):
+    for i in range(hood_arc):
+        a = s * (hood_arc + 1) + i
+        hood_faces.append((a, a + 1, a + hood_arc + 2, a + hood_arc + 1))
+hood_mesh = bpy.data.meshes.new("Sprayhood")
+hood_mesh.from_pydata(hood_verts, [], hood_faces)
+hood_mesh.materials.append(canvas)
+for poly in hood_mesh.polygons:
+    poly.use_smooth = True
+scene.collection.objects.link(bpy.data.objects.new("Sprayhood", hood_mesh))
+
 # Named teaching anchors are exported with the exact offline/shared coordinates.
 for part in json.loads((root / "mobile/src/data/anatomy.json").read_text())["anatomyParts"]:
     if "three" not in part:
