@@ -16,7 +16,7 @@ import {
   type TheoryChapter,
 } from "./courseData";
 import { TheoryDiagram } from "./diagrams";
-import { THEORY_SECTION_LABELS, type TheorySectionId } from "./sectionLabels";
+import { THEORY_DIAGRAM_SWIPE_HINT, THEORY_SECTION_LABELS, type TheorySectionId } from "./sectionLabels";
 import { RADIO_ROUTE_EVENT, radioRuntimeHash, radioRuntimeSearch } from "../runtimeSearch";
 import { offlineRadio } from "../audio/localSpeech";
 
@@ -511,9 +511,16 @@ export default function RadioTheoryCourse() {
                   <div className="md:hidden">
                     <MobileTheoryFlow chapter={chapter} />
                   </div>
-                  <div className="hidden max-w-full md:block">
+                  {/* Package 32: a phone gets the drawing too. It used to be hidden under 768 px,
+                      so the app showed none of the 18. Here it scrolls sideways at a size where
+                      its smallest labels are 13 px (diagrams.tsx Base). The frame and the line under
+                      it say so: without them a drawing cut by the screen edge reads as a broken one. */}
+                  <div className="mt-4 max-w-full overflow-x-auto rounded-xl border md:mt-0 md:border-0" style={{ borderColor: "var(--border-subtle)" }} data-testid="theory-diagram">
                     <TheoryDiagram id={chapter.diagram} />
                   </div>
+                  <p className="mt-2 text-sm md:hidden" style={{ color: "var(--text-muted)" }} data-testid="theory-diagram-hint">
+                    {tl(THEORY_DIAGRAM_SWIPE_HINT)}
+                  </p>
                 </div>
 
                 <Surface tone="cyan" className="p-5">

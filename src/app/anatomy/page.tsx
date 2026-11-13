@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import { isAppShell } from '@/lib/theme';
 import dynamic from 'next/dynamic';
 import { legacyPick } from '@/lib/languages';
 import { anatomyParts } from '@/data/anatomy';
@@ -22,20 +23,24 @@ const YachtViewer3D = dynamic(() => import('@/components/YachtViewer3D'), {
   ),
 });
 
+const noSubscribe = () => () => {};
+
 export default function AnatomyPage() {
   const { lang, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
+  // Package 32: the app's header already says "Yacht anatomy"; the badge repeated it right under.
+  const inApp = useSyncExternalStore(noSubscribe, isAppShell, () => false);
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
 
   return (
     <div className="page-enter max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <div className="mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
+        {!inApp && <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(68, 255, 136, 0.1)', border: '1px solid rgba(68, 255, 136, 0.25)', color: 'var(--success)' }}>
           ⚓ {tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu',
             { es: 'Anatomía del velero', fr: 'Anatomie du voilier', de: 'Aufbau der Yacht', it: 'Anatomia della barca' })}
-        </div>
+        </div>}
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {tp(
             'Нажми на точку на яхте - узнай название и зачем это нужно на борту.',

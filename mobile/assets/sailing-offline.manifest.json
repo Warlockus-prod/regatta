@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "5ab4d12ed837",
-  "sha256": "3444f2f25940530d9850ae971b77a1c856004a18ea4d4f1f5e810498e3719fab",
-  "bytes": 7028760,
+  "version": "00fcc72d4947",
+  "sha256": "ab5d6c0989f4af7641d1956682575d7e9ef21ede637c96dfcaf1cb2d45135da2",
+  "bytes": 7028985,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1017,8 +1017,8 @@
     },
     {
       "path": "src/app/anatomy/page.tsx",
-      "bytes": 9946,
-      "sha256": "ab275590df958e5e6a8472a3539a2fdcea8126973ad9ca9d5e5a0539ff6923cd"
+      "bytes": 10234,
+      "sha256": "2f507af1861c9b6e9ae5a61e63e381b93cd1a5d756f6312621ea4e49c0ba6817"
     },
     {
       "path": "src/app/game/GameClient.tsx",
@@ -1552,8 +1552,8 @@
     },
     {
       "path": "src/features/manoeuvres/ManoeuvresApp.tsx",
-      "bytes": 24003,
-      "sha256": "1ec183b4a0816565303d07b69c8076fff8536ec776d2c0dd7a5cc135d41bfaf0"
+      "bytes": 24313,
+      "sha256": "ad147014852ad1d010bfcaa4592c646b58043dd294506a7fbd01f2e06c22b218"
     },
     {
       "path": "src/features/manoeuvres/Schematic.tsx",
@@ -2987,8 +2987,8 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "bytes": 2816,
-      "sha256": "3798983d7ffa697ce560011e25385d597d5288545d15f3da66ebf7a4b196beb1"
+      "bytes": 3226,
+      "sha256": "19f4d5f360422a467e4e0763a89f50018c542fc314aed6b456c235b1a5d84084"
     },
     {
       "path": "src/lib/upwind-vmg.ts",

@@ -57,7 +57,8 @@ export function MultiplayerMenu(p: {
         className="inline-flex min-h-11 items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
         <span aria-hidden="true">&larr;</span> {RACE_SECTION.title[lang] ?? RACE_SECTION.title.en}
       </Link>}
-      <h1 className="text-3xl font-bold mt-4 mb-2">{tl(QUICK_ONLINE_RACE)}</h1>
+      {/* Package 32: in the app the native header already carries this title. */}
+      {!p.embed && <h1 className="text-3xl font-bold mt-4 mb-2">{tl(QUICK_ONLINE_RACE)}</h1>}
       <p className="text-base text-[var(--text-secondary)] mb-6">
         {tp(
           'До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. В новом лобби уже есть боты, можно стартовать сразу.',

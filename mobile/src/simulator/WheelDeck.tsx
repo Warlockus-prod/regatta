@@ -27,6 +27,7 @@ import {
   sheetRotation,
   sheetToEase,
   stepSheetEase,
+  CAPTION_H,
   trackTurn,
   turnHelmCourse,
   turnSheetEase,
@@ -37,6 +38,17 @@ import { playWheelTick } from './wheel-sound';
 
 /** Height of the wheel area; the helm gets up to 176 pt inside it. */
 export const DECK_H = 250;
+/** The lowest deck that still holds the smallest helm (116 pt) over its caption. */
+export const MIN_DECK_H = 116 + CAPTION_H + 8;
+/**
+ * Package 32: in a turned phone the dock is about 300 pt high and the 250 pt
+ * deck under its header was cut by the screen edge. The host may ask for a
+ * lower deck; it is never lower than the smallest helm and never higher than
+ * the normal one.
+ */
+export function fitDeckHeight(height?: number): number {
+  return height === undefined ? DECK_H : Math.round(Math.max(MIN_DECK_H, Math.min(DECK_H, height)));
+}
 const SWAP_MS = 180;
 const HINT_KEY = 'regatta.controls.wheelHint';
 
@@ -186,6 +198,8 @@ export interface WheelDeckProps {
   sound: boolean;
   sensitivity: Sensitivity;
   jibSheetSide: 'left' | 'right';
+  /** Room the host has for the deck (a turned phone); omitted, the deck is DECK_H. */
+  height?: number;
 }
 
 function WheelDeckImpl(props: WheelDeckProps) {
@@ -295,7 +309,8 @@ function WheelDeckImpl(props: WheelDeckProps) {
     tick(r.tick);
   }, [setSheet, tick]);
 
-  const pos = deckLayout(w, DECK_H, jibSheetSide, expanded);
+  const deckH = fitDeckHeight(props.height);
+  const pos = deckLayout(w, deckH, jibSheetSide, expanded);
   const onLayout = (e: LayoutChangeEvent) => {
     const nw = Math.round(e.nativeEvent.layout.width);
     if (nw > 0 && nw !== w) setW(nw);
@@ -330,8 +345,9 @@ function WheelDeckImpl(props: WheelDeckProps) {
   const headingShown = `${Math.round(normalizeDeg(targetHeadingDeg)) % 360}°`;
   return (
     <View style={styles.deck}>
-      {showNote ? <Text variant="caption" style={styles.note}>{labels.hint}</Text> : null}
-      <View testID="wheel-deck" style={styles.area} onLayout={onLayout}>
+      {/* A lowered deck has no room for the one-time hint above it. */}
+      {showNote && deckH === DECK_H ? <Text variant="caption" style={styles.note}>{labels.hint}</Text> : null}
+      <View testID="wheel-deck" style={[styles.area, { height: deckH }]} onLayout={onLayout}>
         {sheetWheel(jibSheetSide === 'left' ? 'jib' : 'main')}
         <Wheel
           kind="helm"

@@ -22595,6 +22595,19 @@
     }
   },
   {
+    "id": "bfdf2961fd7ad76d",
+    "source": "Schemat jest szerszy niż ekran: przesuń go w bok",
+    "known": {
+      "pl": "Schemat jest szerszy niż ekran: przesuń go w bok",
+      "ru": "Схема шире экрана: листайте ее вбок",
+      "en": "The diagram is wider than the screen: swipe it sideways",
+      "es": "El esquema es más ancho que la pantalla: deslízalo hacia un lado",
+      "fr": "Le schéma est plus large que l'écran : faites-le glisser sur le côté",
+      "de": "Das Schema ist breiter als der Bildschirm: seitlich wischen",
+      "it": "Lo schema è più largo dello schermo: scorrilo di lato"
+    }
+  },
+  {
     "id": "bfe700492d41c287",
     "source": "jedna częstotliwość, na zmianę",
     "known": {

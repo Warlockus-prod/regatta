@@ -17,13 +17,16 @@
 //   - a truncated key label (scrollWidth over clientWidth, an ellipsis, or a
 //     label cut by a clipping box or the screen edge);
 //   - two visible text boxes intersecting;
-//   - horizontal page scroll.
+//   - horizontal page scroll;
+//   - a picture, diagram or scene painted past the side of the screen (package 32,
+//     scripts/ui-offscreen.mjs).
 // Findings go to stdout only (route, state, selector, text, measurement); the
 // script writes no files. Exit code 1 when anything is found.
 //
 // The race is started the way e2e/race-navigation.spec.ts startRace() does:
 // the same stored preferences, the lobby, the briefing, the running clock.
 import { chromium } from "playwright";
+import { collectVisuals, offscreenFinding } from "./ui-offscreen.mjs";
 
 const BASE = (process.env.BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 // 390x844 is the gate; CHECK_UI_VIEWPORT=375x812 (or 320x568) looks at a smaller phone.
@@ -372,6 +375,11 @@ function sampledBackground(sample) {
 async function checkState(page, route, state, results) {
   await page.waitForTimeout(400);
   const { findings, contrast: queue } = await page.evaluate(auditPage, LIMITS);
+  // Package 32: nothing drawn runs off the side of the screen.
+  for (const visual of await page.evaluate(collectVisuals)) {
+    const detail = offscreenFinding(visual, VIEWPORT.width);
+    if (detail) findings.push({ kind: "offscreen", selector: visual.selector, text: visual.text.slice(0, 60), detail });
+  }
   const png = await page.screenshot({ animations: "disabled", caret: "hide" });
   const needSample = queue.filter(q => !q.bg && q.color);
   const samples = needSample.length ? await sampleBackgrounds(page, png, needSample.map(q => q.box)) : [];

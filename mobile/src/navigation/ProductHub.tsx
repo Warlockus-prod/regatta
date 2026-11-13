@@ -26,6 +26,8 @@ import { RACE_INTRO_TITLE } from "../../../src/data/race-intro-title";
 
 /** Package 9: a still of the real race scene (the website uses the same frame). */
 const raceScene = require("../../assets/design/race-scene.jpg");
+/** Width over height of race-scene.jpg; mobile/__tests__/race-hub-scene.test.tsx reads the file and fails if they part. */
+export const RACE_SCENE_RATIO = 960 / 688;
 /** F5: the race page opened only for its intro (raceEntryQuery forwards the flag). */
 export const RACE_INTRO_HREF = "/game?intro=1";
 
@@ -98,7 +100,12 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
       {home && <RaceHubNextStep view={home} setup={raceSetup} onOpen={href => router.push(href as Href)} />}
       {section === "race" && <View style={styles.play}>
-        <Image source={raceScene} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={homeCopy.sceneAlt[lang]} accessibilityIgnoresInvertColors />
+        {/* Package 32 (owner: "the picture is crooked"): the frame sizes the picture, never the file.
+            React Native puts a required asset's own width and height before the style, so an
+            Image with only width and aspectRatio came out 688 pt tall and ran off the right edge. */}
+        <View style={styles.sceneFrame} testID="race-hub-scene">
+          <Image source={raceScene} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={homeCopy.sceneAlt[lang]} accessibilityIgnoresInvertColors />
+        </View>
         <View style={styles.summaryRow}>
           <Text style={styles.summary} testID="race-hub-summary">{setupSummary}</Text>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: changing }} onPress={() => setChanging(v => !v)} hitSlop={8}
@@ -188,7 +195,9 @@ const styles = StyleSheet.create({
   startInner: { maxWidth: 780, width: "100%", alignSelf: "center" },
   title: { minHeight: 40 },
   play: { gap: 10 },
-  scene: { width: "100%", aspectRatio: 16 / 9, borderRadius: radii.card, backgroundColor: colors.sand },
+  // The frame has the file's own proportion (race-scene.jpg is 960x688), so nothing is cropped.
+  sceneFrame: { width: "100%", aspectRatio: RACE_SCENE_RATIO, borderRadius: radii.card, overflow: "hidden", backgroundColor: colors.sand },
+  scene: { width: "100%", height: "100%" },
   summaryRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 },
   summary: { flexShrink: 1, fontSize: 15, lineHeight: 22, color: colors.textSecondary },
   change: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 4 },

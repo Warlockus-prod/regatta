@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { useI18n } from "@/lib/i18n";
+import { isAppShell } from "@/lib/theme";
 import { MANOEUVRES, MANOEUVRE_TRACKS, manoeuvreById, type ManoeuvreExercise } from "@/data/manoeuvres";
 import { castOff, contactsOf, createRun, scoreRun, stepRun, stepSeconds, targetDistance, windAt, type RunInput, type RunResult, type RunState } from "./runner";
 import { isUnlocked, nextExercise, readProgress, recordStars, type Stars } from "./progress";
@@ -51,18 +52,20 @@ export default function ManoeuvresApp({ initialSearch }: { initialSearch?: strin
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
   };
 
-  if (view.kind === "list") return <ExerciseList stars={stars} loaded={loaded} onOpen={id => open("brief", id)} />;
+  // Package 32: in the app the native header already says "Manoeuvres"; the list repeated it as its own title.
+  const inApp = loaded && (isAppShell() || new URLSearchParams(initialSearch ?? "").get("embed") === "1");
+  if (view.kind === "list") return <ExerciseList stars={stars} loaded={loaded} inApp={inApp} onOpen={id => open("brief", id)} />;
   const exercise = manoeuvreById(view.id)!;
   if (view.kind === "brief") return <Briefing exercise={exercise} stars={stars[exercise.id] ?? 0} onBack={() => open("list")} onStart={() => open("play", exercise.id)} />;
   return <Play key={exercise.id} exercise={exercise} stars={stars}
     onStars={setStars} onBack={() => open("list")} onNext={id => open("brief", id)} tl={tl} />;
 }
 
-function ExerciseList({ stars, loaded, onOpen }: { stars: Stars; loaded: boolean; onOpen: (id: string) => void }) {
+function ExerciseList({ stars, loaded, inApp, onOpen }: { stars: Stars; loaded: boolean; inApp: boolean; onOpen: (id: string) => void }) {
   const { tl } = useI18n();
   return <div className={styles.page}>
     <header className={styles.header}>
-      <h1 className={styles.title}>{tl(copy.title)}</h1>
+      {!inApp && <h1 className={styles.title}>{tl(copy.title)}</h1>}
       <p className={styles.intro}>{tl(copy.intro)}</p>
     </header>
     {MANOEUVRE_TRACKS.map(track => <section key={track.id} className={styles.track}>

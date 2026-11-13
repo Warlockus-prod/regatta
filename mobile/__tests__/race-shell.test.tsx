@@ -80,12 +80,13 @@ it("keeps a landscape race clear of the side insets, swipe-proof and awake until
   expect(mockDeactivate).toHaveBeenCalledWith(tag);
 });
 
-it("leaves the trainers' gestures, insets and idle timer alone", async () => {
+it("leaves the trainers' gestures and idle timer alone, and keeps a turned trainer clear of the cutout", async () => {
   const view = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
     <SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={local} />
   </SafeAreaProvider>);
   await act(async () => {});
-  expect(view.getByTestId("screen").props.style).toBeNull();
+  // Package 32: the turned trim trainer had its wind box under the screen cutout.
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
   expect(lastOptions().gestureEnabled).toBeUndefined();
   expect(mockActivate).not.toHaveBeenCalled();
 });

@@ -187,7 +187,10 @@ export function SimWebView({
   const ownHeader = fullScreen || (isRaceShell(path) && webHeader);
   // Package 31, R-45 prototype: while the race's water layout is on screen the frame steps aside.
   const [waterEdges, setWaterEdges] = useState(false);
-  const frameInsets = waterEdges ? null : raceFrameInsets(safeArea, ownHeader);
+  // Package 32: a turned trainer keeps out of the side insets too. Its scene went under the
+  // screen cutout (the wind box of the trim trainer was hidden by it); only the race was padded.
+  const sideSafe = ownHeader || Boolean(tier);
+  const frameInsets = waterEdges ? null : raceFrameInsets(safeArea, sideSafe);
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
@@ -219,7 +222,7 @@ export function SimWebView({
   const autoReloadAt = useRef<number | null>(null);
   const [processNotice, setProcessNotice] = useState(false);
   const headerShown = !ownHeader || loading || failed;
-  const overlayInsets = raceOverlayInsets(safeArea, ownHeader, headerShown);
+  const overlayInsets = raceOverlayInsets(safeArea, sideSafe, headerShown);
 
   const params = new URLSearchParams({ lang, embed: '1', ...(query ?? {}) });
   const uri = `${ORIGIN}${path}?${params.toString()}`;

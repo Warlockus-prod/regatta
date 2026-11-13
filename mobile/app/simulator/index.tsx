@@ -63,6 +63,8 @@ import {
 } from '../../src/persistence/units';
 import { useControlPrefs } from '../../src/persistence/controls';
 import { WheelDeck } from '../../src/simulator/WheelDeck';
+/** What stands above the wheels in the turned dock: scroll padding, the trim panel's margin, padding and header row. */
+const DOCK_CHROME_H = 112;
 import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
 import { useLandscapeWhileFocused } from '../../src/simulator/orientation';
 import { colors, darkColors as sceneColors, radii, shadow, spacing } from '../../src/design-system/tokens';
@@ -1582,6 +1584,8 @@ function Simulator() {
               sound={controlPrefs.sound}
               sensitivity={wheelPrefs.sensitivity}
               jibSheetSide={wheelPrefs.jibSheetSide}
+              // Package 32: turned, the dock is as high as the screen; the deck fits under the trim header.
+              height={landscape ? availableHeight - DOCK_CHROME_H : undefined}
             />
           ) : null}
           <View style={styles.sliderRow}>

@@ -23,8 +23,9 @@ export function raceShellStackOptions(path: string): { gestureEnabled?: false; f
 }
 
 /**
- * Side padding for a full-screen race. The race page has no safe-area CSS of
- * its own, so the native frame keeps the WebView out of the left and right
+ * Side padding for a screen that turns with the phone: the full-screen race
+ * and, since package 32, the three trainers. Their pages have no safe-area CSS
+ * of their own, so the native frame keeps the WebView out of the left and right
  * insets (zero in portrait, the island and corners in landscape). The page
  * background shows in the side bands.
  */

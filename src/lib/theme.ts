@@ -13,6 +13,15 @@ export function isEmbed(): boolean {
   return typeof window !== 'undefined' && /[?&]embed=1/.test(window.location.search);
 }
 
+/**
+ * Inside the iOS app. A bundled page has no query: the app injects its route
+ * as `__REGATTA_EMBED__` instead. Used to drop a page title that the app's own
+ * header already shows (package 32), never to change content.
+ */
+export function isAppShell(): boolean {
+  return isEmbed() || (typeof window !== 'undefined' && Boolean((window as Window & { __REGATTA_EMBED__?: unknown }).__REGATTA_EMBED__));
+}
+
 export function resolveTheme(mode: unknown, darkSystem: boolean, embedded?: unknown): ResolvedTheme {
   if (embedded === 'light' || embedded === 'dark') return embedded;
   if (mode === 'light' || mode === 'dark') return mode;

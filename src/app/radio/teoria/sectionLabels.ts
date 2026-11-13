@@ -53,3 +53,10 @@ export const THEORY_SECTION_LABELS = {
 } satisfies Record<string, Record<Lang, string>>;
 
 export type TheorySectionId = keyof typeof THEORY_SECTION_LABELS;
+
+/** Package 32: shown under the drawing on a phone, where the drawing is wider than the screen. */
+export const THEORY_DIAGRAM_SWIPE_HINT: Record<Lang, string> = {
+  ru: "Схема шире экрана: листайте ее вбок", en: "The diagram is wider than the screen: swipe it sideways", pl: "Schemat jest szerszy niż ekran: przesuń go w bok",
+  es: "El esquema es más ancho que la pantalla: deslízalo hacia un lado", fr: "Le schéma est plus large que l'écran : faites-le glisser sur le côté",
+  de: "Das Schema ist breiter als der Bildschirm: seitlich wischen", it: "Lo schema è più largo dello schermo: scorrilo di lato",
+};
