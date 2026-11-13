@@ -205,6 +205,13 @@ function auditPage(limits) {
     // A sticky or fixed bar the page scrolls under is not a cover.
     const covered = (x, y) => {
       if (x < 0 || y < 0 || x >= vw || y >= vh) return false;
+      // Scrolled out of its own list: that part is clipped away (hidden), nothing lies over it.
+      for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) {
+        const o = cs(e);
+        if (o.overflowY === "visible" && o.overflowX === "visible") continue;
+        const r = e.getBoundingClientRect();
+        if (x < r.left || x >= r.right || y < r.top || y >= r.bottom) return false;
+      }
       const hit = document.elementFromPoint(x, y);
       if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return false;
       // Inside one drawing the empty corners of a letter box show the drawing itself.

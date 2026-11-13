@@ -24,6 +24,7 @@ import {
   GearButton,
   SceneBar,
   SceneDrawer,
+  SceneStage,
   TrainerWorkspace,
   ViewButton,
   WheelDeck,
@@ -225,9 +226,12 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           showFlow={showFlow} onToggle={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }} labels={L.scene} knots={kn} />}
   </>;
   const viewport = <div className={styles.viewport}>
+          {/* Package 32 stage B: on a phone the stage carries the canvas under the bar, the readouts and the dock. */}
+          <SceneStage>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry}
             venue={venue} />
+          </SceneStage>
           {mode === "sail" && !wheels && !compact && <>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />

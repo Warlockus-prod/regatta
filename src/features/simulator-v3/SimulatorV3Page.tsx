@@ -69,6 +69,7 @@ import {
   GearButton,
   SceneBar,
   SceneDrawer,
+  SceneStage,
   TrainerWorkspace,
   ViewButton,
   WheelDeck,
@@ -81,6 +82,9 @@ import {
   type DockTab,
   type HelmTarget,
 } from '../trainer-controls';
+
+/** Water behind the flat views of the trainer, in the theme's colours. */
+const TRAINER_WATER = 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)';
 
 const TrainerBoat3D = dynamic(() => import("./ui/TrainerBoat3D"), { ssr: false });
 
@@ -903,9 +907,14 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               data-session-tick={sim.session.ticks}
               data-session-heading={sim.session.boat.heading}
               className="absolute inset-0"
-              style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)' }}
+              style={ui.view === "3d" ? undefined : { background: TRAINER_WATER }}
             >
-              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} /> : ui.view === 'top' ? (
+              {/* Package 32 stage B: the picture is a stage, painted over the whole phone workspace under
+                  the controls; the flat views put their water there and keep the drawing in the window. */}
+              <SceneStage style={{ background: TRAINER_WATER }}>
+                {onClient && ui.view === "3d" && <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} />}
+              </SceneStage>
+              {!onClient || ui.view === "3d" ? null : ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />
               ) : ui.view === 'side' ? (
                 <SceneSide ui={ui} sim={sim} tp={tp} />

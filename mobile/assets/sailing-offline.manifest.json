@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "00fcc72d4947",
-  "sha256": "ab5d6c0989f4af7641d1956682575d7e9ef21ede637c96dfcaf1cb2d45135da2",
-  "bytes": 7028985,
+  "version": "12e0fc561a2b",
+  "sha256": "733d61b18c5dc2d51dc320db96189b6798a1846d7279113d379c83961bb72166",
+  "bytes": 7035762,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -821,6 +821,7 @@
     "src/features/simulator-3d/physics/useSailingSim.ts",
     "src/features/simulator-3d/sails/geometry.ts",
     "src/features/simulator-3d/scene-diagnostics.ts",
+    "src/features/simulator-3d/stage-view.tsx",
     "src/features/simulator-3d/types.ts",
     "src/features/simulator-3d/ui/WindDial.tsx",
     "src/features/simulator-3d/ui/WindReadout.tsx",
@@ -874,6 +875,7 @@
     "src/features/trainer-controls/GearIcon.tsx",
     "src/features/trainer-controls/ReservedPanel.tsx",
     "src/features/trainer-controls/SceneChrome.tsx",
+    "src/features/trainer-controls/SceneStage.tsx",
     "src/features/trainer-controls/TrainerControls.module.css",
     "src/features/trainer-controls/TrainerWorkspace.tsx",
     "src/features/trainer-controls/Wheel.tsx",
@@ -884,6 +886,7 @@
     "src/features/trainer-controls/prefs.ts",
     "src/features/trainer-controls/sound-copy.ts",
     "src/features/trainer-controls/sound.ts",
+    "src/features/trainer-controls/stage.ts",
     "src/features/venues/useVenue.ts",
     "src/lib/ads-board.ts",
     "src/lib/ads-copy.ts",
@@ -2057,13 +2060,13 @@
     },
     {
       "path": "src/features/simulator-3d/RegattaScene.tsx",
-      "bytes": 4253,
-      "sha256": "fd9b0e97eea90f489defe8ccbb585f26f9bc467928b59f114aab7ef40c1683a8"
+      "bytes": 4274,
+      "sha256": "2b9cb04e879b5b7c03b6d4b15a2a95162b305ab0f8b9b21925d2dbb233021170"
     },
     {
       "path": "src/features/simulator-3d/SailingCameraRig.tsx",
-      "bytes": 2394,
-      "sha256": "dd5124175e0133d189ab71323bec38dc9a2653b69b4de74f11cd814305373bc8"
+      "bytes": 2641,
+      "sha256": "35ab50b4fc8cd86e6d9ca9332585b3d7d1d5e69d1f58e624c3479d397125ecb4"
     },
     {
       "path": "src/features/simulator-3d/SceneBoundary.tsx",
@@ -2082,8 +2085,8 @@
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.tsx",
-      "bytes": 30394,
-      "sha256": "f86ff2a003b824a79407dcc2e658935e79b42f1cce82feef77717721f13db787"
+      "bytes": 30575,
+      "sha256": "41decb3ebb26b0ec8df3bc304cb48562210b2faed19b2ec60b9fe36a46153419"
     },
     {
       "path": "src/features/simulator-3d/SimulatorV2.tsx",
@@ -2161,6 +2164,11 @@
       "sha256": "733276ad59c9405e726cc1b3001e7399d18015e4f8a781c9938d3d6eebea72d1"
     },
     {
+      "path": "src/features/simulator-3d/stage-view.tsx",
+      "bytes": 2713,
+      "sha256": "d08812fe81d4bb153344a1b47964796f4d356025365293486ffc39dbce35108d"
+    },
+    {
       "path": "src/features/simulator-3d/types.ts",
       "bytes": 7829,
       "sha256": "269d27c8a7b98dcd49b9aa91c4b60e000834bbf3bcc985b173f62642252eefd8"
@@ -2192,8 +2200,8 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 51025,
-      "sha256": "8d8b31a490c92d080091f6221d705afc566eea545323db0e63295503dfdf2068"
+      "bytes": 51541,
+      "sha256": "93350badc1fe79a8a5ae198a4459da92b8d59d1aae42b824d4657bf32cf51a28"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -2307,8 +2315,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/TrainerWindInstrument.module.css",
-      "bytes": 1180,
-      "sha256": "214ffcdd2741e2c5ec6deea705f8ca3ba671976e9279f935c0935a4d7bf02769"
+      "bytes": 1217,
+      "sha256": "05af156168c3c74120af5b4529bd7e2aff3c7e8abc1313f6c13ef84b98c27e12"
     },
     {
       "path": "src/features/simulator-v3/ui/TrainerWindInstrument.tsx",
@@ -2426,14 +2434,19 @@
       "sha256": "7589c7bd4f1c4bf0426c3eb0c3e3ba80270e575bc85119bbaedd269074f31c43"
     },
     {
+      "path": "src/features/trainer-controls/SceneStage.tsx",
+      "bytes": 2500,
+      "sha256": "c49e3b7ffad338ec604c9075a25fb0e45481fb4d3abf4c9f8742f674fe6f1c5e"
+    },
+    {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
-      "bytes": 14995,
-      "sha256": "f350cfeb0d5cd56240cb9a895c1fa85c350ce181e5fa50e78812d4c28f639639"
+      "bytes": 21210,
+      "sha256": "69a94c1bb323dd47f7fc6b40f7a829875d41f877515993288c7106fad3bc9b9a"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
-      "bytes": 2506,
-      "sha256": "d01e974350a198005a679ce05d8d4aa17dfd2b6fb9d59c0806888940da6f020b"
+      "bytes": 2917,
+      "sha256": "a069a6547983611e21a027c9d8e304b6362e5e32c131e0b62bfbf1d5fb6108d4"
     },
     {
       "path": "src/features/trainer-controls/Wheel.tsx",
@@ -2447,8 +2460,8 @@
     },
     {
       "path": "src/features/trainer-controls/index.ts",
-      "bytes": 627,
-      "sha256": "7bd063d03d56757e3170f4e7db163b4046ebc1a99497f19ae9cc6442b27b5097"
+      "bytes": 670,
+      "sha256": "d748cc44da36a2b9940151536f50ccca7de8de5fabaea897b3d71f56dcbfff08"
     },
     {
       "path": "src/features/trainer-controls/labels.ts",
@@ -2474,6 +2487,11 @@
       "path": "src/features/trainer-controls/sound.ts",
       "bytes": 1780,
       "sha256": "3387e38d6789b9506c3a8f8c0a7b9d65aaf23aa902fa8faf3997dc60a9c51880"
+    },
+    {
+      "path": "src/features/trainer-controls/stage.ts",
+      "bytes": 2963,
+      "sha256": "29c4d1c908a31cb3fcb803a3145d38bdaab93c8756aeb7d833db3b77fc663b35"
     },
     {
       "path": "src/features/venues/useVenue.ts",

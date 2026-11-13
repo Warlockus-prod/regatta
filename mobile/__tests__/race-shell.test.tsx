@@ -1,8 +1,8 @@
 import { act, fireEvent, render } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SimWebView } from "../src/simulator/SimWebView";
-import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage } from "../src/simulator/race-shell";
+import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, trainerStage } from "../src/simulator/race-shell";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
@@ -89,6 +89,44 @@ it("leaves the trainers' gestures and idle timer alone, and keeps a turned train
   expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
   expect(lastOptions().gestureEnabled).toBeUndefined();
   expect(mockActivate).not.toHaveBeenCalled();
+});
+
+// Package 32 stage B (rule R-46, point 6): the two 3D trainers paint their scene on the whole
+// screen. Turned, the native header and the frame's insets go, Back floats over the scene and
+// the page is told how much room it takes; the flat steering trainer keeps the old frame.
+it("turns a 3D trainer into a full-screen scene with a floating Back, and leaves the flat trainer framed", async () => {
+  const turned = jest.spyOn(Dimensions, "get").mockReturnValue({ width: 874, height: 402, scale: 3, fontScale: 1 });
+  try {
+    const view = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+      <SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={local} />
+    </SafeAreaProvider>);
+    await act(async () => {});
+    // Loading: the header stays so the learner can leave, the frame already steps aside.
+    expect(view.getByTestId("screen").props.style).toBeNull();
+    expect(lastOptions().headerShown).toBe(true);
+    expect(view.queryByTestId("trainer-floating-back")).toBeNull();
+    fireEvent(view.getByTestId("webview"), "message", { nativeEvent: { data: "scene-ready" } });
+    expect(lastOptions().headerShown).toBe(false);
+    const back = view.getByTestId("trainer-floating-back");
+    expect(StyleSheet.flatten(back.props.style)).toMatchObject({ position: "absolute", left: 8 + 59, minHeight: 44 });
+    fireEvent(back, "layout", { nativeEvent: { layout: { x: 67, y: 6, width: 83.4, height: 44 } } });
+    const injected = (mockWebInstances[mockWebInstances.length - 1] as { injectJavaScript: jest.Mock }).injectJavaScript.mock.calls.map(([script]: [string]) => script);
+    expect(injected.some((script: string) => script.includes('"--native-back-w", "92px"') && script.includes('toggleAttribute("data-native-back", true)'))).toBe(true);
+    view.unmount();
+
+    const flat = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+      <SimWebView path="/simulator" title="Steering" tier="basics" offlineSource={local} />
+    </SafeAreaProvider>);
+    await act(async () => {});
+    fireEvent(flat.getByTestId("webview"), "message", { nativeEvent: { data: "app-ready" } });
+    expect(flat.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+    expect(lastOptions().headerShown).toBe(true);
+    expect(flat.queryByTestId("trainer-floating-back")).toBeNull();
+  } finally { turned.mockRestore(); }
+  expect(trainerStage("trainer", true)).toEqual({ full: true, bottomEdge: true });
+  expect(trainerStage("boat3d", false)).toEqual({ full: false, bottomEdge: true });
+  expect(trainerStage("basics", true)).toEqual({ full: false, bottomEdge: false });
+  expect(trainerStage(undefined, true)).toEqual({ full: false, bottomEdge: false });
 });
 
 it("keeps the live multiplayer room swipe-proof and awake", async () => {

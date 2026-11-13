@@ -12,12 +12,19 @@
 }
 .screenEmbed { height: 100dvh; min-height: 0; }
 
-.workspace { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.workspace { position: relative; isolation: isolate; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 /* The scene takes all spare height; both control modes keep a capped dock,
    so the boat keeps most of the screen without a hard minimum that could push the
    page into scrolling under the site navigation. */
 .sceneColumn { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .scene { position: relative; flex: 1 1 auto; min-height: 160px; overflow: hidden; }
+/* Package 32 stage B: the picture of a trainer (SceneStage). On its own it
+   fills its parent; inside a phone workspace SceneStage sizes it to the whole
+   workspace, so the scene shows under the bar, the readouts and the dock. */
+.stage { position: absolute; inset: 0; }
+.workspace[data-stage="true"] .scene { overflow: visible; }
+/* Under everything else in the workspace, flat drawings of the same scene included. */
+.workspace[data-stage="true"] .stage { right: auto; bottom: auto; z-index: -1; }
 .readouts { flex: 0 0 auto; }
 /* Portrait: readouts and dock are plain rows of the workspace column. */
 .sideColumn { display: contents; }
@@ -134,8 +141,63 @@
 }
 .drawerItem[aria-pressed="true"] { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 
+/* Package 32 stage B: with the scene behind them the bar, the readouts and
+   the dock are glass. --glass keeps text at the theme's contrast (a card
+   colour at 82%), --glass-thin is the wheels' area, where the water has to
+   show: the wheels and their captions carry their own backing. */
+.workspace[data-stage="true"] {
+  --glass: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  --glass-solid: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  --glass-chip: color-mix(in srgb, var(--bg-card) 88%, transparent);
+}
+.workspace[data-stage="true"] :is(.sceneBar, .readouts, .controlArea) { position: relative; z-index: 1; }
+/* --native-back-w: in the app, turned, Back floats over this corner (mobile/src/simulator/SimWebView.tsx). */
+.workspace[data-stage="true"] .sceneBar { background: transparent; border-bottom: 0; padding-top: 6px; pointer-events: none;
+  padding-left: calc(max(14px, env(safe-area-inset-left, 0px)) + var(--native-back-w, 0px)); }
+.workspace[data-stage="true"] .sceneBar > * { pointer-events: auto; }
+.workspace[data-stage="true"] .sceneStatus { flex: 0 1 auto; margin-right: auto; padding: 6px 10px; border-radius: 10px; background: var(--glass-chip); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14); }
+.workspace[data-stage="true"] .barButton { background: var(--glass-chip); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14); }
+/* Readouts carry 12 px secondary text: the glass is denser there, so it keeps 4.5:1 over dark water. */
+.workspace[data-stage="true"] .readouts { background: color-mix(in srgb, var(--bg-secondary) 92%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+/* Tabs on glass use the primary ink for the same reason. */
+.workspace[data-stage="true"] .tabs button:not([aria-selected="true"]) { color: var(--text-primary); }
+/* The panel, not the dock, pads for the home indicator: the glass then reaches the screen edge. */
+.workspace[data-stage="true"] .dock { background: transparent; border-top: 0; padding-bottom: 0; }
+.workspace[data-stage="true"] .panel { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.workspace[data-stage="true"] .panelWheels { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+/* Next to the app's floating Back (data-native-back, set with --native-back-w) a cramped bar,
+   such as a mode switch, wraps instead of clipping its labels. Elsewhere the status shrinks first. */
+:global(:root[data-native-back]) .workspace[data-stage="true"] .sceneBar { flex-wrap: wrap; row-gap: 6px; }
+.workspace[data-stage="true"] .dockHead { background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-top: 1px solid var(--border-subtle); }
+.workspace[data-stage="true"] .panel { background: var(--glass-solid); }
+.workspace[data-stage="true"] .panelWheels { background: linear-gradient(to bottom, color-mix(in srgb, var(--bg-secondary) 18%, transparent), color-mix(in srgb, var(--bg-secondary) 58%, transparent)); }
+.workspace[data-stage="true"] :is(.reservedPanelHost, .drawer, .sheet) { background: var(--glass-solid); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+/* On the water a wheel needs its own disc and its caption its own chip. */
+.workspace[data-stage="true"] .wheel::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; background: color-mix(in srgb, var(--bg-card) 62%, transparent); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16); }
+.workspace[data-stage="true"] .wheelSvg { position: relative; }
+.workspace[data-stage="true"] .wheelCaption { padding: 2px 6px 3px; border-radius: 8px; background: var(--glass-chip); }
+.workspace[data-stage="true"] .deckNote { align-self: center; padding: 2px 10px; border-radius: 8px; background: var(--glass-chip); }
+/* Whatever follows the wheels in their panel (utilities) is text on water: it gets a card. */
+.workspace[data-stage="true"] .panelWheels > :not(.deck) { background: var(--glass-solid); border-radius: 10px; }
+/* Portrait: the wheels and their captions are what stays on the water; the hint and
+   the utilities under them scroll inside the dock, so the boat keeps half the screen. */
+@media (orientation: portrait) {
+  .workspace[data-stage="true"] .controlArea:has(> .dock[data-mode="wheels"]) { --wheels-dock: calc(74px + clamp(168px, 25dvh, 212px) + env(safe-area-inset-bottom, 0px)); max-height: min(46%, var(--wheels-dock)); }
+  .screen:not(.screenEmbed) .workspace[data-stage="true"] .controlArea:has(> .dock[data-mode="wheels"]) { max-height: min(40%, var(--wheels-dock)); }
+  .workspace[data-stage="true"] .dock[data-layout="bottom"][data-mode="wheels"] .panelWheels > .deck { flex: 0 0 auto; }
+  /* What follows the wheels starts below the home indicator's strip, so nothing half shows at the screen edge. */
+  .workspace[data-stage="true"] .deckNote { margin-top: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .workspace[data-stage="true"] .panelWheels > .deck + * { margin-top: env(safe-area-inset-bottom, 0px); }
+}
+
 @media (orientation: landscape) and (max-height: 540px) {
   .workspace { flex-direction: row; }
+  .workspace[data-stage="true"] .sideColumn { background: transparent; border-left: 0; width: calc(min(46%, 380px) + env(safe-area-inset-right, 0px)); padding-right: env(safe-area-inset-right, 0px); }
+  .workspace[data-stage="true"] .readouts { border-bottom: 0; }
+  .workspace[data-stage="true"] .dockHead { border-top: 0; padding-left: 12px; padding-right: 12px; }
+  /* The column already keeps clear of the right inset and is nowhere near the left one. */
+  .workspace[data-stage="true"] .sideColumn :is(.panel, .drawer, .sheet) { padding-left: 20px; padding-right: 20px; }
+  .workspace[data-stage="true"] .sceneBar { padding-right: 8px; }
   .sceneColumn { min-height: 0; min-width: 0; position: relative; }
   .sceneBar { min-height: 44px; padding-top: 0; padding-bottom: 0; }
   .sideColumn { display: flex; flex-direction: column; flex: 0 0 auto; width: min(46%, 380px); min-height: 0; border-left: 1px solid var(--border-subtle); background: var(--bg-secondary); }

@@ -24,7 +24,7 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
-import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, useKeepAwakeWhileFocused } from './race-shell';
+import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, trainerStage, useKeepAwakeWhileFocused } from './race-shell';
 import { ActivityBack } from '../navigation/ActivityBack';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
@@ -184,17 +184,24 @@ export function SimWebView({
   const safeArea = useContext(SafeAreaInsetsContext);
   // Package 11 (K6): a race page with its own header (the live room's cockpit) hides the native one.
   const [webHeader, setWebHeader] = useState(false);
-  const ownHeader = fullScreen || (isRaceShell(path) && webHeader);
-  // Package 31, R-45 prototype: while the race's water layout is on screen the frame steps aside.
-  const [waterEdges, setWaterEdges] = useState(false);
-  // Package 32: a turned trainer keeps out of the side insets too. Its scene went under the
-  // screen cutout (the wind box of the trim trainer was hidden by it); only the race was padded.
-  const sideSafe = ownHeader || Boolean(tier);
-  const frameInsets = waterEdges ? null : raceFrameInsets(safeArea, sideSafe);
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
   const landscape = winW > winH && winH < 600;
+  // Package 32 stage B (rule R-46, point 6): the two 3D trainers paint their scene on the whole
+  // screen (src/features/trainer-controls/SceneStage.tsx). Turned, they lose the native header
+  // and the frame's insets: the scene reaches every edge, the page keeps its own controls clear
+  // of the cutout (env(safe-area-inset-*)), and Back floats over the scene's top left corner.
+  const stage = trainerStage(tier, landscape);
+  const ownHeader = fullScreen || (isRaceShell(path) && webHeader) || stage.full;
+  // Package 31, R-45 prototype: while the race's water layout is on screen the frame steps aside.
+  const [waterEdges, setWaterEdges] = useState(false);
+  const edgeToEdge = waterEdges || stage.full;
+  // Package 32: a turned trainer keeps out of the side insets too. Its scene went under the
+  // screen cutout (the wind box of the trim trainer was hidden by it); only the race was padded.
+  const sideSafe = ownHeader || Boolean(tier);
+  const frameInsets = edgeToEdge ? null : raceFrameInsets(safeArea, sideSafe);
+  const [backWidth, setBackWidth] = useState(0);
   const controlsJson = JSON.stringify(controlPrefs);
   const controlsScript = `window.__REGATTA_CONTROLS__ = ${controlsJson}; true;`;
   const storageJson = JSON.stringify(pageStorage ?? {});
@@ -223,6 +230,10 @@ export function SimWebView({
   const [processNotice, setProcessNotice] = useState(false);
   const headerShown = !ownHeader || loading || failed;
   const overlayInsets = raceOverlayInsets(safeArea, sideSafe, headerShown);
+  const floatingBack = stage.full && !headerShown;
+  // The page's own bar starts after the floating Back (--native-back-w in TrainerControls.module.css).
+  const backInsetScript = `document.documentElement.style.setProperty("--native-back-w", "${floatingBack ? Math.ceil(backWidth) + 8 : 0}px"); document.documentElement.toggleAttribute("data-native-back", ${floatingBack}); true;`;
+  useEffect(() => { webRef.current?.injectJavaScript(backInsetScript); }, [backInsetScript]);
 
   const params = new URLSearchParams({ lang, embed: '1', ...(query ?? {}) });
   const uri = `${ORIGIN}${path}?${params.toString()}`;
@@ -302,15 +313,15 @@ export function SimWebView({
     return () => clearTimeout(t);
   }, [processNotice]);
 
+  const backControl = () => returnLesson
+    ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
+    : isFoundationLesson(query?.fromLesson)
+      ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
+      : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />;
+
   return (
-    <AppSurface><Screen noTopInset={!ownHeader || waterEdges} noBottomInset={waterEdges} style={frameInsets}>
-      <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false,
-        headerLeft: () => returnLesson
-          ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
-          : isFoundationLesson(query?.fromLesson)
-            ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
-            : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />,
-      }} />
+    <AppSurface><Screen noTopInset={!ownHeader || edgeToEdge} noBottomInset={waterEdges || stage.bottomEdge} style={frameInsets}>
+      <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false, headerLeft: backControl }} />
       {tier && !landscape && !returnLesson && !isFoundationLesson(query?.fromLesson) && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
@@ -431,6 +442,12 @@ export function SimWebView({
           <ActivityIndicator color={colors.accentCyan} size="large" />
         </View>
       )}
+      {floatingBack && (
+        <View style={[styles.floatingBack, { top: 6 + Math.max(0, safeArea?.top ?? 0), left: 8 + Math.max(0, safeArea?.left ?? 0) }]}
+          onLayout={event => setBackWidth(event.nativeEvent.layout.width)} testID="trainer-floating-back">
+          {backControl()}
+        </View>
+      )}
       {processNotice && !failed && (
         <Pressable
           onPress={() => setProcessNotice(false)}
@@ -524,6 +541,7 @@ export function SimWebView({
 
 const styles = StyleSheet.create({
   headerBack: { minHeight: 44, minWidth: 44, paddingRight: 12, justifyContent: "center" },
+  floatingBack: { position: "absolute", zIndex: 5, minHeight: 44, justifyContent: "center", paddingLeft: 10, borderRadius: 12, backgroundColor: colors.bgCard, shadowColor: "#000", shadowOpacity: 0.16, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 },
   web: { flex: 1, backgroundColor: colors.bgPrimary },
   tierBar: {
     flexDirection: 'row',

@@ -871,6 +871,9 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
 - `src/features/trainer-controls/TrainerWorkspace.tsx` - закрепленная сцена, показания и док; в короткой горизонтали показания справа прокручиваются с клавиатуры, сохраняя место основным controls и лодке.
+- `src/features/trainer-controls/SceneStage.tsx` - пакет 32, этап Б: картинка тренажера (3D-холст или вода под плоским видом). В телефонной раскладке растягивается на весь экран под строку, показания и док, пишет в `data-window`, где свободное окно лодки, и шлет событие `trainer-stage`; на десктопе обычный блок.
+- `src/features/trainer-controls/stage.ts` - геометрия этой сцены без DOM и three.js: `stageViewOffset` (смещение вида камеры: лодка того же размера и по центру окна, хотя холст на весь экран), `stageAspect`, разбор `data-window`.
+- `src/features/trainer-controls/stage.test.ts` - центр камеры в середине окна, а не холста; размер лодки не меняется; повернутый телефон; без окна камеру не трогаем.
 - `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
 - `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
 - `src/features/race-3d/Race3DView.tsx` - 3D-вид одиночной гонки (ADR-0006): читает refs гонки `GameClient`, игрок в начале координат, мир сдвигается под ним; соперники, знаки, линия старта, берег, камера за кормой или сверху. `Buoy` и `World` рисуют знаки и для общей сцены гонки `RaceScene`; с F4 у знака спрайт-кольцо одного размера на экране поверх воды (`markHaloTexture`, прозрачность по расстоянию до камеры).
@@ -1523,6 +1526,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/features/race-scene/orbit-camera.ts` - начальные игровые ракурсы с тем же fit яхты, что в тренажере, поза камеры «За кормой» для текущего курса с сохранением масштаба игрока и поза камеры «Гонка» (`raceViewPose`, пакет 8) по длине корпуса и скорости.
 - `src/features/race-scene/orbit-camera.test.ts` - проекция лодки и мачты во viewport при разных размерах; камера «За кормой» стоит за кормой на любом курсе, не прыгает на повороте, держит масштаб и возвращается после ручного вращения.
 - `src/features/simulator-3d/SailingCameraRig.tsx` - общая свободная камера, preset/reset один раз, удержание пользовательского ракурса.
+- `src/features/simulator-3d/stage-view.tsx` - пакет 32, этап Б: `StageView` ставит камере смещение вида по `src/features/trainer-controls/stage.ts`, `StageCameraRig` вписывает лодку в свободное окно, `useStageWindow` читает окно со сцены.
 - `src/features/simulator-3d/SailingCameraRig.test.tsx` - реальный Three camera lifecycle, жесты, resize, reset и cleanup.
 - `src/features/simulator-3d/SceneStartup.tsx` - готовность после первого рендера и локализованный видимый статус загрузки.
 - `src/features/simulator-3d/SceneStartup.test.tsx` - готовность после рендера, однократное событие и отмена при cleanup.

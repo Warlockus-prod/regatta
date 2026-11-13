@@ -4,6 +4,9 @@ import { expect, test, type Page } from "@playwright/test";
 // decisions 2026-10-19): on a phone the boat stays on screen whatever the
 // learner does in the control dock, and the optional wheels are real,
 // keyboard-operable sliders that move the same inputs.
+// Since package 32 stage B (rule R-46, point 6, owner 2026-11-13) the two 3D
+// trainers paint their scene over the whole phone screen, under the controls;
+// the boat sits in the free window between them, which no control covers.
 
 const PHONE = { width: 390, height: 844 };
 const ROUTES = [
@@ -101,18 +104,24 @@ test("wheel mode: the helm and both sheets are keyboard sliders on the Trainer",
   await expect.poll(async () => Math.round(Number(await main.getAttribute("aria-valuenow")))).toBe(Math.round(eased) - 5);
 });
 
-// Owner rule 2026-10-21: on a phone nothing is drawn over the boat. Status and
-// buttons sit above the scene, readouts under it, and the views drawer slides
-// out from the side only when asked for, then slides back after a choice.
+// Rule R-46, point 6 (owner 2026-11-13, replacing the 2026-10-21 rule "nothing
+// is drawn over the scene"): the scene is painted over the whole phone screen
+// and the controls sit on it. The boat's window stays free: status and buttons
+// are above it, readouts and the dock under it, at least 45% of the screen is
+// left to it, and the camera is centred on it, not on the canvas. The views
+// drawer still opens only when asked for and closes after a choice.
 for (const route of [
-  { path: "/simulator-v3?embed=1&lang=en", scene: '[data-testid="trainer-scene"]', choice: "Rear" },
-  { path: "/simulator2?embed=1&lang=en", scene: "canvas", choice: "Deck" },
+  { path: "/simulator-v3?embed=1&lang=en", choice: "Rear" },
+  { path: "/simulator2?embed=1&lang=en", choice: "Deck" },
 ]) {
-  test(`nothing covers the boat, views slide out on demand: ${route.path}`, async ({ page }) => {
+  test(`the scene fills the screen and no control covers the boat's window: ${route.path}`, async ({ page }) => {
     test.setTimeout(60_000);
     await page.setViewportSize(PHONE);
+    await page.addInitScript(() => {
+      localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
+    });
     await page.goto(route.path);
-    const scene = page.locator(route.scene).first();
+    const scene = page.getByTestId("trainer-scene-window");
     const deadline = Date.now() + 25_000;
     const remaining = () => Math.max(1, deadline - Date.now());
     await expect(scene).toBeVisible({ timeout: remaining() });
@@ -120,8 +129,33 @@ for (const route of [
     const s = (await scene.boundingBox())!;
     const bar = (await page.getByTestId("scene-bar").boundingBox())!;
     const readouts = (await page.getByTestId("trainer-readouts").boundingBox())!;
+    const dock = (await page.getByTestId("control-dock").boundingBox())!;
     expect(bar.y + bar.height).toBeLessThanOrEqual(s.y + 1);
     expect(readouts.y).toBeGreaterThanOrEqual(s.y + s.height - 1);
+    expect(dock.y).toBeGreaterThanOrEqual(s.y + s.height - 1);
+    expect(s.height).toBeGreaterThanOrEqual(PHONE.height * 0.45);
+    // The picture itself reaches every edge of the screen, and its canvas with it.
+    const painted = await page.locator("[data-trainer-stage]").evaluate(stage => {
+      const box = (element: Element) => { const { x, y, width, height } = element.getBoundingClientRect(); return { x, y, width, height }; };
+      return { stage: box(stage), canvas: box(stage.querySelector("canvas")!), workspace: box(stage.closest('[data-testid="trainer-workspace"]')!) };
+    });
+    for (const box of [painted.stage, painted.canvas]) {
+      expect(Math.abs(box.x - painted.workspace.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.y - painted.workspace.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.width - PHONE.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.height - painted.workspace.height)).toBeLessThanOrEqual(1);
+    }
+    expect(painted.workspace.height).toBeGreaterThanOrEqual(PHONE.height - 1);
+    // The scene is told where the free window is; the camera is centred there.
+    // The window moves when a readout wraps to a second line, so both are read
+    // in one pass and the largest difference has to settle under a pixel.
+    await expect.poll(() => page.locator("[data-trainer-stage]").evaluate(stage => {
+      const workspace = stage.closest('[data-testid="trainer-workspace"]')!.getBoundingClientRect();
+      const free = stage.closest("[data-trainer-window]")!.getBoundingClientRect();
+      const told = ((stage as HTMLElement).dataset.window ?? "").split(",").map(Number);
+      const actual = [free.left - workspace.left, free.top - workspace.top, free.width, free.height];
+      return told.length === 4 ? Math.max(...actual.map((value, index) => Math.abs(value - told[index]))) : Infinity;
+    })).toBeLessThanOrEqual(1);
     const drawer = page.getByTestId("scene-drawer").first();
     await expect(drawer).toBeHidden();
     await page.getByTestId("scene-view-button").click();
@@ -131,7 +165,10 @@ for (const route of [
   });
 }
 
-test("wheel mode: wheels and Diagnostics occupy the dock without an empty band", async ({ page }) => {
+// Since package 32 stage B the wheels sit on the water and the dock is only as
+// tall as they are: the hint and Diagnostics follow them without an empty band
+// and are reached by scrolling the dock, never by covering more of the scene.
+test("wheel mode: wheels stay on the water, the hint and Diagnostics follow without an empty band", async ({ page }) => {
   await page.setViewportSize(PHONE);
   await page.addInitScript(() => {
     localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
@@ -168,10 +205,16 @@ test("wheel mode: wheels and Diagnostics occupy the dock without an empty band",
   const occupiedEnd = hintBox ? hintBox.y + hintBox.height : deck.y + deck.height;
   expect(utilityBox.y).toBeGreaterThanOrEqual(occupiedEnd);
   expect(utilityBox.y - occupiedEnd).toBeLessThan(24);
-  expect(dock.y + dock.height - (utilityBox.y + utilityBox.height)).toBeLessThan(24);
   expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
-  expect(utilityBox.y + utilityBox.height).toBeLessThanOrEqual(PHONE.height);
+  expect(dock.y + dock.height).toBeLessThanOrEqual(PHONE.height + 1);
   expect(deck.y + deck.height).toBeLessThanOrEqual(PHONE.height);
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
+  // The boat keeps at least 45% of the screen with the wheels up.
+  expect(scene.height).toBeGreaterThanOrEqual(PHONE.height * 0.45);
+  await summary.scrollIntoViewIfNeeded();
+  const reached = (await summary.boundingBox())!;
+  expect(reached.y).toBeGreaterThanOrEqual(dock.y - 1);
+  expect(reached.y + reached.height).toBeLessThanOrEqual(PHONE.height + 1);
 });
 
 // Reproduce the owner's compact web audit, rather than checking only an

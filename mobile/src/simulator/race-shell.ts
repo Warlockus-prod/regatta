@@ -74,6 +74,19 @@ export function raceWaterMessage(message: string): boolean | null {
   } catch { return null; }
 }
 
+/**
+ * Package 32 stage B (rule R-46, point 6): which trainers paint their scene on
+ * the whole screen and what the native shell gives up for it. `full`: the
+ * phone is turned, so the native header and the frame's insets go and Back
+ * floats over the scene. `bottomEdge`: the page reaches the bottom edge and
+ * pads its dock for the home indicator itself, upright as well. The flat
+ * steering trainer has no such scene and keeps the old frame.
+ */
+export function trainerStage(tier: string | undefined, landscape: boolean): { full: boolean; bottomEdge: boolean } {
+  const staged = tier === "trainer" || tier === "boat3d";
+  return { full: staged && landscape, bottomEdge: staged };
+}
+
 /** Within this time after an automatic reload, a second process loss shows Retry instead of looping. */
 export const RACE_PROCESS_RELOAD_WINDOW_MS = 60_000;
 

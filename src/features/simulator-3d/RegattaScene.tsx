@@ -7,7 +7,7 @@ import { WindFlow } from "./ocean/WindFlow";
 import type { Venue } from '../../data/venues/venues';
 import type { YachtState } from './types';
 import { fitYachtCamera, type CameraView } from "./camera";
-import { SailingCameraRig } from "./SailingCameraRig";
+import { StageCameraRig, StageView } from "./stage-view";
 import { SceneBoundary } from "./SceneBoundary";
 import { FirstSceneFrame, SceneStartup } from "./SceneStartup";
 import { YACHT_MODEL_URL } from "./config";
@@ -100,12 +100,13 @@ export const RegattaScene = memo(function RegattaScene({
 
       {showFlow && <WindFlow stateRef={stateRef} />}
 
-      {cameraRig ?? <SailingCameraRig
+      {cameraRig ?? <StageCameraRig
         poseForAspect={cameraPose}
         revision={revision}
         minDistance={view === "mainsheet" ? 2.5 : 9}
         maxDistance={120}
       />}
+      <StageView />
       <ContextHealth />
     </Canvas>
     }</SceneStartup>

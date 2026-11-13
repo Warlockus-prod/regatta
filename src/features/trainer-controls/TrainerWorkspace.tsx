@@ -5,12 +5,18 @@ import styles from "./TrainerControls.module.css";
 import { ReservedPanelContext } from "./ReservedPanel";
 
 // Phone and tablet layout shared by the trainers: the boat is pinned and
-// never scrolls away, and nothing is drawn over it. Portrait: the scene bar
-// (status, view and help buttons), the scene (all spare height), the
-// readouts, then the control dock. Dock content scrolls independently. Short
-// landscape readouts can also scroll without moving the boat. The bar and scene fill the left column, the
-// readouts and the dock stack in the right one. Desktop layouts stay with
-// each surface.
+// never scrolls away. Portrait: the scene bar (status, view and help
+// buttons), the free window with the boat (all spare height), the readouts,
+// then the control dock. Dock content scrolls independently. Short landscape
+// readouts can also scroll without moving the boat. The bar and the window
+// fill the left column, the readouts and the dock stack in the right one.
+// Desktop layouts stay with each surface.
+//
+// Package 32 stage B (rule R-46, point 6, replacing the 2026-10-21 rule
+// "nothing is drawn over the scene"): a trainer that puts its picture into a
+// SceneStage gets it painted over the whole workspace, under the bar, the
+// readouts and the dock, which then turn into glass. The boat still sits in
+// the free window, and no control covers that window.
 
 export function TrainerWorkspace(props: {
   embed: boolean;
@@ -35,7 +41,7 @@ export function TrainerWorkspace(props: {
     <div className={`${styles.workspace} ${embed ? styles.workspaceEmbed : ""} ${className ?? ""}`} data-panel-open={panels.length > 0} data-testid="trainer-workspace">
       <div className={styles.sceneColumn}>
         {sceneBar}
-        <div className={styles.scene}>{scene}</div>
+        <div className={styles.scene} data-trainer-window data-testid="trainer-scene-window">{scene}</div>
       </div>
       <div className={styles.sideColumn}>
         {readouts && <div className={styles.readouts} tabIndex={0} data-testid="trainer-readouts">{readouts}</div>}
