@@ -24,6 +24,8 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
+import { PartVisuals } from '../../src/anatomy/PartVisuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import { Card } from '../../src/design-system/components/Card';
 import { Screen } from '../../src/design-system/components/Screen';
 import { Text } from '../../src/design-system/components/Text';
@@ -662,6 +664,8 @@ function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
               contentContainerStyle={sheetStyles.body}
               showsVerticalScrollIndicator={false}
             >
+              {/* Package 32: the same schematic and picture of the part as everywhere else it is shown. */}
+              <PartVisuals id={part.id} name={legacyPick(part, 'name', lang)} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
               <Text variant="body" style={sheetStyles.desc}>{desc}</Text>
               {useText ? (
                 <Card style={sheetStyles.useCard} accent="cyan">

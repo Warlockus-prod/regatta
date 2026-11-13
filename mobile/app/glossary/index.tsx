@@ -4,6 +4,8 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 import { useI18n } from '../../src/i18n/context';
 import { Card, EmptyState, Screen, Text } from '../../src/design-system/components';
 import { glossaryTerms, glossaryCategories } from '../../src/data';
+import { PartVisuals } from '../../src/anatomy/PartVisuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import type { GlossaryCategoryId } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
@@ -226,6 +228,8 @@ export default function Glossary() {
                   {showEn ? (
                     <Text variant="muted" style={styles.defEn}>{term.definitionEn}</Text>
                   ) : null}
+                  {/* Package 32: a term that is a part of the yacht shows the same schematic and picture as the anatomy screen. */}
+                  <PartVisuals id={term.id} name={legacyPick(term, 'term', lang)} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
                 </View>
               </Card>
             );

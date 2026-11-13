@@ -20,6 +20,17 @@ const posters = Object.fromEntries(readdirSync(join(root, "public/anatomy/poster
   embeddedAssets.push({ path, bytes: bytes.length, sha256: digest(bytes) });
   return [name, `data:image/jpeg;base64,${bytes.toString("base64")}`];
 }));
+// Package 32: the yacht part visuals (a picture per part, two schematic drawings) travel inside
+// the bundle too, so the app's anatomy page shows the same pair as the site without a network.
+const partImage = path => {
+  const bytes = readFileSync(join(root, path));
+  embeddedAssets.push({ path, bytes: bytes.length, sha256: digest(bytes) });
+  return `data:image/webp;base64,${bytes.toString("base64")}`;
+};
+const partPictures = Object.fromEntries(readdirSync(join(root, "public/anatomy/parts")).filter(name => name.endsWith(".webp")).sort()
+  .map(name => [name.slice(0, -5), partImage(`public/anatomy/parts/${name}`)]));
+const partDrawings = Object.fromEntries(readdirSync(join(root, "public/anatomy/diagram")).filter(name => name.endsWith(".webp")).sort()
+  .map(name => [`/anatomy/diagram/${name}`, partImage(`public/anatomy/diagram/${name}`)]));
 const model = readFileSync(join(root, "public/models/regatta_sloop_sailing.glb"));
 const gltf = JSON.parse(model.subarray(20, 20 + model.readUInt32LE(12)).toString().trim());
 if ([...(gltf.buffers ?? []), ...(gltf.images ?? [])].some(item => item.uri && !item.uri.startsWith("data:"))) {
@@ -82,6 +93,19 @@ const result = await build({
         const contents = readFileSync(args.path, "utf8"), before = "new URLSearchParams(window.location.search)";
         if (!contents.includes(before)) throw new Error(`Sailing embed query adapter needs updating: ${args.path}`);
         return { contents: `import {readSailingSearch as __readSailingSearch} from ${JSON.stringify(join(source, "embed.ts"))};\n${contents.replaceAll(before, "__readSailingSearch()")}`, loader: "tsx", resolveDir: dirname(args.path) };
+      });
+      api.onLoad({ filter: /data\/anatomy-visuals\.generated\.ts$/ }, args => {
+        let contents = readFileSync(args.path, "utf8");
+        for (const [url, data] of Object.entries(partDrawings)) {
+          if (!contents.includes(JSON.stringify(url))) throw new Error(`Part drawing adapter needs updating: ${url}`);
+          contents = contents.replaceAll(JSON.stringify(url), JSON.stringify(data));
+        }
+        return { contents, loader: "ts", resolveDir: dirname(args.path) };
+      });
+      api.onLoad({ filter: /data\/anatomy-visuals\.ts$/ }, args => {
+        const contents = readFileSync(args.path, "utf8"), before = "src: `/anatomy/parts/${id}.webp`";
+        if (!contents.includes(before)) throw new Error("Part picture adapter needs updating");
+        return { contents: `const __offlinePartPictures=${JSON.stringify(partPictures)};\n${contents.replace(before, "src: __offlinePartPictures[id]")}`, loader: "ts", resolveDir: dirname(args.path) };
       });
       api.onLoad({ filter: /components\/AnatomyPosters\.tsx$/ }, args => {
         let contents = readFileSync(args.path, "utf8");

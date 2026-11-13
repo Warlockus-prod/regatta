@@ -5,6 +5,10 @@ import { useI18n } from '@/lib/i18n';
 import { legacyPick, legacyPickArray } from '@/lib/languages';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import { checklistSections } from '@/data/checklist';
+import { anatomyParts } from '@/data/anatomy';
+import { sectionParts } from '@/data/anatomy-visuals';
+import { PartStrip } from '@/components/anatomy/PartVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 // ============================================================================
 // CHECKLIST (/checklist) - reference page for beginners stepping on a yacht.
@@ -85,6 +89,10 @@ export default function ChecklistPage() {
                   </li>
                 ))}
               </ul>
+              {/* Package 32: a section that teaches parts of the yacht shows each of them, schematic and picture. */}
+              <PartStrip parts={sectionParts('checklist', section.id)} title={UI_TERMS.partsInSection[lang]}
+                names={id => legacyPick(anatomyParts.find(part => part.id === id)!, 'name', lang)}
+                labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
               {warning && (
                 <div className="mt-3 p-3 rounded-lg text-sm leading-relaxed"
                      style={{ background: 'rgba(255, 82, 82, 0.08)', border: '1px solid rgba(255, 82, 82, 0.25)' }}>

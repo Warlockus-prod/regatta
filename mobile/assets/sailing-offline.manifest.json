@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "0e6e00196dfd",
-  "sha256": "1d9e76bd8909e6e5eb996cb6b210e1d0ea75ba73d4e868261a339b29c6e5b46e",
-  "bytes": 7095985,
+  "version": "52d20831e62a",
+  "sha256": "009d2f50d9baff83a45321114ab87b1d129561389402370db42a884770b3ab89",
+  "bytes": 7462583,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -638,11 +638,14 @@
     "src/components/FoundationReturn.tsx",
     "src/components/RaceReturn.tsx",
     "src/components/YachtViewer3D.tsx",
+    "src/components/anatomy/PartVisuals.tsx",
     "src/components/diagnostics/DiagnosticAccess.tsx",
     "src/components/diagnostics/DiagnosticPanel.tsx",
     "src/components/diagnostics/DiagnosticPanelLoader.tsx",
     "src/components/game-layer.ts",
     "src/components/product/TrainerSwitcher.tsx",
+    "src/data/anatomy-visuals.generated.ts",
+    "src/data/anatomy-visuals.ts",
     "src/data/anatomy.ts",
     "src/data/bootcamp-index.ts",
     "src/data/drills.ts",
@@ -995,8 +998,8 @@
   "sourceFiles": [
     {
       "path": "mobile/scripts/build-sailing-offline.mjs",
-      "bytes": 11307,
-      "sha256": "e2f545b952e05c3f2bf12a7bb00c7ad0638354ab3a66609584ebc3a1abfcd68a"
+      "bytes": 13143,
+      "sha256": "10281c2ccfb8f0795f2c1f86818a546daa4355f96a24e5a160e18426692717b4"
     },
     {
       "path": "mobile/scripts/offline-sailing/embed.ts",
@@ -1020,8 +1023,8 @@
     },
     {
       "path": "src/app/anatomy/page.tsx",
-      "bytes": 10234,
-      "sha256": "2f507af1861c9b6e9ae5a61e63e381b93cd1a5d756f6312621ea4e49c0ba6817"
+      "bytes": 10666,
+      "sha256": "5921bae3c4c2a7d1c030f15c7695ab7154530fa4bf6d30a9450b4008db9314c3"
     },
     {
       "path": "src/app/game/GameClient.tsx",
@@ -1249,6 +1252,11 @@
       "sha256": "1879e93828bbab18df398d8be6704eb7de645d0d422d97f318e102e94ee7cd96"
     },
     {
+      "path": "src/components/anatomy/PartVisuals.tsx",
+      "bytes": 4463,
+      "sha256": "171f4936d9eb7e72ed5d73865d40bb0372477f1e18bc3ad20c1230a01746dcc6"
+    },
+    {
       "path": "src/components/diagnostics/DiagnosticAccess.tsx",
       "bytes": 935,
       "sha256": "16e91af94d5f82fb3734b772879c574f8e0c470c944431b56479996e03b7d921"
@@ -1272,6 +1280,16 @@
       "path": "src/components/product/TrainerSwitcher.tsx",
       "bytes": 1647,
       "sha256": "b64b28f5b005ecec0e8ca5382074f51cb4e2230af5bb42be4985910e802006ce"
+    },
+    {
+      "path": "src/data/anatomy-visuals.generated.ts",
+      "bytes": 2539,
+      "sha256": "e721d89c56fd0503842af2c3e5ac8470532f74651ca95998101c6ca413af23a4"
+    },
+    {
+      "path": "src/data/anatomy-visuals.ts",
+      "bytes": 3750,
+      "sha256": "b8b3e8b64926b9f0ab05bed7063f020717f44b38469acfaae8112e10e759f62d"
     },
     {
       "path": "src/data/anatomy.ts",
@@ -2660,8 +2678,8 @@
     },
     {
       "path": "src/lib/product/ui-terms.ts",
-      "bytes": 4594,
-      "sha256": "181aa9d3ed69cd20492378498ba28eadee170a0a8688bb2c1eca1cf2ab62ee22"
+      "bytes": 5240,
+      "sha256": "0ba69421fe3e81bb2a22a7a4c4d74488c5a5fa1c3261d6d6192409ed8b9b41e5"
     },
     {
       "path": "src/lib/race-best-command.ts",
@@ -3054,6 +3072,101 @@
       "path": "public/anatomy/posters/main-elements-ru.jpg",
       "bytes": 176114,
       "sha256": "39519d7eff1468270343117db193e4ccf644a0f6f28361191f90e596efa78421"
+    },
+    {
+      "path": "public/anatomy/parts/boom.webp",
+      "bytes": 15302,
+      "sha256": "c825a41563282a08801e4e498032a047786c983ec12318c75c50c84803bac57c"
+    },
+    {
+      "path": "public/anatomy/parts/bow.webp",
+      "bytes": 9402,
+      "sha256": "f806eef6cce9f52635c7774f7e6e40eb44a127935505eb77e8aba5bfd66b2016"
+    },
+    {
+      "path": "public/anatomy/parts/cleat.webp",
+      "bytes": 7968,
+      "sha256": "c3002360428108c28e1b967580e34ec42627f056ac0c4d4377db14782f64a933"
+    },
+    {
+      "path": "public/anatomy/parts/cockpit.webp",
+      "bytes": 21016,
+      "sha256": "1153e9065d8852e8fb9c50e83dea2c86170cacf37729a1122c870c4f7357b456"
+    },
+    {
+      "path": "public/anatomy/parts/fender.webp",
+      "bytes": 13092,
+      "sha256": "d23e3d42eaff55c380c26e19cdfd27357989ce757349d9490175ce7ed56b874e"
+    },
+    {
+      "path": "public/anatomy/parts/forestay.webp",
+      "bytes": 10590,
+      "sha256": "6977902b8a869c5c59d684df0361fc2f4a875e4b000d5b01b712f4305db0214d"
+    },
+    {
+      "path": "public/anatomy/parts/jib-sheet.webp",
+      "bytes": 21380,
+      "sha256": "a3c44e33b841d28c089854907f43744f8bab17ae2012c9571b1c09e975ac90fd"
+    },
+    {
+      "path": "public/anatomy/parts/jib.webp",
+      "bytes": 7764,
+      "sha256": "400fa4cbe00528d0cdb61e507fcc1ed91bb454f47f7ee3528bf017d707db3ec5"
+    },
+    {
+      "path": "public/anatomy/parts/keel.webp",
+      "bytes": 10640,
+      "sha256": "b321af54d61f62190a4afbc1a59d6e46d5e59b61346914a53629bfe02dd40a76"
+    },
+    {
+      "path": "public/anatomy/parts/mainsail.webp",
+      "bytes": 7632,
+      "sha256": "a93168d578ff97bf10655b43e787e97695e1f73c600eb4890aa5d822347c45e8"
+    },
+    {
+      "path": "public/anatomy/parts/mainsheet.webp",
+      "bytes": 19730,
+      "sha256": "8ba66a430c6c3403de66b5ac9d53b1dfc628b178225395eb2ab2f524773067d7"
+    },
+    {
+      "path": "public/anatomy/parts/mast.webp",
+      "bytes": 7182,
+      "sha256": "879c8621a767b38c813f2a98dfc6aa9d02e56221007cb0263172202135436c32"
+    },
+    {
+      "path": "public/anatomy/parts/rudder.webp",
+      "bytes": 7016,
+      "sha256": "8e3c985b0edda423b0ee7d6aee006e7333c44a4020909e6f3817b5459cd9c145"
+    },
+    {
+      "path": "public/anatomy/parts/shrouds.webp",
+      "bytes": 8638,
+      "sha256": "f71f5d8a9a4857ec146f8f45ecc9c8d4aa73540e758a2a4d8b0e61f578bda6d4"
+    },
+    {
+      "path": "public/anatomy/parts/stern.webp",
+      "bytes": 13166,
+      "sha256": "eb6b2507288e206bd2fa90c7dad25a21d56dc4ec15502316e415611747a09b76"
+    },
+    {
+      "path": "public/anatomy/parts/wheel.webp",
+      "bytes": 12774,
+      "sha256": "e83e3addbbb8cecf26a891bcc353f388e9e309dd5050c67399c6539b7a3e63a6"
+    },
+    {
+      "path": "public/anatomy/parts/winch.webp",
+      "bytes": 11658,
+      "sha256": "f8d8d63c8db2ef895a23b095f1c74dbb1c35e8f7cedcc053cdbab2f4e97fe899"
+    },
+    {
+      "path": "public/anatomy/diagram/side.webp",
+      "bytes": 48232,
+      "sha256": "e552080ccd2b6fb711cdd9ba98114a230003aca6a4bd23b5430b792b61c51ac9"
+    },
+    {
+      "path": "public/anatomy/diagram/top.webp",
+      "bytes": 18566,
+      "sha256": "a336fbd9de9887f10d7a878067a87c34779123c0fe22c70f3234950850318163"
     },
     {
       "path": "public/fonts/source-sans-3/SourceSans3VF-Upright.woff2",

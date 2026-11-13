@@ -73,6 +73,11 @@ export const UI_TERMS = {
   raceSection,
   /** One race on screen (the race screen title, the race camera). */
   race: { ...raceSection, pl: "Wyścig" },
+  /** Package 32: the two visuals every subject has, wherever it is shown: the schematic and the picture of it on the boat. */
+  visualDiagram: label("Схема", "Diagram", "Schemat", "Esquema", "Schéma", "Schema", "Schema"),
+  visualOnBoat: label("На лодке", "On the boat", "Na jachcie", "En el barco", "Sur le bateau", "Am Boot", "Sulla barca"),
+  /** The strip of yacht parts under a section that teaches them. */
+  partsInSection: label("Где это на лодке", "Where it is on the boat", "Gdzie to jest na jachcie", "Dónde está en el barco", "Où c'est sur le bateau", "Wo das am Boot ist", "Dove si trova sulla barca"),
   /** Unit signs, written after a number with a space. */
   knots: label("уз", "kn", "w.", "kn", "nd", "kn", "kn"),
   metres: { ...same("m"), ru: "м" },

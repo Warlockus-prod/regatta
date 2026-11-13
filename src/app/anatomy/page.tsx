@@ -8,6 +8,8 @@ import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import AnatomyPosters from '@/components/AnatomyPosters';
+import { PartVisuals } from '@/components/anatomy/PartVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 // Shared Blender yacht with accessible part selection and five camera views.
 
@@ -113,6 +115,10 @@ export default function AnatomyPage() {
               <div className="text-sm text-[var(--text-muted)] mb-4">
                 {active.nameEn}
               </div>
+
+              {/* Package 32: every part has both visuals, the same ones in every section that shows it. */}
+              <PartVisuals id={active.id} name={legacyPick(active, 'name', lang)} className="mb-4"
+                labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
 
               <div className="space-y-3 text-sm">
                 <div>

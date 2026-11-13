@@ -3,7 +3,10 @@ import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Button, Card, Screen, Text } from '../../src/design-system/components';
-import { checklistSections } from '../../src/data';
+import { anatomyParts, checklistSections } from '../../src/data';
+import { PartStrip } from '../../src/anatomy/PartVisuals';
+import { sectionParts } from '../../../src/data/anatomy-visuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import { legacyPick, legacyPickArray } from '../../src/i18n/languages';
 import { itemKey, useChecklistProgress } from '../../src/persistence/checklist';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
@@ -211,6 +214,9 @@ export default function Checklist() {
                   );
                 })}
               </View>
+              {/* Package 32: a section that teaches parts of the yacht shows each of them, schematic and picture. */}
+              <PartStrip parts={sectionParts('checklist', section.id)} title={UI_TERMS.partsInSection[lang]}
+                names={id => legacyPick(anatomyParts.find(part => part.id === id)!, 'name', lang)} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
               {warning ? (
                 <View style={styles.warning}>
                   <Text variant="muted" style={styles.warningLabel}>
