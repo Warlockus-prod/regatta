@@ -3,6 +3,10 @@
 import Link from 'next/link';
 import { legacyPick } from '@/lib/languages';
 import { quickRefreshLessons, QUICK_REFRESH_TOTAL_MINUTES } from '@/data/bootcamp';
+import { maneuvers, pointsOfSail } from '@/data/sailing-data';
+import { sailingSectionSubjects } from '@/data/sailing-visuals';
+import { SubjectStrip } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
@@ -40,9 +44,10 @@ export default function QuickRefreshPage() {
         {quickRefreshLessons.map((l, i) => {
           const title = legacyPick(l, 'title', lang);
           const tip = legacyPick(l, 'tip', lang);
+          const names = (id: string) => { const item = pointsOfSail.find(p => p.id === id) ?? maneuvers.find(m => m.id === id); return item ? legacyPick(item, 'name', lang) : id; };
           return (
+            <div key={l.id}>
             <Link
-              key={l.id}
               href={l.route}
               className="card p-4 sm:p-5 flex items-center gap-4 hover:border-[var(--success)] transition"
             >
@@ -61,6 +66,10 @@ export default function QuickRefreshPage() {
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
             </Link>
+            {/* Package 32: a card that repeats the points of sail or the turns shows each of them, schematic and picture. */}
+            <SubjectStrip ids={sailingSectionSubjects('quick', l.id)} names={names} title={UI_TERMS.subjectsInSection[lang]}
+              labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
+            </div>
           );
         })}
       </div>

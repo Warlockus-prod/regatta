@@ -56,7 +56,8 @@ it("shows every part a section teaches, and no strip for a section that teaches 
 it("wires the same registry into every native screen that teaches parts", () => {
   // The screens read the registry by the item's own id, so a new part or term needs no per-screen list.
   const source = (file: string) => readFileSync(join(__dirname, "..", file), "utf8");
-  expect(source("app/glossary/index.tsx")).toContain("<PartVisuals id={term.id}");
+  expect(source("app/glossary/index.tsx")).toContain("<SubjectVisuals id={term.id}");
+  expect(source("src/learning/SubjectVisuals.tsx")).toContain("if (partVisuals(id)) return <PartVisuals id={id}");
   expect(source("app/anatomy-offline/index.tsx")).toContain("<PartVisuals id={part.id}");
   expect(source("app/checklist/index.tsx")).toContain("sectionParts('checklist', section.id)");
   expect(source("app/onboard/index.tsx")).toContain("sectionParts('onboard', section.id)");

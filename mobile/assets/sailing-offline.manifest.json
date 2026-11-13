@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "52d20831e62a",
-  "sha256": "009d2f50d9baff83a45321114ab87b1d129561389402370db42a884770b3ab89",
-  "bytes": 7462583,
+  "version": "a43336d43266",
+  "sha256": "8749489e07c87b06a3265b34ff230573e2ff672ccaf261758dddb55a2d1fe091",
+  "bytes": 7462957,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -2678,8 +2678,8 @@
     },
     {
       "path": "src/lib/product/ui-terms.ts",
-      "bytes": 5240,
-      "sha256": "0ba69421fe3e81bb2a22a7a4c4d74488c5a5fa1c3261d6d6192409ed8b9b41e5"
+      "bytes": 5711,
+      "sha256": "c7c9e6576742cdb8745438d39e36136145b4f3ae23f202bfe728de5ba4a76952"
     },
     {
       "path": "src/lib/race-best-command.ts",

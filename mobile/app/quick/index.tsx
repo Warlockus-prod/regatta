@@ -2,7 +2,10 @@ import { Stack, router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Card, Screen, Text } from '../../src/design-system/components';
-import { quickRefreshLessons } from '../../src/data';
+import { maneuvers, pointsOfSail, quickRefreshLessons } from '../../src/data';
+import { SubjectStrip } from '../../src/learning/SubjectVisuals';
+import { sailingSectionSubjects } from '../../../src/data/sailing-visuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
@@ -103,9 +106,10 @@ export default function Quick() {
         {quickRefreshLessons.map((lesson, i) => {
           const title = legacyPick(lesson, 'title', lang);
           const tip = legacyPick(lesson, 'tip', lang);
+          const names = (id: string) => { const item = pointsOfSail.find(p => p.id === id) ?? maneuvers.find(m => m.id === id); return item ? legacyPick(item, 'name', lang) : id; };
           return (
+            <View key={lesson.id}>
             <Pressable
-              key={lesson.id}
               onPress={() => router.push(lesson.route as never)}
               accessibilityRole="button"
               accessibilityLabel={`${title}. ${lesson.estMinutes} ${minLabel}. ${tip}`}
@@ -126,6 +130,9 @@ export default function Quick() {
                 </View>
               </Card>
             </Pressable>
+            {/* Package 32: a card that repeats the points of sail or the turns shows each of them, schematic and picture. */}
+            <SubjectStrip ids={sailingSectionSubjects('quick', lesson.id)} names={names} title={UI_TERMS.subjectsInSection[lang]} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
+            </View>
           );
         })}
 

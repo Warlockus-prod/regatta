@@ -5,8 +5,9 @@ import { legacyPick } from '@/lib/languages';
 import { glossaryTerms, glossaryCategories } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
-import { PartVisuals } from '@/components/anatomy/PartVisuals';
+import { SubjectVisuals } from '@/components/visuals/SubjectVisuals';
 import { UI_TERMS } from '@/lib/product/ui-terms';
+import { isYachtPart } from '@/data/anatomy-visuals';
 
 const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
   boat:     { color: 'var(--cat-cyan)',   bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
@@ -249,8 +250,9 @@ export default function GlossaryPage() {
                   <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
                     {pickDef(term)}
                   </p>
-                  {/* Package 32: a term that is a part of the yacht shows the same schematic and picture as the anatomy page. */}
-                  <PartVisuals id={term.id} name={pickTerm(term)} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
+                  {/* Package 32: a term that is a part of the yacht, a point of sail or a turn shows the same schematic and picture as the section that teaches it. */}
+                  <SubjectVisuals id={term.id} name={pickTerm(term)}
+                    labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: (isYachtPart(term.id) ? UI_TERMS.visualOnBoat : UI_TERMS.visualOnWater)[lang] }} />
                 </div>
               );
             })}

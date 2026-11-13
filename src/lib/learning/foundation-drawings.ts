@@ -200,3 +200,52 @@ export function renderScene(id: SceneId, state: SceneState, theme: GraphicTheme 
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SCENE_WIDTH} ${SCENE_HEIGHT}" role="img" aria-label="${id}, state ${state + 1}"><rect width="${SCENE_WIDTH}" height="${SCENE_HEIGHT}" rx="20" fill="${p.bg}"/>${d}</svg>`;
 }
+
+// ---------------------------------------------------------------------------
+// Package 32: one schematic per point of sail and per turn, for the registry of
+// sailing subjects (src/data/sailing-visuals.ts). They are drawn 4:3, like the
+// pictures they stand beside, and carry no small text (one large number at
+// most), so they still read in a tile a third of a phone's width.
+// ---------------------------------------------------------------------------
+
+export const SUBJECT_WIDTH = 800;
+export const SUBJECT_HEIGHT = 600;
+const subjectSvg = (label: string, bg: string, d: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SUBJECT_WIDTH} ${SUBJECT_HEIGHT}" role="img" aria-label="${label}"><rect width="${SUBJECT_WIDTH}" height="${SUBJECT_HEIGHT}" fill="${bg}"/>${d}</svg>`;
+
+/**
+ * A boat on one point of sail, wind from the top: the no-go wedge, the angle
+ * off the wind as an arc and a number, the boom eased as that course asks.
+ * `angle` is the heading off the wind in degrees (0 head to wind, 180 running).
+ */
+export function renderPointOfSail(angle: number, boom: number, noGo: number, theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const cx = 400, cy = 335, reach = 235, arc = 130;
+  const on = (deg: number, r: number): [number, number] => [fmt(cx + Math.sin((deg * Math.PI) / 180) * r), fmt(cy - Math.cos((deg * Math.PI) / 180) * r)];
+  const [lx, ly] = on(-noGo, reach), [rx, ry] = on(noGo, reach), [hx, hy] = on(angle, reach), [ax, ay] = on(angle, arc);
+  const d =
+    path(`M${cx} ${cy}L${lx} ${ly}A${reach} ${reach} 0 0 1 ${rx} ${ry}Z`, p.faint, 2, '', p.faint) +
+    path(`M${cx} ${cy}V${cy - reach}`, p.muted, 3, '9 9') +
+    (angle < 3 ? '' : path(`M${cx} ${cy}L${hx} ${hy}`, p.muted, 3, '9 9') + path(`M${cx} ${cy - arc}A${arc} ${arc} 0 ${angle > 180 ? 1 : 0} 1 ${ax} ${ay}`, p.blue, 7)) +
+    topBoat(cx, cy, angle, p, 1.2, boom) +
+    arrow(110, 70, 110, 200, p.blue, 9) +
+    label(678, 112, `${Math.round(angle)}°`, p.ink, 76);
+  return subjectSvg(`point of sail, ${Math.round(angle)} degrees off the wind`, p.bg, d);
+}
+
+/**
+ * A turn in three boats, wind from the top: before, in the middle (through the
+ * wind, ringed) and after. A tack passes the bow through the wind, a jibe the stern.
+ */
+export function renderTurn(kind: 'tacking' | 'jibing', theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const angles = kind === 'tacking' ? [315, 0, 45] : [135, 180, 225];
+  const booms = kind === 'tacking' ? [-32, 0, 32] : [70, 0, -70];
+  const xs = [150, 400, 650], y = 345;
+  const d =
+    arrow(400, 40, 400, 150, p.blue, 9) +
+    circle(xs[1], y, 122, p.faint) +
+    angles.map((a, i) => topBoat(xs[i], y, a, p, 1.05, booms[i])).join('') +
+    arrow(232, y, 300, y, p.muted, 6) + arrow(500, y, 568, y, p.muted, 6);
+  return subjectSvg(kind === 'tacking' ? 'tack: the bow turns through the wind' : 'jibe: the stern turns through the wind', p.bg, d);
+}

@@ -104,7 +104,8 @@ describe("yacht parts in the other sections that teach them", () => {
     const shared = glossaryTerms.map(term => term.id).filter(isYachtPart);
     expect(shared.sort()).toEqual(["boom", "bow", "cockpit", "jib", "keel", "mainsail", "mast", "rudder", "stern"]);
     // The pages read the registry by the item's own id: no per-page list to forget.
-    expect(readFileSync("src/app/glossary/page.tsx", "utf8")).toContain("<PartVisuals id={term.id}");
+    expect(readFileSync("src/app/glossary/page.tsx", "utf8")).toContain("<SubjectVisuals id={term.id}");
+    expect(readFileSync("src/components/visuals/SubjectVisuals.tsx", "utf8")).toContain("if (partVisuals(id)) return <PartVisuals id={id}");
     expect(readFileSync("src/app/anatomy/page.tsx", "utf8")).toContain("<PartVisuals id={active.id}");
     for (const page of ["checklist", "onboard"]) expect(readFileSync(`src/app/${page}/page.tsx`, "utf8")).toContain(`sectionParts('${page}', section.id)`);
   });

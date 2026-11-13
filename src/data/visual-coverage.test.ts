@@ -12,6 +12,7 @@ import { onboardSections } from "./onboard";
 import { ruleScenarios } from "./rules";
 import { glossaryTerms, pointsOfSail, racingRules, racingStrategies } from "./sailing-data";
 import { sailLessons } from "./sailing-lab/course";
+import { SAILING_SECTIONS, sailingSubject } from "./sailing-visuals";
 import { STERNIK_BANK } from "./sternik";
 
 // Package 32 (owner 2026-11-13: "walk the whole tree, every screen: nothing present in one
@@ -37,12 +38,12 @@ const matrix: Record<string, Row> = {
   // Every lesson draws its scene by id (src/lib/learning/foundation-drawings.ts); one has a photo pair (src/app/start/FoundationClient.tsx).
   "learn/from-scratch lessons": count(bootcampLessons, all, lesson => lesson.id === "how-sail-works"),
   "learn/sails lessons": count(sailLessons, lesson => Boolean(lesson.diagram), none),
-  "learn/15-minute cards": count(quickRefreshLessons, none, none),
+  "learn/15-minute cards": count(quickRefreshLessons, card => card.id in SAILING_SECTIONS.quick, card => card.id in SAILING_SECTIONS.quick),
   "learn/racing rules cards": count(ruleScenarios, card => Boolean(card.svg), none),
   // Site: a diagram per strategy and per rule (src/app/racing/page.tsx); the app has none for the four rules.
   "learn/tactics strategies": count(racingStrategies, all, none),
   "learn/tactics right-of-way rules": count(racingRules, all, none),
-  "learn/points of sail": count(pointsOfSail, point => typeof point.sailAngle === "number", none),
+  "learn/points of sail": count(pointsOfSail, point => sailingSubject(point.id) !== null, point => sailingSubject(point.id) !== null),
   "learn/radio theory chapters": count(THEORY_CHAPTERS, chapter => Boolean(chapter.diagram), none),
   "learn/motorboat questions": count(STERNIK_BANK, question => Boolean(question.figure), question => Boolean(question.photo)),
   // Practice
@@ -54,7 +55,7 @@ const matrix: Record<string, Row> = {
   "race/missions": count(missions, none, none),
   // Library
   "library/yacht parts": count(anatomyParts, part => isYachtPart(part.id), part => isYachtPart(part.id)),
-  "library/glossary terms": count(glossaryTerms, term => isYachtPart(term.id), term => isYachtPart(term.id)),
+  "library/glossary terms": count(glossaryTerms, term => isYachtPart(term.id) || sailingSubject(term.id) !== null, term => isYachtPart(term.id) || sailingSubject(term.id) !== null),
   "library/checklist sections": count(checklistSections, sectionsWithParts("checklist"), sectionsWithParts("checklist")),
   "library/onboard sections": count(onboardSections, sectionsWithParts("onboard"), sectionsWithParts("onboard")),
 };
@@ -64,11 +65,11 @@ describe("visual coverage of the whole product", () => {
     expect(matrix).toEqual({
       "learn/from-scratch lessons": { items: 8, schematic: 8, picture: 1, both: 1 },
       "learn/sails lessons": { items: 13, schematic: 13, picture: 0, both: 0 },
-      "learn/15-minute cards": { items: 6, schematic: 0, picture: 0, both: 0 },
+      "learn/15-minute cards": { items: 6, schematic: 2, picture: 2, both: 2 },
       "learn/racing rules cards": { items: 21, schematic: 21, picture: 0, both: 0 },
       "learn/tactics strategies": { items: 4, schematic: 4, picture: 0, both: 0 },
       "learn/tactics right-of-way rules": { items: 4, schematic: 4, picture: 0, both: 0 },
-      "learn/points of sail": { items: 5, schematic: 5, picture: 0, both: 0 },
+      "learn/points of sail": { items: 5, schematic: 5, picture: 5, both: 5 },
       "learn/radio theory chapters": { items: 18, schematic: 18, picture: 0, both: 0 },
       "learn/motorboat questions": { items: 879, schematic: 9, picture: 8, both: 0 },
       "practice/trainer drills": { items: 16, schematic: 0, picture: 0, both: 0 },
@@ -76,14 +77,13 @@ describe("visual coverage of the whole product", () => {
       "practice/radio scenarios": { items: 19, schematic: 0, picture: 0, both: 0 },
       "race/missions": { items: 4, schematic: 0, picture: 0, both: 0 },
       "library/yacht parts": { items: 17, schematic: 17, picture: 17, both: 17 },
-      "library/glossary terms": { items: 56, schematic: 9, picture: 9, both: 9 },
+      "library/glossary terms": { items: 56, schematic: 17, picture: 17, both: 17 },
       "library/checklist sections": { items: 9, schematic: 1, picture: 1, both: 1 },
       "library/onboard sections": { items: 12, schematic: 2, picture: 2, both: 2 },
     });
   });
 
-  it("has one finished row to copy: every yacht part has both visuals", () => {
-    const parts = matrix["library/yacht parts"];
-    expect(parts.both).toBe(parts.items);
+  it("has finished rows to copy: every yacht part and every point of sail has both visuals", () => {
+    for (const row of ["library/yacht parts", "learn/points of sail"]) expect(matrix[row].both, row).toBe(matrix[row].items);
   });
 });
