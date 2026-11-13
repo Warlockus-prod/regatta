@@ -58,6 +58,21 @@ export function raceHeaderMessage(message: string): boolean | null {
   } catch { return null; }
 }
 
+/**
+ * Package 31, R-45 prototype: the race page's water layout says when it is on
+ * screen ({"type":"race-water","on":true}, src/lib/race-water-layout.ts). The
+ * frame then drops all its insets, so the scene reaches the screen edges and the
+ * page keeps its controls clear of the safe areas itself. Returns the flag, or
+ * null for any other message.
+ */
+export function raceWaterMessage(message: string): boolean | null {
+  if (message.length > 64 || !message.startsWith('{"type":"race-water"')) return null;
+  try {
+    const data = JSON.parse(message) as { type?: unknown; on?: unknown };
+    return data.type === "race-water" && typeof data.on === "boolean" ? data.on : null;
+  } catch { return null; }
+}
+
 /** Within this time after an automatic reload, a second process loss shows Retry instead of looping. */
 export const RACE_PROCESS_RELOAD_WINDOW_MS = 60_000;
 

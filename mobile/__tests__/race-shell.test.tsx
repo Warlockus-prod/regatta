@@ -2,7 +2,7 @@ import { act, fireEvent, render } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SimWebView } from "../src/simulator/SimWebView";
-import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions } from "../src/simulator/race-shell";
+import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage } from "../src/simulator/race-shell";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
@@ -169,6 +169,35 @@ it("hides the native header while the live room's cockpit draws its own, and onl
   expect(lastOptions().headerShown).toBe(true);
   expect(raceHeaderMessage('{"type":"race-header","own":"yes"}')).toBeNull();
   expect(raceHeaderMessage("ready")).toBeNull();
+});
+
+// Package 31, R-45 prototype: while the race's water layout is on screen the
+// frame steps aside, so the scene reaches the screen edges; the lobby and the
+// results keep the frame, and a page reload (no one left to say so) restores it.
+it("drops the frame only while the race's water layout is on screen, and only on the race", async () => {
+  const view = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+    <SimWebView path="/game" title="Race" fullScreen offlineSource={local} />
+  </SafeAreaProvider>);
+  await act(async () => {});
+  const web = () => view.getByTestId("webview");
+  const water = (on: boolean) => fireEvent(web(), "message", { nativeEvent: { data: JSON.stringify({ type: "race-water", on }) } });
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  water(true);
+  expect(view.getByTestId("screen").props.style).toBeNull();
+  water(false);
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  water(true);
+  fireEvent(web(), "loadStart", { nativeEvent: {} });
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  view.unmount();
+  const trainer = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+    <SimWebView path="/multiplayer" title="Multiplayer" fullScreen />
+  </SafeAreaProvider>);
+  await act(async () => {});
+  fireEvent(trainer.getByTestId("webview"), "message", { nativeEvent: { data: JSON.stringify({ type: "race-water", on: true }) } });
+  expect(trainer.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  expect(raceWaterMessage('{"type":"race-water","on":"yes"}')).toBeNull();
+  expect(raceWaterMessage("ready")).toBeNull();
 });
 
 it("drops the memory notice below the island once the portrait race hides its header", async () => {

@@ -27,6 +27,14 @@
 .instrument[data-compact] .bearing { font-size:22px; }
 .instrument[data-compact][data-available=false] .bearing { font-size:14px; line-height:1.3; }
 .instrument[data-compact] .metadata { flex-direction:column; gap:0; }
+/* Package 31, owner 2026-11-07: the dial and short rows of numbers only. The
+   abbreviation at the small size, the value at the readable one. */
+.instrument[data-bare] { gap:6px; }
+.instrument[data-bare] .compass { width:52px; height:52px; }
+.rows { display:grid; gap:0; min-width:0; font-size:14px; line-height:17px; font-variant-numeric:tabular-nums; }
+.rows>div { display:flex; align-items:baseline; gap:4px; white-space:nowrap; }
+.rows>div>span[aria-hidden=true] { flex:0 0 28px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+.rows b { font-weight:650; color:var(--text-primary); }
 .settings { display:flex; flex-direction:column; gap:8px; min-width:0; border:0; padding:0; margin:0; }
 .settings legend { margin-bottom:8px; font-size:16px; line-height:1.4; color:var(--text-primary); }
 .choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }

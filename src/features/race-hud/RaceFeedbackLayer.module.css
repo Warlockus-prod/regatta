@@ -6,7 +6,7 @@
 /* Toasts sit near the boat: the race camera keeps the boat just below the
    middle (src/features/race-scene/camera.ts), so the stack starts under the
    status row and the corner instruments and grows down towards the boat. */
-.toasts { position:absolute; left:50%; transform:translateX(-50%); top:max(calc(var(--race-status-h,52px) + 16px + clamp(64px,32cqh,112px)), 26%); width:min(360px, calc(100% - 32px)); display:flex; flex-direction:column; align-items:center; gap:8px; }
+.toasts { position:absolute; left:var(--race-toasts-left,50%); transform:translateX(-50%); top:var(--race-toasts-top,max(calc(var(--race-status-h,52px) + 16px + clamp(64px,32cqh,112px)), 26%)); width:min(360px, calc(100% - 32px)); display:flex; flex-direction:column; align-items:center; gap:8px; }
 /* A short landscape scene: the stack goes up between the two top corners. */
 @container (max-height:480px) { .toasts { top:calc(var(--race-status-h,52px) + 8px); width:max(200px, min(320px, calc(100% - 272px))); } }
 .toast { margin:0; max-width:100%; padding:10px 14px; border:1px solid var(--border-subtle); border-left-width:4px; border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); font-size:16px; line-height:24px; font-weight:600; text-align:center; overflow-wrap:anywhere; box-shadow:0 6px 18px rgb(0 0 0 / .3); }
@@ -24,7 +24,7 @@
    the toast stack; in a short landscape scene, where the toasts go up there,
    at the bottom of the scene. They appear and leave, no animation. */
 .startFlags { position:absolute; left:50%; transform:translateX(-50%); top:calc(var(--race-status-h,52px) + 8px); z-index:5; display:flex; gap:8px; margin:0; padding:0; list-style:none; pointer-events:none; }
-@container (max-height:480px) { .startFlags { top:auto; bottom:12px; } }
+@container (max-height:480px) { .startFlags { top:auto; bottom:var(--race-flags-bottom,12px); } }
 .startFlag { display:block; width:42px; height:28px; border-radius:2px; box-shadow:0 2px 8px rgb(0 0 0 / .4); }
 
 /* Contact: a red frame round the scene. It flashes out only when motion is

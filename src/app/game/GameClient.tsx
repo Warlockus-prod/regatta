@@ -50,6 +50,7 @@ import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay,
 import { RaceCockpit } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
 import { useRaceHelmControl } from "./race-helm-prefs";
+import { raceWaterLayoutOn } from "@/lib/race-water-layout";
 import { RaceSoundToggle } from "@/features/race-hud/RaceSoundToggle";
 import { useRaceHaptics } from "@/features/race-hud/RaceHapticsToggle";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
@@ -450,7 +451,10 @@ export default function GamePage() {
   // tack or gybe button), the on-screen arrows and the race's helm control.
   const helmRef = useRef<HelmAssistState>(createHelmAssist());
   const helmInputRef = useRef({ arrows: 0, nudge: 0 });
-  const { helm: helmControl } = useRaceHelmControl();
+  const { helm: storedHelmControl } = useRaceHelmControl();
+  // Package 31, R-45 prototype: the water layout steers with the arrows on the water.
+  const [waterLayout] = useState(() => raceWaterLayoutOn(readRaceSearch()));
+  const helmControl = waterLayout ? "arrows" as const : storedHelmControl;
   const helmControlRef = useRef(helmControl); helmControlRef.current = helmControl;
   const [helmView, setHelmView] = useState<HelmView>(NO_HELM_VIEW);
 
@@ -1299,7 +1303,7 @@ export default function GamePage() {
           raceSoundToggle={placement => <RaceSoundToggle on={raceSoundOn} onChange={setRaceSoundOn} showLabel={placement === "pause"} />}
           haptics={raceHaptics.available ? { on: raceHaptics.on, setOn: raceHaptics.setOn } : undefined}
           autopilot={autopilotOn} onAutopilot={() => toggleHold("wind")}
-          helmControl={helmControl} helmView={helmView} onHelmArrow={helmArrow} onHelmTurn={helmTurn} onBestVmg={() => toggleHold("vmg")}
+          waterLayout={waterLayout} helmControl={helmControl} helmView={helmView} onHelmArrow={helmArrow} onHelmTurn={helmTurn} onBestVmg={() => toggleHold("vmg")}
           muted={muted} onSound={() => setRaceSoundOn(!raceSoundOn)} penalty={penalty}
           // The count waits for the first frame (startup gate), so it only shows over a ready scene.
           countdown={gameState === "countdown" && sceneReady ? countdown : undefined} recall={gameState === "racing" && playingPrefs.rules && recall}>

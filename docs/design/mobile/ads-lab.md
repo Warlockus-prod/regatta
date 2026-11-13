@@ -268,8 +268,15 @@ Console, 2026-11-04 (the owner's Chrome session):
 - Hybrid campaign `TEST APP WTR in-game board 640x360`, advertiser TESTY POLSKA, bid
   120, 10 PLN a day, 20 PLN in all, until 2026-11-07, images 640x360 and 970x250,
   whitelist only `weektoregatta.com`.
-- `app-ads.txt`: the panel's Ads.txt button gives the line, now in `public/app-ads.txt`
-  (live only with a site update).
+- `app-ads.txt`: the panel's Ads.txt button gives the line, now in `public/app-ads.txt`,
+  live on the site since 2026-11-06 (`3b69db5e`, 200 `text/plain` from outside). Whether
+  VOX or the buyers read it is not checked.
+- 2026-11-06 20:41 UTC: `In-game board 640x360` and the fullscreen place
+  `6aebb2d970e7b21a6c36178f` went from 204 to 200 with `browser.url` set (read-only `getad`,
+  no impression fired): `adNet` Vox, `isDspOurs` true, `adomain` `weektoregatta.com`. NAO over
+  the last 3 days: `TEST APP WTR in-game board 640x360` 6 impressions on `weektoregatta.com`,
+  `WTR app test display (com.icoffio.regatta)` 0. The answers look like the owner's own test
+  ads, not outside demand (not proven per place). The test campaign ends 2026-11-07.
 
 Why app campaigns never won before, both measured side by side:
 - Domain: a request without `browser` is recorded on the fallback page
