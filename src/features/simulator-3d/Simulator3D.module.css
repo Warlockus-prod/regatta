@@ -99,6 +99,11 @@
 .statsRow { display: flex; align-items: center; gap: 4px; padding: 4px max(6px, env(safe-area-inset-right, 0px)) 4px max(6px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border-color); background: var(--bg-primary); }
 .stats4 { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 0 6px; }
 .stats4 .readout strong { font-size: 16px; line-height: 1.4; }
+/* Package 32, game screen: the instrument card in the scene's corner, two by two. */
+.hudStats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 10px; padding: 6px 10px; }
+/* Sliders mode: the steer buttons stand beside the coach's line; the line itself is plain text here. */
+.steerCaption { display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+.steerCaption .coach { flex: 1 1 auto; min-height: 0; padding: 0; border: 0; background: none; }
 .steerInline { position: static; flex: 0 0 auto; width: 48px; height: 48px; font-size: 26px; }
 .compactRoot .coach { font-size: 14px; padding: 6px 14px; }
 .guideSteps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; color: var(--text-secondary); }

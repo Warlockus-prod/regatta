@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "52cf7c1975a5",
-  "sha256": "8a1ee8ce3e45974c90ed697a5b751075aecbb54bd6102a7f835f8d9dea9fcd87",
-  "bytes": 7091220,
+  "version": "0e6e00196dfd",
+  "sha256": "1d9e76bd8909e6e5eb996cb6b210e1d0ea75ba73d4e868261a339b29c6e5b46e",
+  "bytes": 7095985,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -2080,13 +2080,13 @@
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.module.css",
-      "bytes": 9192,
-      "sha256": "5a3b7efa24f63df3e91b81b75568cc87d7a2ba84f21a75af9921179f12abebd7"
+      "bytes": 9664,
+      "sha256": "1c97ca6fceb376231bb5b82ca3a7cd8572a9f34622f7711dd249856418f2e888"
     },
     {
       "path": "src/features/simulator-3d/Simulator3D.tsx",
-      "bytes": 30687,
-      "sha256": "ef7f5e47db18de8ef7e5e61daf32a623f587dc22fce706f1401383e6439f355f"
+      "bytes": 30999,
+      "sha256": "09dfc15f40ace2f40b02808f0410a99c47cc2c06a8f1fd4f1540208c49a802aa"
     },
     {
       "path": "src/features/simulator-3d/SimulatorV2.tsx",
@@ -2200,8 +2200,8 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 51541,
-      "sha256": "93350badc1fe79a8a5ae198a4459da92b8d59d1aae42b824d4657bf32cf51a28"
+      "bytes": 51787,
+      "sha256": "fc148e598969884fe997f86f1927cdbe7f71db1e3f1da30de28e74605a843309"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -2280,8 +2280,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/MetricsStrip.tsx",
-      "bytes": 3521,
-      "sha256": "9f463066358142d473560fa4d3b4c17ed8406586366de690407db95c3633daf4"
+      "bytes": 3569,
+      "sha256": "c25de6e3e7cac3f6af817707c4761006853e497807863344bca5bb3cfce11317"
     },
     {
       "path": "src/features/simulator-v3/ui/SceneElevation.tsx",
@@ -2410,8 +2410,8 @@
     },
     {
       "path": "src/features/trainer-controls/ControlDock.tsx",
-      "bytes": 5047,
-      "sha256": "fe587f0b797e3e913a30fb172a4d6739f60d8feb891d7f13e896edf221c3217c"
+      "bytes": 6463,
+      "sha256": "082d37fa37ee3ea2be1810ff244910ad0656502080a4218f54a2e859f6f84f36"
     },
     {
       "path": "src/features/trainer-controls/ControlSettingsSheet.tsx",
@@ -2435,18 +2435,18 @@
     },
     {
       "path": "src/features/trainer-controls/SceneStage.tsx",
-      "bytes": 2500,
-      "sha256": "c49e3b7ffad338ec604c9075a25fb0e45481fb4d3abf4c9f8742f674fe6f1c5e"
+      "bytes": 3052,
+      "sha256": "910b117169c023c23dbd8bc60da42efd822fd925c53571adbd058de0a80c7932"
     },
     {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
-      "bytes": 21210,
-      "sha256": "69a94c1bb323dd47f7fc6b40f7a829875d41f877515993288c7106fad3bc9b9a"
+      "bytes": 26296,
+      "sha256": "7a4c10b960e4e0772cc009def583fff359f950764f4452c99d38f667b6b63086"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
-      "bytes": 2917,
-      "sha256": "a069a6547983611e21a027c9d8e304b6362e5e32c131e0b62bfbf1d5fb6108d4"
+      "bytes": 3483,
+      "sha256": "3a4a718a1a7bc0571a4daeb0aeb7ab711ef55e74c393e3f932757f3350530d37"
     },
     {
       "path": "src/features/trainer-controls/Wheel.tsx",
@@ -2455,8 +2455,8 @@
     },
     {
       "path": "src/features/trainer-controls/WheelDeck.tsx",
-      "bytes": 13760,
-      "sha256": "be1edf9e2327444cb359685041338d1260141c7ec81dcbf41d301a5bd1703b94"
+      "bytes": 15073,
+      "sha256": "43f2c5c83740106d0dd4f58bc435ca324e3ee4dde3fe6c688c1a668b5e62eafd"
     },
     {
       "path": "src/features/trainer-controls/index.ts",

@@ -355,22 +355,25 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         <BarIconButton label={L.tour.open} onClick={() => { setViewsOpen(false); setGuide((g) => !g); }}>?</BarIconButton>
       </>}
     />;
-    const compactReadouts = mode === "free" ? <p className={styles.coach}>{poseLabels.gesture}</p> : <>
-      <div className={styles.statsRow}>
-        {!wheels && <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />}
-        <div className={styles.stats4}>
-          <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} ${kn}`} />
-          <Readout label={L.heel} value={degrees(t.heelDeg)} />
-          <Readout label={L.scene.heading} value={degrees(t.heading)} />
-          <div className={styles.readout}><span>AWA</span><strong className={styles.windCell}>
-            <WindGlyph awa={t.awaSigned} moving={t.awsKn > .5} size={22} label={L.scene.relativeWind} />{degrees(t.awaDeg)}</strong></div>
-        </div>
-        {!wheels && <SteerButton inline dir={1} label={L.steerRight} onHold={hold} onRelease={release} />}
-      </div>
-      <p className={styles.coach} data-maneuver={t.maneuver}>
-        {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
-      </p>
-    </>;
+    // Package 32, game screen: the numbers are an instrument card in the scene's corner, the coach's
+    // line a subtitle over the water. Without wheels the two steer buttons stand beside that line.
+    const coachLine = <p className={styles.coach} data-maneuver={t.maneuver}>
+      {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
+    </p>;
+    const compactReadouts = mode === "free" ? undefined : <div className={`${styles.stats4} ${styles.hudStats}`}>
+      <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} ${kn}`} />
+      <Readout label={L.heel} value={degrees(t.heelDeg)} />
+      <Readout label={L.scene.heading} value={degrees(t.heading)} />
+      <div className={styles.readout}><span>AWA</span><strong className={styles.windCell}>
+        <WindGlyph awa={t.awaSigned} moving={t.awsKn > .5} size={22} label={L.scene.relativeWind} />{degrees(t.awaDeg)}</strong></div>
+    </div>;
+    const compactCaption = mode === "free" ? <p className={styles.coach}>{poseLabels.gesture}</p>
+      : wheels ? coachLine
+      : <div className={styles.steerCaption}>
+        <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
+        {coachLine}
+        <SteerButton inline dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
+      </div>;
     return <div className={`${trainerScreenClass(embed)} ${styles.compactRoot} ${className ?? ""}`}>
       {headerSlot && <div className={styles.compactSlot}>{headerSlot}</div>}
       <TrainerWorkspace
@@ -405,6 +408,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           </SceneDrawer>
         </div>}
         readouts={compactReadouts}
+        caption={compactCaption}
         dock={mode === "free" ? <div className={styles.poseDock}>{poseControls}</div> : <ControlDock
           surface="boat"
           layout="bottom"

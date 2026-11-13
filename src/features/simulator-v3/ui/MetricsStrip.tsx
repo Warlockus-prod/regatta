@@ -6,7 +6,7 @@ import { type SimulationModel, type TpFn, type UiState } from './shared';
 // Metrics strip (4 chips)
 // ---------------------------------------------------------------------------
 
-/** `dense`: the phone readouts under a pinned scene, where every pixel goes back to the boat. */
+/** `dense`: the phone's instrument card in a corner of the scene (package 32, game screen): two by two, smaller figures. */
 export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim: SimulationModel; tp: TpFn; dense?: boolean }) {
   const heelAbs = Math.abs(sim.result.state.heel);
   const trimColor =
@@ -20,7 +20,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
 
   return (
     <div
-      className={`grid shrink-0 grid-cols-4 gap-0 mx-2 lg:mx-0 rounded-xl overflow-hidden ${dense ? 'mt-1.5' : 'mt-2 lg:mt-3'}`}
+      className={`grid shrink-0 gap-0 mx-2 lg:mx-0 rounded-xl overflow-hidden ${dense ? 'grid-cols-2 mt-1.5' : 'grid-cols-4 mt-2 lg:mt-3'}`}
       style={{ background: 'color-mix(in srgb, var(--bg-secondary) 60%, transparent)', border: '1px solid var(--border-subtle)' }}
     >
       <MetricChip
@@ -53,7 +53,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         value={Math.round(Math.abs(sim.result.diag.awa)).toString()}
         unit="°"
         color="var(--text-primary)"
-        divider
+        divider={!dense}
         dense={dense}
       />
       <MetricChip

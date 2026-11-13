@@ -12,23 +12,28 @@ import { ReservedPanelContext } from "./ReservedPanel";
 // fill the left column, the readouts and the dock stack in the right one.
 // Desktop layouts stay with each surface.
 //
-// Package 32 stage B (rule R-46, point 6, replacing the 2026-10-21 rule
-// "nothing is drawn over the scene"): a trainer that puts its picture into a
-// SceneStage gets it painted over the whole workspace, under the bar, the
-// readouts and the dock, which then turn into glass. The boat still sits in
-// the free window, and no control covers that window.
+// Package 32 (rule R-46, point 6, replacing the 2026-10-21 rule "nothing is
+// drawn over the scene"): a trainer that puts its picture into a SceneStage
+// becomes a game screen. The picture is painted over the whole workspace; the
+// wheels stand on the water; the readouts are an instrument card in the top
+// right corner of the boat's window and the caption a subtitle over the water;
+// the dock's tab strip waits behind one menu button. Turned, there is no side
+// column: the wheels sit in the window's bottom corners. The boat is still
+// centred in its window (the styles are in TrainerControls.module.css).
 
 export function TrainerWorkspace(props: {
   embed: boolean;
   /** Strip above the scene (SceneBar). */
   sceneBar?: ReactNode;
   scene: ReactNode;
-  /** Readouts under the scene (speed, coach line). */
+  /** Readouts (speed, heel): a row under the scene, or an instrument card in its top right corner when the scene is staged. */
   readouts?: ReactNode;
+  /** The coach's line: under the readouts, or a subtitle over the water when the scene is staged. */
+  caption?: ReactNode;
   dock: ReactNode;
   className?: string;
 }) {
-  const { embed, sceneBar, scene, readouts, dock, className } = props;
+  const { embed, sceneBar, scene, readouts, caption, dock, className } = props;
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   const [panels, setPanels] = useState<string[]>([]);
   const reserve = useCallback((id: string) => {
@@ -45,6 +50,7 @@ export function TrainerWorkspace(props: {
       </div>
       <div className={styles.sideColumn}>
         {readouts && <div className={styles.readouts} tabIndex={0} data-testid="trainer-readouts">{readouts}</div>}
+        {caption && <div className={styles.caption} data-testid="trainer-caption">{caption}</div>}
         <div className={styles.controlArea} data-panel-open={panels.length > 0}>
           {dock}
           <div ref={setHost} className={styles.reservedPanelHost} hidden={panels.length === 0} data-testid="trainer-panel-host" />

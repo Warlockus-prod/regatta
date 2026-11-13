@@ -29,6 +29,11 @@ export function SceneStage(props: { children?: ReactNode; className?: string; st
       stage.style.top = `${all.top - origin.top}px`;
       stage.style.width = `${all.width}px`;
       stage.style.height = `${all.height}px`;
+      // The instrument card and the coach's subtitle hang on the window's corners (TrainerControls.module.css).
+      workspace.style.setProperty("--window-top", `${win.top - all.top}px`);
+      workspace.style.setProperty("--window-right", `${all.right - win.right}px`);
+      workspace.style.setProperty("--window-bottom", `${all.bottom - win.bottom}px`);
+      workspace.style.setProperty("--window-left", `${win.left - all.left}px`);
       const next = formatStageWindow({ left: win.left - all.left, top: win.top - all.top, width: win.width, height: win.height });
       if (stage.dataset.window !== next) {
         stage.dataset.window = next;
@@ -46,6 +51,7 @@ export function SceneStage(props: { children?: ReactNode; className?: string; st
       delete workspace.dataset.stage;
       delete stage.dataset.window;
       for (const key of ["left", "top", "width", "height"] as const) stage.style[key] = "";
+      for (const edge of ["top", "right", "bottom", "left"]) workspace.style.removeProperty(`--window-${edge}`);
       stage.dispatchEvent(new Event(STAGE_EVENT));
     };
   }, []);

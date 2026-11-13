@@ -914,13 +914,14 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               <SceneStage style={{ background: TRAINER_WATER }}>
                 {onClient && ui.view === "3d" && <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} />}
               </SceneStage>
-              {!onClient || ui.view === "3d" ? null : ui.view === 'top' ? (
+              {/* Flat drawings keep clear of the game screen's instrument card and of the coach's subtitle (--trainer-flat-*). */}
+              {!onClient || ui.view === "3d" ? null : <div className="absolute inset-x-0" style={{ top: "var(--trainer-flat-top, 0px)", bottom: "var(--trainer-flat-bottom, 0px)" }}>{ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />
               ) : ui.view === 'side' ? (
                 <SceneSide ui={ui} sim={sim} tp={tp} />
               ) : (
                 <SceneRear ui={ui} sim={sim} tp={tp} />
-              )}
+              )}</div>}
               {onClient && windCard}
               <SceneDrawer
                 id="trainer-views"
@@ -944,10 +945,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               </SceneDrawer>
             </div>
           }
-          readouts={<>
-            <MetricsStrip ui={ui} sim={sim} tp={tp} dense />
-            <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} dense />
-          </>}
+          readouts={<MetricsStrip ui={ui} sim={sim} tp={tp} dense />}
+          caption={<CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} dense />}
           dock={
             <ControlDock
               key={taskTab ? 'task' : 'free'}

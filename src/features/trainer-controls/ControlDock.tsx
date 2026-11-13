@@ -1,7 +1,7 @@
 'use client';
 
 import DiagnosticAccess from "@/components/diagnostics/DiagnosticAccess";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import styles from "./TrainerControls.module.css";
 import { GearIcon } from "./GearIcon";
 import { ControlSettingsSheet } from "./ControlSettingsSheet";
@@ -48,7 +48,12 @@ export function ControlDock(props: {
   const controlsId = wheels ? "wheels" : "favorites";
   const firstId = leadTab?.id ?? controlsId;
   const [active, setActive] = useState<string>(firstId);
-  const choose = (id: string) => setActive(id);
+  // Package 32, game screen: over a full-screen scene the wheels stand alone and the tab strip
+  // hides behind one menu button (the styles act on data-menu only inside a staged workspace).
+  // Picking the wheels again, or touching the scene, puts the strip away.
+  const [menu, setMenu] = useState(false);
+  const choose = (id: string) => { setActive(id); if (id === "wheels") setMenu(false); };
+  const dockRef = useRef<HTMLDivElement>(null);
 
   const allCards = useMemo(() => tabs.flatMap((t) => t.cards), [tabs]);
   const favoriteIds = prefs.dock[surface]?.favorites ?? defaultFavorites;
@@ -60,6 +65,15 @@ export function ControlDock(props: {
     ...tabs.map((t) => ({ id: t.id, label: t.label })),
   ];
   const current = tabList.some((t) => t.id === active) ? active : firstId;
+
+  // The menu over the wheels is dismissed like any sheet: by a touch outside it.
+  const dismissable = menu && current === "wheels";
+  useEffect(() => {
+    if (!dismissable) return;
+    const outside = (event: PointerEvent) => { if (!dockRef.current?.contains(event.target as Node)) setMenu(false); };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [dismissable]);
 
   let panel: ReactNode;
   if (leadTab && current === leadTab.id) panel = leadTab.cards.map((c) => <div key={c.id} className={styles.card}>{c.node}</div>);
@@ -76,8 +90,12 @@ export function ControlDock(props: {
   }
 
   return (
-    <div className={`${styles.dock} ${className ?? ""}`} data-layout={layout} data-mode={current === "wheels" ? "wheels" : "sliders"} data-testid="control-dock">
-      <div className={styles.dockHead}>
+    <div ref={dockRef} className={`${styles.dock} ${className ?? ""}`} data-layout={layout} data-mode={current === "wheels" ? "wheels" : "sliders"} data-menu={menu ? "open" : "closed"} data-testid="control-dock">
+      {wheels && <button type="button" className={styles.menuButton} aria-label={labels.controlsTitle} title={labels.controlsTitle} aria-expanded={menu}
+        aria-controls={`tc-head-${surface}`} onClick={() => setMenu(true)} data-testid="control-menu-open">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>}
+      <div className={styles.dockHead} id={`tc-head-${surface}`}>
         <div className={styles.tabs} role="tablist" aria-label={labels.controlsTitle}>
           {tabList.map((t) => (
             <button key={t.id} type="button" role="tab" id={`tc-tab-${surface}-${t.id}`} aria-selected={current === t.id}

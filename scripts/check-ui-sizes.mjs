@@ -507,13 +507,22 @@ const ROUTES = [
 ];
 
 async function dockTabs(page, results, route, prefix) {
+  // Package 32, game screen: with the wheels up the tab strip is behind one menu button.
+  // The screen is checked as the player first sees it, then the menu is opened for the tabs.
+  const menu = page.getByTestId("control-menu-open");
+  // Picking the wheels tab puts the strip away again, so it is reopened before every tab.
+  const openMenu = async () => { if (await menu.isVisible().catch(() => false)) await menu.click(); };
+  if (await menu.isVisible().catch(() => false)) await checkState(page, route, `${prefix}: game screen`, results);
+  await openMenu();
   const tabs = page.getByTestId("control-dock").getByRole("tab");
   const names = (await tabs.allTextContents()).map(s => s.trim()).filter(Boolean);
   if (!names.length) { await checkState(page, route, prefix, results); return; }
   for (const name of names) {
+    await openMenu();
     await page.getByTestId("control-dock").getByRole("tab", { name, exact: true }).first().click();
     await eachScroll(page, '[data-testid="control-dock"] [role=tabpanel]', async (step) => checkState(page, route, `${prefix}: ${name}${step}`, results));
   }
+  await openMenu();
   await page.getByTestId("control-dock").getByRole("tab", { name: names[0], exact: true }).first().click();
 }
 
