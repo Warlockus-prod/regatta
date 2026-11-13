@@ -1,5 +1,5 @@
 import { boardFeedScript, hybridUrl, parseBoardAd, parseBoardFrame, parseBoardMessage, ADS_BOARD_MAX_IMAGE_BYTES, type AdsBoardAd, type AdsBoardFeed } from "../../../src/lib/ads-board";
-import { VOX_ENDPOINT } from "./vox-placements";
+import { VOX_APP_BUNDLE_ID, VOX_ENDPOINT } from "./vox-placements";
 
 /**
  * Feeds the in-game board of the 3D lab. The page has a CSP without remote images
@@ -15,9 +15,10 @@ export interface BoardFeedDeps {
   readImage: (response: Response) => Promise<string | null>;
   openUrl: (url: string) => unknown;
   /**
-   * The app's own address and the screen. Without browser.url Hybrid records the
-   * fallback page https://icoffio.com/ (PageSource 5) and campaigns aimed at the app
-   * never match; with it the request counts as weektoregatta.com (measured 2026-11-04).
+   * The app's identity (VOX_APP_PAGE_URL) and the screen. Without browser.url Hybrid
+   * records the fallback page https://icoffio.com/ (PageSource 5), as if the app were
+   * that website; with it the request counts as Domain com.icoffio.regatta, PageSource 1
+   * (measured 2026-11-06), and that is the domain a campaign must whitelist.
    */
   browser: () => BoardBrowser;
 }
@@ -61,7 +62,9 @@ export function createBoardFeed(placeIds: readonly string[], deps: BoardFeedDeps
   }
 
   async function loadPlace(placeId: string): Promise<AdsBoardFeed> {
-    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser() }));
+    // sdkInfo carries the app id and nothing else, as VOX SDK 1.3.0 will. Hybrid ignores it
+    // today, and it costs no ad: the same ad with and without it, 3 of 3 (measured 2026-11-06).
+    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), sdkInfo: { applicationId: VOX_APP_BUNDLE_ID } }));
     const answer = await get(`${VOX_ENDPOINT}?request=${query}`, { "User-Agent": "iOS SDK" });
     if (answer.status === 204) return { status: "no-fill" };
     if (!answer.ok) return { status: "failed" };

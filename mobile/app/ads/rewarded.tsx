@@ -7,9 +7,10 @@ import { VoxPrebid } from '../../modules/vox-prebid';
 import { RequestPanel, statusFromFailure, type AdRequestState } from '../../src/ads/AdSlot';
 import { ensurePrebidStarted, prebidConfigId, useAdSdk } from '../../src/ads/sdk';
 import { useAdsText, type AdsText } from '../../src/ads/strings';
-import { placement } from '../../src/ads/vox-placements';
+import { VOX_APP_PAGE_URL, placement } from '../../src/ads/vox-placements';
 import { Button, Card, Screen, Text } from '../../src/design-system/components';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { useI18n } from '../../src/i18n/context';
 
 const REWARDED = placement('rewarded');
 /** VOX SDK 1 has no completion callback, so the app grants the reward after this watch time. */
@@ -90,6 +91,7 @@ function RewardedPlayer({
   onState: (state: AdRequestState) => void;
   onClose: (granted: boolean) => void;
 }) {
+  const { lang } = useI18n();
   const { width, height } = useWindowDimensions();
   const videoWidth = Math.min(width, Math.round(((height - 160) * 9) / 16));
   const videoHeight = Math.round((videoWidth * 16) / 9);
@@ -137,6 +139,8 @@ function RewardedPlayer({
               style={{ width: videoWidth, height: videoHeight }}
               placeId={REWARDED.placeId}
               kind="video"
+              pageUrl={VOX_APP_PAGE_URL}
+              language={lang}
               closeButtonDelay={REWARD_SECONDS}
               onAdLoaded={() => {
                 onState({ status: 'loaded', ms: Date.now() - startedAt.current });

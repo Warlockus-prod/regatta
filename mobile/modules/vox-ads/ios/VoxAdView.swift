@@ -13,6 +13,8 @@ class VoxAdView: ExpoView {
 
   var placeId = ""
   var kind = "banner"
+  var pageUrl = ""
+  var language = ""
   var closeButtonDelay: Double = 0
   var reloadKey = 0
 
@@ -45,13 +47,15 @@ class VoxAdView: ExpoView {
   }
 
   func loadIfNeeded() {
-    guard !placeId.isEmpty else { return }
+    // No request without the app's address (Hybrid would record it on its fallback website)
+    // or the app's language (the privacy texts promise it).
+    guard !placeId.isEmpty, !pageUrl.isEmpty, !language.isEmpty else { return }
     // Off screen there is no owning controller yet, and ads load only on screen.
     guard bounds.width > 0, window != nil else {
       pendingLoad = true
       return
     }
-    let signature = "\(kind)|\(placeId)|\(reloadKey)"
+    let signature = "\(kind)|\(placeId)|\(pageUrl)|\(language)|\(reloadKey)"
     guard signature != loadedSignature else { return }
     loadedSignature = signature
     pendingLoad = false
@@ -108,7 +112,7 @@ class VoxAdView: ExpoView {
     subviews.forEach { $0.removeFromSuperview() }
 
     // gdpr 1 with no consent string: the SSP serves only non-personalised ads (owner 2026-11-03).
-    let requestModel = AdRequestModel(placeId: placeId, gdpr: 1)
+    let requestModel = AdRequestModel(placeId: placeId, browser: VoxAdsModule.browser(pageUrl: pageUrl, language: language), gdpr: 1)
     let width = bounds.width
     let delay = closeButtonDelay
 

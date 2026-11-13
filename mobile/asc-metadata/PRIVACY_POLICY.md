@@ -107,10 +107,12 @@ before and nowhere else; the rest of the app has no ads.
 
 - SDK and server: VOX SDK 1 by Hybrid Adtech; requests go to Hybrid SSP
   (ssp.hybrid.ai).
-- Each request carries the ad placement id, device type, manufacturer and
-  model, operating system and version, screen size, app language and
-  time-zone offset. Like any server, the SSP sees the IP address of the
-  connection.
+- Each request carries the ad placement id, the app identifier
+  (from version 1.7.3: com.icoffio.regatta, also as a web address made from
+  it), device type,
+  manufacturer and model, operating system and version, screen size, app
+  language and time-zone offset. Like any server, the SSP sees the IP address
+  of the connection.
 - No advertising identifier (IDFA), no vendor identifier, no name or contact
   details, no tracking across other companies' apps or websites. The app does
   not ask for App Tracking Transparency because it does not track.

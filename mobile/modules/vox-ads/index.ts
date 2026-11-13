@@ -13,8 +13,8 @@ import type { NativeSyntheticEvent, ViewProps } from 'react-native';
 type VoxAdsNative = {
   sdkName: string;
   sdkVersion: string;
-  /** `pageUrl` names the app in the request; null keeps the request without an address. */
-  showFullScreen(placeId: string, closeButtonDelay: number, pageUrl: string | null): Promise<void>;
+  /** `pageUrl` names the app in the request (VOX_APP_PAGE_URL); `language` is the one chosen in the app. */
+  showFullScreen(placeId: string, closeButtonDelay: number, pageUrl: string, language: string): Promise<void>;
 };
 
 export type VoxAdKind = 'banner' | 'video';
@@ -25,6 +25,10 @@ export type VoxAdFailedEvent = { message: string };
 export type VoxAdViewProps = ViewProps & {
   placeId: string;
   kind: VoxAdKind;
+  /** Names the app in the request (VOX_APP_PAGE_URL); the view sends nothing without it. */
+  pageUrl: string;
+  /** The language chosen in the app (`lang` from useI18n); the view sends nothing without it. */
+  language: string;
   closeButtonDelay?: number;
   /** Bump to request a fresh ad for the same placement. */
   reloadKey?: number;

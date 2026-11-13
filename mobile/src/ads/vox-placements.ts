@@ -3,11 +3,25 @@
  * "App · WTR · ..." ad slots in the VOX partner panel (Goleta VOX PL EN,
  * created 2026-10-30). The same IDs feed VOX SDK 2 through
  * vox-sdk-2/server/placements.json. They serve once VOX approves them and a
- * campaign targets them; until then every request is a no fill.
+ * campaign targets them with com.icoffio.regatta in its domain whitelist
+ * (VOX_APP_PAGE_URL below); until then a request is expected to be a no fill.
  */
 
 /** VOX SDK 1 ad request endpoint (GET, `request` = JSON with placeId). */
 export const VOX_ENDPOINT = 'https://ssp.hybrid.ai/auction/getad';
+
+/** The app's bundle id: ios.bundleIdentifier in app.json (a test holds them together). */
+export const VOX_APP_BUNDLE_ID = 'com.icoffio.regatta';
+
+/**
+ * The app's identity in every VOX SDK 1 request: https://<bundle id>/. Hybrid records it
+ * as Domain com.icoffio.regatta, PageSource 1, so a campaign can whitelist the app.
+ * With no address the request is recorded as the website icoffio.com (PageSource 5),
+ * and an ios-app:// address gives an empty Domain (measured 2026-11-06).
+ * This declares the app as a web page: a label for our own test campaigns only, not for
+ * real advertisers' money, until Hybrid's server takes real app identity.
+ */
+export const VOX_APP_PAGE_URL = `https://${VOX_APP_BUNDLE_ID}/`;
 
 export type VoxPlacementKind = 'banner' | 'video' | 'fullscreen';
 

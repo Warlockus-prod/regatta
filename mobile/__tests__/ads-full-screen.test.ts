@@ -1,11 +1,12 @@
-import { APP_PAGE_URL, fullScreenSteps, showFirstFullScreen } from '../src/ads/full-screen';
+import { fullScreenSteps, showFirstFullScreen } from '../src/ads/full-screen';
+import { VOX_APP_PAGE_URL } from '../src/ads/vox-placements';
 
 describe('full-screen ad order', () => {
-  it('asks the real full screen as the app first, then the old place without the address', () => {
+  it('asks the real full screen first, then the old place, and both requests name the app', () => {
     const steps = fullScreenSteps();
     expect(steps.map((s) => [s.placement.key, s.pageUrl])).toEqual([
-      ['fullScreen1080x1920', APP_PAGE_URL],
-      ['interstitial', null],
+      ['fullScreen1080x1920', VOX_APP_PAGE_URL],
+      ['interstitial', VOX_APP_PAGE_URL],
     ]);
   });
 
@@ -20,7 +21,7 @@ describe('full-screen ad order', () => {
     const show = jest.fn().mockRejectedValueOnce(new Error('no-fill')).mockResolvedValueOnce(undefined);
     const shown = await showFirstFullScreen(fullScreenSteps(), show);
     expect(shown.key).toBe('interstitial');
-    expect(show).toHaveBeenLastCalledWith(expect.any(String), null);
+    expect(show).toHaveBeenLastCalledWith(expect.any(String), VOX_APP_PAGE_URL);
   });
 
   it('does not open a second ad after a real failure', async () => {
