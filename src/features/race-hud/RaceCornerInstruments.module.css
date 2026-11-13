@@ -4,6 +4,7 @@
    14 px and larger text and a dial that grows with the scene; it stays left of
    the mini-map with a clear gap (e2e/race-navigation.spec.ts). */
 .wind { left:8px; padding:6px 10px 8px 8px; max-width:calc(50% - 16px); }
+.wind[data-bare] { padding:6px 8px 6px 6px; max-width:none; }
 .label { display:block; font-size:14px; line-height:1.3; font-weight:600; color:var(--text-secondary); margin-bottom:2px; }
 /* Package 8: a square corner map about 110 px on a 390 px phone (was 72-112 px
    and not square), drawn from a 112-unit picture so its letters are 13-14 px;

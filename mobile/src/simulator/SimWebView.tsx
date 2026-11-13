@@ -24,7 +24,7 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
-import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, useKeepAwakeWhileFocused } from './race-shell';
+import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, useKeepAwakeWhileFocused } from './race-shell';
 import { ActivityBack } from '../navigation/ActivityBack';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
@@ -185,7 +185,9 @@ export function SimWebView({
   // Package 11 (K6): a race page with its own header (the live room's cockpit) hides the native one.
   const [webHeader, setWebHeader] = useState(false);
   const ownHeader = fullScreen || (isRaceShell(path) && webHeader);
-  const frameInsets = raceFrameInsets(safeArea, ownHeader);
+  // Package 31, R-45 prototype: while the race's water layout is on screen the frame steps aside.
+  const [waterEdges, setWaterEdges] = useState(false);
+  const frameInsets = waterEdges ? null : raceFrameInsets(safeArea, ownHeader);
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
@@ -298,7 +300,7 @@ export function SimWebView({
   }, [processNotice]);
 
   return (
-    <AppSurface><Screen noTopInset={!ownHeader} style={frameInsets}>
+    <AppSurface><Screen noTopInset={!ownHeader || waterEdges} noBottomInset={waterEdges} style={frameInsets}>
       <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false,
         headerLeft: () => returnLesson
           ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
@@ -367,6 +369,8 @@ export function SimWebView({
           if (nativeRaceHaptics.handle(path, status) !== null) return;
           const ownRaceHeader = isRaceShell(path) ? raceHeaderMessage(status) : null;
           if (ownRaceHeader !== null) { setWebHeader(ownRaceHeader); return; }
+          const raceWater = path === "/game" ? raceWaterMessage(status) : null;
+          if (raceWater !== null) { setWaterEdges(raceWater); return; }
           if (offlineSource && status.startsWith("{")) {
             const owner = webRef.current;
             onOfflineMessage?.(status, script => { if (owner && webRef.current === owner) owner.injectJavaScript(script); });
@@ -407,7 +411,7 @@ export function SimWebView({
           }
           if (status === 'scene-error' && tier === 'trainer') recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "scene-load", attempt: reloadKey });
         }}
-        onLoadStart={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "begin", outcome: "accepted", attempt: reloadKey }); }}
+        onLoadStart={() => { setWaterEdges(false); recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "begin", outcome: "accepted", attempt: reloadKey }); }}
         onLoadEnd={() => { if (!offlineSource && tier !== 'boat3d') setLoading(false); }}
         onHttpError={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "connection", attempt: reloadKey }); setLoading(false); setFailed(true); }}
         onContentProcessDidTerminate={processGone}

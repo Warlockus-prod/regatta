@@ -89,6 +89,22 @@ export function RaceHelmArrows(p: RaceHelmAssistProps & { sheets?: ReactNode }) 
   </div>;
 }
 
+/** Package 31, R-45 prototype: the helm over the water. The arrows are in the
+ * two lower corners under the thumbs, the assists between them and the dock's
+ * tabs in the same bar (the CSS grid puts them above on a portrait phone, in
+ * one row on a turned phone). The sheets are on the Sails tab. */
+export function RaceHelmWater(p: RaceHelmAssistProps & { tabs: ReactNode }) {
+  const { tl } = useI18n();
+  const left = tl(p.pro ? HELM_ASSIST_COPY.rudderLeft : HELM_ASSIST_COPY.courseLeft);
+  const right = tl(p.pro ? HELM_ASSIST_COPY.rudderRight : HELM_ASSIST_COPY.courseRight);
+  return <div className={`${styles.helmRow} ${styles.waterBar}`} data-testid="race-water-bar">
+    {p.tabs}
+    <HelmArrow dir={-1} label={left} onArrow={p.onArrow} disabled={p.disabled} />
+    <AssistButtons {...p} />
+    <HelmArrow dir={1} label={right} onArrow={p.onArrow} disabled={p.disabled} />
+  </div>;
+}
+
 /** Wheel or slider mode: the two assists in one row above the helm. */
 export function RaceHelmAssistRow(p: Omit<RaceHelmAssistProps, "onArrow" | "heading">) {
   return <div className={`${styles.helmRow} ${styles.helmAssistRow}`} data-testid="race-helm-assist-row"><AssistButtons {...p} /></div>;
@@ -101,7 +117,10 @@ const TrendIcon = ({ trend }: { trend: -1 | 0 | 1 }) => <svg width="14" height="
 
 /** The VMG line (VMC on a reach): the value in a state colour against the
  * polar's best (on target, below it), never cyan, and the trend. */
-export function RaceVmgLine({ vmg, pro }: { vmg: HelmView["vmg"]; pro: boolean }) {
+export function RaceVmgLine({ vmg, pro, row = false }: { vmg: HelmView["vmg"]; pro: boolean;
+  /** Package 31: a row of the small wind box: the abbreviation and numbers, the unit only for a screen reader. */
+  row?: boolean;
+}) {
   const { tl, lang } = useI18n();
   if (!vmg) return null;
   const label = pro ? vmg.leg === "reach" ? "VMC" : "VMG"
@@ -111,6 +130,13 @@ export function RaceVmgLine({ vmg, pro }: { vmg: HelmView["vmg"]; pro: boolean }
   const format = (n: number) => new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n);
   const trend = tl(vmg.trend > 0 ? HELM_ASSIST_COPY.trendUp : vmg.trend < 0 ? HELM_ASSIST_COPY.trendDown : HELM_ASSIST_COPY.trendFlat);
   const knots = RACE_UNITS.knots[lang];
+  if (row) return <div className={styles.vmgRow} data-testid="race-vmg" data-target={state} data-leg={vmg.leg} role="group"
+    aria-label={`${label} ${format(vmg.kn)} ${knots}, ${tl(HELM_ASSIST_COPY.target)} ${format(vmg.targetKn)}, ${trend}`}>
+    <span aria-hidden="true">{label}</span>
+    <strong>{format(vmg.kn)}</strong>
+    <small>/{format(vmg.targetKn)}</small>
+    <span className={styles.vmgTrend} data-trend={vmg.trend}><TrendIcon trend={vmg.trend} /></span>
+  </div>;
   return <p className={styles.vmgLine} data-testid="race-vmg" data-target={state} data-leg={vmg.leg}
     aria-label={`${label} ${format(vmg.kn)} ${knots}, ${tl(HELM_ASSIST_COPY.target)} ${format(vmg.targetKn)}, ${trend}`}>
     <span className={styles.vmgLabel}>{label}</span>

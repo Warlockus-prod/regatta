@@ -49,7 +49,8 @@ import { windWordsFor } from "@/features/race-hud/wind-words";
 import { HELM_ASSIST_COPY } from "@/data/helm-assist-copy";
 import type { RaceHelmControl } from "@/lib/race-helm";
 import { NO_HELM_VIEW, type HelmView } from "@/lib/helm-assist";
-import { RaceHelmArrows, RaceHelmAssistRow, RaceVmgLine } from "./RaceHelmAssist";
+import { RaceHelmArrows, RaceHelmAssistRow, RaceHelmWater, RaceVmgLine } from "./RaceHelmAssist";
+import { useRaceWaterEdges } from "@/lib/race-water-layout";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -129,6 +130,9 @@ export function RaceCockpit(p: {
   onHelmArrow?: (dir: -1 | 0 | 1) => void;
   onHelmTurn?: () => void;
   onBestVmg?: () => void;
+  /** Package 31, R-45 prototype (?water=1): the water on the whole screen, the
+   * helm over it; Sails, Map and Settings open over the scene. */
+  waterLayout?: boolean;
 }) {
   const c = useRaceCopy();
   const { tl, lang } = useI18n();
@@ -158,14 +162,18 @@ export function RaceCockpit(p: {
   const [hintLogAt, setHintLogAt] = useState<{ race: string; fromPause: boolean } | null>(null);
   const hintLogOpen = Boolean(p.hintLog) && hintLogAt?.race === raceKey && hintLogAt.fromPause === Boolean(p.paused);
   const closeHintLog = () => setHintLogAt(null);
-  const openHintLog = () => { setBigMapRace(null); setHintLogAt({ race: raceKey, fromPause: Boolean(p.paused) }); };
-  const openBigMap = () => { setHintLogAt(null); setBigMapRace(raceKey); };
+  // Water layout: one thing over the scene at a time, so a sheet closes for the map or the log (and the other way round in selectTab).
+  const openHintLog = () => { if (water) selectTab("helm"); setBigMapRace(null); setHintLogAt({ race: raceKey, fromPause: Boolean(p.paused) }); };
+  const openBigMap = () => { if (water) selectTab("helm"); setHintLogAt(null); setBigMapRace(raceKey); };
   useEffect(() => { if (!p.paused) setHintLogAt(at => at?.fromPause ? null : at); }, [p.paused]);
   const hintCount = p.hintLog?.length ?? 0;
   const panelRef = useRef<HTMLDivElement>(null);
-  const selectTab = (next: Tab) => {
+  const selectTab = (asked: Tab) => {
     const previous = tabRef.current;
+    // Water layout: the open tab's button closes its sheet, the helm is always on the water.
+    const next: Tab = water && asked === previous ? "helm" : asked;
     if (next === previous) { panelRef.current?.scrollTo(0, 0); return; }
+    if (water && next !== "helm") { setBigMapRace(null); setHintLogAt(null); }
     tabRef.current = next; setTab(next);
     if (next === "map" || previous === "map") recordControlChange("race", "race-map", next === "map", previous === "map");
   };
@@ -199,6 +207,10 @@ export function RaceCockpit(p: {
   const view = p.helmView ?? NO_HELM_VIEW;
   const helmMode = p.helmControl ?? controls.mode;
   const assists = Boolean(p.onHelmTurn && p.onBestVmg);
+  const water = Boolean(p.waterLayout && p.onHelmArrow && assists);
+  useRaceWaterEdges(water);
+  // A sheet belongs to one race like the big map: a restart must not hide its countdown under one.
+  useEffect(() => { if (water) { tabRef.current = "helm"; setTab("helm"); } }, [raceKey, water]);
   const course = view.course ?? (p.autopilot ? p.targetHeading : p.heading);
   // Package 13 (audit B17): the wheel shows the helm the boat gets, keys and
   // assists included; while the wheel itself is turned it shows the wheel.
@@ -222,14 +234,20 @@ export function RaceCockpit(p: {
   const coachLine = p.paused ? c.pause : p.prefs.coachStrip !== false ? p.message || routeCall || (pro ? c.proNote : c.simpleNote)
     : p.prefs.guidance && p.guidance && LOGGED_ROUTE_ACTIONS.includes(p.guidance.action) ? routeCall : null;
   const trimLine = Boolean(pro && p.prefs.trimHints && p.trimAdvice);
-  const notice = coachLine !== null || p.prefs.guidance || trimLine;
-  return <div className={`${styles.cockpit} ${styles.gameLayer}`} data-testid="race-cockpit" data-paused={p.paused || undefined}>
+  // The guidance clause keeps the strip for its course numbers, which the water layout does not show.
+  const notice = coachLine !== null || (!water && p.prefs.guidance) || trimLine;
+  const tabs = <nav className={styles.tabs} aria-label={labels.controlsTitle}>
+    {(water ? ["sails", "map", "settings"] as const : ["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)} aria-label={t === "map" ? nav.map : undefined}>{t === "settings" && <GearIcon size={22} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.mapShort : c[t]}</span></button>)}
+    {/* R-10: the former course hold holds the angle to the wind. */}
+    <button type="button" aria-pressed={holdPressed} onClick={p.onAutopilot} disabled={holding} data-testid="race-hold-angle"><span>{p.helmView ? tl(HELM_ASSIST_COPY.holdAngle) : c.auto}</span></button>
+  </nav>;
+  return <div className={`${styles.cockpit} ${styles.gameLayer}${water ? ` ${styles.water}` : ""}`} data-testid="race-cockpit" data-paused={p.paused || undefined} data-water={water || undefined}>
     <div className={styles.workspace}>
       <div className={styles.scene} data-testid="race-3d" {...sceneTap}>{p.children}
         <div className={styles.instrumentsArea}>
           <RaceCornerInstruments navigation={p.navigation} wind={p.windReading} windDisplay={p.prefs.windDisplay}
-            miniMap={p.prefs.miniMap} onOpenMap={openBigMap} you={c.you} fleet={c.fleet} words={windWords}
-            extra={p.helmView ? <RaceVmgLine vmg={view.vmg} pro={pro} /> : undefined} />
+            miniMap={p.prefs.miniMap} onOpenMap={openBigMap} you={c.you} fleet={c.fleet} words={windWords} bare={water}
+            extra={p.helmView ? <RaceVmgLine vmg={view.vmg} pro={pro || water} row={water} /> : undefined} />
         </div>
         {bigMap && <RaceBigMap snapshot={p.navigation} track={p.track?.()} guidance={p.prefs.guidance ? p.guidance : null}
           you={c.you} fleet={c.fleet} onClose={() => setBigMapRace(null)} note={tl(RACE_MAP_COPY.raceRunning)} className={styles.bigMap} />}
@@ -275,7 +293,7 @@ export function RaceCockpit(p: {
           </span>
         </header>
         {p.paused && <RacePauseSheet copy={c} pauseCopy={pc} onContinue={resume} onRestart={p.onRestart}
-          onSettings={() => selectTab("settings")} onExit={p.onExit} onExitPrompt={p.onExitPrompt} confirmExit={!holding}
+          onSettings={() => { if (water && tabRef.current === "settings") panelRef.current?.scrollTo(0, 0); else selectTab("settings"); }} onExit={p.onExit} onExitPrompt={p.onExitPrompt} confirmExit={!holding}
           showKeys={screen !== "unsupported"} onFullscreen={canFullscreen ? goFullscreen : null}
           sound={p.haptics ? <>{sound?.("pause")}<RaceHapticsToggle on={p.haptics.on} onChange={p.haptics.setOn} /></> : sound?.("pause")} lessonReturn={foundationLesson ? <FoundationReturn compact /> : undefined}
           hints={p.hintLog ? { label: `${tl(RACE_HINT_SETTINGS_COPY.hintsGroup)} (${hintCount})`, open: openHintLog } : undefined} />}
@@ -297,14 +315,14 @@ export function RaceCockpit(p: {
           </small>}
           {trimLine && <small className={styles.trimAdvice}>{p.trimAdvice}</small>}
         </div>}
-        <nav className={styles.tabs} aria-label={labels.controlsTitle}>
-          {(["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)} aria-label={t === "map" ? nav.map : undefined}>{t === "settings" && <GearIcon size={22} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.mapShort : c[t]}</span></button>)}
-          {/* R-10: the former course hold holds the angle to the wind. */}
-          <button type="button" aria-pressed={holdPressed} onClick={p.onAutopilot} disabled={holding} data-testid="race-hold-angle"><span>{p.helmView ? tl(HELM_ASSIST_COPY.holdAngle) : c.auto}</span></button>
-        </nav>
-        {/* F2: the Helm panel is pinned (never scrolls, no page pan or zoom from it); the other tabs scroll inside their own panel. */}
-        <div key={tab} ref={panelRef} className={`${styles.panel}${tab === "helm" ? ` ${styles.pinned}` : ""}${held ? ` ${styles.held}` : ""}`}
+        {!water && tabs}
+        {/* F2: the Helm panel is pinned (never scrolls, no page pan or zoom from it); the other tabs scroll inside their own panel.
+            Package 31: in the water layout the helm is on the water, so a panel exists only as a sheet over the scene. */}
+        {(!water || tab !== "helm") && <div key={tab} ref={panelRef} className={`${styles.panel}${tab === "helm" ? ` ${styles.pinned}` : ""}${held ? ` ${styles.held}` : ""}`}
           inert={held || undefined} data-held={held || undefined} data-pinned={tab === "helm" || undefined} data-testid="race-dock-panel">
+          {water && <button type="button" className={styles.waterClose} onClick={() => selectTab("helm")} aria-label={tl(HELM_ASSIST_COPY.closeSheet)} title={tl(HELM_ASSIST_COPY.closeSheet)} data-testid="race-water-sheet-close">
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
+          </button>}
           {tab === "helm" && (helmMode === "arrows" && p.onHelmArrow ? <RaceHelmArrows {...assistProps} heading={p.heading} onArrow={p.onHelmArrow}
             sheets={pro ? <>{range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}{range(labels.jibsheet, 1 - p.trim.jibSheet, v => p.setTrim({ jibSheet: 1 - v }))}</> : undefined} /> : <>
             {/* Package 13: the turn button and BEST VMG with every helm control:
@@ -375,7 +393,8 @@ export function RaceCockpit(p: {
             <p data-testid="race-setup-note">{tl(RACE_SETUP_COPY.setupNote)}</p>
             <DiagnosticAccess />
           </div>}
-        </div>
+        </div>}
+        {water && p.onHelmArrow && <RaceHelmWater {...assistProps} heading={p.heading} onArrow={p.onHelmArrow} tabs={tabs} />}
       </aside>
     </div>
   </div>;

@@ -32,6 +32,8 @@ export const HELM_ASSIST_COPY = {
   turning: { ru: "{turn}: новый курс {n}", en: "{turn}: new course {n}", pl: "{turn}: nowy kurs {n}", es: "{turn}: nuevo rumbo {n}", fr: "{turn} : nouveau cap {n}", de: "{turn}: neuer Kurs {n}", it: "{turn}: nuova rotta {n}" },
   /** BEST VMG: Pro reads the sailing term, Simple the plain words. */
   bestVmgPro: { ru: "BEST VMG", en: "BEST VMG", pl: "BEST VMG", es: "BEST VMG", fr: "BEST VMG", de: "BEST VMG", it: "BEST VMG" },
+  /** Package 31, R-45 prototype: the icon button that closes a sheet over the water. */
+  closeSheet: { ru: "Закрыть панель", en: "Close panel", pl: "Zamknij panel", es: "Cerrar el panel", fr: "Fermer le panneau", de: "Bereich schließen", it: "Chiudi il pannello" },
   bestVmgSimple: { ru: "Лучший угол", en: "Best angle", pl: "Najlepszy kąt", es: "Mejor ángulo", fr: "Meilleur angle", de: "Bester Winkel", it: "Angolo migliore" },
   /** R-10: the former course hold now holds the angle to the wind. */
   holdAngle: { ru: "Держать угол", en: "Hold angle", pl: "Trzymaj kąt", es: "Mantener ángulo", fr: "Garder l'angle", de: "Winkel halten", it: "Mantieni angolo" },

@@ -209,3 +209,22 @@ it("leads with words in the Simple race and keeps the abbreviations for Pro", ()
   const absent = renderToStaticMarkup(<RaceWindInstrument reading={null} display="compass" compact words={windWordsFor("ru")} />);
   expect(absent).not.toContain("race-true-wind-from-bow");
 });
+
+// Package 31, owner 2026-11-07: "the dial and the wind arrow are enough, speed and
+// readings in numbers and abbreviations, no text saying where the wind is from".
+it("the small box has the dial and short rows of numbers, the side only for a screen reader", () => {
+  const reading = raceWindReading({ heading: 90, boatSpeedKn: 5, windFrom: 0, windKnots: 12 })!;
+  const html = renderToStaticMarkup(<RaceWindInstrument reading={reading} display="compass" compact bare extra={<div data-testid="row-extra" />} />);
+  expect(html).toContain('data-testid="race-wind-compass"');
+  for (const row of ["TWA", "TWS", "TWD"]) expect(html).toContain(`aria-hidden="true">${row}<`);
+  expect(html).toContain('data-testid="race-true-wind-angle">90°');
+  expect(html).toContain('data-testid="race-true-wind-speed">12.0 kn');
+  expect(html).toContain('data-testid="race-true-wind-direction">0°');
+  expect(html).toContain('data-testid="row-extra"');
+  // The side is said to a screen reader only, and no words box is drawn.
+  expect(html).toMatch(/class="sr-only" data-testid="race-true-wind-side" data-side="port"/);
+  expect(html).not.toContain("data-words");
+  const withWords = renderToStaticMarkup(<RaceWindInstrument reading={reading} display="compass" compact bare words={windWordsFor("en")} />);
+  expect(withWords).not.toContain(windWordsFor("en").left);
+  expect(withWords).not.toContain(windWordsFor("en").offBow);
+});

@@ -22,6 +22,20 @@ export function edgeArrowInsets(width: number, height: number, out: ScreenInsets
   return out;
 }
 
+/**
+ * Package 31, R-45 prototype: in the water layout the helm bar and the coach line
+ * lie over the lower part of the scene, which also reaches the screen edges. The
+ * arrow lies under them, so on a portrait phone it stays above them. On a turned
+ * phone the coach line and the wind box fill the left part, so the arrow keeps to
+ * the right of them (about 40% of the width), and clear of the island's side.
+ */
+export function waterEdgeArrowInsets(width: number, height: number, out: ScreenInsets): ScreenInsets {
+  edgeArrowInsets(width, height, out);
+  if (height > width) out.bottom = 250;
+  else { out.bottom = 110; out.right = 70; out.left = Math.min(width * 0.4 + 16, 400); }
+  return out;
+}
+
 export interface EdgeArrow {
   /** False when the mark is in the clear part of the picture. */
   visible: boolean;

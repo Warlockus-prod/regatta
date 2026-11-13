@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { GUIDANCE_COLOR, playerOf, type OriginRef } from "@/features/race-3d/Race3DView";
 import { METRES_PER_UNIT, nextTargetInto, toWorld, type Race3DBoat, type Race3DCourse } from "@/features/race-3d/pose";
 import { boundaryProximity, noGoEdges, noGoRing, tacticalSizes, zoneMark, type BoundaryProximity, type RaceTacticsModel } from "./tactics";
-import { applyEdgeArrow, arrowMetres, ASTERN_DEG, EDGE_ARROW_RADIUS, edgeArrow, edgeArrowInsets, labelSide, offBow, type EdgeArrow, type EdgeArrowStyle, type ScreenInsets } from "./edge-arrow";
+import { applyEdgeArrow, arrowMetres, ASTERN_DEG, EDGE_ARROW_RADIUS, edgeArrow, edgeArrowInsets, labelSide, offBow, waterEdgeArrowInsets, type EdgeArrow, type EdgeArrowStyle, type ScreenInsets } from "./edge-arrow";
 
 // ============================================================================
 // Tactics on the water (M2-2, M2-3), drawn inside the race scene: the no-go
@@ -177,6 +177,7 @@ function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, 
     hint: false,
     // What the arrow last showed: "ahead", "port" or "starboard" (astern), its words and their side.
     turn: "", labelTurn: "", side: "", metres: NaN, copy: null as ArrowCopy | null,
+    water: null as boolean | null,
   });
   useFrame(({ camera, size }) => {
     const s = scratch.current;
@@ -185,7 +186,9 @@ function ScreenCues({ boatsRef, courseRef, originRef, model, arrowRef, hintRef, 
     const arrowEl = arrowRef.current;
     if (target && arrowEl) {
       s.v.set(target.x * METRES_PER_UNIT - originRef.current.x, 4, target.y * METRES_PER_UNIT - originRef.current.z).project(camera);
-      edgeArrow(s.v.x, s.v.y, s.v.z, size.width, size.height, edgeArrowInsets(size.width, size.height, s.insets), s.arrow);
+      // Package 31, R-45 prototype: the water layout's helm lies over the lower part of the scene.
+      s.water ??= Boolean(arrowEl.closest("[data-water]"));
+      edgeArrow(s.v.x, s.v.y, s.v.z, size.width, size.height, (s.water ? waterEdgeArrowInsets : edgeArrowInsets)(size.width, size.height, s.insets), s.arrow);
     } else s.arrow.visible = false;
     const disc = arrowEl?.firstElementChild as HTMLElement | null | undefined;
     const glyphs = disc?.children;
@@ -277,7 +280,7 @@ export function TacticalScreenLayer({ arrowRef, hintRef, copyRef, metres }: {
           background: "rgba(10, 22, 40, 0.86)", color: "#ffffff", fontSize: 14, lineHeight: "20px", fontWeight: 700 }} />
     </div>
     <div ref={hintRef} role="status" data-testid="race-boundary-hint" className="pointer-events-none absolute"
-      style={{ display: "none", zIndex: 1, left: "50%", top: "62%", transform: "translateX(-50%)", maxWidth: "min(280px, calc(100% - 120px))",
+      style={{ display: "none", zIndex: 1, left: "50%", top: "var(--race-boundary-top, 62%)", transform: "translateX(-50%)", maxWidth: "min(280px, calc(100% - 120px))",
         padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border-subtle)", borderLeft: "4px solid var(--danger, #ff4444)",
         background: "var(--bg-card, #102838)", color: "var(--text-primary, #e8f4f8)", fontSize: 16, lineHeight: "24px", fontWeight: 600, textAlign: "center" }}>
       {boundary}

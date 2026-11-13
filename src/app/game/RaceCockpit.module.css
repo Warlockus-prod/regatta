@@ -274,3 +274,73 @@
 .vmgLine[data-target=below] strong { color:var(--warning); }
 .vmgLabel { font-weight:600; }
 .vmgTrend { display:inline-flex; align-self:center; }
+
+/* Package 31, owner decision R-45: the prototype of the solo race with the water
+   on the whole screen (?water=1, src/lib/race-water-layout.ts). The scene fills
+   the cockpit and reaches the screen edges in the app (the native frame steps
+   aside while this layout is on screen, so the safe areas are ours). The dock
+   stays in the markup and focus order but lies over the scene, transparent to
+   taps except for its own controls: the coach line, a sheet, the bar with the
+   arrows in the lower corners. The solid-looking fill keeps text at 4.5:1 over
+   any water or foam. Nothing here applies without .water. */
+.water { --water-bar-h:114px; --water-t:env(safe-area-inset-top,0px); --water-r:env(safe-area-inset-right,0px); --water-b:env(safe-area-inset-bottom,0px); --water-l:env(safe-area-inset-left,0px); --water-fill:var(--bg-card,#102838); }
+@supports (background:color-mix(in srgb,red 80%,transparent)) { .water { --water-fill:color-mix(in srgb,var(--bg-card,#102838) 90%,transparent); } }
+.water .workspace { display:block; position:relative; height:100%; }
+.water .scene { position:absolute; inset:0; --race-status-h:calc(52px + var(--water-t)); --race-flags-bottom:calc(var(--water-bar-h) + 16px + var(--water-b)); }
+/* Messages stay off the wind box and the boat: under the two top corners (the
+   corner map is the taller one with the small wind box), above the mast's foot. The boat sits about 65% down this taller scene, where the
+   course boundary note would cover it (62% in the normal cockpit). */
+.water .scene { --race-toasts-top:calc(var(--race-status-h) + 130px); --race-boundary-top:48%; }
+.water .status { padding:calc(4px + var(--water-t)) calc(8px + var(--water-r)) 4px calc(8px + var(--water-l)); }
+.water .instrumentsArea { left:var(--water-l); right:var(--water-r); }
+.water .dock { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; padding:0 calc(8px + var(--water-r)) calc(8px + var(--water-b)) calc(8px + var(--water-l)); border:0; background:none; pointer-events:none; }
+.water .dock>* { pointer-events:auto; }
+/* The coach line sits right above the bar and scrolls inside itself; the course
+   numbers stay off the water, the line already says what to hold. An open sheet
+   takes its place. */
+.water .notice { position:static; z-index:auto; flex-shrink:0; min-height:0; max-height:72px; padding:6px 10px; overflow-y:auto; border:1px solid var(--border-subtle); border-radius:8px; background:var(--water-fill); }
+.water .notice [data-testid=race-route-heading] { display:none; }
+.water .dock:has(>.panel) .notice { visibility:hidden; }
+.water[data-paused] .notice,.water[data-paused] .waterBar { display:none; }
+/* The bar: on a portrait phone the tabs over the helm row, the arrows in the corners. */
+.water .waterBar { flex-shrink:0; display:grid; gap:6px; grid-template-columns:72px minmax(0,1fr) minmax(0,1fr) 72px; grid-template-areas:"tabs tabs tabs tabs" "l t b r"; touch-action:none;
+ /* The bar takes the bands under and beside the arrows, so a near miss with a thumb does not reach the canvas and switch the camera. */
+ margin:0 calc(-8px - var(--water-r)) calc(-8px - var(--water-b)) calc(-8px - var(--water-l)); padding:0 calc(8px + var(--water-r)) calc(8px + var(--water-b)) calc(8px + var(--water-l)); }
+.water .waterBar .tabs { grid-area:tabs; display:flex; flex-wrap:nowrap; gap:6px; padding:0; border:0; }
+.water .waterBar .tabs button { min-height:44px; padding:2px 4px; }
+.water .waterBar .tabs button:has(svg) { flex:0 0 56px; padding-inline:4px; }
+.water [data-testid=race-helm-left] { grid-area:l; }
+.water [data-testid=race-helm-turn] { grid-area:t; }
+.water [data-testid=race-helm-best-vmg] { grid-area:b; }
+.water [data-testid=race-helm-right] { grid-area:r; }
+.cockpit.water .waterBar button { background:var(--water-fill); }
+.cockpit.water .waterBar .helmArrow { min-height:64px; }
+/* A sheet over the scene: Sails, Map or Settings. The helm stays under the thumbs. */
+.water .panel { position:absolute; left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); top:auto; bottom:calc(var(--water-bar-h) + 14px + var(--water-b)); height:min(36%,340px); min-height:0; flex:none; contain:none; padding:8px 12px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-primary,#071923); box-shadow:0 12px 32px rgb(0 0 0 / .35); }
+.cockpit .waterClose { position:sticky; top:0; z-index:1; float:right; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; margin:0 -4px 0 8px; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+/* Opened from the pause sheet, there is no bar under it. */
+.water[data-paused] .panel { left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); top:calc(52px + var(--water-t)); bottom:calc(8px + var(--water-b)); width:auto; height:auto; }
+.water .scene .bigMap,.water .scene .hintLog { left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); bottom:calc(var(--water-bar-h) + 88px + var(--water-b)); }
+.water[data-paused] .scene .hintLog { bottom:calc(8px + var(--water-b)); }
+/* A turned phone: one row, the arrows in the corners; the coach line above the
+   left arrow, clear of the boat in the middle; a sheet on the right under the
+   status row. */
+@media(orientation:landscape) {
+ .water { --water-bar-h:64px; }
+ .water .scene { --race-boundary-top:calc(var(--race-status-h) + 64px); }
+ .water .waterBar { grid-template-columns:72px minmax(0,1fr) minmax(0,1fr) minmax(0,3.4fr) 72px; grid-template-areas:"l t b tabs r"; }
+ .water .waterBar .tabs button { min-height:64px; }
+ .water .notice { align-self:flex-start; width:min(38%,340px); max-height:80px; }
+ .water:not([data-paused]) .panel { left:auto; width:min(380px,50%); top:calc(52px + var(--water-t)); height:auto; }
+ /* The running race's messages stay in sight beside an open sheet; the coach line gives way to the big map and the log. */
+ .water:has(.dock>.panel) .scene { --race-toasts-left:calc((100% - min(380px,50%) - 8px - var(--water-r)) / 2); }
+ .water:has(.scene .bigMap,.scene .hintLog) .notice { visibility:hidden; }
+ .water .scene .bigMap,.water .scene .hintLog { bottom:calc(var(--water-bar-h) + 14px + var(--water-b)); }
+}
+/* Package 31: the VMG row of the small wind box, the same state colours as the VMG line. */
+.vmgRow { display:flex; align-items:baseline; gap:4px; white-space:nowrap; }
+.vmgRow>span[aria-hidden=true] { flex:0 0 28px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+.vmgRow strong { font-weight:650; color:var(--text-primary); }
+.vmgRow small { margin-left:-2px; font-size:12px; color:var(--text-secondary); }
+.vmgRow[data-target=on] strong { color:var(--success); }
+.vmgRow[data-target=below] strong { color:var(--warning); }
