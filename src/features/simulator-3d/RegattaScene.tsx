@@ -16,6 +16,7 @@ import { createSailingRenderer } from "@/features/race-scene/renderer";
 import { trainerChartOrigin } from "@/features/race-scene/environment-state";
 import { METRES_PER_UNIT } from "@/features/race-3d/pose";
 import { RACE_AREA } from "@/data/venues/geometry";
+import { venueLook } from "@/data/venues/look";
 
 function ContextHealth() {
   const { gl } = useThree();
@@ -79,6 +80,7 @@ export const RegattaScene = memo(function RegattaScene({
   const readState = useCallback(() => stateRef.current, [stateRef]);
   const cameraPose = useCallback((aspect: number) => fitYachtCamera(view, stateRef.current, aspect), [stateRef, view]);
   const chartOrigin = useMemo(() => trainerChartOrigin(RACE_AREA, METRES_PER_UNIT), []);
+  const look = useMemo(() => venueLook(venue?.id), [venue?.id]);
   return (
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={errorLabel} retryLabel={retryLabel} onError={onError}>
     <SceneStartup label={loadingLabel} onReady={onReady}>{ready =>
@@ -90,7 +92,9 @@ export const RegattaScene = memo(function RegattaScene({
       camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
       gl={createSailingRenderer}
     >
-      <SailingEnvironment venue={venue} readState={readState} originRef={originRef} chartOrigin={chartOrigin} />
+      {/* Package 32 stage D: the trainers draw the venue's own light and colours, as the race does
+          (src/data/venues/look.ts), so the race and the trainers are one world. */}
+      <SailingEnvironment venue={venue} look={look} readState={readState} originRef={originRef} chartOrigin={chartOrigin} />
 
       <Suspense fallback={null}>
         <Yacht stateRef={stateRef} light={maxDpr <= 1} />

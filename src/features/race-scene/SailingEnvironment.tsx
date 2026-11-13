@@ -289,7 +289,7 @@ export function environmentLight(look?: VenueLook, soft = false) {
  * consumer; only the sea, scenery, light and world-space wakes live here. */
 export function SailingEnvironment({ venue, look, soft = false, readState, readBoats, originRef, chartOrigin = CHART_ORIGIN, quality = TRAINER_QUALITY }: {
   venue?: Venue;
-  /** The venue's light and colour (M3-6, src/data/venues/look.ts); trainers pass none and keep their light. */
+  /** The venue's light and colour (M3-6, src/data/venues/look.ts). The race and, since package 32 stage D, the trainers pass it; without one the old trainer light is drawn. */
   look?: VenueLook;
   /** F4: the race's softer light (less glare, a slightly darker picture); gains on uniforms, no new shader. */
   soft?: boolean;

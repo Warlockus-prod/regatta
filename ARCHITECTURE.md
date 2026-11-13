@@ -1527,6 +1527,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/features/race-scene/orbit-camera.test.ts` - проекция лодки и мачты во viewport при разных размерах; камера «За кормой» стоит за кормой на любом курсе, не прыгает на повороте, держит масштаб и возвращается после ручного вращения.
 - `src/features/simulator-3d/SailingCameraRig.tsx` - общая свободная камера, preset/reset один раз, удержание пользовательского ракурса.
 - `src/features/simulator-3d/stage-view.tsx` - пакет 32, этап Б: `StageView` ставит камере смещение вида по `src/features/trainer-controls/stage.ts`, `StageCameraRig` вписывает лодку в свободное окно, `useStageWindow` читает окно со сцены.
+- `src/features/simulator-3d/RegattaScene.look.test.tsx` - пакет 32, этап Д: сцена тренажеров берет свет и цвета акватории из `src/data/venues/look.ts`, тот же вид, что читает гонка; без акватории вид открытой воды.
 - `src/features/simulator-3d/SailingCameraRig.test.tsx` - реальный Three camera lifecycle, жесты, resize, reset и cleanup.
 - `src/features/simulator-3d/SceneStartup.tsx` - готовность после первого рендера и локализованный видимый статус загрузки.
 - `src/features/simulator-3d/SceneStartup.test.tsx` - готовность после рендера, однократное событие и отмена при cleanup.

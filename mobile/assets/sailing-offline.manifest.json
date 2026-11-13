@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "12e0fc561a2b",
-  "sha256": "733d61b18c5dc2d51dc320db96189b6798a1846d7279113d379c83961bb72166",
-  "bytes": 7035762,
+  "version": "bb04dc42ae50",
+  "sha256": "4a0fc23385c3a0f2365436d5f23ca04d2ffda5c74f023a46461a3f0f14c652d7",
+  "bytes": 7035816,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1810,8 +1810,8 @@
     },
     {
       "path": "src/features/race-scene/SailingEnvironment.tsx",
-      "bytes": 19374,
-      "sha256": "04ba0fbd6529179fd7fbb20951a925f46289ecbf47aae4d152832c36b750ab46"
+      "bytes": 19439,
+      "sha256": "555b3b4f11666a957fdb85251d0c7dda4857cd78c14664eb36ebb71282c61081"
     },
     {
       "path": "src/features/race-scene/TacticalOverlay.tsx",
@@ -2060,8 +2060,8 @@
     },
     {
       "path": "src/features/simulator-3d/RegattaScene.tsx",
-      "bytes": 4274,
-      "sha256": "2b9cb04e879b5b7c03b6d4b15a2a95162b305ab0f8b9b21925d2dbb233021170"
+      "bytes": 4584,
+      "sha256": "557f4369d099b4202161f195806eb7509138b0c72b8abe191d86d94a3e7bfa5b"
     },
     {
       "path": "src/features/simulator-3d/SailingCameraRig.tsx",
