@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { THEORY_CHAPTERS } from "@/app/radio/teoria/courseData";
 import { SCENARIOS } from "@/app/radio/symulator/scenarios";
+import { chapterScreen, scenarioCall, scenarioScreen } from "@/features/radio-visuals/scenarioCalls";
 import { anatomyParts } from "./anatomy";
 import { PART_SECTIONS, isYachtPart, partVisuals } from "./anatomy-visuals";
 import { bootcampLessons, quickRefreshLessons } from "./bootcamp";
@@ -49,14 +50,16 @@ const matrix: Record<string, Row> = {
   "learn/tactics strategies": count(racingStrategies, all, strategy => tacticsVisuals(strategy.id) !== null),
   "learn/tactics right-of-way rules": count(racingRules, all, rule => tacticsVisuals(rule.id) !== null),
   "learn/points of sail": count(pointsOfSail, point => sailingSubject(point.id) !== null, point => sailingSubject(point.id) !== null),
-  "learn/radio theory chapters": count(THEORY_CHAPTERS, chapter => Boolean(chapter.diagram), none),
+  // A drawing per chapter; nine chapters are about the radio itself and show its screen beside it (chapterScreen).
+  "learn/radio theory chapters": count(THEORY_CHAPTERS, chapter => Boolean(chapter.diagram), chapter => chapterScreen(chapter.id) !== null),
   "learn/motorboat questions": count(STERNIK_BANK, question => Boolean(question.figure), question => Boolean(question.photo)),
   // Practice
   // An exercise shows the pair of the subject it practises (DRILL_SUBJECTS).
   "practice/trainer drills": count(trainerCatalog, entry => drillVisuals(entry.id) !== null, entry => drillVisuals(entry.id) !== null),
   // The briefing draws each exercise from its own geometry (src/features/manoeuvres/Schematic.tsx).
   "practice/manoeuvres": count(MANOEUVRES, all, none),
-  "practice/radio scenarios": count(SCENARIOS, none, none),
+  // The call as a drawing and the radio's own screen at the scenario's key moment (src/features/radio-visuals/scenarioCalls.ts).
+  "practice/radio scenarios": count(SCENARIOS, scenario => scenarioCall(scenario.id) !== null, scenario => scenarioScreen(scenario.id) !== null),
   // Race
   "race/missions": count(missions, none, none),
   // Library
@@ -76,11 +79,11 @@ describe("visual coverage of the whole product", () => {
       "learn/tactics strategies": { items: 4, schematic: 4, picture: 4, both: 4 },
       "learn/tactics right-of-way rules": { items: 4, schematic: 4, picture: 4, both: 4 },
       "learn/points of sail": { items: 5, schematic: 5, picture: 5, both: 5 },
-      "learn/radio theory chapters": { items: 18, schematic: 18, picture: 0, both: 0 },
+      "learn/radio theory chapters": { items: 18, schematic: 18, picture: 9, both: 9 },
       "learn/motorboat questions": { items: 879, schematic: 9, picture: 8, both: 0 },
       "practice/trainer drills": { items: 16, schematic: 16, picture: 16, both: 16 },
       "practice/manoeuvres": { items: 10, schematic: 10, picture: 0, both: 0 },
-      "practice/radio scenarios": { items: 19, schematic: 0, picture: 0, both: 0 },
+      "practice/radio scenarios": { items: 19, schematic: 19, picture: 19, both: 19 },
       "race/missions": { items: 4, schematic: 0, picture: 0, both: 0 },
       "library/yacht parts": { items: 17, schematic: 17, picture: 17, both: 17 },
       "library/glossary terms": { items: 56, schematic: 41, picture: 41, both: 41 },
@@ -91,6 +94,6 @@ describe("visual coverage of the whole product", () => {
 
   it("has finished rows: yacht parts, points of sail, both courses of lessons, the 15-minute cards, tactics and trainer exercises all have both visuals", () => {
     for (const row of ["library/yacht parts", "learn/points of sail", "learn/sails lessons", "learn/from-scratch lessons", "learn/15-minute cards", "learn/tactics strategies",
-      "learn/tactics right-of-way rules", "practice/trainer drills"]) expect(matrix[row].both, row).toBe(matrix[row].items);
+      "learn/tactics right-of-way rules", "practice/trainer drills", "practice/radio scenarios"]) expect(matrix[row].both, row).toBe(matrix[row].items);
   });
 });

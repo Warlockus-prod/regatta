@@ -16,6 +16,7 @@ import {
   type TheoryChapter,
 } from "./courseData";
 import { TheoryDiagram } from "./diagrams";
+import { ChapterRadioScreen } from "@/features/radio-visuals/ScenarioVisuals";
 import { THEORY_DIAGRAM_SWIPE_HINT, THEORY_SECTION_LABELS, type TheorySectionId } from "./sectionLabels";
 import { RADIO_ROUTE_EVENT, radioRuntimeHash, radioRuntimeSearch } from "../runtimeSearch";
 import { offlineRadio } from "../audio/localSpeech";
@@ -521,6 +522,8 @@ export default function RadioTheoryCourse() {
                   <p className="mt-2 text-sm md:hidden" style={{ color: "var(--text-muted)" }} data-testid="theory-diagram-hint">
                     {tl(THEORY_DIAGRAM_SWIPE_HINT)}
                   </p>
+                  {/* Package 32, step 5: the radio's own screen the chapter is about, beside its drawing. */}
+                  <ChapterRadioScreen chapterId={chapter.id} />
                 </div>
 
                 <Surface tone="cyan" className="p-5">

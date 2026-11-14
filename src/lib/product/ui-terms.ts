@@ -79,6 +79,7 @@ export const UI_TERMS = {
   /** The picture of a point of sail or a turn: a frame of the boat sailing it. */
   visualOnWater: label("На воде", "On the water", "Na wodzie", "En el agua", "Sur l'eau", "Auf dem Wasser", "In acqua"),
   /** The strip of points of sail or turns under a card that teaches them. */
+  visualRadioScreen: label("Экран рации", "Radio screen", "Ekran radia", "Pantalla de la radio", "Écran de la radio", "Display des Funkgeräts", "Schermo della radio"),
   subjectsInSection: label("Как это выглядит", "What it looks like", "Jak to wygląda", "Cómo se ve", "À quoi ça ressemble", "Wie das aussieht", "Come si presenta"),
   /** The strip of yacht parts under a section that teaches them. */
   partsInSection: label("Где это на лодке", "Where it is on the boat", "Gdzie to jest na jachcie", "Dónde está en el barco", "Où c'est sur le bateau", "Wo das am Boot ist", "Dove si trova sulla barca"),

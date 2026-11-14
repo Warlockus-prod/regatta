@@ -29,6 +29,7 @@ import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios
 import { trackRadioTaskComplete } from '@/lib/funnel';
 import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
+import { ScenarioThumb, ScenarioVisuals } from '@/features/radio-visuals/ScenarioVisuals';
 import { PHONETIC_ENTRY_COPY, PHONETIC_DRILL_HREF } from '@/data/radio/phonetic-entry-copy';
 import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
 import { checkLabel, useTrainerI18n } from './trainerText';
@@ -803,6 +804,7 @@ function RadioSimulator() {
                         onClick={() => startScenario(sc, mode)}
                         className="flex min-h-[56px] w-full items-center gap-3 px-4 py-2 text-left"
                       >
+                        <ScenarioThumb id={sc.id} />
                         <span className="min-w-0 flex-1">
                           <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{radioText(bi(sc.title))}</span>
                           {tasks.length > 0 && (
@@ -1143,6 +1145,8 @@ function RadioSimulator() {
                 ))}
               >
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(bi(scenario.brief))}</p>
+                {/* Package 32: the call as a drawing and the radio's screen at its key moment. Not in the exam: both are hints. */}
+                {learning && <ScenarioVisuals id={scenario.id} name={radioText(bi(scenario.title))} venue={venue} />}
                 <div data-testid="variant-card" className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-xl px-3 py-2 font-mono text-xs" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
                   <span data-testid="variant-area">📍 {radioText(venue.area[lang])}</span>
                   <span>⛵ {radioText(variantData.vessel.name)}</span>
