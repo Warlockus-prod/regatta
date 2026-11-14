@@ -102,29 +102,3 @@ export function scenarioScreen(id: string, venue: Venue = DEFAULT_VENUE): RadioS
     default: return { ...on, channelIndex: channelIndex(voice ?? "16") };
   }
 }
-
-/**
- * The picture of a theory chapter (src/app/radio/teoria/courseData.ts): the radio's screen the
- * chapter is about. Nine of the eighteen chapters have one; the others are about something the
- * radio's screen does not show (range, the system as a whole, NAVTEX, EPIRB, SART and so on).
- */
-const CHAPTER_SCREENS: Readonly<Record<string, (on: RadioState, venue: Venue) => RadioState>> = {
-  // The watch on 16, the screen every control is read against.
-  controls: on => on,
-  // A ship-to-ship working channel.
-  channels: on => ({ ...on, channelIndex: channelIndex("72") }),
-  identity: on => ({ ...on, screen: "radio-info" }),
-  routine: on => ({ ...on, ...otherDsc("Individual", "Routine") }),
-  dsc: on => ({ ...on, screen: "menu" }),
-  priority: on => ({ ...on, ...otherDsc("All Ships", "Urgency") }),
-  mayday: on => ({ ...on, screen: "distress-nature", natureCursor: 0 }),
-  receive: (on, venue) => scenarioScreen("receive-distress", venue) ?? on,
-  // Low power: 1 W instead of 25 W.
-  power: on => ({ ...on, hiPower: false }),
-};
-export const CHAPTERS_WITH_SCREEN: readonly string[] = Object.keys(CHAPTER_SCREENS);
-
-export function chapterScreen(chapterId: string, venue: Venue = DEFAULT_VENUE): RadioState | null {
-  if (!Object.prototype.hasOwnProperty.call(CHAPTER_SCREENS, chapterId)) return null;
-  return CHAPTER_SCREENS[chapterId](placeRadio({ ...INITIAL_RADIO, power: true, screen: "standby" }, venue), venue);
-}

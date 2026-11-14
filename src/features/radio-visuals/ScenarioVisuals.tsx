@@ -4,7 +4,7 @@
 import { useRadioI18n } from "@/app/radio/localization/context";
 import { UI_TERMS } from "@/lib/product/ui-terms";
 import { RadioScreenFrame } from "@/app/radio/symulator/RadioFront";
-import { chapterScreen, scenarioCall, scenarioScreen, voiceChannel, type CallParty, type CallPriority, type ScenarioCall } from "./scenarioCalls";
+import { scenarioCall, scenarioScreen, voiceChannel, type CallParty, type CallPriority, type ScenarioCall } from "./scenarioCalls";
 import type { Venue } from "@/app/radio/symulator/venues";
 
 const INK = "#123247", MUTED = "#607583", PAPER = "#fffefa", HULL = "#e0e9ec";
@@ -121,19 +121,5 @@ export function ScenarioVisuals({ id, name, venue }: { id: string; name: string;
         <figcaption style={CAPTION}>{radio}</figcaption>
       </figure>
     </div>
-  );
-}
-
-/** The picture of a theory chapter: the radio's screen it is about, beside the chapter's own drawing. Nothing for a chapter without one. */
-export function ChapterRadioScreen({ chapterId }: { chapterId: string }) {
-  const { tl } = useRadioI18n();
-  const screen = chapterScreen(chapterId);
-  if (!screen) return null;
-  const radio = tl(UI_TERMS.visualRadioScreen);
-  return (
-    <figure style={{ ...TILE, maxWidth: 320, marginTop: 12 }} role="img" aria-label={radio} data-testid="chapter-radio-screen">
-      <div style={{ background: "#0b1418" }}><RadioScreenFrame s={screen} /></div>
-      <figcaption style={CAPTION}>{radio}</figcaption>
-    </figure>
   );
 }

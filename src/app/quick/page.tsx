@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { legacyPick } from '@/lib/languages';
 import { quickRefreshLessons, QUICK_REFRESH_TOTAL_MINUTES } from '@/data/bootcamp';
 import { glossaryTerms, maneuvers, pointsOfSail, racingStrategies } from '@/data/sailing-data';
-import { ruleScenarios } from '@/data/rules';
+import { RACE_SUBJECT_NAMES } from '@/data/race-subject-names';
 import { sailingSectionSubjects } from '@/data/sailing-visuals';
 import { SubjectStrip } from '@/components/visuals/SubjectVisuals';
 import { UI_TERMS } from '@/lib/product/ui-terms';
@@ -47,9 +47,9 @@ export default function QuickRefreshPage() {
           const tip = legacyPick(l, 'tip', lang);
           const names = (id: string) => {
             const item = pointsOfSail.find(p => p.id === id) ?? maneuvers.find(m => m.id === id); const term = glossaryTerms.find(t => t.id === id);
-            // The race subjects are named by the rule card or the strategy that teaches them.
-            const titled = ruleScenarios.find(r => r.id === id) ?? racingStrategies.find(r => r.id === id);
-            return item ? legacyPick(item, 'name', lang) : term ? legacyPick(term, 'term', lang) : titled ? legacyPick(titled, 'title', lang) : id;
+            // The race subjects are named by the strategy or the rule card that teaches them (RACE_SUBJECT_NAMES copies those titles).
+            const strategy = racingStrategies.find(r => r.id === id);
+            return item ? legacyPick(item, 'name', lang) : term ? legacyPick(term, 'term', lang) : strategy ? legacyPick(strategy, 'title', lang) : RACE_SUBJECT_NAMES[id]?.[lang] ?? id;
           };
           return (
             <div key={l.id}>

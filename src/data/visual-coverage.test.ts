@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { THEORY_CHAPTERS } from "@/app/radio/teoria/courseData";
 import { SCENARIOS } from "@/app/radio/symulator/scenarios";
-import { chapterScreen, scenarioCall, scenarioScreen } from "@/features/radio-visuals/scenarioCalls";
+import { chapterScreen } from "@/features/radio-visuals/chapterScreens";
+import { scenarioCall, scenarioScreen } from "@/features/radio-visuals/scenarioCalls";
 import { anatomyParts } from "./anatomy";
 import { PART_SECTIONS, isYachtPart, partVisuals } from "./anatomy-visuals";
 import { bootcampLessons, quickRefreshLessons } from "./bootcamp";

@@ -2,7 +2,8 @@ import { Stack, router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Card, Screen, Text } from '../../src/design-system/components';
-import { glossaryTerms, maneuvers, pointsOfSail, quickRefreshLessons, racingStrategies, ruleScenarios } from '../../src/data';
+import { glossaryTerms, maneuvers, pointsOfSail, quickRefreshLessons, racingStrategies } from '../../src/data';
+import { RACE_SUBJECT_NAMES } from '../../../src/data/race-subject-names';
 import { SubjectStrip } from '../../src/learning/SubjectVisuals';
 import { sailingSectionSubjects } from '../../../src/data/sailing-visuals';
 import { UI_TERMS } from '../../../src/lib/product/catalog';
@@ -108,9 +109,9 @@ export default function Quick() {
           const tip = legacyPick(lesson, 'tip', lang);
           const names = (id: string) => {
             const item = pointsOfSail.find(p => p.id === id) ?? maneuvers.find(m => m.id === id); const term = glossaryTerms.find(t => t.id === id);
-            // The race subjects are named by the rule card or the strategy that teaches them.
-            const titled = ruleScenarios.find(r => r.id === id) ?? racingStrategies.find(r => r.id === id);
-            return item ? legacyPick(item, 'name', lang) : term ? legacyPick(term, 'term', lang) : titled ? legacyPick(titled, 'title', lang) : id;
+            // The race subjects are named by the strategy or the rule card that teaches them (RACE_SUBJECT_NAMES copies those titles).
+            const strategy = racingStrategies.find(r => r.id === id);
+            return item ? legacyPick(item, 'name', lang) : term ? legacyPick(term, 'term', lang) : strategy ? legacyPick(strategy, 'title', lang) : RACE_SUBJECT_NAMES[id]?.[lang] ?? id;
           };
           return (
             <View key={lesson.id}>

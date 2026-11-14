@@ -16,7 +16,7 @@ import {
   type TheoryChapter,
 } from "./courseData";
 import { TheoryDiagram } from "./diagrams";
-import { ChapterRadioScreen } from "@/features/radio-visuals/ScenarioVisuals";
+import { ChapterRadioScreen } from "@/features/radio-visuals/ChapterRadioScreen";
 import { THEORY_DIAGRAM_SWIPE_HINT, THEORY_SECTION_LABELS, type TheorySectionId } from "./sectionLabels";
 import { RADIO_ROUTE_EVENT, radioRuntimeHash, radioRuntimeSearch } from "../runtimeSearch";
 import { offlineRadio } from "../audio/localSpeech";

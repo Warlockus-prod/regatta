@@ -4,8 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 import { PRACTICE_GROUPS } from "@/app/radio/symulator/practiceMenu";
 import { SCENARIOS } from "@/app/radio/symulator/scenarios";
 import { THEORY_CHAPTERS } from "@/app/radio/teoria/courseData";
-import { CHAPTERS_WITH_SCREEN, SCENARIO_CALLS, chapterScreen, scenarioCall, scenarioScreen, voiceChannel } from "./scenarioCalls";
-import { ChapterRadioScreen, ScenarioDiagram, ScenarioVisuals } from "./ScenarioVisuals";
+import { ChapterRadioScreen } from "./ChapterRadioScreen";
+import { CHAPTERS_WITH_SCREEN, chapterScreen } from "./chapterScreens";
+import { SCENARIO_CALLS, scenarioCall, scenarioScreen, voiceChannel } from "./scenarioCalls";
+import { ScenarioDiagram, ScenarioVisuals } from "./ScenarioVisuals";
 import { VENUES } from "@/app/radio/symulator/venues";
 
 vi.mock("@/app/radio/localization/context", () => ({ useRadioI18n: () => ({ rt: <T,>(value: T) => value, tp: (_ru: string, en: string) => en, tl: (values: { en: string }) => values.en }) }));
@@ -94,5 +96,9 @@ describe("radio theory: the radio's screen beside the drawing of the chapters th
     // A chapter about the horizon or an EPIRB has no radio screen to show.
     for (const id of ["horizon", "epirb", "toString"]) { expect(chapterScreen(id), id).toBeNull(); expect(renderToStaticMarkup(<ChapterRadioScreen chapterId={id} />)).toBe(""); }
     expect(readFileSync("src/app/radio/teoria/page.tsx", "utf8")).toContain("<ChapterRadioScreen chapterId={chapter.id} />");
+    // The chapter's received alert is the screen the scenario "receive-distress" starts with.
+    expect(chapterScreen("receive")).toMatchObject({ screen: scenarioScreen("receive-distress")!.screen, rxDistress: scenarioScreen("receive-distress")!.rxDistress });
+    // The theory page does not load the practice scenarios for its nine screens.
+    for (const file of ["chapterScreens.ts", "ChapterRadioScreen.tsx"]) expect(readFileSync(`src/features/radio-visuals/${file}`, "utf8"), file).not.toMatch(/scenarioCalls|symulator\/scenarios/);
   });
 });
