@@ -31,8 +31,12 @@ export function isYachtPart(id: string): id is YachtPartId {
   return Object.prototype.hasOwnProperty.call(PART_DRAWINGS.side.points, id);
 }
 
-/** Both visuals of a part, or null for an id that is not a part of the yacht. */
-export function partVisuals(id: string): PartVisuals | null {
+/** Glossary terms that are a part under a broader name: "a sheet" is shown by the mainsheet. */
+export const PART_ALIASES: Readonly<Record<string, YachtPartId>> = { sheet: "mainsheet" };
+
+/** Both visuals of a part, by its id or an alias; null for an id that is not a part of the yacht. */
+export function partVisuals(alias: string): PartVisuals | null {
+  const id = Object.prototype.hasOwnProperty.call(PART_ALIASES, alias) ? PART_ALIASES[alias] : alias;
   if (!isYachtPart(id)) return null;
   const view: PartDrawingView = PLAN_PARTS.has(id) ? "top" : "side";
   const drawing = PART_DRAWINGS[view];

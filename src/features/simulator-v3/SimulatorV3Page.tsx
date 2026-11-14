@@ -26,7 +26,7 @@ import { assessmentCopy } from "../../data/sailing-lab/assessment-copy";
 import { TrimStudyGoal, TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
 import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
 import { useTrainerCheckpoint } from "./hooks/use-trainer-checkpoint";
-import { resolveTrainerDeepLink, readTrainerSetupFromSearch, resolveWindObservationEntry } from './runtime/deep-link';
+import { resolveTrainerDeepLink, readTrainerCameraFromSearch, readTrainerSetupFromSearch, resolveWindObservationEntry } from './runtime/deep-link';
 import { uiToControls } from "./runtime/create-runtime-state";
 import {
   type DrillDefinition,
@@ -407,6 +407,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       } else {
         const observation = resolveWindObservationEntry(search);
         if (observation) selectBoatView(observation.boatView);
+        const camera = readTrainerCameraFromSearch(initialSearch ?? window.location.search);
+        if (camera) setBoatView(camera);
         const fromUrl = readTrainerSetupFromSearch(initialSearch ?? window.location.search);
         if (fromUrl) {
           const next = { ...FREE_TRAINER_UI, ...fromUrl };

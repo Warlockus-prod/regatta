@@ -5,7 +5,7 @@ import { useI18n } from '../../src/i18n/context';
 import { Card, EmptyState, Screen, Text } from '../../src/design-system/components';
 import { glossaryTerms, glossaryCategories } from '../../src/data';
 import { SubjectVisuals } from '../../src/learning/SubjectVisuals';
-import { isYachtPart } from '../../../src/data/anatomy-visuals';
+import { partVisuals } from '../../../src/data/anatomy-visuals';
 import { UI_TERMS } from '../../../src/lib/product/catalog';
 import type { GlossaryCategoryId } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
@@ -231,7 +231,7 @@ export default function Glossary() {
                   ) : null}
                   {/* Package 32: a term that is a part of the yacht, a point of sail or a turn shows the same schematic and picture as the screen that teaches it. */}
                   <SubjectVisuals id={term.id} name={legacyPick(term, 'term', lang)}
-                    labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: (isYachtPart(term.id) ? UI_TERMS.visualOnBoat : UI_TERMS.visualOnWater)[lang] }} />
+                    labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: (partVisuals(term.id) ? UI_TERMS.visualOnBoat : UI_TERMS.visualOnWater)[lang] }} />
                 </View>
               </Card>
             );

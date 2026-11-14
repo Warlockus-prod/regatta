@@ -249,3 +249,150 @@ export function renderTurn(kind: 'tacking' | 'jibing', theme: GraphicTheme = 'pa
     arrow(232, y, 300, y, p.muted, 6) + arrow(500, y, 568, y, p.muted, 6);
   return subjectSvg(kind === 'tacking' ? 'tack: the bow turns through the wind' : 'jibe: the stern turns through the wind', p.bg, d);
 }
+
+// Package 32, third subject: wind and trim. Same rules as above: 4:3, wind from the top (or from
+// the left where the boat is seen from astern), the wind arrow always blue, no small text.
+const rad = (deg: number) => (deg * Math.PI) / 180;
+const faded = (d: string) => `<g opacity=".4">${d}</g>`;
+
+/** The true wind as a field of arrows over a boat on a beam reach; a gust or a lull is a patch of it. */
+export function renderWindField(kind: 'steady' | 'gust' | 'lull', theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const xs = [130, 265, 400, 535, 670];
+  const patch = (i: number) => kind !== 'steady' && i > 0 && i < 4;
+  const d =
+    (kind === 'gust'
+      ? path('M400 232m-215 0a215 56 0 1 0 430 0a215 56 0 1 0 -430 0', p.faint, 2, '', p.faint) +
+        [250, 330, 410, 490].map((x, i) => path(`M${x} ${226 + (i % 2) * 14}q14-10 28 0t28 0`, p.muted, 3)).join('')
+      : kind === 'lull'
+        ? path('M400 232m-215 0a215 56 0 1 0 430 0a215 56 0 1 0 -430 0', p.muted, 3, '10 10')
+        : '') +
+    xs.map((x, i) => (patch(i)
+      ? kind === 'gust' ? arrow(x, 36, x, 178, p.blue, 12) : arrow(x, 60, x, 112, p.blue, 4)
+      : arrow(x, 44, x, 146, p.blue, 7))).join('') +
+    topBoat(400, 425, 90, p, 1.5, 48);
+  return subjectSvg(kind === 'gust' ? 'a gust: a patch of stronger wind' : kind === 'lull' ? 'a lull: a patch of lighter wind' : 'true wind: the same over the whole water', p.bg, d);
+}
+
+/**
+ * Apparent wind as a triangle over a moving boat: the true wind (blue, from the top), the wind
+ * the boat makes by moving (dashed, against its heading) and their sum, the wind felt on board.
+ */
+export function renderApparentWind(theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const d =
+    topBoat(350, 440, 90, p, 1.5, 30) +
+    arrow(540, 440, 660, 440, p.muted, 6) +
+    arrow(590, 130, 400, 130, p.muted, 6, '12 10') +
+    arrow(400, 130, 400, 350, p.blue, 9) +
+    arrow(590, 130, 408, 344, p.teal, 12);
+  return subjectSvg('apparent wind: true wind plus the wind of the boat\'s own motion', p.bg, d);
+}
+
+/** The windward or the leeward side of a boat: the half of the water the wind comes from, or goes to. */
+export function renderSide(side: 'windward' | 'leeward', theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const y = 345, top = side === 'windward';
+  const d =
+    `<rect x="60" y="${top ? y - 190 : y}" width="680" height="190" rx="18" fill="${p.faint}"/>` +
+    path(`M60 ${y}H740`, p.muted, 3, '9 9') +
+    topBoat(400, y, 90, p, 1.3, 48) +
+    arrow(150, 28, 150, 138, p.blue, 9) + arrow(650, 28, 650, 138, p.blue, 9);
+  return subjectSvg(top ? 'windward: the side the wind comes from' : 'leeward: the side away from the wind', p.bg, d);
+}
+
+/** A wind shift: the old direction dashed, the new one solid, the turn between them marked. */
+export function renderWindShift(theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const tipX = 400, tipY = 230, len = 185, shift = 28;
+  const from = (deg: number): [number, number] => [fmt(tipX + Math.sin(rad(deg)) * len), fmt(tipY - Math.cos(rad(deg)) * len)];
+  const [ox, oy] = from(0), [nx, ny] = from(shift);
+  const d =
+    arrow(ox, oy, tipX, tipY, p.muted, 7, '12 10') +
+    arrow(nx, ny, tipX, tipY, p.blue, 10) +
+    path(`M${ox} ${oy - 22}A${len + 22} ${len + 22} 0 0 1 ${fmt(nx + Math.sin(rad(shift)) * 22)} ${fmt(ny - Math.cos(rad(shift)) * 22)}`, p.sand, 6) +
+    topBoat(400, 425, 45, p, 1.45, 22);
+  return subjectSvg('wind shift: the wind turns to a new direction', p.bg, d);
+}
+
+/** Sail trim: the boom between sheeted too hard and eased too far, with the working angle solid. */
+export function renderTrim(theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const end = (boom: number, r: number): [number, number] => [fmt(Math.sin(rad(boom)) * r), fmt(Math.cos(rad(boom)) * r)];
+  const [ix, iy] = end(12, 62), [ex, ey] = end(84, 62), [ax, ay] = end(12, 80), [bx, by] = end(84, 80);
+  // An arrowhead at the arc's end for boom angle `boom`, pointing on along the arc (dir 1: easing, -1: sheeting in).
+  const head = (boom: number, dir: 1 | -1) => {
+    const [x, y] = end(boom, 80), back = rad(boom - dir * 9);
+    const wing = (r: number) => `${fmt(Math.sin(back) * r)} ${fmt(Math.cos(back) * r)}`;
+    return path(`M${wing(72)}L${x} ${y}L${wing(88)}`, p.blue, 4);
+  };
+  const d =
+    arrow(110, 70, 110, 200, p.blue, 9) +
+    topBoat(400, 320, 90, p, 2.1, 48) +
+    '<g transform="translate(400 320) rotate(90) scale(2.1)">' +
+    path(`M0 0L${ix} ${iy}`, p.muted, 3, '5 5') + path(`M0 0L${ex} ${ey}`, p.muted, 3, '5 5') +
+    path(`M${ax} ${ay}A80 80 0 0 0 ${bx} ${by}`, p.blue, 4) +
+    head(12, -1) + head(84, 1) +
+    '</g>';
+  return subjectSvg('sail trim: the sheet sets the angle of the sail to the wind', p.bg, d);
+}
+
+/** One edge or line of the mainsail on the yacht seen from the side: the halyard, the luff or the leech. */
+export function renderSailEdge(kind: 'halyard' | 'luff' | 'leech', theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const mark = kind === 'luff'
+    ? path('M530 92V336', p.blue, 11)
+    : kind === 'leech'
+      ? path('M530 90Q431 190 252 340', p.blue, 11)
+      : arrow(546, 396, 546, 84, p.blue, 7) + circle(530, 90, 12, p.blue);
+  const d = `<g transform="translate(0 46) scale(.889)">${sideBoat(p)}${mark}</g>`;
+  return subjectSvg(kind === 'halyard' ? 'halyard: the line that hoists the sail' : kind === 'luff' ? 'luff: the forward edge of the sail' : 'leech: the aft edge of the sail', p.bg, d);
+}
+
+/** Heel: the yacht seen from astern, leaning away from the wind, with the angle off the vertical. */
+export function renderHeel(heel: number, theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const cx = 400, wl = 420, r = 250;
+  const [mx, my] = [fmt(cx + Math.sin(rad(heel)) * r), fmt(wl - Math.cos(rad(heel)) * r)];
+  const d =
+    arrow(60, 150, 200, 150, p.blue, 9) +
+    path(`M${cx} ${wl}V${wl - 340}`, p.muted, 3, '9 9') +
+    `<g transform="translate(${cx} ${wl}) rotate(${heel})">` +
+    path('M-9 40L-13 150H13L9 40Z', p.ink, 2, '', p.muted) +
+    path('M-100 -42Q-96 30 0 46Q96 30 100 -42Z', p.ink, 3, '', p.hull) +
+    path('M-100 -42H100', p.ink, 3) +
+    path('M0 -330Q62 -190 44 -62L0 -62Z', p.muted, 2, '', p.cloth) +
+    path('M0 -42V-340', p.ink, 6) +
+    '</g>' +
+    path(`M120 ${wl}q20-12 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0`, p.blue, 3) +
+    path(`M${cx} ${wl - r}A${r} ${r} 0 0 1 ${mx} ${my}`, p.blue, 7) +
+    label(660, 112, `${Math.round(heel)}°`, p.ink, 76);
+  return subjectSvg(`heel: the yacht leans ${Math.round(heel)} degrees away from the wind`, p.bg, d);
+}
+
+/** A change of course on the same tack: luffing turns the bow towards the wind, bearing away turns it from the wind. */
+export function renderCourseChange(kind: 'luff' | 'bear', theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const [a0, a1, b0, b1] = kind === 'luff' ? [90, 48, 48, 24] : [60, 125, 30, 68];
+  const d =
+    arrow(110, 70, 110, 200, p.blue, 9) +
+    faded(topBoat(235, 380, a0, p, 1.4, b0)) +
+    arrow(372, 378, 432, 378, p.muted, 6) +
+    topBoat(580, 380, a1, p, 1.4, b1);
+  return subjectSvg(kind === 'luff' ? 'luffing: the bow turns towards the wind' : 'bearing away: the bow turns away from the wind', p.bg, d);
+}
+
+/** The slot: the gap between the jib and the mainsail, with the air that flows through it. */
+export function renderSlot(theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const cx = 400, cy = 320, k = 2.1;
+  // A point of the boat's own drawing (x to starboard, y aft) on the page, bow to the right.
+  const at = (x: number, y: number) => `${fmt(cx - k * y)} ${fmt(cy + k * x)}`;
+  const d =
+    arrow(110, 70, 110, 200, p.blue, 9) +
+    topBoat(cx, cy, 90, p, k, 30) +
+    path(`M${at(0, -86)}Q${at(22, -50)} ${at(24, 4)}`, p.ink, 9) +
+    path(`M${at(-24, -66)}Q${at(8, -30)} ${at(13, -4)}Q${at(16, 12)} ${at(26, 26)}`, p.blue, 8) +
+    arrow(...(at(26, 26).split(' ').map(Number) as [number, number]), ...(at(42, 46).split(' ').map(Number) as [number, number]), p.blue, 8);
+  return subjectSvg('the slot: air flows between the jib and the mainsail', p.bg, d);
+}

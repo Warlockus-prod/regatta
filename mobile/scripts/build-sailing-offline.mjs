@@ -31,6 +31,12 @@ const partPictures = Object.fromEntries(readdirSync(join(root, "public/anatomy/p
   .map(name => [name.slice(0, -5), partImage(`public/anatomy/parts/${name}`)]));
 const partDrawings = Object.fromEntries(readdirSync(join(root, "public/anatomy/diagram")).filter(name => name.endsWith(".webp")).sort()
   .map(name => [`/anatomy/diagram/${name}`, partImage(`public/anatomy/diagram/${name}`)]));
+// The trainer page inside the bundle shows the pair of every situation and exercise it lists
+// (src/data/sailing-visuals.ts: DRILL_SUBJECTS); the pictures of those subjects travel with it.
+const trainerIds = [...readFileSync(join(root, "src/features/simulator-v3/runtime/scenario-presets.ts"), "utf8").matchAll(/^\s+id: '([A-Za-z0-9-]+)',$/gm)].map(match => match[1]);
+const drillSubjects = Object.fromEntries([...readFileSync(join(root, "src/data/sailing-visuals.ts"), "utf8").matchAll(/^\s+"?([A-Za-z0-9-]+)"?: "([a-z-]+)",$/gm)].map(match => [match[1], match[2]]));
+if (trainerIds.length < 7 || trainerIds.some(id => !drillSubjects[id])) throw new Error("Trainer exercise picture adapter needs updating");
+const subjectPictures = Object.fromEntries([...new Set(trainerIds.map(id => drillSubjects[id]))].sort().map(id => [id, partImage(`public/learning/subjects/${id}.webp`)]));
 const model = readFileSync(join(root, "public/models/regatta_sloop_sailing.glb"));
 const gltf = JSON.parse(model.subarray(20, 20 + model.readUInt32LE(12)).toString().trim());
 if ([...(gltf.buffers ?? []), ...(gltf.images ?? [])].some(item => item.uri && !item.uri.startsWith("data:"))) {
@@ -106,6 +112,11 @@ const result = await build({
         const contents = readFileSync(args.path, "utf8"), before = "src: `/anatomy/parts/${id}.webp`";
         if (!contents.includes(before)) throw new Error("Part picture adapter needs updating");
         return { contents: `const __offlinePartPictures=${JSON.stringify(partPictures)};\n${contents.replace(before, "src: __offlinePartPictures[id]")}`, loader: "ts", resolveDir: dirname(args.path) };
+      });
+      api.onLoad({ filter: /data\/sailing-visuals\.ts$/ }, args => {
+        const contents = readFileSync(args.path, "utf8"), before = "src: `/learning/subjects/${file}.webp`";
+        if (!contents.includes(before)) throw new Error("Subject picture adapter needs updating");
+        return { contents: `const __offlineSubjectPictures: Record<string, string>=${JSON.stringify(subjectPictures)};\n${contents.replace(before, "src: __offlineSubjectPictures[file] ?? `/learning/subjects/${file}.webp`")}`, loader: "ts", resolveDir: dirname(args.path) };
       });
       api.onLoad({ filter: /components\/AnatomyPosters\.tsx$/ }, args => {
         let contents = readFileSync(args.path, "utf8");

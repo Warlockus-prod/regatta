@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../../lib/i18n";
-import { destinations } from "../../../lib/product/catalog";
+import { destinations, UI_TERMS } from "../../../lib/product/catalog";
+import { LessonPicture } from "../../../components/visuals/SubjectVisuals";
 import { copy } from "../../../lib/product/copy";
 import { trackLessonComplete } from "../../../lib/funnel";
 import { findSailLesson, sailCourse, sailLessons } from "../../../data/sailing-lab/course";
@@ -140,6 +141,8 @@ function CourseContent({ lessonId }: { lessonId?: string }) {
       {diagramReadout(lesson.diagram, selected, lang) && <p aria-live="polite">{diagramReadout(lesson.diagram, selected, lang)}</p>}
       <div className={styles.controls}>{diagramOptions(lesson.diagram, lang).map(option => <button key={option.value} type="button" aria-pressed={selected === option.value} onClick={() => { setSelected(option.value); remember({ diagram: option.value }); }}>{option.label}</button>)}</div>
       {lesson.diagram === "wind" && <p>{diagramCopy.windKeys.map((label, i) => `${i + 1}. ${label[lang]}`).join(" · ")}</p>}
+      {/* Package 32: beside its drawing every lesson shows the real thing, on the boat or on the water. */}
+      <LessonPicture lessonId={lesson.id} name={lesson.title[lang]} labels={{ boat: UI_TERMS.visualOnBoat[lang], water: UI_TERMS.visualOnWater[lang] }} />
     </figure>
     <div className={styles.reading}>
     <details className={styles.terms}>

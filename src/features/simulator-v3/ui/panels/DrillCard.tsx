@@ -9,6 +9,8 @@ import {
 import { type TpFn } from '../shared';
 import type { DrillOutcome } from '../../runtime/drill-clock';
 import { TRAINER_TERMS } from '@/lib/product/trainer-terms';
+import { SubjectThumbs } from '@/components/visuals/SubjectVisuals';
+import { drillVisuals } from '@/data/sailing-visuals';
 
 // ---------------------------------------------------------------------------
 // DrillCard - shown when mode === 'drill'. Two states:
@@ -83,6 +85,8 @@ export function DrillCard({
               <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-snug">
                 {pickText(d.goal, lang)}
               </div>
+              {/* Package 32: every exercise shows what it practises, schematic and picture. */}
+              <SubjectThumbs visuals={drillVisuals(d.id)} />
             </button>
           ))}
         </div>

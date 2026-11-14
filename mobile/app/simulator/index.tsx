@@ -51,6 +51,8 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
+import { SubjectThumbs } from '../../src/learning/SubjectVisuals';
+import { drillVisuals } from '../../../src/data/sailing-visuals';
 import type { SailState } from '../../src/simulator/sail-feedback';
 import { leewayAngleDeg } from '../../src/simulator/sail-geometry';
 import { NO_GO_HALF_DEG } from '../../src/simulator/physics';
@@ -1912,7 +1914,7 @@ function Simulator() {
         {mode === 'drill' ? (
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{drillSelectLabel}</Text>
-            <View style={styles.pickerChips}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pickerCards}>
               {DRILLS.map((d) => {
                 const isActive = drillState?.drillId === d.id;
                 return (
@@ -1924,10 +1926,13 @@ function Simulator() {
                   accessibilityState={{ selected: isActive }}
                   style={({ pressed }) => [
                     styles.pickerChip,
+                    styles.pickerCard,
                     isActive && styles.pickerChipActive,
                     pressed && styles.pickerChipPressed,
                   ]}
                 >
+                  {/* Package 32: every exercise shows what it practises, schematic and picture. */}
+                  <SubjectThumbs visuals={drillVisuals(d.id)} />
                   <Text
                     style={[
                       styles.pickerChipText,
@@ -1939,14 +1944,14 @@ function Simulator() {
                 </Pressable>
               );
               })}
-            </View>
+            </ScrollView>
           </View>
         ) : null}
 
         {mode === 'mission' ? (
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{missionSelectLabel}</Text>
-            <View style={styles.pickerChips}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pickerCards}>
               {MISSIONS.map((m) => {
                 const isActive = missionState?.missionId === m.id;
                 return (
@@ -1958,10 +1963,13 @@ function Simulator() {
                   accessibilityState={{ selected: isActive }}
                   style={({ pressed }) => [
                     styles.pickerChip,
+                    styles.pickerCard,
                     isActive && styles.pickerChipActive,
                     pressed && styles.pickerChipPressed,
                   ]}
                 >
+                  {/* Package 32: every exercise shows what it practises, schematic and picture. */}
+                  <SubjectThumbs visuals={drillVisuals(m.id)} />
                   <Text
                     style={[
                       styles.pickerChipText,
@@ -1973,7 +1981,7 @@ function Simulator() {
                 </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
         ) : null}
 
@@ -3141,10 +3149,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-  pickerChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  pickerCards: {
+    gap: 8,
+    paddingRight: spacing.sm,
+  },
+  pickerCard: {
+    width: 208,
+    padding: 6,
     gap: 6,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
   },
   pickerChip: {
     paddingHorizontal: spacing.sm,

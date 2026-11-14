@@ -321,6 +321,7 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
 | Банк вопросов sternik (879) | `src/data/sternik.ts` | `/sternik` |
 | Уроки работы с парусами | `src/data/sailing-lab/course.ts` и соседние | `/learn/sails` |
 | «Манёвры»: швартовка на моторе и упражнения под парусом, модель малого хода | `src/data/manoeuvres.ts`, `src/features/manoeuvres/`, `src/lib/harbour-physics/` | `/manoeuvres` |
+| Пара «схема и картинка» у предмета (требование владельца 2026-11-13: обе и везде одинаковые): части яхты, курсы, повороты, ветер, трим, картинки уроков парусов, предметы упражнений | `src/data/anatomy-visuals.ts`, `src/data/sailing-visuals.ts`, матрица `src/data/visual-coverage.test.ts` | глоссарий, `/courses`, `/quick`, `/anatomy`, `/learn/sails`, тренажеры |
 | Информационная архитектура (5 разделов, подписи, маршруты) | `src/lib/product/catalog.ts` | все хабы |
 | Физика скорости яхты (VPP) | `src/lib/sailing-physics/*` | все тренажеры |
 | Язык и переводы | `src/lib/i18n.tsx`, `src/lib/languages.ts` | все |

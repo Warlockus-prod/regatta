@@ -32,7 +32,7 @@ export function PartVisuals({ id, name, labels }: { id: string; name: string; la
         <Text variant="muted" style={styles.caption}>{labels.diagram}</Text>
       </View>
       <View style={[styles.tile, styles.pictureTile]}>
-        <Image source={PART_PICTURE_ASSETS[id]} style={styles.picture} resizeMode="cover" accessible accessibilityRole="image"
+        <Image source={PART_PICTURE_ASSETS[visuals.id]} style={styles.picture} resizeMode="cover" accessible accessibilityRole="image"
           accessibilityLabel={`${name}: ${labels.picture}`} accessibilityIgnoresInvertColors testID="part-picture" />
         <Text variant="muted" style={styles.caption}>{labels.picture}</Text>
       </View>

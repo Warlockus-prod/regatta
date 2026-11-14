@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "a43336d43266",
-  "sha256": "8749489e07c87b06a3265b34ff230573e2ff672ccaf261758dddb55a2d1fe091",
-  "bytes": 7462957,
+  "version": "540d5ea71abb",
+  "sha256": "f4b1f4d3c789f9d78199f12b3cefceed9b306fdbe4afb5307c414e42ff326a31",
+  "bytes": 7635628,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -644,6 +644,7 @@
     "src/components/diagnostics/DiagnosticPanelLoader.tsx",
     "src/components/game-layer.ts",
     "src/components/product/TrainerSwitcher.tsx",
+    "src/components/visuals/SubjectVisuals.tsx",
     "src/data/anatomy-visuals.generated.ts",
     "src/data/anatomy-visuals.ts",
     "src/data/anatomy.ts",
@@ -690,6 +691,7 @@
     "src/data/sailing-lab/telltale-lesson.ts",
     "src/data/sailing-lab/trim-doctor-lesson.ts",
     "src/data/sailing-lab/winch-lesson.ts",
+    "src/data/sailing-visuals.ts",
     "src/data/venues/geometry.ts",
     "src/data/venues/look.ts",
     "src/data/venues/venues.ts",
@@ -917,6 +919,7 @@
     "src/lib/helm-trim.ts",
     "src/lib/languages.ts",
     "src/lib/leaderboard-visibility.ts",
+    "src/lib/learning/foundation-drawings.ts",
     "src/lib/learning/foundation-navigation.ts",
     "src/lib/physical-race-record.ts",
     "src/lib/product/catalog.ts",
@@ -998,8 +1001,8 @@
   "sourceFiles": [
     {
       "path": "mobile/scripts/build-sailing-offline.mjs",
-      "bytes": 13143,
-      "sha256": "10281c2ccfb8f0795f2c1f86818a546daa4355f96a24e5a160e18426692717b4"
+      "bytes": 14587,
+      "sha256": "37528f6cd52d0db394bad162858245548aa743092e6fdc5bc38f3c0554f4e6ed"
     },
     {
       "path": "mobile/scripts/offline-sailing/embed.ts",
@@ -1282,14 +1285,19 @@
       "sha256": "b64b28f5b005ecec0e8ca5382074f51cb4e2230af5bb42be4985910e802006ce"
     },
     {
+      "path": "src/components/visuals/SubjectVisuals.tsx",
+      "bytes": 6396,
+      "sha256": "781fcbd6d8c45d14b8e76ca630fd76a6c4dad864298da7207566917f9efd8293"
+    },
+    {
       "path": "src/data/anatomy-visuals.generated.ts",
       "bytes": 2539,
       "sha256": "e721d89c56fd0503842af2c3e5ac8470532f74651ca95998101c6ca413af23a4"
     },
     {
       "path": "src/data/anatomy-visuals.ts",
-      "bytes": 3750,
-      "sha256": "b8b3e8b64926b9f0ab05bed7063f020717f44b38469acfaae8112e10e759f62d"
+      "bytes": 4064,
+      "sha256": "12b9d64c6352c1779d4aeeacc0c6ce9e99b3679fec46f72b5dadc85da7682717"
     },
     {
       "path": "src/data/anatomy.ts",
@@ -1510,6 +1518,11 @@
       "path": "src/data/sailing-lab/winch-lesson.ts",
       "bytes": 12506,
       "sha256": "5dba124beb968abe087097ffb6b23dac2b474c6079fa2bda67cf9d78593f7ca7"
+    },
+    {
+      "path": "src/data/sailing-visuals.ts",
+      "bytes": 9668,
+      "sha256": "ac78136b05a8930d63948404e3e605023cb0f790db46edde908541209f2ba987"
     },
     {
       "path": "src/data/venues/geometry.ts",
@@ -2218,8 +2231,8 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 51787,
-      "sha256": "fc148e598969884fe997f86f1927cdbe7f71db1e3f1da30de28e74605a843309"
+      "bytes": 51950,
+      "sha256": "a0f807ca9c0c77fde7948daca28bfec2df8242e71feabc940b5d32b350902254"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -2253,8 +2266,8 @@
     },
     {
       "path": "src/features/simulator-v3/runtime/deep-link.ts",
-      "bytes": 3124,
-      "sha256": "9cae573011ced7a423d9c0e61853caf80380791a9a4fdac876cc761dd1a05cd9"
+      "bytes": 3765,
+      "sha256": "8c13c3caacefc0c6296a5c0316323fd5f7835af3e274f2410e93018793b5a074"
     },
     {
       "path": "src/features/simulator-v3/runtime/drill-clock.ts",
@@ -2348,8 +2361,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/panels/DrillCard.tsx",
-      "bytes": 9352,
-      "sha256": "5374148fddc1013cf7c32205dd498e640713e26acee043698554f10ec0e9b2bc"
+      "bytes": 9634,
+      "sha256": "f210b9e749f815a3b48d6dae10c2e95d27cfae58fc46f84ddd5834040afbd19e"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/ModeBar.tsx",
@@ -2358,8 +2371,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/panels/ScenarioPicker.tsx",
-      "bytes": 2351,
-      "sha256": "90d3a38b983e6f036cc6e8d3970428aae3109306d382ee649afaa2445988ec10"
+      "bytes": 2633,
+      "sha256": "e2c4813eb32b9d97ff59df1d7e61ef79dde62332b20db5eb7756e5baa7565c8b"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/TourOverlay.tsx",
@@ -2645,6 +2658,11 @@
       "path": "src/lib/leaderboard-visibility.ts",
       "bytes": 1592,
       "sha256": "082950cdcadc2adc473a10f8e564007b8403affdf64780a5fac92b2386e34e97"
+    },
+    {
+      "path": "src/lib/learning/foundation-drawings.ts",
+      "bytes": 22695,
+      "sha256": "53e212f6d9d9d34f97f1aa1bdcddf9499726882b28e8bddd350f466ac0abf0db"
     },
     {
       "path": "src/lib/learning/foundation-navigation.ts",
@@ -3167,6 +3185,31 @@
       "path": "public/anatomy/diagram/top.webp",
       "bytes": 18566,
       "sha256": "a336fbd9de9887f10d7a878067a87c34779123c0fe22c70f3234950850318163"
+    },
+    {
+      "path": "public/learning/subjects/beam-reach.webp",
+      "bytes": 20504,
+      "sha256": "4c9d56781cec0b6c690cce1b5e8decdcd218f6bbdb4b1b570785eccf1977e034"
+    },
+    {
+      "path": "public/learning/subjects/heeling.webp",
+      "bytes": 26216,
+      "sha256": "8a455913427072b976dfb6633b54be797f7b471e57ad5aa07aa2d3d6ddc12f26"
+    },
+    {
+      "path": "public/learning/subjects/leech.webp",
+      "bytes": 25190,
+      "sha256": "be9592c461a9d753198fafb4f780cf9133407c3ab5792a37245a20576db86db6"
+    },
+    {
+      "path": "public/learning/subjects/slot.webp",
+      "bytes": 25340,
+      "sha256": "0cb8cde8cb402250542ac8b1085cd4e88cf4b381ab6eec4ee48f7cdb62e1ce9c"
+    },
+    {
+      "path": "public/learning/subjects/trim.webp",
+      "bytes": 23434,
+      "sha256": "9c84d785217d87d45a1c95bc8546d5a68763ae1cadc75e69a672ad3729af43c9"
     },
     {
       "path": "public/fonts/source-sans-3/SourceSans3VF-Upright.woff2",

@@ -1,10 +1,11 @@
 import { PartVisuals } from "@/components/anatomy/PartVisuals";
 import { partVisuals } from "@/data/anatomy-visuals";
-import { sailingVisuals } from "@/data/sailing-visuals";
+import { sailLessonPicture, sailingVisuals, type SailingVisuals } from "@/data/sailing-visuals";
 
 /**
  * Package 32: the two visuals of a subject, whatever kind it is: a part of the yacht
- * (src/data/anatomy-visuals.ts) or a point of sail or turn (src/data/sailing-visuals.ts).
+ * (src/data/anatomy-visuals.ts) or a sailing subject: a point of sail, a turn, wind, trim
+ * (src/data/sailing-visuals.ts).
  * A page passes the id of the item it shows and gets the same schematic and picture every other
  * section shows for that subject, or nothing when the item is not one of these subjects.
  * `labels` are the two captions (UI_TERMS.visualDiagram and visualOnBoat in the reader's language).
@@ -33,7 +34,8 @@ export function SubjectVisuals({ id, name, labels, className }: { id: string; na
 }
 
 const TILE = { margin: 0, display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 8, border: "1px solid var(--border-subtle)", background: "#f5f3ee" } as const;
-const CAPTION = { padding: "4px 8px", textAlign: "center", fontSize: 12, lineHeight: "16px", color: "#3f5568" } as const;
+// margin 0: a caption inside a lesson's figure would take that figure's caption margins.
+const CAPTION = { margin: 0, padding: "4px 8px", textAlign: "center", fontSize: 12, lineHeight: "16px", color: "#3f5568" } as const;
 
 /** The subjects a section teaches, each with its two visuals and its name, in one strip that scrolls sideways. */
 export function SubjectStrip({ ids, names, labels, title }: { ids: readonly string[]; names: (id: string) => string; labels: { diagram: string; picture: string }; title: string }) {
@@ -50,5 +52,39 @@ export function SubjectStrip({ ids, names, labels, title }: { ids: readonly stri
         ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * The same pair as two small tiles without captions, for a card that already names its subject
+ * (an exercise of the trainer: drillVisuals in src/data/sailing-visuals.ts). The card's own text
+ * is the label, so the tiles are hidden from assistive technology.
+ */
+export function SubjectThumbs({ visuals, width = 232 }: { visuals: SailingVisuals | null; width?: number }) {
+  if (!visuals) return null;
+  const svg = visuals.schematic().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" style="display:block;width:100%;height:auto"');
+  return (
+    <div aria-hidden="true" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 6, width: "100%", maxWidth: width, marginTop: 8 }} data-testid="subject-thumbs" data-subject={visuals.id}>
+      <div style={THUMB} dangerouslySetInnerHTML={{ __html: svg }} />
+      {/* eslint-disable-next-line @next/next/no-img-element -- A static, pre-sized picture; the offline bundle has no image optimizer. */}
+      <img src={visuals.picture.src} width={visuals.picture.width} height={visuals.picture.height} alt="" loading="lazy" decoding="async"
+        style={{ ...THUMB, display: "block", width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }} />
+    </div>
+  );
+}
+const THUMB = { overflow: "hidden", borderRadius: 6, border: "1px solid var(--border-subtle)", background: "#f5f3ee" } as const;
+
+/** The picture of a sail lesson (sailLessonPicture), beside the lesson's own drawing. `labels` are the two possible captions, `name` the lesson's title. */
+export function LessonPicture({ lessonId, name, labels, className }: { lessonId: string; name: string; labels: { boat: string; water: string }; className?: string }) {
+  const picture = sailLessonPicture(lessonId);
+  if (!picture) return null;
+  const label = "part" in picture.asset ? labels.boat : labels.water;
+  return (
+    <figure className={className} style={{ ...TILE, maxWidth: 360, marginTop: 16 }} data-testid="lesson-picture">
+      {/* eslint-disable-next-line @next/next/no-img-element -- A static, pre-sized picture; the offline bundle has no image optimizer. */}
+      <img src={picture.src} width={picture.width} height={picture.height} alt={`${name}: ${label}`} loading="lazy" decoding="async"
+        style={{ display: "block", width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }} />
+      <figcaption style={CAPTION}>{label}</figcaption>
+    </figure>
   );
 }
