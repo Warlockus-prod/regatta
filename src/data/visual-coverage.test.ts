@@ -12,7 +12,7 @@ import { onboardSections } from "./onboard";
 import { ruleScenarios } from "./rules";
 import { glossaryTerms, pointsOfSail, racingRules, racingStrategies } from "./sailing-data";
 import { sailLessons } from "./sailing-lab/course";
-import { SAILING_SECTIONS, drillVisuals, sailLessonPicture, sailingSubject } from "./sailing-visuals";
+import { SAILING_SECTIONS, drillVisuals, foundationLessonVisuals, ruleVisuals, sailLessonPicture, sailingSubject, tacticsVisuals } from "./sailing-visuals";
 import { STERNIK_BANK } from "./sternik";
 
 // Package 32 (owner 2026-11-13: "walk the whole tree, every screen: nothing present in one
@@ -35,15 +35,19 @@ const sectionsWithParts = (page: keyof typeof PART_SECTIONS) => (section: { id: 
 
 const matrix: Record<string, Row> = {
   // Learn
-  // Every lesson draws its scene by id (src/lib/learning/foundation-drawings.ts); one has a photo pair (src/app/start/FoundationClient.tsx).
-  "learn/from-scratch lessons": count(bootcampLessons, all, lesson => lesson.id === "how-sail-works"),
+  // Every lesson draws its scene by id (src/lib/learning/foundation-drawings.ts); one has a photo pair
+  // (src/app/start/FoundationClient.tsx), the others the picture of their subject (FOUNDATION_LESSON_SUBJECTS).
+  "learn/from-scratch lessons": count(bootcampLessons, all, lesson => lesson.id === "how-sail-works" || foundationLessonVisuals(lesson.id) !== null),
   // Every lesson draws its own diagram; its picture is named in SAIL_LESSON_PICTURES (src/data/sailing-visuals.ts).
   "learn/sails lessons": count(sailLessons, lesson => Boolean(lesson.diagram), lesson => sailLessonPicture(lesson.id) !== null),
   "learn/15-minute cards": count(quickRefreshLessons, card => card.id in SAILING_SECTIONS.quick, card => card.id in SAILING_SECTIONS.quick),
-  "learn/racing rules cards": count(ruleScenarios, card => Boolean(card.svg), none),
-  // Site: a diagram per strategy and per rule (src/app/racing/page.tsx); the app has none for the four rules.
-  "learn/tactics strategies": count(racingStrategies, all, none),
-  "learn/tactics right-of-way rules": count(racingRules, all, none),
+  // A card draws one of eight diagrams; its picture is that subject's frame of the race scene (ruleVisuals).
+  // Five cards of the collision regulations have none: the scene has no motor vessel, channel or night.
+  "learn/racing rules cards": count(ruleScenarios, card => Boolean(card.svg), card => ruleVisuals(card) !== null),
+  // A diagram per strategy and per rule (src/app/racing/page.tsx; in the app the rules show the rule card's
+  // diagram) and the picture of its subject (tacticsVisuals).
+  "learn/tactics strategies": count(racingStrategies, all, strategy => tacticsVisuals(strategy.id) !== null),
+  "learn/tactics right-of-way rules": count(racingRules, all, rule => tacticsVisuals(rule.id) !== null),
   "learn/points of sail": count(pointsOfSail, point => sailingSubject(point.id) !== null, point => sailingSubject(point.id) !== null),
   "learn/radio theory chapters": count(THEORY_CHAPTERS, chapter => Boolean(chapter.diagram), none),
   "learn/motorboat questions": count(STERNIK_BANK, question => Boolean(question.figure), question => Boolean(question.photo)),
@@ -65,12 +69,12 @@ const matrix: Record<string, Row> = {
 describe("visual coverage of the whole product", () => {
   it("matches the recorded matrix, row by row", () => {
     expect(matrix).toEqual({
-      "learn/from-scratch lessons": { items: 8, schematic: 8, picture: 1, both: 1 },
+      "learn/from-scratch lessons": { items: 8, schematic: 8, picture: 8, both: 8 },
       "learn/sails lessons": { items: 13, schematic: 13, picture: 13, both: 13 },
-      "learn/15-minute cards": { items: 6, schematic: 3, picture: 3, both: 3 },
-      "learn/racing rules cards": { items: 21, schematic: 21, picture: 0, both: 0 },
-      "learn/tactics strategies": { items: 4, schematic: 4, picture: 0, both: 0 },
-      "learn/tactics right-of-way rules": { items: 4, schematic: 4, picture: 0, both: 0 },
+      "learn/15-minute cards": { items: 6, schematic: 6, picture: 6, both: 6 },
+      "learn/racing rules cards": { items: 21, schematic: 21, picture: 16, both: 16 },
+      "learn/tactics strategies": { items: 4, schematic: 4, picture: 4, both: 4 },
+      "learn/tactics right-of-way rules": { items: 4, schematic: 4, picture: 4, both: 4 },
       "learn/points of sail": { items: 5, schematic: 5, picture: 5, both: 5 },
       "learn/radio theory chapters": { items: 18, schematic: 18, picture: 0, both: 0 },
       "learn/motorboat questions": { items: 879, schematic: 9, picture: 8, both: 0 },
@@ -79,13 +83,14 @@ describe("visual coverage of the whole product", () => {
       "practice/radio scenarios": { items: 19, schematic: 0, picture: 0, both: 0 },
       "race/missions": { items: 4, schematic: 0, picture: 0, both: 0 },
       "library/yacht parts": { items: 17, schematic: 17, picture: 17, both: 17 },
-      "library/glossary terms": { items: 56, schematic: 32, picture: 32, both: 32 },
+      "library/glossary terms": { items: 56, schematic: 41, picture: 41, both: 41 },
       "library/checklist sections": { items: 9, schematic: 1, picture: 1, both: 1 },
       "library/onboard sections": { items: 12, schematic: 2, picture: 2, both: 2 },
     });
   });
 
-  it("has finished rows to copy: yacht parts, points of sail, sail lessons and trainer exercises all have both visuals", () => {
-    for (const row of ["library/yacht parts", "learn/points of sail", "learn/sails lessons", "practice/trainer drills"]) expect(matrix[row].both, row).toBe(matrix[row].items);
+  it("has finished rows: yacht parts, points of sail, both courses of lessons, the 15-minute cards, tactics and trainer exercises all have both visuals", () => {
+    for (const row of ["library/yacht parts", "learn/points of sail", "learn/sails lessons", "learn/from-scratch lessons", "learn/15-minute cards", "learn/tactics strategies",
+      "learn/tactics right-of-way rules", "practice/trainer drills"]) expect(matrix[row].both, row).toBe(matrix[row].items);
   });
 });

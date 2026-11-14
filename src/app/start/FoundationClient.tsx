@@ -19,6 +19,9 @@ import { useI18n } from "@/lib/i18n";
 import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from "@/data/no-go-zone";
 import { RaceReturn } from "@/components/RaceReturn";
 import { legacyPick } from "@/lib/languages";
+import { foundationLessonVisuals } from "@/data/sailing-visuals";
+import { SubjectPicture } from "@/components/visuals/SubjectVisuals";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { renderScene, SCENE_HEIGHT, SCENE_WIDTH, type SceneId } from "@/lib/learning/foundation-drawings";
 import { foundationPracticeHref, foundationSteps, isFoundationLesson, passedFoundationIds, theoryResult, updateFoundationCheck, updateFoundationDraft, updateFoundationPractice, type FoundationAnswers, type FoundationStep } from "@/lib/learning/foundation-progress";
 import { destinations } from "@/lib/product/catalog";
@@ -117,6 +120,8 @@ export default function FoundationClient({ guides, shapeCopy, miniTasks }: { gui
 
             {guides[id] && <>
               <ul className={styles.legend}>{guides[id].legend.map((label, index) => <li key={index}>{label[lang]}</li>)}</ul>
+              {/* Package 32: the same subject in the 3D scene, under the lesson's drawing. */}
+              <SubjectPicture visuals={foundationLessonVisuals(id)} name={legacyPick(lesson, "title", lang)} label={UI_TERMS.visualOnWater[lang]} />
               {guides[id].explanation && <><h3>{lessonCopy.explanation[lang]}</h3>{guides[id].explanation.map((paragraph, index) => <p key={index}>{paragraph[lang]}</p>)}</>}
               <h3>{copy.mistake[lang]}</h3><p>{guides[id].mistake[lang]}</p>
               <h3>{copy.limit[lang]}</h3><p className={styles.secondary}>{guides[id].limit[lang]}</p>

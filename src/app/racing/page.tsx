@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { legacyPick, type Lang } from '@/lib/languages';
 import { racingStrategies, racingRules } from '@/data/sailing-data';
+import { tacticsVisuals } from '@/data/sailing-visuals';
+import { SubjectPicture } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
@@ -375,8 +378,10 @@ function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[nu
       >
         <div className="px-5 pb-5 space-y-4">
           {/* Diagram */}
-          <div className="max-w-xs mx-auto">
+          <div className="max-w-xs mx-auto space-y-2">
             {strategyDiagrams[strategy.id]}
+            {/* Package 32: the same leg in the race scene, beside the diagram. */}
+            <SubjectPicture visuals={tacticsVisuals(strategy.id)} name={title} label={UI_TERMS.visualOnWater[lang]} />
           </div>
 
           {/* Tips */}
@@ -819,8 +824,9 @@ export default function RacingPage() {
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
                 {lang !== 'en' && <p className="text-xs text-[var(--text-muted)] italic">{rule.descriptionEn}</p>}
 
-                <div className="max-w-[200px]">
+                <div className="grid max-w-[416px] grid-cols-2 items-start gap-2">
                   {ruleDiagrams[rule.id]}
+                  <SubjectPicture visuals={tacticsVisuals(rule.id)} name={title} label={UI_TERMS.visualOnWater[lang]} />
                 </div>
               </div>
               );

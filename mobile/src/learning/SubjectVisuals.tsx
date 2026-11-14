@@ -97,3 +97,18 @@ const styles = StyleSheet.create({
   stripItem: { width: 288 },
   stripName: { marginTop: 4, fontWeight: "600" },
 });
+
+/**
+ * The picture alone, for a screen that draws its own labelled diagram of the subject (a rule
+ * card, the tactics screen): ruleVisuals and tacticsVisuals in src/data/sailing-visuals.ts.
+ */
+export function SubjectPicture({ visuals, name, label }: { visuals: SailingVisuals | null; name: string; label: string }) {
+  if (!visuals) return null;
+  return (
+    <View style={styles.tile} testID="subject-picture-tile">
+      <Image source={SUBJECT_PICTURE_ASSETS[visuals.id]} style={styles.picture} resizeMode="cover" accessible accessibilityRole="image"
+        accessibilityLabel={`${name}: ${label}`} accessibilityIgnoresInvertColors />
+      <Text variant="muted" style={styles.caption}>{label}</Text>
+    </View>
+  );
+}

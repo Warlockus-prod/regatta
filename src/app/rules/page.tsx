@@ -5,6 +5,9 @@ import { RaceReturn } from '@/components/RaceReturn';
 import { ruleFromSearch } from './rule-from-search';
 import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
+import { ruleVisuals } from '@/data/sailing-visuals';
+import { SubjectPicture } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import CoursesSection from './CoursesSection';
@@ -274,11 +277,15 @@ export default function RulesPage() {
               {isOpen && (
                 <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
                   {/* Illustration */}
+                  <div className="space-y-2">
                   <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.9)' }}>
                     <SvgComp />
                     <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
                       {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali', { es: 'esquemático, no a escala', fr: "schématique, pas à l'échelle", de: 'schematisch, nicht maßstabsgetreu', it: 'schematico, non in scala' })}
                     </div>
+                  </div>
+                  {/* Package 32: the same situation in the race scene, beside the diagram. */}
+                  <SubjectPicture visuals={ruleVisuals(r)} name={pickTitle(r)} label={UI_TERMS.visualOnWater[lang]} />
                   </div>
 
                   {/* Content */}
@@ -402,11 +409,15 @@ export default function RulesPage() {
 
               {isOpen && (
                 <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
+                  <div className="space-y-2">
                   <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.9)' }}>
                     <SvgComp />
                     <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
                       {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali', { es: 'esquemático, no a escala', fr: "schématique, pas à l'échelle", de: 'schematisch, nicht maßstabsgetreu', it: 'schematico, non in scala' })}
                     </div>
+                  </div>
+                  {/* Package 32: the same situation in the race scene, beside the diagram. */}
+                  <SubjectPicture visuals={ruleVisuals(r)} name={pickTitle(r)} label={UI_TERMS.visualOnWater[lang]} />
                   </div>
                   <div className="space-y-4 text-sm">
                     <div>

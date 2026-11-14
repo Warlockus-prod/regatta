@@ -18,7 +18,7 @@ import {
 import { METRES_PER_UNIT, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "@/features/race-3d/pose";
 import { distance } from "@/lib/race-physics";
 import type { RaceGuidance } from "@/lib/race-guidance";
-import { chaseCameraPose, createChasePose, raceCameraPose, raceViewPose } from "./orbit-camera";
+import { chaseCameraPose, createChasePose, raceCameraPose, raceViewPose, stageCameraPose, type StageView } from "./orbit-camera";
 import { CHASE_START, CHASE_TUNE, RACE_TUNE, RACE_VIEW, chaseStep, follow, type ChaseState } from "./camera";
 import type { OrbitControls } from "three-stdlib";
 import { prefersReducedMotion } from "@/features/race-hud/feedback";
@@ -413,7 +413,7 @@ function GpuFailure({ failed }: { failed: boolean }) {
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "race", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started, softLight = false, sailFlow = false, sailFlowCoachRef, sailFlowOwnTrim = false }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "race", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false, ghostRef, ghostLabel, racing, raceProfile = null, contactId, started, softLight = false, sailFlow = false, sailFlowCoachRef, sailFlowOwnTrim = false, stage = null }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -455,6 +455,9 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   sailFlowCoachRef?: MutableRefObject<CoachKey | null>;
   /** F6: the player trims the sails (Pro); without advice the ribbons then only show the arriving air. */
   sailFlowOwnTrim?: boolean;
+  /** A staged picture (src/app/dev/race-stage): no tactical overlay, no name tags, no distance over
+   * the mark, and the camera stands where the stage says instead of following a preset. */
+  stage?: StageView | null;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
   const windLayers = raceWindLayers(showWind, sailFlow);
@@ -513,10 +516,11 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   }, [boatsRef, windDirRef]);
   const cameraPose = useCallback((aspect: number) => {
     const player = playerOf(boatsRef.current);
+    if (stage) return stageCameraPose(stage, player ? toWorld(player.pos) : { x: 0, z: 0 });
     const target = player ? nextTarget(player, courseRef.current) : null;
     return raceCameraPose(camera, player ? racePose(player, windDirRef.current) : NEUTRAL_YACHT, aspect, { player: player ? toWorld(player.pos) : { x: 0, z: 0 },
       target: target ? toWorld(target) : null, windFrom: windDirRef.current }, { hull, speedKn: player?.speed ?? 0 });
-  }, [camera, boatsRef, courseRef, windDirRef, hull]);
+  }, [camera, boatsRef, courseRef, windDirRef, hull, stage]);
   const readBoats = useCallback(() => boatsRef.current.map(boat => ({
     id: boat.id, travel: toWorld(boat.pos), heading: boat.heading, speedKn: boat.speed,
   })), [boatsRef]);
@@ -554,14 +558,14 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
         >
           <SailingEnvironment venue={venue} look={venueLook(venue.id)} soft={softLight} readState={readState} readBoats={readBoats} originRef={originRef} quality={profile} />
-          <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} marks={markLook} />
+          <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={stage ? "" : targetLabel} land={false} marks={markLook} beacon={!stage} />
           {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} model={tactics} />}
-          <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} copyRef={arrowCopyRef} />
+          {!stage && <TacticalOverlay boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} originRef={originRef} model={tactics} arrowRef={arrowRef} hintRef={hintRef} copyRef={arrowCopyRef} />}
           <Suspense fallback={null}>
             <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={windLayers.arrows} />
             <BowSpray boatsRef={boatsRef} profileRef={profileRef} />
             {windLayers.ribbons && <SailFlow boatsRef={boatsRef} windDirRef={windDirRef} coachRef={sailFlowCoachRef} ownTrim={sailFlowOwnTrim} />}
-            {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />)}
+            {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={stage ? "" : r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />)}
             {ghostRef && ghostLabel && <Rival id="ghost" color="#9aa7b4" label={ghostLabel} boatsRef={ghostRef} windDirRef={windDirRef} originRef={originRef} farPxRef={farPxRef} />}
             <WarmShaders gateRef={gateRef}><FirstSceneFrame onReady={ready} /></WarmShaders>
           </Suspense>

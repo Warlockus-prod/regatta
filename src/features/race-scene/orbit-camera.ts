@@ -17,6 +17,19 @@ export function raceCameraPose(preset: RaceCamera, state: YachtState, aspect: nu
   return { position: new Vector3(...pose.position), target: new Vector3(...pose.look), fov: pose.fov };
 }
 
+/** Where a staged picture is taken from (src/app/dev/race-stage): the camera stands `from` that
+ * compass bearing off `centre` (world metres; 180 is south of it, looking north), `range` metres
+ * away, looking down by `pitch` degrees. */
+export interface StageView { centre: { x: number; z: number }; from: number; pitch: number; range: number }
+
+/** The pose of a staged picture, in the scene's frame (the player at the origin). */
+export function stageCameraPose(view: StageView, player: { x: number; z: number }) {
+  const bearing = view.from * Math.PI / 180, pitch = view.pitch * Math.PI / 180;
+  const x = view.centre.x - player.x, z = view.centre.z - player.z;
+  const back = view.range * Math.cos(pitch);
+  return { position: new Vector3(x + Math.sin(bearing) * back, view.range * Math.sin(pitch), z - Math.cos(bearing) * back), target: new Vector3(x, 3, z), fov: 42 };
+}
+
 export interface ChasePose { position: Vector3; target: Vector3; fov: number }
 /** A pose to fill every frame (chaseCameraPose `out`). */
 export const createChasePose = (): ChasePose => ({ position: new Vector3(), target: new Vector3(), fov: 0 });

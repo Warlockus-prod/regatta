@@ -266,7 +266,7 @@ export function Rival({ id, color, label, boatsRef, windDirRef, originRef, farPx
           <group ref={farJib} position={FAR_JIB_RIG as [number, number, number]}><mesh geometry={shared.jib} material={shared.sail} /></group>
         </group>
       </group>
-      <NameTag text={label} color={color} />
+      {label && <NameTag text={label} color={color} />}
     </group>
   );
 }
@@ -495,8 +495,10 @@ const Land = memo(function Land({ venue }: { venue: Venue }) {
 });
 
 /** Everything fixed to the race area, shifted so the player stays at the origin. */
-export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land = true, marks = PLAIN_MARK }: {
+export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land = true, marks = PLAIN_MARK, beacon = true }: {
   venue: Venue;
+  /** False in a staged picture (src/app/dev/race-stage): no column over the next mark. */
+  beacon?: boolean;
   /** F4: how the course marks are drawn (the distance halo; larger and lit under the softer light). */
   marks?: MarkLook;
   /** False when the caller draws the land itself (the next race scene, ADR-0008). */
@@ -545,7 +547,7 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
       {course && !finishSame && <LineDashes a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
       {/* Where to sail next: the same target the race counts, and how far.
           Package 8: a steady beacon column from the water, seen from afar. */}
-      <group ref={pointer} name="mark-beacon">
+      <group ref={pointer} name="mark-beacon"><group visible={beacon}>
         <mesh position-y={BEACON_HEIGHT / 2 - 15} renderOrder={6}>
           <cylinderGeometry args={[1.6, 1.6, BEACON_HEIGHT, 8, 1, true]} />
           <meshBasicMaterial color={GUIDANCE_COLOR} transparent opacity={0.45} depthWrite={false} fog={false} toneMapped={false} />
@@ -556,7 +558,7 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
         </mesh>
         {/* The distance stays low on the column, under the horizon, where the HUD corners do not cover it. */}
         {targetLabel && <NameTag text={targetLabel} y={5} />}
-      </group>
+      </group></group>
     </group>
   );
 }

@@ -9,9 +9,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { render } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
-import { glossaryTerms, maneuvers, pointsOfSail, quickRefreshLessons } from "../src/data";
-import { COURSE_SUBJECTS, DRILL_SUBJECTS, LESSON_FRAME_IDS, SAILING_SECTIONS, SAILING_SUBJECT_IDS, SAIL_LESSON_PICTURES, drillVisuals, sailingSubject, sailingVisuals } from "../../src/data/sailing-visuals";
-import { LessonPicture, SubjectStrip, SubjectThumbs, SubjectVisuals } from "../src/learning/SubjectVisuals";
+import { glossaryTerms, maneuvers, pointsOfSail, quickRefreshLessons, racingRules, racingStrategies, ruleScenarios } from "../src/data";
+import { COURSE_SUBJECTS, DRILL_SUBJECTS, LESSON_FRAME_IDS, SAILING_SECTIONS, SAILING_SUBJECT_IDS, SAIL_LESSON_PICTURES, drillVisuals, foundationLessonVisuals, ruleVisuals, sailingSubject, sailingVisuals, tacticsVisuals } from "../../src/data/sailing-visuals";
+import { LessonPicture, SubjectPicture, SubjectStrip, SubjectThumbs, SubjectVisuals } from "../src/learning/SubjectVisuals";
 import { SUBJECT_PICTURE_ASSETS } from "../src/learning/subject-pictures.generated";
 import { PART_PICTURE_ASSETS } from "../src/anatomy/part-visuals.generated";
 import { DRILLS, MISSIONS } from "../src/simulator/missions";
@@ -81,9 +81,26 @@ it("wires the same registry into every native screen that teaches these subjects
   expect(source("app/courses/index.tsx")).toContain("<SubjectVisuals id={maneuver.id}");
   expect(source("app/quick/index.tsx")).toContain("sailingSectionSubjects('quick', lesson.id)");
   // The app's own data has the terms and cards the registry names.
-  expect(glossaryTerms.map(term => term.id).filter(id => sailingSubject(id) !== null)).toHaveLength(22);
+  expect(glossaryTerms.map(term => term.id).filter(id => sailingSubject(id) !== null)).toHaveLength(31);
   expect(source("src/sailing/SailingCourseScreen.tsx")).toContain("<LessonPicture lessonId={lesson.id}");
   expect(source("app/simulator/index.tsx")).toContain("<SubjectThumbs visuals={drillVisuals(d.id)} />");
   for (const card of Object.keys(SAILING_SECTIONS.quick)) expect(quickRefreshLessons.some(lesson => lesson.id === card)).toBe(true);
   for (const id of SAILING_SUBJECT_IDS) expect(sailingVisuals(id)!.schematic()).toContain('viewBox="0 0 800 600"');
+});
+
+it("shows the picture of the race subject a rule card, a tactic or a first lesson draws", () => {
+  const source = (file: string) => readFileSync(join(__dirname, "..", file), "utf8");
+  // The app's own copies of the rules and the tactics are the ones the registry names.
+  expect(ruleScenarios.filter(rule => ruleVisuals(rule)).length).toBe(16);
+  for (const item of [...racingStrategies, ...racingRules]) expect(SUBJECT_PICTURE_ASSETS[tacticsVisuals(item.id)!.id]).toBeDefined();
+  const rule = ruleScenarios.find(item => item.id === "mark-room")!;
+  const shown = render(<SubjectPicture visuals={ruleVisuals(rule)} name="Mark-room" label="On the water" />);
+  expect(shown.getByLabelText("Mark-room: On the water").props.source).toBe(SUBJECT_PICTURE_ASSETS["mark-room"]);
+  // A card the scene cannot show (lights at night) has no picture rather than a wrong one.
+  expect(render(<SubjectPicture visuals={ruleVisuals(ruleScenarios.find(item => item.id === "colregs-lights-basics")!)} name="x" label="y" />).toJSON()).toBeNull();
+  expect(foundationLessonVisuals("simple-rules")!.id).toBe("port-vs-starboard");
+  expect(source("app/rules/[id].tsx")).toContain("<SubjectPicture visuals={ruleVisuals(scenario)}");
+  expect(source("app/racing/index.tsx")).toContain("<SubjectPicture visuals={ruleVisual}");
+  expect(source("app/racing/index.tsx")).toContain("<SubjectPicture visuals={tacticsVisuals(strategy.id)}");
+  expect(source("src/bootcamp/FoundationScene.tsx")).toContain("<SubjectPicture visuals={foundationLessonVisuals(id)}");
 });

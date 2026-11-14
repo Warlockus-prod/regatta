@@ -1,27 +1,30 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { partVisuals } from "./anatomy-visuals";
-import { quickRefreshLessons } from "./bootcamp";
+import { bootcampLessons, quickRefreshLessons } from "./bootcamp";
 import { trainerCatalog } from "./drills";
-import { glossaryTerms, maneuvers, pointsOfSail } from "./sailing-data";
+import { ruleScenarios } from "./rules";
+import { glossaryTerms, maneuvers, pointsOfSail, racingRules, racingStrategies } from "./sailing-data";
 import { sailLessons } from "./sailing-lab/course";
 import {
-  COURSE_SUBJECTS, DRILL_SUBJECTS, HEEL_SHOWN_DEG, LESSON_FRAME_IDS, SAILING_PICTURE_SIZE, SAILING_SECTIONS, SAILING_SUBJECT_ALIASES, SAILING_SUBJECT_IDS,
-  SAIL_LESSON_PICTURES, TRIM_SUBJECTS, WIND_SUBJECTS, drillVisuals, sailLessonPicture, sailingSectionSubjects, sailingSubject, sailingVisuals,
+  COURSE_SUBJECTS, DRILL_SUBJECTS, FOUNDATION_LESSON_SUBJECTS, HEEL_SHOWN_DEG, LESSON_FRAME_IDS, RACE_SUBJECTS, RULES_WITHOUT_PICTURE, SAILING_PICTURE_SIZE, SAILING_SECTIONS,
+  SAILING_SUBJECT_ALIASES, SAILING_SUBJECT_IDS, SAIL_LESSON_PICTURES, TACTICS_SUBJECTS, TRIM_SUBJECTS, WIND_SUBJECTS, drillVisuals, foundationLessonVisuals, ruleVisuals,
+  sailLessonPicture, sailingSectionSubjects, sailingSubject, sailingVisuals, tacticsVisuals,
 } from "./sailing-visuals";
 
 const isWebp = (file: string) => { const bytes = readFileSync(file); return bytes.toString("ascii", 0, 4) + bytes.toString("ascii", 8, 12) === "RIFFWEBP"; };
 
-// Package 32. Contract: every sailing subject (point of sail, turn, wind, trim) has BOTH a
-// schematic and a picture, the same in every section; every section that teaches one reads it
-// from the registry; every sail lesson has a picture and every trainer exercise has both.
+// Package 32. Contract: every sailing subject (point of sail, turn, wind, trim, the race) has BOTH
+// a schematic and a picture, the same in every section; every section that teaches one reads it
+// from the registry; every sail lesson and "From scratch" lesson has a picture, every trainer
+// exercise has both, and a rule card or a tactic shows the picture of the subject it draws.
 describe("sailing subjects: a schematic and a picture for each", () => {
   it("covers every point of sail of the data, the two turns that have steps and every wind term of the glossary", () => {
     const turns = maneuvers.filter(turn => (turn.stepsRu?.length ?? 0) > 0).map(turn => turn.id);
     expect(Object.keys(COURSE_SUBJECTS)).toEqual([...pointsOfSail.map(point => point.id), ...turns]);
     expect(turns).toEqual(["tacking", "jibing"]);
     expect(Object.keys(WIND_SUBJECTS)).toEqual(glossaryTerms.filter(term => term.category === "wind").map(term => term.id));
-    expect(SAILING_SUBJECT_IDS).toEqual([...Object.keys(COURSE_SUBJECTS), ...Object.keys(WIND_SUBJECTS), ...Object.keys(TRIM_SUBJECTS)]);
+    expect(SAILING_SUBJECT_IDS).toEqual([...Object.keys(COURSE_SUBJECTS), ...Object.keys(WIND_SUBJECTS), ...Object.keys(TRIM_SUBJECTS), ...Object.keys(RACE_SUBJECTS)]);
   });
 
   it("draws each point of sail inside the range the data gives it", () => {
@@ -61,17 +64,21 @@ describe("sailing subjects: a schematic and a picture for each", () => {
   });
 
   it("resolves the glossary's names for the same subjects, and nothing else", () => {
-    const direct = ["true-wind", "apparent-wind", "windward", "leeward", "gust", "lull", "wind-shift", "trim", "halyard", "luff-sail", "leech", "heeling"];
+    const direct = ["true-wind", "apparent-wind", "windward", "leeward", "gust", "lull", "wind-shift", "trim", "halyard", "luff-sail", "leech", "heeling", "vmg", "vmc"];
     const shared = glossaryTerms.map(term => term.id).filter(id => sailingSubject(id) !== null).sort();
-    expect(shared).toEqual([...Object.keys(SAILING_SUBJECT_ALIASES), ...direct].sort());
-    expect(shared).toHaveLength(22);
+    // "beating" is a manoeuvre of the points-of-sail page, not a glossary term.
+    expect(shared).toEqual([...Object.keys(SAILING_SUBJECT_ALIASES).filter(id => id !== "beating"), ...direct].sort());
+    expect(shared).toHaveLength(31);
+    expect(maneuvers.some(turn => turn.id === "beating")).toBe(true);
+    expect(sailingVisuals("beating")!.id).toBe("upwind");
+    expect(sailingVisuals("race-right-of-way")!.id).toBe("port-vs-starboard");
     expect(sailingVisuals("no-go-zone")!.id).toBe("in-irons");
     expect(sailingVisuals("man-tacking")!.id).toBe("tacking");
     expect(sailingVisuals("man-luffing")!.id).toBe("luffing");
-    for (const id of ["man-heaving-to", "port", "constructor", "toString"]) expect(sailingVisuals(id), id).toBeNull();
-    // With the yacht parts (and "a sheet", shown by the mainsheet) 32 of the glossary's terms have the pair.
+    for (const id of ["man-heaving-to", "port", "race-protest", "start", "constructor", "toString"]) expect(sailingVisuals(id), id).toBeNull();
+    // With the yacht parts (and "a sheet", shown by the mainsheet) 41 of the glossary's terms have the pair.
     expect(partVisuals("sheet")!.id).toBe("mainsheet");
-    expect(glossaryTerms.filter(term => partVisuals(term.id) || sailingSubject(term.id)).length).toBe(32);
+    expect(glossaryTerms.filter(term => partVisuals(term.id) || sailingSubject(term.id)).length).toBe(41);
     for (const term of glossaryTerms) expect(Boolean(partVisuals(term.id)) && sailingSubject(term.id) !== null, term.id).toBe(false);
   });
 
@@ -80,7 +87,9 @@ describe("sailing subjects: a schematic and a picture for each", () => {
       expect(quickRefreshLessons.some(lesson => lesson.id === card), card).toBe(true);
       expect(sailingSectionSubjects("quick", card)).toEqual(subjects);
     }
-    expect(sailingSectionSubjects("quick", "q-rules")).toEqual([]);
+    // Every card of the 15-minute refresher names its subjects.
+    expect(Object.keys(SAILING_SECTIONS.quick).sort()).toEqual(quickRefreshLessons.map(lesson => lesson.id).sort());
+    expect(sailingSectionSubjects("quick", "q-none")).toEqual([]);
     expect(readFileSync("src/app/glossary/page.tsx", "utf8")).toContain("<SubjectVisuals id={term.id}");
     const courses = readFileSync("src/app/courses/page.tsx", "utf8");
     expect(courses).toContain("<SubjectVisuals id={point.id}");
@@ -121,5 +130,47 @@ describe("trainer exercises: the schematic and the picture of what each one prac
     const native = readFileSync("mobile/app/simulator/index.tsx", "utf8");
     expect(native).toContain("<SubjectThumbs visuals={drillVisuals(d.id)} />");
     expect(native).toContain("<SubjectThumbs visuals={drillVisuals(m.id)} />");
+  });
+});
+
+describe("the race: rule cards, tactics and the first lessons show the subject they draw", () => {
+  it("gives a rule card the picture of the drawing it names, except the cards the scene cannot show", () => {
+    for (const rule of ruleScenarios) {
+      expect(Object.keys(RACE_SUBJECTS), rule.id).toContain(rule.svg);
+      const visuals = ruleVisuals(rule);
+      if (RULES_WITHOUT_PICTURE.includes(rule.id)) expect(visuals, rule.id).toBeNull();
+      else expect(visuals!.id, rule.id).toBe(rule.svg);
+    }
+    // The cards without a picture are real cards of the collision regulations, never a racing rule.
+    for (const id of RULES_WITHOUT_PICTURE) expect(ruleScenarios.find(rule => rule.id === id)?.source, id).toBe("colregs");
+    expect(ruleScenarios.filter(rule => ruleVisuals(rule)).length).toBe(16);
+  });
+
+  it("names a subject for every strategy and every right-of-way rule of the tactics page", () => {
+    expect(Object.keys(TACTICS_SUBJECTS).sort()).toEqual([...racingStrategies, ...racingRules].map(item => item.id).sort());
+    for (const item of [...racingStrategies, ...racingRules]) expect(tacticsVisuals(item.id), item.id).not.toBeNull();
+    expect(tacticsVisuals("start")!.id).toBe("start-line");
+    expect(tacticsVisuals("toString")).toBeNull();
+  });
+
+  it("names a subject for every lesson of From scratch but the one with its own photo pair", () => {
+    expect([...Object.keys(FOUNDATION_LESSON_SUBJECTS), "how-sail-works"].sort()).toEqual(bootcampLessons.map(lesson => lesson.id).sort());
+    for (const id of Object.keys(FOUNDATION_LESSON_SUBJECTS)) expect(foundationLessonVisuals(id), id).not.toBeNull();
+    expect(foundationLessonVisuals("how-sail-works")).toBeNull();
+  });
+
+  it("is shown by the rule cards, the tactics page and the first lessons of the site and of the app", () => {
+    expect(readFileSync("src/app/rules/page.tsx", "utf8").match(/<SubjectPicture visuals=\{ruleVisuals\(r\)\}/g)).toHaveLength(2);
+    const tactics = readFileSync("src/app/racing/page.tsx", "utf8");
+    expect(tactics).toContain("<SubjectPicture visuals={tacticsVisuals(strategy.id)}");
+    expect(tactics).toContain("<SubjectPicture visuals={tacticsVisuals(rule.id)}");
+    expect(readFileSync("src/app/start/FoundationClient.tsx", "utf8")).toContain("<SubjectPicture visuals={foundationLessonVisuals(id)}");
+    expect(readFileSync("mobile/app/rules/[id].tsx", "utf8")).toContain("<SubjectPicture visuals={ruleVisuals(scenario)}");
+    const native = readFileSync("mobile/app/racing/index.tsx", "utf8");
+    // The app's tactics screen had no drawing for the four rules: it shows the rule card's diagram and the picture.
+    expect(native).toContain("<RuleScenarioDiagram scenario={{ svg: ruleVisual.id");
+    expect(native).toContain("<SubjectPicture visuals={ruleVisual}");
+    expect(native).toContain("<SubjectPicture visuals={tacticsVisuals(strategy.id)}");
+    expect(readFileSync("mobile/src/bootcamp/FoundationScene.tsx", "utf8")).toContain("<SubjectPicture visuals={foundationLessonVisuals(id)}");
   });
 });

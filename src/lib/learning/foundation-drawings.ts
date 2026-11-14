@@ -396,3 +396,95 @@ export function renderSlot(theme: GraphicTheme = 'paper'): string {
     arrow(...(at(26, 26).split(' ').map(Number) as [number, number]), ...(at(42, 46).split(' ').map(Number) as [number, number]), p.blue, 8);
   return subjectSvg('the slot: air flows between the jib and the mainsail', p.bg, d);
 }
+
+// Package 32, fourth subject: right of way, the start, the marks and tactics. Same rules as above:
+// 4:3, wind from the top, the wind arrow blue, no small text. One colour code in every drawing:
+// teal is the boat that holds its course (or the course to sail), sand the boat that keeps clear
+// (or the thing to look at: a mark, the line, the gain).
+export type RaceDrawing =
+  | 'port-vs-starboard' | 'windward-leeward' | 'overtaking' | 'mark-room' | 'crossing' | 'start-line' | 'collision-avoid' | 'penalty'
+  | 'upwind' | 'downwind' | 'mark-rounding' | 'layline' | 'overlap' | 'vmg' | 'vmc';
+
+/** A curved arrow: from (x, y) to (X, Y), bent towards (cx, cy). */
+function bend(x: number, y: number, cx: number, cy: number, X: number, Y: number, c: string, w = 6, dash = '') {
+  const a = Math.atan2(Y - cy, X - cx), r = 15;
+  return path(`M${x} ${y}Q${cx} ${cy} ${X} ${Y}`, c, w, dash) +
+    path(`M${fmt(X - r * Math.cos(a - 0.5))} ${fmt(Y - r * Math.sin(a - 0.5))}L${X} ${Y}L${fmt(X - r * Math.cos(a + 0.5))} ${fmt(Y - r * Math.sin(a + 0.5))}`, c, w);
+}
+
+const RACE_LABELS: Record<RaceDrawing, string> = {
+  'port-vs-starboard': 'opposite tacks: the port-tack boat passes astern of the starboard-tack boat',
+  'windward-leeward': 'same tack, overlapped: the windward boat luffs clear of the leeward boat',
+  overtaking: 'the boat coming from astern passes clear of the boat ahead',
+  'mark-room': 'at the mark the outside boat gives the inside boat room inside the zone',
+  crossing: 'two boats on crossing courses: who keeps clear?',
+  'start-line': 'the start line between the pin and the committee boat, boats approaching',
+  'collision-avoid': 'a collision ahead: both boats turn into the wind and slow down',
+  penalty: 'a penalty turn: one full circle, a tack and a gybe',
+  upwind: 'beating: a zigzag of close-hauled legs to the windward mark',
+  downwind: 'running: broad-reach legs and a gybe down to the leeward mark',
+  'mark-rounding': 'rounding a mark: wide on the way in, close on the way out',
+  layline: 'the laylines: the two close-hauled courses that fetch the mark',
+  overlap: 'an overlap: the boat astern has her bow past the line across the stern of the boat ahead',
+  vmg: 'velocity made good: the part of the boat speed that goes to windward',
+  vmc: 'velocity made on course: the part of the boat speed that goes towards the mark',
+};
+
+/** One race subject as a drawing: a rule of right of way, the start, a mark, a tactic. */
+export function renderRace(kind: RaceDrawing, theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const wind = (x = 110) => arrow(x, 60, x, 190, p.blue, 9);
+  const buoy = (x: number, y: number) => circle(x, y, 20, p.sand, p.ink, 3);
+  const dashes = '14 12';
+  let d = '';
+  if (kind === 'port-vs-starboard') {
+    d = wind() + arrow(495, 280, 385, 170, p.teal, 6) + bend(290, 370, 430, 350, 680, 470, p.sand) +
+      topBoat(545, 330, 315, p, 0.62, -30) + topBoat(240, 420, 45, p, 0.62, 30);
+  } else if (kind === 'windward-leeward') {
+    d = wind() + arrow(250, 380, 160, 290, p.teal, 6) + bend(350, 300, 310, 255, 340, 130, p.sand) +
+      topBoat(300, 430, 315, p, 0.62, -30) + topBoat(400, 350, 315, p, 0.62, -30);
+  } else if (kind === 'overtaking') {
+    d = wind() + arrow(590, 280, 720, 280, p.teal, 6) + bend(290, 305, 430, 440, 690, 400, p.sand) +
+      topBoat(520, 280, 90, p, 0.62, 50) + topBoat(220, 300, 90, p, 0.62, 50);
+  } else if (kind === 'mark-room') {
+    d = wind(700) + path('M250 80A150 150 0 1 1 249 80', p.muted, 4, '10 10') + buoy(250, 230) +
+      bend(423, 323, 300, 110, 140, 190, p.teal) + bend(503, 243, 370, 40, 120, 110, p.sand) +
+      topBoat(470, 370, 315, p, 0.62, -30) + topBoat(550, 290, 315, p, 0.62, -30);
+  } else if (kind === 'crossing') {
+    d = wind() + path('M276 330H436', p.muted, 4, '10 10') + path('M501 203L462 310', p.muted, 4, '10 10') +
+      topBoat(210, 330, 90, p, 0.62, 50) + topBoat(520, 150, 200, p, 0.62, -65) + label(585, 370, '?', p.ink, 110);
+  } else if (kind === 'start-line') {
+    d = arrow(400, 40, 400, 170, p.blue, 9) + path('M152 250H634', p.sand, 6, dashes) + buoy(130, 250) +
+      path('M640 230h56q16 20 0 40h-56Z', p.ink, 3, '', p.hull) + path('M668 250V196', p.ink, 4) + path('M668 196h30v18h-30Z', p.sand, 2, '', p.sand) +
+      topBoat(250, 450, 40, p, 0.56, 28) + topBoat(400, 410, 320, p, 0.56, -28) + topBoat(545, 450, 325, p, 0.56, -28);
+  } else if (kind === 'collision-avoid') {
+    d = wind() + path('M372 242L428 298M428 242L372 298', p.sand, 9) +
+      bend(292, 378, 332, 330, 335, 190, p.sand) + bend(508, 378, 468, 330, 465, 190, p.sand) +
+      topBoat(250, 420, 45, p, 0.62, 30) + topBoat(550, 420, 315, p, 0.62, -30);
+  } else if (kind === 'penalty') {
+    d = wind() + path('M420 170A150 150 0 1 1 419 170', p.sand, 6, dashes) + arrow(470, 173, 500, 180, p.sand, 6) +
+      faded(topBoat(570, 320, 180, p, 0.5, 0) + topBoat(420, 470, 270, p, 0.5, -60) + topBoat(270, 320, 0, p, 0.5, 0)) +
+      topBoat(420, 170, 90, p, 0.5, 50) + label(420, 348, '360°', p.ink, 78);
+  } else if (kind === 'upwind') {
+    d = wind() + path('M250 545L470 325L330 185', p.teal, 6, dashes) + arrow(330, 185, 386, 129, p.teal, 6, dashes) + buoy(400, 105) +
+      topBoat(360, 435, 45, p, 0.62, 30);
+  } else if (kind === 'downwind') {
+    d = wind() + path('M240 90L532 382', p.teal, 6, dashes) + arrow(532, 382, 428, 486, p.teal, 6, dashes) + buoy(410, 510) +
+      topBoat(350, 200, 135, p, 0.62, 70);
+  } else if (kind === 'mark-rounding') {
+    d = wind() + path('M650 520C570 330 520 170 400 170C340 170 330 230 330 300', p.teal, 6, dashes) + arrow(330, 300, 322, 530, p.teal, 6, dashes) + buoy(380, 250) +
+      topBoat(583, 361, 335, p, 0.58, -25);
+  } else if (kind === 'layline') {
+    d = wind() + path('M400 110L130 380M400 110L670 380', p.muted, 4, '10 10') + buoy(400, 110) +
+      arrow(545, 255, 432, 142, p.teal, 6) + topBoat(590, 300, 315, p, 0.62, -30);
+  } else if (kind === 'overlap') {
+    d = wind() + path('M414 110V510', p.sand, 6, dashes) + topBoat(470, 220, 90, p, 0.62, 50) + topBoat(400, 390, 90, p, 0.62, 50);
+  } else if (kind === 'vmg') {
+    d = wind() + path('M530 230H370', p.muted, 4, '10 10') + arrow(370, 390, 530, 230, p.teal, 7) + arrow(370, 390, 370, 230, p.sand, 9) +
+      topBoat(330, 430, 45, p, 0.62, 30);
+  } else {
+    d = wind() + path('M394 247L455 140', p.muted, 4, '10 10') + path('M489 302L394 247', p.muted, 4, '10 10') + buoy(463, 126) +
+      arrow(298, 412, 489, 302, p.teal, 7) + arrow(298, 412, 394, 247, p.sand, 9) + topBoat(250, 440, 60, p, 0.62, 38);
+  }
+  return subjectSvg(RACE_LABELS[kind], p.bg, d);
+}

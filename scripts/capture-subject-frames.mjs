@@ -5,8 +5,8 @@
 // ?twa=&tws=&main=&jib=&reef=&camera=), hides the controls, waits for the scene and saves an
 // 800x600 frame centred on the boat's window. scripts/build-subject-visuals.mjs turns the frames
 // into the shipped pictures; it refuses a registry id without a picture.
-// The scene is drawn by the browser's GPU: run it on a machine with one for a clean picture
-// (a software renderer works, more slowly).
+// The scene is drawn by the browser's GPU (headless, ANGLE Metal on a Mac). Without one, pass
+// GL=swiftshader: the software renderer works, more slowly and with harsher glitter on the water.
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
@@ -57,7 +57,10 @@ const FRAME = { width: 800, height: 600 };
 // frame's height: the trainer fits the boat to that window, so the whole boat is in the frame.
 const VIEWPORT = { width: 1000, height: 880 };
 
-const browser = await chromium.launch({ args: ["--use-gl=angle", "--ignore-gpu-blocklist", "--enable-webgl", "--enable-unsafe-swiftshader"] });
+// Headless on the machine's GPU (ANGLE Metal on a Mac); GL=swiftshader falls back to the software renderer.
+const browser = await chromium.launch({ args: process.env.GL === "swiftshader"
+  ? ["--use-gl=angle", "--ignore-gpu-blocklist", "--enable-webgl", "--enable-unsafe-swiftshader"]
+  : ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist", "--enable-webgl"] });
 async function capture(file, query) {
   const page = await (await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 })).newPage();
   await page.addInitScript(() => {

@@ -88,3 +88,20 @@ export function LessonPicture({ lessonId, name, labels, className }: { lessonId:
     </figure>
   );
 }
+
+/**
+ * The picture alone, for a page that draws its own labelled diagram of the subject (a rule card,
+ * the tactics page): ruleVisuals and tacticsVisuals in src/data/sailing-visuals.ts. `label` is the
+ * caption (UI_TERMS.visualOnWater in the reader's language).
+ */
+export function SubjectPicture({ visuals, name, label, className, maxWidth = 360 }: { visuals: SailingVisuals | null; name: string; label: string; className?: string; maxWidth?: number }) {
+  if (!visuals) return null;
+  return (
+    <figure className={className} style={{ ...TILE, maxWidth }} data-testid="subject-picture-tile" data-subject={visuals.id}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- A static, pre-sized picture; the offline bundle has no image optimizer. */}
+      <img src={visuals.picture.src} width={visuals.picture.width} height={visuals.picture.height} alt={`${name}: ${label}`} loading="lazy" decoding="async"
+        style={{ display: "block", width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }} />
+      <figcaption style={CAPTION}>{label}</figcaption>
+    </figure>
+  );
+}

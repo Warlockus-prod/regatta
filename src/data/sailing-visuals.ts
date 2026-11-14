@@ -1,19 +1,22 @@
 // Package 32 (owner 2026-11-13: "a diagram and a picture, never one without the other, never in
 // one section and missing in the next"): the sailing subjects that are not parts of the yacht:
-// the points of sail and the two turns, the wind, and sail trim. Every subject has
+// the points of sail and the two turns, the wind, sail trim, and the race (right of way, the
+// start, the marks, tactics). Every subject has
 //   - a schematic, drawn by the shared lesson renderer (src/lib/learning/foundation-drawings.ts), and
-//   - a picture: a frame of the real 3D scene in that state (scripts/capture-subject-frames.mjs,
-//     scripts/build-subject-visuals.mjs).
+//   - a picture: a frame of the real 3D scene in that state (scripts/capture-subject-frames.mjs for
+//     one boat in the trainer, scripts/capture-race-frames.mjs for boats and marks in the race
+//     scene; scripts/build-subject-visuals.mjs).
 // The site and the app read both from here (src/components/visuals/SubjectVisuals.tsx,
 // mobile/src/learning/SubjectVisuals.tsx): the glossary, the points-of-sail page, the 15-minute
-// cards, the sail lessons and the trainer's exercises name a subject by id and show the same pair.
+// cards, the sail lessons, the trainer's exercises, the rule cards and the tactics page name a
+// subject by id and show the same pair.
 // sailing-visuals.test.ts fails when a subject lacks either visual, or when a section that
 // teaches a subject does not name it.
 // No "@/..." import here: the app reads this module through Metro's watched folders.
 import { NO_GO_HALF_DEG } from "../lib/sailing-physics/constants";
 import {
-  renderApparentWind, renderCourseChange, renderHeel, renderPointOfSail, renderSailEdge, renderSide, renderSlot, renderTrim, renderTurn,
-  renderWindField, renderWindShift, type GraphicTheme,
+  renderApparentWind, renderCourseChange, renderHeel, renderPointOfSail, renderRace, renderSailEdge, renderSide, renderSlot, renderTrim, renderTurn,
+  renderWindField, renderWindShift, type GraphicTheme, type RaceDrawing,
 } from "../lib/learning/foundation-drawings";
 
 export const SAILING_PICTURE_SIZE = { width: 640, height: 480 } as const;
@@ -21,7 +24,7 @@ export const SAILING_PICTURE_SIZE = { width: 640, height: 480 } as const;
 type Painter = (theme?: GraphicTheme) => string;
 interface PointSubject { kind: "point"; /** Heading off the wind the schematic and the frame show, degrees. */ angle: number; /** Boom angle in the schematic. */ boom: number }
 interface TurnSubject { kind: "turn"; turn: "tacking" | "jibing" }
-interface DrawnSubject { kind: "wind" | "trim"; draw: Painter }
+interface DrawnSubject { kind: "wind" | "trim" | "race"; draw: Painter }
 type Subject = PointSubject | TurnSubject | DrawnSubject;
 
 /** The points of sail and the turns; ids are those of pointsOfSail and maneuvers in sailing-data.ts. */
@@ -61,7 +64,31 @@ export const TRIM_SUBJECTS = {
   "bearing-away": { kind: "trim", draw: theme => renderCourseChange("bear", theme) },
 } as const satisfies Record<string, DrawnSubject>;
 
-export const SAILING_SUBJECTS = { ...COURSE_SUBJECTS, ...WIND_SUBJECTS, ...TRIM_SUBJECTS };
+const race = (drawing: RaceDrawing): DrawnSubject => ({ kind: "race", draw: theme => renderRace(drawing, theme) });
+
+/**
+ * The race: right of way (ids are the drawings the rule cards of src/data/rules.ts name), the
+ * start, the marks and the tactics of a leg.
+ */
+export const RACE_SUBJECTS = {
+  "port-vs-starboard": race("port-vs-starboard"),
+  "windward-leeward": race("windward-leeward"),
+  overtaking: race("overtaking"),
+  "mark-room": race("mark-room"),
+  crossing: race("crossing"),
+  "start-line": race("start-line"),
+  "collision-avoid": race("collision-avoid"),
+  penalty: race("penalty"),
+  upwind: race("upwind"),
+  downwind: race("downwind"),
+  "mark-rounding": race("mark-rounding"),
+  layline: race("layline"),
+  overlap: race("overlap"),
+  vmg: race("vmg"),
+  vmc: race("vmc"),
+} as const satisfies Record<RaceDrawing, DrawnSubject>;
+
+export const SAILING_SUBJECTS = { ...COURSE_SUBJECTS, ...WIND_SUBJECTS, ...TRIM_SUBJECTS, ...RACE_SUBJECTS };
 export type SailingSubjectId = keyof typeof SAILING_SUBJECTS;
 export const SAILING_SUBJECT_IDS = Object.keys(SAILING_SUBJECTS) as SailingSubjectId[];
 
@@ -70,6 +97,9 @@ export const SAILING_SUBJECT_ALIASES: Readonly<Record<string, SailingSubjectId>>
   "course-in-irons": "in-irons", "no-go-zone": "in-irons", "course-close-hauled": "close-hauled", "course-beam-reach": "beam-reach",
   "course-broad-reach": "broad-reach", "course-running": "running", "man-tacking": "tacking", "man-jibing": "jibing",
   "man-luffing": "luffing", "man-bearing-away": "bearing-away",
+  // The race: the glossary's terms and the manoeuvre "beating" (the page of points of sail lists it).
+  beating: "upwind", "race-start-line": "start-line", "race-mark": "mark-rounding", "race-windward-mark": "upwind", "race-leeward-mark": "downwind",
+  "race-layline": "layline", "race-right-of-way": "port-vs-starboard", "race-overlap": "overlap",
 };
 
 /** The subject an item id stands for, or null. */
@@ -109,6 +139,9 @@ export const SAILING_SECTIONS = {
     "q-wind": ["true-wind", "windward", "leeward", "in-irons"],
     "q-courses": ["in-irons", "close-hauled", "beam-reach", "broad-reach", "running"],
     "q-maneuvers": ["tacking", "jibing"],
+    "q-rules": ["port-vs-starboard", "windward-leeward", "collision-avoid"],
+    "q-start": ["start-line"],
+    "q-race": ["upwind", "mark-rounding", "downwind"],
   },
 } as const satisfies Record<string, Record<string, readonly SailingSubjectId[]>>;
 
@@ -178,4 +211,46 @@ export const DRILL_SUBJECTS: Readonly<Record<string, SailingSubjectId>> = {
 /** Both visuals of a trainer exercise (those of the subject it practises), or null. */
 export function drillVisuals(drillId: string): SailingVisuals | null {
   return Object.prototype.hasOwnProperty.call(DRILL_SUBJECTS, drillId) ? sailingVisuals(DRILL_SUBJECTS[drillId]) : null;
+}
+
+/**
+ * The rule cards (src/data/rules.ts) draw their own labelled diagram, one of eight; the picture
+ * beside it is the frame of the subject that diagram shows (its `svg` is a subject id). These
+ * cards have no picture: the scene has no motor vessel, fishing boat, channel or night, and a
+ * frame of two sailing yachts beside them would show something else than the card says.
+ */
+export const RULES_WITHOUT_PICTURE: readonly string[] = ["colregs-power-gives-to-sail", "colregs-narrow-channel", "colregs-fishing", "colregs-lights-basics", "colregs-sound-signals"];
+
+/** Both visuals of the subject a rule card shows, or null for a card without a picture. */
+export function ruleVisuals(rule: { id: string; svg: string }): SailingVisuals | null {
+  return RULES_WITHOUT_PICTURE.includes(rule.id) ? null : sailingVisuals(rule.svg);
+}
+
+/**
+ * The tactics page: the subject of each strategy (racingStrategies) and each right-of-way rule
+ * (racingRules) of src/data/sailing-data.ts. An explicit table: these ids are short common words.
+ */
+export const TACTICS_SUBJECTS: Readonly<Record<string, SailingSubjectId>> = {
+  upwind: "upwind", downwind: "downwind", start: "start-line", "mark-rounding": "mark-rounding",
+  "starboard-over-port": "port-vs-starboard", "leeward-over-windward": "windward-leeward", overtaking: "overtaking", "mark-room": "mark-room",
+};
+
+/** Both visuals of a strategy or a right-of-way rule of the tactics page, or null. */
+export function tacticsVisuals(id: string): SailingVisuals | null {
+  return Object.prototype.hasOwnProperty.call(TACTICS_SUBJECTS, id) ? sailingVisuals(TACTICS_SUBJECTS[id]) : null;
+}
+
+/**
+ * The picture of each lesson of "From scratch" (bootcampLessons in src/data/bootcamp.ts). A lesson
+ * draws its own stepped scene; its picture is the frame of the subject it teaches. The lesson
+ * "how-sail-works" is not here: it has a photo pair of its own (src/app/start/SailShapeIllustration.tsx).
+ */
+export const FOUNDATION_LESSON_SUBJECTS: Readonly<Record<string, SailingSubjectId>> = {
+  "wind-direction": "true-wind", "points-of-sail": "beam-reach", tacking: "tacking", jibing: "jibing",
+  "vmg-beating": "upwind", "simple-rules": "port-vs-starboard", "mini-race": "start-line",
+};
+
+/** Both visuals of the subject a "From scratch" lesson teaches, or null. */
+export function foundationLessonVisuals(lessonId: string): SailingVisuals | null {
+  return Object.prototype.hasOwnProperty.call(FOUNDATION_LESSON_SUBJECTS, lessonId) ? sailingVisuals(FOUNDATION_LESSON_SUBJECTS[lessonId]) : null;
 }

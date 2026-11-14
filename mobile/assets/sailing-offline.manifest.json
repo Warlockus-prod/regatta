@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "540d5ea71abb",
-  "sha256": "f4b1f4d3c789f9d78199f12b3cefceed9b306fdbe4afb5307c414e42ff326a31",
-  "bytes": 7635628,
+  "version": "12637d463a8f",
+  "sha256": "c4fdd332a62edb33029956b519f5496eb38d8c55d5b2eb92b2246f12b2c1a389",
+  "bytes": 7639951,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1286,8 +1286,8 @@
     },
     {
       "path": "src/components/visuals/SubjectVisuals.tsx",
-      "bytes": 6396,
-      "sha256": "781fcbd6d8c45d14b8e76ca630fd76a6c4dad864298da7207566917f9efd8293"
+      "bytes": 7507,
+      "sha256": "9f6576fc601f8cf8ec4257574e11fb417278f17bfab32b06aa667725122b4969"
     },
     {
       "path": "src/data/anatomy-visuals.generated.ts",
@@ -1521,8 +1521,8 @@
     },
     {
       "path": "src/data/sailing-visuals.ts",
-      "bytes": 9668,
-      "sha256": "ac78136b05a8930d63948404e3e605023cb0f790db46edde908541209f2ba987"
+      "bytes": 13834,
+      "sha256": "eb76613d90e3d8d4c867285e13b7becc1b4fa720e03ec770cf893ffa86be1a64"
     },
     {
       "path": "src/data/venues/geometry.ts",
@@ -1616,8 +1616,8 @@
     },
     {
       "path": "src/features/race-3d/Race3DView.tsx",
-      "bytes": 36216,
-      "sha256": "9c11e1d3ad0e37694f6607fb496f8532dabf8fc61ceff655f9c64c5badd641e7"
+      "bytes": 36385,
+      "sha256": "6f5acd8be940619d2cc0798356a6d47c7ddc49e0daa67fcc15be4c8053462d29"
     },
     {
       "path": "src/features/race-3d/pose.ts",
@@ -1831,8 +1831,8 @@
     },
     {
       "path": "src/features/race-scene/RaceScene.tsx",
-      "bytes": 33624,
-      "sha256": "8371d1458bde438602e9aad2112f70fc4c5ad8541a8b420ca18d7b5fef72d10a"
+      "bytes": 34046,
+      "sha256": "aba80eb0a92545b983464615c11720e979030d4027b6cb42b10aa386c58bc5ea"
     },
     {
       "path": "src/features/race-scene/SailFlow.tsx",
@@ -1896,8 +1896,8 @@
     },
     {
       "path": "src/features/race-scene/orbit-camera.ts",
-      "bytes": 3355,
-      "sha256": "42a115e575582a065c02c522e742e6def3f9a619e8ea9c7baee78648e60d2859"
+      "bytes": 4237,
+      "sha256": "8c38bb82a7e1cd57e844f8e6cd042872d18926ebac3d5fd626acb66992a64c35"
     },
     {
       "path": "src/features/race-scene/perf-journal.ts",
@@ -2661,8 +2661,8 @@
     },
     {
       "path": "src/lib/learning/foundation-drawings.ts",
-      "bytes": 22695,
-      "sha256": "53e212f6d9d9d34f97f1aa1bdcddf9499726882b28e8bddd350f466ac0abf0db"
+      "bytes": 29324,
+      "sha256": "bd25e9a31584d5630360f81031a281c7a4b4ac80670f890b14dbcb78d770eb4d"
     },
     {
       "path": "src/lib/learning/foundation-navigation.ts",
@@ -3188,28 +3188,28 @@
     },
     {
       "path": "public/learning/subjects/beam-reach.webp",
-      "bytes": 20504,
-      "sha256": "4c9d56781cec0b6c690cce1b5e8decdcd218f6bbdb4b1b570785eccf1977e034"
+      "bytes": 21024,
+      "sha256": "6d646a2148853fdceb1c8d88c696d9705f49b77f09a9f90f4797bdee364d6f35"
     },
     {
       "path": "public/learning/subjects/heeling.webp",
-      "bytes": 26216,
-      "sha256": "8a455913427072b976dfb6633b54be797f7b471e57ad5aa07aa2d3d6ddc12f26"
+      "bytes": 25496,
+      "sha256": "d374f975ebc1458a56e5b0804d8843ed521928d4da3b3f1c762db8ccc7f901f4"
     },
     {
       "path": "public/learning/subjects/leech.webp",
-      "bytes": 25190,
-      "sha256": "be9592c461a9d753198fafb4f780cf9133407c3ab5792a37245a20576db86db6"
+      "bytes": 24976,
+      "sha256": "665986e3f50d3e67e7f0b09f1baea5cdf2613735b4d5a302ca07dae20a6bab3d"
     },
     {
       "path": "public/learning/subjects/slot.webp",
-      "bytes": 25340,
-      "sha256": "0cb8cde8cb402250542ac8b1085cd4e88cf4b381ab6eec4ee48f7cdb62e1ce9c"
+      "bytes": 25100,
+      "sha256": "ed5e1a2e53132c71c0d7023f59ca3e57de3fe758231ebc73b916cc331bc3b8ac"
     },
     {
       "path": "public/learning/subjects/trim.webp",
-      "bytes": 23434,
-      "sha256": "9c84d785217d87d45a1c95bc8546d5a68763ae1cadc75e69a672ad3729af43c9"
+      "bytes": 23466,
+      "sha256": "126f621941ebee97d53dfa9c5a6c191fa06deb75cfb75b3b5e6d16af15b5cd0b"
     },
     {
       "path": "public/fonts/source-sans-3/SourceSans3VF-Upright.woff2",
