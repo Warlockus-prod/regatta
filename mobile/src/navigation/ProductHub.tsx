@@ -4,6 +4,7 @@ import { Image, Pressable, ScrollView, StyleSheet, TextInput, View } from "react
 import Svg, { Circle, Path } from "react-native-svg";
 import { destinations, searchDestinations, sections, type Destination, type Section } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
+import { HUB_SCENES } from "../../../src/lib/product/hub-scenes";
 import { sailLessons } from "../../../src/data/sailing-lab/course";
 import { useI18n } from "../i18n/context";
 import { Button, ListRow, Screen, Text } from "../design-system/components";
@@ -26,6 +27,10 @@ import { RACE_INTRO_TITLE } from "../../../src/data/race-intro-title";
 
 /** Package 9: a still of the real race scene (the website uses the same frame). */
 const raceScene = require("../../assets/design/race-scene.jpg");
+/** Package 32, stage C: the frames of the other tabs (src/lib/product/hub-scenes.ts; the website shows the same ones). */
+const hubScenes = { learn: require("../../assets/design/hub-learn.jpg"), practice: require("../../assets/design/hub-practice.jpg"), library: require("../../assets/design/hub-menu.jpg") };
+/** Width over height of the hub frames; mobile/__tests__/race-hub-scene.test.tsx reads the files. */
+export const HUB_SCENE_RATIO = 960 / 480;
 /** Width over height of race-scene.jpg; mobile/__tests__/race-hub-scene.test.tsx reads the file and fails if they part. */
 export const RACE_SCENE_RATIO = 960 / 688;
 /** F5: the race page opened only for its intro (raceEntryQuery forwards the flag). */
@@ -98,6 +103,11 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
+      {/* Package 32, stage C: Learn, Practice and the Menu open with a frame of the 3D scene, as Race does.
+          The frame sizes the picture (see the note at the Race frame below). Hidden while the Menu searches. */}
+      {section !== "race" && !query.trim() && <View style={styles.hubScene} testID="hub-scene">
+        <Image source={hubScenes[section]} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={HUB_SCENES[section].alt[lang]} accessibilityIgnoresInvertColors />
+      </View>}
       {home && <RaceHubNextStep view={home} setup={raceSetup} onOpen={href => router.push(href as Href)} />}
       {section === "race" && <View style={styles.play}>
         {/* Package 32 (owner: "the picture is crooked"): the frame sizes the picture, never the file.
@@ -197,6 +207,7 @@ const styles = StyleSheet.create({
   play: { gap: 10 },
   // The frame has the file's own proportion (race-scene.jpg is 960x688), so nothing is cropped.
   sceneFrame: { width: "100%", aspectRatio: RACE_SCENE_RATIO, borderRadius: radii.card, overflow: "hidden", backgroundColor: colors.sand },
+  hubScene: { width: "100%", aspectRatio: HUB_SCENE_RATIO, borderRadius: radii.card, overflow: "hidden", backgroundColor: colors.sand, marginBottom: 16 },
   scene: { width: "100%", height: "100%" },
   summaryRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 },
   summary: { flexShrink: 1, fontSize: 15, lineHeight: 22, color: colors.textSecondary },

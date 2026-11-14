@@ -76,6 +76,8 @@ function ExerciseList({ stars, loaded, inApp, onOpen }: { stars: Stars; loaded: 
           return <li key={e.id}>
             <button type="button" className={styles.row} disabled={!unlocked} onClick={() => onOpen(e.id)} data-testid={`exercise-${e.id}`}>
               <span className={styles.number} aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              {/* Package 32, stage C: the exercise's own diagram as the row's thumbnail. */}
+              <Schematic exercise={e} label="" words={{ wind: "", start: "", target: "" }} compact />
               <span className={styles.rowText}>
                 <strong>{tl(e.title)}</strong>
                 <span className={styles.meta}>{tl(copy.difficulty[e.difficulty - 1])}, {fill(tl(copy.windKn), { n: e.wind.speed })}</span>

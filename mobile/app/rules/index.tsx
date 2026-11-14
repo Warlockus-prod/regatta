@@ -2,7 +2,9 @@ import { Stack, useRouter } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Card, Screen, Text } from '../../src/design-system/components';
+import { SvgXml } from 'react-native-svg';
 import { ruleScenarios } from '../../src/data';
+import { sailingVisuals } from '../../../src/data/sailing-visuals';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
@@ -212,7 +214,10 @@ export default function Rules() {
         style={styles.card}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.icon}>{scenario.icon}</Text>
+          {/* Package 32, stage C: the card's drawing as the row's thumbnail (the card opens the full diagram). */}
+          <View style={styles.thumb} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="rule-thumb">
+            <SvgXml xml={sailingVisuals(scenario.svg)?.schematic() ?? null} width="100%" height="100%" />
+          </View>
           <View style={styles.cardText}>
             <Text variant="subtitle">{title}</Text>
             <Text variant="caption" style={styles.scene} numberOfLines={2}>{scene}</Text>
@@ -406,6 +411,16 @@ const styles = StyleSheet.create({
   },
   cardText: {
     flex: 1,
+  },
+  thumb: {
+    width: 64,
+    height: 48,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(18, 50, 71, 0.12)',
+    backgroundColor: '#f5f3ee',
+    marginRight: spacing.md,
   },
   scene: {
     marginTop: spacing.xs,

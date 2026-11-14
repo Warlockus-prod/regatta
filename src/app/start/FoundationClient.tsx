@@ -19,7 +19,7 @@ import { useI18n } from "@/lib/i18n";
 import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from "@/data/no-go-zone";
 import { RaceReturn } from "@/components/RaceReturn";
 import { legacyPick } from "@/lib/languages";
-import { foundationLessonVisuals } from "@/data/sailing-visuals";
+import { foundationLessonThumb, foundationLessonVisuals } from "@/data/sailing-visuals";
 import { SubjectPicture } from "@/components/visuals/SubjectVisuals";
 import { UI_TERMS } from "@/lib/product/ui-terms";
 import { renderScene, SCENE_HEIGHT, SCENE_WIDTH, type SceneId } from "@/lib/learning/foundation-drawings";
@@ -97,9 +97,15 @@ export default function FoundationClient({ guides, shapeCopy, miniTasks }: { gui
           <h3>{module.title[lang]}</h3>
           {module.lessons.map(lessonId => {
             const item = bootcampLessons.find(entry => entry.id === lessonId)!;
+            const thumb = foundationLessonThumb(item.id);
             return <button key={item.id} type="button" disabled={!state.ready || state.readError || state.saveError} onClick={() => navigate(item.id, state.display.positions[item.id]?.step)} aria-current={id === item.id ? "step" : undefined}>
-              <span>{item.order}. {legacyPick(item, "title", lang)}</span>
-              {checked.includes(item.id) ? <small className={styles.success}>✓ {copy.passed[lang]}</small> : state.visited.includes(item.id) ? <small>{copy.viewed[lang]}</small> : null}
+              {/* Package 32, stage C: the lesson's picture in its row (the title beside it is the label). */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- A static, pre-sized picture. */}
+              {thumb && <img className={styles.outlineThumb} src={thumb.src} width={thumb.width} height={thumb.height} alt="" loading="lazy" decoding="async" data-testid="outline-thumb" />}
+              <span className={styles.outlineText}>
+                <span>{item.order}. {legacyPick(item, "title", lang)}</span>
+                {checked.includes(item.id) ? <small className={styles.success}>✓ {copy.passed[lang]}</small> : state.visited.includes(item.id) ? <small>{copy.viewed[lang]}</small> : null}
+              </span>
             </button>;
           })}
         </div>)}

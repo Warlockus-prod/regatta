@@ -938,7 +938,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/manoeuvres/runner.test.ts` - целостность каталога, скриптовые прохождения, подсчет звезд.
 - `src/features/manoeuvres/progress.ts` - локальные звезды и открытие упражнений (`regatta.manoeuvres.v1`).
 - `src/features/manoeuvres/scene.ts` - рисование вида сверху на canvas и камера.
-- `src/features/manoeuvres/Schematic.tsx` - статичная SVG-схема упражнения из данных сцены.
+- `src/features/manoeuvres/Schematic.tsx` - статичная SVG-схема упражнения из данных сцены. Проп `compact` дает тот же рисунок без слов как миниатюру строки списка упражнений.
 - `src/features/manoeuvres/copy.ts` - строки интерфейса на 7 языках.
 - `src/features/manoeuvres/Manoeuvres.module.css` - стили раздела.
 - `src/lib/harbour-physics/types.ts` - типы модели гавани: яхта, состояние, ввод, препятствия, швартовы, контакты.
@@ -1077,6 +1077,9 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `scripts/build-part-visuals.mjs` - пакет 32: превращает рендеры Blender в картинки частей (`public/anatomy/parts/`), чертежи (`public/anatomy/diagram/`), копии для приложения (`mobile/assets/anatomy/parts`, `diagram`) и данные `src/data/anatomy-visuals.generated.ts`, `mobile/src/anatomy/part-visuals.generated.ts`; отказывается работать, если у части нет рендера или места на чертеже.
 - `scripts/capture-subject-frames.mjs` - пакет 32: снимает кадр настоящей 3D-сцены тренажера для каждого предмета и урока (его же ссылки `?twa=&tws=&main=&jib=&reef=&camera=`), без управления, 800x600; пара ссылок дает картинку «до и после»; `--only id,id` снимает часть.
 - `scripts/capture-race-frames.mjs` - пакет 32: снимает кадр настоящей сцены гонки для каждого предмета гонки (две-четыре яхты, знак, стартовая линия) со служебной сцены `/dev/race-stage`; камера по умолчанию к югу от группы, ветер на кадре сверху, как на схеме. Обе съемки идут без окна на видеокарте машины (ANGLE Metal), `GL=swiftshader` включает программную отрисовку.
+- `scripts/capture-hub-scenes.mjs` - пакет 32, этап В: снимает кадр 3D-сцены для вкладок «Обучение» и «Тренировка» (тренажер в названном состоянии) и «Меню» (флот у стартовой линии на служебной сцене), пишет три файла сайта в `public/design-v3` (hub-learn, hub-practice, hub-menu, webp 1200x600) и три файла приложения в `mobile/assets/design` (jpg 960x480).
+- `src/lib/product/hub-scenes.ts` - кадры 3D-сцены вверху вкладок «Обучение», «Тренировка», «Меню» (у «Гонки» свой с пакета 9): путь файла сайта и подпись на 7 языках; читают `src/components/product/ProductHub.tsx` (`HubScene`), `src/components/product/ProductMenu.tsx` и `mobile/src/navigation/ProductHub.tsx`.
+- `src/lib/product/hub-scenes.test.ts` - у каждой вкладки свой кадр 2:1 для сайта и приложения, подпись на 7 языках, оба хаба его рисуют.
 - `src/app/dev/race-stage/page.tsx` - служебная сцена для съемки (только `npm run dev`, в прод-сборке 404): читает расстановку из ссылки.
 - `src/app/dev/race-stage/RaceStage.tsx` - ставит яхты, знак и стартовую линию по ссылке (`boats=`, `mark=`, `line=`, `view=`, `look=`) в `RaceScene` с пропом `stage`: без тактических подсказок, табличек и столба над знаком, камера там, где сказала ссылка.
 - `scripts/build-subject-visuals.mjs` - превращает эти кадры в картинки `public/learning/subjects/` (640x480, пара кадров в одну картинку из двух половин), копии для приложения `mobile/assets/learning/subjects` и карту `mobile/src/learning/subject-pictures.generated.ts`; картинки без нового кадра не трогает. Полноту проверяет `src/data/sailing-visuals.test.ts`.

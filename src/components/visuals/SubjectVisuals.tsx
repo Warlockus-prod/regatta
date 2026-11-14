@@ -105,3 +105,14 @@ export function SubjectPicture({ visuals, name, label, className, maxWidth = 360
     </figure>
   );
 }
+
+/**
+ * A list row's thumbnail: the subject's schematic alone, small (a rule card's header, where every
+ * card names one of the eight drawings). The row's own text is the label, so the tile is hidden
+ * from assistive technology.
+ */
+export function SchematicThumb({ visuals, width = 64 }: { visuals: SailingVisuals | null; width?: number }) {
+  if (!visuals) return null;
+  const svg = visuals.schematic().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" style="display:block;width:100%;height:auto"');
+  return <div aria-hidden="true" style={{ ...THUMB, width, flexShrink: 0 }} data-testid="schematic-thumb" data-subject={visuals.id} dangerouslySetInnerHTML={{ __html: svg }} />;
+}

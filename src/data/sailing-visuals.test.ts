@@ -8,7 +8,8 @@ import { glossaryTerms, maneuvers, pointsOfSail, racingRules, racingStrategies }
 import { sailLessons } from "./sailing-lab/course";
 import {
   COURSE_SUBJECTS, DRILL_SUBJECTS, FOUNDATION_LESSON_SUBJECTS, HEEL_SHOWN_DEG, LESSON_FRAME_IDS, RACE_SUBJECTS, RULES_WITHOUT_PICTURE, SAILING_PICTURE_SIZE, SAILING_SECTIONS,
-  SAILING_SUBJECT_ALIASES, SAILING_SUBJECT_IDS, SAIL_LESSON_PICTURES, TACTICS_SUBJECTS, TRIM_SUBJECTS, WIND_SUBJECTS, drillVisuals, foundationLessonVisuals, ruleVisuals,
+  SAILING_SUBJECT_ALIASES, SAILING_SUBJECT_IDS, SAIL_LESSON_PICTURES, TACTICS_SUBJECTS, TRIM_SUBJECTS, WIND_SUBJECTS, drillVisuals, foundationLessonThumb, foundationLessonVisuals,
+  FOUNDATION_OWN_PHOTO, ruleVisuals,
   sailLessonPicture, sailingSectionSubjects, sailingSubject, sailingVisuals, tacticsVisuals,
 } from "./sailing-visuals";
 
@@ -172,5 +173,28 @@ describe("the race: rule cards, tactics and the first lessons show the subject t
     expect(native).toContain("<SubjectPicture visuals={ruleVisual}");
     expect(native).toContain("<SubjectPicture visuals={tacticsVisuals(strategy.id)}");
     expect(readFileSync("mobile/src/bootcamp/FoundationScene.tsx", "utf8")).toContain("<SubjectPicture visuals={foundationLessonVisuals(id)}");
+  });
+});
+
+// Package 32, stage C: lists show what each row is about.
+describe("lists: a thumbnail in every row of the first lessons, the rule cards and the manoeuvres", () => {
+  it("has a picture for every lesson of From scratch: its subject's frame, or the lesson's own photo", () => {
+    for (const lesson of bootcampLessons) {
+      const thumb = foundationLessonThumb(lesson.id)!;
+      expect(existsSync(`public${thumb.src}`), lesson.id).toBe(true);
+      expect(thumb.subject === null, lesson.id).toBe(lesson.id === FOUNDATION_OWN_PHOTO.lesson);
+    }
+    // The own photo is the first frame of the pair that lesson shows (src/data/sail-shape.ts).
+    expect(readFileSync("src/data/sail-shape.ts", "utf8")).toContain(`src: "${FOUNDATION_OWN_PHOTO.src}"`);
+    expect(foundationLessonThumb("toString")).toBeNull();
+  });
+
+  it("is drawn by the lists of the site and of the app", () => {
+    expect(readFileSync("src/app/start/FoundationClient.tsx", "utf8")).toContain("foundationLessonThumb(item.id)");
+    // Every rule card names a drawing, so every row of both lists (racing rules, collision regulations) has one.
+    expect(readFileSync("src/app/rules/page.tsx", "utf8").match(/<SchematicThumb visuals=\{sailingVisuals\(r\.svg\)\} \/>/g)).toHaveLength(2);
+    expect(readFileSync("src/features/manoeuvres/ManoeuvresApp.tsx", "utf8")).toMatch(/<Schematic exercise=\{e\}[^\n]* compact \/>/);
+    expect(readFileSync("mobile/app/bootcamp/index.tsx", "utf8")).toContain("foundationLessonThumb(lesson.id)");
+    expect(readFileSync("mobile/app/rules/index.tsx", "utf8")).toContain("sailingVisuals(scenario.svg)?.schematic()");
   });
 });

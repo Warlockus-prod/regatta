@@ -254,3 +254,13 @@ export const FOUNDATION_LESSON_SUBJECTS: Readonly<Record<string, SailingSubjectI
 export function foundationLessonVisuals(lessonId: string): SailingVisuals | null {
   return Object.prototype.hasOwnProperty.call(FOUNDATION_LESSON_SUBJECTS, lessonId) ? sailingVisuals(FOUNDATION_LESSON_SUBJECTS[lessonId]) : null;
 }
+
+/** The lesson of "From scratch" that has a photo pair of its own, and the first photo of that pair (src/data/sail-shape.ts). */
+export const FOUNDATION_OWN_PHOTO = { lesson: "how-sail-works", src: "/learning/mainsail-filled.jpg", width: 1536, height: 1024 } as const;
+
+/** The small picture of a "From scratch" lesson for a list row: its subject's frame, or the lesson's own photo. */
+export function foundationLessonThumb(lessonId: string): { src: string; width: number; height: number; subject: SailingSubjectId | null } | null {
+  if (lessonId === FOUNDATION_OWN_PHOTO.lesson) return { src: FOUNDATION_OWN_PHOTO.src, width: FOUNDATION_OWN_PHOTO.width, height: FOUNDATION_OWN_PHOTO.height, subject: null };
+  const visuals = foundationLessonVisuals(lessonId);
+  return visuals ? { ...visuals.picture, subject: visuals.id } : null;
+}

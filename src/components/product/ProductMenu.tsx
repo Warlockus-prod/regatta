@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { copy } from "@/lib/product/copy";
 import { menuCopy, menuGroups } from "@/lib/product/menu";
 import ThemeToggle from "../ThemeToggle";
+import { HubScene } from "./ProductHub";
 import styles from "./Product.module.css";
 
 /** Web directory: addressable page, keyboard search, columns on a wide screen. */
@@ -19,6 +20,7 @@ export default function ProductMenu() {
       <h1 className={styles.title}>{copy.menu[lang]}</h1>
       <p className={styles.intro}>{copy.allSections[lang]}. {copy.menuIntro[lang]}</p>
     </header>
+    <HubScene id="library" lang={lang} />
     <div role="search" className={styles.search}>
       <label className="sr-only" htmlFor="menu-search">{copy.search[lang]}</label>
       <input id="menu-search" type="search" autoComplete="off" placeholder={copy.hint[lang]} value={query} onChange={e => setQuery(e.target.value)} />

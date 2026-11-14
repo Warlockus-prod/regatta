@@ -58,10 +58,16 @@
 .play { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: 12px; }
 .playScene { margin: 0; }
 .playScene img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 860; object-fit: cover; border-radius: 16px; background: var(--bg-secondary); }
+/* Package 32, stage C: the frame of the 3D scene at the top of Learn, Practice and the Menu. */
+.hubScene { margin: 0 0 28px; }
+/* The wide crop keeps the lower part of the frame, where the hulls are. */
+.hubScene img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 1; object-fit: cover; object-position: 50% 80%; border-radius: 16px; background: var(--bg-secondary); }
 .playActions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
 .playSummary { color: var(--text-secondary); font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
 .playActions .primary { justify-content: space-between; min-height: 52px; font-size: 16px; }
 @media (max-width: 640px) {
   .play { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .playScene img { aspect-ratio: 16 / 9; border-radius: 14px; }
+  .hubScene { margin-bottom: 20px; }
+  .hubScene img { aspect-ratio: 2 / 1; border-radius: 14px; }
 }

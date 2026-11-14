@@ -5,8 +5,8 @@ import { RaceReturn } from '@/components/RaceReturn';
 import { ruleFromSearch } from './rule-from-search';
 import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
-import { ruleVisuals } from '@/data/sailing-visuals';
-import { SubjectPicture } from '@/components/visuals/SubjectVisuals';
+import { ruleVisuals, sailingVisuals } from '@/data/sailing-visuals';
+import { SchematicThumb, SubjectPicture } from '@/components/visuals/SubjectVisuals';
 import { UI_TERMS } from '@/lib/product/ui-terms';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
@@ -252,6 +252,8 @@ export default function RulesPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
+                  {/* Package 32, stage C: the card's drawing as the row's thumbnail. */}
+                  <SchematicThumb visuals={sailingVisuals(r.svg)} />
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{pickTitle(r)}</div>
                     {lang !== 'en' && (
@@ -391,6 +393,8 @@ export default function RulesPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
+                  {/* Package 32, stage C: the card's drawing as the row's thumbnail. */}
+                  <SchematicThumb visuals={sailingVisuals(r.svg)} />
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{pickTitle(r)}</div>
                     {lang !== 'en' && (

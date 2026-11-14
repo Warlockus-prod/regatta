@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { destinations, sections } from "@/lib/product/catalog";
 import { copy } from "@/lib/product/copy";
 import { SCENE_STILL_SIZE, SCENE_STILL_WEB, homeEntryCopy } from "@/lib/product/home-entry";
+import { HUB_SCENES, HUB_SCENE_SIZE, type HubSceneId } from "@/lib/product/hub-scenes";
 import { raceHubCopy, raceSetupSummary } from "@/lib/product/race-hub";
 import { DEFAULT_LAST_RACE_SETUP, raceSetupHref, readLastRaceSetup, type LastRaceSetup } from "@/lib/race-last-setup";
 import { RACE_MODE_LABELS } from "@/app/game/race-mode-labels";
@@ -28,7 +29,7 @@ export default function ProductHub({ section }: { section: "learn" | "practice" 
       <h1 className={styles.title}>{current.title[lang]}</h1>
       <p className={styles.intro}>{current.description[lang]}</p>
     </header>
-    {section === "race" && <RacePlay lang={lang} />}
+    {section === "race" ? <RacePlay lang={lang} /> : <HubScene id={section} lang={lang} />}
     <div className={section === "learn" ? styles.groupsGrid : undefined}>
       {groups.filter(g => g.entries.length).map(group => <section key={group.id} className={styles.section}>
         {group.title && <h2 className={styles.sectionTitle}>{group.title}</h2>}
@@ -40,6 +41,15 @@ export default function ProductHub({ section }: { section: "learn" | "practice" 
       {!visible.length && <p className={styles.description}>{copy.empty[lang]}</p>}
     </div>
   </div>;
+}
+
+/** Package 32, stage C: the frame of the real 3D scene a tab opens with (Race has its own beside "Play"). */
+export function HubScene({ id, lang }: { id: HubSceneId; lang: keyof typeof HUB_SCENES.learn.alt }) {
+  const scene = HUB_SCENES[id];
+  return <figure className={styles.hubScene} data-testid="hub-scene">
+    {/* eslint-disable-next-line @next/next/no-img-element -- one local still of the 3D scene */}
+    <img src={scene.web} width={HUB_SCENE_SIZE.width} height={HUB_SCENE_SIZE.height} alt={scene.alt[lang]} decoding="async" />
+  </figure>;
 }
 
 /**

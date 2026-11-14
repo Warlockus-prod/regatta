@@ -5,7 +5,8 @@ import { hullWorld, OUR_YACHT, toWorld, hullOutline, type Vec2 } from "@/lib/har
 import type { ManoeuvreExercise } from "@/data/manoeuvres";
 import styles from "./Manoeuvres.module.css";
 
-export default function Schematic({ exercise, label, words }: { exercise: ManoeuvreExercise; label: string; words: { wind: string; start: string; target: string } }) {
+/** `compact` is the same drawing as a list row's thumbnail: no words, hidden from assistive technology (the row names the exercise). */
+export default function Schematic({ exercise, label, words, compact = false }: { exercise: ManoeuvreExercise; label: string; words: { wind: string; start: string; target: string }; compact?: boolean }) {
   const [minX, minY, maxX, maxY] = exercise.bounds;
   // A band above the harbour holds the wind arrow and its label.
   const pad = 4, w = maxX - minX + pad * 2, band = Math.max(10, w * 0.09), h = maxY - minY + pad * 2 + band;
@@ -20,8 +21,8 @@ export default function Schematic({ exercise, label, words }: { exercise: Manoeu
   const wa: Vec2 = [wm[0] - Math.sin(windTo) * arm, wm[1] - Math.cos(windTo) * arm];
   const wb: Vec2 = [wm[0] + Math.sin(windTo) * arm, wm[1] + Math.cos(windTo) * arm];
   const [sx, sy] = pt([exercise.start.x, exercise.start.y]).split(",").map(Number);
-  return <figure className={styles.schematic}>
-    <svg viewBox={`0 0 ${w.toFixed(2)} ${h.toFixed(2)}`} role="img" aria-label={label}>
+  return <figure className={compact ? styles.thumb : styles.schematic} aria-hidden={compact || undefined} data-testid={compact ? "exercise-thumb" : undefined}>
+    <svg viewBox={`0 0 ${w.toFixed(2)} ${h.toFixed(2)}`} role={compact ? undefined : "img"} aria-label={compact ? undefined : label}>
       <defs>
         <marker id={`arrow-${exercise.id}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
           <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
@@ -47,8 +48,8 @@ export default function Schematic({ exercise, label, words }: { exercise: Manoeu
       <polyline points={poly(exercise.plan)} className={styles.svgPlan} strokeWidth={u * 0.45} markerEnd={`url(#arrow-${exercise.id})`} />
       <polygon points={poly(hullWorld(exercise.start))} className={styles.svgOurs} strokeWidth={u * 0.3} />
       <line x1={pt(wa).split(",")[0]} y1={pt(wa).split(",")[1]} x2={pt(wb).split(",")[0]} y2={pt(wb).split(",")[1]} className={styles.svgWind} strokeWidth={u * 0.6} markerEnd={`url(#arrow-${exercise.id})`} />
-      <text x={Number(pt(wm).split(",")[0]) + arm + u * 2} y={Number(pt(wm).split(",")[1]) + u * 1.1} className={styles.svgText} fontSize={u * 3.2}>{words.wind} {exercise.wind.speed}</text>
-      <text x={sx} y={sy + u * 6} className={styles.svgText} fontSize={u * 3.2} textAnchor="middle">{words.start}</text>
+      {!compact && <text x={Number(pt(wm).split(",")[0]) + arm + u * 2} y={Number(pt(wm).split(",")[1]) + u * 1.1} className={styles.svgText} fontSize={u * 3.2}>{words.wind} {exercise.wind.speed}</text>}
+      {!compact && <text x={sx} y={sy + u * 6} className={styles.svgText} fontSize={u * 3.2} textAnchor="middle">{words.start}</text>}
     </svg>
   </figure>;
 }
