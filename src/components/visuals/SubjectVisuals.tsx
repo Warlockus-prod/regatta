@@ -1,6 +1,7 @@
 import { PartVisuals } from "@/components/anatomy/PartVisuals";
 import { partVisuals } from "@/data/anatomy-visuals";
 import { sailLessonPicture, sailingVisuals, type SailingVisuals } from "@/data/sailing-visuals";
+import { SubjectSchematic } from "./SubjectSchematic";
 
 /**
  * Package 32: the two visuals of a subject, whatever kind it is: a part of the yacht
@@ -10,17 +11,16 @@ import { sailLessonPicture, sailingVisuals, type SailingVisuals } from "@/data/s
  * section shows for that subject, or nothing when the item is not one of these subjects.
  * `labels` are the two captions (UI_TERMS.visualDiagram and visualOnBoat in the reader's language).
  * The layout is in inline styles: the app's bundled pages are built with their own style sheet.
+ * The schematic is drawn by SubjectSchematic, which loads the drawings once for every page.
  */
 export function SubjectVisuals({ id, name, labels, className }: { id: string; name: string; labels: { diagram: string; picture: string }; className?: string }) {
   if (partVisuals(id)) return <PartVisuals id={id} name={name} labels={labels} className={className} />;
   const visuals = sailingVisuals(id);
   if (!visuals) return null;
-  // The drawing is decorative markup inside a labelled figure: its own English label is dropped.
-  const svg = visuals.schematic().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" style="display:block;width:100%;height:auto"');
   return (
     <div className={className} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }} data-testid="subject-visuals" data-subject={visuals.id}>
       <figure style={TILE}>
-        <div role="img" aria-label={`${name}: ${labels.diagram}`} data-testid="subject-diagram" dangerouslySetInnerHTML={{ __html: svg }} />
+        <SubjectSchematic id={visuals.id} label={`${name}: ${labels.diagram}`} testId="subject-diagram" />
         <figcaption style={CAPTION}>{labels.diagram}</figcaption>
       </figure>
       <figure style={TILE}>
@@ -62,10 +62,9 @@ export function SubjectStrip({ ids, names, labels, title }: { ids: readonly stri
  */
 export function SubjectThumbs({ visuals, width = 232 }: { visuals: SailingVisuals | null; width?: number }) {
   if (!visuals) return null;
-  const svg = visuals.schematic().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" style="display:block;width:100%;height:auto"');
   return (
     <div aria-hidden="true" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 6, width: "100%", maxWidth: width, marginTop: 8 }} data-testid="subject-thumbs" data-subject={visuals.id}>
-      <div style={THUMB} dangerouslySetInnerHTML={{ __html: svg }} />
+      <SubjectSchematic id={visuals.id} style={THUMB} />
       {/* eslint-disable-next-line @next/next/no-img-element -- A static, pre-sized picture; the offline bundle has no image optimizer. */}
       <img src={visuals.picture.src} width={visuals.picture.width} height={visuals.picture.height} alt="" loading="lazy" decoding="async"
         style={{ ...THUMB, display: "block", width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }} />
@@ -113,6 +112,5 @@ export function SubjectPicture({ visuals, name, label, className, maxWidth = 360
  */
 export function SchematicThumb({ visuals, width = 64 }: { visuals: SailingVisuals | null; width?: number }) {
   if (!visuals) return null;
-  const svg = visuals.schematic().replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" style="display:block;width:100%;height:auto"');
-  return <div aria-hidden="true" style={{ ...THUMB, width, flexShrink: 0 }} data-testid="schematic-thumb" data-subject={visuals.id} dangerouslySetInnerHTML={{ __html: svg }} />;
+  return <div aria-hidden="true" style={{ ...THUMB, width, flexShrink: 0 }} data-testid="schematic-thumb" data-subject={visuals.id}><SubjectSchematic id={visuals.id} /></div>;
 }

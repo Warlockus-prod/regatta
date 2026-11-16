@@ -2,6 +2,7 @@ import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { partVisuals } from "../../../src/data/anatomy-visuals";
 import { sailLessonPicture, sailingVisuals, type SailingVisuals } from "../../../src/data/sailing-visuals";
+import { subjectSchematic } from "../../../src/data/sailing-schematics";
 import { PartVisuals } from "../anatomy/PartVisuals";
 import { PART_PICTURE_ASSETS } from "../anatomy/part-visuals.generated";
 import { Text } from "../design-system/components/Text";
@@ -22,7 +23,7 @@ export function SubjectVisuals({ id, name, labels }: { id: string; name: string;
     <View style={styles.pair} testID="subject-visuals">
       <View style={styles.tile}>
         <View style={styles.frame} accessible accessibilityRole="image" accessibilityLabel={`${name}: ${labels.diagram}`} testID="subject-diagram">
-          <SvgXml xml={visuals.schematic()} width="100%" height="100%" />
+          <SvgXml xml={subjectSchematic(visuals.id)} width="100%" height="100%" />
         </View>
         <Text variant="muted" style={styles.caption}>{labels.diagram}</Text>
       </View>
@@ -63,7 +64,7 @@ export function SubjectThumbs({ visuals }: { visuals: SailingVisuals | null }) {
   if (!visuals) return null;
   return (
     <View style={styles.thumbs} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="subject-thumbs">
-      <View style={[styles.tile, styles.frame]}><SvgXml xml={visuals.schematic()} width="100%" height="100%" /></View>
+      <View style={[styles.tile, styles.frame]}><SvgXml xml={subjectSchematic(visuals.id)} width="100%" height="100%" /></View>
       <View style={styles.tile}><Image source={SUBJECT_PICTURE_ASSETS[visuals.id]} style={styles.picture} resizeMode="cover" accessibilityIgnoresInvertColors /></View>
     </View>
   );

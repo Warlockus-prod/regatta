@@ -598,7 +598,13 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   const canvas = await page.locator("canvas").first().boundingBox();
   expect(canvas).not.toBeNull();
   expect(canvas!.height).toBeGreaterThan(200);
-  expect(canvas!.y + canvas!.height).toBeLessThan(844);
+  // Package 32 stage B: the scene is painted on the whole phone screen and the controls lie over
+  // it, so the canvas reaches the bottom edge (never past it) and the controls stay on screen.
+  expect(canvas!.y + canvas!.height).toBeLessThanOrEqual(844);
+  const control = await page.getByRole("slider", { name: "Helm", exact: true }).boundingBox();
+  expect(control).not.toBeNull();
+  expect(control!.y).toBeGreaterThanOrEqual(0);
+  expect(control!.y + control!.height).toBeLessThanOrEqual(844);
 });
 
 // A software WebGL runner spends several seconds waiting for stable animation

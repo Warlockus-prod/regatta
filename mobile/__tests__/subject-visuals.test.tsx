@@ -12,6 +12,7 @@ import { StyleSheet } from "react-native";
 import { glossaryTerms, maneuvers, pointsOfSail, quickRefreshLessons, racingRules, racingStrategies, ruleScenarios } from "../src/data";
 import { COURSE_SUBJECTS, DRILL_SUBJECTS, LESSON_FRAME_IDS, SAILING_SECTIONS, SAILING_SUBJECT_IDS, SAIL_LESSON_PICTURES, drillVisuals, foundationLessonVisuals, ruleVisuals, sailingSubject, sailingVisuals, tacticsVisuals } from "../../src/data/sailing-visuals";
 import { LessonPicture, SubjectPicture, SubjectStrip, SubjectThumbs, SubjectVisuals } from "../src/learning/SubjectVisuals";
+import { subjectSchematic } from "../../src/data/sailing-schematics";
 import { SUBJECT_PICTURE_ASSETS } from "../src/learning/subject-pictures.generated";
 import { PART_PICTURE_ASSETS } from "../src/anatomy/part-visuals.generated";
 import { DRILLS, MISSIONS } from "../src/simulator/missions";
@@ -85,7 +86,7 @@ it("wires the same registry into every native screen that teaches these subjects
   expect(source("src/sailing/SailingCourseScreen.tsx")).toContain("<LessonPicture lessonId={lesson.id}");
   expect(source("app/simulator/index.tsx")).toContain("<SubjectThumbs visuals={drillVisuals(d.id)} />");
   for (const card of Object.keys(SAILING_SECTIONS.quick)) expect(quickRefreshLessons.some(lesson => lesson.id === card)).toBe(true);
-  for (const id of SAILING_SUBJECT_IDS) expect(sailingVisuals(id)!.schematic()).toContain('viewBox="0 0 800 600"');
+  for (const id of SAILING_SUBJECT_IDS) expect(subjectSchematic(id)).toContain('viewBox="0 0 800 600"');
 });
 
 it("shows the picture of the race subject a rule card, a tactic or a first lesson draws", () => {

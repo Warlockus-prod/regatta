@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "90245d9e8824",
-  "sha256": "65a9825801ebddbfd066b74bb64acc0b9f34cd7ae34eb0baeb2b1b3b331a2262",
-  "bytes": 7640595,
+  "version": "67606d747ec7",
+  "sha256": "49253adea844c1020a45e93a6dfd9575125f5e937f79a671abf15dfbc28d25ab",
+  "bytes": 7641886,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -644,6 +644,7 @@
     "src/components/diagnostics/DiagnosticPanelLoader.tsx",
     "src/components/game-layer.ts",
     "src/components/product/TrainerSwitcher.tsx",
+    "src/components/visuals/SubjectSchematic.tsx",
     "src/components/visuals/SubjectVisuals.tsx",
     "src/data/anatomy-visuals.generated.ts",
     "src/data/anatomy-visuals.ts",
@@ -691,6 +692,7 @@
     "src/data/sailing-lab/telltale-lesson.ts",
     "src/data/sailing-lab/trim-doctor-lesson.ts",
     "src/data/sailing-lab/winch-lesson.ts",
+    "src/data/sailing-schematics.ts",
     "src/data/sailing-visuals.ts",
     "src/data/venues/geometry.ts",
     "src/data/venues/look.ts",
@@ -919,8 +921,9 @@
     "src/lib/helm-trim.ts",
     "src/lib/languages.ts",
     "src/lib/leaderboard-visibility.ts",
-    "src/lib/learning/foundation-drawings.ts",
+    "src/lib/learning/drawing-kit.ts",
     "src/lib/learning/foundation-navigation.ts",
+    "src/lib/learning/subject-drawings.ts",
     "src/lib/physical-race-record.ts",
     "src/lib/product/catalog.ts",
     "src/lib/product/copy.ts",
@@ -1285,9 +1288,14 @@
       "sha256": "b64b28f5b005ecec0e8ca5382074f51cb4e2230af5bb42be4985910e802006ce"
     },
     {
+      "path": "src/components/visuals/SubjectSchematic.tsx",
+      "bytes": 2031,
+      "sha256": "4eb85e610f3421bf0fb22e24662fd6444ba6633b6075e211243ac56c83730669"
+    },
+    {
       "path": "src/components/visuals/SubjectVisuals.tsx",
-      "bytes": 8206,
-      "sha256": "4149dbe75c437e43e63e86a722d15152e2345febab8ccdaaf014b70e83c59913"
+      "bytes": 7772,
+      "sha256": "e925c991f17299a61c80b4555652838229a3a9faae1e82f2f90afb81967d82b0"
     },
     {
       "path": "src/data/anatomy-visuals.generated.ts",
@@ -1520,9 +1528,14 @@
       "sha256": "5dba124beb968abe087097ffb6b23dac2b474c6079fa2bda67cf9d78593f7ca7"
     },
     {
+      "path": "src/data/sailing-schematics.ts",
+      "bytes": 3247,
+      "sha256": "4b34d8a0d672d59a3bc6f4bbbef72a08d7abb254cb68c49165a098ed276c46bd"
+    },
+    {
       "path": "src/data/sailing-visuals.ts",
-      "bytes": 14671,
-      "sha256": "feab11570cb2cab37dfd8aa173d30eff33253432966cbbed5b973ad60e813e33"
+      "bytes": 13675,
+      "sha256": "1b12791047519bae0fc229a860b33f537666a963300a048837d42019869e9bbc"
     },
     {
       "path": "src/data/venues/geometry.ts",
@@ -2660,14 +2673,19 @@
       "sha256": "082950cdcadc2adc473a10f8e564007b8403affdf64780a5fac92b2386e34e97"
     },
     {
-      "path": "src/lib/learning/foundation-drawings.ts",
-      "bytes": 29324,
-      "sha256": "bd25e9a31584d5630360f81031a281c7a4b4ac80670f890b14dbcb78d770eb4d"
+      "path": "src/lib/learning/drawing-kit.ts",
+      "bytes": 4493,
+      "sha256": "c50ac379532ffcaeecbd780fded2054c154cbf4fece8b791eff659814b81d618"
     },
     {
       "path": "src/lib/learning/foundation-navigation.ts",
       "bytes": 1235,
       "sha256": "74f7234775c482d5aabef018d9d4446cc38372715cb11cb636be3475bd79c381"
+    },
+    {
+      "path": "src/lib/learning/subject-drawings.ts",
+      "bytes": 18172,
+      "sha256": "834465f0725aa92d21d8dd4dc81880c2fa3e65bdfebd981915a6b40a02bdadf5"
     },
     {
       "path": "src/lib/physical-race-record.ts",

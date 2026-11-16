@@ -22,6 +22,17 @@ const nextConfig: NextConfig = {
   // so we do not duplicate them here (duplicate X-Frame-Options / CSP can
   // weaken or conflict).
   poweredByHeader: false,
+  experimental: {
+    // Package 32 (owner 2026-11-16: "remove the excess" of the 6.6 MB JS budget). By default
+    // Turbopack merges every chunk under 50 KB (unminified) into the chunk of each page that needs
+    // it, so a small module shared by many pages (the visuals registry, the trainer controls, the
+    // physics constants) was copied into every one of them: 0.86 MB of copies in all. At 15 KB the
+    // shared modules stay in chunks of their own that every page and the browser cache reuse.
+    // Measured on the production build: static chunks 7.01 -> 6.52 MB; each page's first load the
+    // same bytes (+1-2 KB), in 21-34 requests instead of 13-19 (one origin, HTTP/2).
+    // Docs: node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackChunking.md
+    turbopackChunking: { minChunkSize: 15000 },
+  },
   env: {
     // The service worker's cache version. It has to change every deploy, or the
     // browser (which compares sw.js byte-for-byte) never installs a new worker and

@@ -2,7 +2,8 @@
 // one section and missing in the next"): the sailing subjects that are not parts of the yacht:
 // the points of sail and the two turns, the wind, sail trim, and the race (right of way, the
 // start, the marks, tactics). Every subject has
-//   - a schematic, drawn by the shared lesson renderer (src/lib/learning/foundation-drawings.ts), and
+//   - a schematic, drawn by src/lib/learning/subject-drawings.ts (sailing-schematics.ts maps each
+//     subject to its drawing), and
 //   - a picture: a frame of the real 3D scene in that state (scripts/capture-subject-frames.mjs for
 //     one boat in the trainer, scripts/capture-race-frames.mjs for boats and marks in the race
 //     scene; scripts/build-subject-visuals.mjs).
@@ -12,20 +13,17 @@
 // subject by id and show the same pair.
 // sailing-visuals.test.ts fails when a subject lacks either visual, or when a section that
 // teaches a subject does not name it.
+// This module holds no drawing code: ids, tables and picture paths only. The site's pages read it
+// in their own code, so every byte here is paid once per page; the drawings live in
+// sailing-schematics.ts, which the site loads once, shared, when a schematic is on screen.
 // No "@/..." import here: the app reads this module through Metro's watched folders.
-import { NO_GO_HALF_DEG } from "../lib/sailing-physics/constants";
-import {
-  renderApparentWind, renderCourseChange, renderHeel, renderPointOfSail, renderRace, renderSailEdge, renderSide, renderSlot, renderTrim, renderTurn,
-  renderWindField, renderWindShift, type GraphicTheme, type RaceDrawing,
-} from "../lib/learning/foundation-drawings";
+import type { RaceDrawing } from "../lib/learning/subject-drawings";
 
 export const SAILING_PICTURE_SIZE = { width: 640, height: 480 } as const;
 
-type Painter = (theme?: GraphicTheme) => string;
 interface PointSubject { kind: "point"; /** Heading off the wind the schematic and the frame show, degrees. */ angle: number; /** Boom angle in the schematic. */ boom: number }
 interface TurnSubject { kind: "turn"; turn: "tacking" | "jibing" }
-interface DrawnSubject { kind: "wind" | "trim" | "race"; draw: Painter }
-type Subject = PointSubject | TurnSubject | DrawnSubject;
+interface DrawnSubject { kind: "wind" | "trim" | "race" }
 
 /** The points of sail and the turns; ids are those of pointsOfSail and maneuvers in sailing-data.ts. */
 export const COURSE_SUBJECTS = {
@@ -40,13 +38,13 @@ export const COURSE_SUBJECTS = {
 
 /** The wind; ids are those of the glossary's wind terms. */
 export const WIND_SUBJECTS = {
-  "true-wind": { kind: "wind", draw: theme => renderWindField("steady", theme) },
-  "apparent-wind": { kind: "wind", draw: renderApparentWind },
-  windward: { kind: "wind", draw: theme => renderSide("windward", theme) },
-  leeward: { kind: "wind", draw: theme => renderSide("leeward", theme) },
-  gust: { kind: "wind", draw: theme => renderWindField("gust", theme) },
-  lull: { kind: "wind", draw: theme => renderWindField("lull", theme) },
-  "wind-shift": { kind: "wind", draw: renderWindShift },
+  "true-wind": { kind: "wind" },
+  "apparent-wind": { kind: "wind" },
+  windward: { kind: "wind" },
+  leeward: { kind: "wind" },
+  gust: { kind: "wind" },
+  lull: { kind: "wind" },
+  "wind-shift": { kind: "wind" },
 } as const satisfies Record<string, DrawnSubject>;
 
 /** Heel the schematic of "heeling" draws: what the trainer reads in the frame beside it (16 knots, sheets hard in), degrees. */
@@ -54,39 +52,40 @@ export const HEEL_SHOWN_DEG = 22;
 
 /** Sail trim: the terms of the glossary and what the trim lessons and exercises practise. */
 export const TRIM_SUBJECTS = {
-  trim: { kind: "trim", draw: renderTrim },
-  halyard: { kind: "trim", draw: theme => renderSailEdge("halyard", theme) },
-  "luff-sail": { kind: "trim", draw: theme => renderSailEdge("luff", theme) },
-  leech: { kind: "trim", draw: theme => renderSailEdge("leech", theme) },
-  heeling: { kind: "trim", draw: theme => renderHeel(HEEL_SHOWN_DEG, theme) },
-  slot: { kind: "trim", draw: renderSlot },
-  luffing: { kind: "trim", draw: theme => renderCourseChange("luff", theme) },
-  "bearing-away": { kind: "trim", draw: theme => renderCourseChange("bear", theme) },
+  trim: { kind: "trim" },
+  halyard: { kind: "trim" },
+  "luff-sail": { kind: "trim" },
+  leech: { kind: "trim" },
+  heeling: { kind: "trim" },
+  slot: { kind: "trim" },
+  luffing: { kind: "trim" },
+  "bearing-away": { kind: "trim" },
 } as const satisfies Record<string, DrawnSubject>;
 
-const race = (drawing: RaceDrawing): DrawnSubject => ({ kind: "race", draw: theme => renderRace(drawing, theme) });
+const race = (): DrawnSubject => ({ kind: "race" });
 
 /**
  * The race: right of way (ids are the drawings the rule cards of src/data/rules.ts name), the
  * start, the marks and the tactics of a leg.
  */
 export const RACE_SUBJECTS = {
-  "port-vs-starboard": race("port-vs-starboard"),
-  "windward-leeward": race("windward-leeward"),
-  overtaking: race("overtaking"),
-  "mark-room": race("mark-room"),
-  crossing: race("crossing"),
-  "start-line": race("start-line"),
-  "collision-avoid": race("collision-avoid"),
-  penalty: race("penalty"),
-  upwind: race("upwind"),
-  downwind: race("downwind"),
-  "mark-rounding": race("mark-rounding"),
-  layline: race("layline"),
-  overlap: race("overlap"),
-  vmg: race("vmg"),
-  vmc: race("vmc"),
+  "port-vs-starboard": race(),
+  "windward-leeward": race(),
+  overtaking: race(),
+  "mark-room": race(),
+  crossing: race(),
+  "start-line": race(),
+  "collision-avoid": race(),
+  penalty: race(),
+  upwind: race(),
+  downwind: race(),
+  "mark-rounding": race(),
+  layline: race(),
+  overlap: race(),
+  vmg: race(),
+  vmc: race(),
 } as const satisfies Record<RaceDrawing, DrawnSubject>;
+// Every drawing of the race has its subject (the satisfies above) and nothing else is one.
 
 export const SAILING_SUBJECTS = { ...COURSE_SUBJECTS, ...WIND_SUBJECTS, ...TRIM_SUBJECTS, ...RACE_SUBJECTS };
 export type SailingSubjectId = keyof typeof SAILING_SUBJECTS;
@@ -111,22 +110,15 @@ export function sailingSubject(id: string): SailingSubjectId | null {
 export interface SailingVisuals {
   id: SailingSubjectId;
   picture: { src: string; width: number; height: number };
-  /** The schematic as SVG markup, 800x600. */
-  schematic: Painter;
+  /** The schematic is drawn by subjectSchematic(id) in sailing-schematics.ts (SVG markup, 800x600). */
 }
 
 const pictureOf = (file: string) => ({ src: `/learning/subjects/${file}.webp`, ...SAILING_PICTURE_SIZE });
 
-/** Both visuals of a sailing subject, by its id or an alias; null for anything else. */
+/** Both visuals of a sailing subject, by its id or an alias (the picture here, the schematic by subjectSchematic of the same id); null for anything else. */
 export function sailingVisuals(id: string): SailingVisuals | null {
   const subject = sailingSubject(id);
-  if (!subject) return null;
-  const spec: Subject = SAILING_SUBJECTS[subject];
-  return {
-    id: subject,
-    picture: pictureOf(subject),
-    schematic: theme => spec.kind === "point" ? renderPointOfSail(spec.angle, spec.boom, NO_GO_HALF_DEG, theme) : spec.kind === "turn" ? renderTurn(spec.turn, theme) : spec.draw(theme),
-  };
+  return subject ? { id: subject, picture: pictureOf(subject) } : null;
 }
 
 /**

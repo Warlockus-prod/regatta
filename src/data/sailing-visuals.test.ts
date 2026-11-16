@@ -1,6 +1,8 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { partVisuals } from "./anatomy-visuals";
+import { subjectSchematic } from "./sailing-schematics";
 import { bootcampLessons, quickRefreshLessons } from "./bootcamp";
 import { trainerCatalog } from "./drills";
 import { ruleScenarios } from "./rules";
@@ -41,7 +43,7 @@ describe("sailing subjects: a schematic and a picture for each", () => {
   it("gives every subject a schematic without small text and a picture file of the declared size", () => {
     for (const id of SAILING_SUBJECT_IDS) {
       const visuals = sailingVisuals(id)!;
-      const svg = visuals.schematic();
+      const svg = subjectSchematic(id)!;
       expect(svg, id).toMatch(/^<svg [^>]*viewBox="0 0 800 600"/);
       // At most one label, and a large one: the drawing is shown in tiles 100 px wide.
       const sizes = [...svg.matchAll(/font-size="(\d+)"/g)].map(match => Number(match[1]));
@@ -56,8 +58,11 @@ describe("sailing subjects: a schematic and a picture for each", () => {
       expect(visuals.picture).toMatchObject(SAILING_PICTURE_SIZE);
     }
     // Distinct drawings: a subject is not shown by its neighbour's schematic.
-    expect(new Set(SAILING_SUBJECT_IDS.map(id => sailingVisuals(id)!.schematic())).size).toBe(SAILING_SUBJECT_IDS.length);
-    expect(sailingVisuals("heeling")!.schematic()).toContain(`>${HEEL_SHOWN_DEG}°<`);
+    expect(new Set(SAILING_SUBJECT_IDS.map(id => subjectSchematic(id))).size).toBe(SAILING_SUBJECT_IDS.length);
+    expect(subjectSchematic("heeling")).toContain(`>${HEEL_SHOWN_DEG}°<`);
+    // An alias draws its subject's schematic; anything else draws nothing.
+    expect(subjectSchematic("no-go-zone")).toBe(subjectSchematic("in-irons"));
+    for (const id of ["port", "toString"]) expect(subjectSchematic(id), id).toBeNull();
   });
 
   it("ships exactly the pictures the subjects and the lessons name", () => {
@@ -195,6 +200,26 @@ describe("lists: a thumbnail in every row of the first lessons, the rule cards a
     expect(readFileSync("src/app/rules/page.tsx", "utf8").match(/<SchematicThumb visuals=\{sailingVisuals\(r\.svg\)\} \/>/g)).toHaveLength(2);
     expect(readFileSync("src/features/manoeuvres/ManoeuvresApp.tsx", "utf8")).toMatch(/<Schematic exercise=\{e\}[^\n]* compact \/>/);
     expect(readFileSync("mobile/app/bootcamp/index.tsx", "utf8")).toContain("foundationLessonThumb(lesson.id)");
-    expect(readFileSync("mobile/app/rules/index.tsx", "utf8")).toContain("sailingVisuals(scenario.svg)?.schematic()");
+    expect(readFileSync("mobile/app/rules/index.tsx", "utf8")).toContain("subjectSchematic(scenario.svg)");
+  });
+});
+
+// The site's JS budget (docs/STATUS.md): the registry is read by the code of eight pages, so it
+// holds no drawing code, and the drawings reach the site only through one shared on-demand chunk.
+describe("weight: the drawings are loaded once, not copied into every page", () => {
+  it("keeps every drawing out of the registry and the light modules the pages read", () => {
+    const registry = readFileSync("src/data/sailing-visuals.ts", "utf8");
+    expect(registry).not.toMatch(/^import (?!type )[^\n]*(subject-drawings|foundation-drawings|drawing-kit|sailing-physics|sailing-schematics)/m);
+    // The lesson scenes do not carry the subject drawings, and the reverse.
+    expect(readFileSync("src/lib/learning/foundation-drawings.ts", "utf8")).not.toContain("subject-drawings");
+    expect(readFileSync("src/lib/learning/subject-drawings.ts", "utf8")).not.toContain("foundation-drawings");
+  });
+
+  it("lets no page import the drawings: only the schematic component loads them, on demand", () => {
+    const importers = execFileSync("git", ["grep", "--untracked", "-l", "-E", "sailing-schematics|subject-drawings", "--", "src", ":!*.test.*"], { encoding: "utf8" }).trim().split("\n").sort();
+    // The registry and the pen name the drawings in a type import and a comment, nothing more (the test above).
+    expect(importers).toEqual(["src/components/visuals/SubjectSchematic.tsx", "src/data/sailing-schematics.ts", "src/data/sailing-visuals.ts", "src/lib/learning/drawing-kit.ts", "src/lib/learning/subject-drawings.ts"]);
+    expect(readFileSync("src/components/visuals/SubjectSchematic.tsx", "utf8")).toMatch(/import\("@\/data\/sailing-schematics"\)/);
+    expect(readFileSync("src/components/visuals/SubjectSchematic.tsx", "utf8")).not.toMatch(/^import [^\n]*sailing-schematics/m);
   });
 });

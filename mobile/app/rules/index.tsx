@@ -4,7 +4,7 @@ import { useI18n } from '../../src/i18n/context';
 import { Card, Screen, Text } from '../../src/design-system/components';
 import { SvgXml } from 'react-native-svg';
 import { ruleScenarios } from '../../src/data';
-import { sailingVisuals } from '../../../src/data/sailing-visuals';
+import { subjectSchematic } from '../../../src/data/sailing-schematics';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
@@ -216,7 +216,7 @@ export default function Rules() {
         <View style={styles.cardHeader}>
           {/* Package 32, stage C: the card's drawing as the row's thumbnail (the card opens the full diagram). */}
           <View style={styles.thumb} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="rule-thumb">
-            <SvgXml xml={sailingVisuals(scenario.svg)?.schematic() ?? null} width="100%" height="100%" />
+            <SvgXml xml={subjectSchematic(scenario.svg)} width="100%" height="100%" />
           </View>
           <View style={styles.cardText}>
             <Text variant="subtitle">{title}</Text>
