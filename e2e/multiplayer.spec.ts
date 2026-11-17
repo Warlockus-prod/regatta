@@ -152,6 +152,7 @@ test.describe('Multiplayer smoke', () => {
     // A new lobby opens with 3 bots (R-12), so host + guest + 3 bots.
     await expect(h.getByText(/ИГРОКИ · 5 \/ 10/)).toBeVisible({ timeout: 10_000 });
     await expect(g.getByText(/ИГРОКИ · 5 \/ 10/)).toBeVisible({ timeout: 10_000 });
+    await expect(h.getByText(guestNick, { exact: true })).toBeVisible();
 
     const start = h.getByRole('button', { name: /Старт гонки/ });
     await expect(start).toBeDisabled();
@@ -174,23 +175,6 @@ test.describe('Multiplayer smoke', () => {
     await expect.poll(() => turns.some(turn => turn > 0)).toBe(true);
     await helm.press("ArrowLeft");
 
-    // Settings replace the controls in the reserved dock, preserving the
-    // scene footprint. No wheel, camera or result panel covers the boat.
-    const scene = (await g.getByTestId("multiplayer-scene").boundingBox())!;
-    const dock = (await g.getByTestId("multiplayer-dock").boundingBox())!;
-    expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
-    await g.getByRole("button", { name: "Настройки", exact: true }).click();
-    const guidance = g.getByRole("switch", { name: "Путь и подсказки", exact: true });
-    await guidance.uncheck();
-    await expect(g.getByTestId("multiplayer-guidance")).toBeHidden();
-    await guidance.check();
-    await expect(g.getByTestId("multiplayer-guidance")).toBeVisible();
-    await g.getByRole("radio", { name: "За кормой", exact: true }).click();
-    await g.getByRole("radio", { name: "Ползунки", exact: true }).click();
-    const after = (await g.getByTestId("multiplayer-scene").boundingBox())!;
-    expect(after.height).toBeCloseTo(scene.height, 0);
-    await g.getByRole("button", { name: "Руль", exact: true }).click();
-    await expect(g.getByRole("slider", { name: /^Перо руля/ })).toBeVisible();
     await g.getByRole("button", { name: "Карта трассы", exact: true }).click();
     // The fleet list names rivals by nickname and the player as "Ты" (MultiplayerCockpit).
     const fleetList = g.locator('ol').filter({ hasText: hostNick });
@@ -200,5 +184,47 @@ test.describe('Multiplayer smoke', () => {
 
     await host.close();
     await guest.close();
+  });
+
+  // Split from the two-client case: on the GPU-less runner two software WebGL
+  // canvases cost about 1.5 s per page task, so the combined flow ran out of its
+  // 120 s in every attempt of runs 41212119876, 41602279442 and 42141082027. A real
+  // GPU runs the same flow at over 100 FPS. The cockpit does not depend on who
+  // else is racing, so these checks need one canvas, not more time.
+  test('race settings keep the scene footprint and change the controls', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.addInitScript(() => {
+      try { window.localStorage.setItem('regatta.lang.v1', 'ru'); } catch {}
+      try { window.localStorage.setItem('regatta.controls.v1', JSON.stringify({ version: 1, mode: "wheels", helmReturnToCenter: false })); } catch {}
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/multiplayer?embed=1');
+    await expect(page.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await page.getByPlaceholder('Введи ник').fill('Solo_' + Date.now().toString(36));
+    await page.getByRole('button', { name: 'Создать лобби' }).click();
+    await expect(page.getByText(/КОД ЛОББИ/)).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Добавить бота' }).click();
+    await expect(page.getByText(/ИГРОКИ · 2 \/ 10/)).toBeVisible();
+    await page.getByRole('button', { name: /Старт гонки/ }).click();
+    await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
+    await expect(page.getByText("Паруса в сетевой гонке настраиваются автоматически. Ты управляешь рулем.", { exact: true })).toBeVisible({ timeout: 15_000 });
+
+    // Settings replace the controls in the reserved dock, preserving the
+    // scene footprint. No wheel, camera or result panel covers the boat.
+    const scene = (await page.getByTestId("multiplayer-scene").boundingBox())!;
+    const dock = (await page.getByTestId("multiplayer-dock").boundingBox())!;
+    expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
+    await page.getByRole("button", { name: "Настройки", exact: true }).click();
+    const guidance = page.getByRole("switch", { name: "Путь и подсказки", exact: true });
+    await guidance.uncheck();
+    await expect(page.getByTestId("multiplayer-guidance")).toBeHidden();
+    await guidance.check();
+    await expect(page.getByTestId("multiplayer-guidance")).toBeVisible();
+    await page.getByRole("radio", { name: "За кормой", exact: true }).click();
+    await page.getByRole("radio", { name: "Ползунки", exact: true }).click();
+    const after = (await page.getByTestId("multiplayer-scene").boundingBox())!;
+    expect(after.height).toBeCloseTo(scene.height, 0);
+    await page.getByRole("button", { name: "Руль", exact: true }).click();
+    await expect(page.getByRole("slider", { name: /^Перо руля/ })).toBeVisible();
   });
 });
