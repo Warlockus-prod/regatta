@@ -57,12 +57,14 @@ campaign: `docs/design/mobile/ads-lab.md`, last section).
 - Expected cost: Hybrid's promo campaigns stop filling these places, which then answer no
   fill until a campaign whitelists `com.icoffio.regatta`. The loss is measured as 0 of 4 with
   `weektoregatta.com` on 2026-11-04 and is not measured with the bundle id.
-- This is the client half. A real in-app identity (DSP AppId, `onlyForMobileApp`
-  campaigns, app lists) needs a server change at Hybrid.
+- Since VOX SDK 1.3.1 (build 84) the SSP serves these requests as an app (OpenRTB `app`,
+  bundle `com.icoffio.regatta`), and `onlyForMobileApp` campaigns win them. No server change
+  at Hybrid was needed.
 
-SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.3.1, `a5bdfd6`
-(tag `1.3.1` on `main`), which sends the block below as `mobileSdk` (in Swift still
-`sdkInfo`). 1.7.3 (82) used 1.3.0 `42cd227`. Builds up to 1.7.2 (81) used `d197347`, which sends
+SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.3.2, `f69eb48`
+(tag `1.3.2` on `main`): the close cross sits in the top-right corner of banners and
+full-screen ads. Like 1.3.1 (`a5bdfd6`, build 84) it sends the block below as `mobileSdk`
+(in Swift still `sdkInfo`). 1.7.3 (82) used 1.3.0 `42cd227`. Builds up to 1.7.2 (81) used `d197347`, which sends
 no `applicationId`, so there the app id travels only inside the address. In
 `sdkInfo`, 1.3.0 adds only `applicationId`: no `sdkInfo.language`, no `sdkInfo.timezone`
 (the privacy texts promise app language and time-zone offset only, and the SDK overwrites

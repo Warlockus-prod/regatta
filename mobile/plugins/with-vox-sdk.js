@@ -9,8 +9,8 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// Tag 1.3.1 on main: device and app data sent as `mobileSdk`, the key the SSP reads, so requests are served as an app (2026-11-17).
-const VOX_SDK_COMMIT = 'a5bdfd6a52b6ac9021e555dcca2b2cb7c725bbd4';
+// Tag 1.3.2 on main: device and app data sent as `mobileSdk` (1.3.1) and the close cross in the top-right corner of banners and full-screen ads (2026-11-17).
+const VOX_SDK_COMMIT = 'f69eb484482a9a6667253df54e852f8988fa22a2';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
 // The ad pods are linked only for a build with the Ads section
