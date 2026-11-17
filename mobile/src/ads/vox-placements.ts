@@ -2,9 +2,9 @@
  * VOX SDK 1 placements (Hybrid SSP, ssp.hybrid.ai): Week to Regatta's own
  * "App · WTR · ..." ad slots in the VOX partner panel (Goleta VOX PL EN,
  * created 2026-10-30). The same IDs feed VOX SDK 2 through
- * vox-sdk-2/server/placements.json. They serve once VOX approves them and a
- * campaign targets them with com.icoffio.regatta in its domain whitelist
- * (VOX_APP_PAGE_URL below); until then a request is expected to be a no fill.
+ * vox-sdk-2/server/placements.json. Requests carry `mobileSdk` (VOX SDK 1.3.1+), so the SSP
+ * serves them as an app (OpenRTB `app`, bundle com.icoffio.regatta) and an in-app campaign
+ * (only mobile apps, phones and tablets) wins them; a domain whitelist does not match them.
  */
 
 /** VOX SDK 1 ad request endpoint (GET, `request` = JSON with placeId). */
@@ -14,14 +14,14 @@ export const VOX_ENDPOINT = 'https://ssp.hybrid.ai/auction/getad';
 export const VOX_APP_BUNDLE_ID = 'com.icoffio.regatta';
 
 /**
- * The app's identity in every VOX SDK 1 request: https://<bundle id>/. Hybrid records it
- * as Domain com.icoffio.regatta, PageSource 1, so a campaign can whitelist the app.
- * With no address the request is recorded as the website icoffio.com (PageSource 5),
- * and an ios-app:// address gives an empty Domain (measured 2026-11-06).
- * This declares the app as a web page: a label for our own test campaigns only, not for
- * real advertisers' money, until Hybrid's server takes real app identity.
+ * The address in every ad request (`browser.url`): the app's own website. The app itself is
+ * named by the bundle id in `mobileSdk.applicationId`; this address only becomes OpenRTB
+ * `app.domain` and the Domain in Hybrid's statistics. With weektoregatta.com every format is
+ * still served as the app and won by the in-app campaign (measured 2026-11-17). Before build 87
+ * it was https://com.icoffio.regatta/, which showed the bundle id as the domain.
+ * With no address Hybrid records the publisher's fallback site icoffio.com (PageSource 5).
  */
-export const VOX_APP_PAGE_URL = `https://${VOX_APP_BUNDLE_ID}/`;
+export const VOX_APP_PAGE_URL = 'https://weektoregatta.com/';
 
 export type VoxPlacementKind = 'banner' | 'video' | 'fullscreen';
 

@@ -32,31 +32,29 @@ Every request names the app, so Hybrid records it as the app and not as its fall
 website `icoffio.com` (owner 2026-11-06, decision Р-43; measurements and how to set up a
 campaign: `docs/design/mobile/ads-lab.md`, last section).
 
-- `VOX_APP_BUNDLE_ID` in `mobile/src/ads/vox-placements.ts` is the one bundle id, and
-  `VOX_APP_PAGE_URL` is `https://<bundle id>/`, built from it. A test
+- `VOX_APP_BUNDLE_ID` in `mobile/src/ads/vox-placements.ts` is the one bundle id. A test
   (`mobile/__tests__/ads-app-identity.test.tsx`) holds it equal to `ios.bundleIdentifier` in
-  `mobile/app.json`. Hybrid records the address as Domain `com.icoffio.regatta`.
-- That address declares the app as a web page. It is a label for our own test campaigns
-  only, not for real advertisers' money, until Hybrid's server takes real app identity.
+  `mobile/app.json`. It names the app in `mobileSdk.applicationId` (OpenRTB `app.bundle`).
+- `VOX_APP_PAGE_URL` is the app's website `https://weektoregatta.com/` (owner 2026-11-17,
+  build 87). It goes in `browser.url` and becomes OpenRTB `app.domain` and the Domain in
+  Hybrid's statistics. Builds 82-86 sent `https://com.icoffio.regatta/`, so the bundle id
+  showed up as the domain.
 - JS gives it to the bridge: the `pageUrl` prop of `VoxAdView`, the third argument of
   `showFullScreen`. Swift puts it in `BrowserModel` through `VoxAdsModule.browser(pageUrl:language:)`,
   so a request does not depend on any SDK default and works on the pinned SDK.
   `VoxAdView` sends nothing without it. The in-game feed (`mobile/src/ads/board-feed.ts`)
-  makes its own GET, sends the same address in `browser.url`, and adds `mobileSdk` with
-  `applicationId` and nothing else.
+  makes its own GET, sends the same address in `browser.url`, and adds `mobileSdk` with the
+  same device block as the SDK plus `applicationId` (`mobile/src/ads/board-device.ts`, build 86).
 - `mobileSdk` is the key the SSP reads (GitLab `vox/sspcore`, `AdRequestModel.MobileSdk`,
   read 2026-11-17). With it the SSP serves the request as an app: OpenRTB `app` instead of
   `site`, `app.bundle` = `applicationId`, `app.domain` = the `browser.url` domain. Up to
   SDK 1.3.0 and build 1.7.3 (82) the block went out as `sdkInfo`, which the SSP never read,
-  so every request was a web page. Not yet confirmed on live traffic.
+  so every request was a web page. Confirmed on live traffic 2026-11-17 (Druid `web = app`).
 - `BrowserModel` also carries the language chosen in the app (`lang` from `useI18n`, the
   `language` prop, the fourth argument of `showFullScreen`) and the time-zone offset, the
   "app language and time-zone offset" of the privacy texts. Do not put the device's language
   there. Inline requests had no `browser` before this, and the pinned SDK's `sdkInfo` has
   neither field, so both are new on them.
-- Expected cost: Hybrid's promo campaigns stop filling these places, which then answer no
-  fill until a campaign whitelists `com.icoffio.regatta`. The loss is measured as 0 of 4 with
-  `weektoregatta.com` on 2026-11-04 and is not measured with the bundle id.
 - Since VOX SDK 1.3.1 (build 84) the SSP serves these requests as an app (OpenRTB `app`,
   bundle `com.icoffio.regatta`), and `onlyForMobileApp` campaigns win them. No server change
   at Hybrid was needed.

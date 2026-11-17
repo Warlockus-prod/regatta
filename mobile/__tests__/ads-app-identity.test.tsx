@@ -45,10 +45,11 @@ const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top:
 const text = { adLabel: "Ad", endpoint: "Request", reload: "Request again", status: {} } as unknown as AdsText;
 
 describe("VOX requests name the app", () => {
-  it("is the bundle id of the app, as an address Hybrid records as a Domain", () => {
+  it("names the app by its bundle id and uses the app's website as the address", () => {
     const app = JSON.parse(readFileSync(join(__dirname, "../app.json"), "utf8")) as { expo: { ios: { bundleIdentifier: string } } };
     expect(VOX_APP_BUNDLE_ID).toBe(app.expo.ios.bundleIdentifier);
-    expect(VOX_APP_PAGE_URL).toBe(`https://${app.expo.ios.bundleIdentifier}/`);
+    // The address becomes app.domain and the Domain in Hybrid's statistics (owner 2026-11-17).
+    expect(VOX_APP_PAGE_URL).toBe("https://weektoregatta.com/");
   });
 
   it.each(["banner300x250", "videoHorizontal"])("passes the address to the inline slot %s", (key) => {

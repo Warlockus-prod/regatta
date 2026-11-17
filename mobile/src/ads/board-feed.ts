@@ -15,10 +15,8 @@ export interface BoardFeedDeps {
   readImage: (response: Response) => Promise<string | null>;
   openUrl: (url: string) => unknown;
   /**
-   * The app's identity (VOX_APP_PAGE_URL) and the screen. Without browser.url Hybrid
-   * records the fallback page https://icoffio.com/ (PageSource 5), as if the app were
-   * that website; with it the request counts as Domain com.icoffio.regatta, PageSource 1
-   * (measured 2026-11-06), and that is the domain a campaign must whitelist.
+   * The address (VOX_APP_PAGE_URL, the app's website) and the screen. Without browser.url
+   * Hybrid records the publisher's fallback page https://icoffio.com/ (PageSource 5).
    */
   browser: () => BoardBrowser;
   /**
