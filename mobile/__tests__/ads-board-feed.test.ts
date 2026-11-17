@@ -45,7 +45,7 @@ describe("In-game board feed", () => {
     const t = setup();
     t.send("ready"); await t.settle();
     const request = JSON.parse(decodeURIComponent(t.calls[0].split("request=")[1]));
-    expect(request).toEqual({ placeId: "place1", gdpr: 1, browser: BROWSER, sdkInfo: { applicationId: VOX_APP_BUNDLE_ID } });
+    expect(request).toEqual({ placeId: "place1", gdpr: 1, browser: BROWSER, mobileSdk: { applicationId: VOX_APP_BUNDLE_ID } });
     expect(t.calls).toEqual([expect.stringContaining(GETAD), FRAME, IMAGE]); // A filled first place ends the search.
     expect(t.last()).toEqual({ status: "filled", id: "ad1", src: "data:image/png;base64,AA", width: 970, height: 250, advertiser: "hybridadtech.com", canOpen: true });
   });

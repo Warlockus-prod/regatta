@@ -3,7 +3,7 @@
  * address is the bundle id, so Hybrid records Domain com.icoffio.regatta instead of
  * its fallback website icoffio.com, and a campaign can whitelist the app. It also
  * carries the language chosen in the app, which the privacy texts promise. The in-game
- * feed makes its own request and adds sdkInfo with the app id and nothing else.
+ * feed makes its own request and adds mobileSdk with the app id and nothing else.
  */
 jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
@@ -74,7 +74,7 @@ describe("VOX requests name the app", () => {
     ]);
   });
 
-  it("sends the address and only the app id in sdkInfo from the in-game board feed", async () => {
+  it("sends the address and only the app id in mobileSdk from the in-game board feed", async () => {
     const fetchMock = jest.fn(async () => ({ status: 204, ok: true }) as unknown as Response);
     const realFetch = global.fetch;
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -90,7 +90,7 @@ describe("VOX requests name the app", () => {
         const request = JSON.parse(decodeURIComponent(url.split("request=")[1]));
         expect(request.browser.url).toBe(VOX_APP_PAGE_URL);
         expect(request.browser.language).toBe("pl");
-        expect(request.sdkInfo).toEqual({ applicationId: VOX_APP_BUNDLE_ID });
+        expect(request.mobileSdk).toEqual({ applicationId: VOX_APP_BUNDLE_ID });
         expect(request.gdpr).toBe(1);
         expect(request.gdprConsent).toBeUndefined();
       }

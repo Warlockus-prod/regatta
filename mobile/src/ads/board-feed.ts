@@ -62,9 +62,9 @@ export function createBoardFeed(placeIds: readonly string[], deps: BoardFeedDeps
   }
 
   async function loadPlace(placeId: string): Promise<AdsBoardFeed> {
-    // sdkInfo carries the app id and nothing else, as VOX SDK 1.3.0 will. Hybrid ignores it
-    // today, and it costs no ad: the same ad with and without it, 3 of 3 (measured 2026-11-06).
-    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), sdkInfo: { applicationId: VOX_APP_BUNDLE_ID } }));
+    // mobileSdk carries the app id and nothing else. It is the key the SSP reads (VOX SDK 1.3.1):
+    // with it the request is served as an app (OpenRTB `app`, bundle = applicationId), not a site.
+    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), mobileSdk: { applicationId: VOX_APP_BUNDLE_ID } }));
     const answer = await get(`${VOX_ENDPOINT}?request=${query}`, { "User-Agent": "iOS SDK" });
     if (answer.status === 204) return { status: "no-fill" };
     if (!answer.ok) return { status: "failed" };

@@ -9,8 +9,8 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// Branch feat/app-identity, 1.3.0: sdkInfo.applicationId on every request (2026-11-06).
-const VOX_SDK_COMMIT = '42cd227541cb1c99b8bad3a0c5ed5748bec915ba';
+// Tag 1.3.1 on main: device and app data sent as `mobileSdk`, the key the SSP reads, so requests are served as an app (2026-11-17).
+const VOX_SDK_COMMIT = 'a5bdfd6a52b6ac9021e555dcca2b2cb7c725bbd4';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
 // The ad pods are linked only for a build with the Ads section
