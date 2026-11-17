@@ -42,9 +42,13 @@ campaign: `docs/design/mobile/ads-lab.md`, last section).
   `showFullScreen`. Swift puts it in `BrowserModel` through `VoxAdsModule.browser(pageUrl:language:)`,
   so a request does not depend on any SDK default and works on the pinned SDK.
   `VoxAdView` sends nothing without it. The in-game feed (`mobile/src/ads/board-feed.ts`)
-  makes its own GET, sends the same address in `browser.url`, and adds `sdkInfo` with
-  `applicationId` and nothing else. Measured 2026-11-06 on the 970x250 place: the same ad
-  as without `sdkInfo`, 3 of 3 against 3 of 3.
+  makes its own GET, sends the same address in `browser.url`, and adds `mobileSdk` with
+  `applicationId` and nothing else.
+- `mobileSdk` is the key the SSP reads (GitLab `vox/sspcore`, `AdRequestModel.MobileSdk`,
+  read 2026-11-17). With it the SSP serves the request as an app: OpenRTB `app` instead of
+  `site`, `app.bundle` = `applicationId`, `app.domain` = the `browser.url` domain. Up to
+  SDK 1.3.0 and build 1.7.3 (82) the block went out as `sdkInfo`, which the SSP never read,
+  so every request was a web page. Not yet confirmed on live traffic.
 - `BrowserModel` also carries the language chosen in the app (`lang` from `useI18n`, the
   `language` prop, the fourth argument of `showFullScreen`) and the time-zone offset, the
   "app language and time-zone offset" of the privacy texts. Do not put the device's language
@@ -56,8 +60,9 @@ campaign: `docs/design/mobile/ads-lab.md`, last section).
 - This is the client half. A real in-app identity (DSP AppId, `onlyForMobileApp`
   campaigns, app lists) needs a server change at Hybrid.
 
-SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is the VOX SDK 1.3.0 commit
-`42cd227` (branch `feat/app-identity`). Builds up to 1.7.2 (81) used `d197347`, which sends
+SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.3.1, `a5bdfd6`
+(tag `1.3.1` on `main`), which sends the block below as `mobileSdk` (in Swift still
+`sdkInfo`). 1.7.3 (82) used 1.3.0 `42cd227`. Builds up to 1.7.2 (81) used `d197347`, which sends
 no `applicationId`, so there the app id travels only inside the address. In
 `sdkInfo`, 1.3.0 adds only `applicationId`: no `sdkInfo.language`, no `sdkInfo.timezone`
 (the privacy texts promise app language and time-zone offset only, and the SDK overwrites
