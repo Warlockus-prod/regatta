@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { Dimensions, Linking } from "react-native";
 import { createBoardFeed, readImageAsDataUrl } from "../../src/ads/board-feed";
+import { boardDevice } from "../../src/ads/board-device";
 import { useI18n } from "../../src/i18n/context";
 import { useAdsText } from "../../src/ads/strings";
 import { VOX_APP_PAGE_URL, placement } from "../../src/ads/vox-placements";
@@ -19,7 +20,7 @@ export default function AdsInGameScreen() {
   const feed = useMemo(() => createBoardFeed([placement("inGameBoard640x360").placeId, placement("inGame970x250").placeId], { fetch: (...args) => fetch(...args), readImage: readImageAsDataUrl, openUrl: url => Linking.openURL(url), browser: () => {
     const { width, height } = Dimensions.get("screen");
     return { url: VOX_APP_PAGE_URL, referrer: "", language: lang, timezoneOffset: new Date().getTimezoneOffset(), screenWidth: Math.round(width), screenHeight: Math.round(height) };
-  } }), [lang]);
+  }, device: boardDevice }), [lang]);
   useEffect(() => () => feed.dispose(), [feed]);
   return <SimWebView path="/ads" title="Ads" offlineSource={OFFLINE_SAILING}
     fallbackRoute="/ads" fallbackLabel={text.backToFormats}

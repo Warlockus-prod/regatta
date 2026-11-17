@@ -74,7 +74,7 @@ describe("VOX requests name the app", () => {
     ]);
   });
 
-  it("sends the address and only the app id in mobileSdk from the in-game board feed", async () => {
+  it("sends the address, the app id and the device block in mobileSdk from the in-game board feed", async () => {
     const fetchMock = jest.fn(async () => ({ status: 204, ok: true }) as unknown as Response);
     const realFetch = global.fetch;
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -90,7 +90,9 @@ describe("VOX requests name the app", () => {
         const request = JSON.parse(decodeURIComponent(url.split("request=")[1]));
         expect(request.browser.url).toBe(VOX_APP_PAGE_URL);
         expect(request.browser.language).toBe("pl");
-        expect(request.mobileSdk).toEqual({ applicationId: VOX_APP_BUNDLE_ID });
+        expect(request.mobileSdk).toEqual(expect.objectContaining({ applicationId: VOX_APP_BUNDLE_ID, platform: expect.any(Number), deviceType: expect.any(Number), os: expect.any(String), osVersion: expect.any(String) }));
+        expect([1, 2]).toContain(request.mobileSdk.deviceType);
+        expect(request.mobileSdk.screenWidthPixels).toBeGreaterThan(0);
         expect(request.gdpr).toBe(1);
         expect(request.gdprConsent).toBeUndefined();
       }

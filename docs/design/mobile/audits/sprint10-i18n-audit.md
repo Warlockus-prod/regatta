@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-11-05T12:00:06.995Z
+Generated: 2026-11-17T19:59:47.563Z
 
-Files scanned: 107
+Files scanned: 109
 
 ## Summary
 
@@ -60,4 +60,4 @@ Files scanned: 107
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/simulator/SimWebView.tsx:411` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |
+| `mobile/src/simulator/SimWebView.tsx:429` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { recordNativeDiagnostic({ t... |

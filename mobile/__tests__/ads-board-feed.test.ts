@@ -6,6 +6,7 @@ const FRAME = "https://dsa-eu.hybrid.ai/Ad/Load?sid=a";
 const IMAGE = "https://content.hybrid.ai/Hybrid/E6.png";
 const CLICK = "https://ssp.hybrid.ai/seance/Click/s";
 const BROWSER = { url: VOX_APP_PAGE_URL, referrer: "", language: "en", timezoneOffset: 0, screenWidth: 390, screenHeight: 844 };
+const DEVICE = { platform: 2, deviceType: 1, deviceManufacturer: "apple", deviceModel: "iphone", os: "ios", osVersion: "26.1", screenWidthPixels: 1170, screenHeightPixels: 2532 };
 const answer = {
   adId: "ad1", adomain: ["hybridadtech.com"], width: 970, height: 250,
   content: `<img style="display:none" src="https://dsa-eu.hybrid.ai/DeliverySeance/SaveImpression2?sid=a" /><iframe src="${FRAME}"></iframe><script>var vu=["https://dsa-eu.hybrid.ai/DeliverySeance/SaveView2?sid=a"];</script>`,
@@ -25,7 +26,7 @@ function setup(routes: Record<string, () => Response> = {}) {
     return reply(200);
   });
   const openUrl = jest.fn();
-  const feed = createBoardFeed(["place1", "place2"], { fetch: fetchMock as unknown as typeof fetch, readImage: async () => "data:image/png;base64,AA", openUrl, browser: () => BROWSER });
+  const feed = createBoardFeed(["place1", "place2"], { fetch: fetchMock as unknown as typeof fetch, readImage: async () => "data:image/png;base64,AA", openUrl, browser: () => BROWSER, device: () => DEVICE });
   const scripts: string[] = [];
   const inject = (script: string) => { scripts.push(script); };
   const send = (action: string, id?: string) => feed.handle(JSON.stringify({ type: "ads.board", action, ...(id ? { id } : {}) }), inject);
@@ -41,11 +42,11 @@ describe("In-game board feed", () => {
     expect(calls).toEqual([]);
   });
 
-  it("asks non-personalised, as the app itself, and hands over the image as data", async () => {
+  it("asks non-personalised, as the app with its device block, and hands over the image as data", async () => {
     const t = setup();
     t.send("ready"); await t.settle();
     const request = JSON.parse(decodeURIComponent(t.calls[0].split("request=")[1]));
-    expect(request).toEqual({ placeId: "place1", gdpr: 1, browser: BROWSER, mobileSdk: { applicationId: VOX_APP_BUNDLE_ID } });
+    expect(request).toEqual({ placeId: "place1", gdpr: 1, browser: BROWSER, mobileSdk: { ...DEVICE, applicationId: VOX_APP_BUNDLE_ID } });
     expect(t.calls).toEqual([expect.stringContaining(GETAD), FRAME, IMAGE]); // A filled first place ends the search.
     expect(t.last()).toEqual({ status: "filled", id: "ad1", src: "data:image/png;base64,AA", width: 970, height: 250, advertiser: "hybridadtech.com", canOpen: true });
   });

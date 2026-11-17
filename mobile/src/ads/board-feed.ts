@@ -21,8 +21,16 @@ export interface BoardFeedDeps {
    * (measured 2026-11-06), and that is the domain a campaign must whitelist.
    */
   browser: () => BoardBrowser;
+  /**
+   * The device block VOX SDK sends in `mobileSdk` (platform 2 iOS / 1 Android, deviceType
+   * 1 phone / 2 tablet, maker, model, OS, screen in pixels). Without it the DSP cannot match
+   * a campaign that targets phones or tablets: app-id-only requests got 0 of 4 fills on the
+   * 970x250 place, the full block about one in two (2026-11-17).
+   */
+  device: () => BoardDevice;
 }
 export interface BoardBrowser { url: string; referrer: string; language: string; timezoneOffset: number; screenWidth: number; screenHeight: number }
+export interface BoardDevice { platform: number; deviceType: number; deviceManufacturer: string; deviceModel: string; os: string; osVersion: string; screenWidthPixels: number; screenHeightPixels: number }
 
 const REQUEST_TIMEOUT_MS = 8000;
 const IMAGE_TYPE = /^image\/(png|jpeg|webp)\b/i;
@@ -62,9 +70,9 @@ export function createBoardFeed(placeIds: readonly string[], deps: BoardFeedDeps
   }
 
   async function loadPlace(placeId: string): Promise<AdsBoardFeed> {
-    // mobileSdk carries the app id and nothing else. It is the key the SSP reads (VOX SDK 1.3.1):
-    // with it the request is served as an app (OpenRTB `app`, bundle = applicationId), not a site.
-    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), mobileSdk: { applicationId: VOX_APP_BUNDLE_ID } }));
+    // mobileSdk is the key the SSP reads (VOX SDK 1.3.1): with it the request is served as an app
+    // (OpenRTB `app`, bundle = applicationId, device from this block), not a site.
+    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), mobileSdk: { ...deps.device(), applicationId: VOX_APP_BUNDLE_ID } }));
     const answer = await get(`${VOX_ENDPOINT}?request=${query}`, { "User-Agent": "iOS SDK" });
     if (answer.status === 204) return { status: "no-fill" };
     if (!answer.ok) return { status: "failed" };
