@@ -1,6 +1,7 @@
 import { requireNativeViewManager, requireOptionalNativeModule } from 'expo-modules-core';
 import type { ComponentType } from 'react';
 import type { NativeSyntheticEvent, ViewProps } from 'react-native';
+import { VOX_APP_STORE_ID } from '../../src/ads/vox-placements';
 
 /**
  * JS side of the local VOX SDK 1 bridge (modules/vox-ads/ios).
@@ -15,6 +16,32 @@ type VoxAdsNative = {
   sdkVersion: string;
   /** `pageUrl` names the app in the request (VOX_APP_PAGE_URL); `language` is the one chosen in the app. */
   showFullScreen(placeId: string, closeButtonDelay: number, pageUrl: string, language: string): Promise<void>;
+  /** Numeric App Store id, sent as mobileSdk.appStoreId and the store URL (VOX SDK 1.4.1). */
+  setAppStoreId?(appStoreId: string): void;
+};
+
+/** Fields of a loaded native ad (VOX SDK 1.4.0+). Empty string = the ad has no such field. */
+export type VoxNativeAdFields = {
+  handle: string;
+  title: string;
+  advertiser: string;
+  callToAction: string;
+  iconUrl: string;
+  mainImageUrl: string;
+  ageRating: string;
+};
+
+type VoxNativeAdNative = {
+  /** Rejects with "no-fill" when the SSP has no ad for the place. */
+  load(placeId: string, pageUrl: string, language: string): Promise<VoxNativeAdFields>;
+  /** A tap on the ad: the SDK opens the SSP click URL and counts the click. */
+  click(handle: string): void;
+  release(handle: string): void;
+};
+
+export type VoxNativeAdContainerProps = ViewProps & {
+  /** The loaded ad; the SDK counts the impression when this view is half visible for 1 s. */
+  handle: string;
 };
 
 export type VoxAdKind = 'banner' | 'video';
@@ -39,6 +66,13 @@ export type VoxAdViewProps = ViewProps & {
 };
 
 export const VoxAds = requireOptionalNativeModule<VoxAdsNative>('VoxAds');
+VoxAds?.setAppStoreId?.(VOX_APP_STORE_ID);
+
+export const VoxNativeAd = requireOptionalNativeModule<VoxNativeAdNative>('VoxNativeAd');
+
+export const VoxNativeAdContainer: ComponentType<VoxNativeAdContainerProps> | null = VoxNativeAd
+  ? requireNativeViewManager<VoxNativeAdContainerProps>('VoxNativeAd')
+  : null;
 
 export const VoxAdView: ComponentType<VoxAdViewProps> | null = VoxAds
   ? requireNativeViewManager<VoxAdViewProps>('VoxAds')

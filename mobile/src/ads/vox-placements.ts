@@ -23,7 +23,24 @@ export const VOX_APP_BUNDLE_ID = 'com.icoffio.regatta';
  */
 export const VOX_APP_PAGE_URL = 'https://weektoregatta.com/';
 
-export type VoxPlacementKind = 'banner' | 'video' | 'fullscreen';
+/**
+ * The app's numeric App Store id. VOX SDK 1.4.1 sends it as mobileSdk.appStoreId with the store
+ * URL, so the SSP can pass app.id and app.storeurl to buyers (they need them to check app-ads.txt).
+ */
+export const VOX_APP_STORE_ID = '6768134329';
+
+/**
+ * The app fields VOX SDK 1.4.1 adds to `mobileSdk` (besides the device block). The in-game board
+ * asks the SSP itself, so it sends the same ones. The SSP ignores them until Hybrid maps them to
+ * OpenRTB app.id, app.storeurl and app.name.
+ */
+export const VOX_APP_FIELDS = {
+  appName: 'Week to Regatta',
+  appStoreId: VOX_APP_STORE_ID,
+  storeUrl: `https://apps.apple.com/app/id${VOX_APP_STORE_ID}`,
+} as const;
+
+export type VoxPlacementKind = 'banner' | 'video' | 'fullscreen' | 'native';
 
 export type VoxPlacement = {
   key: string;
@@ -50,6 +67,9 @@ export const VOX_PLACEMENTS: readonly VoxPlacement[] = [
   { key: 'inGame970x250', placeId: '6ae4bdcb810d986308d66834', kind: 'banner', width: 970, height: 250 },
   // The board's own shape (VOX has no 2:1): readable on an upright phone. Created 2026-11-04.
   { key: 'inGameBoard640x360', placeId: '6aea913270e7b28514d8f0c6', kind: 'banner', width: 640, height: 360 },
+  // Native (VOX SDK 1.4.0+): the app draws the fields itself; the size is the main image's
+  // 1200x628. Created 2026-11-18, waits for VOX moderation (until then the SSP answers 204).
+  { key: 'native', placeId: '6afcf6ae810d98569070344a', kind: 'native', width: 1200, height: 628 },
 ];
 
 export function placement(key: string): VoxPlacement {
@@ -62,5 +82,6 @@ export function placement(key: string): VoxPlacement {
 export function sizeLabel(p: VoxPlacement): string {
   if (p.kind === 'video') return `${p.width}:${p.height}`;
   if (p.kind === 'fullscreen') return '';
+  if (p.kind === 'native') return 'native';
   return `${p.width}x${p.height}`;
 }

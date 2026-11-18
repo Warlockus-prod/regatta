@@ -1,5 +1,5 @@
 import { boardFeedScript, hybridUrl, parseBoardAd, parseBoardFrame, parseBoardMessage, ADS_BOARD_MAX_IMAGE_BYTES, type AdsBoardAd, type AdsBoardFeed } from "../../../src/lib/ads-board";
-import { VOX_APP_BUNDLE_ID, VOX_ENDPOINT } from "./vox-placements";
+import { VOX_APP_BUNDLE_ID, VOX_APP_FIELDS, VOX_ENDPOINT } from "./vox-placements";
 
 /**
  * Feeds the in-game board of the 3D lab. The page has a CSP without remote images
@@ -70,7 +70,7 @@ export function createBoardFeed(placeIds: readonly string[], deps: BoardFeedDeps
   async function loadPlace(placeId: string): Promise<AdsBoardFeed> {
     // mobileSdk is the key the SSP reads (VOX SDK 1.3.1): with it the request is served as an app
     // (OpenRTB `app`, bundle = applicationId, device from this block), not a site.
-    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), mobileSdk: { ...deps.device(), applicationId: VOX_APP_BUNDLE_ID } }));
+    const query = encodeURIComponent(JSON.stringify({ placeId, gdpr: 1, browser: deps.browser(), mobileSdk: { ...deps.device(), applicationId: VOX_APP_BUNDLE_ID, ...VOX_APP_FIELDS } }));
     const answer = await get(`${VOX_ENDPOINT}?request=${query}`, { "User-Agent": "iOS SDK" });
     if (answer.status === 204) return { status: "no-fill" };
     if (!answer.ok) return { status: "failed" };

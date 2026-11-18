@@ -27,7 +27,13 @@ public class VoxAdsModule: Module {
     Name("VoxAds")
 
     Constant("sdkName") { "VOX SDK 1" }
-    Constant("sdkVersion") { "1.3.0" }
+    Constant("sdkVersion") { VOXAds.sdkVersion }
+
+    // The numeric App Store id, sent as mobileSdk.appStoreId with the store URL (VOX SDK 1.4.1),
+    // so buyers can find the app and check its app-ads.txt. JS sets it once (VOX_APP_STORE_ID).
+    Function("setAppStoreId") { (appStoreId: String) in
+      Task { @MainActor in VOXAds.appStoreId = appStoreId }
+    }
 
     // Interstitial: VOX presents its own full-screen controller on top of
     // the current one and resolves once the ad is on screen.
