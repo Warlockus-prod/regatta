@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "67606d747ec7",
-  "sha256": "49253adea844c1020a45e93a6dfd9575125f5e937f79a671abf15dfbc28d25ab",
-  "bytes": 7641886,
+  "version": "92b2194dd847",
+  "sha256": "d6ed57dc3d1facd61b92bf05d62f9e7171230a398b3b0e33b79bbce75d39ff90",
+  "bytes": 7644956,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1034,8 +1034,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 90108,
-      "sha256": "1c86b9b63263d990af96dd3ac506e1fa84978e46300da5142753a2b1f1b0d47e"
+      "bytes": 90155,
+      "sha256": "2c65f82cacd77c902d2bb333f77594143b78f275fe84e0291c7fa3580c5e1e2a"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -1054,13 +1054,13 @@
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 31617,
-      "sha256": "f6985571a236e635c4ac7e0c98844f31141e0d59eb61258c436809d04c701892"
+      "bytes": 33229,
+      "sha256": "cd4879cb183d275dbc7719682dbcabd5048a2945acfb3728731d13c4e6e0e503"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 32967,
-      "sha256": "7e82e0ab432ec449e1b908fc1246d401b2e2807fafb63465dde6c95a526e23d4"
+      "bytes": 33258,
+      "sha256": "f057fa031bb320a8e9517bfb68c3faa6fe019064403d57d7264d0c202a416d75"
     },
     {
       "path": "src/app/game/RaceFinishPlate.tsx",
@@ -2454,8 +2454,8 @@
     },
     {
       "path": "src/features/trainer-controls/ControlDock.tsx",
-      "bytes": 6463,
-      "sha256": "082d37fa37ee3ea2be1810ff244910ad0656502080a4218f54a2e859f6f84f36"
+      "bytes": 7471,
+      "sha256": "88925daef0a02876b107401ca9779b39f8f0a08f2ea1b08150336a9e9fd79e00"
     },
     {
       "path": "src/features/trainer-controls/ControlSettingsSheet.tsx",
@@ -2484,8 +2484,8 @@
     },
     {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
-      "bytes": 26296,
-      "sha256": "7a4c10b960e4e0772cc009def583fff359f950764f4452c99d38f667b6b63086"
+      "bytes": 27838,
+      "sha256": "8c1af0eb0272c53c445000000198b9ac9ba2f6f51ed80e7ae66954b071fdae20"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
@@ -2509,8 +2509,8 @@
     },
     {
       "path": "src/features/trainer-controls/labels.ts",
-      "bytes": 9938,
-      "sha256": "9e83c91057579f515c338234f142b347025ae893789bfd297577431a6a97f18c"
+      "bytes": 10500,
+      "sha256": "ab62817dd077b7833583eaeb7d694dac29907cd0ae3c15df147472e790bce49f"
     },
     {
       "path": "src/features/trainer-controls/mapping.ts",
@@ -2979,8 +2979,8 @@
     },
     {
       "path": "src/lib/race-water-layout.ts",
-      "bytes": 2367,
-      "sha256": "9fca02ba7e638e7e1d1a8663761b67a901ee3ecbf84afd215fa7440c9fe07ee4"
+      "bytes": 3028,
+      "sha256": "2699b5e2f5af788f2bd0df7f0fb84df7c43dd30a777e1d521e14a1256f1e3a92"
     },
     {
       "path": "src/lib/sailing-kinematics.ts",

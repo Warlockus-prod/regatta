@@ -51,6 +51,7 @@ import type { RaceHelmControl } from "@/lib/race-helm";
 import { NO_HELM_VIEW, type HelmView } from "@/lib/helm-assist";
 import { RaceHelmArrows, RaceHelmAssistRow, RaceHelmWater, RaceVmgLine } from "./RaceHelmAssist";
 import { useRaceWaterEdges } from "@/lib/race-water-layout";
+import { RACE_MODE_LABELS } from "./race-mode-labels";
 
 /** Where the race sound switch (M1-5, sound lane) is placed: the status row
  * over the scene and the pause sheet. */
@@ -264,7 +265,8 @@ export function RaceCockpit(p: {
         <header className={styles.status} role="group" aria-label={pc.status} data-testid="race-status-row">
           <button ref={menuRef} type="button" className={styles.menuButton} onClick={p.onPause}
             aria-haspopup="dialog" aria-expanded={p.paused} data-testid="race-menu">{c.menu}</button>
-          {pro && <span className={styles.modeBadge}>PRO</span>}
+          {/* Owner, TestFlight 81 ("which one is Pro and which is the normal one"): both modes are named on the water. */}
+          <span className={styles.modeBadge} data-mode={pro ? "pro" : "simple"} data-testid="race-mode-badge">{pro ? "PRO" : RACE_MODE_LABELS.simple[lang].toUpperCase()}</span>
           <span className={styles.readout} data-testid="race-time">
             <span className={styles.readoutLabel}>{c.time}</span>
             <strong>{p.time}</strong>

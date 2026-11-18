@@ -442,9 +442,19 @@ const ARROWS_INIT = () => {
   } catch { /* storage may be unavailable */ }
 };
 
+/** The trainers in sliders mode (the dock with the fold button). */
+const SLIDERS_INIT = () => {
+  try {
+    localStorage.setItem("regatta.lang.v1", "ru");
+    localStorage.setItem("regatta.onboarding.v1", "1");
+    localStorage.setItem("regatta.v3.tour.v1", "1");
+    localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "sliders" }));
+  } catch { /* storage may be unavailable */ }
+};
+
 /** e2e/race-navigation.spec.ts startRace(), without the test runner. */
-async function startRace(page, mode) {
-  await page.goto(`${BASE}/game?embed=1`);
+async function startRace(page, mode, query = "") {
+  await page.goto(`${BASE}/game?embed=1${query}`);
   await page.getByRole("heading", { name: "Гонка", exact: true }).waitFor({ timeout: 30_000 });
   await page.getByRole("button", { name: /^Первая гонка/ }).click();
   await page.getByRole("radio", { name: mode === "pro" ? "Pro" : "Простой", exact: true }).click();
@@ -475,6 +485,10 @@ const ROUTES = [
   { id: "race-pro", run: async (browser, results) => raceRoute(browser, results, "pro") },
   { id: "race-simple-arrows", run: async (browser, results) => raceRoute(browser, results, "simple", ARROWS_INIT) },
   { id: "race-pro-arrows", run: async (browser, results) => raceRoute(browser, results, "pro", ARROWS_INIT) },
+  // The water layout (package 31, the default on every touch screen since the owner's notes on 81):
+  // this checker has no touch, so it asks for the layout by ?water=1.
+  { id: "race-simple-water", run: async (browser, results) => waterRoute(browser, results, "simple") },
+  { id: "race-pro-water", run: async (browser, results) => waterRoute(browser, results, "pro") },
   { id: "trainer", run: async (browser, results) => {
     const page = await newPage(browser, BASE_INIT);
     await page.goto(`${BASE}/simulator-v3?embed=1&lang=ru`);
@@ -488,6 +502,18 @@ const ROUTES = [
       }
       await dockTabs(page, results, "trainer", view);
     }
+    await page.context().close();
+  } },
+  // Sliders mode (owner's note on 84): the dock's strip carries the fold button; open, then folded.
+  { id: "trainer-sliders", run: async (browser, results) => {
+    const page = await newPage(browser, SLIDERS_INIT);
+    await page.goto(`${BASE}/simulator-v3?embed=1&lang=ru`);
+    await page.locator("[data-scene-startup]").first().waitFor({ timeout: 40_000 });
+    await page.waitForFunction(() => document.querySelector("[data-scene-startup]")?.getAttribute("data-scene-startup") !== "loading", null, { timeout: 40_000 }).catch(() => {});
+    await page.getByTestId("control-dock-fold").waitFor({ timeout: 40_000 });
+    await dockTabs(page, results, "trainer-sliders", "3D");
+    await page.getByTestId("control-dock-fold").click();
+    await checkState(page, "trainer-sliders", "folded", results);
     await page.context().close();
   } },
   { id: "basics", run: async (browser, results) => simpleRoute(browser, results, "basics", "/simulator?embed=1&lang=ru") },
@@ -563,6 +589,23 @@ async function raceRoute(browser, results, mode, init = BASE_INIT) {
     await eachScroll(page, '[data-testid="race-dock-panel"]', async (step) => checkState(page, route, `${name || "settings"}${step}`, results));
   }
   await tabs.first().click();
+  await page.context().close();
+}
+
+/** The water layout: the helm bar on the water, then each sheet it opens over the scene. */
+async function waterRoute(browser, results, mode) {
+  const route = `race-${mode}-water`;
+  const page = await newPage(browser, BASE_INIT);
+  await startRace(page, mode, "&water=1");
+  await page.getByTestId("race-water-bar").waitFor({ timeout: 10_000 });
+  await checkState(page, route, "on the water", results);
+  const tabs = page.getByTestId("race-water-bar").locator("nav button");
+  const names = (await tabs.allTextContents()).map(s => s.trim());
+  for (const [index, name] of names.entries()) {
+    await tabs.nth(index).click();
+    await eachScroll(page, '[data-testid="race-dock-panel"]', async (step) => checkState(page, route, `${name || "settings"} sheet${step}`, results));
+    await tabs.nth(index).click();
+  }
   await page.context().close();
 }
 

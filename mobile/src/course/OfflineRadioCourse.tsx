@@ -14,6 +14,7 @@ import {
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { Screen, Text } from "../design-system/components";
 import { hideMainNavigation } from "../navigation/visibility";
+import { HeaderBackButton } from "../navigation/HeaderBackButton";
 import { colors } from "../design-system/tokens";
 import { AppSurface, appStackOptions } from "../design-system/surface";
 import { APP_EMBED_THEME_SCRIPT } from "../design-system/embedded-theme";
@@ -98,7 +99,9 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
   const showHeader = loading || failed || !workspaceOpen;
   const back = () => internalNavigation ? webRef.current?.injectJavaScript(radioNavigationScript("back")) : exitToApp();
   const headerOptions = { ...appStackOptions, title: destinations.find(item => item.id === "radio")!.title[lang], headerShown: showHeader, headerBackVisible: false, headerBackButtonMenuEnabled: false, gestureEnabled: false,
-    headerLeft: () => <Pressable accessibilityRole="button" accessibilityLabel={internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("В приложение", "Back to app", "Do aplikacji", { es: "Volver a la app", fr: "Retour à l'app", de: "Zur App", it: "Torna all'app" })} onPress={back} style={styles.headerBack}><Text style={styles.headerBackText}>‹ {internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("Выйти", "Exit", "Wyjdź", { es: "Salir", fr: "Quitter", de: "Beenden", it: "Esci" })}</Text></Pressable>,
+    headerLeft: () => <HeaderBackButton onPress={back}
+      accessibilityLabel={internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("В приложение", "Back to app", "Do aplikacji", { es: "Volver a la app", fr: "Retour à l'app", de: "Zur App", it: "Torna all'app" })}
+      label={internalNavigation ? tp("Назад", "Back", "Wstecz", { es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" }) : tp("Выйти", "Exit", "Wyjdź", { es: "Salir", fr: "Quitter", de: "Beenden", it: "Esci" })} />,
   };
   const bootstrap = (value: RadioEntries | null) => radioBootstrap(value, lang) + `window.__REGATTA_RADIO_ENTRY__=${JSON.stringify(initialHref)};true;`;
   const showFailure = useCallback((diagnostic: RadioStartupDiagnostic | null, id?: number) => {
@@ -345,8 +348,6 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
 }
 
 const styles = StyleSheet.create({
-  headerBack: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingRight: 12 },
-  headerBackText: { color: colors.accentCyan, fontSize: 16 },
   web: {
     flex: 1,
     backgroundColor: colors.bgPrimary,

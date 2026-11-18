@@ -69,6 +69,12 @@
   .screen:not(.screenEmbed) .controlArea:has(> .dock[data-mode="wheels"]) { max-height: 40%; }
 }
 .controlArea[data-panel-open="true"] > .dock { visibility: hidden; pointer-events: none; }
+/* Owner, TestFlight 84: the slider panel folds down to its tab strip (ControlDock's fold button),
+   the scene takes the freed height; a tab or the button opens it again. */
+.panel[hidden] { display: none !important; }
+.dock[data-collapsed="true"] { height: auto; max-height: none; }
+.controlArea:has(> .dock[data-collapsed="true"]) { height: auto; max-height: none; }
+.controlArea > .dock[data-collapsed="true"] { height: auto; flex: 0 0 auto; }
 .reservedPanelHost { position: absolute; inset: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); }
 .reservedPanelHost[hidden] { display: none; }
 .panelTitleRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; }
@@ -167,6 +173,8 @@
 /* The panel, not the dock, pads for the home indicator: the glass then reaches the screen edge. */
 .workspace[data-stage="true"] .dock { background: transparent; border-top: 0; padding-bottom: 0; }
 .workspace[data-stage="true"] .panel { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+/* Folded, the tab strip is the last thing on screen: it keeps clear of the home indicator itself. */
+.workspace[data-stage="true"] .dock[data-collapsed="true"] .dockHead { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); border-bottom: 0; }
 .workspace[data-stage="true"] .panelWheels { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
 /* Next to the app's floating Back (data-native-back, set with --native-back-w) a cramped bar,
    such as a mode switch, wraps instead of clipping its labels. Elsewhere the status shrinks first. */
@@ -241,10 +249,15 @@
   .workspace[data-stage="true"] { flex-direction: column; }
   .workspace[data-stage="true"] .sideColumn { display: contents; }
   .workspace[data-stage="true"] .controlArea {
-    position: absolute; top: 0; right: 0; bottom: 0; left: auto; width: calc(min(46%, 380px) + env(safe-area-inset-right, 0px));
+    position: absolute; top: 0; right: 0; bottom: 0; left: auto; width: calc(min(46%, 392px) + env(safe-area-inset-right, 0px));
     height: auto; max-height: none; padding-right: env(safe-area-inset-right, 0px); background: var(--glass);
   }
   .workspace[data-stage="true"] .dockHead { border-top: 0; padding-left: 12px; padding-right: 12px; }
+  /* Folded, turned: only the expand and gear buttons stay, in the bottom right corner. */
+  .workspace[data-stage="true"] .controlArea:has(> .dock[data-collapsed="true"]) { top: auto; left: auto; width: auto; height: auto; background: none; }
+  .workspace[data-stage="true"] .dock[data-collapsed="true"] .tabs { display: none; }
+  .workspace[data-stage="true"] .dock[data-collapsed="true"] .dockHead { border: 0; border-radius: 12px 0 0 0; padding-left: 8px; }
+  .sideColumn:has(.dock[data-collapsed="true"]) .controlArea { flex: 0 0 auto; }
   /* The sheet already keeps clear of the right inset and is nowhere near the left one. */
   .workspace[data-stage="true"] .controlArea :is(.panel, .drawer, .sheet) { padding-left: 20px; padding-right: 20px; }
   .workspace[data-stage="true"] .controlArea:has(> .dock[data-mode="wheels"][data-menu="closed"]) {
@@ -291,6 +304,10 @@
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar { display: none; }
+/* The strip also carries the fold button (sliders on a phone): the tabs pad less, so all five
+   labels still fit at 390 px in every language. */
+.dockHead:has([data-testid="control-dock-fold"]) .tabs { gap: 0; }
+.dockHead:has([data-testid="control-dock-fold"]) .tabs button { padding: 0 4px; }
 .tabs button {
   flex: 1 0 auto;
   min-height: 44px;

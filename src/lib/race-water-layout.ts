@@ -3,13 +3,26 @@
 import { useEffect } from "react";
 
 /**
- * Package 31, owner decision R-45: the prototype of the solo race with the water
- * on the whole phone screen and the helm over it. Off unless the race page gets
- * ?water=1 (the app's prototype build passes it, mobile/src/navigation/race-entry.ts);
- * the normal race, the trainers, the replay and the live room do not read it.
+ * Package 31, owner decision R-45: the solo race with the water on the whole
+ * phone screen and the helm over it. Since the owner's TestFlight notes on 81
+ * (arrows and BEST VMG on the water, no blocks eating the screen, the same when
+ * turned) and rule R-46 point 6 it is the race of every touch screen: the app
+ * (a WKWebView reports a coarse pointer) and a phone or tablet browser. A
+ * desktop with a mouse keeps the dock. ?water=1 forces it on, ?water=0 brings
+ * the old dock back (for a check side by side). The trainers, the replay and
+ * the live room do not read it.
  */
-export function raceWaterLayoutOn(search: URLSearchParams): boolean {
-  return search.get("water") === "1";
+export function raceWaterLayoutOn(search: URLSearchParams, touch = touchScreen()): boolean {
+  const asked = search.get("water");
+  if (asked === "1") return true;
+  if (asked === "0") return false;
+  return touch;
+}
+
+/** A finger is the main pointer (phones, tablets, the app's web view). */
+export function touchScreen(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  try { return window.matchMedia("(pointer: coarse)").matches; } catch { return false; }
 }
 
 /**

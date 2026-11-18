@@ -71,7 +71,8 @@ describe("race hub setup", () => {
     fireEvent.press(view.getByRole("radio", { name: "Free race" }));
     fireEvent.press(view.getByRole("radio", { name: "Hard" }));
     fireEvent.press(view.getByRole("radio", { name: "Strong" }));
-    expect(summary()).toMatch(/^Hard · strong wind · Simple · /);
+    expect(summary()).toMatch(/^Hard · strong wind · /);
+    expect(summary()).not.toMatch(/Simple|Pro/);
     fireEvent.press(view.getByRole("button", { name: "Play" }));
     expect(mockPush).toHaveBeenLastCalledWith("/game?difficulty=hard&wind=heavy");
     expect(view.getAllByRole("button", { name: "Play" })).toHaveLength(1);
@@ -88,6 +89,24 @@ describe("race hub setup", () => {
     fireEvent.press(again.getByRole("button", { name: "Play" }));
     expect(mockPush).toHaveBeenLastCalledWith(`/game?mission=${hubMissions[0].id}`);
     again.unmount();
+  });
+
+  // Owner, TestFlight 81: "it is not clear which one is Pro and which is the normal one".
+  it("shows the race mode as a switch with its meaning in the hub, without opening Change", async () => {
+    const view = hub();
+    await view.findByRole("button", { name: "Play" });
+    const simple = view.getByRole("radio", { name: "Simple" });
+    const pro = view.getByRole("radio", { name: "Pro" });
+    expect(simple.props.accessibilityState).toMatchObject({ checked: true });
+    expect(view.getByText("The sails trim themselves, you just steer.")).toBeTruthy();
+    fireEvent.press(pro);
+    await waitFor(() => expect(view.getByRole("radio", { name: "Pro" }).props.accessibilityState).toMatchObject({ checked: true }));
+    expect(view.getByText(/You trim the mainsheet and the jib sheet/)).toBeTruthy();
+    // Change opens the rest of the setup, the mode switch is not repeated there.
+    fireEvent.press(view.getByRole("button", { name: "Change" }));
+    expect(view.getAllByRole("radio", { name: "Pro" })).toHaveLength(1);
+    fireEvent.press(view.getByRole("radio", { name: "Simple" }));
+    view.unmount();
   });
 
   it("reads a broken or unknown saved setup as the first race", () => {

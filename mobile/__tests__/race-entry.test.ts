@@ -21,11 +21,13 @@ it("passes the on-screen frame counter flag through, and nothing else under its 
   for (const fps of ["0", "true", "1&gl=webgl2", ["1"], undefined]) expect(raceEntryQuery({ fps }, "simple")).not.toHaveProperty("fps");
 });
 
-// Package 31, R-45 prototype: a store build without the variable opens the normal race.
-it("turns the water layout on only by its deep link or a prototype build", () => {
+// Package 31: the race page picks the water layout itself on a touch screen; the route only
+// passes a deep link's explicit choice (on or off) and the old prototype build flag.
+it("passes the water layout choice of a deep link and leaves the default to the race", () => {
   expect(raceEntryQuery({}, "simple")).not.toHaveProperty("water");
   expect(raceEntryQuery({ water: "1" }, "simple")).toMatchObject({ water: "1" });
-  for (const water of ["0", "true", ["1"], undefined]) expect(raceEntryQuery({ water }, "simple")).not.toHaveProperty("water");
+  expect(raceEntryQuery({ water: "0" }, "simple")).toMatchObject({ water: "0" });
+  for (const water of ["true", ["1"], undefined]) expect(raceEntryQuery({ water }, "simple")).not.toHaveProperty("water");
   const before = process.env.EXPO_PUBLIC_RACE_WATER;
   process.env.EXPO_PUBLIC_RACE_WATER = "1";
   try { expect(raceEntryQuery({}, "pro")).toMatchObject({ water: "1" }); }

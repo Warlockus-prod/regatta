@@ -298,6 +298,18 @@ describe("solo game layer: status row and pause sheet", () => {
     expect(text(row.props.children as ReactNode)).toContain("PRO");
   });
 
+  // Owner, TestFlight 81: "which one is Pro and which is the normal one" - both modes are named.
+  it("names the mode in the status row in Simple as well as in Pro", () => {
+    const badge = (mode: "simple" | "pro") => {
+      const base = soloProps();
+      const tree = render({ ...base, prefs: { ...base.prefs, mode } });
+      return nodes(tree).find(node => node.props["data-testid"] === "race-mode-badge");
+    };
+    expect(text(badge("pro")!.props.children as ReactNode)).toBe("PRO");
+    expect(badge("simple")!.props["data-mode"]).toBe("simple");
+    expect(text(badge("simple")!.props.children as ReactNode)).toBe("SIMPLE");
+  });
+
   it("opens the sheet while paused: Continue resumes, Restart restarts, Race settings opens the dock settings", () => {
     const props = { ...soloProps(), paused: true };
     const tree = render(props);

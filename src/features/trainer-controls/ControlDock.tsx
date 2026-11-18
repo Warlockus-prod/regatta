@@ -52,7 +52,10 @@ export function ControlDock(props: {
   // hides behind one menu button (the styles act on data-menu only inside a staged workspace).
   // Picking the wheels again, or touching the scene, puts the strip away.
   const [menu, setMenu] = useState(false);
-  const choose = (id: string) => { setActive(id); if (id === "wheels") setMenu(false); };
+  // Owner, TestFlight 84 ("the controls do not fold back for a full screen"): the slider panel
+  // folds down to its tab strip and the scene takes the space; any tab opens it again.
+  const [collapsed, setCollapsed] = useState(false);
+  const choose = (id: string) => { setActive(id); setCollapsed(false); if (id === "wheels") setMenu(false); };
   const dockRef = useRef<HTMLDivElement>(null);
 
   const allCards = useMemo(() => tabs.flatMap((t) => t.cards), [tabs]);
@@ -65,6 +68,8 @@ export function ControlDock(props: {
     ...tabs.map((t) => ({ id: t.id, label: t.label })),
   ];
   const current = tabList.some((t) => t.id === active) ? active : firstId;
+  const foldable = layout === "bottom" && current !== "wheels";
+  const folded = foldable && collapsed;
 
   // The menu over the wheels is dismissed like any sheet: by a touch outside it.
   const dismissable = menu && current === "wheels";
@@ -90,7 +95,7 @@ export function ControlDock(props: {
   }
 
   return (
-    <div ref={dockRef} className={`${styles.dock} ${className ?? ""}`} data-layout={layout} data-mode={current === "wheels" ? "wheels" : "sliders"} data-menu={menu ? "open" : "closed"} data-testid="control-dock">
+    <div ref={dockRef} className={`${styles.dock} ${className ?? ""}`} data-layout={layout} data-mode={current === "wheels" ? "wheels" : "sliders"} data-menu={menu ? "open" : "closed"} data-collapsed={folded || undefined} data-testid="control-dock">
       {wheels && <button type="button" className={styles.menuButton} aria-label={labels.controlsTitle} title={labels.controlsTitle} aria-expanded={menu}
         aria-controls={`tc-head-${surface}`} onClick={() => setMenu(true)} data-testid="control-menu-open">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
@@ -102,11 +107,17 @@ export function ControlDock(props: {
               aria-controls={`tc-panel-${surface}`} onClick={() => choose(t.id)}>{t.label}</button>
           ))}
         </div>
+        {foldable && <button type="button" className={styles.gear} aria-label={folded ? labels.expand : labels.collapse} title={folded ? labels.expand : labels.collapse}
+          aria-expanded={!folded} aria-controls={`tc-panel-${surface}`} onClick={() => setCollapsed((v) => !v)} data-testid="control-dock-fold">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d={folded ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} />
+          </svg>
+        </button>}
         <button type="button" className={styles.gear} aria-label={labels.openSettings} onClick={() => setSettingsOpen(true)} data-testid="control-settings-open">
           <GearIcon />
         </button>
       </div>
-      <div className={`${styles.panel} ${current === "wheels" ? styles.panelWheels : ""}`} role="tabpanel" id={`tc-panel-${surface}`} aria-labelledby={`tc-tab-${surface}-${current}`}>
+      <div className={`${styles.panel} ${current === "wheels" ? styles.panelWheels : ""}`} role="tabpanel" id={`tc-panel-${surface}`} aria-labelledby={`tc-tab-${surface}-${current}`} hidden={folded}>
         {panel}
         <DiagnosticAccess />
       </div>
