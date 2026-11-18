@@ -60,7 +60,7 @@ campaign: `docs/design/mobile/ads-lab.md`, last section).
   bundle `com.icoffio.regatta`), and `onlyForMobileApp` campaigns win them. No server change
   at Hybrid was needed.
 
-SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.4.0, `aae1668`
+SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.4.2, `8b14cca` (728x90 fits a phone, small close cross on short banners, video clip shape matches the slot; 1.4.1 `d05c06b` per-ad banner analytics and app fields). Before that 1.4.0, `aae1668`
 (tag `1.4.0` on `main`): rewarded video ends with an end card, banners and full-screen ads run
 MRAID 3.0 creatives (link and expand only from a real tap), native ads load as fields. The
 video view sends `onAdCompleted` only when the video was watched to the end (at least 90% of
