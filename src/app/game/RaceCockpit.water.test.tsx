@@ -6,7 +6,7 @@ import { createRaceNavigationSnapshot, raceWindReading } from "@/features/race-h
 import { raceWaterLayoutOn } from "@/lib/race-water-layout";
 
 // Package 31, R-45 prototype, contract of the water layout:
-// - it is on only with ?water=1, and only then does the cockpit change;
+// - it is on for a touch screen (or ?water=1), off for a mouse (or ?water=0);
 // - the arrows and the assists are on the water with any stored helm control,
 //   no Helm tab and no panel until a tab is opened;
 // - Sails, Map and Settings open a sheet that their own button or Close closes.
@@ -74,9 +74,22 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("the water layout flag", () => {
-  it("is on only with water=1", () => {
-    expect(raceWaterLayoutOn(new URLSearchParams("water=1"))).toBe(true);
-    for (const query of ["", "water=0", "water=true", "scene=next"]) expect(raceWaterLayoutOn(new URLSearchParams(query))).toBe(false);
+  // Owner's TestFlight notes on 81 and rule R-46: the race of every touch screen; a mouse keeps the dock.
+  it("is on for a touch screen unless water=0, and on anywhere with water=1", () => {
+    for (const query of ["", "water=true", "scene=next"]) {
+      expect(raceWaterLayoutOn(new URLSearchParams(query), true)).toBe(true);
+      expect(raceWaterLayoutOn(new URLSearchParams(query), false)).toBe(false);
+    }
+    expect(raceWaterLayoutOn(new URLSearchParams("water=1"), false)).toBe(true);
+    expect(raceWaterLayoutOn(new URLSearchParams("water=0"), true)).toBe(false);
+  });
+  it("reads a coarse pointer as a touch screen and anything else, or no matchMedia, as a mouse", () => {
+    vi.stubGlobal("window", { matchMedia: (query: string) => ({ matches: query === "(pointer: coarse)" }) });
+    expect(raceWaterLayoutOn(new URLSearchParams(""))).toBe(true);
+    vi.stubGlobal("window", { matchMedia: () => ({ matches: false }) });
+    expect(raceWaterLayoutOn(new URLSearchParams(""))).toBe(false);
+    vi.stubGlobal("window", {});
+    expect(raceWaterLayoutOn(new URLSearchParams(""))).toBe(false);
   });
   it("leaves the normal cockpit as it was", () => {
     const tree = render(props(false));

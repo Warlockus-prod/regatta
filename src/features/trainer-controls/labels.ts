@@ -19,6 +19,9 @@ export function useControlLabels() {
       more: tl({ ru: "Ещё", en: "More", pl: "Więcej", es: "Más", fr: "Plus", de: "Mehr", it: "Altro" }),
     },
     controlsTitle: tl({ ru: "Управление", en: "Controls", pl: "Sterowanie", es: "Controles", fr: "Commandes", de: "Steuerung", it: "Comandi" }),
+    // Owner, TestFlight 84: the slider panel folds down so the scene gets the whole screen.
+    collapse: tl({ ru: "Свернуть управление", en: "Collapse the controls", pl: "Zwiń sterowanie", es: "Contraer los controles", fr: "Replier les commandes", de: "Steuerung einklappen", it: "Comprimi i comandi" }),
+    expand: tl({ ru: "Развернуть управление", en: "Expand the controls", pl: "Rozwiń sterowanie", es: "Desplegar los controles", fr: "Déplier les commandes", de: "Steuerung ausklappen", it: "Espandi i comandi" }),
     settings: tl({ ru: "Настройки управления", en: "Control settings", pl: "Ustawienia sterowania", es: "Ajustes de control", fr: "Réglages des commandes", de: "Steuerung einstellen", it: "Impostazioni comandi" }),
     mode: tl({ ru: "Режим", en: "Mode", pl: "Tryb", es: "Modo", fr: "Mode", de: "Modus", it: "Modalità" }),
     sliders: tl({ ru: "Ползунки", en: "Sliders", pl: "Suwaki", es: "Deslizadores", fr: "Curseurs", de: "Schieberegler", it: "Cursori" }),

@@ -53,6 +53,17 @@ describe("game screen: one menu button instead of the tab strip", () => {
     expect(html).not.toContain("control-menu-open");
   });
 
+  // Owner, TestFlight 84: the slider panel folds down for a full-screen scene.
+  it("offers the fold button over the sliders, never over the wheels or in a desktop column", () => {
+    const sliders = render("sliders");
+    expect(sliders).toMatch(/aria-label="Collapse the controls"[^>]*aria-expanded="true"[^>]*aria-controls="tc-panel-trainer"[^>]*data-testid="control-dock-fold"/);
+    expect(sliders).not.toContain("data-collapsed");
+    expect(render("wheels")).not.toContain("control-dock-fold");
+    const column = renderToStaticMarkup(<ControlDock surface="trainer" tabs={[]} defaultFavorites={[]} prefs={{ ...DEFAULT_CONTROL_PREFS, mode: "sliders" }}
+      update={() => {}} hasSheets rudderAvailable layout="column" />);
+    expect(column).not.toContain("control-dock-fold");
+  });
+
   it("keeps a lesson task's tab in view: the strip hides only while the wheels are shown", () => {
     const html = render("wheels", { id: "lesson-task", label: "Task", cards: [{ id: "exercise", title: "Exercise", node: <p>Hold the trim</p> }] });
     expect(html).toContain('data-mode="sliders" data-menu="closed"');

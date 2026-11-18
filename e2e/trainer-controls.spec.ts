@@ -195,6 +195,37 @@ for (const route of [
   });
 }
 
+// Owner, TestFlight 84 ("the controls do not fold back for a full screen"): in sliders mode the
+// dock folds down to its tab strip, the boat's window takes the freed height, and a tab opens it again.
+test("sliders mode: the dock folds to its tab strip and the scene takes the screen", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize(PHONE);
+  await page.addInitScript(() => {
+    localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "sliders" }));
+  });
+  await page.goto("/simulator-v3?embed=1&lang=en");
+  const scene = page.getByTestId("trainer-scene-window");
+  await expect(scene).toBeVisible({ timeout: 25_000 });
+  const fold = page.getByTestId("control-dock-fold");
+  await expect(fold).toHaveAttribute("aria-expanded", "true");
+  const before = (await scene.boundingBox())!;
+  await fold.click();
+  await expect(fold).toHaveAttribute("aria-expanded", "false");
+  await expect(fold).toHaveAccessibleName("Expand the controls");
+  await expect(page.getByRole("tabpanel")).toBeHidden();
+  await expect(page.getByRole("tab", { name: "Sails", exact: true })).toBeVisible();
+  const after = (await scene.boundingBox())!;
+  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  expect(after.height).toBeGreaterThan(before.height + 150);
+  expect(dock.height).toBeLessThanOrEqual(80);
+  expect(dock.y + dock.height).toBeLessThanOrEqual(PHONE.height + 1);
+  // A tab opens the panel again on that tab.
+  await page.getByRole("tab", { name: "Sails", exact: true }).click();
+  await expect(page.getByRole("tabpanel")).toBeVisible();
+  await expect(fold).toHaveAttribute("aria-expanded", "true");
+  await expect.poll(async () => (await scene.boundingBox())!.height).toBeLessThan(after.height - 150);
+});
+
 // The game screen (package 32): with the menu closed the wheels are all there is under the boat,
 // on the water, and nothing scrolls beneath them. The hint and Diagnostics live in the menu: they
 // follow the wheels there without an empty band and are reached by scrolling the dock.

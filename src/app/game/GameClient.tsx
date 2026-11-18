@@ -452,7 +452,7 @@ export default function GamePage() {
   const helmRef = useRef<HelmAssistState>(createHelmAssist());
   const helmInputRef = useRef({ arrows: 0, nudge: 0 });
   const { helm: storedHelmControl } = useRaceHelmControl();
-  // Package 31, R-45 prototype: the water layout steers with the arrows on the water.
+  // Package 31: the water layout (the race of every touch screen, src/lib/race-water-layout.ts) steers with the arrows on the water.
   const [waterLayout] = useState(() => raceWaterLayoutOn(readRaceSearch()));
   const helmControl = waterLayout ? "arrows" as const : storedHelmControl;
   const helmControlRef = useRef(helmControl); helmControlRef.current = helmControl;

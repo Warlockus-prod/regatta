@@ -291,6 +291,17 @@
    corner map is the taller one with the small wind box), above the mast's foot. The boat sits about 65% down this taller scene, where the
    course boundary note would cover it (62% in the normal cockpit). */
 .water .scene { --race-toasts-top:calc(var(--race-status-h) + 130px); --race-boundary-top:48%; }
+/* Owner, TestFlight 81: the messages took too much of the screen and were hard to see; higher
+   and neater. On the water they are one compact line each, high under the corner instruments,
+   on a denser card that reads over any water; the course boundary note joins them up there,
+   and the stack steps below it while it shows. */
+.water [data-testid=race-toast] { padding:6px 12px; font-size:15px; line-height:20px; border-radius:12px; background:var(--water-fill); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); box-shadow:0 2px 10px rgb(0 0 0 / .28); }
+.water [data-testid=race-toasts] { gap:6px; width:min(320px, calc(100% - 32px)); }
+.water [data-testid=race-boundary-hint] { padding:6px 12px !important; font-size:15px !important; line-height:20px !important; border-radius:12px !important; background:var(--water-fill) !important; box-shadow:0 2px 10px rgb(0 0 0 / .28); }
+@media(orientation:portrait) {
+ .water .scene { --race-boundary-top:calc(var(--race-status-h) + 130px); }
+ .water .scene:has([data-testid=race-boundary-hint]:not([style*="display: none"])) { --race-toasts-top:calc(var(--race-status-h) + 130px + 42px); }
+}
 .water .status { padding:calc(4px + var(--water-t)) calc(8px + var(--water-r)) 4px calc(8px + var(--water-l)); }
 .water .instrumentsArea { left:var(--water-l); right:var(--water-r); }
 .water .dock { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; padding:0 calc(8px + var(--water-r)) calc(8px + var(--water-b)) calc(8px + var(--water-l)); border:0; background:none; pointer-events:none; }
@@ -315,6 +326,11 @@
 .water [data-testid=race-helm-right] { grid-area:r; }
 .cockpit.water .waterBar button { background:var(--water-fill); }
 .cockpit.water .waterBar .helmArrow { min-height:64px; }
+/* The open sheet's tab: a solid card under the cyan label, 4.5:1 over any water (check:ui, water states). */
+.cockpit.water .waterBar button[aria-pressed=true] { background:var(--bg-card,#102838); }
+/* The edge arrow to the mark is drawn by the scene above the cockpit; an open sheet covers that
+   part of the screen, so the arrow and its metres wait until the sheet closes. */
+.water:has(.dock>.panel) [data-testid=race-mark-arrow] { visibility:hidden; }
 /* A sheet over the scene: Sails, Map or Settings. The helm stays under the thumbs. */
 .water .panel { position:absolute; left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); top:auto; bottom:calc(var(--water-bar-h) + 14px + var(--water-b)); height:min(36%,340px); min-height:0; flex:none; contain:none; padding:8px 12px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-primary,#071923); box-shadow:0 12px 32px rgb(0 0 0 / .35); }
 .cockpit .waterClose { position:sticky; top:0; z-index:1; float:right; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; margin:0 -4px 0 8px; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
