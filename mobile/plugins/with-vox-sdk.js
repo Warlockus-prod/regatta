@@ -9,7 +9,7 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// VOX SDK 1.4.1 (main d05c06b, tag 1.4.1 after the simulator check): per-ad banner analytics, VAST errors, one-tap clicks, app fields in mobileSdk; on top of 1.4.0 (end card, reward on onComplete, MRAID 3.0, native ads) (2026-11-18).
+// Tag 1.4.1 (d05c06b): per-ad banner analytics, VAST errors, one-tap clicks, app fields in mobileSdk; on top of 1.4.0 (end card, reward on onComplete, MRAID 3.0, native ads) (2026-11-18).
 const VOX_SDK_COMMIT = 'd05c06b17f553591d1e22fad683344978164dad3';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
