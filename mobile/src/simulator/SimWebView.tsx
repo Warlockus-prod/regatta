@@ -26,6 +26,7 @@ import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
 import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, trainerStage, useKeepAwakeWhileFocused } from './race-shell';
 import { ActivityBack } from '../navigation/ActivityBack';
+import { HeaderBackButton } from '../navigation/HeaderBackButton';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
 import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from '../diagnostics/journal';
@@ -314,7 +315,7 @@ export function SimWebView({
   }, [processNotice]);
 
   const backControl = () => returnLesson
-    ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
+    ? <HeaderBackButton label={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} />
     : isFoundationLesson(query?.fromLesson)
       ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
       : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />;
@@ -540,8 +541,7 @@ export function SimWebView({
 }
 
 const styles = StyleSheet.create({
-  headerBack: { minHeight: 44, minWidth: 44, paddingRight: 12, justifyContent: "center" },
-  floatingBack: { position: "absolute", zIndex: 5, minHeight: 44, justifyContent: "center", paddingLeft: 10, borderRadius: 12, backgroundColor: colors.bgCard, shadowColor: "#000", shadowOpacity: 0.16, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 },
+  floatingBack: { position: "absolute", zIndex: 5, minHeight: 44, justifyContent: "center", paddingHorizontal: 2, borderRadius: 12, backgroundColor: colors.bgCard, shadowColor: "#000", shadowOpacity: 0.16, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 },
   web: { flex: 1, backgroundColor: colors.bgPrimary },
   tierBar: {
     flexDirection: 'row',

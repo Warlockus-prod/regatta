@@ -1,8 +1,7 @@
 import { recordNativeDiagnostic } from "../diagnostics/journal";
 import { diagnosticDestination } from "../../../src/lib/diagnostic-destination";
 import { usePathname, useRouter, type Href } from "expo-router";
-import { Pressable } from "react-native";
-import { Text } from "../design-system/components/Text";
+import { HeaderBackButton } from "./HeaderBackButton";
 import { colors } from "../design-system/tokens";
 import { useI18n } from "../i18n/context";
 import { sectionForPath } from "../../../src/lib/product/catalog";
@@ -19,9 +18,6 @@ export function ActivityBack({ fallback, tintColor = colors.accentCyan }: { fall
   const pathname = usePathname();
   const { tp } = useI18n();
   const label = tp("Назад", "Back", "Wróć", { es: "Volver", fr: "Retour", de: "Zurück", it: "Indietro" });
-  return <Pressable accessibilityRole="button" accessibilityLabel={label}
-    onPress={() => { const hasBack = router.canGoBack(); recordNativeDiagnostic({ type: "navigation", surface: "app", action: "back", outcome: "accepted", source: "native", from: diagnosticDestination(pathname), ...(hasBack ? {} : { to: diagnosticDestination(typeof fallback === "string" ? fallback : fallback.pathname) }) }); if (hasBack) router.back(); else router.replace(fallback); }}
-    style={{ minHeight: 44, minWidth: 44, justifyContent: "center", paddingRight: 12 }}>
-    <Text style={{ color: tintColor, fontSize: 16 }}>‹ {label}</Text>
-  </Pressable>;
+  return <HeaderBackButton label={label} tintColor={tintColor}
+    onPress={() => { const hasBack = router.canGoBack(); recordNativeDiagnostic({ type: "navigation", surface: "app", action: "back", outcome: "accepted", source: "native", from: diagnosticDestination(pathname), ...(hasBack ? {} : { to: diagnosticDestination(typeof fallback === "string" ? fallback : fallback.pathname) }) }); if (hasBack) router.back(); else router.replace(fallback); }} />;
 }
