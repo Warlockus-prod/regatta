@@ -70,6 +70,9 @@ export const VOX_PLACEMENTS: readonly VoxPlacement[] = [
   // Native (VOX SDK 1.4.0+): the app draws the fields itself; the size is the main image's
   // 1200x628. Created 2026-11-18, waits for VOX moderation (until then the SSP answers 204).
   { key: 'native', placeId: '6afcf6ae810d98569070344a', kind: 'native', width: 1200, height: 628 },
+  // MRAID game (VOX SDK 1.4.3+): a 300x600 inline teaser that expands to a full-screen regatta
+  // mini-game. It uses the moderated 300x600 place, where the test campaign serves only the game.
+  { key: 'mraidGame', placeId: '6ae4bdb3810d986308d66830', kind: 'banner', width: 300, height: 600 },
 ];
 
 export function placement(key: string): VoxPlacement {

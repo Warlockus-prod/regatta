@@ -43,7 +43,7 @@ it("lists every ad format and opens its screen", () => {
   const view = render(<SafeAreaProvider initialMetrics={metrics}><AdsFormats /></SafeAreaProvider>);
   for (const format of AD_FORMATS) {
     mockPush.mockClear();
-    const title = { display: "Display banners", interstitial: "Interstitial (full screen)", rewarded: "Rewarded video", video: "In-content video (VAST)", native: "Native ad", inGame: "In-game" }[format];
+    const title = { display: "Display banners", interstitial: "Interstitial (full screen)", rewarded: "Rewarded video", video: "In-content video (VAST)", native: "Native ad", mraidGame: "MRAID game", inGame: "In-game" }[format];
     fireEvent.press(view.getByRole("button", { name: title }));
     expect(mockPush).toHaveBeenCalledWith(AD_FORMAT_ROUTES[format]);
   }

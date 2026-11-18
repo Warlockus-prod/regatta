@@ -1,7 +1,7 @@
 import type { Href } from 'expo-router';
 
 /** Ad formats listed on Settings -> Ads, in display order, with their routes. */
-export const AD_FORMATS = ['display', 'interstitial', 'rewarded', 'video', 'native', 'inGame'] as const;
+export const AD_FORMATS = ['display', 'interstitial', 'rewarded', 'video', 'native', 'mraidGame', 'inGame'] as const;
 export type AdFormat = typeof AD_FORMATS[number];
 
 export const AD_FORMAT_ROUTES: Record<AdFormat, Href> = {
@@ -10,5 +10,6 @@ export const AD_FORMAT_ROUTES: Record<AdFormat, Href> = {
   rewarded: '/ads/rewarded',
   video: '/ads/video',
   native: '/ads/native',
+  mraidGame: '/ads/mraid-game',
   inGame: '/ads/in-game',
 };

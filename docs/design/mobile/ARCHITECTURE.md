@@ -18,11 +18,12 @@ requests 2026-10-30). Test build only: ads exist nowhere else in the app, and
 
 Details, SDK limits and release prerequisites: `ads-lab.md`.
 
-- `mobile/app/ads/index.tsx` - format list (display, interstitial, rewarded, video, in-game) and SDK status.
+- `mobile/app/ads/index.tsx` - format list (display, interstitial, rewarded, video, native, MRAID game, in-game) and SDK status.
 - `mobile/app/ads/display.tsx` - swipe pager of simulated screens: anchored 320x50, in-content 300x250, in-feed 320x480, half page 300x600, tablet 728x90; each page requests once when first shown.
 - `mobile/app/ads/interstitial.tsx` - race-finish screen, "Next race" calls `VoxAds.showFullScreen`.
 - `mobile/app/ads/rewarded.tsx` - opt-in offer, full-screen VAST 9:16, reward granted by a 15 s app timer (SDK 1 has no completion callback; closing earlier forfeits).
 - `mobile/app/ads/video.tsx` - in-article VAST 16:9 and 9:16.
+- `mobile/app/ads/mraid-game.tsx` - MRAID game: a 300x600 inline slot (placement `mraidGame`, the moderated 300x600 place) in an article; a tap expands the creative to full screen (VOX SDK 1.4.3 stretches Hybrid's fixed frames), the creative is a short regatta round a buoy with an end card. Creative source: `~/App/sdk_hybrid/vox-sdk-2/rich-media/mraid-regatta/`.
 - `mobile/app/ads/in-game.tsx` - the installed sailing package at `/ads` (3D yacht, three local test boards); Back returns to the format list.
 - `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry).
 - `mobile/src/ads/sdk.ts` - SDK switch (in memory, opens on SDK 1), Prebid Server URL and account, configID `wtr-<placement key>`, lazy Prebid start.
