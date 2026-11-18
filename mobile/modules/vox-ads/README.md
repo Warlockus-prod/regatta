@@ -21,7 +21,8 @@ screen. "VOX SDK 2" is the planned Prebid-based SDK and is not part of this.
 1. Settings -> Ads opens the format list `/ads`. No ad request happens before a format screen opens.
 2. `VoxAdView` gets `placeId` + `kind` + `pageUrl` + `language`, waits for a non-zero
    width, then calls `VOXAds.createBanner` (banner) or `VOXAds.createVASTVideo` (video).
-3. The banner's real height is sent back in `onAdLoaded`; the JS slot resizes.
+3. The banner's real height is sent back in `onAdLoaded`; the JS slot resizes. A video view
+   also sends `onAdCompleted` once the video has really been watched to the end.
 4. Interstitial: `VoxAds.showFullScreen(placeId, closeDelay, pageUrl, language)` presents
    VOX's own full-screen controller over the current one.
 5. Requests go to `https://ssp.hybrid.ai/auction/getad`, each naming the app (below).
@@ -59,9 +60,12 @@ campaign: `docs/design/mobile/ads-lab.md`, last section).
   bundle `com.icoffio.regatta`), and `onlyForMobileApp` campaigns win them. No server change
   at Hybrid was needed.
 
-SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.3.2, `f69eb48`
-(tag `1.3.2` on `main`): the close cross sits in the top-right corner of banners and
-full-screen ads. Like 1.3.1 (`a5bdfd6`, build 84) it sends the block below as `mobileSdk`
+SDK pin: `VOX_SDK_COMMIT` in `mobile/plugins/with-vox-sdk.js` is VOX SDK 1.4.0, `aae1668`
+(tag `1.4.0` on `main`): rewarded video ends with an end card, banners and full-screen ads run
+MRAID 3.0 creatives (link and expand only from a real tap), native ads load as fields. The
+video view sends `onAdCompleted` only when the video was watched to the end (at least 90% of
+it actually played, seeking does not count); `app/ads/rewarded.tsx` grants the reward on it.
+1.3.2 (`f69eb48`, builds 85-87) moved the close cross to the top-right corner. Like 1.3.1 (`a5bdfd6`, build 84) it sends the block below as `mobileSdk`
 (in Swift still `sdkInfo`). 1.7.3 (82) used 1.3.0 `42cd227`. Builds up to 1.7.2 (81) used `d197347`, which sends
 no `applicationId`, so there the app id travels only inside the address. In
 `sdkInfo`, 1.3.0 adds only `applicationId`: no `sdkInfo.language`, no `sdkInfo.timezone`

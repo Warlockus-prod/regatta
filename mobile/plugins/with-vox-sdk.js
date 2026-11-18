@@ -9,8 +9,8 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// Tag 1.3.2 on main: device and app data sent as `mobileSdk` (1.3.1) and the close cross in the top-right corner of banners and full-screen ads (2026-11-17).
-const VOX_SDK_COMMIT = 'f69eb484482a9a6667253df54e852f8988fa22a2';
+// Tag 1.4.0: VAST end card and video events (reward on onComplete), MRAID 3.0, native ads; plus everything from 1.3.2 (2026-11-18).
+const VOX_SDK_COMMIT = 'aae166806ff1476f4cccf657952f2a8ce48753bb';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
 // The ad pods are linked only for a build with the Ads section

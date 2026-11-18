@@ -53,7 +53,7 @@ public class VoxAdsModule: Module {
     }
 
     View(VoxAdView.self) {
-      Events("onAdLoaded", "onAdFailed")
+      Events("onAdLoaded", "onAdFailed", "onAdCompleted")
 
       Prop("placeId") { (view: VoxAdView, value: String) in
         view.placeId = value

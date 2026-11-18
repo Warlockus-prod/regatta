@@ -33,6 +33,8 @@ export type VoxAdViewProps = ViewProps & {
   /** Bump to request a fresh ad for the same placement. */
   reloadKey?: number;
   onAdLoaded?: (event: NativeSyntheticEvent<VoxAdLoadedEvent>) => void;
+  /** VAST video watched to the end (VOX SDK 1.4.0, at least 90% actually played): grant the reward here. */
+  onAdCompleted?: (event: NativeSyntheticEvent<Record<string, never>>) => void;
   onAdFailed?: (event: NativeSyntheticEvent<VoxAdFailedEvent>) => void;
 };
 

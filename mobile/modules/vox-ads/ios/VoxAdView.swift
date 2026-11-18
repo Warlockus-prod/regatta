@@ -10,6 +10,8 @@ import WebKit
 class VoxAdView: ExpoView {
   let onAdLoaded = EventDispatcher()
   let onAdFailed = EventDispatcher()
+  /// The VAST video played to the end (VOX SDK 1.4.0 onComplete, at least 90% actually watched): the moment to grant a reward.
+  let onAdCompleted = EventDispatcher()
 
   var placeId = ""
   var kind = "banner"
@@ -131,7 +133,8 @@ class VoxAdView: ExpoView {
             containerView: container,
             parentController: controller,
             shouldHideBannerWithText: true,
-            closeButtonDelay: delay
+            closeButtonDelay: delay,
+            events: VOXVideoEvents(onComplete: { [weak self] in self?.onAdCompleted([:]) })
           )
           try await VOXAds.createVASTVideo(with: model)
           // The slot left the screen during the request: the SDK has just attached

@@ -13,7 +13,7 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
 import { useI18n } from '../../src/i18n/context';
 
 const REWARDED = placement('rewarded');
-/** VOX SDK 1 has no completion callback, so the app grants the reward after this watch time. */
+/** Countdown shown while the video plays; the reward itself comes from VOX SDK's completion event (1.4.0). */
 const REWARD_SECONDS = 15;
 
 /**
@@ -97,6 +97,7 @@ function RewardedPlayer({
   const videoHeight = Math.round((videoWidth * 16) / 9);
   const [left, setLeft] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const startedAt = useRef(Date.now());
 
   useEffect(() => {
@@ -109,7 +110,8 @@ function RewardedPlayer({
     return () => clearTimeout(timer);
   }, [left]);
 
-  const granted = left === 0;
+  // The reward needs the SDK's completion event (the video watched to the end), not just the countdown.
+  const granted = completed;
   const headline = granted
     ? text.rewarded.granted
     : left !== null
@@ -146,6 +148,7 @@ function RewardedPlayer({
                 onState({ status: 'loaded', ms: Date.now() - startedAt.current });
                 setLeft(REWARD_SECONDS);
               }}
+              onAdCompleted={() => setCompleted(true)}
               onAdFailed={(event) => {
                 const message = event.nativeEvent.message;
                 onState({ status: statusFromFailure(message), ms: Date.now() - startedAt.current, detail: message });
