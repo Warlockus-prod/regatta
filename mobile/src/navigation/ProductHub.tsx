@@ -14,7 +14,7 @@ import { useLearningSnapshot } from "../home/useLearningSnapshot";
 import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
 import { passedLessonIds } from "../bootcamp/status";
 import { bootcampLessons } from "../data";
-import { VenuePicker } from "../game/VenuePicker";
+import { RaceModeChoice, VenuePicker } from "../game/VenuePicker";
 import { RaceSetupPanel } from "./RaceSetupPanel";
 import { RaceHubMedal, hubMedalCourse } from "./RaceHubMedal";
 import { RaceHubNextStep, hubRacedBefore, useRaceHubRows } from "./RaceHubNextStep";
@@ -77,6 +77,9 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
   // start says "Start the race", not "Start your first race". Until the
   // storage read settles the words stay neutral (no "first race" flash).
   const racedBefore = hubRacedBefore(rows);
+  // The mode has its own switch under the frame (owner, TestFlight 81), so the line names the course and the venue;
+  // the Play hint still reads all three.
+  const setupLine = `${hubSetupSummary(raceSetup, racedBefore, lang)} · ${venue.name[lang]}`;
   const setupSummary = `${hubSetupSummary(raceSetup, racedBefore, lang)} · ${raceCopy[mode][lang]} · ${venue.name[lang]}`;
   const home = section === "race" ? raceHomeView({ ...rows, course: hubMedalCourse(raceSetup), mode, now: new Date(), inDaily: false }) : null;
   const isMenu = section === "library";
@@ -117,12 +120,13 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
           <Image source={raceScene} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={homeCopy.sceneAlt[lang]} accessibilityIgnoresInvertColors />
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summary} testID="race-hub-summary">{setupSummary}</Text>
+          <Text style={styles.summary} testID="race-hub-summary">{setupLine}</Text>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: changing }} onPress={() => setChanging(v => !v)} hitSlop={8}
             style={({ pressed }) => [styles.change, pressed && styles.changePressed]}>
             <Text style={styles.changeText}>{homeCopy.change[lang]}</Text>
           </Pressable>
         </View>
+        <RaceModeChoice />
       </View>}
       {section === "race" && changing && <RaceSetupPanel value={raceSetup} onChange={changeSetup} racedBefore={racedBefore} />}
       {section === "race" && changing && <VenuePicker />}
