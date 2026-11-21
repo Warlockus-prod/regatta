@@ -20,6 +20,12 @@
  * (finished or timed out); the server's `race.finish` counts only the times a
  * player saved to the leaderboard. The two never describe the same thing, so
  * neither is double counted.
+ *
+ * Activity (2026-11-21): `ui.click` says which control was used (a route, a
+ * host name or a short label of our own UI, src/lib/click-tracking.ts), and
+ * the iOS app reports its native screens (`screen.view`) and each foreground
+ * stretch (`app.session`) itself (mobile/src/analytics/first-party.ts), so the
+ * local dashboard (scripts/analytics/) sees the whole app, not only WebViews.
  */
 
 export const CLIENT_EVENTS = [
@@ -37,6 +43,9 @@ export const CLIENT_EVENTS = [
   'race.first_mark',
   'race.end',
   'race.replay',
+  'ui.click',
+  'screen.view',
+  'app.session',
 ] as const;
 
 export type ClientEventName = (typeof CLIENT_EVENTS)[number];
@@ -124,6 +133,12 @@ export type RaceFunnelWind = 'light' | 'medium' | 'heavy';
  */
 export type ReplaySource = 'result' | 'saved' | 'shared';
 
+/**
+ * What a ui.click hit (src/lib/click-tracking.ts): an internal link, a link to
+ * another site, a button, a tab or a menu item.
+ */
+export type ClickKind = 'link' | 'external' | 'button' | 'tab' | 'menu';
+
 /** Upper bound of raceNo; the client stops counting here. */
 export const RACE_NO_MAX = 1000;
 /** Race clock bound for first_tack / first_mark, in seconds (two hours). */
@@ -138,6 +153,26 @@ const RACE_MODES: ReadonlySet<string> = new Set<RaceFunnelMode>(['simple', 'pro'
 const RACE_DIFFICULTIES: ReadonlySet<string> = new Set<RaceFunnelDifficulty>(['easy', 'medium', 'hard']);
 const RACE_WINDS: ReadonlySet<string> = new Set<RaceFunnelWind>(['light', 'medium', 'heavy']);
 const REPLAY_SOURCES: ReadonlySet<string> = new Set<ReplaySource>(['result', 'saved', 'shared']);
+const CLICK_KINDS: ReadonlySet<string> = new Set<ClickKind>(['link', 'external', 'button', 'tab', 'menu']);
+
+/** Longest ui.click target kept: a route, a host name or a short UI label. */
+export const CLICK_TARGET_MAX = 64;
+/**
+ * A click target is our own UI: a route, a host name or a button label. It
+ * may not carry markup, an address-like "@", or a run of 5+ digits (a phone
+ * or an order number would look like that), so free text and contact data
+ * never pass even if a label ever showed some.
+ */
+const CLICK_TARGET_RE = /^[^\u0000-\u001f<>"`@\\]+$/u;
+const LONG_DIGITS_RE = /\d{5,}/;
+export function isClickTarget(v: unknown): v is string {
+  return typeof v === 'string'
+    && v.length > 0
+    && v.length <= CLICK_TARGET_MAX
+    && v.trim() === v
+    && CLICK_TARGET_RE.test(v)
+    && !LONG_DIGITS_RE.test(v);
+}
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const CT_RE = /^[a-z0-9_]{1,40}$/;
@@ -178,6 +213,11 @@ const FIELD_CHECKS: Record<string, FieldCheck> = {
   totalBoats: (v) => isInt(v, 1, RACE_FLEET_MAX),
   tacks: (v) => isInt(v, 0, 1000),
   source: (v) => typeof v === 'string' && REPLAY_SOURCES.has(v),
+  // ui.click: what kind of control and which one (route, host or label).
+  kind: (v) => typeof v === 'string' && CLICK_KINDS.has(v),
+  target: isClickTarget,
+  // app.session: screens opened during one foreground stretch of the app.
+  screens: (v) => isInt(v, 0, 10_000),
 };
 
 const SHELL = ['embed', 'client'] as const;
@@ -198,6 +238,13 @@ const EVENT_FIELDS: Record<ClientEventName, readonly string[]> = {
   'race.first_mark': [...RACE, 'atSec'],
   'race.end': [...RACE, 'finished', 'position', 'totalBoats', 'durationSec', 'tacks'],
   'race.replay': [...RACE, 'source'],
+  // Where people click (web pages and the app's WebViews).
+  'ui.click': [...SHELL, 'kind', 'target', 'viewId'],
+  // Native screens of the iOS app (mobile/src/analytics/first-party.ts); the
+  // route is the path column, like page.view on the web.
+  'screen.view': SHELL,
+  // One foreground stretch of the iOS app: time in the app and screens seen.
+  'app.session': [...SHELL, 'durationSec', 'screens'],
 };
 
 /**

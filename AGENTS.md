@@ -305,6 +305,7 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
 | Физика скорости яхты (VPP) | `src/lib/sailing-physics/*` | все тренажеры |
 | Язык и переводы | `src/lib/i18n.tsx`, `src/lib/languages.ts` | все |
 | Аналитика и БД | `src/lib/db.ts`, `src/app/api/log/route.ts` | `/stats` |
+| Локальный дашборд активности (визиты, время, источники, разделы, переходы, клики, возвраты) | `scripts/analytics/` | `npm run analytics` |
 
 Полная карта кода, файл за файлом, - `ARCHITECTURE.md` раздел 4.
 
@@ -392,6 +393,16 @@ install/clone/restore. Stale absolute URL клона на оригинал бл�
   `app_store.click`. `/api/log` пишет только имена из
   `src/lib/analytics-events.ts` и только проверенные поля; новое событие
   сначала добавляется туда (с тестом), иначе оно молча пропадает.
+- Активность (2026-11-21): `ui.click` (`src/lib/click-tracking.ts`: маршрут,
+  домен или подпись элемента, никогда не введенный текст; для важных кнопок
+  ставьте `data-track="имя"`, иначе подпись зависит от языка). Приложение само
+  шлет `screen.view` и `app.session` (`mobile/src/analytics/first-party.ts`), а
+  офлайн-бандлы (file://) отдают события приложению `postMessage` типа
+  `regatta-log`, оно пересылает их в `/api/log` (`mobile/src/analytics/relay.ts`).
+- Локальный дашборд владельца: `npm run analytics` (`scripts/analytics/`,
+  `http://127.0.0.1:4500`). Данные копируются по SSH только на чтение в
+  `~/.regatta-analytics` вне репозитория, без IP и сырого User-Agent; свои
+  визиты скрывает `~/.regatta-analytics/config.json` (`excludeSessions`).
 - `page.view` несет `embed` и `client` (`app` внутри iOS-приложения, `web` в
   браузере). Ссылки на App Store строятся через `appStoreUrl(ct)` с меткой
   места (`web_home`), без нее источник установки не виден.

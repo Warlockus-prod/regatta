@@ -82,7 +82,7 @@ describe('event field contract', () => {
     }
     // Written only by /api/race-result for a saved leaderboard time.
     expect(isClientEvent('race.finish')).toBe(false);
-    expect(CLIENT_EVENTS).toHaveLength(14);
+    expect(CLIENT_EVENTS).toHaveLength(17);
   });
 
   it('treats only the milestones as funnel events', () => {
@@ -331,13 +331,27 @@ describe('trackExamFinish', () => {
     expect(env.posted).toEqual([{ type: 'exam-finished', base: 'sternik', score: 66, total: 75, passed: true }]);
   });
 
-  it('still relays to the app but skips /api/log on the offline file:// bundle', async () => {
+  it('on the offline file:// bundle, hands the event to the app instead of /api/log', async () => {
     const env = installBrowser('', { webView: true, protocol: 'file:' });
     const { trackExamFinish } = await import('./funnel');
     trackExamFinish({ base: 'src', score: 7, total: 10, passed: true });
     await flush();
     expect(env.beacons).toHaveLength(0);
-    expect(env.posted).toEqual([{ type: 'exam-finished', base: 'src', score: 7, total: 10, passed: true }]);
+    expect(env.posted).toHaveLength(2);
+    const [relay, exam] = env.posted as Array<Record<string, unknown>>;
+    // The app forwards this one to /api/log (mobile/src/analytics/first-party.ts).
+    expect(relay.type).toBe('regatta-log');
+    expect(JSON.parse(relay.body as string)).toMatchObject({ evt: 'exam.finish', base: 'src', score: 7, client: 'app' });
+    expect(exam).toEqual({ type: 'exam-finished', base: 'src', score: 7, total: 10, passed: true });
+  });
+
+  it('sends nothing from a file:// page outside the app', async () => {
+    const env = installBrowser('', { protocol: 'file:' });
+    const { trackExamFinish } = await import('./funnel');
+    trackExamFinish({ base: 'src', score: 7, total: 10, passed: true });
+    await flush();
+    expect(env.beacons).toHaveLength(0);
+    expect(env.posted).toHaveLength(0);
   });
 });
 
