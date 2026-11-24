@@ -9,8 +9,8 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// Tag 1.4.4 (e89e93d): VOXAds.lastAdInfo(forPlaceId:) gives the last request and answer per place, shown under each Ads slot; 1.4.3 (5e5b94c): MRAID expand fills the screen over Hybrid's fixed iframes and can always be closed (presented over full screen, keeps its banner); 1.4.2 (8b14cca): 728x90 fits a phone, small close cross on short banners, video shape matches the slot; 1.4.1 (d05c06b): per-ad banner analytics, VAST errors, one-tap clicks, app fields in mobileSdk; on top of 1.4.0 (end card, reward on onComplete, MRAID 3.0, native ads) (2026-11-18).
-const VOX_SDK_COMMIT = 'e89e93d5c248178eb39a616a4a65b59fc4885039';
+// Tag 1.4.5 (15dc1c2): adId for VAST answers, native drops the logo the SSP repeats as the main image; 1.4.4 (e89e93d): VOXAds.lastAdInfo(forPlaceId:) gives the last request and answer per place, shown under each Ads slot; 1.4.3 (5e5b94c): MRAID expand fills the screen over Hybrid's fixed iframes and can always be closed (presented over full screen, keeps its banner); 1.4.2 (8b14cca): 728x90 fits a phone, small close cross on short banners, video shape matches the slot; 1.4.1 (d05c06b): per-ad banner analytics, VAST errors, one-tap clicks, app fields in mobileSdk; on top of 1.4.0 (end card, reward on onComplete, MRAID 3.0, native ads) (2026-11-18).
+const VOX_SDK_COMMIT = '15dc1c204424a5fc1af5f7bed3be58de9ed95f6d';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
 
 // The ad pods are linked only for a build with the Ads section
