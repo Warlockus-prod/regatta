@@ -1,6 +1,6 @@
 # App Store screenshots
 
-## Current set for 1.7.5 (prepared 2026-11-24, not uploaded)
+## Current set for 1.7.5 (uploaded to version 1.7.5 on 2026-11-24, both passes applied and read back)
 
 Live check 2026-11-24: 1.7.4 is READY_FOR_SALE and still shows the old
 frames (Home of build 42 plus four older screens, including the white web
