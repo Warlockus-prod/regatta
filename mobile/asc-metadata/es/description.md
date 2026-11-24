@@ -1,41 +1,32 @@
-Aprende a navegar a vela y prepárate para tu primera regata en una semana. Week to Regatta es una escuela de vela gratuita en tu bolsillo: lecciones cortas, un simulador de vela con física real, regatas contra bots y amigos y el reglamento de regatas explicado con diagramas.
+Aprende a navegar a vela con un velero 3D que se comporta como uno de verdad. Week to Regatta es un simulador de vela y una escuela de vela en una sola app: timonea según el viento, ajusta las velas, entiende qué hace cada cabo y sal a regatear.
 
-POR QUÉ FUNCIONA
+GOBIERNA UN VELERO
 
-- Un plan claro: 8 lecciones en 7 días, desde el viento y los rumbos hasta tu primera regata.
-- Un simulador honesto: el velero sigue un modelo físico VPP, la misma familia de cálculos que usan los diseñadores de velas.
-- Practica hasta que te salga solo: ejercicios de trimado, rachas, roladas del viento y bordos.
-- Totalmente gratis. Sin cuenta, sin pagos.
+- Aprende a timonear: cambia el viento, encuentra los rumbos respecto al viento, vira por avante y trasluchea.
+- Ajusta las velas: caza, lasca, toma rizos y ve al momento cómo cambian la velocidad y la escora.
+- Observa la vela: gira alrededor del velero y mira la forma de la vela desde cualquier ángulo.
+- El velero sigue un modelo físico VPP, la misma familia de cálculos que usan los diseñadores de yates, así que un mal trimado te cuesta velocidad de verdad.
 
-EL PLAN DE 7 DÍAS
+ENTIENDE LA VELA
 
-Día 1. Viento y dirección: de dónde sopla el viento y por qué no puedes ir directo contra él.
-Día 2. Rumbos respecto al viento: tus cinco rumbos básicos.
-Día 3. Cómo funciona una vela: un ala en ceñida, un paracaídas en popa.
-Día 4. Virar por avante y trasluchar: por la proa y por la popa.
-Día 5. Dar bordos y VMG: cómo avanzar contra el viento y por qué la línea recta no es la más rápida.
-Día 6. Reglas sencillas: quién se aparta en el agua.
-Día 7. Minirregata: todo junto y, al terminar, un entrenador local analiza tu regata.
+13 lecciones de manejo de las velas. Cada una tiene un esquema para explorar, una comprobación corta y una tarea a bordo: qué cambia cada cabo, qué viento siente la vela, cazar y lascar, la escota de mayor, el carro y la contra, el pajarín, los catavientos, la driza, el carro del foque, la ranura entre mayor y génova, el doctor del trimado, los rizos, el winch y el stopper.
 
-El botón "Seguir aprendiendo" de la pantalla principal siempre abre el siguiente paso.
+MANIOBRAS EN PUERTO
 
-SIMULADORES
-
-- Fundamentos: empieza aquí. Cambia el viento y aprende los rumbos y a virar.
-- Simulador de trimado: caza, larga, toma rizos y mira cómo responden la velocidad y la escora.
-- Barco 3D: mira el velero y la forma de las velas desde cualquier ángulo.
+Atraque de costado, de popa y entre pilotes, coger una boya, girar en poco espacio y hombre al agua, todo con el mismo velero.
 
 REGATA
 
-Compite en 3D contra bots sin conexión. En Sencillo las velas se ajustan solas; en Pro llevas las escotas manualmente. Un entrenador local analiza el resultado. El multijugador con amigos requiere conexión.
+Compite en 3D contra bots sin conexión. En Sencillo las velas se ajustan solas; en Pro las escotas son tuyas. Un entrenador local analiza cada regata. El multijugador con amigos requiere conexión.
 
-EL BARCO Y LAS REGLAS
+¿PRIMERA VEZ A BORDO?
 
-- Reglamento de regatas: 13 situaciones del reglamento de regatas y 8 escenarios del RIPA (COLREG) con diagramas. Sabe quién tiene preferencia antes que el comité de protestas.
-- Anatomía del velero: 17 partes en un barco interactivo, con qué es cada una y cómo manejarla a bordo.
-- Glosario: más de 50 términos náuticos, con buscador y sin conexión.
-- Primera semana a bordo: qué llevar, qué preguntar al patrón, cómo ayudar a la tripulación.
-- Lista antes de la regata: márcala la noche anterior.
+Vela desde cero: 8 lecciones cortas, del viento y los rumbos a tu primera regata. El botón de la pantalla de inicio siempre abre tu siguiente paso.
+
+REGLAS Y BARCO
+
+- Reglamento de regatas: 13 situaciones del reglamento de regatas y 8 escenarios del RIPA (COLREG) con diagramas.
+- Anatomía del yate, un glosario de más de 50 términos con buscador, la primera semana a bordo y una lista antes de zarpar.
 
 TITULACIONES
 
@@ -50,10 +41,4 @@ IDIOMAS
 
 Español, inglés, polaco, alemán, francés, italiano y ruso.
 
-PARA QUIÉN
-
-- Quien se apunta a su primera liga de club.
-- Navegantes de crucero que quieren empezar a regatear.
-- Tripulación nueva con una regata en el calendario.
-
-Abre el día 1. Nos vemos en la línea de salida.
+Toma el timón.

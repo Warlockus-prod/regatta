@@ -1,1 +1,1 @@
-barca,yacht,velista,navigare,scuola,lezioni,regata,regolazione,vento,virata,strambata,gioco,skipper
+yacht,velista,navigare,scuola,lezioni,regata,regolazione,vento,virata,strambata,ormeggio,manovre

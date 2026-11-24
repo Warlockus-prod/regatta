@@ -1,1 +1,1 @@
-Sailing simulator & race rules
+3D yacht simulator, sail trim

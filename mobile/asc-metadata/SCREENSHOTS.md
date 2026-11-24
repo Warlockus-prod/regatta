@@ -1,6 +1,46 @@
 # App Store screenshots
 
-## Verified inventory, 2026-10-24
+## Current set for 1.7.5 (prepared 2026-11-24, not uploaded)
+
+Live check 2026-11-24: 1.7.4 is READY_FOR_SALE and still shows the old
+frames (Home of build 42 plus four older screens, including the white web
+anatomy page and a Back button labelled "index"). The repository frames
+below replace them. Positioning: the boat simulator and understanding the
+sail first, exams last.
+
+Captured from a Release build of 1.7.4 (93), source `claude/app-next`
+`79838993`, English UI, status bar 9:41, on iPhone 18 Pro Max (iOS 27,
+1320 x 2868) and iPad Pro 13-inch M5 (iOS 27, 2064 x 2752). Each frame is
+the capture in a phone/tablet outline under a two-line caption on navy
+(Source Sans 3 from `mobile/assets/fonts`). One English set serves every
+locale through the App Store fallback.
+
+| iPhone 6.9 (`iphone-6.9/en/`) | Caption | iPad 13 (`ipad-13/en/`) |
+| --- | --- | --- |
+| 01-yacht3d | Sail a real yacht in 3D | 01-inspect-sailing |
+| 02-trim | Trim the sails, feel the speed | 02-trim |
+| 03-steer | Learn to steer by the wind | (not used: iPad layout clipped) |
+| 04-lesson-telltales | Understand every line and sail | 03-lesson-telltales |
+| 05-inspect-sailing | See how the wind fills the sail | |
+| 06-manoeuvre | Master mooring in the wind | |
+| 07-race-hub | Race bots and friends in 3D | 05-race-hub |
+| 08-radio | SRC radio and skipper exams | 06-radio |
+| | From first steps to exam prep | 04-learn-hub |
+
+Upload needs two passes because the uploader keeps all old images until the
+new ones are COMPLETE and a set holds at most ten: first
+`manifest-1.7.5-step1.json` (five per set replace the five old), then
+`manifest-1.7.5.json` (reuses those five, adds the rest). Both need version
+1.7.5 to exist in PREPARE_FOR_SUBMISSION. Dry-run each first:
+
+```sh
+node scripts/asc-upload-screenshots.mjs --version 1.7.5 --manifest asc-metadata/screenshots/manifest-1.7.5-step1.json
+node scripts/asc-upload-screenshots.mjs --version 1.7.5 --manifest asc-metadata/screenshots/manifest-1.7.5.json
+```
+
+Then repeat each with `--apply --replace`. Run from `mobile/`.
+
+## Verified inventory, 2026-10-24 (history)
 
 The live App Store Connect check of version 1.7.0 at
 17:14:33 UTC found PREPARE_FOR_SUBMISSION and eight metadata locales.

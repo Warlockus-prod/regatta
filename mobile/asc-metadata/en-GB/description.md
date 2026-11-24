@@ -1,41 +1,32 @@
-Learn to sail and get ready for your first regatta in one focused week. Week to Regatta is a free sailing school in your pocket: short lessons, a sailing simulator built on real physics, races against bots and friends, and the racing rules explained with diagrams.
+Learn to sail on a 3D yacht that behaves like a real one. Week to Regatta is a sailing simulator and a sailing school in one: helm by the wind, trim the sails, see what every line does, then race.
 
-WHY SAILORS USE IT
+HELM A YACHT
 
-- One clear plan: 8 lessons over 7 days, from wind and points of sail to your first race.
-- A simulator that answers honestly: the yacht runs on a VPP physics model, the same family of maths sail designers use.
-- Practice that sticks: drills for trim, gusts, wind shifts and tacking until they become automatic.
-- Completely free. No account, no paywall.
+- Learn to steer: change the wind, find the points of sail, tack and gybe.
+- Trim the sails: sheet in, ease out, reef, and watch speed and heel answer at once.
+- Inspect the sail: orbit the yacht and see the sail shape from any angle.
+- The boat runs on a VPP physics model, the same family of maths yacht designers use, so a bad trim really costs you speed.
 
-THE 7-DAY PLAN
+UNDERSTAND THE SAIL
 
-Day 1. Wind and direction: where the wind comes from and why you can't sail straight into it.
-Day 2. Points of sail: your five working courses to the wind.
-Day 3. How a sail works: a wing upwind, a parachute downwind.
-Day 4. Tacking and gybing: turning through the bow and through the stern.
-Day 5. Beating and VMG: how to get upwind and why the straight line is not the fastest.
-Day 6. Simple rules: who gives way on the water.
-Day 7. Mini race: everything together, then a local coach reviews your race.
+13 lessons on working with sails. Each one has a diagram to explore, a short check and a task on the boat: which line changes what, the wind the sail feels, sheeting, the mainsheet, the kicker, the outhaul, telltales, the halyard, the jib car, the slot, the trim doctor, reefing, winches and clutches.
 
-The "Continue learning" button on the home screen always opens the next step, so you never wonder where you stopped.
+HARBOUR MANOEUVRES
 
-SIMULATORS
-
-- Basics: start here. Change the wind and learn the points of sail and how to turn.
-- Sail trim trainer: sheet in, ease out, reef, and watch speed and heel respond.
-- 3D Boat: look around the yacht and see the sail shape from any angle.
+Mooring alongside, stern-to and between piles, picking up a buoy, turning in a tight space and man overboard, all on the same yacht.
 
 RACE
 
-Race a 3D course against bots offline. Simple trims the sails automatically; Pro gives you manual sheets. A local coach reviews the result. Multiplayer with friends requires a connection.
+Race a 3D course against bots, offline. Simple trims the sails for you; Pro hands you the sheets. A local coach reviews every race. Multiplayer with friends needs a connection.
 
-LEARN THE BOAT AND THE RULES
+NEW TO SAILING?
 
-- Racing rules: 13 racing-rule situations and 8 COLREGS scenarios with diagrams. Know who has right of way before the protest room does.
-- Yacht anatomy: 17 parts on an interactive boat, each with what it is and how to handle it on board.
-- Glossary: 50+ sailing terms, searchable and offline.
-- First week on board: what to pack, what to ask the skipper, how to help the crew.
-- Pre-race checklist: tick it off the night before.
+Sailing from scratch: 8 short lessons from wind and points of sail to your first race. The button on the home screen always opens your next step.
+
+RULES AND THE BOAT
+
+- Racing rules: 13 racing-rule situations and 8 COLREGS scenarios with diagrams.
+- Yacht anatomy, a searchable glossary of 50+ terms, a first-week-on-board guide and a pre-sail checklist.
 
 LICENCE COURSES
 
@@ -50,11 +41,4 @@ LANGUAGES
 
 English, Polish, German, Spanish, French, Italian and Russian.
 
-WHO IT IS FOR
-
-- First-time racers signing up for a club series.
-- Cruisers who want to start racing.
-- New crew with a regatta on the calendar.
-- Anyone preparing for the SRC radio or sternik motorowodny exam.
-
-Open Day 1. See you on the start line.
+Take the helm.

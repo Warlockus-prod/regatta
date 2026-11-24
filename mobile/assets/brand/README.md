@@ -1,71 +1,39 @@
 # Brand assets
 
-Source-of-truth brand SVG files. Convert to PNG for the app icon, splash
-screen, and any other binary deliverables.
+Logo "A. Sail" (owner's choice 2026-11-24): a white mainsail and a light blue
+jib with a gap between them over two wake lines, on action blue (`#0b7fb8`)
+fading into ink (`#123247`).
 
 ## Files
 
-- `icon.svg` - square sailboat on a dark-ocean background. Source for the
-  app icon at every size (1024 for App Store, 200 for in-app, 64 for
-  favicon). Solid background, no transparency, sRGB.
-- `wordmark.svg` - the "WEEK TO / Regatta" lockup. Used for splash
-  centerpiece, share cards, marketing.
+- `icon.svg` - the app icon for design tools. It mirrors the shapes in
+  `mobile/scripts/render-icon.mjs`; change both together.
+- `wordmark.svg` - the older "WEEK TO / Regatta" lockup for share cards and
+  marketing. It is not used on the launch screen.
 
-## Convert to PNG (one-time, when you regenerate)
+## Regenerate the PNGs
 
-App Store wants 1024x1024 PNG for the main app icon. iOS rounds the
-corners automatically; do not pre-round.
-
-### Option A: rsvg-convert (CLI, fastest)
+`mobile/scripts/render-icon.mjs` is the source that writes the binaries:
 
 ```bash
-brew install librsvg
-cd mobile/assets/brand
-
-# Main app icon (App Store)
-rsvg-convert -w 1024 -h 1024 icon.svg > ../icon.png
-
-# Adaptive icon (Android foreground)
-rsvg-convert -w 1024 -h 1024 icon.svg > ../adaptive-icon.png
-
-# Splash icon (centered on app.json splash.backgroundColor)
-rsvg-convert -w 600 -h 600 icon.svg > ../splash-icon.png
-
-# Web favicon
-rsvg-convert -w 64 -h 64 icon.svg > ../favicon.png
+cd mobile
+node scripts/render-icon.mjs
 ```
 
-### Option B: ImageMagick
+It writes:
 
-```bash
-brew install imagemagick
-cd mobile/assets/brand
-magick icon.svg -resize 1024x1024 ../icon.png
-magick icon.svg -resize 1024x1024 ../adaptive-icon.png
-magick icon.svg -resize 600x600 ../splash-icon.png
-magick icon.svg -resize 64x64 ../favicon.png
-```
+- `assets/icon.png` and `assets/adaptive-icon.png`: 1024 x 1024, opaque, no
+  alpha (Apple rejects a marketing icon with transparency). iOS rounds the
+  corners; do not pre-round.
+- `assets/splash-icon.png`: the mark alone, transparent, in ink and action
+  blue.
 
-### Option C: Online (if you do not want to install anything)
+## Launch screen
 
-Open `icon.svg` in any browser, take a 1024x1024 screenshot, save as
-PNG. Or paste into https://cloudconvert.com or https://svgtopng.com.
-
-## Apple icon requirements
-
-- 1024 x 1024 PNG, no alpha channel, sRGB.
-- No rounded corners (iOS adds them).
-- No transparency.
-- No text overlay if it gets clipped on the home screen icon mask.
-
-## Splash background
-
-`app.json` already has `splash.backgroundColor: "#0a1628"` and
-`splash.resizeMode: "contain"`. The splash icon is centered on that
-color, so the icon's own ocean gradient blends into the splash bg.
-
-## Updating the brand later
-
-When the design firms up (Phase 5 polish), regenerate from these SVG
-sources and replace the PNGs in `mobile/assets/`. Keep these SVGs as
-the version-controlled source.
+Do not put the square icon on the launch screen: centred on the paper
+background it shows as a dark square with paper bars above and below. The
+splash is the transparent mark on `app.json` `splash.backgroundColor`
+`#f7f5f0`, the same paper as the first app screen
+(`__tests__/app-surface.test.tsx` keeps them equal), so the launch hands over
+without a flash. A native rebuild (`expo prebuild`) is needed for a new icon
+or splash; iOS may show its cached old launch image once after an update.

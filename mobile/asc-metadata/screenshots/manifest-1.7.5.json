@@ -1,0 +1,33 @@
+{
+  "appId": "6768134329",
+  "bundleId": "com.icoffio.regatta",
+  "version": "1.7.5",
+  "sets": [
+    {
+      "locale": "en-US",
+      "family": "APP_IPHONE_67",
+      "files": [
+        "iphone-6.9/en/01-yacht3d.png",
+        "iphone-6.9/en/02-trim.png",
+        "iphone-6.9/en/03-steer.png",
+        "iphone-6.9/en/04-lesson-telltales.png",
+        "iphone-6.9/en/05-inspect-sailing.png",
+        "iphone-6.9/en/06-manoeuvre.png",
+        "iphone-6.9/en/07-race-hub.png",
+        "iphone-6.9/en/08-radio.png"
+      ]
+    },
+    {
+      "locale": "en-US",
+      "family": "APP_IPAD_PRO_3GEN_129",
+      "files": [
+        "ipad-13/en/01-inspect-sailing.png",
+        "ipad-13/en/02-trim.png",
+        "ipad-13/en/03-lesson-telltales.png",
+        "ipad-13/en/04-learn-hub.png",
+        "ipad-13/en/05-race-hub.png",
+        "ipad-13/en/06-radio.png"
+      ]
+    }
+  ]
+}
