@@ -35,6 +35,37 @@ public class VoxAdsModule: Module {
       Task { @MainActor in VOXAds.appStoreId = appStoreId }
     }
 
+    // The last request on a place and the SSP's answer (VOX SDK 1.4.4): what was sent and
+    // which creative won. The Ads screens show it under each slot. Nil before the first request.
+    Function("lastAdInfo") { (placeId: String) -> [String: Any]? in
+      guard let info = VOXAds.lastAdInfo(forPlaceId: placeId) else { return nil }
+      var out: [String: Any] = [
+        "endpoint": info.endpoint,
+        "placeId": info.placeId,
+        "startedAt": info.startedAt.timeIntervalSince1970 * 1000,
+        "durationMs": info.durationMs,
+        "result": info.result.rawValue,
+        "isPassback": info.isPassback,
+        "isVast": info.isVast,
+      ]
+      let optional: [String: Any?] = [
+        "applicationId": info.applicationId,
+        "pageUrl": info.pageUrl,
+        "sdkVersion": info.sdkVersion,
+        "adId": info.adId,
+        "bidId": info.bidId,
+        "seanceId": info.seanceId,
+        "adNetwork": info.adNetwork,
+        "width": info.width,
+        "height": info.height,
+        "error": info.error,
+      ]
+      for (key, value) in optional {
+        if let value { out[key] = value }
+      }
+      return out
+    }
+
     // Interstitial: VOX presents its own full-screen controller on top of
     // the current one and resolves once the ad is on screen.
     AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, pageUrl: String, language: String, promise: Promise) in

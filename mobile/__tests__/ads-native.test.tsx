@@ -18,6 +18,7 @@ jest.mock("../modules/vox-ads", () => {
   return {
     VoxAdView: null,
     VoxAds: null,
+    lastVoxAdInfo: () => null,
     VoxNativeAd: {
       load: (...args: unknown[]) => mockLoad(...args),
       click: (handle: string) => mockClick(handle),

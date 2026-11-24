@@ -28,6 +28,7 @@ jest.mock("../modules/vox-ads", () => {
   return {
     VoxAds: { showFullScreen: (...args: unknown[]) => mockShowFullScreen(...args) },
     VoxAdView: (props: object) => React.createElement(View, { ...props, testID: "vox-ad" }),
+    lastVoxAdInfo: () => null,
   };
 });
 import { readFileSync } from "node:fs";

@@ -18,7 +18,41 @@ type VoxAdsNative = {
   showFullScreen(placeId: string, closeButtonDelay: number, pageUrl: string, language: string): Promise<void>;
   /** Numeric App Store id, sent as mobileSdk.appStoreId and the store URL (VOX SDK 1.4.1). */
   setAppStoreId?(appStoreId: string): void;
+  /** Last request on a place and the SSP's answer (VOX SDK 1.4.4); null before the first request. */
+  lastAdInfo?(placeId: string): VoxAdInfo | null;
 };
+
+/** What VOX SDK 1 sent for the last request on a place and what the SSP answered (SDK 1.4.4+). */
+export type VoxAdInfo = {
+  endpoint: string;
+  placeId: string;
+  applicationId?: string;
+  pageUrl?: string;
+  sdkVersion?: string;
+  /** Epoch milliseconds. */
+  startedAt: number;
+  durationMs: number;
+  result: 'filled' | 'noFill' | 'error';
+  /** The winning creative (DSP banner id). */
+  adId?: string;
+  bidId?: string;
+  seanceId?: string;
+  adNetwork?: string;
+  width?: number;
+  height?: number;
+  isPassback: boolean;
+  isVast: boolean;
+  error?: string;
+};
+
+/** Last answer for a place, or null (older SDK, Expo Go, no request yet). */
+export function lastVoxAdInfo(placeId: string): VoxAdInfo | null {
+  try {
+    return VoxAds?.lastAdInfo?.(placeId) ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /** Fields of a loaded native ad (VOX SDK 1.4.0+). Empty string = the ad has no such field. */
 export type VoxNativeAdFields = {

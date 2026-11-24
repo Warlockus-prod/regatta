@@ -10,7 +10,7 @@ screen. "VOX SDK 2" is the planned Prebid-based SDK and is not part of this.
 |---|---|
 | `mobile/app/ads/*.tsx` | Format list and one simulated screen per format (display, interstitial, rewarded, video, in-game) |
 | `mobile/app/settings.tsx` | "Ads" entry, the only way into `/ads` |
-| `mobile/src/ads/` | `AdSlot` + `RequestPanel`, copy, format routes, place IDs, endpoint and the app's identity `VOX_APP_PAGE_URL` |
+| `mobile/src/ads/` | `AdSlot` + `RequestPanel` (with `ad-info.ts`: the SSP answer lines from `VoxAds.lastAdInfo`, VOX SDK 1.4.4), copy, format routes, place IDs, endpoint and the app's identity `VOX_APP_PAGE_URL` |
 | `mobile/modules/vox-ads/index.ts` | JS API: `VoxAds` (null when the native module is absent), `VoxAdView` |
 | `mobile/modules/vox-ads/ios/` | Swift: `VoxAdsModule` (interstitial), `VoxAdView` (inline banner / VAST video) |
 | `mobile/plugins/with-vox-sdk.js` | Adds `pod 'VOXSDK', :git, :commit` to the generated Podfile |

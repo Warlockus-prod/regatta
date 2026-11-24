@@ -25,7 +25,7 @@ Details, SDK limits and release prerequisites: `ads-lab.md`.
 - `mobile/app/ads/video.tsx` - in-article VAST 16:9 and 9:16.
 - `mobile/app/ads/mraid-game.tsx` - MRAID game: a 300x600 inline slot (placement `mraidGame`, the moderated 300x600 place) in an article; a tap expands the creative to full screen (VOX SDK 1.4.3 stretches Hybrid's fixed frames), the creative is a short regatta round a buoy with an end card. Creative source: `~/App/sdk_hybrid/vox-sdk-2/rich-media/mraid-regatta/`.
 - `mobile/app/ads/in-game.tsx` - the installed sailing package at `/ads` (3D yacht, three local test boards); Back returns to the format list.
-- `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry).
+- `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry, and with VOX SDK 1.4.4 the SSP answer from `src/ads/ad-info.ts`: code, winning adId, network, size, bidId, seance, app id, page, SDK).
 - `mobile/src/ads/sdk.ts` - SDK switch (in memory, opens on SDK 1), Prebid Server URL and account, configID `wtr-<placement key>`, lazy Prebid start.
 - `mobile/modules/vox-prebid/` - local Expo module for VOX SDK 2: `VoxPrebidModule.swift` (start with an explicit status URL, interstitial, rewarded with the SDK reward event), `VoxPrebidBannerView.swift` (banner / outstream video, stops refresh off screen).
 - `mobile/src/ads/full-screen.ts` - full-screen ad order: the 1080x1920 place, then the 320x480 place; both requests name the app.
