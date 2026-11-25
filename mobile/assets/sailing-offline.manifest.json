@@ -1654,8 +1654,8 @@
     },
     {
       "path": "src/features/race-hud/RaceBigMap.tsx",
-      "bytes": 11365,
-      "sha256": "ce78740d29e25577ed06c26be6d3a00238f708ba1c6b7138d9abe784731bd5ef"
+      "bytes": 11467,
+      "sha256": "0c8f5379e21d98f36fe9b4f19c25e13956aabbdeaad5baf3c3f1cb85bea44308"
     },
     {
       "path": "src/features/race-hud/RaceCornerInstruments.module.css",
@@ -1704,8 +1704,8 @@
     },
     {
       "path": "src/features/race-hud/RaceIntro.tsx",
-      "bytes": 15911,
-      "sha256": "bf44668ee54734cda816b5ae147090afc7ddc597cc719089a89bc79c82745c57"
+      "bytes": 16017,
+      "sha256": "93faeaf5a7e119004d9ab2cbe5605a3c843d1d501fc9dc60cf1b2c0a7c5f5a4f"
     },
     {
       "path": "src/features/race-hud/RaceOverviewMap.tsx",
@@ -1839,18 +1839,18 @@
     },
     {
       "path": "src/features/race-scene/BowSpray.tsx",
-      "bytes": 5782,
-      "sha256": "d024ebdf5ca9678105a4d8949d186bd0b79cca16f3b6ea28ee736c72a7ded8db"
+      "bytes": 5922,
+      "sha256": "49730df432374e1af18276f0656589173127465d65356184d41ad3007297dc68"
     },
     {
       "path": "src/features/race-scene/RaceScene.tsx",
-      "bytes": 34046,
-      "sha256": "aba80eb0a92545b983464615c11720e979030d4027b6cb42b10aa386c58bc5ea"
+      "bytes": 34150,
+      "sha256": "62aadbc8b01d9055be0c09512b066837ed72172abf6a9290a8893830095333e0"
     },
     {
       "path": "src/features/race-scene/SailFlow.tsx",
-      "bytes": 11096,
-      "sha256": "22b4915d0c04d97fa7e1d986fd9f9c66f1108562f761dd3dfb2e1d89ce6bf9ad"
+      "bytes": 11434,
+      "sha256": "8692b4c839ee4c2c25178b8252a2632f400af9444552c431307cb4a96a5ea82f"
     },
     {
       "path": "src/features/race-scene/SailingEnvironment.tsx",

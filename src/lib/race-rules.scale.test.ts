@@ -170,6 +170,11 @@ function fnv(text: string) {
   for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
   return h.toString(16).padStart(8, "0");
 }
+/** Round to 6 decimals before hashing. The last float digits of Math.hypot,
+ * sin and cos differ between Node/V8 builds (the raw hash was 8385031d on the
+ * Mac and 34ce6001 on Linux Node 22 for the same 5df78d4a judge), and the
+ * snapshot must catch a changed judge, not a different libm. */
+const r6 = (x: number) => Number.isFinite(x) ? Number(x.toFixed(6)) : x;
 /** 300 random legacy fleets (2 to 4 boats round the course, any heading,
  * speed, leeway, lap, phase and start state) sailed 24 ticks each in straight
  * lines at legacy speed, judged with the legacy defaults. */
@@ -201,7 +206,7 @@ function legacyJudgeFingerprint(withScale: RaceScale | undefined) {
       for (const e of judged.events) lines.push(`${scenario}|${e.id}|${e.penaltySeconds}`);
     }
     const cpa = withScale ? raceClosestApproach(boats[0], boats[1], withScale) : raceClosestApproach(boats[0], boats[1]);
-    lines.push(`${scenario}|cpa|${cpa.time}|${cpa.distance}|${cpa.closing}|${JSON.stringify(state)}`);
+    lines.push(`${scenario}|cpa|${r6(cpa.time)}|${r6(cpa.distance)}|${r6(cpa.closing)}|${JSON.stringify(state, (_k, v) => typeof v === "number" ? r6(v) : v)}`);
   }
   return { events, hash: fnv(lines.join("\n")) };
 }
@@ -217,8 +222,9 @@ describe("the legacy judge is unchanged", () => {
     expect(raceScale(undefined)).toBe(legacy);
   });
 
-  // Measured with race-rules.ts at HEAD 5df78d4a (before the scale model), 2026-11-01.
-  const HEAD = { events: 633, hash: "8385031d" };
+  // Measured with race-rules.ts at HEAD 5df78d4a (before the scale model), 2026-11-01;
+  // re-measured on the same 5df78d4a judge with the 6-decimal rounding, 2026-11-25.
+  const HEAD = { events: 633, hash: "98cad9f2" };
   it("matches the HEAD snapshot with the default scale and with the explicit legacy scale", () => {
     expect(legacyJudgeFingerprint(undefined)).toEqual(HEAD);
     expect(legacyJudgeFingerprint(legacy)).toEqual(HEAD);

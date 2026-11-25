@@ -461,6 +461,7 @@ export default function MultiplayerClient() {
   const [intro, setIntro] = useState<"closed" | "multiplayer">("closed");
   // It belongs to the menu: a lobby that arrives while it is open (Create or
   // Join was still connecting) closes it, so it never comes back by itself.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- closing the menu-owned intro when a lobby arrives
   useEffect(() => { if (phase !== "menu" && phase !== "error") setIntro("closed"); }, [phase]);
 
   // --- UI ---

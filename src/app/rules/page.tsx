@@ -178,6 +178,7 @@ export default function RulesPage() {
   useEffect(() => {
     const id = ruleFromSearch(window.location.search);
     if (!id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount read of ?rule= so the server render stays the default
     setOpenId(id);
     setLinkedId(id);
     requestAnimationFrame(() => document.getElementById(`rule-${id}`)?.scrollIntoView({ block: 'start' }));

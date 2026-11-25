@@ -32,6 +32,7 @@ function strings(value: unknown, lang: Lang): string[] {
 
 function raceTexts(lang: Lang): string[] {
   locale.current = lang;
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- useI18n is mocked, the copy hooks run as plain functions here
   const copy = useRaceCopy();
   const kinds: RaceRuleEvent["kind"][] = ["give-way", "avoid-contact", "contact", "early-start", "start-clear", "mark-touch", "wrong-rounding", "mark-rounded"];
   const messages = kinds.flatMap((kind) => (["10", "11"] as const).map((rule) =>
@@ -40,6 +41,7 @@ function raceTexts(lang: Lang): string[] {
   return [
     ...strings(copy, lang), ...messages, ...events, MISSED_MARK_NOTICE[lang],
     ...strings(FINISH_COPY, lang), ...strings(RACE_PAUSE_RESOURCES, lang), ...strings(raceJudgeCopy, lang),
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- useI18n is mocked, the copy hooks run as plain functions here
     ...strings(useRaceNavigationCopy(), lang), ...strings(RACE_INTRO_COPY, lang),
   ];
 }

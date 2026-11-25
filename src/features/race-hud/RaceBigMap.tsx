@@ -57,6 +57,7 @@ export function RaceBigMap({ snapshot, track, guidance, you, fleet, onClose, not
   useEffect(() => { zoomRef.current = state.zoom; }, [state.zoom]);
   // Close as it is now, for the window's Esc listener (set up once).
   const closeHandler = useRef(onClose);
+  // eslint-disable-next-line react-hooks/refs -- latest-handler ref for the Esc listener set up once
   closeHandler.current = onClose;
   const act = (action: BigMapAction) => setState(previous => {
     const next = bigMapReducer(previous, action);

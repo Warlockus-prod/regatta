@@ -109,6 +109,7 @@ export function SailFlow({ boatsRef, windDirRef, coachRef, ownTrim = false }: {
   }, [r]);
   /** Back to the one zero-size dash; `forget` (no boat or no wind) also drops the eased pose and the paths. */
   const hide = (forget: boolean) => {
+    // eslint-disable-next-line react-hooks/immutability -- three.js resources held for the component's life, mutated per frame
     if (forget) { r.smooth.primed = false; r.ribbons = []; r.rebuiltAt = -Infinity; }
     if (!r.drawn) return;
     r.drawn = false;
@@ -131,11 +132,13 @@ export function SailFlow({ boatsRef, windDirRef, coachRef, ownTrim = false }: {
     // The sails and the heel ease toward the race pose every frame at Yacht.tsx's rate, snapping on the first frame.
     const pose = racePose(player, windDirRef.current);
     const k = r.smooth.primed ? Math.min(1, dt * 8) : 1;
+    // eslint-disable-next-line react-hooks/immutability -- per-frame easing state, mutated in useFrame
     r.smooth.boom += (pose.boomAngle - r.smooth.boom) * k;
     r.smooth.jib += (pose.jibAngle - r.smooth.jib) * k;
     r.smooth.heel += (pose.heel - r.smooth.heel) * k;
     r.smooth.primed = true;
     if (t - r.rebuiltAt >= REBUILD_S || t < r.rebuiltAt) {
+      // eslint-disable-next-line react-hooks/immutability -- per-frame easing state, mutated in useFrame
       r.rebuiltAt = t;
       const coach = sailFlowFromCoach(coachRef?.current ?? null);
       const fallback = sailFlowFromWind(Math.abs(reading.twaSigned) < NO_GO_DEG, ownTrim);

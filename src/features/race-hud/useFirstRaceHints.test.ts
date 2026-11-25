@@ -38,6 +38,7 @@ afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 const render = (post: (m: FeedbackPost) => void, visible: readonly FeedbackToast[], paused = false) => {
   hooks.cursor = 0; hooks.effect = 0;
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- react is mocked so the hook runs inline outside React
   return useFirstRaceHints(post, visible, { current: "en" }, paused);
 };
 const readMs = HINT_TIMING.readSec * 1000;

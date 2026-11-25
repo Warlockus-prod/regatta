@@ -484,6 +484,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   useEffect(() => { profileRef.current = profile; }, [profile]);
   // M3-5: contact and start gun become a camera shake on the next drawn frame.
   const reducedMotion = useReducedMotionRef();
+  // eslint-disable-next-line react-hooks/refs -- the shake reads the refs per frame, not during render
   const [shakeControl] = useState(() => createSceneShake(profileRef, reducedMotion));
   const shakeRef = useRef<ShakeControl>(shakeControl);
   useEffect(() => { shakeControl.feed(contactId, started); }, [contactId, started, shakeControl]);
