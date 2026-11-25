@@ -64,5 +64,12 @@ export function Text({ variant = 'body', style, ...rest }: TextProps) {
   // Pick an actual static weight instead of asking iOS/Android to synthesize
   // a bold style from the Regular alias. Explicit diagram/mono fonts win.
   const font = fontsReady && !merged.fontFamily ? { fontFamily: sourceSansFamily(merged.fontWeight), fontWeight: 'normal' as const } : undefined;
-  return <RNText {...rest} style={[variantStyles[surface][variant], style, font]} />;
+  // A caller that enlarges the text without its own lineHeight would keep the
+  // variant's line (body: 24) and iOS would cut the top of the glyphs off.
+  const own: TextStyle = StyleSheet.flatten(style) ?? {};
+  const variantLine = (variantStyles[surface][variant] as TextStyle).lineHeight;
+  const fit = own.fontSize && own.lineHeight == null && variantLine && own.fontSize > variantLine
+    ? { lineHeight: Math.ceil(own.fontSize * 1.25) }
+    : undefined;
+  return <RNText {...rest} style={[variantStyles[surface][variant], style, fit, font]} />;
 }

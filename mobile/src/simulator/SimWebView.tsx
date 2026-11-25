@@ -93,7 +93,10 @@ const AFTER_LOAD = `
     var css = [
       'nav[data-product-navigation] { display: none !important; }',
       'a[href*="apps.apple.com"] { display: none !important; }',
-      'section:has(a[href*="apps.apple.com"]) { display: none !important; }'
+      'section:has(a[href*="apps.apple.com"]) { display: none !important; }',
+      // iOS zooms the page when a field under 16px takes focus and leaves it
+      // zoomed. The app must hold even against an older deployed site.
+      'input:not([type=range]):not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px !important; }'
     ].join('\\n');
     var s = document.createElement('style');
     s.setAttribute('data-embed', '1');

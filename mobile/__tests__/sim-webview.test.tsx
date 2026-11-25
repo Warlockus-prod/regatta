@@ -51,6 +51,12 @@ jest.mock("react-native-webview", () => {
 beforeEach(async () => { jest.useFakeTimers(); await nativeDiagnostics.clear(); jest.clearAllMocks(); mockNavigate.mockReset(); mockDismissTo.mockReset(); mockBack.mockReset(); mockCanGoBack = () => true; mockWebInstances.length = 0; });
 afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
 
+it("keeps form fields at 16px in the page, so iOS does not zoom it on focus even with an older deployed site", () => {
+  const view = render(<SimWebView path="/multiplayer" title="Multiplayer" />);
+  const script: string = view.getByTestId("webview").props.injectedJavaScript;
+  expect(script).toMatch(/input:not\(\[type=range\]\)[^{]*select, textarea \{ font-size: 16px !important; \}/);
+});
+
 it("binds a deferred local reply to its original WebView through Retry and disposal", () => {
   const replies: ((script: string) => void)[] = [];
   const view = render(<SimWebView path="/anatomy" title="Anatomy" offlineSource={{ uri: "file:///bundle/sailing-offline.html" }}
