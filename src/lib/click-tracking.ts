@@ -8,8 +8,12 @@
  *   mailto: and tel: links report just `mailto` / `tel`, never the address;
  * - a button or tab reports `data-track`, else `aria-label`, else `title`,
  *   else its visible text, squeezed to one line and cut to 48 characters.
+ * A label that looks like it could carry personal data (an `@`, markup
+ * characters or a run of 4+ digits) drops the click instead of being cleaned:
+ * cleaning `jan@mail.pl` into `janmail.pl` would slip past the server check.
  * Controls inside form fields, editable areas or `[data-analytics-ignore]`
- * are skipped, and the server checks the target again (isClickTarget).
+ * (nickname lists, for example) are skipped, and the server checks the target
+ * again (isClickTarget).
  */
 
 import { CLICK_TARGET_MAX, isClickTarget, type ClickKind } from './analytics-events';
@@ -36,15 +40,18 @@ const SKIP_SELECTOR = 'input, textarea, select, [contenteditable=""], [contented
 
 const LABEL_MAX = 48;
 
-/** One-line, bounded label with digit runs (ids, numbers) masked. */
-export function normalizeLabel(raw: string | null | undefined): string {
+/** Characters and digit runs that may mean an address, a phone or markup. */
+const RISKY_LABEL = /[<>"`@\\]|\d{4,}/;
+
+/**
+ * One-line, bounded label, or null when the raw text looks risky (see the
+ * header): such a click is dropped, never cleaned into something that passes.
+ */
+export function normalizeLabel(raw: string | null | undefined): string | null {
   if (!raw) return '';
-  let s = raw.replace(/\s+/g, ' ').trim();
-  // Masks long digit runs so a phone or order number never forms a target.
-  s = s.replace(/\d{4,}/g, '#');
-  s = s.replace(/[<>"`@\\]/g, '');
-  if (s.length > LABEL_MAX) s = s.slice(0, LABEL_MAX).trimEnd();
-  return s;
+  const s = raw.replace(/\s+/g, ' ').trim();
+  if (RISKY_LABEL.test(s)) return null;
+  return s.length > LABEL_MAX ? s.slice(0, LABEL_MAX).trimEnd() : s;
 }
 
 /** Route of an internal link without query or hash, bounded. */
@@ -73,6 +80,7 @@ export function describeClickTarget(start: Element | null, origin: string): Clic
   if (!el) return null;
 
   const explicit = normalizeLabel(el.getAttribute('data-track'));
+  if (explicit === null) return null;
 
   if (el.tagName === 'A' && el.hasAttribute('href')) {
     const href = el.getAttribute('href') ?? '';
@@ -93,10 +101,15 @@ export function describeClickTarget(start: Element | null, origin: string): Clic
     return isClickTarget(host) ? { kind: 'external', target: host } : null;
   }
 
-  const label = explicit
-    || normalizeLabel(el.getAttribute('aria-label'))
-    || normalizeLabel(el.getAttribute('title'))
-    || normalizeLabel(el.textContent);
+  // The first non-empty source decides; a risky one drops the click rather
+  // than falling through to the next source.
+  let label = explicit;
+  for (const raw of [el.getAttribute('aria-label'), el.getAttribute('title'), el.textContent]) {
+    if (label) break;
+    const next = normalizeLabel(raw);
+    if (next === null) return null;
+    label = next;
+  }
   if (!label || !isClickTarget(label)) return null;
   return { kind: kindOf(el), target: label };
 }

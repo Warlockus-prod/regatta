@@ -81,13 +81,27 @@ describe('describeClickTarget', () => {
     expect(describeEl(new FakeEl('BUTTON', {}, ''))).toBeNull();
   });
 
-  it('masks numbers and markup, bounds the label, and the server accepts it', () => {
-    expect(normalizeLabel('Call 48123456789 now')).toBe('Call # now');
-    expect(normalizeLabel('a@b <i>')).toBe('ab i');
+  it('drops a click whose label could carry an address, a phone or markup', () => {
+    expect(normalizeLabel('Call 48123456789 now')).toBeNull();
+    expect(normalizeLabel('jan@mail.pl')).toBeNull();
+    expect(normalizeLabel('a <i>')).toBeNull();
+    expect(normalizeLabel('  Start\n race ')).toBe('Start race');
+    for (const el of [
+      new FakeEl('BUTTON', {}, 'Napisz: jan@mail.pl'),
+      new FakeEl('BUTTON', {}, 'Order 2026-1234567'),
+      new FakeEl('BUTTON', { 'data-track': 'x@y' }, 'Send'),
+      // A risky aria-label does not fall through to the visible text.
+      new FakeEl('BUTTON', { 'aria-label': 'Call +48 600123456' }, 'Call'),
+    ]) {
+      expect(describeEl(el)).toBeNull();
+    }
+  });
+
+  it('bounds the label, and the server accepts what is reported', () => {
     const long = describeEl(new FakeEl('BUTTON', {}, 'Очень '.repeat(30)));
     expect(long?.target.length).toBeLessThanOrEqual(48);
     for (const el of [
-      new FakeEl('BUTTON', {}, 'Order 2026-1234567'),
+      new FakeEl('BUTTON', {}, 'Lekcja 3 z 8'),
       new FakeEl('A', { href: '/game' }),
       new FakeEl('BUTTON', {}, 'Ćwiczenia: żeglowanie'),
     ]) {
