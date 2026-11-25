@@ -29,6 +29,11 @@
  * M5 step 7 (ADR-0015): every race event of a live race also carries
  * `raceClass`, the course class it was sailed on (the legacy course or a
  * metric one), so the funnel never mixes the two models.
+ * Activity (2026-11-21): `ui.click` says which control was used (a route, a
+ * host name or a short label of our own UI, src/lib/click-tracking.ts), and
+ * the iOS app reports its native screens (`screen.view`) and each foreground
+ * stretch (`app.session`) itself (mobile/src/analytics/first-party.ts), so the
+ * local dashboard (scripts/analytics/) sees the whole app, not only WebViews.
  */
 
 export const CLIENT_EVENTS = [
@@ -47,6 +52,9 @@ export const CLIENT_EVENTS = [
   'race.end',
   'race.replay',
   'race.assist',
+  'ui.click',
+  'screen.view',
+  'app.session',
 ] as const;
 
 export type ClientEventName = (typeof CLIENT_EVENTS)[number];
@@ -140,6 +148,12 @@ export type ReplaySource = 'result' | 'saved' | 'shared';
 export type RaceHelmField = 'arrows' | 'wheels' | 'sliders';
 export type RaceAssistKind = 'tack-button' | 'gybe-button' | 'best-vmg' | 'angle-hold';
 
+/**
+ * What a ui.click hit (src/lib/click-tracking.ts): an internal link, a link to
+ * another site, a button, a tab or a menu item.
+ */
+export type ClickKind = 'link' | 'external' | 'button' | 'tab' | 'menu';
+
 /** Upper bound of raceNo; the client stops counting here. */
 export const RACE_NO_MAX = 1000;
 /** Race clock bound for first_tack / first_mark, in seconds (two hours). */
@@ -157,6 +171,26 @@ const RACE_CLASSES: ReadonlySet<string> = new Set<RaceFunnelClass>(['legacy-race
 const REPLAY_SOURCES: ReadonlySet<string> = new Set<ReplaySource>(['result', 'saved', 'shared']);
 const RACE_HELMS: ReadonlySet<string> = new Set<RaceHelmField>(['arrows', 'wheels', 'sliders']);
 const RACE_ASSISTS: ReadonlySet<string> = new Set<RaceAssistKind>(['tack-button', 'gybe-button', 'best-vmg', 'angle-hold']);
+const CLICK_KINDS: ReadonlySet<string> = new Set<ClickKind>(['link', 'external', 'button', 'tab', 'menu']);
+
+/** Longest ui.click target kept: a route, a host name or a short UI label. */
+export const CLICK_TARGET_MAX = 64;
+/**
+ * A click target is our own UI: a route, a host name or a button label. It
+ * may not carry markup, an address-like "@", or a run of 5+ digits (a phone
+ * or an order number would look like that), so free text and contact data
+ * never pass even if a label ever showed some.
+ */
+const CLICK_TARGET_RE = /^[^\u0000-\u001f<>"`@\\]+$/u;
+const LONG_DIGITS_RE = /\d{5,}/;
+export function isClickTarget(v: unknown): v is string {
+  return typeof v === 'string'
+    && v.length > 0
+    && v.length <= CLICK_TARGET_MAX
+    && v.trim() === v
+    && CLICK_TARGET_RE.test(v)
+    && !LONG_DIGITS_RE.test(v);
+}
 
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const CT_RE = /^[a-z0-9_]{1,40}$/;
@@ -202,6 +236,11 @@ const FIELD_CHECKS: Record<string, FieldCheck> = {
   assist: (v) => typeof v === 'string' && RACE_ASSISTS.has(v),
   buttonTurns: (v) => isInt(v, 0, 1000),
   bestVmgSec: (v) => isInt(v, 0, RACE_AT_SEC_MAX),
+  // ui.click: what kind of control and which one (route, host or label).
+  kind: (v) => typeof v === 'string' && CLICK_KINDS.has(v),
+  target: isClickTarget,
+  // app.session: screens opened during one foreground stretch of the app.
+  screens: (v) => isInt(v, 0, 10_000),
 };
 
 const SHELL = ['embed', 'client'] as const;
@@ -223,6 +262,13 @@ const EVENT_FIELDS: Record<ClientEventName, readonly string[]> = {
   'race.end': [...RACE, 'finished', 'position', 'totalBoats', 'durationSec', 'tacks', 'helm', 'buttonTurns', 'bestVmgSec'],
   'race.replay': [...RACE, 'source'],
   'race.assist': [...RACE, 'assist', 'helm', 'atSec'],
+  // Where people click (web pages and the app's WebViews).
+  'ui.click': [...SHELL, 'kind', 'target', 'viewId'],
+  // Native screens of the iOS app (mobile/src/analytics/first-party.ts); the
+  // route is the path column, like page.view on the web.
+  'screen.view': SHELL,
+  // One foreground stretch of the iOS app: time in the app and screens seen.
+  'app.session': [...SHELL, 'durationSec', 'screens'],
 };
 
 /**

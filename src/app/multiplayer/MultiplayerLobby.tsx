@@ -263,7 +263,7 @@ export function MultiplayerRoom(p: {
             </div>
           )}
         </div>
-        <div className="space-y-1.5 max-h-[40vh] overflow-y-auto">
+        <div className="space-y-1.5 max-h-[40vh] overflow-y-auto" data-analytics-ignore>
           {players.map((player, i) => (
             <div key={player.id} className="flex items-center gap-2 text-sm">
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.colors[i % p.colors.length] }} />

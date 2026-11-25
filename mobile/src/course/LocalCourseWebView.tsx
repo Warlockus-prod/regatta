@@ -10,6 +10,7 @@ import { APP_EMBED_THEME_SCRIPT } from "../design-system/embedded-theme";
 import { hideMainNavigation } from "../navigation/visibility";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
 import { parseExamFinished, type ExamFinishedProps } from "../analytics/web-bridge";
+import { relayWebLog } from "../analytics/relay";
 import { loadLocalCourseHtml } from "./local-course-asset";
 import { ActivityBack } from "../navigation/ActivityBack";
 import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from "../diagnostics/journal";
@@ -140,6 +141,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   const onMessage = (event: WebViewMessageEvent) => {
     const raw = event.nativeEvent.data;
     if (handleNativeDiagnosticMessage(raw, diagnosticSurface)) return;
+    if (relayWebLog(raw, analyticsOn)) return;
     if (raw.length > messageLimit) return;
     let data: Record<string, unknown>;
     try { const parsed: unknown = JSON.parse(raw); if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return; data = parsed as Record<string, unknown>; } catch { return; }

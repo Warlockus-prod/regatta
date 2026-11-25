@@ -1,6 +1,6 @@
 # Week to Regatta - Privacy Policy
 
-Last updated: 2026-11-03.
+Last updated: 2026-11-21.
 
 The published policy is the page https://weektoregatta.com/privacy (the
 Privacy Policy URL of the App Store listing). This file is its app-side source
@@ -77,6 +77,26 @@ device type and model read from it, and a shortened IP address (the last part
 is removed before anything is saved), keeps the raw events for 180 days and
 then deletes them.
 
+### Activity sent to our own server
+
+In app builds released after 2026-11-21 the app also reports its activity to
+weektoregatta.com itself, so the owner can see which parts are used:
+
+- each native screen opened (its route in the app, such as `/menu`, without
+  anything you typed);
+- each stretch in the foreground: how long it lasted and how many screens
+  were opened;
+- the usage events of the bundled offline courses and trainers, passed through
+  the app because those pages run from the device and cannot reach the server
+  themselves: the same events the website sends (page opened, time on the page,
+  which links, buttons and tabs were pressed, as a route, a domain or a button
+  label, and the learning events).
+
+They are stored like the website events above: with the `regatta_sid` cookie,
+the country, a shortened IP address, a user agent that names only the app
+version, iPhone or iPad and the iOS version, for 180 days. The same switch
+turns them off.
+
 This data is NOT linked to your identity. We do not collect your name, email,
 contacts, advertising identifier (IDFA), or any other personal identifier. It
 is never used to track you across other companies' apps or websites
@@ -91,7 +111,8 @@ Settings -> Data -> Anonymous analytics is a switch. What it covers:
 - Turned off, the app's own analytics (PostHog) stop immediately, on this and
   every future launch.
 - In app versions newer than 1.6.4 the switch also stops the usage events of
-  the course pages opened inside the app. In 1.6.4 and older, those pages keep
+  the course pages opened inside the app, and in builds after 2026-11-21 the
+  activity the app reports to weektoregatta.com itself. In 1.6.4 and older, those pages keep
   sending their usage events to weektoregatta.com while the switch is off.
 - It does not change the requests listed under "What we send over the
   network", because those are the features themselves.

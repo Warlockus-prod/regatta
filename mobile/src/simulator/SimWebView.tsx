@@ -31,6 +31,7 @@ import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
 import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from '../diagnostics/journal';
 import { nativeRaceHaptics } from './race-haptics';
+import { relayWebLog } from '../analytics/relay';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -386,6 +387,9 @@ export function SimWebView({
           if (ownRaceHeader !== null) { setWebHeader(ownRaceHeader); return; }
           const raceWater = path === "/game" ? raceWaterMessage(status) : null;
           if (raceWater !== null) { setWaterEdges(raceWater); return; }
+          // Activity of the offline bundle (page views, clicks, lessons, race
+          // funnel) goes to /api/log through the app (analytics/relay.ts).
+          if (offlineSource && relayWebLog(status, analyticsOn)) return;
           if (offlineSource && status.startsWith("{")) {
             const owner = webRef.current;
             onOfflineMessage?.(status, script => { if (owner && webRef.current === owner) owner.injectJavaScript(script); });

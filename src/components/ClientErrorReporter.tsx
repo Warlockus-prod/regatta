@@ -12,6 +12,7 @@ import 'next/dynamic';
 import { isBrowserNoise } from '@/lib/analytics-events';
 import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
 import { detectShell } from '@/lib/funnel';
+import { describeClickTarget } from '@/lib/click-tracking';
 
 /**
  * Mounted once in the root layout - attaches listeners for uncaught errors
@@ -32,6 +33,10 @@ import { detectShell } from '@/lib/funnel';
  * embed + client (2026-10-18): page.view says whether the page runs inside
  * the iOS app (?embed=1 WebView, client 'app') or a normal browser ('web'),
  * so app traffic no longer looks like web traffic in /stats.
+ *
+ * Clicks (2026-11-21): one `ui.click` per control used (link route, host
+ * name or short label, never typed text; src/lib/click-tracking.ts), tied
+ * to the view by viewId, so the local dashboard shows where people click.
  *
  * Noise (2026-10-19): errors thrown by browser extensions and opaque
  * cross-origin "Script error." reports are not sent (isBrowserNoise), and
@@ -173,6 +178,19 @@ export default function ClientErrorReporter() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
+    // Where people click. Capture phase, so a control that stops propagation
+    // or navigates away still counts. Never blocks or alters the click.
+    const shell = detectShell();
+    const onClick = (e: MouseEvent) => {
+      try {
+        const hit = describeClickTarget(e.target instanceof Element ? e.target : null, window.location.origin);
+        if (hit) clientInfo('ui.click', { path: pathname, viewId, ...shell, ...hit });
+      } catch {
+        // Click tracking must never break a click.
+      }
+    };
+    document.addEventListener('click', onClick, { capture: true, passive: true });
+
     // Engagement summary: ONE page.engaged per view, sent the first time the
     // page is hidden (tab switch, app to background, close), unloaded, or left
     // by a client-side navigation, once the view has at least MIN_ENGAGED_MS
@@ -209,6 +227,7 @@ export default function ClientErrorReporter() {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('click', onClick, { capture: true });
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', flushEngagement);
       // Client-side navigations fire neither pagehide nor visibilitychange.

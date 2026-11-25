@@ -29,14 +29,14 @@ export default function PrivacyPage() {
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
           {tp(
-             "Обновлено: 2026-11-03",
-             "Updated: 2026-11-03",
-             "Aktualizacja: 2026-11-03",
+             "Обновлено: 2026-11-21",
+             "Updated: 2026-11-21",
+             "Aktualizacja: 2026-11-21",
              {
-               es: "Actualizado: 2026-11-03",
-               fr: "Mis à jour : 2026-11-03",
-               de: "Aktualisiert: 2026-11-03",
-               it: "Aggiornato: 2026-11-03",
+               es: "Actualizado: 2026-11-21",
+               fr: "Mis à jour : 2026-11-21",
+               de: "Aktualisiert: 2026-11-21",
+               it: "Aggiornato: 2026-11-21",
              },
            )}
         </p>
@@ -44,7 +44,9 @@ export default function PrivacyPage() {
 
       <div className="space-y-6 text-[var(--text-secondary)] leading-relaxed">
         {/* iOS app callout. The native app sends pseudonymous product analytics
-            (PostHog EU, opt-out in Settings) and uses the network for the
+            (PostHog EU, opt-out in Settings), from builds after 2026-11-21 also
+            first-party screen views, foreground time and relayed offline-page
+            events to /api/log (same switch), and uses the network for the
             online course pages, Ask, online AI review, online speech,
             multiplayer, gallery and spot weather. App 1.7.0 build 59 adds local
             bundled SRC recognition, typed Sternik practice and solo coaching.
@@ -194,6 +196,19 @@ export default function PrivacyPage() {
                 },
               )}
             </li>
+            <li>
+              {tp(
+                'Собственная анонимная статистика, в сборках приложения после 2026-11-21: приложение само сообщает нашему серверу weektoregatta.com, какие экраны ты открываешь, сколько длится сеанс в приложении и сколько экранов в нем открыто, а встроенные курсы и тренажеры передают через приложение те же события, что и сайт (открытие страниц, время на странице, нажатые ссылки и кнопки, учебные события). Хранится так же, как события сайта ниже: с cookie regatta_sid, укороченным IP-адресом и страной, 180 дней. Без имени и без того, что ты вводишь. Выключается тем же переключателем Настройки -> Данные -> Анонимная аналитика.',
+                'Our own anonymous statistics, in app builds released after 2026-11-21: the app itself tells our server weektoregatta.com which screens you open, how long a session in the app lasts and how many screens it includes, and the bundled courses and trainers pass through the app the same events as the website (page opens, time on page, links and buttons pressed, learning events). Stored like the website events below: with the regatta_sid cookie, a shortened IP address and the country, for 180 days. No name and nothing you type. Turned off by the same switch, Settings -> Data -> Anonymous analytics.',
+                'Własne anonimowe statystyki, w wersjach aplikacji wydanych po 2026-11-21: aplikacja sama przekazuje naszemu serwerowi weektoregatta.com, które ekrany otwierasz, jak długo trwa sesja w aplikacji i ile ekranów w niej otwierasz, a wbudowane kursy i trenażery przekazują przez aplikację te same zdarzenia co strona (otwarcia stron, czas na stronie, kliknięte linki i przyciski, zdarzenia nauki). Przechowujemy je tak jak zdarzenia strony opisane niżej: z plikiem cookie regatta_sid, skróconym adresem IP i krajem, przez 180 dni. Bez imienia i bez tego, co wpisujesz. Wyłącza je ten sam przełącznik Ustawienia -> Dane -> Anonimowa analityka.',
+                {
+                  es: 'Estadísticas anónimas propias, en las compilaciones de la app publicadas después del 2026-11-21: la app comunica a nuestro servidor weektoregatta.com qué pantallas abres, cuánto dura una sesión en la app y cuántas pantallas incluye, y los cursos y simuladores integrados envían a través de la app los mismos eventos que el sitio (aperturas de páginas, tiempo en la página, enlaces y botones pulsados, eventos de aprendizaje). Se guardan igual que los eventos del sitio descritos abajo: con la cookie regatta_sid, una dirección IP acortada y el país, durante 180 días. Sin nombre y sin nada de lo que escribes. Se desactivan con el mismo interruptor, Ajustes -> Datos -> Analítica anónima.',
+                  fr: "Nos propres statistiques anonymes, dans les builds de l'app publiés après le 2026-11-21 : l'app indique elle-même à notre serveur weektoregatta.com quels écrans tu ouvres, combien de temps dure une session dans l'app et combien d'écrans elle comprend, et les cours et simulateurs intégrés transmettent par l'app les mêmes événements que le site (ouvertures de pages, temps passé sur la page, liens et boutons touchés, événements d'apprentissage). Conservées comme les événements du site décrits ci-dessous : avec le cookie regatta_sid, une adresse IP raccourcie et le pays, pendant 180 jours. Sans nom et sans rien de ce que tu saisis. Elles se coupent avec le même interrupteur, Réglages -> Données -> Statistiques anonymes.",
+                  de: 'Eigene anonyme Statistik, in App-Builds, die nach dem 2026-11-21 erscheinen: Die App meldet unserem Server weektoregatta.com selbst, welche Bildschirme du öffnest, wie lange eine Sitzung in der App dauert und wie viele Bildschirme sie umfasst, und die integrierten Kurse und Trainer senden über die App dieselben Ereignisse wie die Website (Seitenaufrufe, Verweildauer, angetippte Links und Schaltflächen, Lernereignisse). Gespeichert wie die unten beschriebenen Website-Ereignisse: mit dem Cookie regatta_sid, einer gekürzten IP-Adresse und dem Land, 180 Tage lang. Ohne Namen und ohne das, was du eintippst. Abschaltbar mit demselben Schalter, Einstellungen -> Daten -> Anonyme Analyse.',
+                  it: "Statistiche anonime nostre, nelle build dell'app pubblicate dopo il 2026-11-21: l'app comunica al nostro server weektoregatta.com quali schermate apri, quanto dura una sessione nell'app e quante schermate comprende, e i corsi e i simulatori integrati inviano tramite l'app gli stessi eventi del sito (aperture di pagine, tempo sulla pagina, link e pulsanti toccati, eventi di apprendimento). Conservate come gli eventi del sito descritti sotto: con il cookie regatta_sid, un indirizzo IP abbreviato e il paese, per 180 giorni. Senza nome e senza nulla di ciò che scrivi. Si disattivano con lo stesso interruttore, Impostazioni -> Dati -> Statistiche anonime.",
+                },
+              )}
+            </li>
           </ul>
           <p className="text-sm">
             {tp(
@@ -222,14 +237,14 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 space-y-2 text-sm">
             <li>
               {tp(
-                'Технические события: открытие страниц, время на странице и глубина прокрутки, ошибки JavaScript, размер окна, язык браузера, строка User-Agent браузера и определенные по ней тип и модель устройства, страница, с которой ты пришел (referrer), и UTM-метки ссылки. Каждое событие сохраняется с укороченным IP-адресом (последняя часть удаляется до записи) и страной, определенной по нему. Сырые события хранятся 180 дней, затем удаляются.',
-                'Technical events: page opens, time on page and how far you scrolled, JavaScript errors, window size, browser language, the browser User-Agent string with the device type and model read from it, the page you came from (referrer) and the UTM tags of the link. Each event is stored with a shortened IP address (the last part is removed before saving) and the country estimated from it. Raw events are kept for 180 days, then deleted.',
-                'Zdarzenia techniczne: otwarcia stron, czas na stronie i głębokość przewinięcia, błędy JavaScript, rozmiar okna, język przeglądarki, ciąg User-Agent przeglądarki wraz z odczytanym z niego typem i modelem urządzenia, strona, z której przychodzisz (referrer), oraz tagi UTM linku. Każde zdarzenie zapisujemy ze skróconym adresem IP (ostatnią część usuwamy przed zapisem) i krajem ustalonym na jego podstawie. Surowe zdarzenia przechowujemy 180 dni, potem je usuwamy.',
+                'Технические события: открытие страниц, время на странице и глубина прокрутки, какие ссылки, кнопки и вкладки ты нажимаешь (адрес раздела, домен внешней ссылки или подпись кнопки, но не то, что ты вводишь), ошибки JavaScript, размер окна, язык браузера, строка User-Agent браузера и определенные по ней тип и модель устройства, страница, с которой ты пришел (referrer), и UTM-метки ссылки. Каждое событие сохраняется с укороченным IP-адресом (последняя часть удаляется до записи) и страной, определенной по нему. Сырые события хранятся 180 дней, затем удаляются.',
+                'Technical events: page opens, time on page and how far you scrolled, which links, buttons and tabs you press (the section address, the domain of an outside link or the button label, never what you type), JavaScript errors, window size, browser language, the browser User-Agent string with the device type and model read from it, the page you came from (referrer) and the UTM tags of the link. Each event is stored with a shortened IP address (the last part is removed before saving) and the country estimated from it. Raw events are kept for 180 days, then deleted.',
+                'Zdarzenia techniczne: otwarcia stron, czas na stronie i głębokość przewinięcia, które linki, przyciski i karty klikasz (adres działu, domena linku zewnętrznego lub napis na przycisku, nigdy to, co wpisujesz), błędy JavaScript, rozmiar okna, język przeglądarki, ciąg User-Agent przeglądarki wraz z odczytanym z niego typem i modelem urządzenia, strona, z której przychodzisz (referrer), oraz tagi UTM linku. Każde zdarzenie zapisujemy ze skróconym adresem IP (ostatnią część usuwamy przed zapisem) i krajem ustalonym na jego podstawie. Surowe zdarzenia przechowujemy 180 dni, potem je usuwamy.',
                 {
-                  es: 'Eventos técnicos: aperturas de páginas, tiempo en la página y hasta dónde te desplazas, errores de JavaScript, tamaño de la ventana, idioma del navegador, la cadena User-Agent del navegador con el tipo y el modelo de dispositivo que se deducen de ella, la página de la que vienes (referrer) y las etiquetas UTM del enlace. Cada evento se guarda con una dirección IP acortada (la última parte se elimina antes de guardarla) y el país estimado a partir de ella. Los eventos sin procesar se conservan 180 días y después se eliminan.',
-                  fr: "Événements techniques : ouvertures de pages, temps passé sur la page et profondeur de défilement, erreurs JavaScript, taille de la fenêtre, langue du navigateur, la chaîne User-Agent du navigateur avec le type et le modèle d'appareil qui s'en déduisent, la page d'où tu viens (referrer) et les paramètres UTM du lien. Chaque événement est enregistré avec une adresse IP raccourcie (la dernière partie est supprimée avant l'enregistrement) et le pays estimé à partir d'elle. Les événements bruts sont conservés 180 jours, puis supprimés.",
-                  de: 'Technische Ereignisse: Seitenaufrufe, Verweildauer und Scrolltiefe, JavaScript-Fehler, Fenstergröße, Browsersprache, der User-Agent-String des Browsers samt daraus gelesenem Gerätetyp und -modell, die Seite, von der du kommst (Referrer), und die UTM-Parameter des Links. Jedes Ereignis wird mit einer gekürzten IP-Adresse (der letzte Teil wird vor dem Speichern entfernt) und dem daraus geschätzten Land gespeichert. Die Rohdaten werden 180 Tage aufbewahrt und dann gelöscht.',
-                  it: "Eventi tecnici: aperture di pagine, tempo sulla pagina e profondità di scorrimento, errori JavaScript, dimensione della finestra, lingua del browser, la stringa User-Agent del browser con il tipo e il modello di dispositivo ricavati da essa, la pagina da cui arrivi (referrer) e i tag UTM del link. Ogni evento viene salvato con un indirizzo IP abbreviato (l'ultima parte viene rimossa prima del salvataggio) e il paese stimato a partire da esso. Gli eventi grezzi sono conservati per 180 giorni, poi cancellati.",
+                  es: 'Eventos técnicos: aperturas de páginas, tiempo en la página y hasta dónde te desplazas, qué enlaces, botones y pestañas pulsas (la dirección de la sección, el dominio de un enlace externo o el texto del botón, nunca lo que escribes), errores de JavaScript, tamaño de la ventana, idioma del navegador, la cadena User-Agent del navegador con el tipo y el modelo de dispositivo que se deducen de ella, la página de la que vienes (referrer) y las etiquetas UTM del enlace. Cada evento se guarda con una dirección IP acortada (la última parte se elimina antes de guardarla) y el país estimado a partir de ella. Los eventos sin procesar se conservan 180 días y después se eliminan.',
+                  fr: "Événements techniques : ouvertures de pages, temps passé sur la page et profondeur de défilement, liens, boutons et onglets que tu touches (adresse de la section, domaine d'un lien externe ou libellé du bouton, jamais ce que tu saisis), erreurs JavaScript, taille de la fenêtre, langue du navigateur, la chaîne User-Agent du navigateur avec le type et le modèle d'appareil qui s'en déduisent, la page d'où tu viens (referrer) et les paramètres UTM du lien. Chaque événement est enregistré avec une adresse IP raccourcie (la dernière partie est supprimée avant l'enregistrement) et le pays estimé à partir d'elle. Les événements bruts sont conservés 180 jours, puis supprimés.",
+                  de: 'Technische Ereignisse: Seitenaufrufe, Verweildauer und Scrolltiefe, welche Links, Schaltflächen und Tabs du antippst (Adresse des Bereichs, Domain eines externen Links oder Beschriftung der Schaltfläche, nie das, was du eintippst), JavaScript-Fehler, Fenstergröße, Browsersprache, der User-Agent-String des Browsers samt daraus gelesenem Gerätetyp und -modell, die Seite, von der du kommst (Referrer), und die UTM-Parameter des Links. Jedes Ereignis wird mit einer gekürzten IP-Adresse (der letzte Teil wird vor dem Speichern entfernt) und dem daraus geschätzten Land gespeichert. Die Rohdaten werden 180 Tage aufbewahrt und dann gelöscht.',
+                  it: "Eventi tecnici: aperture di pagine, tempo sulla pagina e profondità di scorrimento, quali link, pulsanti e schede tocchi (indirizzo della sezione, dominio di un link esterno o testo del pulsante, mai ciò che scrivi), errori JavaScript, dimensione della finestra, lingua del browser, la stringa User-Agent del browser con il tipo e il modello di dispositivo ricavati da essa, la pagina da cui arrivi (referrer) e i tag UTM del link. Ogni evento viene salvato con un indirizzo IP abbreviato (l'ultima parte viene rimossa prima del salvataggio) e il paese stimato a partire da esso. Gli eventi grezzi sono conservati per 180 giorni, poi cancellati.",
                 },
               )}
             </li>
@@ -527,6 +542,19 @@ export default function PrivacyPage() {
                 fr: 'Quand la politique change, nous mettons à jour la date en haut de cette page et résumons le changement ici.',
                 de: 'Wenn sich die Richtlinie ändert, aktualisieren wir das Datum oben und fassen die Änderung hier zusammen.',
                 it: "Quando l'informativa cambia, aggiorniamo la data in alto e riassumiamo qui la modifica.",
+              },
+            )}
+          </p>
+          <p className="text-sm mb-2">
+            {tp(
+              '2026-11-21: на сайте добавлены нажатия на ссылки, кнопки и вкладки (адрес, домен или подпись кнопки, без введенного текста); приложение в новых сборках само отправляет на наш сервер открытые экраны и длительность сеанса, а встроенные курсы и тренажеры передают через него события сайта. Выключается переключателем Анонимная аналитика.',
+              '2026-11-21: the website now records presses on links, buttons and tabs (address, domain or button label, no typed text); new app builds send our server the screens opened and the session length themselves, and the bundled courses and trainers pass the website events through the app. Turned off by the Anonymous analytics switch.',
+              '2026-11-21: strona zapisuje teraz kliknięcia linków, przycisków i kart (adres, domena lub napis na przycisku, bez wpisanego tekstu); nowe wersje aplikacji same wysyłają na nasz serwer otwarte ekrany i długość sesji, a wbudowane kursy i trenażery przekazują przez nią zdarzenia strony. Wyłącza to przełącznik Anonimowa analityka.',
+              {
+                es: '2026-11-21: el sitio registra ahora las pulsaciones en enlaces, botones y pestañas (dirección, dominio o texto del botón, sin texto escrito); las nuevas compilaciones de la app envían a nuestro servidor las pantallas abiertas y la duración de la sesión, y los cursos y simuladores integrados pasan por ella los eventos del sitio. Se desactiva con el interruptor Analítica anónima.',
+                fr: "2026-11-21 : le site enregistre désormais les appuis sur les liens, boutons et onglets (adresse, domaine ou libellé du bouton, sans texte saisi) ; les nouveaux builds de l'app envoient eux-mêmes à notre serveur les écrans ouverts et la durée de la session, et les cours et simulateurs intégrés y font passer les événements du site. Se coupe avec l'interrupteur Statistiques anonymes.",
+                de: '2026-11-21: Die Website erfasst jetzt das Antippen von Links, Schaltflächen und Tabs (Adresse, Domain oder Beschriftung, ohne eingegebenen Text); neue App-Builds senden geöffnete Bildschirme und die Sitzungsdauer selbst an unseren Server, und die integrierten Kurse und Trainer leiten die Website-Ereignisse über die App weiter. Abschaltbar mit dem Schalter Anonyme Analyse.',
+                it: "2026-11-21: il sito registra ora i tocchi su link, pulsanti e schede (indirizzo, dominio o testo del pulsante, senza testo digitato); le nuove build dell'app inviano al nostro server le schermate aperte e la durata della sessione, e i corsi e i simulatori integrati vi fanno passare gli eventi del sito. Si disattiva con l'interruttore Statistiche anonime.",
               },
             )}
           </p>

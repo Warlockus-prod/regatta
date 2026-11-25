@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "92b2194dd847",
-  "sha256": "d6ed57dc3d1facd61b92bf05d62f9e7171230a398b3b0e33b79bbce75d39ff90",
-  "bytes": 7644956,
+  "version": "f4627762cbee",
+  "sha256": "1c72d4af9a13ffb4dbafae124a41fbdd5e4008573c6097908da1254d96e4ecb6",
+  "bytes": 7645292,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -2559,8 +2559,8 @@
     },
     {
       "path": "src/lib/analytics-events.ts",
-      "bytes": 11614,
-      "sha256": "174bf7e96619e75293d08424088f2e826291b9a3678e84cfc4ddf57cbbf17181"
+      "bytes": 13771,
+      "sha256": "de2e1c6e9379b007d79e192a234bb78beb7fee994f042c1249dec45b2a2975b5"
     },
     {
       "path": "src/lib/best-times.ts",
@@ -2569,8 +2569,8 @@
     },
     {
       "path": "src/lib/client-log.ts",
-      "bytes": 7271,
-      "sha256": "d6138aeda2643ab98b62c38606936282aa5cccabb7ea4733ae4f99726d20c76b"
+      "bytes": 8095,
+      "sha256": "59c00f94ab735916d9dd8867b9e9915f80d16f50dc1d0d69d2145972696c4013"
     },
     {
       "path": "src/lib/daily-challenge.ts",

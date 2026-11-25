@@ -105,8 +105,30 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 флаг живет в sessionStorage до конца сессии WebView) и `client` (`app` или
 `web`). В приложении результат экзамена дополнительно уходит в нативную
 оболочку через `postMessage` (`{ type: 'exam-finished' }`), она шлет
-`exam_finished` в PostHog (`mobile/src/analytics/web-bridge.ts`); на офлайн-
-бандле радиокурса (file://) `/api/log` не вызывается. `/stats` показывает
+`exam_finished` в PostHog (`mobile/src/analytics/web-bridge.ts`). Офлайн-бандлы
+(радио и паруса, file://) `/api/log` напрямую не вызывают: `src/lib/client-log.ts`
+отдает событие приложению `postMessage({ type: 'regatta-log' })`, а хосты WebView
+(`SimWebView`, `LocalCourseWebView`, `OfflineRadioCourse`) пересылают его в
+`/api/log` через `mobile/src/analytics/relay.ts`, если включена анонимная
+аналитика.
+
+Активность (2026-11-21): `ui.click` (`src/lib/click-tracking.ts`, вид `link`,
+`external`, `button`, `tab`, `menu` и цель: маршрут, домен или подпись кнопки,
+без введенного текста; повтор того же элемента раз в минуту); нативные экраны
+приложения `screen.view` и сеанс на переднем плане `app.session`
+(`durationSec`, `screens`) шлет само приложение
+(`mobile/src/analytics/FirstPartyActivity.tsx`, `mobile/src/analytics/first-party.ts`) с
+user agent `WeekToRegattaApp/<версия> (iPhone|iPad; iOS x)`, сервер ключует
+посетителя cookie `regatta_sid` из своего ответа.
+
+Локальный дашборд владельца (`npm run analytics`, `scripts/analytics/`):
+`scripts/analytics/pull.mjs` по SSH запускает в контейнере `regatta` скрипт только на чтение и
+дописывает новые события (без IP и сырого User-Agent, реферер до origin+path) в
+`~/.regatta-analytics/regatta-analytics.db` вне репозитория; `scripts/analytics/report.mjs`
+считает визиты (перерыв 30 минут), время на экране (`page.engaged` или до
+следующего просмотра), источники, языки, разделы, переходы, клики, возвраты,
+когорты, воронки и приложение; `scripts/analytics/dashboard.mjs` отдает `dashboard.html` на
+`127.0.0.1:4500`. `/stats` показывает
 воронку панелями (`getMetricsRange().funnel`), окно `/api/admin/stats-range`
 ограничено 90 днями. Сырые `events` и `sessions` старше 180 дней удаляет
 `scripts/prune-events.mjs` (сначала `--dry-run`, расписание в `docs/OPS.md`).
@@ -629,7 +651,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/components/ThemeToggle.tsx` - переключатель темы.
 - `src/components/ThemeManager.tsx` - применение темы и подписка на системную.
 - `src/components/GoogleAnalytics.tsx` - GA4 поток `G-ZEWWJ4N31M`.
-- `src/components/ClientErrorReporter.tsx` - `page.view`, `page.engaged`, `js.uncaught`, `js.rejection`.
+- `src/components/ClientErrorReporter.tsx` - `page.view`, `page.engaged`, `ui.click`, `js.uncaught`, `js.rejection`.
 - `src/components/FeedbackWidget.tsx` - виджет обратной связи, шлет в `/api/feedback`; где он скрыт, решает `src/lib/feedback-routes.ts`.
 - `src/components/HelpOverlay.tsx` - контекстная справка поверх страницы.
 - `src/components/ServiceWorkerRegistrar.tsx` - регистрация сервис-воркера и офлайн-фолбэка.
@@ -990,8 +1012,11 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/lib/languages.test.ts` - контракт языков: Accept-Language (регион, пропуск неподдержанных, EN как запасной, RU без заголовка), ровно 7 языков и 14 коротких путей, порядок отката `legacyPick`.
 - `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`; индекс `(evt, ts)`; воронка для `/stats`, включая воронку гонки (первая гонка `raceNo = 1` и все гонки). M5 шаг 8: аддитивная колонка `race_results.race_source` (`safeAlter`, старые строки NULL) и индекс, `insertRaceResult` хранит `'online'` только у свободного неклассифицированного результата, `topArchive(difficulty, wind, beforeTs)` (неклассифицированный пул без онлайн-гонки, до отсечки) и `topOnline`; `topByDifficulty` не менялся.
 - `src/lib/db.funnel.test.ts` - воронка `getMetricsRange()` на настоящем файле SQLite и наличие индекса `(evt, ts)`.
-- `src/lib/analytics-events.ts` - allow-list клиентских событий для `/api/log` и проверка полей воронки по событию, включая шаги гонки `race.countdown`, `race.first_tack`, `race.first_mark`, `race.end`, `race.replay` и их границы. M5 шаг 7: каждое событие гонки несет `raceClass` (один из четырех классов `src/lib/race-context.ts`).
+- `src/lib/analytics-events.ts` - allow-list клиентских событий для `/api/log` и проверка полей воронки по событию, включая шаги гонки `race.countdown`, `race.first_tack`, `race.first_mark`, `race.end`, `race.replay` и их границы, плюс `ui.click`, `screen.view` и `app.session` с проверенными полями. M5 шаг 7: каждое событие гонки несет `raceClass` (один из четырех классов `src/lib/race-context.ts`).
 - `src/lib/funnel.ts` - клиентские хелперы воронки (экзамен, урок, задание по радио, клик App Store; гонка `trackRaceCountdown/Tack/Mark/End/Replay`: каждый шаг не чаще раза за гонку, номер гонки устройства `raceNo` в localStorage `regatta.race-count.v1`), `detectShell()` (app или web), `appStoreUrl(ct)`. M5 шаг 7: `trackRaceCountdown` принимает `raceClass`, он идет со всеми событиями этой гонки.
+- `src/lib/click-tracking.ts` - `describeClickTarget()`: клик по ссылке, кнопке, вкладке или пункту меню в анонимное описание `ui.click` (маршрут, домен или подпись, пропуск полей ввода и `[data-analytics-ignore]`, маска длинных чисел).
+- `src/lib/click-tracking.test.ts` - контракт кликов: маршрут без query, только домен внешней ссылки, ни адресов mailto/tel, ни введенного текста; сервер принимает описание.
+- `src/lib/analytics-report.test.mjs` - контракт отчета локального дашборда: визиты по 30 минутам, время на экране, вернувшиеся, сайт и приложение, каналы, разделы.
 - `src/lib/funnel.test.ts` - контракт воронки: реальные id уроков и сценариев проходят проверку, результат экзамена уходит и в `/api/log`, и в приложение.
 - `src/lib/event-retention.test.ts` - удаление старых событий: dry-run ничего не удаляет, реальный прогон удаляет ровно столько же, окно меньше 30 дней запрещено.
 - `src/lib/net.ts` - усечение клиентского IP перед логом и записью.
@@ -1106,6 +1131,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `scripts/build-gallery-strip.mjs` - оптимизация папки фото в веб-полосу.
 - `scripts/setup-nginx-geoip2.sh` - одноразовая настройка geoip2 в nginx.
 - `scripts/backup-sqlite.sh` - онлайн-бэкап `regatta-stats.db` на VPS (root-owned копия в `/usr/local/sbin`): настройки из `/etc/default/regatta-backup` читаются первыми, каталог 0700 и файлы 0600, копия снимается внутри контейнера и выходит через stdout `docker exec` (root не трогает пути, которые пишет приложение; только обычный файл с заголовком SQLite, с потолком размера), выгрузка в S3 при `REGATTA_BACKUP_REMOTE` (без aws CLI выход 1), в шапке порядок восстановления под локом деплоя через `mktemp` и `mv -T`.
+- `scripts/analytics/pull.mjs` - выгрузка анонимной активности с прода в локальный SQLite (`~/.regatta-analytics`, вне репозитория): SSH, `docker exec -i regatta node -`, база открыта только на чтение, догрузка после последнего id, без IP и сырого User-Agent.
+- `scripts/analytics/report.mjs` - чистый расчет отчета дашборда из событий: визиты, время, источники, аудитория, разделы и страницы, переходы, клики, возвраты и когорты, воронки, приложение, ошибки, оценка разделов «что развивать».
+- `scripts/analytics/dashboard.mjs` - локальный сервер дашборда на `127.0.0.1:4500` (`npm run analytics`): сначала выгрузка, затем `GET /api/report` с фильтрами и `POST /api/pull` для кнопки «Обновить данные»; свои визиты скрывает `~/.regatta-analytics/config.json` (`excludeSessions`).
+- `scripts/analytics/dashboard.html` - страница дашборда без внешних ресурсов: фильтры периода, сайт/приложение, язык, страна; графики SVG, светлая и темная тема.
 - `scripts/prune-events.mjs` - удаление сырых `events` и `sessions` старше 180 дней, `--dry-run` сначала; копируется в образ и запускается `docker exec regatta node scripts/prune-events.mjs`.
 - `scripts/I18N_MIGRATION.md` - плейбук миграции i18n.
 - `scripts/sailing-glossary.md` - рабочий глоссарий терминологии для переводов.
@@ -1443,6 +1472,9 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 The original Polish Sternik pages are compiled into one installed package. Its local host reads asset bytes through expo-file-system, keeps the former website base origin for one-time WebKit progress migration, and guards active exams with an explicit React Native exit button, disabled swipe-back and usePreventRemove for external navigation. Cancel asks before beginning a native pop, so repeated Stay/Exit remains usable. Native snapshots become authoritative after a durable acknowledgment. Both SRC and Sternik clear their stale WebKit copies after Clear all data, retain first-run legacy migration and expose read, render and save retries.
 
 - `mobile/src/course/LocalCourseWebView.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/analytics/first-party.ts` - собственная активность приложения для `/api/log`: маршрут экрана, сеанс на переднем плане (`ForegroundSession`), user agent приложения, разбор пересланных событий офлайн-бандлов (`parseRelayedLog`).
+- `mobile/src/analytics/FirstPartyActivity.tsx` - в корневом layout: `screen.view` на смену маршрута и `app.session` при уходе в фон, только при включенной анонимной аналитике.
+- `mobile/src/analytics/relay.ts` - `relayWebLog()` для хостов WebView: пересылает событие офлайн-страницы в `/api/log`, если аналитика включена.
 - `mobile/src/course/OfflineSternikCourse.tsx` - Local asset loading, routing or durable storage.
 - `mobile/src/course/local-course-asset.ts` - Local asset loading, routing or durable storage.
 - `mobile/src/course/OfflineRadioCourse.tsx` - Local asset loading, routing or durable storage.

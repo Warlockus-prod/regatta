@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regatta: активность</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --text: #17202a; --muted: #5d6b7a; --line: #e3e7ec;
+  --accent: #0b7fa8; --accent-soft: #d8eef6; --app: #d9822b; --app-soft: #f8e6d3; --good: #2f8f5b; --bad: #c0453a;
+  --heat0: #eef3f7; --heat1: #0b7fa8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f151c; --card: #17202a; --text: #e7edf3; --muted: #93a2b1; --line: #263240;
+    --accent: #36b3dc; --accent-soft: #163847; --app: #f0a15a; --app-soft: #4a321c; --good: #5cc28a; --bad: #ec7a6f;
+    --heat0: #1b2632; --heat1: #36b3dc;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.bar { max-width: 1280px; margin: 0 auto; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+h1 { font-size: 18px; margin: 0 12px 0 0; }
+.meta { color: var(--muted); font-size: 13px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+select, input[type=date], button { font: inherit; font-size: 14px; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 36px; }
+button { cursor: pointer; }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+button:disabled { opacity: .6; cursor: progress; }
+nav.toc { max-width: 1280px; margin: 0 auto; padding: 0 20px 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+nav.toc a { font-size: 13px; color: var(--muted); text-decoration: none; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+nav.toc a:hover { color: var(--accent); border-color: var(--accent); }
+main { max-width: 1280px; margin: 0 auto; padding: 16px 20px 60px; }
+section { margin: 0 0 28px; scroll-margin-top: 150px; }
+h2 { font-size: 17px; margin: 0 0 4px; }
+.hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; max-width: 900px; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.card h3 { font-size: 14px; margin: 0 0 10px; }
+.kpis { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.kpi .v { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.kpi .l { color: var(--muted); font-size: 12.5px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { color: var(--muted); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+td.k { min-width: 9em; max-width: 420px; overflow-wrap: break-word; }
+td.k code { overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; }
+.cellbar { position: relative; min-width: 120px; }
+.cellbar i { position: absolute; left: 0; top: 4px; bottom: 4px; background: var(--accent-soft); border-radius: 4px; }
+.cellbar span { position: relative; padding-left: 6px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.empty { color: var(--muted); font-size: 13.5px; padding: 8px 0; }
+.heat td { padding: 0; border: 0; }
+.heat td div { height: 22px; margin: 1px; border-radius: 3px; }
+.heat th { font-size: 11px; padding: 2px; text-align: center; }
+.funnel .step { display: grid; grid-template-columns: 180px 1fr 70px; gap: 10px; align-items: center; margin: 6px 0; font-size: 13.5px; }
+.funnel .track { background: var(--heat0); border-radius: 6px; height: 22px; overflow: hidden; }
+.funnel .fill { background: var(--accent); height: 100%; border-radius: 6px; }
+.tag { font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--text); }
+.tag.app { background: var(--app-soft); }
+.err { color: var(--bad); }
+@media (max-width: 640px) {
+  header { position: static; }
+  section { scroll-margin-top: 12px; }
+  .bar, main, nav.toc { padding-left: 16px; padding-right: 16px; }
+  .grid { grid-template-columns: 1fr; }
+  .funnel .step { grid-template-columns: 110px 1fr 56px; }
+  .cellbar { min-width: 72px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Regatta: активность</h1>
+    <div class="filters">
+      <select id="period" aria-label="Период">
+        <option value="7">7 дней</option>
+        <option value="30" selected>30 дней</option>
+        <option value="90">90 дней</option>
+        <option value="365">год</option>
+        <option value="all">все время</option>
+        <option value="custom">свои даты</option>
+      </select>
+      <input type="date" id="from" aria-label="С" hidden>
+      <input type="date" id="to" aria-label="По" hidden>
+      <select id="client" aria-label="Где">
+        <option value="all">сайт и приложение</option>
+        <option value="web">только сайт</option>
+        <option value="app">только приложение</option>
+      </select>
+      <select id="language" aria-label="Язык"><option value="">все языки</option></select>
+      <select id="country" aria-label="Страна"><option value="">все страны</option></select>
+      <button id="pull" class="primary">Обновить данные</button>
+    </div>
+    <div class="meta" id="meta">Загрузка...</div>
+  </div>
+  <nav class="toc">
+    <a href="#overview">Обзор</a><a href="#focus">Что развивать</a><a href="#sections">Разделы</a>
+    <a href="#pages">Страницы</a><a href="#nav">Переходы</a><a href="#clicks">Клики</a>
+    <a href="#sources">Источники</a><a href="#audience">Аудитория</a><a href="#retention">Возвраты</a>
+    <a href="#time">Время</a><a href="#funnels">Воронки</a><a href="#app">Приложение</a><a href="#errors">Ошибки</a>
+  </nav>
+</header>
+<main id="main"></main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = (n) => (n === null || n === undefined ? '-' : Number(n).toLocaleString('ru-RU'));
+const dur = (sec) => {
+  if (sec === null || sec === undefined) return '-';
+  sec = Math.round(sec);
+  if (sec < 60) return `${sec} с`;
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if (m < 60) return s ? `${m} мин ${s} с` : `${m} мин`;
+  return `${Math.floor(m / 60)} ч ${m % 60} мин`;
+};
+const pctS = (v) => (v === null || v === undefined ? '-' : `${String(v).replace('.', ',')}%`);
+const dateS = (ts) => (ts ? new Date(ts).toLocaleString('ru-RU', { dateStyle: 'medium', timeStyle: 'short' }) : '-');
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const KIND = { link: 'ссылка', external: 'внешняя ссылка', button: 'кнопка', tab: 'вкладка', menu: 'пункт меню' };
+const DEVICE = { mobile: 'телефон', tablet: 'планшет', desktop: 'компьютер', unknown: 'неизвестно' };
+
+/** Table: cols = [{h, k | f, n (numeric), bar (max key)}] */
+function table(rows, cols, empty = 'Нет данных за период.') {
+  if (!rows || !rows.length) return `<div class="empty">${esc(empty)}</div>`;
+  const maxes = {};
+  for (const c of cols) if (c.bar) maxes[c.k] = Math.max(1, ...rows.map((r) => Number(r[c.k]) || 0));
+  const head = cols.map((c) => `<th class="${c.n ? 'n' : ''}" title="${esc(c.t ?? '')}">${esc(c.h)}</th>`).join('');
+  const body = rows.map((r) => '<tr>' + cols.map((c) => {
+    const raw = c.f ? c.f(r) : esc(r[c.k]);
+    if (c.bar) {
+      const w = Math.round((100 * (Number(r[c.k]) || 0)) / maxes[c.k]);
+      return `<td class="n cellbar"><i style="width:${w}%"></i><span>${raw}</span></td>`;
+    }
+    return `<td class="${c.n ? 'n' : 'k'}">${raw}</td>`;
+  }).join('') + '</tr>').join('');
+  return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+const card = (title, inner, extra = '') => `<div class="card" ${extra}><h3>${esc(title)}</h3>${inner}</div>`;
+const sec = (id, title, hint, inner) => `<section id="${id}"><h2>${esc(title)}</h2>${hint ? `<p class="hint">${hint}</p>` : ''}${inner}</section>`;
+const simple = (rows, label = 'Значение', main = 'visitors', mainH = 'Посетители', extra = []) => table(rows, [
+  { h: label, k: 'key', f: (r) => esc(r.label ?? r.key) },
+  { h: mainH, k: main, n: true, bar: true, f: (r) => num(r[main]) },
+  ...extra,
+]);
+
+function dailyChart(daily) {
+  if (!daily.length) return '<div class="empty">Нет данных.</div>';
+  const W = 1200, H = 260, P = { l: 40, r: 10, t: 10, b: 28 };
+  const max = Math.max(1, ...daily.map((d) => d.web + d.app));
+  const bw = (W - P.l - P.r) / daily.length;
+  const y = (v) => P.t + (H - P.t - P.b) * (1 - v / max);
+  const ticks = [0, Math.round(max / 2), max];
+  let g = ticks.map((t) => `<line x1="${P.l}" x2="${W - P.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${P.l - 6}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${t}</text>`).join('');
+  const every = Math.max(1, Math.ceil(daily.length / 12));
+  daily.forEach((d, i) => {
+    const x = P.l + i * bw + bw * 0.12, w = Math.max(1, bw * 0.76);
+    const yWeb = y(d.web), yApp = y(d.web + d.app);
+    g += `<g><title>${d.date}: посетителей ${d.visitors} (сайт ${d.web}, приложение ${d.app}), новых ${d.newVisitors}, визитов ${d.visits}, просмотров ${d.views}</title>`;
+    g += `<rect x="${x}" y="${yWeb}" width="${w}" height="${Math.max(0, y(0) - yWeb)}" fill="var(--accent)" rx="2"/>`;
+    g += `<rect x="${x}" y="${yApp}" width="${w}" height="${Math.max(0, yWeb - yApp)}" fill="var(--app)" rx="2"/></g>`;
+    if (i % every === 0) g += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${d.date.slice(5).replace('-', '.')}</text>`;
+  });
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Посетители по дням">${g}</svg></div>
+    <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>сайт</span><span><span class="dot" style="background:var(--app)"></span>приложение</span><span>наведите на столбец, чтобы увидеть числа</span></div>`;
+}
+
+function heatmap(heat) {
+  const max = Math.max(1, ...heat.flat());
+  const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  let h = '<div class="scroll"><table class="heat"><tr><th></th>' + Array.from({ length: 24 }, (_, i) => `<th>${i}</th>`).join('') + '</tr>';
+  heat.forEach((row, d) => {
+    h += `<tr><th>${days[d]}</th>` + row.map((v, hr) => {
+      const a = v / max;
+      return `<td title="${days[d]} ${hr}:00 - ${v} визитов"><div style="background:color-mix(in srgb, var(--heat1) ${Math.round(a * 100)}%, var(--heat0))"></div></td>`;
+    }).join('') + '</tr>';
+  });
+  return h + '</table></div>';
+}
+
+function funnel(steps) {
+  const max = Math.max(1, ...steps.map((s) => s.v || 0));
+  return '<div class="funnel">' + steps.map((s) => `<div class="step"><div>${esc(s.l)}</div><div class="track"><div class="fill" style="width:${Math.round(100 * (s.v || 0) / max)}%"></div></div><div class="n" style="text-align:right">${num(s.v)}</div></div>`).join('') + '</div>';
+}
+
+function cohortTable(cohorts) {
+  if (!cohorts.length) return '<div class="empty">Нет данных.</div>';
+  const head = '<tr><th>Неделя первого визита</th><th class="n">Новых</th>' + Array.from({ length: 9 }, (_, i) => `<th class="n">${i === 0 ? 'нед. 0' : '+' + i}</th>`).join('') + '</tr>';
+  const rows = cohorts.map((c) => `<tr><td>${esc(c.week)}</td><td class="n">${c.size}</td>` + c.weeks.map((v, i) => {
+    if (v === null) return '<td class="n"></td>';
+    const a = i === 0 ? 0.15 : Math.min(1, v / 40);
+    return `<td class="n" style="background:color-mix(in srgb, var(--heat1) ${Math.round(a * 100)}%, transparent)">${pctS(v)}</td>`;
+  }).join('') + '</tr>').join('');
+  return `<div class="scroll"><table>${head}${rows}</table></div>`;
+}
+
+function render(r) {
+  const k = r.kpi;
+  $('#meta').textContent = `Данные до ${dateS(r.lastDataTs)} · последняя выгрузка ${dateS(r.lastPull?.ts)} · событий в базе ${num(r.storedEvents)}`;
+  fillSelect('#language', r.filters.languages, r.range.language);
+  fillSelect('#country', r.filters.countries, r.range.country);
+
+  const kpis = [
+    ['Посетители', num(k.visitors), 'Разные браузеры и установки приложения (анонимная cookie)'],
+    ['Новые', num(k.newVisitors), 'Первый визит пришелся на этот период'],
+    ['Вернулись', `${num(k.returningVisitors)} · ${pctS(k.returningPct)}`, 'Посетители с двумя и более визитами'],
+    ['Визиты', num(k.visits), 'Активность без перерыва больше 30 минут'],
+    ['Просмотры', num(k.views), 'Страницы сайта, экраны приложения и WebView'],
+    ['Экранов за визит', String(k.viewsPerVisit).replace('.', ','), ''],
+    ['Среднее время визита', dur(k.avgVisitSec), 'Видимое время на страницах'],
+    ['Медиана визита', dur(k.medianVisitSec), 'Половина визитов короче этого'],
+    ['Всего времени', `${String(k.totalHours).replace('.', ',')} ч`, 'Сумма по всем визитам'],
+    ['Отказы', pctS(k.bouncePct), 'Визит из одного экрана без кликов'],
+    ['Сайт / приложение', `${num(k.webVisitors)} / ${num(k.appVisitors)}`, 'Посетители'],
+    ['Клики', num(k.clicks), 'Нажатия на ссылки, кнопки, вкладки'],
+  ].map(([l, v, t]) => `<div class="kpi" title="${esc(t)}"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join('');
+
+  const html = [];
+  html.push(sec('overview', 'Обзор', '', `<div class="kpis">${kpis}</div><div class="card" style="margin-top:14px"><h3>Посетители по дням</h3>${dailyChart(r.daily)}</div>`));
+
+  html.push(sec('focus', 'Что развивать',
+    'Оценка раздела: 40% охват (доля посетителей), 35% суммарное время, 25% возвраты (сколько посетителей пришли в раздел в двух и более визитах). Высокий охват при низком времени и высоком выходе значит, что раздел притягивает, но не удерживает.',
+    card('Разделы по оценке', table(r.content.focus, [
+      { h: 'Раздел', k: 'section' },
+      { h: 'Оценка', k: 'score', n: true, bar: true, f: (x) => x.score },
+      { h: 'Охват', k: 'reach', n: true, f: (x) => x.reach, t: '100 = самый посещаемый раздел' },
+      { h: 'Время', k: 'depth', n: true, f: (x) => x.depth, t: '100 = раздел с наибольшим суммарным временем' },
+      { h: 'Возвраты', k: 'returnPct', n: true, f: (x) => pctS(x.returnPct) },
+      { h: 'Выход отсюда', k: 'exitPct', n: true, f: (x) => pctS(x.exitPct), t: 'Доля просмотров, после которых визит закончился' },
+    ]))));
+
+  html.push(sec('sections', 'Разделы', 'Время раздела - видимое время на его экранах. Возвраты - доля посетителей раздела, пришедших в него в двух и более визитах.',
+    card('Все разделы', table(r.content.sections, [
+      { h: 'Раздел', k: 'key' },
+      { h: 'Посетители', k: 'visitors', n: true, bar: true, f: (x) => num(x.visitors) },
+      { h: 'Доля', k: 'visitorSharePct', n: true, f: (x) => pctS(x.visitorSharePct) },
+      { h: 'Просмотры', k: 'views', n: true, f: (x) => num(x.views) },
+      { h: 'Время всего', k: 'totalMin', n: true, f: (x) => dur(x.totalMin * 60) },
+      { h: 'Среднее на экран', k: 'avgSec', n: true, f: (x) => dur(x.avgSec) },
+      { h: 'Прокрутка', k: 'avgScrollPct', n: true, f: (x) => pctS(x.avgScrollPct) },
+      { h: 'Возвраты', k: 'returnPct', n: true, f: (x) => pctS(x.returnPct) },
+      { h: 'Выход', k: 'exitPct', n: true, f: (x) => pctS(x.exitPct) },
+    ]))));
+
+  html.push(sec('pages', 'Страницы и экраны', 'Входы - с этой страницы начался визит, выходы - на ней закончился, отказы - визит из одной этой страницы.',
+    card('Топ страниц по просмотрам', table(r.content.pages, [
+      { h: 'Маршрут', k: 'key', f: (x) => `<code>${esc(x.key)}</code>` },
+      { h: 'Просмотры', k: 'views', n: true, bar: true, f: (x) => num(x.views) },
+      { h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) },
+      { h: 'Среднее время', k: 'avgSec', n: true, f: (x) => dur(x.avgSec) },
+      { h: 'Прокрутка', k: 'avgScrollPct', n: true, f: (x) => pctS(x.avgScrollPct) },
+      { h: 'Входы', k: 'entries', n: true, f: (x) => num(x.entries) },
+      { h: 'Выходы', k: 'exitPct', n: true, f: (x) => pctS(x.exitPct) },
+      { h: 'Отказы', k: 'bouncePct', n: true, f: (x) => pctS(x.bouncePct) },
+    ]))));
+
+  const nav = r.navigation;
+  html.push(sec('nav', 'Как перемещаются', 'Переходы считаются между соседними просмотрами одного визита.',
+    `<div class="grid">
+      ${card('Куда идут с главной', simple(nav.afterHome, 'Раздел', 'count', 'Переходы', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('Глубина визита', simple(nav.depth, 'Экранов за визит', 'visits', 'Визиты'))}
+      ${card('Переходы между разделами', simple(nav.sectionFlows, 'Откуда → куда', 'count', 'Переходы', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('Переходы между страницами', simple(nav.transitions, 'Откуда → куда', 'count', 'Переходы', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('Страницы входа', simple(nav.entries, 'Маршрут', 'count', 'Визиты'))}
+      ${card('Страницы выхода', simple(nav.exits, 'Маршрут', 'count', 'Визиты'))}
+    </div>`));
+
+  const clickEmpty = 'Кликов пока нет: они начнут собираться после выкладки сайта с этой версией (и в приложении, когда WebView откроет обновленный сайт).';
+  html.push(sec('clicks', 'Куда нажимают', 'Ссылка - внутренний маршрут, внешняя ссылка - только домен, кнопка и вкладка - подпись интерфейса. Повторное нажатие той же кнопки в течение минуты считается один раз.',
+    `<div class="grid">
+      ${card('По типу', simple(r.clicks.kinds.map((x) => ({ ...x, label: KIND[x.key] ?? x.key })), 'Тип', 'count', 'Клики', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('По разделам', simple(r.clicks.bySection, 'Раздел', 'count', 'Клики'))}
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Самые нажимаемые элементы</h3>${table(r.clicks.rows, [
+      { h: 'Страница', k: 'path', f: (x) => `<code>${esc(x.path)}</code>` },
+      { h: 'Тип', k: 'kind', f: (x) => esc(KIND[x.kind] ?? x.kind) },
+      { h: 'Элемент', k: 'target' },
+      { h: 'Клики', k: 'count', n: true, bar: true, f: (x) => num(x.count) },
+      { h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) },
+    ], clickEmpty)}</div>`));
+
+  const s = r.sources;
+  html.push(sec('sources', 'Откуда приходят', 'Канал определяется по первому просмотру визита: utm-метка, затем реферер. Внутри приложения реферера нет, такие визиты помечены как «Приложение».',
+    `<div class="card"><h3>Каналы и качество трафика</h3>${table(s.channels, [
+      { h: 'Канал', k: 'key' },
+      { h: 'Визиты', k: 'visits', n: true, bar: true, f: (x) => num(x.visits) },
+      { h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) },
+      { h: 'Среднее время', k: 'avgVisitSec', n: true, f: (x) => dur(x.avgVisitSec) },
+      { h: 'Экранов за визит', k: 'viewsPerVisit', n: true, f: (x) => String(x.viewsPerVisit).replace('.', ',') },
+      { h: 'Отказы', k: 'bouncePct', n: true, f: (x) => pctS(x.bouncePct) },
+    ])}</div>
+    <div class="grid" style="margin-top:14px">
+      ${card('Сайты-источники', simple(s.refHosts, 'Домен', 'visits', 'Визиты'))}
+      ${card('Кампании (utm_source / medium / campaign)', simple(s.campaigns, 'Метка', 'visits', 'Визиты'))}
+      ${card('Клики на App Store по месту', simple(s.appStoreClicks, 'Метка места', 'count', 'Клики'))}
+    </div>`));
+
+  const a = r.audience;
+  html.push(sec('audience', 'Аудитория', 'Язык - язык интерфейса, который выбран у посетителя (или язык системы). Страна - по IP на сервере, сам IP не хранится.',
+    `<div class="grid">
+      ${card('Языки', table(a.languages, [
+        { h: 'Язык', k: 'key' },
+        { h: 'Посетители', k: 'visitors', n: true, bar: true, f: (x) => num(x.visitors) },
+        { h: 'Визиты', k: 'visits', n: true, f: (x) => num(x.visits) },
+        { h: 'Среднее время', k: 'avgVisitSec', n: true, f: (x) => dur(x.avgVisitSec) },
+      ]))}
+      ${card('Страны', simple(a.countries, 'Страна', 'visitors', 'Посетители', [{ h: 'Визиты', k: 'visits', n: true, f: (x) => num(x.visits) }]))}
+      ${card('Сайт или приложение', simple(a.clients, 'Где', 'visitors', 'Посетители', [{ h: 'Визиты', k: 'visits', n: true, f: (x) => num(x.visits) }]))}
+      ${card('Тип устройства', simple(a.devices.map((x) => ({ ...x, label: DEVICE[x.key] ?? x.key })), 'Устройство', 'visitors', 'Посетители'))}
+      ${card('Система', simple(a.oses, 'ОС', 'visitors', 'Посетители'))}
+      ${card('Браузер', simple(a.browsers, 'Браузер', 'visitors', 'Посетители'))}
+      ${card('Ширина экрана', simple(a.viewports, 'Экран', 'visitors', 'Посетители'))}
+      ${card('Модели устройств', simple(a.models, 'Модель', 'visitors', 'Посетители'))}
+    </div>`));
+
+  const ret = r.retention;
+  html.push(sec('retention', 'Возвраты', 'Сколько раз приходят, через сколько возвращаются и что делают в повторных визитах. Когорта - посетители, впервые пришедшие на этой неделе; ячейка - какая их доля была активна через N недель.',
+    `<div class="grid">
+      ${card('Визитов на посетителя', simple(ret.visitHist, 'Визиты', 'visitors', 'Посетители'))}
+      ${card('Через сколько возвращаются', simple(ret.gapHist, 'Перерыв', 'count', 'Возвраты'))}
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Недельные когорты</h3>${cohortTable(ret.cohorts)}</div>
+    <div class="card" style="margin-top:14px"><h3>Ради чего возвращаются</h3><p class="hint">Доля просмотров раздела в первых визитах и в повторных. Раздел, чья доля растет в повторных визитах, держит людей.</p>${table(ret.returnMix, [
+      { h: 'Раздел', k: 'section' },
+      { h: 'В первых визитах', k: 'firstPct', n: true, f: (x) => pctS(x.firstPct) },
+      { h: 'В повторных', k: 'returnPct', n: true, bar: true, f: (x) => pctS(x.returnPct) },
+      { h: 'Разница', k: 'd', n: true, f: (x) => { const d = Math.round((x.returnPct - x.firstPct) * 10) / 10; return `<span style="color:var(${d > 0 ? '--good' : d < 0 ? '--bad' : '--muted'})">${d > 0 ? '+' : ''}${String(d).replace('.', ',')}</span>`; } },
+    ])}</div>`));
+
+  html.push(sec('time', 'Когда заходят', 'Начала визитов по дням недели и часам, время этого компьютера.', card('Визиты по часам', heatmap(r.time.heat))));
+
+  const f = r.funnels, rc = f.race;
+  html.push(sec('funnels', 'Воронки', '',
+    `<div class="grid">
+      ${card('Гонка (все гонки)', funnel([
+        { l: 'Отсчет старта', v: rc.countdown.all }, { l: 'Первый поворот', v: rc.firstTack.all }, { l: 'Первый знак', v: rc.firstMark.all },
+        { l: 'Гонка закончена', v: rc.ended.all }, { l: 'Финишировал', v: rc.finished.all }, { l: 'Сохранил результат', v: rc.saved.all }, { l: 'Смотрел повтор', v: rc.replays.all },
+      ]))}
+      ${card('Первая гонка устройства', funnel([
+        { l: 'Отсчет старта', v: rc.countdown.firstRace }, { l: 'Первый поворот', v: rc.firstTack.firstRace }, { l: 'Первый знак', v: rc.firstMark.firstRace },
+        { l: 'Гонка закончена', v: rc.ended.firstRace }, { l: 'Финишировал', v: rc.finished.firstRace },
+      ]))}
+      ${card('Пробные экзамены', table(f.exams.map((e) => ({ ...e, key: e.base === 'src' ? 'Радио SRC' : 'Sternik' })), [
+        { h: 'Экзамен', k: 'key' }, { h: 'Начали', k: 'starts', n: true, f: (x) => num(x.starts) },
+        { h: 'Закончили', k: 'finishes', n: true, f: (x) => num(x.finishes) }, { h: 'Сдали', k: 'passed', n: true, f: (x) => num(x.passed) },
+        { h: 'Средний балл', k: 'avgScorePct', n: true, f: (x) => pctS(x.avgScorePct) },
+      ]))}
+      ${card('Пройденные уроки по курсам', simple(f.lessonCourses, 'Курс', 'count', 'Уроки', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('Пройденные уроки', simple(f.lessons, 'Курс / урок', 'count', 'Раз', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('Задания на рации', simple(f.radioTasks, 'Задание', 'count', 'Раз'))}
+      ${card('Настройки гонки', simple(f.raceModes, 'Режим / сложность / ветер', 'count', 'Гонки'))}
+      ${card('ИИ-тренер', `<div class="kpis"><div class="kpi"><div class="v">${num(f.coach.requests)}</div><div class="l">запросов</div></div><div class="kpi"><div class="v">${num(f.coach.visitors)}</div><div class="l">посетителей</div></div></div>`)}
+    </div>`));
+
+  const ap = r.app;
+  const appNote = ap.screenViews === 0
+    ? '<p class="hint">Нативные экраны приложения начнут приходить со сборки, в которую войдет эта версия (сейчас видны только экраны WebView: курсы, тренажеры, гонка).</p>'
+    : '';
+  html.push(sec('app', 'Приложение iOS', '',
+    `${appNote}<div class="kpis">
+      <div class="kpi"><div class="v">${num(ap.screenViews)}</div><div class="l">нативных экранов</div></div>
+      <div class="kpi"><div class="v">${num(ap.webViewPages)}</div><div class="l">страниц в WebView</div></div>
+      <div class="kpi"><div class="v">${num(ap.sessions)}</div><div class="l">сеансов в приложении</div></div>
+      <div class="kpi"><div class="v">${dur(ap.avgSessionSec)}</div><div class="l">средний сеанс</div></div>
+      <div class="kpi"><div class="v">${dur(ap.medianSessionSec)}</div><div class="l">медиана сеанса</div></div>
+      <div class="kpi"><div class="v">${ap.avgScreens === null ? '-' : String(ap.avgScreens).replace('.', ',')}</div><div class="l">экранов за сеанс</div></div>
+    </div>
+    <div class="grid" style="margin-top:14px">
+      ${card('Нативные экраны', simple(ap.topScreens, 'Экран', 'count', 'Просмотры', [{ h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) }]))}
+      ${card('Версии приложения', simple(ap.versions, 'Версия', 'visitors', 'Посетители'))}
+    </div>`));
+
+  html.push(sec('errors', 'Ошибки JavaScript', 'Только наши ошибки: расширения браузера и чужие скрипты отфильтрованы.',
+    card('Частые ошибки', table(r.errors, [
+      { h: 'Страница', k: 'path', f: (x) => `<code>${esc(x.path)}</code>` },
+      { h: 'Сообщение', k: 'msg', f: (x) => `<span class="err">${esc(x.msg)}</span>` },
+      { h: 'Раз', k: 'count', n: true, f: (x) => num(x.count) },
+      { h: 'Посетители', k: 'visitors', n: true, f: (x) => num(x.visitors) },
+    ], 'Ошибок нет.'))));
+
+  $('#main').innerHTML = html.join('');
+}
+
+function fillSelect(sel, values, current) {
+  const el = $(sel);
+  const first = el.options[0].outerHTML;
+  el.innerHTML = first + values.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  el.value = current || '';
+}
+
+function query() {
+  const p = new URLSearchParams();
+  const period = $('#period').value;
+  const today = new Date();
+  if (period === 'custom') {
+    if ($('#from').value) p.set('from', $('#from').value);
+    if ($('#to').value) p.set('to', $('#to').value);
+  } else if (period !== 'all') {
+    const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - Number(period) + 1);
+    p.set('from', ymd(from));
+    p.set('to', ymd(today));
+  }
+  for (const k of ['client', 'language', 'country']) if ($('#' + k).value) p.set(k, $('#' + k).value);
+  return p;
+}
+
+async function load() {
+  const p = query();
+  try { localStorage.setItem('regatta-analytics.filters', JSON.stringify({ period: $('#period').value, client: $('#client').value, from: $('#from').value, to: $('#to').value })); } catch {}
+  $('#meta').textContent = 'Считаю...';
+  try {
+    const res = await fetch('/api/report?' + p.toString());
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.status);
+    render(data);
+  } catch (err) {
+    $('#meta').textContent = 'Ошибка: ' + err.message;
+  }
+}
+
+async function doPull() {
+  const btn = $('#pull');
+  btn.disabled = true;
+  btn.textContent = 'Выгружаю...';
+  try {
+    const res = await fetch('/api/pull', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.status);
+    btn.textContent = `+${num(data.events)} событий`;
+    await load();
+  } catch (err) {
+    btn.textContent = 'Не вышло';
+    $('#meta').textContent = 'Выгрузка не удалась: ' + err.message;
+  } finally {
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'Обновить данные'; }, 2500);
+  }
+}
+
+try {
+  const saved = JSON.parse(localStorage.getItem('regatta-analytics.filters') || 'null');
+  if (saved) {
+    $('#period').value = saved.period || '30';
+    $('#client').value = saved.client || 'all';
+    $('#from').value = saved.from || '';
+    $('#to').value = saved.to || '';
+  }
+} catch {}
+const syncCustom = () => { const c = $('#period').value === 'custom'; $('#from').hidden = !c; $('#to').hidden = !c; };
+syncCustom();
+$('#period').addEventListener('change', () => { syncCustom(); load(); });
+for (const id of ['#from', '#to', '#client', '#language', '#country']) $(id).addEventListener('change', load);
+$('#pull').addEventListener('click', doPull);
+load();
+</script>
+</body>
+</html>

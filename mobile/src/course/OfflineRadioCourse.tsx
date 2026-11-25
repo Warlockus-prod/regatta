@@ -24,6 +24,7 @@ import { useI18n } from "../i18n/context";
 import { AnalyticsEvent } from "../analytics/events";
 import { useAnalytics } from "../analytics/use-analytics";
 import { parseExamFinished } from "../analytics/web-bridge";
+import { relayWebLog } from "../analytics/relay";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
 import { LOCAL_RADIO_SPEECH_SCRIPT, useLocalRadioSpeech } from "../radio/useLocalRadioSpeech";
 import { parseRadioEntries, persistRadioEntries, radioBootstrap, radioStorageEvent, readRadioEntries, RADIO_MESSAGE_LIMIT, type RadioEntries } from "../persistence/radio-storage";
@@ -174,6 +175,7 @@ function RadioCourseContent({ initialHref }: { initialHref: string }) {
   const onMessage = (event: WebViewMessageEvent) => {
     if (!startup.accepts(attemptId)) return;
     if (handleNativeDiagnosticMessage(event.nativeEvent.data, "radio")) return;
+    if (relayWebLog(event.nativeEvent.data, analyticsOn)) return;
     if (event.nativeEvent.data.length > RADIO_MESSAGE_LIMIT) return;
     if (handleLocalSpeech(event.nativeEvent.data)) return;
     const exam = parseExamFinished(event.nativeEvent.data);
