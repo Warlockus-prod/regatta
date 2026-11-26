@@ -41,10 +41,8 @@ class FakeEl {
   }
   closest(selector: string): FakeEl | null {
     const parts = selector.split(',');
-    for (let el: FakeEl | null = this; el; el = el.parent) {
-      if (parts.some((p) => el!.matchesOne(p))) return el;
-    }
-    return null;
+    if (parts.some((p) => this.matchesOne(p))) return this;
+    return this.parent ? this.parent.closest(selector) : null;
   }
 }
 
