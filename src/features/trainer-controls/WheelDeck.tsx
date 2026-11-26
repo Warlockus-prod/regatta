@@ -53,6 +53,18 @@ const HINT_KEY = "regatta.controls.wheelHint";
 const CAPTION_H = 50;
 type Box = [cx: number, cy: number, d: number];
 
+/** A bottom deck at least this wide and at most this tall is the turned phone's: wheels go to the corners. */
+export const CORNER_DECK_MIN_W = 560;
+export const CORNER_DECK_MAX_H = 240;
+/** Sheet wheels in the corner layout: a thumb's size, their centres a caption apart. */
+const CORNER_SHEET = 84;
+/** The helm in the corner: big enough to turn with a thumb, low enough to stay under the wind card. */
+const CORNER_HELM = 128;
+const CORNER_SHEET_GAP = 118;
+export function cornerDeck(layout: "bottom" | "column", width: number, height: number, sheets: boolean): boolean {
+  return layout === "bottom" && sheets && width >= CORNER_DECK_MIN_W && height <= CORNER_DECK_MAX_H;
+}
+
 export function WheelDeck(props: {
   helm: HelmTarget;
   main?: SheetTarget | null;
@@ -239,17 +251,25 @@ export function WheelDeck(props: {
   // Bottom dock: helm in the middle, sheets in the lower corners. Column (desktop
   // panel): the two sheets in a row on top, the helm under them.
   const sheetRow = small + CAPTION_H + 10;
-  const big = layout === "bottom"
+  // Package 32, game screen: a deck laid across a turned phone puts the helm under the left thumb
+  // and both sheets under the right one, and leaves the middle to the boat.
+  const corners = cornerDeck(layout, w, h, sheets);
+  const big = corners ? Math.max(96, Math.min(CORNER_HELM, h - CAPTION_H - 8))
+    : layout === "bottom"
     ? Math.max(96, Math.min(176, h - CAPTION_H - 8, w - 2 * small - 40))
     : Math.max(110, Math.min(184, h - (sheets ? sheetRow : 0) - CAPTION_H - 8, w - 40));
-  const center: Box = layout === "bottom" || !sheets
+  const center: Box = corners ? [big / 2 + 20, h - CAPTION_H - big / 2 - 2, big]
+    : layout === "bottom" || !sheets
     ? [w / 2, (h - CAPTION_H) / 2 + 2, big]
     : [w / 2, sheetRow + big / 2, big];
   // Keep a sheet caption (about 104 px wide) inside the box.
   const capHalf = 54;
   const colX = (x: number) => Math.min(w - capHalf, Math.max(capHalf, x));
-  const left: Box = layout === "bottom" ? [small / 2 + 14, h - CAPTION_H - small / 2 - 2, small] : [colX(w / 2 - small - 24), small / 2 + 4, small];
-  const right: Box = layout === "bottom" ? [w - small / 2 - 14, h - CAPTION_H - small / 2 - 2, small] : [colX(w / 2 + small + 24), small / 2 + 4, small];
+  const sideSize = corners ? CORNER_SHEET : small;
+  const left: Box = corners ? [w - capHalf - 4 - CORNER_SHEET_GAP, h - CAPTION_H - sideSize / 2 - 2, sideSize]
+    : layout === "bottom" ? [small / 2 + 14, h - CAPTION_H - small / 2 - 2, small] : [colX(w / 2 - small - 24), small / 2 + 4, small];
+  const right: Box = corners ? [w - capHalf - 4, h - CAPTION_H - sideSize / 2 - 2, sideSize]
+    : layout === "bottom" ? [w - small / 2 - 14, h - CAPTION_H - small / 2 - 2, small] : [colX(w / 2 + small + 24), small / 2 + 4, small];
   const pos: Record<Slot, Box> = { helm: center, [leftK]: left, [rightK]: right } as Record<Slot, Box>;
   if (expanded) {
     pos[expanded] = center;
@@ -289,7 +309,7 @@ export function WheelDeck(props: {
     : null;
   return (
     <>
-    <div className={styles.deck} data-layout={layout}>
+    <div className={styles.deck} data-layout={layout} data-corners={corners ? "true" : undefined}>
       {layout === "column" && hint}
       <div ref={boxRef} className={styles.deckArea} data-testid="wheel-deck">
         {sheets && sheetWheel(leftK)}

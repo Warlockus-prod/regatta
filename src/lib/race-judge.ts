@@ -1,5 +1,5 @@
 import { RULE_EVENT_COOLDOWN, type RaceRuleEvent, type RaceRuleEventKind, type RacingRule } from "./race-rules";
-import { isStartJostle } from "./race-start-jostle";
+import { RACE_START_JOSTLE_SECONDS, isStartJostleWithin } from "./race-start-jostle";
 
 /** Training judge debrief (ADR-0009). Pure: turns the rule events that
  * race-rules.ts emitted during one race into an ordered, explained list of
@@ -84,6 +84,8 @@ export interface RaceJudgeOptions {
   markRoundedAt?: number;
   /** Race time of the finish (without penalties). */
   finishedAt?: number;
+  /** The race's start jostle, seconds (raceScale startJostleSeconds); the legacy 10 s when omitted. */
+  startJostleSeconds?: number;
 }
 
 interface Candidate { kind: RaceJudgeIncidentKind; rule: RacingRule; other?: string; standOn: boolean; jostle?: true; events: RaceRuleEvent[]; }
@@ -120,7 +122,7 @@ export function buildRaceJudgeDebrief(events: readonly RaceRuleEvent[], options:
   for (const e of all) {
     if (e.boatId === me) {
       if (e.kind === "mark-rounded") continue;
-      if (isStartJostle(e)) {
+      if (isStartJostleWithin(e, options.startJostleSeconds ?? RACE_START_JOSTLE_SECONDS)) {
         if (jostle) jostle.events.push(e);
         else groups.push(jostle = { kind: "avoid-contact", rule: "14", standOn: false, jostle: true, events: [e] });
         continue;

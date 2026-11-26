@@ -1,1 +1,1 @@
-Testy sternik motorowodny, SRC
+Symulator jachtu, sternik, SRC

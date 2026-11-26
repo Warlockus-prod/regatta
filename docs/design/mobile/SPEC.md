@@ -3,7 +3,7 @@
 Status: **skeleton** (2026-05-03). Captures the user-facing surface of
 the iOS app as it stands today. Decisions live in
 [DECISIONS.md](./DECISIONS.md), execution sequencing in
-[ROADMAP.md](./ROADMAP.md), API surface in
+[docs/BACKLOG.md](../../BACKLOG.md), API surface in
 [API_CONTRACT.md](./API_CONTRACT.md). This file is the **what each
 screen does** doc.
 

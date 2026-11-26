@@ -5,6 +5,9 @@ import { legacyPick } from '@/lib/languages';
 import { glossaryTerms, glossaryCategories } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
+import { SubjectVisuals } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
+import { partVisuals } from '@/data/anatomy-visuals';
 
 const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
   boat:     { color: 'var(--cat-cyan)',   bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
@@ -76,7 +79,6 @@ export default function GlossaryPage() {
           >
             {tp('Глоссарий', 'Glossary', 'Słownik', { es: 'Glosario', fr: 'Glossaire', de: 'Glossar', it: 'Glossario' })}
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Słownik żeglarski', { es: 'Glosario de vela', fr: 'Glossaire de voile', de: 'Segellexikon', it: 'Glossario velico' })}</p>
         </div>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
@@ -106,7 +108,9 @@ export default function GlossaryPage() {
             placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...', { es: 'Buscar términos...', fr: 'Rechercher des termes...', de: 'Begriffe suchen...', it: 'Cerca termini...' })}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="search-input w-full pl-11 pr-4 py-3 text-sm"
+            className="search-input w-full min-h-11 pr-4 py-3 text-base"
+            // .search-input is unlayered CSS and beats a pl-* utility: the icon sat on the placeholder.
+            style={{ paddingLeft: 44 }}
           />
           {search && (
             <button
@@ -132,7 +136,7 @@ export default function GlossaryPage() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
+        <div className="flex flex-wrap gap-2">
           {allCategories.map((cat) => {
             const isActive = activeCategory === cat;
             const colors = cat !== 'all' ? categoryColors[cat] : null;
@@ -140,13 +144,13 @@ export default function GlossaryPage() {
               <button
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
-                className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200"
+                className="shrink-0 min-h-11 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
                 style={
                   isActive
                     ? cat === 'all'
                       ? {
                           background: 'rgba(0, 212, 255, 0.15)',
-                          color: 'var(--accent-cyan)',
+                          color: 'var(--cat-cyan)',
                           border: '1px solid rgba(0, 212, 255, 0.3)',
                         }
                       : {
@@ -156,7 +160,7 @@ export default function GlossaryPage() {
                         }
                     : {
                         background: 'var(--hover-bg)',
-                        color: 'var(--text-muted)',
+                        color: 'var(--text-secondary)',
                         border: '1px solid var(--border-subtle)',
                       }
                 }
@@ -168,7 +172,7 @@ export default function GlossaryPage() {
         </div>
 
         {/* Stats bar */}
-        <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+        <div className="flex items-center justify-between text-sm text-[var(--text-muted)]">
           <span>
             {filteredTerms.length === glossaryTerms.length
               ? tp(
@@ -209,7 +213,9 @@ export default function GlossaryPage() {
               return (
                 <div
                   key={term.id}
-                  className="card p-5 flex flex-col gap-3"
+                  // Deep link target (/glossary#no-go-zone, src/data/no-go-zone.ts).
+                  id={term.id}
+                  className="card p-5 flex flex-col gap-3 scroll-mt-24"
                   style={{
                     animation: `cardFadeIn 0.3s ease-out ${index * 0.03}s both`,
                   }}
@@ -240,18 +246,13 @@ export default function GlossaryPage() {
                     </span>
                   </div>
 
-                  {/* Definition in active language. EN shown as faint subtitle
-                      only in non-EN modes (keeps cards compact for EN readers). */}
-                  <div className="flex flex-col gap-1.5">
-                    <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                      {pickDef(term)}
-                    </p>
-                    {lang !== 'en' && (
-                      <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                        {term.definitionEn}
-                      </p>
-                    )}
-                  </div>
+                  {/* The English term stays above; the explanation is in the reader's language only. */}
+                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                    {pickDef(term)}
+                  </p>
+                  {/* Package 32: a term that is a part of the yacht, a point of sail or a turn shows the same schematic and picture as the section that teaches it. */}
+                  <SubjectVisuals id={term.id} name={pickTerm(term)}
+                    labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: (partVisuals(term.id) ? UI_TERMS.visualOnBoat : UI_TERMS.visualOnWater)[lang] }} />
                 </div>
               );
             })}
@@ -277,18 +278,13 @@ export default function GlossaryPage() {
             <p className="text-sm text-[var(--text-muted)]">
               {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono', { es: 'Sin resultados', fr: 'Aucun résultat', de: 'Nichts gefunden', it: 'Nessun risultato' })}
             </p>
-            {lang !== 'en' && (
-              <p className="text-xs text-[var(--text-muted)]" style={{ opacity: 0.7 }}>
-                No terms match your search
-              </p>
-            )}
             <button
               onClick={() => {
                 setSearch('');
                 setActiveCategory('all');
                 setAnimationKey((k) => k + 1);
               }}
-              className="mt-2 text-xs px-4 py-1.5 rounded-full transition-colors"
+              className="mt-2 min-h-11 text-sm px-4 py-1.5 rounded-full transition-colors"
               style={{
                 color: 'var(--accent-cyan)',
                 background: 'rgba(0, 212, 255, 0.1)',

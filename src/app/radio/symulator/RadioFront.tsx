@@ -299,7 +299,7 @@ function TxMeter({ s, ins, compact = false }: { s: RadioState; ins?: Inspect; co
   );
 }
 
-function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false, tight = false }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean; compact?: boolean; tight?: boolean }) {
+function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false, tight = false, picture = false }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean; compact?: boolean; /** A picture of the screen (RadioScreenFrame): it carries none of the test and inspection hooks of the radio's one screen. */ picture?: boolean; tight?: boolean }) {
   const {rt: radioText} = useRadioI18n();
   const bodyRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -751,8 +751,8 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false, tight =
 
   return (
     <div
-      data-testid="lcd"
-      data-ik="lcd"
+      data-testid={picture ? undefined : "lcd"}
+      data-ik={picture ? undefined : "lcd"}
       // While inspecting, the screen itself is focusable so a keyboard user can
       // ask "what is this screen" (Enter/Space), matching the pointer behaviour.
       role={ins?.on ? 'button' : undefined}
@@ -793,7 +793,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false, tight =
       }}
     >
       {s.power && <StatusBar s={s} ins={ins} busy={busy} />}
-      <div ref={bodyRef} data-testid="radio-lcd-body" style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", paddingTop: s.power ? 4 : 0 }}>{body}</div>
+      <div ref={bodyRef} data-testid={picture ? undefined : "radio-lcd-body"} style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", paddingTop: s.power ? 4 : 0 }}>{body}</div>
       {s.power && <TxMeter s={s} ins={ins} compact={compact} />}
       {/* softkey labels - bottom row, like on the device. The compact faceplate
           drops it: the softkeys right under the screen carry the same labels. */}
@@ -827,6 +827,19 @@ function softIk(label: string): string {
     case 'DISTRESS': return 'sk-distress-menu';
     default: return 'softkeys';
   }
+}
+
+/**
+ * Package 32, step 5: the LCD alone in a given state, as a picture and not a control (it is inert
+ * and hidden from assistive technology; the figure around it carries the label). The same
+ * component the radio draws its screen with, so the picture is always a screen the radio has.
+ */
+export function RadioScreenFrame({ s, skin = 'green' }: { s: RadioState; skin?: RadioSkin }) {
+  return (
+    <div aria-hidden="true" inert style={{ ...LCD_SKINS[skin], width: '100%', pointerEvents: 'none' }} data-testid="radio-screen-frame">
+      <Lcd s={s} clock="12:00" holdPct={0} nextTxSec={0} compact picture />
+    </div>
+  );
 }
 
 export default function RadioFront({

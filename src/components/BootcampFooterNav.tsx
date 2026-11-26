@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { bootcampLessons } from "@/data/bootcamp";
+import { BOOTCAMP_LESSON_PLAN, bootcampLessonHeads } from "@/data/bootcamp-index";
 import { foundationCopy } from "@/data/foundation-copy";
 import { useI18n } from "@/lib/i18n";
 import { legacyPick } from "@/lib/languages";
@@ -12,14 +12,18 @@ import { foundationHref } from "@/lib/learning/foundation-navigation";
 import { foundationWebCopy } from "@/app/start/copy";
 import { useFoundationProgress } from "@/app/start/useFoundationProgress";
 
-/** Return from a lesson destination without turning a visit into a passed check. */
+/**
+ * Return from a lesson destination without turning a visit into a passed check.
+ * Rendered by the root layout on every page: it reads lesson heads and the quiz
+ * answer key only, never bootcamp.ts or the quiz text (learning-bookmark.test.ts).
+ */
 export default function BootcampFooterNav() {
   const { lang } = useI18n();
   const pathname = usePathname();
   const state = useFoundationProgress();
   const current = state.progress.current ?? state.legacyCurrent;
-  const lesson = bootcampLessons.find(item => item.id === current);
-  const baseRoute = lesson?.route.split(/[#?]/)[0];
+  const lesson = bootcampLessonHeads.find(item => item.id === current);
+  const baseRoute = BOOTCAMP_LESSON_PLAN.find(item => item.id === lesson?.id)?.route.split(/[#?]/)[0];
   const immersive = ["/game", "/multiplayer", "/simulator", "/simulator2", "/simulator-v3"].some(route => pathname === route || pathname.startsWith(`${route}/`));
   const visible = Boolean(state.ready && !state.readError && lesson && baseRoute && (pathname === baseRoute || pathname.startsWith(`${baseRoute}/`)) && !immersive);
   const ref = useRef<HTMLDivElement>(null);

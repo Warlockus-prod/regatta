@@ -28,9 +28,12 @@ export type {
   TickDiagnostics,
   TickResult,
   ResolvedRig,
+  CruiserModel,
+  TickMotion,
 } from './types';
 
-export { DEFAULT_BOAT, getBoatParams } from './boat';
+export { DEFAULT_BOAT, CLASSIC_BOAT, CRUISER_BOAT, getBoatParams, getClassicBoatParams } from './boat';
+export { cruiserResistance, residuaryShare } from './resistance';
 export {
   createInitialState,
   tick,

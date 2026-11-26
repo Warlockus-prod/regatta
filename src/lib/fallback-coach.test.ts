@@ -108,7 +108,8 @@ describe("local coach (M0-4)", () => {
       expect(c.nextGoal).not.toMatch(/[\u2013\u2014]/);
       for (const m of c.mistakes) {
         expect(m.title).toBe(m.titleRu);
-        expect(Object.keys(m).sort()).toEqual(["explanation", "explanationRu", "fix", "fixRu", "severity", "timeEnd", "timeStart", "title", "titleRu"]);
+        // M4-2: plus the mistake kind that picks its practice on the finish screen.
+        expect(Object.keys(m).sort()).toEqual(["explanation", "explanationRu", "fix", "fixRu", "kind", "severity", "timeEnd", "timeStart", "title", "titleRu"]);
       }
     }
   });

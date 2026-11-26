@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeStandardCourse, type RaceBoat } from "./race-physics";
-import { createRaceRulesState, evaluateRaceRules, raceClosestApproach, raceRightOfWay, raceTack, type RaceRulesFrame } from "./race-rules";
+import { createRaceRulesState, evaluateRaceRules, JUDGE_TACKING_TWA_DEG, raceClosestApproach, raceRightOfWay, raceTack, type RaceRulesFrame } from "./race-rules";
+import { NO_GO_HALF_DEG } from "./sailing-physics/constants";
 
 const boat = (id: string, x: number, y: number, heading: number, speed = 4): RaceBoat => ({ id, name: id, color: "white", pos: { x, y }, heading, speed, lapDone: 0, started: true });
 const course = makeStandardCourse();
@@ -16,6 +17,14 @@ describe("educational right-of-way subset", () => {
   it("puts a port-tack boat under rule 10 and a same-tack windward boat under rule 11", () => {
     expect(raceRightOfWay(boat("p", 370, 700, 45), boat("s", 430, 700, 315), 0)).toEqual({ giveWayId: "p", standOnId: "s", rule: "10" });
     expect(raceRightOfWay(boat("windward", 420, 700, 0), boat("leeward", 400, 700, 0), 90)).toEqual({ giveWayId: "windward", standOnId: "leeward", rule: "11" });
+  });
+  it("keeps the judge's tacking threshold at 42 deg after the teaching zone moved to 40 (ADR-0023)", () => {
+    expect(JUDGE_TACKING_TWA_DEG).toBe(42);
+    expect(NO_GO_HALF_DEG).toBe(40);
+    // Port boat at TWA 41 and 43, starboard boat at 45: 41 is still "tacking".
+    for (const [twa, expected] of [[41, null], [43, { giveWayId: "p", standOnId: "s", rule: "10" }]] as const) {
+      expect(raceRightOfWay(boat("p", 370, 700, twa), boat("s", 430, 700, 315), 0), `${twa}`).toEqual(expected);
+    }
   });
   it("applies rule 12 to a boat clear astern, not rule 11 just because she is to windward", () => {
     expect(raceRightOfWay(boat("astern", 420, 740, 0), boat("ahead", 400, 700, 0), 90)).toEqual({ giveWayId: "astern", standOnId: "ahead", rule: "12" });

@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import type { EdgeInsets } from "react-native-safe-area-context";
 import { useFocus } from "./orientation";
 
@@ -23,8 +23,9 @@ export function raceShellStackOptions(path: string): { gestureEnabled?: false; f
 }
 
 /**
- * Side padding for a full-screen race. The race page has no safe-area CSS of
- * its own, so the native frame keeps the WebView out of the left and right
+ * Side padding for a screen that turns with the phone: the full-screen race
+ * and, since package 32, the three trainers. Their pages have no safe-area CSS
+ * of their own, so the native frame keeps the WebView out of the left and right
  * insets (zero in portrait, the island and corners in landscape). The page
  * background shows in the side bands.
  */
@@ -44,6 +45,48 @@ export function raceOverlayInsets(insets: Pick<EdgeInsets, "top" | "left" | "rig
   return { top: headerShown ? 0 : Math.max(0, insets.top), left: Math.max(0, insets.left), right: Math.max(0, insets.right) };
 }
 
+/**
+ * Package 11 (audit K6): a race page that draws its own header says so
+ * ({"type":"race-header","own":true}, src/lib/native-race-header.ts) and the
+ * native header hides while it lasts, so the live room is not squeezed
+ * between two headers. Returns the flag, or null for any other message.
+ */
+export function raceHeaderMessage(message: string): boolean | null {
+  if (message.length > 64 || !message.startsWith('{"type":"race-header"')) return null;
+  try {
+    const data = JSON.parse(message) as { type?: unknown; own?: unknown };
+    return data.type === "race-header" && typeof data.own === "boolean" ? data.own : null;
+  } catch { return null; }
+}
+
+/**
+ * Package 31, R-45 prototype: the race page's water layout says when it is on
+ * screen ({"type":"race-water","on":true}, src/lib/race-water-layout.ts). The
+ * frame then drops all its insets, so the scene reaches the screen edges and the
+ * page keeps its controls clear of the safe areas itself. Returns the flag, or
+ * null for any other message.
+ */
+export function raceWaterMessage(message: string): boolean | null {
+  if (message.length > 64 || !message.startsWith('{"type":"race-water"')) return null;
+  try {
+    const data = JSON.parse(message) as { type?: unknown; on?: unknown };
+    return data.type === "race-water" && typeof data.on === "boolean" ? data.on : null;
+  } catch { return null; }
+}
+
+/**
+ * Package 32 stage B (rule R-46, point 6): which trainers paint their scene on
+ * the whole screen and what the native shell gives up for it. `full`: the
+ * phone is turned, so the native header and the frame's insets go and Back
+ * floats over the scene. `bottomEdge`: the page reaches the bottom edge and
+ * pads its dock for the home indicator itself, upright as well. The flat
+ * steering trainer has no such scene and keeps the old frame.
+ */
+export function trainerStage(tier: string | undefined, landscape: boolean): { full: boolean; bottomEdge: boolean } {
+  const staged = tier === "trainer" || tier === "boat3d";
+  return { full: staged && landscape, bottomEdge: staged };
+}
+
 /** Within this time after an automatic reload, a second process loss shows Retry instead of looping. */
 export const RACE_PROCESS_RELOAD_WINDOW_MS = 60_000;
 
@@ -52,15 +95,10 @@ export function raceProcessRecovery(lastAutoReloadAt: number | null, now: number
   return lastAutoReloadAt !== null && now - lastAutoReloadAt < RACE_PROCESS_RELOAD_WINDOW_MS ? "fail" : "reload";
 }
 
-// expo-keep-awake is linked through the `expo` package (ExpoKeepAwake pod),
-// but it is not a declared dependency of the app, so the JS package does not
-// resolve. The native module is reached directly, as useLocalRadioSpeech does
-// for speech; a build without it simply keeps the system idle timer.
-interface KeepAwakeModule {
-  activate(tag: string): Promise<boolean>;
-  deactivate(tag: string): Promise<boolean>;
-}
-const keepAwake = requireOptionalNativeModule<KeepAwakeModule>("ExpoKeepAwake");
+// expo-keep-awake is a declared dependency (SDK 54 pins ~15.0.x), so the
+// ExpoKeepAwake pod is autolinked from the app itself rather than reached
+// through the `expo` package's own copy. Each race screen holds its own tag,
+// so two stacked race screens release only their own lock.
 let nextKeepAwakeTag = 0;
 
 /** Keep the display on while this screen is focused; the native module releases it in the background. */
@@ -69,8 +107,8 @@ export function useKeepAwakeWhileFocused(enabled: boolean) {
   if (tag.current === null) tag.current = `regatta-race-${nextKeepAwakeTag++}`;
   useFocus(useCallback(() => {
     const id = tag.current;
-    if (!enabled || !keepAwake || !id) return undefined;
-    void keepAwake.activate(id).catch(() => undefined);
-    return () => { void keepAwake.deactivate(id).catch(() => undefined); };
+    if (!enabled || !id) return undefined;
+    void activateKeepAwakeAsync(id).catch(() => undefined);
+    return () => { void deactivateKeepAwake(id).catch(() => undefined); };
   }, [enabled]));
 }

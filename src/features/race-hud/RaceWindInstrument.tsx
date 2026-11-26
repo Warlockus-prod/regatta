@@ -4,39 +4,65 @@ import type { WindDisplay } from "@/lib/race-visual-prefs";
 import type { RaceWindReading } from "./navigation-model";
 import { useRaceNavigationCopy } from "./navigation-copy";
 import styles from "./RaceWindInstrument.module.css";
+import { bowRelativeWind } from "./wind-dial";
+import type { WindWords } from "./wind-words";
+import type { ReactNode } from "react";
 
-export function RaceWindInstrument({ reading, display, compact = false }: {
-  reading: RaceWindReading | null; display: WindDisplay; compact?: boolean;
+/** `words` (package 12, audit B3): the Simple race leads with words, "80° от
+ * носа" over "ветер слева", and drops the TWA tag; Pro and the trainer keep the
+ * instrument notation. TWD stays small on the second line in both. The words
+ * come resolved from the race cockpit (wind-words.ts), so the other users of
+ * this instrument do not carry them. */
+export function RaceWindInstrument({ reading, display, compact = false, words = null, bare = false, extra }: {
+  reading: RaceWindReading | null; display: WindDisplay; compact?: boolean; words?: WindWords | null;
+  /** Package 31, owner 2026-11-07: only the dial and short rows of numbers (TWA,
+   * TWS, TWD, and `extra`, the VMG row), no caption and no words for the side:
+   * the arrow shows it, a screen reader still hears it. */
+  bare?: boolean; extra?: ReactNode;
 }) {
   const c = useRaceNavigationCopy();
   const angle = (value: number | null | undefined) => value == null ? c.unknown : `${Math.round(value)}°`;
   const speed = (value: number | null | undefined) => value == null ? c.unknown : `${value.toFixed(1)} ${c.knots}`;
   const compass = Boolean(reading && (display === "compass" || display === "both"));
-  const twa = reading ? Math.round(Math.abs(reading.twaSigned)) : null;
-  // The displayed endpoints have no port/starboard side. Use the shared
-  // trainer sign for the source of true wind, never the legacy race TWA sign.
-  const side = !reading ? null : twa === 0 ? "ahead" : twa === 180 ? "astern" : reading.twaSigned < 0 ? "port" : "starboard";
+  // F2: one bow-relative reading drives the number, the side and the arrow.
+  // Rounded 0/180 readings name the bow or the stern, never a side.
+  const wind = bowRelativeWind(reading?.twaSigned);
+  const twa = wind ? wind.degrees : null;
+  const side = wind?.side ?? null;
   const sideLabel = side === "ahead" ? c.fromBow : side === "astern" ? c.fromStern : side === "port" ? c.fromPort : c.fromStarboard;
-  const sideMark = side === "ahead" ? "↑" : side === "astern" ? "↓" : side === "port" ? c.portShort : c.starboardShort;
-  return <div className={styles.instrument} data-compact={compact || undefined} data-available={Boolean(reading)} data-testid="race-wind-instrument" aria-label={c.trueWind}>
-    {compass && reading && <svg className={styles.compass} viewBox="0 0 100 100" role="img"
+  const sideWord = words
+    ? side === "ahead" ? words.ahead : side === "astern" ? words.astern : side === "port" ? words.left : words.right
+    : side === "ahead" ? c.aheadSide : side === "astern" ? c.asternSide : side === "port" ? c.portSide : c.starboardSide;
+  return <div className={styles.instrument} data-compact={compact || undefined} data-bare={bare || undefined} data-words={words && !bare ? true : undefined} data-available={Boolean(reading)} data-testid="race-wind-instrument" aria-label={c.trueWind}>
+    {compass && reading && wind && <svg className={styles.compass} viewBox="0 0 100 100" role="img"
       aria-label={`${c.relativeWind}: ${angle(twa)}; ${sideLabel}; ${c.windFrom} ${angle(reading.trueFrom)}; ${c.heading} ${angle(reading.heading)}`} data-testid="race-wind-compass">
-      <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="1.5" />
-      <path d="M50 10v6M90 50h-6M50 90v-6M10 50h6" stroke="currentColor" strokeWidth="2" />
-      <path data-testid="race-wind-bow" d="M50 36 42 60 50 56 58 60Z" fill="var(--text-secondary)" opacity=".85" />
-      <g data-testid="race-relative-wind-arrow" transform={`rotate(${reading.twaSigned} 50 50)`} fill="none" stroke="var(--text-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M50 10v22m-6-7 6 7 6-7" />
+      <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeOpacity=".45" strokeWidth="2" />
+      {/* Port red on the left, starboard green on the right, like the sidelights. */}
+      <path d="M9.6 40A42 42 0 0 0 9.6 60" fill="none" stroke="var(--race-port,#e5484d)" strokeWidth="5" strokeLinecap="round" />
+      <path d="M90.4 40A42 42 0 0 1 90.4 60" fill="none" stroke="var(--race-starboard,#30a46c)" strokeWidth="5" strokeLinecap="round" />
+      <path data-testid="race-wind-bow" d="M50 30C57 38 58 52 56 68H44C42 52 43 38 50 30Z" fill="var(--text-secondary)" opacity=".9" />
+      {/* The arrow is drawn from the helper's own points: tail on the rim on the
+          side the wind blows from, head toward the boat (wind-dial.ts). */}
+      <g data-testid="race-relative-wind-arrow" data-angle={wind.angle} data-side={side} fill="none" stroke="var(--text-primary)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+        <line data-testid="race-relative-wind-shaft" x1={wind.tail.x} y1={wind.tail.y} x2={wind.head.x} y2={wind.head.y} />
+        <polyline data-testid="race-relative-wind-head" points={`${wind.barbs[0].x},${wind.barbs[0].y} ${wind.head.x},${wind.head.y} ${wind.barbs[1].x},${wind.barbs[1].y}`} />
       </g>
     </svg>}
-    <div className={styles.readings}>
+    {bare ? <div className={styles.rows}>
+      <div title={c.relativeWind}><span aria-hidden="true">TWA</span><span className="sr-only">{c.relativeWind}: </span><b data-testid="race-true-wind-angle">{angle(twa)}</b>{side && <span className="sr-only" data-testid="race-true-wind-side" data-side={side}>{sideLabel}</span>}</div>
+      <div title={c.trueWind}><span aria-hidden="true">TWS</span><span className="sr-only">{c.trueWind}: </span><b data-testid="race-true-wind-speed">{speed(reading?.trueKnots)}</b></div>
+      <div title={c.windFrom}><span aria-hidden="true">TWD</span><span className="sr-only">{c.windFrom}: </span><b data-testid="race-true-wind-direction">{angle(reading?.trueFrom)}</b></div>
+      {extra}
+    </div> : <div className={styles.readings}>
       {!compact && <div className={styles.caption}>{c.trueWind}</div>}
       <b className={styles.bearing}>
-        <span className={styles.kind} aria-hidden="true">TWA</span><span className="sr-only">{c.relativeWind}: </span>
+        {!words && <span className={styles.kind} aria-hidden="true">TWA</span>}<span className="sr-only">{c.relativeWind}: </span>
         <span data-testid="race-true-wind-angle">{angle(twa)}</span>
-        {side && <span className={styles.side} data-testid="race-true-wind-side" data-side={side} title={sideLabel}>
-          <span aria-hidden="true">{sideMark}</span><span className="sr-only">{sideLabel}</span>
-        </span>}
+        {words && twa !== null && <span className={styles.from} data-testid="race-true-wind-from-bow">{words.offBow}</span>}
       </b>
+      {side && <span className={styles.side} data-testid="race-true-wind-side" data-side={side} title={sideLabel}>
+        <span aria-hidden="true">{sideWord}</span><span className="sr-only">{sideLabel}</span>
+      </span>}
       <div className={styles.metadata}>
         <span title={`${c.windFrom}: ${angle(reading?.trueFrom)}`}><span aria-hidden="true">TWD </span><span className="sr-only">{c.windFrom}: </span><span data-testid="race-true-wind-direction">{angle(reading?.trueFrom)}</span></span>
         <span className={styles.speed} data-testid="race-true-wind-speed">{speed(reading?.trueKnots)}</span>
@@ -45,7 +71,7 @@ export function RaceWindInstrument({ reading, display, compact = false }: {
         <div><dt>{c.heading}</dt><dd>{angle(reading?.heading)}</dd></div>
         <div><dt>{c.apparentWind}</dt><dd>{speed(reading?.apparentKnots)}</dd></div>
       </dl>}
-    </div>
+    </div>}
   </div>;
 }
 

@@ -97,4 +97,43 @@ describe("physical course progression", () => {
     expect(advancePhysicalRaceProgress(b, motion, context, course, 1, true)).toBeNull();
     expect(b).toEqual({ ...original, lapDone: 1 });
   });
+
+  // ADR-0015 point 4: a sliding contact bends the travelled path within a
+  // tick. Contract: a gate is credited iff the travelled polyline crosses it
+  // (each segment with its own direction check), never because its chord does.
+  it("grades the travelled polyline segment by segment, not its chord", () => {
+    const context = physicalRaceContext("short"), course = makePhysicalRaceCourse("short");
+    const { x, y } = course.marks[0].pos;
+    const fresh = () => ({ ...boat(), started: true });
+    // The path slides west below the mark, then crosses the round-east gate
+    // northward on its second segment; the chord crosses y beyond the outer end.
+    const bent = { from: { x: x + 80, y: y + .2 }, path: [{ x: x + 20, y: y + .2 }], to: { x: x + 20, y: y - 1 } };
+    let b = fresh();
+    expect(advancePhysicalRaceProgress(b, { from: bent.from, to: bent.to }, context, course, 10, true)?.event).toBeNull();
+    expect(advancePhysicalRaceProgress(b, bent, context, course, 10, true)).toEqual({ stage: "round-north", event: "round-east" });
+    // The chord crosses the gate, but the path goes round its outer end.
+    const around = { from: { x: x + 20, y: y + 1 }, path: [{ x: x + 60, y: y + 1 }, { x: x + 60, y: y - 1 }], to: { x: x + 30, y: y - 1 } };
+    b = fresh();
+    expect(advancePhysicalRaceProgress(b, { from: around.from, to: around.to }, context, course, 10, true)?.event).toBe("round-east");
+    b = fresh();
+    expect(advancePhysicalRaceProgress(b, around, context, course, 10, true)?.event).toBeNull();
+    expect(physicalRaceStage(b)).toBe("round-east");
+    // The only segment inside the gate crosses it southward (the wrong way),
+    // although the chord moves north: nothing is credited.
+    const wrongWay = { from: { x: x + 60, y: y + 2 }, path: [{ x: x + 60, y: y - 1 }, { x: x + 20, y: y - 1 }], to: { x: x + 20, y: y + .5 } };
+    b = fresh();
+    expect(advancePhysicalRaceProgress(b, wrongWay, context, course, 10, true)?.event).toBeNull();
+  });
+
+  it("rejects a malformed travelled path before mutation", () => {
+    const context = physicalRaceContext("short"), course = makePhysicalRaceCourse("short"), b = boat();
+    const p = midpoint(course.startLine), before = structuredClone(b);
+    const base = { from: { x: p.x, y: p.y + 1 }, to: { x: p.x, y: p.y - 1 } };
+    for (const path of [[{ x: NaN, y: 1 }], Array.from({ length: 5 }, () => ({ ...base.from })), "path", [null]]) {
+      expect(advancePhysicalRaceProgress(b, { ...base, path } as never, context, course, 1, true)).toBeNull();
+    }
+    expect(b).toEqual(before);
+    expect(advancePhysicalRaceProgress(b, { ...base, path: Array.from({ length: 4 }, () => ({ ...base.from })) }, context, course, 1, true)?.event).toBe("start");
+  });
 });
+

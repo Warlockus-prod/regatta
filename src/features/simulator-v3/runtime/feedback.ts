@@ -13,6 +13,7 @@ import { type FeedbackTone, type TpFn, type UiState } from '../ui/shared';
 // - EDGE:     approaching a problem - flow near separation, slot closing.
 //   Mapped to `info` so the strip glows cyan-ish (attention, not alarm).
 // - HEALTHY:  everything fine (slot healthy, trim near optimum). `good`.
+//   Package 12 (audit B3): the line says it in words, no "slot" jargon.
 //
 // Delta suffixes: when the caller provides `trimDelta` / `heelDelta` over
 // ~1.5 s, the picker can append a short "улучшается / растёт / ..." tail to
@@ -298,14 +299,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       : '';
     return {
       text: tp(
-        'Слот здоров - оба паруса тянут.' + tail,
-        'Slot is healthy - both sails pulling.' + tail,
-        'Szczelina w porządku: oba żagle pracują.' + tail,
+        'Паруса работают хорошо: оба тянут.' + tail,
+        'Sails are working well: both are pulling.' + tail,
+        'Żagle pracują dobrze: oba ciągną.' + tail,
         {
-          es: 'Buena ranura: las dos velas tiran.' + tail,
-          fr: 'Bonne fente : les deux voiles portent.' + tail,
-          de: 'Guter Spalt: beide Segel ziehen.' + tail,
-          it: 'Buona fessura: entrambe le vele tirano.' + tail,
+          es: 'Las velas trabajan bien: las dos tiran.' + tail,
+          fr: 'Les voiles travaillent bien : les deux portent.' + tail,
+          de: 'Die Segel arbeiten gut: beide ziehen.' + tail,
+          it: 'Le vele lavorano bene: tirano entrambe.' + tail,
         },
       ),
       tone: 'good',

@@ -12,7 +12,7 @@ Read together with:
 - [README.md](./README.md) - mobile lane overview + brand mini-spec
 - [SPEC.md](./SPEC.md) - per-screen feature spec (current behavior)
 - [DECISIONS.md](./DECISIONS.md) - architectural ADRs
-- [ROADMAP.md](./ROADMAP.md) - execution plan + phases
+- [docs/BACKLOG.md](../../BACKLOG.md) - the one working list (order of work)
 - [ADR-0003-execution.md](./ADR-0003-execution.md) - workspace migration
 
 ---

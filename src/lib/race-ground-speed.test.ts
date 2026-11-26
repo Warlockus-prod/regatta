@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { resolveCollisions, stepBoat, WORLD, type RaceBoat, type Vec2 } from "./race-physics";
 import { createGroundSpeedWindow, displayedBoatSpeed, GROUND_SPEED_WINDOW_SEC, recordGroundStep } from "./race-ground-speed";
+import { raceScale } from "./race-scale";
+import { physicalRaceContext } from "./race-context";
+import { makePhysicalRaceCourse } from "./race-courses";
+import { stepPhysicalRaceFleet } from "./race-physical-fleet";
+import type { PhysicalBotState } from "./race-physical-bot";
+import { physicalTrialSteering } from "./race-trial";
 
 const DT = 1 / 30;
 const WIND = 0; // from the north
@@ -91,5 +97,52 @@ describe("displayedBoatSpeed", () => {
     const w = createGroundSpeedWindow();
     expect(recordGroundStep(w, { x: 0, y: 0 }, { x: NaN, y: 0 }, 5, DT)).toBe(w);
     expect(recordGroundStep(w, { x: 0, y: 0 }, { x: 1, y: 0 }, 5, 0)).toBe(w);
+  });
+});
+
+// M5 step 2: the metric race moves a boat at real speed, so the HUD compares
+// the path with the race's own scale (race-scale.ts). Driven through the real
+// physical fleet (one boat, short course, wind from the north, strength x1.3).
+describe("displayedBoatSpeed in the metric race", () => {
+  const scale = raceScale("short");
+  function sailMetric(start: Vec2, heading: number, until: (boat: RaceBoat, t: number) => boolean) {
+    const context = physicalRaceContext("short"), course = makePhysicalRaceCourse("short");
+    let boats: RaceBoat[] = [{ id: "player", name: "You", color: "#fff", pos: { ...start }, heading, speed: 0, lapDone: 0, isPlayer: true, started: true }];
+    let window = createGroundSpeedWindow(), navigation: ReadonlyMap<string, PhysicalBotState> | undefined;
+    const rows: { t: number; speed: number; shown: number; legacyShown: number }[] = [];
+    let legacyWindow = createGroundSpeedWindow();
+    for (let i = 1; i <= 30 * 120; i++) {
+      const prev = { ...boats[0].pos };
+      const stepped = stepPhysicalRaceFleet({ context, course, dt: DT, raceTime: i * DT, racing: true, windDir: WIND, gust: 1, windStrengthMul: 1.3,
+        navigation, entries: [{ boat: boats[0], input: { steering: physicalTrialSteering(0, true, heading), autoTrim: true } }] });
+      if (!stepped) throw new Error("rejected frame");
+      boats = stepped.boats; navigation = stepped.navigation;
+      window = recordGroundStep(window, prev, boats[0].pos, boats[0].speed, DT, scale.unitsPerKnotSecond);
+      legacyWindow = recordGroundStep(legacyWindow, prev, boats[0].pos, boats[0].speed, DT);
+      rows.push({ t: i * DT, speed: boats[0].speed, shown: displayedBoatSpeed(window, boats[0].speed, scale.unitsPerKnotSecond),
+        legacyShown: displayedBoatSpeed(legacyWindow, boats[0].speed) });
+      if (until(boats[0], i * DT)) break;
+    }
+    return rows;
+  }
+
+  it("shows the model speed in open water, where the legacy scale would show a ninth of it", () => {
+    // A run from rest across open water, well clear of the marks and the walls.
+    const rows = sailMetric({ x: 700, y: 300 }, 180, b => b.speed >= 4.5);
+    const last = rows.at(-1)!;
+    expect(last.speed).toBeGreaterThanOrEqual(4.5);
+    expect(Math.abs(last.shown - last.speed)).toBeLessThan(0.05);
+    expect(last.legacyShown).toBeLessThan(last.speed * 0.2);
+  });
+
+  it("shows under 0.3 kn within 1 s for a boat held at the water bound with 4.5 kn of model speed", () => {
+    // Running dead downwind into the south wall: the force model keeps its speed, the hull does not move.
+    const water = scale.water;
+    const rows = sailMetric({ x: 700, y: water.maxY - 0.01 }, 180, (b, t) => b.speed >= 4.5 && t > 1);
+    const fast = rows.findIndex(r => r.speed >= 4.5);
+    expect(fast).toBeGreaterThan(-1);
+    const after = rows.slice(fast).filter(r => r.t <= rows[fast].t + 1);
+    expect(after.at(-1)!.shown).toBeLessThan(0.3);
+    expect(Math.max(...rows.filter(r => r.t >= 1).map(r => r.shown))).toBeLessThan(0.3);
   });
 });

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { WIND_DIRECTION_BASE } from "@/lib/race-physics";
-import { LEGACY_RACE_CONTEXT } from "@/lib/race-context";
+import { LEGACY_RACE_CONTEXT, physicalRaceContext } from "@/lib/race-context";
 import { readClassifiedRaceResult } from "@/lib/race-result-eligibility";
-import { formatTime, makeCourse, raceLogTally, recordSample, soloRaceWind, sortRaceResults, type Boat } from "./race-model";
+import { formatTime, makeCourse, playerPlaceSettled, raceLogTally, recordSample, soloRaceWind, sortRaceResults, type Boat } from "./race-model";
 
 // The solo race wind exactly as GameClient's loop computed it inline before
 // M0-1 moved it here; the helper must keep every number.
@@ -40,6 +40,36 @@ describe("solo race model", () => {
     expect(boats.map(b => b.id)).toEqual(["player", "ai0", "ai1"]);
   });
 
+  it("M5: places estimated times among real ones (penalty-adjusted), puts still-racing rows before the DNFs, and leaves legacy rows unmarked", () => {
+    const boats = [
+      boat({ id: "player", name: "You", isPlayer: true, lapDone: 2, finishTime: 100 }),
+      boat({ id: "ai0", name: "Nautilus" }), boat({ id: "ai1", name: "Mistral" }), boat({ id: "ai2", name: "Trident" }),
+    ];
+    const pending = sortRaceResults(boats, { player: 5 }, { pending: new Set(["ai0", "ai2"]) });
+    expect(pending.map(r => [r.name, r.time, r.pending ?? false])).toEqual([["You", 105, false], ["Nautilus", Infinity, true], ["Trident", Infinity, true], ["Mistral", Infinity, false]]);
+    // An estimate of 98 s plus a 10 s penalty is 108 s, behind the player's 105 s; 101 s is ahead.
+    const estimated = sortRaceResults(boats, { player: 5, ai0: 10 }, { estimated: new Map([["ai0", 98], ["ai1", 101], ["ai2", null]]) });
+    expect(estimated.map(r => [r.name, r.time, r.estimated ?? false])).toEqual([["Mistral", 101, true], ["You", 105, false], ["Nautilus", 108, true], ["Trident", Infinity, true]]);
+    expect(Object.keys(sortRaceResults(boats, {})[0]).sort()).toEqual(["color", "isPlayer", "name", "time"]);
+  });
+
+  it("M5: a penalised player's place is open while a bot still racing can finish inside the penalty window", () => {
+    const boats = [
+      boat({ id: "player", name: "You", isPlayer: true, lapDone: 2, finishTime: 100 }),
+      boat({ id: "ai0", name: "Nautilus" }), boat({ id: "ai1", name: "Mistral" }),
+    ];
+    const pending = new Set(["ai0", "ai1"]);
+    // No player penalty: a bot still racing at 100 s finishes after 100 s.
+    expect(playerPlaceSettled(boats, {}, pending, 100)).toBe(true);
+    // 30 s on the player: ai0 at 101 s raw would be 101 against 130.
+    expect(playerPlaceSettled(boats, { player: 30 }, pending, 100)).toBe(false);
+    // ...unless every bot still racing already carries as much: 100 + 30 >= 130.
+    expect(playerPlaceSettled(boats, { player: 30, ai0: 30, ai1: 40 }, pending, 100)).toBe(true);
+    // A bot no longer pending, or a player without a finish, settles nothing to wait for.
+    expect(playerPlaceSettled(boats, { player: 30 }, new Set(), 100)).toBe(true);
+    expect(playerPlaceSettled([{ ...boats[0], finishTime: undefined }, boats[1]], { player: 30 }, pending, 100)).toBe(true);
+  });
+
   it("tallies tacks (not gybes), no-go entries and the top logged speed", () => {
     const tally = raceLogTally(
       [{ type: "start", t: 0 }, { type: "tack", t: 3 }, { type: "no-go-entered", t: 4 }, { type: "gybe", t: 6 }, { type: "tack", t: 9 }],
@@ -71,5 +101,15 @@ describe("leaderboard save of a free race (M1-7)", () => {
         raceContext: LEGACY_RACE_CONTEXT, mode, course: makeCourse(), rawFinishTimeSec: 90.5, penaltySeconds: 5 });
       expect(read.ok, mode).toBe(true);
     }
+  });
+});
+
+// Contract (M5 step 7): a legacy record message carries no context, exactly
+// as build 74 sent it; a metric one names its class.
+describe("the context field of a record message (M5 step 7)", () => {
+  it("is absent for the legacy race and the metric context otherwise", async () => {
+    const { raceContextField } = await import("./race-model");
+    expect(raceContextField(LEGACY_RACE_CONTEXT)).toEqual({});
+    expect(raceContextField(physicalRaceContext("short"))).toEqual({ raceContext: physicalRaceContext("short") });
   });
 });

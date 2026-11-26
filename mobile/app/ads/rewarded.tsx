@@ -7,12 +7,13 @@ import { VoxPrebid } from '../../modules/vox-prebid';
 import { RequestPanel, statusFromFailure, type AdRequestState } from '../../src/ads/AdSlot';
 import { ensurePrebidStarted, prebidConfigId, useAdSdk } from '../../src/ads/sdk';
 import { useAdsText, type AdsText } from '../../src/ads/strings';
-import { placement } from '../../src/ads/vox-placements';
+import { VOX_APP_PAGE_URL, placement } from '../../src/ads/vox-placements';
 import { Button, Card, Screen, Text } from '../../src/design-system/components';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { useI18n } from '../../src/i18n/context';
 
 const REWARDED = placement('rewarded');
-/** VOX SDK 1 has no completion callback, so the app grants the reward after this watch time. */
+/** Countdown shown while the video plays; the reward itself comes from VOX SDK's completion event (1.4.0). */
 const REWARD_SECONDS = 15;
 
 /**
@@ -90,11 +91,13 @@ function RewardedPlayer({
   onState: (state: AdRequestState) => void;
   onClose: (granted: boolean) => void;
 }) {
+  const { lang } = useI18n();
   const { width, height } = useWindowDimensions();
   const videoWidth = Math.min(width, Math.round(((height - 160) * 9) / 16));
   const videoHeight = Math.round((videoWidth * 16) / 9);
   const [left, setLeft] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const startedAt = useRef(Date.now());
 
   useEffect(() => {
@@ -107,7 +110,8 @@ function RewardedPlayer({
     return () => clearTimeout(timer);
   }, [left]);
 
-  const granted = left === 0;
+  // The reward needs the SDK's completion event (the video watched to the end), not just the countdown.
+  const granted = completed;
   const headline = granted
     ? text.rewarded.granted
     : left !== null
@@ -137,11 +141,14 @@ function RewardedPlayer({
               style={{ width: videoWidth, height: videoHeight }}
               placeId={REWARDED.placeId}
               kind="video"
+              pageUrl={VOX_APP_PAGE_URL}
+              language={lang}
               closeButtonDelay={REWARD_SECONDS}
               onAdLoaded={() => {
                 onState({ status: 'loaded', ms: Date.now() - startedAt.current });
                 setLeft(REWARD_SECONDS);
               }}
+              onAdCompleted={() => setCompleted(true)}
               onAdFailed={(event) => {
                 const message = event.nativeEvent.message;
                 onState({ status: statusFromFailure(message), ms: Date.now() - startedAt.current, detail: message });

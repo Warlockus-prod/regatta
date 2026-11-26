@@ -16,6 +16,10 @@ export type ReadRaceContext = { ok: true; context: RaceContext } | { ok: false; 
 // Readers must land before any new result can enter the legacy score buckets.
 // Enable only with the native/PB/server class and physical engine checkpoints.
 export const PHYSICAL_RACE_EMISSION_ENABLED = false;
+/** Switch B (ADR-0015 point 15, M5 step 12): the metric course a free solo
+ * race sails by default, or null while the legacy race is the default. The
+ * leaderboard opens on this course (null: the classic course). */
+export const PHYSICAL_RACE_DEFAULT_PROFILE: PhysicalRaceProfile | null = null;
 
 const coordinates = { version: 1, geometryRevision: 1, coordinateUnits: "race-world-v1", metresPerUnit: 0.6 } as const;
 export const LEGACY_RACE_CONTEXT: LegacyRaceContext = Object.freeze({ ...coordinates, model: "legacy-race-v1", profile: "standard" });
@@ -28,6 +32,19 @@ const physical: Readonly<Record<PhysicalRaceProfile, PhysicalRaceContext>> = Obj
 export function physicalRaceContext(profile: PhysicalRaceProfile): PhysicalRaceContext {
   if (!(PHYSICAL_RACE_PROFILES as readonly string[]).includes(profile)) throw new RangeError("Unsupported physical race profile");
   return physical[profile];
+}
+
+/** The context of the race a solo setup sails: the metric profile, or the legacy course. */
+export function raceContextFor(profile: PhysicalRaceProfile | null | undefined): RaceContext {
+  return profile ? physicalRaceContext(profile) : LEGACY_RACE_CONTEXT;
+}
+
+/** M5 step 7 (ADR-0015 points 10 and 15): whether a finished race of this
+ * context may write any record (best time, ghost, medal, race home row,
+ * leaderboard, replay, native history, funnel). The legacy race always does;
+ * a metric race only with switch A. Producers ask this, never the flag. */
+export function raceRecordsEnabled(context: RaceContext): boolean {
+  return context.model === "legacy-race-v1" || PHYSICAL_RACE_EMISSION_ENABLED;
 }
 
 /** Absence belongs to historical records. Explicit future metadata must never

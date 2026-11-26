@@ -53,6 +53,7 @@ const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/radio/symulator', changeFrequency: 'weekly',  priority: 0.80 },
   { path: '/radio/rozmowa',   changeFrequency: 'monthly', priority: 0.75 },
   { path: '/radio/pozycja',   changeFrequency: 'monthly', priority: 0.75 },
+  { path: '/radio/alfabet',   changeFrequency: 'monthly', priority: 0.75 },
   { path: '/radio/zadania',   changeFrequency: 'monthly', priority: 0.80 },
   { path: '/radio/test',      changeFrequency: 'weekly',  priority: 0.75 },
   { path: '/radio/sciaga',    changeFrequency: 'monthly', priority: 0.70 },

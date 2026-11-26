@@ -77,5 +77,11 @@ describe("one race setup flow", () => {
     expect(hubHandsOffSetup({ ...base, linkedSetup: false })).toBe(false);
     expect(hubHandsOffSetup({ ...base, replay: true })).toBe(false);
     expect(hubHandsOffSetup({ ...base, trial: true })).toBe(false);
+    // Package 9: the website's Race hub "Play" (`play=1`) hands over the same way.
+    const web = { ...base, native: false, play: true };
+    expect(hubHandsOffSetup(web)).toBe(true);
+    expect(hubHandsOffSetup({ ...web, linkedSetup: false })).toBe(false);
+    expect(hubHandsOffSetup({ ...web, replay: true })).toBe(false);
+    expect(hubHandsOffSetup({ ...web, trial: true })).toBe(false);
   });
 });

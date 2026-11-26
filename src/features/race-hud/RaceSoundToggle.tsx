@@ -13,7 +13,7 @@ import { useI18n } from "@/lib/i18n";
 export function useRaceSoundCopy() {
   const { tl } = useI18n();
   return {
-    label: tl({ ru: "Звук гонки", en: "Race sound", pl: "Dźwięk regat", es: "Sonido de la regata", fr: "Son de la course", de: "Rennton", it: "Audio della regata" }),
+    label: tl({ ru: "Звук гонки", en: "Race sound", pl: "Dźwięk wyścigu", es: "Sonido de la regata", fr: "Son de la course", de: "Rennton", it: "Audio della regata" }),
     on: tl({ ru: "Вкл.", en: "On", pl: "Wł.", es: "Activado", fr: "Activé", de: "An", it: "Attivo" }),
     off: tl({ ru: "Выкл.", en: "Off", pl: "Wył.", es: "Desactivado", fr: "Désactivé", de: "Aus", it: "Disattivo" }),
   };

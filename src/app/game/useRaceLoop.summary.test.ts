@@ -54,7 +54,7 @@ function race(player: Partial<Boat>, clock: number, ruleEvents: RaceRuleEvent[] 
     guidanceStateRef: ref(null), rafRef: ref(null), simulationClockRef: ref(null), startupGate: ref(gate), pausedRef: ref(false), langRef: ref("en"),
     raceSetupRef: ref({ source: "hub", briefingShown: true, race: "mission" }), raceTallyRef: ref({ missedMarkNotices: 2, contacts: 1 }),
   } as unknown as RaceLoopInput["refs"];
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- The mocked useEffect above deliberately drives this actual hook outside React.
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- react is mocked so the hook runs inline outside React
   useRaceLoop({ gameState: "racing", difficulty: "easy", windStrength: "heavy", selectedMission: null, lang: "en", tp: (_ru, en) => en, paused: false, sceneReady: true,
     showEvent: vi.fn(), showNotice: vi.fn(), showContact: vi.fn(), requestNativeBest: vi.fn(), refs, set });
   for (let now = 100; frame && now < 60_000; now += 100) { const step = frame; frame = null; step(now); }

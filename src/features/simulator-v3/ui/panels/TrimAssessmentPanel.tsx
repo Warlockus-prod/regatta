@@ -46,7 +46,7 @@ export function TrimAssessmentPanel({ assessment: a, lang, record, answer, resta
     </div>}
       </div>
     </details>
-    <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{c.temporary[lang]}</p>
+    <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{c.temporary[lang]}</p>
     <div className="flex flex-wrap gap-2"><button className={button} onClick={restart}>{c.restart[lang]}</button><button className={button} onClick={close}>{c.close[lang]}</button></div>
   </section>;
 }

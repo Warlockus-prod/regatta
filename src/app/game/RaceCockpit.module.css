@@ -1,51 +1,60 @@
-.cockpit { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; color:var(--text-primary); background:var(--bg-primary,#071923); font-variant-numeric:tabular-nums; }
-.cockpit button { min-height:44px; border:1px solid transparent; border-radius:8px; padding:6px 12px; font-size:13px; color:var(--text-secondary); cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+.cockpit { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; touch-action:pan-y; overscroll-behavior:none; color:var(--text-primary); background:var(--bg-primary,#071923); font-variant-numeric:tabular-nums; }
+.cockpit button { min-height:44px; border:1px solid transparent; border-radius:8px; padding:6px 12px; font-size:16px; line-height:1.25; color:var(--text-secondary); cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
 .cockpit button:focus-visible,.cockpit input:focus-visible,.notice:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
 .cockpit button:hover { color:var(--text-primary); background:var(--hover-bg); }
 .cockpit button[aria-pressed=true],.cockpit button[aria-checked=true] { color:var(--accent-cyan); background:var(--bg-card); border-color:var(--accent-cyan); }
 .toolbar { height:52px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 10px; border-bottom:1px solid var(--border-subtle); }
 .toolbar strong { font-size:14px; letter-spacing:.12em; }.toolbar strong span { font-size:10px; letter-spacing:.06em; color:var(--accent-cyan); margin-left:6px; }
 .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:9px 12px 11px; border-bottom:1px solid var(--border-subtle); gap:12px; }
-.metrics>div { min-width:0; }.metrics>div>span { display:block; color:var(--text-muted); font-size:10px; margin-bottom:3px; }.metrics>div>strong { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 4px; font-size:clamp(18px,3.8vw,28px); font-weight:600; line-height:1.1; white-space:nowrap; }.metrics>div>strong>small { color:var(--text-secondary); font-size:11px; font-weight:400; }
+.metrics>div { min-width:0; }.metrics>div>span { display:block; color:var(--text-muted); font-size:14px; line-height:1.3; margin-bottom:2px; }.metrics>div>strong { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 4px; font-size:clamp(18px,3.8vw,28px); font-weight:600; line-height:1.1; white-space:nowrap; }.metrics>div>strong>small { color:var(--text-secondary); font-size:14px; font-weight:400; }
 .workspace { flex:1; min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 344px; }
 .scene { --race-status-h:52px; position:relative; min-height:0; overflow:hidden; isolation:isolate; container-type:size; background:#15414e; }.scene>div { height:100%; }.scene canvas { display:block; }
 .dock { position:relative; min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border-subtle); background:var(--bg-primary,#071923); }
-.notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:12px; line-height:1.45; color:var(--text-primary); }.notice strong { font-size:28px; }
-.tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { min-width:0; overflow-wrap:anywhere; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }
-.mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:13px; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
+.notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:16px; line-height:1.4; font-weight:600; color:var(--text-primary); }.notice strong { font-size:28px; }
+/* Tab labels break only between words ("Kurs / halten"), never inside one: at
+   844x390 the 290 px dock split "Держат / ь курс" in five equal columns with
+   overflow-wrap:anywhere. A flex row shares the width but never squeezes a tab
+   below its longest word (the automatic flex minimum); the icon-only Settings
+   tab and the label boxes keep the 44 px target; a row that cannot fit wraps
+   whole tabs instead of letters. */
+.tabs { display:flex; flex-wrap:wrap; flex-shrink:0; border-bottom:1px solid var(--border-subtle); gap:2px; padding:2px 4px; }.tabs button { flex:1 1 0; min-width:auto; overflow-wrap:normal; word-break:normal; hyphens:manual; padding:4px; font-size:16px; line-height:1.2; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }.tabs button:not(:has(svg))>span { min-width:36px; text-align:center; }.tabs button:has(svg) { padding-inline:14px; }
+.mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:16px; line-height:1.4; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
 .panel:has(.mapPanel) { container-type:size; }
 .tabs button:has(svg)>span { position:absolute; clip-path:inset(50%); width:1px; height:1px; overflow:hidden; white-space:nowrap; }
 .panel { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; flex:1; padding:8px 12px; }
 .wheels { height:260px; min-height:0; }.wheels>div { height:100%; }.sliders { padding:6px 4px; }
-.range { display:block; margin:12px 0; font-size:13px; }.range>span { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }.range output { flex-shrink:0; white-space:nowrap; color:var(--accent-cyan); }.range input { width:100%; height:44px; accent-color:var(--accent-cyan); }
-.options { display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.options p,.modePicker p { font-size:12px; line-height:1.5; color:var(--text-secondary); }.toggle { display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:44px; font-size:13px; border-bottom:1px solid var(--border-subtle); }.toggle input { width:20px; height:20px; flex-shrink:0; accent-color:var(--accent-cyan); }
-.segmented { display:flex; gap:4px; }.segmented button { flex:1; min-width:0; overflow-wrap:anywhere; background:var(--bg-secondary); border-color:var(--border-subtle); }.modePicker { display:flex; flex-direction:column; gap:8px; }
-.fleet { padding:4px 0; }.fleet li { display:flex; align-items:center; gap:12px; min-height:42px; font-size:13px; border-bottom:1px solid var(--border-subtle); }.fleet b { width:20px; color:var(--text-muted); }.fleet strong { margin-left:auto; color:var(--accent-cyan); }
+.range { display:block; margin:12px 0; font-size:16px; line-height:1.4; }.range>span { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }.range output { flex-shrink:0; white-space:nowrap; color:var(--accent-cyan); }.range input { width:100%; height:44px; accent-color:var(--accent-cyan); }
+.options { display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.options p,.modePicker p { font-size:14px; line-height:1.5; color:var(--text-secondary); }.toggle { display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:48px; font-size:16px; line-height:1.4; border-bottom:1px solid var(--border-subtle); }.toggle input { width:24px; height:24px; flex-shrink:0; accent-color:var(--accent-cyan); }
+/* Segmented choices (Settings: steering, sensitivity, camera) never squeeze a
+   word past its button: a button keeps at least its longest word and a row
+   that cannot fit wraps whole buttons (Polish "Dokładnie", Spanish
+   "Alrededor" in the 290 px landscape dock). */
+.segmented { display:flex; flex-wrap:wrap; gap:4px; }.segmented button { flex:1 1 0; min-width:auto; overflow-wrap:normal; background:var(--bg-secondary); border-color:var(--border-subtle); }.modePicker { display:flex; flex-direction:column; gap:8px; }
+.fleet { padding:4px 0; }.fleet li { display:flex; align-items:center; gap:12px; min-height:44px; font-size:16px; border-bottom:1px solid var(--border-subtle); }.fleet b { width:20px; color:var(--text-muted); }.fleet strong { margin-left:auto; color:var(--accent-cyan); }
 /* M1-7: fleet colours are graphics (3:1), not text colours (4.5:1), so the name
    stays in the text colour and the boat colour is a dot beside it. */
 .fleetDot { width:10px; height:10px; flex-shrink:0; border-radius:999px; }
 .fleetName { min-width:0; overflow-wrap:anywhere; color:var(--text-primary); }
 .fleet li[data-player] .fleetName { font-weight:650; }
 @media(max-width:767px) and (orientation:portrait) {
- .toolbar { height:46px; }.metrics { padding:7px 12px; gap:6px; }.metrics>div>span { font-size:10px; }.metrics>div>strong>small { font-size:10px; }
- .workspace { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,60%)); }.dock { border-left:0; border-top:1px solid var(--border-subtle); }.notice { min-height:38px; padding:7px 12px; font-size:11px; }.tabs button { min-height:44px; }.panel { contain:size; min-height:172px; padding:2px 12px; }.wheels { height:190px; }.range { margin:4px 0; }.range input { height:44px; }
+ .toolbar { height:46px; }.metrics { padding:7px 12px; gap:6px; }
+ .workspace { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,60%)); }.dock { border-left:0; border-top:1px solid var(--border-subtle); }.notice { min-height:38px; padding:7px 12px; }.tabs button { min-height:44px; }.panel { contain:size; min-height:172px; padding:2px 12px; }.wheels { height:190px; }.range { margin:4px 0; }.range input { height:44px; }
 }
-@media(max-height:480px) and (orientation:landscape) { .toolbar { height:44px; }.metrics { padding:4px 12px; }.metrics>div>span { display:none; }.metrics>div>strong { font-size:18px; }.workspace { grid-template-columns:minmax(0,1fr) 290px; }.notice { min-height:32px; padding:5px 10px; font-size:11px; }.tabs button { min-height:44px; }.wheels { height:190px; }.panel { padding:2px 10px; } }
+@media(max-height:480px) and (orientation:landscape) { .toolbar { height:44px; }.metrics { padding:4px 12px; }.metrics>div>span { display:none; }.metrics>div>strong { font-size:18px; }.workspace { grid-template-columns:minmax(0,1fr) 290px; }.notice { min-height:32px; padding:5px 10px; }.tabs button { min-height:44px; }.wheels { height:190px; }.panel { padding:2px 10px; } }
 @media(prefers-reduced-motion:no-preference) { .cockpit button { transition:background .15s,color .15s,border-color .15s; } }
 
 .panel:has(.wheels) { display:flex; flex-direction:column; overflow:hidden; }
 .panel .wheels { flex:1; height:auto; min-height:0; }
 .modePicker { margin-bottom:16px; }
 
-.trimAdvice { display:block; font-size:11px; line-height:1.4; color:var(--text-secondary); margin-top:4px; }
+.trimAdvice { display:block; font-size:14px; line-height:1.4; font-weight:400; color:var(--text-secondary); margin-top:4px; }
 .panel:has(.wheels) { overflow-y:auto; }
 .panel .wheels { min-height:180px; }
 @media(max-width:767px) and (max-height:650px) and (orientation:portrait) {
  .workspace { grid-template-rows:minmax(0,1fr) minmax(min-content,min(296px,62%)); }
  .panel .wheels { min-height:168px; }
  .wheels :global([data-testid="wheel-deck"]) { min-height:168px; }
- .notice { font-size:10px; }
- .trimAdvice { font-size:10px; margin-top:2px; }
+ .trimAdvice { margin-top:2px; }
  .metrics>div>strong { font-size:17px; }
 }
 
@@ -57,7 +66,6 @@
 
 /* The same mode picker is also used outside the live cockpit. */
 .modePicker .segmented button { min-height:44px; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 12px; color:var(--text-secondary); font-size:14px; cursor:pointer; }
-.modePicker .segmented button[aria-checked=true] { color:var(--accent-cyan); border-color:var(--accent-cyan); background:var(--bg-card); }
 .modePicker .segmented button:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
 
 /* The size-contained portrait panel contributes a 168px deck plus its padding
@@ -65,13 +73,21 @@
    real translated tab height instead of squeezing that panel when a label
    wraps. Shared wheel geometry reserves the complete three-line caption. */
 @media(max-width:767px) and (orientation:portrait) {
- .notice { max-height:64px; overflow-y:auto; overscroll-behavior:contain; }
+ .notice { max-height:112px; overflow-y:auto; overscroll-behavior:contain; }
  .panel .wheels { flex:1 1 auto; height:auto; min-height:168px; max-height:196px; }
  .wheels :global([data-testid="wheel-deck"]) { min-height:168px; }
 }
 @media(max-height:480px) and (orientation:landscape) {
- .notice { max-height:64px; overflow-y:auto; overscroll-behavior:contain; }
+ .notice { max-height:96px; overflow-y:auto; overscroll-behavior:contain; }
  .panel .wheels { flex:1 1 auto; height:auto; min-height:168px; max-height:196px; }
+}
+
+/* Package 11: the portrait race dock (see the note at the end of this file). */
+@media(max-width:767px) and (orientation:portrait) {
+ .gameLayer .panel { min-height:clamp(154px, calc(25dvh - 50px), 172px); height:clamp(154px, calc(25dvh - 50px), 172px); }
+ .gameLayer .panel .wheels { min-height:0; max-height:none; }
+ .gameLayer .tabs { padding:0 4px; }
+ .gameLayer .wheels :global([data-testid="wheel-deck"]) { min-height:0; }
 }
 
 /* M1-2 game layer. The site header steps aside during the race, so the scene
@@ -90,7 +106,7 @@
 .readout,.modeBadge { display:inline-flex; align-items:baseline; gap:4px; min-height:36px; padding:6px 8px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); white-space:nowrap; }
 .modeBadge { align-items:center; font-size:12px; font-weight:650; letter-spacing:.08em; color:var(--text-secondary); }
 .readout strong { font-size:16px; line-height:24px; font-weight:600; }
-.readout small { font-size:12px; color:var(--text-secondary); }
+.readout small { font-size:14px; color:var(--text-secondary); }
 .readout .penalty { color:var(--warning); font-weight:600; }
 .readoutLabel { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .statusEnd { margin-left:auto; display:flex; align-items:center; gap:6px; }
@@ -128,3 +144,219 @@
  .gameLayer .notice { position:absolute; left:0; right:0; bottom:100%; z-index:4; border-top:1px solid var(--border-subtle); border-bottom:0; background:var(--bg-primary,#071923); }
  .gameLayer[data-paused] .notice { display:none; }
 }
+
+/* F2 (TestFlight 74: "the helm is not fixed, easy to scroll and lose it").
+   The Helm panel is never a scroll container: the wheels or sliders are sized
+   to fit it, and a drag that misses a wheel neither scrolls the panel nor pans
+   or zooms the page (touch-action:none; the wheels keep their own drag). The
+   cockpit allows only vertical panning (no pinch or double-tap zoom that
+   moved the page in the app's web view); Sails, Map and Settings scroll inside
+   their own panel, so long text stays reachable without moving the helm. */
+.panel.pinned,.panel.pinned:has(.wheels) { overflow:hidden; overscroll-behavior:none; touch-action:none; }
+.panel:not(.pinned),.notice { touch-action:pan-y; }
+/* Pro sliders: label beside a full-width slider, so the three rows fit the
+   pinned panel (phone portrait and the short landscape dock) instead of
+   overflowing it. */
+.pinned .sliders { display:flex; flex-direction:column; justify-content:center; gap:4px; min-height:100%; padding:2px 0; }
+.pinned .sliders .range { display:grid; grid-template-columns:minmax(0,8.5rem) minmax(0,1fr); align-items:center; gap:4px 10px; margin:0; }
+.pinned .sliders .range>span { flex-direction:column; align-items:flex-start; gap:0; }
+/* Wheel captions in the race (the Helm tab is the panel shown most of a
+   race): name 16 px, value and unit 14 px. The line heights keep the helm's
+   three lines and a two-line sheet name inside the 50 px the shared deck
+   reserves (CAPTION_H in WheelDeck.tsx), so the pinned panel never clips them. */
+.wheels :global([data-testid="wheel-deck"] [role="slider"] > div) { font-size:14px; line-height:16px; }
+.wheels :global([data-testid="wheel-deck"] [role="slider"] > div b) { font-size:16px; line-height:17px; }
+.wheels :global([data-testid="wheel-deck"] [role="slider"] > div small) { font-size:14px; line-height:16px; }
+/* Map tab legend at the secondary size (it was 12 px). */
+.mapPanel figcaption { font-size:14px; line-height:20px; }
+/* Portrait phone: the floating coach line keeps two lines and the route line
+   over the scene (it scrolls inside itself), so the boat stays in view. */
+@media(max-width:767px) and (orientation:portrait) {
+ .gameLayer .notice { max-height:80px; }
+ .gameLayer .bigMap { bottom:88px; }
+ .gameLayer .hintLog { bottom:88px; }
+ .gameLayer[data-paused] .hintLog { bottom:8px; }
+}
+
+/* F3: the big map over the race scene sits under the status row (Menu stays
+   reachable) and, on a portrait phone, above the floating coach line, so the
+   line stays readable; the dock with the helm is never covered. */
+.scene .bigMap { top:calc(var(--race-status-h) + 4px); }
+
+/* F4: the Hints and Graphics groups of the race Settings. */
+.group { display:flex; flex-direction:column; gap:12px; }
+.groupTitle { margin:8px 0 0; font-size:16px; line-height:24px; font-weight:650; color:var(--text-primary); }
+/* F4: the hint log button at the end of the coach line: the bulb and how many
+   lines the log holds; 44 px, neutral (the pressed style marks it open). */
+.cockpit .hintLogButton { float:right; display:inline-flex; align-items:center; gap:4px; min-width:44px; margin:-6px -6px 0 8px; padding:6px 10px; font-size:16px; line-height:20px; font-weight:600; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+.cockpit .hintLogButton svg { flex-shrink:0; }
+/* F4: the hint log panel sits where the big map does (under the status row,
+   above the floating coach line on a phone). Opened from the pause sheet it
+   lies over the sheet (after it in the markup, same layer). */
+.scene .hintLog { top:calc(var(--race-status-h) + 4px); }
+.scene .overPause { z-index:8; }
+
+/* Package 11 (audit K6, top-5): on a portrait phone the race dock is one row
+   of tabs and the helm, no taller than a quarter of the screen, so the scene
+   keeps three quarters with the status row, instruments and coach line over
+   it. A tab label stays on one line (a row that cannot fit still wraps whole
+   tabs, never letters). The helm panel shrinks to 25dvh minus the tab row, but
+   never below the smallest helm (96 px) with its 50 px caption reserve. */
+.tabs button>span { white-space:nowrap; }
+
+/* Race settings before the start (RaceSetupSettings in the lobby): the same
+   controls as the cockpit, outside its button scope. */
+.options[data-setup] .segmented button { min-height:44px; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 12px; font-size:16px; line-height:1.25; color:var(--text-secondary); background:var(--bg-secondary); cursor:pointer; }
+.options[data-setup] .segmented button:focus-visible,.options[data-setup] input:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
+/* Package 11 (audit B9): a chosen segment is the active control, so it is
+   filled cyan with the accent ink (an outline against a grey fill did not say
+   which one was chosen). Same in the race, the lobby mode picker and the race
+   settings before the start. */
+.segmented button[aria-checked=true],.segmented button[aria-checked=true]:hover { color:var(--accent-ink); background:var(--accent-cyan); border-color:var(--accent-cyan); }
+
+/* Package 13 (ADR-0022): the helm assists. Arrows mode fills the pinned Helm
+   panel: Simple has two big arrows over the turn button and BEST VMG and a
+   course line; Pro one row (arrows round the two assists) over the sheets.
+   Wheel and slider modes put the two assists in one row above the helm. The
+   arrows and the turn button are neutral; a held arrow, a turn under way and
+   BEST VMG on take the shared pressed style (cyan = the active control). */
+.helmAssist { display:flex; flex-direction:column; justify-content:center; gap:6px; min-height:100%; padding:2px 0; }
+.helmRow { display:flex; gap:6px; min-width:0; }
+.cockpit .helmRow button { flex:1 1 0; min-width:0; min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:2px 4px; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+/* A two-word name may wrap to a second line inside the button, never a word. */
+.cockpit .helmRow button>span { white-space:normal; overflow-wrap:normal; text-align:center; line-height:1.2; }
+.cockpit .helmRow .helmArrow { flex:0 0 56px; }
+/* Pro arrows: one row, the arrows round the two assists; in the short
+   landscape column two rows (arrows, then the assists), so no name is cut. */
+.helmAssist[data-layout=pro-arrows]>.helmRow { display:grid; grid-template-columns:56px minmax(0,1fr) minmax(0,1fr) 56px; grid-template-areas:"l t b r"; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-left] { grid-area:l; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-turn] { grid-area:t; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-best-vmg] { grid-area:b; }
+.helmAssist[data-layout=pro-arrows] [data-testid=race-helm-right] { grid-area:r; }
+@media(max-height:480px) and (orientation:landscape) {
+ .gameLayer .helmAssist[data-layout=pro-arrows]>.helmRow { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"l r" "t b"; gap:4px; }
+ .gameLayer .helmAssist { gap:4px; padding:0; }
+}
+.cockpit .helmArrows .helmArrow { flex:1 1 0; min-height:56px; }
+.cockpit .helmRow .helmArrow:active { color:var(--accent-cyan); border-color:var(--accent-cyan); }
+.cockpit .helmRow button[aria-pressed=true] { color:var(--accent-cyan); border-color:var(--accent-cyan); }
+.cockpit .helmRow button:disabled { opacity:.45; cursor:default; }
+.helmStatus { display:flex; flex-wrap:wrap; justify-content:center; gap:2px 16px; margin:0; font-size:14px; line-height:20px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.helmAssistRow { flex-shrink:0; padding:2px 0 4px; }
+.pinned .helmAssist .range { display:grid; grid-template-columns:minmax(0,8.5rem) minmax(0,1fr); align-items:center; gap:4px 10px; margin:0; }
+.pinned .helmAssist .range>span { flex-direction:column; align-items:flex-start; gap:0; }
+.panel:has(>.helmAssistRow) { display:flex; flex-direction:column; }
+.panel:has(>.helmAssistRow)>.sliders { flex:1 1 auto; min-height:0; }
+/* Wheels: the row sits inside their box, above the deck. */
+.wheels:has(>.helmAssistRow) { display:flex; flex-direction:column; position:relative; }
+.wheels>.helmAssistRow { height:auto; flex:0 0 auto; }
+.wheels:has(>.helmAssistRow)>div:last-child { flex:1 1 auto; min-height:0; height:auto; }
+/* Portrait phone and short landscape: the dock may not grow (a quarter of the
+   portrait screen; the landscape column is the screen's height), so the two
+   assists lie over the deck's top corners beside the helm wheel (96-101 px
+   there; the Pro sheet wheels sit in the lower corners). A long name wraps
+   to two lines inside the 44 px button. */
+@media(orientation:portrait) and (max-width:767px) {
+ .gameLayer .wheels>.helmAssistRow { position:absolute; top:0; left:0; right:0; z-index:3; justify-content:space-between; padding:0; pointer-events:none; }
+ .gameLayer .wheels>.helmAssistRow button { flex:0 0 calc(50% - 56px); pointer-events:auto; }
+ .gameLayer .wheels:has(>.helmAssistRow)>div:last-child { height:100%; }
+}
+@media(max-height:480px) and (orientation:landscape) {
+ .gameLayer .wheels>.helmAssistRow { position:absolute; top:0; left:0; right:0; z-index:3; justify-content:space-between; padding:0; pointer-events:none; }
+ .gameLayer .wheels>.helmAssistRow button { flex:0 0 calc(50% - 56px); padding:2px 6px; pointer-events:auto; }
+ .gameLayer .wheels:has(>.helmAssistRow)>div:last-child { height:100%; }
+}
+/* The VMG line in the wind box: a state colour against the polar's best
+   (success on target, warning below), never cyan; the trend beside it. */
+.vmgLine { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 6px; margin:4px 0 0; font-size:14px; line-height:20px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.vmgLine strong { font-size:16px; line-height:20px; font-weight:600; color:var(--text-primary); }
+.vmgLine[data-target=on] strong { color:var(--success); }
+.vmgLine[data-target=below] strong { color:var(--warning); }
+.vmgLabel { font-weight:600; }
+.vmgTrend { display:inline-flex; align-self:center; }
+
+/* Package 31, owner decision R-45: the prototype of the solo race with the water
+   on the whole screen (?water=1, src/lib/race-water-layout.ts). The scene fills
+   the cockpit and reaches the screen edges in the app (the native frame steps
+   aside while this layout is on screen, so the safe areas are ours). The dock
+   stays in the markup and focus order but lies over the scene, transparent to
+   taps except for its own controls: the coach line, a sheet, the bar with the
+   arrows in the lower corners. The solid-looking fill keeps text at 4.5:1 over
+   any water or foam. Nothing here applies without .water. */
+.water { --water-bar-h:114px; --water-t:env(safe-area-inset-top,0px); --water-r:env(safe-area-inset-right,0px); --water-b:env(safe-area-inset-bottom,0px); --water-l:env(safe-area-inset-left,0px); --water-fill:var(--bg-card,#102838); }
+@supports (background:color-mix(in srgb,red 80%,transparent)) { .water { --water-fill:color-mix(in srgb,var(--bg-card,#102838) 90%,transparent); } }
+.water .workspace { display:block; position:relative; height:100%; }
+.water .scene { position:absolute; inset:0; --race-status-h:calc(52px + var(--water-t)); --race-flags-bottom:calc(var(--water-bar-h) + 16px + var(--water-b)); }
+/* Messages stay off the wind box and the boat: under the two top corners (the
+   corner map is the taller one with the small wind box), above the mast's foot. The boat sits about 65% down this taller scene, where the
+   course boundary note would cover it (62% in the normal cockpit). */
+.water .scene { --race-toasts-top:calc(var(--race-status-h) + 130px); --race-boundary-top:48%; }
+/* Owner, TestFlight 81: the messages took too much of the screen and were hard to see; higher
+   and neater. On the water they are one compact line each, high under the corner instruments,
+   on a denser card that reads over any water; the course boundary note joins them up there,
+   and the stack steps below it while it shows. */
+.water [data-testid=race-toast] { padding:6px 12px; font-size:15px; line-height:20px; border-radius:12px; background:var(--water-fill); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); box-shadow:0 2px 10px rgb(0 0 0 / .28); }
+.water [data-testid=race-toasts] { gap:6px; width:min(320px, calc(100% - 32px)); }
+.water [data-testid=race-boundary-hint] { padding:6px 12px !important; font-size:15px !important; line-height:20px !important; border-radius:12px !important; background:var(--water-fill) !important; box-shadow:0 2px 10px rgb(0 0 0 / .28); }
+@media(orientation:portrait) {
+ .water .scene { --race-boundary-top:calc(var(--race-status-h) + 130px); }
+ .water .scene:has([data-testid=race-boundary-hint]:not([style*="display: none"])) { --race-toasts-top:calc(var(--race-status-h) + 130px + 42px); }
+}
+.water .status { padding:calc(4px + var(--water-t)) calc(8px + var(--water-r)) 4px calc(8px + var(--water-l)); }
+.water .instrumentsArea { left:var(--water-l); right:var(--water-r); }
+.water .dock { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; padding:0 calc(8px + var(--water-r)) calc(8px + var(--water-b)) calc(8px + var(--water-l)); border:0; background:none; pointer-events:none; }
+.water .dock>* { pointer-events:auto; }
+/* The coach line sits right above the bar and scrolls inside itself; the course
+   numbers stay off the water, the line already says what to hold. An open sheet
+   takes its place. */
+.water .notice { position:static; z-index:auto; flex-shrink:0; min-height:0; max-height:72px; padding:6px 10px; overflow-y:auto; border:1px solid var(--border-subtle); border-radius:8px; background:var(--water-fill); }
+.water .notice [data-testid=race-route-heading] { display:none; }
+.water .dock:has(>.panel) .notice { visibility:hidden; }
+.water[data-paused] .notice,.water[data-paused] .waterBar { display:none; }
+/* The bar: on a portrait phone the tabs over the helm row, the arrows in the corners. */
+.water .waterBar { flex-shrink:0; display:grid; gap:6px; grid-template-columns:72px minmax(0,1fr) minmax(0,1fr) 72px; grid-template-areas:"tabs tabs tabs tabs" "l t b r"; touch-action:none;
+ /* The bar takes the bands under and beside the arrows, so a near miss with a thumb does not reach the canvas and switch the camera. */
+ margin:0 calc(-8px - var(--water-r)) calc(-8px - var(--water-b)) calc(-8px - var(--water-l)); padding:0 calc(8px + var(--water-r)) calc(8px + var(--water-b)) calc(8px + var(--water-l)); }
+.water .waterBar .tabs { grid-area:tabs; display:flex; flex-wrap:nowrap; gap:6px; padding:0; border:0; }
+.water .waterBar .tabs button { min-height:44px; padding:2px 4px; }
+.water .waterBar .tabs button:has(svg) { flex:0 0 56px; padding-inline:4px; }
+.water [data-testid=race-helm-left] { grid-area:l; }
+.water [data-testid=race-helm-turn] { grid-area:t; }
+.water [data-testid=race-helm-best-vmg] { grid-area:b; }
+.water [data-testid=race-helm-right] { grid-area:r; }
+.cockpit.water .waterBar button { background:var(--water-fill); }
+.cockpit.water .waterBar .helmArrow { min-height:64px; }
+/* The open sheet's tab: a solid card under the cyan label, 4.5:1 over any water (check:ui, water states). */
+.cockpit.water .waterBar button[aria-pressed=true] { background:var(--bg-card,#102838); }
+/* The edge arrow to the mark is drawn by the scene above the cockpit; an open sheet covers that
+   part of the screen, so the arrow and its metres wait until the sheet closes. */
+.water:has(.dock>.panel) [data-testid=race-mark-arrow] { visibility:hidden; }
+/* A sheet over the scene: Sails, Map or Settings. The helm stays under the thumbs. */
+.water .panel { position:absolute; left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); top:auto; bottom:calc(var(--water-bar-h) + 14px + var(--water-b)); height:min(36%,340px); min-height:0; flex:none; contain:none; padding:8px 12px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-primary,#071923); box-shadow:0 12px 32px rgb(0 0 0 / .35); }
+.cockpit .waterClose { position:sticky; top:0; z-index:1; float:right; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; margin:0 -4px 0 8px; color:var(--text-primary); background:var(--bg-card,#102838); border-color:var(--border-subtle); }
+/* Opened from the pause sheet, there is no bar under it. */
+.water[data-paused] .panel { left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); top:calc(52px + var(--water-t)); bottom:calc(8px + var(--water-b)); width:auto; height:auto; }
+.water .scene .bigMap,.water .scene .hintLog { left:calc(8px + var(--water-l)); right:calc(8px + var(--water-r)); bottom:calc(var(--water-bar-h) + 88px + var(--water-b)); }
+.water[data-paused] .scene .hintLog { bottom:calc(8px + var(--water-b)); }
+/* A turned phone: one row, the arrows in the corners; the coach line above the
+   left arrow, clear of the boat in the middle; a sheet on the right under the
+   status row. */
+@media(orientation:landscape) {
+ .water { --water-bar-h:64px; }
+ .water .scene { --race-boundary-top:calc(var(--race-status-h) + 64px); }
+ .water .waterBar { grid-template-columns:72px minmax(0,1fr) minmax(0,1fr) minmax(0,3.4fr) 72px; grid-template-areas:"l t b tabs r"; }
+ .water .waterBar .tabs button { min-height:64px; }
+ .water .notice { align-self:flex-start; width:min(38%,340px); max-height:80px; }
+ .water:not([data-paused]) .panel { left:auto; width:min(380px,50%); top:calc(52px + var(--water-t)); height:auto; }
+ /* The running race's messages stay in sight beside an open sheet; the coach line gives way to the big map and the log. */
+ .water:has(.dock>.panel) .scene { --race-toasts-left:calc((100% - min(380px,50%) - 8px - var(--water-r)) / 2); }
+ .water:has(.scene .bigMap,.scene .hintLog) .notice { visibility:hidden; }
+ .water .scene .bigMap,.water .scene .hintLog { bottom:calc(var(--water-bar-h) + 14px + var(--water-b)); }
+}
+/* Package 31: the VMG row of the small wind box, the same state colours as the VMG line. */
+.vmgRow { display:flex; align-items:baseline; gap:4px; white-space:nowrap; }
+.vmgRow>span[aria-hidden=true] { flex:0 0 28px; font-size:12px; font-weight:600; color:var(--text-secondary); }
+.vmgRow strong { font-weight:650; color:var(--text-primary); }
+.vmgRow small { margin-left:-2px; font-size:12px; color:var(--text-secondary); }
+.vmgRow[data-target=on] strong { color:var(--success); }
+.vmgRow[data-target=below] strong { color:var(--warning); }

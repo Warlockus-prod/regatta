@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeStandardCourse, raceTrim, stepBoat, UNITS_PER_KNOT_SECOND, WIND_DIRECTION_BASE } from "@/lib/race-physics";
-import { METRES_PER_UNIT, VISUAL_SPEEDUP, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat } from "./pose";
+import { METRES_PER_UNIT, VISUAL_SPEEDUP, headingDelta, nextTarget, nextTargetInto, racePose, raceRanks, toWorld, type Race3DBoat } from "./pose";
 
 const boat = (heading: number, extra: Partial<Race3DBoat> = {}): Race3DBoat => ({
   id: "p", color: "#fff", pos: { x: 400, y: 1000 }, heading, speed: 5, lapDone: 0, isPlayer: true, ...extra,
@@ -84,5 +84,17 @@ describe("3D race pose", () => {
       boat(0, { id: "first-home", lapDone: 2, finishTime: 80 }),
     ], course);
     expect(["first-home", "second-home", "run", "beat-near", "beat-far"].map((id) => ranks.get(id))).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+// The frame-loop twin of nextTarget (edge arrow, M2-2): the same target, written into the caller's object.
+describe("nextTargetInto", () => {
+  it.each([0, 1, 2])("agrees with nextTarget at lap %s without allocating", lapDone => {
+    const course = makeStandardCourse();
+    const out = { x: Number.NaN, y: Number.NaN };
+    const got = nextTargetInto(boat(0, { lapDone }), course, out);
+    expect(got).toEqual(nextTarget(boat(0, { lapDone }), course));
+    if (lapDone === 1) expect(got).toBe(out);
+    if (lapDone === 0) expect(got).toBe(course.marks[0].pos);
   });
 });

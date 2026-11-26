@@ -4,6 +4,12 @@ For "Week to Regatta" (iOS, Expo / React Native, Apple app id 6768134329).
 Goal: make it promotable and revenue-generating. This is the decision-ready
 plan; the build/submit steps are in the ship-expo-ios-appstore skill.
 
+> 2026-11-02: sections 3 (Monetization) and 6 (roadmap to "promote and earn")
+> are REJECTED by the product boundary in `AGENTS.md` ("no payments and no paid
+> tier"); kept as history only. Positioning and ASO stay useful. Open ASO work
+> (screenshots, store listing for the public 1.7.x release) is tracked only in
+> `docs/BACKLOG.md` (package 23).
+
 ---
 
 ## 1. Positioning
@@ -49,7 +55,7 @@ app's 3D screen actually loads the V2 sim (today it loads an anatomy stand-in).
 
 ---
 
-## 3. Monetization
+## 3. Monetization (rejected 2026-11-02, see the note at the top)
 
 Freemium with a Pro unlock. Sailing-course and charter-prep users pay.
 
@@ -98,7 +104,7 @@ Freemium with a Pro unlock. Sailing-course and charter-prep users pay.
 
 ---
 
-## 6. Sequenced roadmap to "promote and earn"
+## 6. Sequenced roadmap to "promote and earn" (rejected 2026-11-02, see the note at the top)
 
 1. Ship the 3D simulator (V2) into the app (see CROSS_PLATFORM_PLAN Phase 1) -
    the hero feature worth paying for.

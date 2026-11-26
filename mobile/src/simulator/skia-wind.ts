@@ -7,6 +7,7 @@
 
 import { Skia } from '@shopify/react-native-skia';
 import type { SkPath } from '@shopify/react-native-skia';
+import { NO_GO_HALF_DEG } from './physics';
 
 /** A single wind-arrow position on the playfield grid. */
 export interface WindArrowSlot {
@@ -79,19 +80,21 @@ export function buildWindArrowsPath(
 }
 
 /**
- * No-go-zone triangle anchored at the boat, opening 45 deg either side
- * of the apparent-wind FROM-direction. The path is built in screen-space
- * with the boat at (boatX, boatY).
+ * No-go-zone triangle anchored at the boat, opening NO_GO_HALF_DEG either
+ * side of the TRUE wind FROM-direction: the zone the lessons, the drills and
+ * the glossary state (ADR-0021, package 7). The path is built in
+ * screen-space with the boat at (boatX, boatY).
  */
 export function buildNoGoPath(
   boatX: number,
   boatY: number,
-  awaDirRadFrom: number,
+  windDirRadFrom: number,
   reach: number,
+  halfDeg: number = NO_GO_HALF_DEG,
 ): SkPath {
-  const half = (45 * Math.PI) / 180;
-  const dirL = awaDirRadFrom - half;
-  const dirR = awaDirRadFrom + half;
+  const half = (halfDeg * Math.PI) / 180;
+  const dirL = windDirRadFrom - half;
+  const dirR = windDirRadFrom + half;
 
   // The arrow tip points to where wind COMES FROM. The triangle opens
   // upwind, so the tip vectors go in the FROM direction.

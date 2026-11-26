@@ -7,6 +7,8 @@ import {
   type ScenarioPreset,
 } from '../../runtime/scenario-presets';
 import { type TpFn } from '../shared';
+import { SubjectThumbs } from '@/components/visuals/SubjectVisuals';
+import { drillVisuals } from '@/data/sailing-visuals';
 
 // ---------------------------------------------------------------------------
 // ScenarioPicker - list of named starting conditions. Picking one reseeds
@@ -33,7 +35,7 @@ export function ScenarioPicker({
       }}
     >
       <div
-        className="text-[10px] uppercase tracking-wider font-bold"
+        className="text-xs uppercase tracking-wider font-bold"
         style={{ color: 'var(--accent-cyan)' }}
       >
         {tp('Ситуации', 'Situations', 'Sytuacje', {
@@ -59,7 +61,7 @@ export function ScenarioPicker({
               }}
             >
               <div
-                className="text-[11px] font-bold"
+                className="text-xs font-bold"
                 style={{
                   color: active
                     ? 'var(--accent-cyan)'
@@ -68,9 +70,11 @@ export function ScenarioPicker({
               >
                 {pickText(s.title, lang)}
               </div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
+              <div className="text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
                 {pickText(s.summary, lang)}
               </div>
+              {/* Package 32: every situation shows what it is about, schematic and picture. */}
+              <SubjectThumbs visuals={drillVisuals(s.id)} />
             </button>
           );
         })}

@@ -1,0 +1,41 @@
+/* F3 big race map: a panel over the scene (never over the dock, so the helm
+   stays usable). Solid, so the scene does not shimmer through the map. The
+   host's class sets top and bottom (race status row, coach line). The text
+   keeps 16 px (title 18), the note 14; every control is 44 px.
+   Stacking inside the scene (RaceFeedbackLayer.module.css): corner
+   instruments 2, floating coach line 4, this map 5, then the countdown and
+   start flags (5, after the map in the markup), the toasts and contact
+   frame 6, the pause sheet 8, the status row 9. The race keeps running under
+   the map, so its start and penalty signals must stay on top of it. */
+.overlay { position:absolute; z-index:5; top:8px; left:8px; right:8px; bottom:8px; display:flex; flex-direction:column; gap:8px; padding:8px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-primary,#071923); color:var(--text-primary); box-shadow:0 12px 32px rgb(0 0 0 / .35); pointer-events:auto; overflow:hidden auto; overscroll-behavior:contain; }
+/* Header: title and Close on the first line, the orientation under them. */
+.head { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-left:4px; }
+.head h2 { order:1; flex:1 1 auto; margin:0; font-size:18px; line-height:24px; font-weight:650; color:var(--text-primary); }
+.overlay .close { order:2; flex-shrink:0; min-width:44px; display:inline-flex; align-items:center; justify-content:center; padding:6px; background:var(--bg-card,#102838); border-color:var(--border-subtle); color:var(--text-primary); }
+.modes { order:3; flex:1 0 100%; display:flex; flex-wrap:wrap; gap:4px; }
+.overlay .modes button { flex:1 1 0; min-width:auto; overflow-wrap:normal; background:var(--bg-secondary); border-color:var(--border-subtle); }
+.frame { position:relative; flex:1 1 0; min-height:120px; overflow:hidden; border-radius:8px; touch-action:none; overscroll-behavior:none; --race-map-height:100%; }
+.frame>figure { height:100%; }
+/* Zoom row under the map: "Whole course" takes the free width, minus and plus keep 44 px. */
+.zoom { display:flex; gap:6px; }
+.overlay .zoom button { min-width:44px; display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; background:var(--bg-card,#102838); border-color:var(--border-subtle); color:var(--text-primary); }
+.overlay .zoom .fit { flex:1 1 auto; }
+.overlay .zoom button:disabled { opacity:.45; cursor:default; }
+.note { margin:0; padding:0 4px; font-size:14px; line-height:20px; color:var(--text-secondary); }
+/* The chosen orientation: cyan as the active control, whatever the host's button styles. */
+.overlay .modes button[aria-checked=true] { color:var(--accent-cyan); border-color:var(--accent-cyan); background:var(--bg-card,#102838); }
+.overlay .modes button:disabled { opacity:.45; cursor:default; }
+/* A short scene (iPhone SE, a browser with toolbars, a landscape phone): the
+   title is only read out (it still names the dialog), the orientation moves
+   up beside Close, the note goes, and the map may shrink, so the zoom row
+   always fits inside the panel. If it still does not, the panel scrolls. */
+@container (max-height:560px) {
+  .overlay { gap:6px; padding:6px; }
+  .head { flex-wrap:nowrap; }
+  .head h2 { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  /* Close stays on the same line; a long mode name wraps inside its 44 px button. */
+  .modes { order:1; flex:1 1 auto; min-width:0; flex-wrap:nowrap; }
+  .overlay .modes button { min-width:0; padding-inline:6px; line-height:18px; }
+  .frame { min-height:72px; }
+  .note { display:none; }
+}

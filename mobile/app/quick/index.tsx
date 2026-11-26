@@ -2,7 +2,11 @@ import { Stack, router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Card, Screen, Text } from '../../src/design-system/components';
-import { quickRefreshLessons } from '../../src/data';
+import { glossaryTerms, maneuvers, pointsOfSail, quickRefreshLessons, racingStrategies } from '../../src/data';
+import { RACE_SUBJECT_NAMES } from '../../../src/data/race-subject-names';
+import { SubjectStrip } from '../../src/learning/SubjectVisuals';
+import { sailingSectionSubjects } from '../../../src/data/sailing-visuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
@@ -103,9 +107,15 @@ export default function Quick() {
         {quickRefreshLessons.map((lesson, i) => {
           const title = legacyPick(lesson, 'title', lang);
           const tip = legacyPick(lesson, 'tip', lang);
+          const names = (id: string) => {
+            const item = pointsOfSail.find(p => p.id === id) ?? maneuvers.find(m => m.id === id); const term = glossaryTerms.find(t => t.id === id);
+            // The race subjects are named by the strategy or the rule card that teaches them (RACE_SUBJECT_NAMES copies those titles).
+            const strategy = racingStrategies.find(r => r.id === id);
+            return item ? legacyPick(item, 'name', lang) : term ? legacyPick(term, 'term', lang) : strategy ? legacyPick(strategy, 'title', lang) : RACE_SUBJECT_NAMES[id]?.[lang] ?? id;
+          };
           return (
+            <View key={lesson.id}>
             <Pressable
-              key={lesson.id}
               onPress={() => router.push(lesson.route as never)}
               accessibilityRole="button"
               accessibilityLabel={`${title}. ${lesson.estMinutes} ${minLabel}. ${tip}`}
@@ -126,6 +136,9 @@ export default function Quick() {
                 </View>
               </Card>
             </Pressable>
+            {/* Package 32: a card that repeats the wind, the points of sail or the turns shows each of them, schematic and picture. */}
+            <SubjectStrip ids={sailingSectionSubjects('quick', lesson.id)} names={names} title={UI_TERMS.subjectsInSection[lang]} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
+            </View>
           );
         })}
 

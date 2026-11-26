@@ -7,6 +7,8 @@ import {
   type SimulationModel,
   type TpFn,
 } from '../shared';
+import { useI18n } from '@/lib/i18n';
+import { TRAINER_TERMS } from '@/lib/product/trainer-terms';
 
 function normalizeDeg(deg: number): number {
   const safe = finite(deg);
@@ -39,6 +41,7 @@ export function HelmPod({
   tp: TpFn;
   compact?: boolean;
 }) {
+  const { lang } = useI18n();
   const hdg = normalizeDeg(sim.result.state.heading);
   const target = normalizeDeg(sim.targetHeading);
   const delta = shortestDelta(hdg, target);
@@ -72,44 +75,19 @@ export function HelmPod({
             stroke="rgba(139, 167, 184, 0.22)"
             strokeWidth={1}
           />
-          <text
-            x="0"
-            y={-r + 6}
-            fill="rgba(139, 167, 184, 0.65)"
-            fontSize="8"
-            fontWeight="700"
-            textAnchor="middle"
-            style={{ letterSpacing: '0.05em' }}
-          >
-            N
-          </text>
-          <text
-            x={r - 2}
-            y="3"
-            fill="rgba(139, 167, 184, 0.35)"
-            fontSize="7"
-            textAnchor="end"
-          >
-            E
-          </text>
-          <text
-            x="0"
-            y={r - 1}
-            fill="rgba(139, 167, 184, 0.35)"
-            fontSize="7"
-            textAnchor="middle"
-          >
-            S
-          </text>
-          <text
-            x={-r + 2}
-            y="3"
-            fill="rgba(139, 167, 184, 0.35)"
-            fontSize="7"
-            textAnchor="start"
-          >
-            W
-          </text>
+          {/* Package 11 (audit B11): compass points in the reader's language
+              (TRAINER_TERMS, src/lib/product/trainer-terms.ts), 12 px and the secondary text colour (they were 7-8 px
+              at 1.3:1). */}
+          {([
+            ['compassN', 0, -r + 11, 'middle'],
+            ['compassE', r - 3, 4, 'end'],
+            ['compassS', 0, r - 3, 'middle'],
+            ['compassW', -r + 3, 4, 'start'],
+          ] as const).map(([term, x, y, anchor]) => (
+            <text key={term} x={x} y={y} fill="var(--text-secondary)" fontSize="12" fontWeight="700" textAnchor={anchor}>
+              {TRAINER_TERMS[term][lang]}
+            </text>
+          ))}
 
           {/* Target bearing (dashed green) - shown only while turning. */}
           {turning && (
@@ -152,7 +130,7 @@ export function HelmPod({
         </svg>
         <div className="flex-1 min-w-0">
           <div
-            className={`${compact ? 'text-[9px]' : 'text-[10px]'} uppercase tracking-wider font-bold text-[var(--text-muted)]`}
+            className={`${compact ? 'text-xs' : 'text-xs'} uppercase tracking-wider font-bold text-[var(--text-muted)]`}
           >
             {tp('Курс', 'HDG', 'Kurs', {
               es: 'Rumbo',
@@ -169,14 +147,14 @@ export function HelmPod({
           </div>
           {turning ? (
             <div
-              className={`mt-1 ${compact ? 'text-[9px]' : 'text-[10px]'} font-bold tabular-nums`}
+              className={`mt-1 ${compact ? 'text-xs' : 'text-xs'} font-bold tabular-nums`}
               style={{ color: 'var(--success)' }}
             >
               → {Math.round(target).toString().padStart(3, '0')}°
             </div>
           ) : (
             <div
-              className={`mt-1 ${compact ? 'text-[9px]' : 'text-[10px]'} text-[var(--text-muted)]`}
+              className={`mt-1 ${compact ? 'text-xs' : 'text-xs'} text-[var(--text-muted)]`}
             >
               {tp('на курсе', 'on course', 'na kursie', {
                 es: 'a rumbo',

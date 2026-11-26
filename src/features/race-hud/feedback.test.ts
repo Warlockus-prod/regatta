@@ -103,3 +103,68 @@ describe("race feedback bus", () => {
     expect(["tack", "gybe", "mark", "gained", "lost"].map(k => raceEventSource(k as "tack"))).toEqual(["manoeuvre", "manoeuvre", "mark", "place", "place"]);
   });
 });
+
+// Contract (M4-7): a first race hint is shown alone, so the longest message
+// never pushes another one down towards the boat: the race events on screen
+// step back to the queue, nothing joins the hint, a rule notice on screen
+// makes it wait and a new rule notice takes its place. Nothing is lost to the
+// hint: a message held back by what is on screen (race events behind a hint,
+// a hint behind a rule notice) waits until that leaves and then has its
+// FEEDBACK_LIMITS.maxWaitSec, so it is shown right after.
+describe("first race hint on the feedback bus", () => {
+  const hint: FeedbackPost = { source: "hint", text: "No-go zone: bear away.", tone: "info", tag: "no-go" };
+  const hintEnd = (postedAt: number) => postedAt + FEEDBACK_DURATION.hint;
+  it("is shown alone and keeps its tag", () => {
+    const s = run([[0, tack], [.2, place], [.5, hint]]);
+    expect(texts(s)).toEqual([hint.text]);
+    expect(s.visible[0].tag).toBe("no-go");
+    // A race event posted while the hint is up waits instead of joining it.
+    expect(texts(postFeedback(s, mark, 1))).toEqual([hint.text]);
+  });
+
+  it("shows the race events it held back once it has gone, the tack cost of the first tack too", () => {
+    // The first tack hint goes up on the tack; its cost is told up to 4 s later.
+    const s = run([[0, hint], [3.5, tack]]);
+    expect(texts(s)).toEqual([hint.text]);
+    // Still held long after the usual wait, never dropped while the hint is up.
+    expect(texts(tickFeedback(s, hintEnd(0) - .01))).toEqual([hint.text]);
+    expect(tickFeedback(s, hintEnd(0) - .01).queue.map(t => t.source)).toEqual(["manoeuvre"]);
+    // The hint's end is the next change, then the cost is on screen for its own time.
+    expect(nextFeedbackChange(s)).toBe(hintEnd(0));
+    const after = tickFeedback(s, hintEnd(0));
+    expect(texts(after)).toEqual([tack.text]);
+    expect(after.visible[0].until).toBe(hintEnd(0) + FEEDBACK_DURATION.manoeuvre);
+    // Race events the hint pushed off the screen come back too: a mark split and a place change.
+    const pushed = run([[0, mark], [.2, place], [.5, hint]]);
+    expect(texts(tickFeedback(pushed, hintEnd(.5) + FEEDBACK_LIMITS.maxWaitSec - .01))).toEqual([mark.text, place.text]);
+    // Once back, a message held back does not wait forever: the usual limit counts from the hint's end.
+    const late = { ...pushed, visible: [] };
+    expect(texts(tickFeedback(late, hintEnd(.5) + FEEDBACK_LIMITS.maxWaitSec + .01))).toEqual([]);
+  });
+
+  it("waits behind a rule notice for as long as it is up, then goes up alone", () => {
+    const behind = run([[0, rule], [.5, hint]]);
+    expect(texts(behind)).toEqual([rule.text]);
+    expect(behind.queue.map(t => t.source)).toEqual(["hint"]);
+    // Well past the usual wait, the hint is still queued while the rule notice is up.
+    const waiting = tickFeedback(behind, FEEDBACK_DURATION.rule - .01);
+    expect(waiting.queue.map(t => t.source)).toEqual(["hint"]);
+    // A race event posted meanwhile joins the rule notice, and steps back when the hint goes up.
+    const busy = postFeedback(waiting, tack, FEEDBACK_DURATION.rule - 1);
+    expect(texts(busy)).toEqual([rule.text, tack.text]);
+    const up = tickFeedback(busy, FEEDBACK_DURATION.rule);
+    expect(texts(up)).toEqual([hint.text]);
+    expect(up.visible[0].tag).toBe("no-go");
+    expect(up.queue.map(t => t.source)).toEqual(["manoeuvre"]);
+    expect(texts(tickFeedback(up, hintEnd(FEEDBACK_DURATION.rule)))).toEqual([tack.text]);
+    // A new rule notice takes the hint's place on screen; the hint comes back after it.
+    const replaced = run([[0, hint], [1, rule]]);
+    expect(texts(replaced)).toEqual([rule.text]);
+    expect(texts(tickFeedback(replaced, 1 + FEEDBACK_DURATION.rule))).toEqual([hint.text]);
+    // A queued hint is never shown next to another message.
+    const queued = run([[0, tack], [.1, rule], [.2, hint]]);
+    expect(texts(queued)).toEqual([rule.text, tack.text]);
+    expect(texts(tickFeedback(queued, 2.7))).toEqual([rule.text]);
+    expect(texts(tickFeedback({ ...queued, visible: queued.visible.filter(t => t.source !== "rule") }, 1))).toEqual([hint.text]);
+  });
+});

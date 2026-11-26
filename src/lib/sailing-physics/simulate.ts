@@ -1,7 +1,11 @@
-import type { BoatState, Controls, BoatParams, TickResult, TickDiagnostics, ResolvedRig } from './types';
+import type { BoatState, Controls, BoatParams, TickResult, TickDiagnostics, ResolvedRig, TickMotion } from './types';
 import { apparentWind, twaFromCompass, vmg, KN_TO_MPS, MPS_TO_KN } from './wind';
 import { computeSailForce, slotMultiplier, type SailConfig } from './forces';
+import { softSailAttachment } from './aero';
 import { computeBalance } from './balance';
+import { cruiserResistance } from './resistance';
+
+const RHO_AIR = 1.225;
 import { reefAreaFraction, jibAreaFraction } from './sail-plan';
 
 // ============================================================================
@@ -82,7 +86,9 @@ export function tick(
   params: BoatParams,
   dt: number,
   rig?: ResolvedRig,
+  motion?: TickMotion,
 ): TickResult {
+  const model = params.model;
   // --- Step 1: apparent wind ---
   const twa = twaFromCompass(state.trueWindDir, state.heading);
   const aw = apparentWind(
@@ -114,13 +120,17 @@ export function tick(
 
   // --- Step 3-4: compute sail forces ---
   // Jib first (we need its AoA/stall state for the slot effect on main).
+  // Classic profile: an unloaded (transferring) sail simply has less area.
+  // Cruiser profile (ADR-0021): it keeps its area and flogs, so a sail that
+  // crosses the boat in a tack drags until the crew has it drawing again.
   const jibCfg: SailConfig = {
-    area: jibArea * jibLoad,
+    area: model ? jibArea : jibArea * jibLoad,
     angleOff: jibAngle,
     side: jibSideSign,
     twist: controls.jibTwist,
+    ...(model ? { attached: jibLoad } : {}),
   };
-  const jibF = computeSailForce(aw.vec, awsMps, jibCfg, 1.0);
+  const jibF = computeSailForce(aw.vec, awsMps, jibCfg, 1.0, model);
 
   // --- Step 5: slot multiplier on main Cl ---
   const slot = slotMultiplier({
@@ -133,23 +143,53 @@ export function tick(
   });
 
   const mainCfg: SailConfig = {
-    area: mainArea * mainLoad,
+    area: model ? mainArea : mainArea * mainLoad,
     angleOff: mainAngle,
     side: mainSideSign,
     twist: controls.mainTwist,
     outhaulEase: rig?.main.outhaulEase,
+    ...(model ? { attached: mainLoad } : {}),
   };
-  const mainF = computeSailForce(aw.vec, awsMps, mainCfg, slot.mult);
+  // Cruiser profile (ADR-0021): a drawing jib bends the flow that reaches the
+  // main toward the bow (downwash, the backwind a pinching crew sees first in
+  // the main's luff). The main meets an apparent wind mainBackwindDeg finer,
+  // full up to AWA 60 and gone by AWA 100, never with the jib goose-winged.
+  let mainAw = aw.vec;
+  if (model && model.mainBackwindDeg > 0 && jibSideSign === mainSideSign && awsMps > 1e-4) {
+    const drawing = (jibArea * jibLoad / Math.max(params.jibArea, 1e-9))
+      * softSailAttachment(jibF.aoa, model.luffStartDeg, model.luffFullDeg);
+    const fade = Math.max(0, Math.min(1, (100 - Math.abs(aw.awa)) / 40));
+    const eps = model.mainBackwindDeg * drawing * fade;
+    if (eps > 0) {
+      const finer = (aw.awa - Math.sign(aw.awa) * Math.min(eps, Math.abs(aw.awa))) * Math.PI / 180;
+      mainAw = { x: -awsMps * Math.sin(finer), y: -awsMps * Math.cos(finer) };
+    }
+  }
+  const mainF = computeSailForce(mainAw, awsMps, mainCfg, slot.mult, model);
 
   // Blanketing: at deep TWA (running downwind) with the jib on the same side
   // as the main, the main sits upwind of the jib and blocks its airflow. The
   // jib loses force. Wing-on-wing (jib on opposite side) gets clean air.
   // Model: blanket kicks in within 45 deg of dead downwind, worst at 180 deg.
   const twaFromDead = 180 - Math.abs(twa);
-  if (mainArea > 0 && jibSideSign === mainSideSign && twaFromDead < 45) {
-    const blanketFactor = 0.4 + 0.6 * (twaFromDead / 45);
-    jibF.drive *= blanketFactor;
-    jibF.side *= blanketFactor;
+  if (!model) {
+    if (mainArea > 0 && jibSideSign === mainSideSign && twaFromDead < 45) {
+      const blanketFactor = 0.4 + 0.6 * (twaFromDead / 45);
+      jibF.drive *= blanketFactor;
+      jibF.side *= blanketFactor;
+    }
+  } else if (mainArea > 0 && jibSideSign === mainSideSign) {
+    // Cruiser profile (ADR-0021): the main's wind shadow is set by the
+    // apparent wind. A jib on the main's side collapses in it by AWA 170
+    // (white sails have no pole), it draws fully again from AWA 140.
+    const fromDead = 180 - Math.abs(aw.awa);
+    const blanketFactor = Math.max(0, Math.min(1, (fromDead - 10) / 30));
+    if (blanketFactor < 1) {
+      const mainShare = mainArea * mainLoad / Math.max(params.mainArea, 1e-9);
+      const factor = 1 - (1 - blanketFactor) * Math.min(1, mainShare);
+      jibF.drive *= factor;
+      jibF.side *= factor;
+    }
   }
 
   // Heel self-limits sail force: as the rig tips over, the horizontal
@@ -188,17 +228,42 @@ export function tick(
 
   // --- Step 7: hull drag ---
   const bsMps = state.boatSpeed * KN_TO_MPS;
-  const hullDragN = params.hullDragK * bsMps * bsMps;
-
-  // --- Step 8: integrate boat speed ---
   const totalDriveN = mainDriveEff + jibDriveEff;
-  const netN = totalDriveN - hullDragN;
-  const accMps2 = netN / params.surgeMass;
-  let newBsMps = Math.max(0, bsMps + accMps2 * dt);
-  // Soft cap at hull speed * 1.25 (wave train gets large past hull speed)
-  const hullSpeedKn = 1.34 * Math.sqrt(params.lwl * 3.281);
-  const hullSpeedMps = hullSpeedKn * 1.25 * KN_TO_MPS;
-  if (newBsMps > hullSpeedMps) newBsMps = hullSpeedMps;
+  let newBsMps: number;
+  let resistanceN: number | undefined;
+  if (!model) {
+    // Classic profile (ADR-0001, ADR-0002): one quadratic drag and a cap.
+    const hullDragN = params.hullDragK * bsMps * bsMps;
+
+    // --- Step 8: integrate boat speed ---
+    const netN = totalDriveN - hullDragN;
+    const accMps2 = netN / params.surgeMass;
+    newBsMps = Math.max(0, bsMps + accMps2 * dt);
+    // Soft cap at hull speed * 1.25 (wave train gets large past hull speed)
+    const hullSpeedKn = 1.34 * Math.sqrt(params.lwl * 3.281);
+    const hullSpeedMps = hullSpeedKn * 1.25 * KN_TO_MPS;
+    if (newBsMps > hullSpeedMps) newBsMps = hullSpeedMps;
+  } else {
+    // Cruiser profile (ADR-0021): friction plus wave making, heel, keel and
+    // turning drag (resistance.ts), and the windage of hull and rig along the
+    // apparent wind. No cap: the wave wall holds the boat near hull speed.
+    const water = cruiserResistance({
+      speedMps: bsMps,
+      heelDeg: state.heel,
+      sideN: mainSideEff + jibSideEff,
+      leewayDeg: state.leeway,
+      yawRateDegPerS: motion?.yawRateDegPerS ?? 0,
+      params,
+      model,
+    });
+    const windageDriveN = awsMps > 1e-4
+      ? 0.5 * RHO_AIR * awsMps * awsMps * model.windageCdA * (aw.vec.y / awsMps)
+      : 0;
+    resistanceN = water.total - windageDriveN;
+    // --- Step 8: integrate boat speed ---
+    const accMps2 = (totalDriveN + windageDriveN - water.total) / params.surgeMass;
+    newBsMps = Math.max(0, bsMps + accMps2 * dt);
+  }
   const newBsKn = newBsMps * MPS_TO_KN;
 
   // --- Diagnostics ---
@@ -213,6 +278,7 @@ export function tick(
     drive: totalDriveN,
     side: mainF.side + jibF.side,
     vmg: vmg(newBsKn, twa),
+    ...(model ? { resistance: resistanceN, heelTarget: balance.heelEquilibrium } : {}),
   };
 
   const newState: BoatState = {

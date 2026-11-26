@@ -15,56 +15,22 @@
  * - Where the browser supports the Audio Session API (Safari / WKWebView on
  *   iOS 16.4+) the page asks for the "ambient" session: it mixes with the
  *   player's music and is silenced by the ring/silent switch.
+ * - The race soundscape (wind, water, slaps, flogging, winch, contact; M3-2,
+ *   ADR-0019) plays on this same context and master through
+ *   raceAudioOutput(); race-soundscape-audio.ts never makes a context.
+ * - The start signals (M3-3: horn, short signals, gun, recall) go through
+ *   playStartSignal() for both the solo race and multiplayer; which signal
+ *   belongs to which countdown second is decided in race-start-signals.ts.
  */
 
-import { readControlPrefs, LEGACY_RACE_MUTE_KEY } from "@/features/trainer-controls/prefs";
-import { recordPreferenceChange } from "@/lib/diagnostics-controls";
+import { readRaceSound, RACE_SOUND_EVENT } from "@/lib/race-sound-pref";
+import type { StartSignal } from "@/lib/race-start-signals";
 
-export const RACE_SOUND_KEY = "regatta.race.sound.v1";
-export const RACE_SOUND_EVENT = "regatta:race-sound";
+// The setting itself lives in race-sound-pref.ts (no audio code there); every
+// race screen keeps importing it from here.
+export { RACE_SOUND_KEY, RACE_SOUND_EVENT, readRaceSound, writeRaceSound, subscribeRaceSound } from "@/lib/race-sound-pref";
 /** Master level for every race signal: moderate, under the note gains below. */
 export const RACE_SOUND_VOLUME = 0.5;
-
-/** The choice of this page when storage refused to save it; null while storage holds the truth. */
-let memory: boolean | null = null;
-
-/** True when race signals may play. Default on; an old explicit race mute stays muted. */
-export function readRaceSound(): boolean {
-  if (typeof window === "undefined") return false;
-  // A choice storage could not save wins over the older row still stored (full quota).
-  if (memory !== null) return memory;
-  try {
-    const stored = window.localStorage.getItem(RACE_SOUND_KEY);
-    if (stored === "on") return true;
-    if (stored === "off") return false;
-  } catch { return true; }
-  try {
-    if (window.localStorage.getItem(LEGACY_RACE_MUTE_KEY) === "1" && !readControlPrefs().sound) return false;
-  } catch { /* storage unavailable: the default applies */ }
-  return true;
-}
-
-/** Saves the race sound choice. Call it from the toggle's click: turning sound on also unlocks audio inside that gesture. */
-export function writeRaceSound(on: boolean, surface: "race" | "multiplayer" = "race"): void {
-  if (typeof window === "undefined") return;
-  const previous = readRaceSound();
-  memory = null;
-  // In the iOS app the storage bridge (mobile/src/persistence/race-web-storage.ts) forwards this row to AsyncStorage.
-  try { window.localStorage.setItem(RACE_SOUND_KEY, on ? "on" : "off"); } catch { memory = on; /* the in-memory choice holds for this page */ }
-  try { recordPreferenceChange(surface, "sound", on, previous); } catch { /* diagnostics never block the choice */ }
-  window.dispatchEvent(new Event(RACE_SOUND_EVENT));
-}
-
-export function subscribeRaceSound(onChange: () => void): () => void {
-  // Another tab saved a choice: storage holds the truth again.
-  const onStorage = (e: StorageEvent) => { if (e.key === RACE_SOUND_KEY) { memory = null; onChange(); } };
-  window.addEventListener(RACE_SOUND_EVENT, onChange);
-  window.addEventListener("storage", onStorage);
-  return () => {
-    window.removeEventListener(RACE_SOUND_EVENT, onChange);
-    window.removeEventListener("storage", onStorage);
-  };
-}
 
 // ============================================================================
 // Audio context: created only inside a gesture and only while sound is on
@@ -148,6 +114,15 @@ function output(): { c: AudioContext; out: AudioNode } | null {
   return { c: ctx, out: master };
 }
 
+/**
+ * The shared context and master gain for the race soundscape
+ * (race-soundscape-audio.ts), or null whenever a signal would not play.
+ * It never creates or resumes the context: only a gesture does that.
+ */
+export function raceAudioOutput(): { c: AudioContext; out: AudioNode } | null {
+  return output();
+}
+
 interface ToneOpts {
   freq: number;
   durMs: number;
@@ -205,13 +180,79 @@ function noise(durMs: number, filterFreq = 1000, gain = 0.08) {
 // Public sound library
 // ============================================================================
 
-/** Start countdown beep */
-export function playBeep() { tone({ freq: 660, durMs: 120, type: 'square', gain: 0.12 }); }
+/**
+ * A committee-boat air horn: sawtooth voices a few cents apart through a
+ * lowpass, held flat and released, not a decaying beep. One voice for the
+ * short signals, two for the long ones.
+ */
+function horn(durMs: number, freq = 233, voices = 2, gain = 0.07) {
+  const o = output();
+  if (!o) return;
+  const { c, out } = o;
+  const now = c.currentTime, end = now + durMs / 1000;
+  const filter = c.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1500;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(gain, now + 0.03);
+  g.gain.setValueAtTime(gain, Math.max(now + 0.03, end - 0.08));
+  g.gain.exponentialRampToValueAtTime(0.0001, end);
+  filter.connect(g);
+  g.connect(out);
+  for (let v = 0; v < voices; v++) {
+    const osc = c.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq * (1 + v * 0.006), now);
+    osc.connect(filter);
+    osc.start(now);
+    osc.stop(end + 0.05);
+  }
+}
 
-/** Race start fanfare */
-export function playStart() {
-  tone({ freq: 440, durMs: 120, type: 'square', gain: 0.12 });
-  tone({ freq: 660, durMs: 200, type: 'square', gain: 0.14, delayMs: 120 });
+/** The start gun: a sharp noise crack with a falling low thump under it. */
+function gun() {
+  const o = output();
+  if (!o) return;
+  const { c, out } = o;
+  const now = c.currentTime;
+  const size = Math.floor(c.sampleRate * 0.45);
+  const buffer = c.createBuffer(1, size, c.sampleRate);
+  const data = buffer.getChannelData(0);
+  const decay = c.sampleRate * 0.07;
+  for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / decay);
+  const src = c.createBufferSource();
+  src.buffer = buffer;
+  const filter = c.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 2600;
+  const g = c.createGain();
+  g.gain.value = 0.32;
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(out);
+  src.start(now);
+  src.stop(now + 0.5);
+  tone({ freq: 110, freqEnd: 38, durMs: 320, type: 'sine', gain: 0.22 });
+}
+
+/** A short sound signal on each of the last countdown seconds (one horn voice). */
+export function playBeep() { horn(160, 440, 1, 0.06); }
+
+/** The start gun at zero. */
+export function playStart() { gun(); }
+
+/**
+ * The start signals of M3-3 (race-start-signals.ts), one entry for the solo
+ * race and multiplayer so both sound alike: the long horn when the countdown
+ * begins, a short signal on each later second, the gun at zero, one horn for
+ * an individual recall. Silent while race sound is off.
+ */
+export function playStartSignal(signal: StartSignal) {
+  if (signal === "warning") horn(800);
+  else if (signal === "tick") playBeep();
+  else if (signal === "start") playStart();
+  else horn(550, 208);
 }
 
 /** Tack (sail shift) - whoosh */

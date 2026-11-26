@@ -6,7 +6,7 @@ import { type SimulationModel, type TpFn, type UiState } from './shared';
 // Metrics strip (4 chips)
 // ---------------------------------------------------------------------------
 
-/** `dense`: the phone readouts under a pinned scene, where every pixel goes back to the boat. */
+/** `dense`: the phone's instrument card in a corner of the scene (package 32, game screen): two by two, smaller figures. */
 export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim: SimulationModel; tp: TpFn; dense?: boolean }) {
   const heelAbs = Math.abs(sim.result.state.heel);
   const trimColor =
@@ -20,7 +20,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
 
   return (
     <div
-      className={`grid shrink-0 grid-cols-4 gap-0 mx-2 lg:mx-0 rounded-xl overflow-hidden ${dense ? 'mt-1.5' : 'mt-2 lg:mt-3'}`}
+      className={`grid shrink-0 gap-0 mx-2 lg:mx-0 rounded-xl overflow-hidden ${dense ? 'grid-cols-2 mt-1.5' : 'grid-cols-4 mt-2 lg:mt-3'}`}
       style={{ background: 'color-mix(in srgb, var(--bg-secondary) 60%, transparent)', border: '1px solid var(--border-subtle)' }}
     >
       <MetricChip
@@ -53,7 +53,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         value={Math.round(Math.abs(sim.result.diag.awa)).toString()}
         unit="°"
         color="var(--text-primary)"
-        divider
+        divider={!dense}
         dense={dense}
       />
       <MetricChip
@@ -68,6 +68,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         color={ui.mainTrim ? "var(--text-primary)" : trimColor}
         divider
         dense={dense}
+        testId="trainer-trim-score"
       />
     </div>
   );
@@ -80,6 +81,7 @@ function MetricChip({
   color,
   divider,
   dense,
+  testId,
 }: {
   label: string;
   value: string;
@@ -87,16 +89,17 @@ function MetricChip({
   color: string;
   divider?: boolean;
   dense?: boolean;
+  testId?: string;
 }) {
   return (
-    <div className={`relative ${dense ? 'px-2 py-1.5' : 'px-2 py-2 sm:px-3 sm:py-3'}`}>
+    <div className={`relative ${dense ? 'px-2 py-1.5' : 'px-2 py-2 sm:px-3 sm:py-3'}`} data-testid={testId}>
       {divider && (
         <div
           className="absolute left-0 top-2 bottom-2 w-px"
           style={{ background: 'rgba(139, 167, 184, 0.18)' }}
         />
       )}
-      <div className="text-[8px] sm:text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
+      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold">
         {label}
       </div>
       <div className="mt-0.5 flex items-baseline gap-1">
@@ -106,7 +109,7 @@ function MetricChip({
         >
           {value}
         </span>
-        <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-semibold">{unit}</span>
+        <span className="text-xs text-[var(--text-muted)] font-semibold">{unit}</span>
       </div>
     </div>
   );

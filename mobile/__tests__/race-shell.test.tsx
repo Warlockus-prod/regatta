@@ -1,8 +1,8 @@
 import { act, fireEvent, render } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SimWebView } from "../src/simulator/SimWebView";
-import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions } from "../src/simulator/race-shell";
+import { RACE_PROCESS_RELOAD_WINDOW_MS, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, trainerStage } from "../src/simulator/race-shell";
 import { nativeDiagnostics } from "../src/diagnostics/journal";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
@@ -16,12 +16,17 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), canGoBack: () => true, back: jest.fn() }),
   usePathname: () => "/game",
 }));
-jest.mock("expo-modules-core", () => ({
-  ...jest.requireActual("expo-modules-core"),
-  requireOptionalNativeModule: (name: string) => name === "ExpoKeepAwake"
-    ? { activate: (tag: string) => mockActivate(tag), deactivate: (tag: string) => mockDeactivate(tag) }
-    : null,
-}));
+// The native module is replaced, not the expo-keep-awake package, so the test
+// runs through the declared package's real activate/deactivate wrappers.
+jest.mock("expo-modules-core", () => {
+  const actual = jest.requireActual("expo-modules-core");
+  return {
+    ...actual,
+    requireNativeModule: (name: string) => name === "ExpoKeepAwake"
+      ? { activate: (tag: string) => mockActivate(tag), deactivate: (tag: string) => mockDeactivate(tag) }
+      : actual.requireNativeModule(name),
+  };
+});
 jest.mock("../src/i18n/context", () => ({
   useI18n: () => ({ lang: "en", tp: (_ru: string, en: string) => en, tl: (values: { en: string }) => values.en }),
 }));
@@ -75,14 +80,53 @@ it("keeps a landscape race clear of the side insets, swipe-proof and awake until
   expect(mockDeactivate).toHaveBeenCalledWith(tag);
 });
 
-it("leaves the trainers' gestures, insets and idle timer alone", async () => {
+it("leaves the trainers' gestures and idle timer alone, and keeps a turned trainer clear of the cutout", async () => {
   const view = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
     <SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={local} />
   </SafeAreaProvider>);
   await act(async () => {});
-  expect(view.getByTestId("screen").props.style).toBeNull();
+  // Package 32: the turned trim trainer had its wind box under the screen cutout.
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
   expect(lastOptions().gestureEnabled).toBeUndefined();
   expect(mockActivate).not.toHaveBeenCalled();
+});
+
+// Package 32 stage B (rule R-46, point 6): the two 3D trainers paint their scene on the whole
+// screen. Turned, the native header and the frame's insets go, Back floats over the scene and
+// the page is told how much room it takes; the flat steering trainer keeps the old frame.
+it("turns a 3D trainer into a full-screen scene with a floating Back, and leaves the flat trainer framed", async () => {
+  const turned = jest.spyOn(Dimensions, "get").mockReturnValue({ width: 874, height: 402, scale: 3, fontScale: 1 });
+  try {
+    const view = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+      <SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={local} />
+    </SafeAreaProvider>);
+    await act(async () => {});
+    // Loading: the header stays so the learner can leave, the frame already steps aside.
+    expect(view.getByTestId("screen").props.style).toBeNull();
+    expect(lastOptions().headerShown).toBe(true);
+    expect(view.queryByTestId("trainer-floating-back")).toBeNull();
+    fireEvent(view.getByTestId("webview"), "message", { nativeEvent: { data: "scene-ready" } });
+    expect(lastOptions().headerShown).toBe(false);
+    const back = view.getByTestId("trainer-floating-back");
+    expect(StyleSheet.flatten(back.props.style)).toMatchObject({ position: "absolute", left: 8 + 59, minHeight: 44 });
+    fireEvent(back, "layout", { nativeEvent: { layout: { x: 67, y: 6, width: 83.4, height: 44 } } });
+    const injected = (mockWebInstances[mockWebInstances.length - 1] as { injectJavaScript: jest.Mock }).injectJavaScript.mock.calls.map(([script]: [string]) => script);
+    expect(injected.some((script: string) => script.includes('"--native-back-w", "92px"') && script.includes('toggleAttribute("data-native-back", true)'))).toBe(true);
+    view.unmount();
+
+    const flat = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+      <SimWebView path="/simulator" title="Steering" tier="basics" offlineSource={local} />
+    </SafeAreaProvider>);
+    await act(async () => {});
+    fireEvent(flat.getByTestId("webview"), "message", { nativeEvent: { data: "app-ready" } });
+    expect(flat.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+    expect(lastOptions().headerShown).toBe(true);
+    expect(flat.queryByTestId("trainer-floating-back")).toBeNull();
+  } finally { turned.mockRestore(); }
+  expect(trainerStage("trainer", true)).toEqual({ full: true, bottomEdge: true });
+  expect(trainerStage("boat3d", false)).toEqual({ full: false, bottomEdge: true });
+  expect(trainerStage("basics", true)).toEqual({ full: false, bottomEdge: false });
+  expect(trainerStage(undefined, true)).toEqual({ full: false, bottomEdge: false });
 });
 
 it("keeps the live multiplayer room swipe-proof and awake", async () => {
@@ -91,6 +135,18 @@ it("keeps the live multiplayer room swipe-proof and awake", async () => {
   expect(lastOptions()).toMatchObject({ gestureEnabled: false });
   expect(mockActivate).toHaveBeenCalledTimes(1);
   view.unmount();
+});
+
+it("gives each stacked race screen its own lock, so leaving one keeps the other awake", async () => {
+  const race = render(<SimWebView path="/game" title="Race" fullScreen offlineSource={local} />);
+  const room = render(<SimWebView path="/multiplayer" title="Multiplayer" />);
+  await act(async () => {});
+  const [raceTag, roomTag] = mockActivate.mock.calls.map(call => call[0]);
+  expect(raceTag).not.toEqual(roomTag);
+  room.unmount();
+  expect(mockDeactivate.mock.calls.map(call => call[0])).toEqual([roomTag]);
+  race.unmount();
+  expect(mockDeactivate.mock.calls.map(call => call[0])).toEqual([roomTag, raceTag]);
 });
 
 it.each(["contentProcessDidTerminate", "renderProcessGone"])("reloads the local race to its menu after %s and says why, once per window", async event => {
@@ -130,6 +186,59 @@ it("keeps the native overlays inside the same safe frame as the race", async () 
   expect(StyleSheet.flatten(view.getByTestId("sim-failed").props.style)).toMatchObject({ left: 59, right: 59 });
 });
 
+// Package 11 (audit K6): the live room was squeezed between the native header
+// and the cockpit's own status row. While the cockpit is on screen it says so
+// and the native header steps aside; back in the lobby the header returns.
+it("hides the native header while the live room's cockpit draws its own, and only on a race screen", async () => {
+  const portrait = { insets: { top: 59, left: 0, right: 0, bottom: 34 }, frame: { x: 0, y: 0, width: 393, height: 852 } };
+  const view = render(<SafeAreaProvider initialMetrics={portrait}><SimWebView path="/multiplayer" title="Multiplayer" /></SafeAreaProvider>);
+  await act(async () => {});
+  const web = () => view.getByTestId("webview");
+  fireEvent(web(), "message", { nativeEvent: { data: "ready" } });
+  expect(lastOptions().headerShown).toBe(true);
+  fireEvent(web(), "message", { nativeEvent: { data: JSON.stringify({ type: "race-header", own: true }) } });
+  expect(lastOptions().headerShown).toBe(false);
+  fireEvent(web(), "message", { nativeEvent: { data: JSON.stringify({ type: "race-header", own: false }) } });
+  expect(lastOptions().headerShown).toBe(true);
+  view.unmount();
+  const trainer = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" />);
+  await act(async () => {});
+  fireEvent(trainer.getByTestId("webview"), "message", { nativeEvent: { data: "ready" } });
+  fireEvent(trainer.getByTestId("webview"), "message", { nativeEvent: { data: JSON.stringify({ type: "race-header", own: true }) } });
+  expect(lastOptions().headerShown).toBe(true);
+  expect(raceHeaderMessage('{"type":"race-header","own":"yes"}')).toBeNull();
+  expect(raceHeaderMessage("ready")).toBeNull();
+});
+
+// Package 31, R-45 prototype: while the race's water layout is on screen the
+// frame steps aside, so the scene reaches the screen edges; the lobby and the
+// results keep the frame, and a page reload (no one left to say so) restores it.
+it("drops the frame only while the race's water layout is on screen, and only on the race", async () => {
+  const view = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+    <SimWebView path="/game" title="Race" fullScreen offlineSource={local} />
+  </SafeAreaProvider>);
+  await act(async () => {});
+  const web = () => view.getByTestId("webview");
+  const water = (on: boolean) => fireEvent(web(), "message", { nativeEvent: { data: JSON.stringify({ type: "race-water", on }) } });
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  water(true);
+  expect(view.getByTestId("screen").props.style).toBeNull();
+  water(false);
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  water(true);
+  fireEvent(web(), "loadStart", { nativeEvent: {} });
+  expect(view.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  view.unmount();
+  const trainer = render(<SafeAreaProvider initialMetrics={LANDSCAPE}>
+    <SimWebView path="/multiplayer" title="Multiplayer" fullScreen />
+  </SafeAreaProvider>);
+  await act(async () => {});
+  fireEvent(trainer.getByTestId("webview"), "message", { nativeEvent: { data: JSON.stringify({ type: "race-water", on: true }) } });
+  expect(trainer.getByTestId("screen").props.style).toEqual({ paddingLeft: 59, paddingRight: 59 });
+  expect(raceWaterMessage('{"type":"race-water","on":"yes"}')).toBeNull();
+  expect(raceWaterMessage("ready")).toBeNull();
+});
+
 it("drops the memory notice below the island once the portrait race hides its header", async () => {
   const portrait = { insets: { top: 59, left: 0, right: 0, bottom: 34 }, frame: { x: 0, y: 0, width: 393, height: 852 } };
   const view = render(<SafeAreaProvider initialMetrics={portrait}>
@@ -158,6 +267,12 @@ it("keeps Retry for a process loss outside the local race", async () => {
   fireEvent(view.getByTestId("webview"), "contentProcessDidTerminate", { nativeEvent: {} });
   expect(view.getByText("Retry")).toBeTruthy();
   expect(lifecycle()).toEqual(["process-terminated:webview-process"]);
+});
+
+it("declares expo-keep-awake itself instead of borrowing the copy nested in expo", () => {
+  // A future Expo could drop its own dependency; the app's declaration keeps the pod autolinked.
+  expect(require("../package.json").dependencies["expo-keep-awake"]).toBeDefined();
+  expect(require.resolve("expo-keep-awake/package.json")).not.toMatch(/node_modules\/expo\/node_modules/);
 });
 
 it("computes the shell policy without a rendered screen", () => {

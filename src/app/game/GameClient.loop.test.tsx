@@ -7,7 +7,10 @@ import type { RaceLoopInput } from "./useRaceLoop";
 // GameClient owns the race refs and the loop (useRaceLoop) reads them. Render
 // the actual racing GameClient and drive the actual cockpit commands: the refs
 // the loop receives must be the ones those commands write.
-const capture = vi.hoisted(() => ({ cockpit: null as ComponentProps<typeof RaceCockpit> | null, loop: [] as RaceLoopInput[] }));
+const capture = vi.hoisted(() => ({ cockpit: null as ComponentProps<typeof RaceCockpit> | null, loop: [] as RaceLoopInput[], lifecycle: [] as unknown[][],
+  soundscape: { update: vi.fn(), winch: vi.fn(), thud: vi.fn(), setLive: vi.fn(), silence: vi.fn(), dispose: vi.fn() } }));
+vi.mock("@/lib/race-soundscape-audio", () => ({ createRaceSoundscape: () => capture.soundscape }));
+vi.mock("./useRaceSoundscape", () => ({ useRaceSoundscapeLifecycle: (...args: unknown[]) => { capture.lifecycle.push(args); } }));
 vi.mock("react", async original => {
   const actual = await original<typeof import("react")>();
   return { ...actual, useState: (initial: unknown) => actual.useState(initial === "menu" ? "racing" : initial) };
@@ -19,7 +22,7 @@ vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (text: Record<s
 vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
 vi.mock("./useRaceLoop", () => ({ useRaceLoop: (input: RaceLoopInput) => { capture.loop.push(input); } }));
 import GameClient from "./GameClient";
-beforeEach(() => { capture.cockpit = null; capture.loop = []; vi.stubGlobal("React", React); });
+beforeEach(() => { capture.cockpit = null; capture.loop = []; capture.lifecycle = []; for (const fn of Object.values(capture.soundscape)) fn.mockClear(); vi.stubGlobal("React", React); });
 afterEach(() => { vi.unstubAllGlobals(); });
 
 describe("solo race loop wiring", () => {
@@ -42,5 +45,40 @@ describe("solo race loop wiring", () => {
     expect(loop.refs.pausedRef.current).toBe(false);
     cockpit.onPause();
     expect(loop.refs.pausedRef.current).toBe(true);
+  });
+
+  it("hands the race soundscape to the loop and rattles the winch when the player moves a sheet (M3-2)", () => {
+    renderToStaticMarkup(<GameClient />);
+    const [loop] = capture.loop;
+    expect(loop.soundscape).toBe(capture.soundscape);
+    const cockpit = capture.cockpit!;
+    const before = loop.refs.trimRef.current.jibSheet;
+    cockpit.setTrim({ jibSheet: before + .1 });
+    expect(capture.soundscape.winch).toHaveBeenCalledTimes(1);
+    expect(capture.soundscape.winch.mock.calls[0][0]).toBeCloseTo(.1, 6);
+    // Twist is not a winch.
+    cockpit.setTrim({ mainTwist: .8 });
+    expect(capture.soundscape.winch).toHaveBeenCalledTimes(1);
+  });
+
+  it("hands the same soundscape, the race phase, the pause and the sound setting to the soundscape lifecycle", () => {
+    renderToStaticMarkup(<GameClient />);
+    expect(capture.lifecycle).toHaveLength(1);
+    const [soundscape, phase, paused, soundOn] = capture.lifecycle[0];
+    expect(soundscape).toBe(capture.soundscape);
+    expect(capture.loop[0].soundscape).toBe(soundscape);
+    expect([phase, paused]).toEqual(["racing", false]);
+    expect(soundOn).toBeTypeOf("boolean");
+  });
+
+  it("adopts the crew's trim on a switch to Pro without a winch ratchet", () => {
+    renderToStaticMarkup(<GameClient />);
+    const [loop] = capture.loop;
+    loop.refs.racePrefsRef.current = { ...loop.refs.racePrefsRef.current, mode: "simple" };
+    const crewTrim = { ...loop.refs.trimRef.current, mainSheet: .62, jibSheet: .41 };
+    loop.refs.boatsRef.current = [{ id: "player", isPlayer: true, trim: crewTrim } as unknown as (typeof loop.refs.boatsRef.current)[number]];
+    capture.cockpit!.updatePrefs({ mode: "pro" });
+    expect(loop.refs.trimRef.current.mainSheet).toBeCloseTo(.62, 6);
+    expect(capture.soundscape.winch).not.toHaveBeenCalled();
   });
 });

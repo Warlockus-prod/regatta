@@ -13,6 +13,7 @@ test("all offline surfaces share original sources and retain an HTTP-free runtim
   expect(html.toString()).toContain('<html lang="en" data-theme="light">');
   expect(manifest.routes).toEqual(SAILING_ROUTES);
   expect(manifest.inputs).toContain("src/features/ads-lab/AdsLab.tsx");
+  for (const path of ["src/features/manoeuvres/ManoeuvresApp.tsx", "src/lib/harbour-physics/step.ts", "src/data/manoeuvres.ts"]) expect(manifest.inputs).toContain(path);
   expect(manifest.sha256).toBe(sha(html)); expect(manifest.bytes).toBe(html.length);
   expect(html.length).toBeLessThan(8 * 1024 * 1024);
   for (const path of ["src/app/simulator/page.tsx", "src/app/anatomy/page.tsx", "src/components/YachtViewer3D.tsx", "src/components/AnatomyPosters.tsx", "src/features/race-scene/RaceScene.tsx", "src/features/simulator-v3/SimulatorV3Page.tsx"])

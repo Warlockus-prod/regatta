@@ -1,13 +1,13 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, memo, type MutableRefObject, type ReactNode } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Yacht } from './Yacht';
 import { WindFlow } from "./ocean/WindFlow";
 import type { Venue } from '../../data/venues/venues';
 import type { YachtState } from './types';
 import { fitYachtCamera, type CameraView } from "./camera";
-import { SailingCameraRig } from "./SailingCameraRig";
+import { StageCameraRig, StageView } from "./stage-view";
 import { SceneBoundary } from "./SceneBoundary";
 import { FirstSceneFrame, SceneStartup } from "./SceneStartup";
 import { YACHT_MODEL_URL } from "./config";
@@ -16,6 +16,8 @@ import { createSailingRenderer } from "@/features/race-scene/renderer";
 import { trainerChartOrigin } from "@/features/race-scene/environment-state";
 import { METRES_PER_UNIT } from "@/features/race-3d/pose";
 import { RACE_AREA } from "@/data/venues/geometry";
+import { venueLook } from "@/data/venues/look";
+import { createQualityGovernor, initialDpr, loadQualityStep, qualityAt, settle } from "@/features/race-scene/quality";
 
 function ContextHealth() {
   const { gl } = useThree();
@@ -27,6 +29,22 @@ function ContextHealth() {
     return () => canvas.removeEventListener("webglcontextlost", onLost);
   }, [gl]);
   if (lost) throw new Error("WebGL context lost");
+  return null;
+}
+
+/**
+ * Package 32 stage D: the trainers use the race's quality ladder (pixel ratio
+ * and scene profile, src/features/race-scene/quality.ts) instead of a fixed
+ * low pixel ratio, so the picture is sharp on a fast phone and steps down on a
+ * slow one. They start from the step the race reached on this device and do
+ * not write it back: the race stays the one that remembers.
+ */
+function TrainerQuality({ cap, start, onStep }: { cap: number; start: number; onStep: (index: number) => void }) {
+  const [governor] = useState(() => createQualityGovernor(start, cap));
+  useFrame(({ clock }) => {
+    const changed = governor.frame(clock.elapsedTime, document.visibilityState !== "hidden");
+    if (changed !== null) onStep(changed);
+  });
   return null;
 }
 
@@ -69,7 +87,7 @@ export const RegattaScene = memo(function RegattaScene({
   sceneLabel: string;
   errorLabel: string;
   retryLabel: string;
-  /** Cap devicePixelRatio (1.5 in the mobile WebView embed to save fill rate). */
+  /** Highest pixel ratio the quality ladder may use; 1 keeps the scene on its lightest picture (weak devices). */
   maxDpr?: number;
   /** Legacy caller compatibility. The shared TSL renderer uses its own tone
    * mapping; the old WebGL-only EffectComposer is no longer mounted. */
@@ -79,31 +97,44 @@ export const RegattaScene = memo(function RegattaScene({
   const readState = useCallback(() => stateRef.current, [stateRef]);
   const cameraPose = useCallback((aspect: number) => fitYachtCamera(view, stateRef.current, aspect), [stateRef, view]);
   const chartOrigin = useMemo(() => trainerChartOrigin(RACE_AREA, METRES_PER_UNIT), []);
+  const look = useMemo(() => venueLook(venue?.id), [venue?.id]);
+  const cap = useMemo(() => Math.min(maxDpr, initialDpr(typeof window === "undefined" ? 1 : window.devicePixelRatio)), [maxDpr]);
+  const [qualityStart] = useState(loadQualityStep);
+  const [qualityStep, setQualityStep] = useState(() => settle(qualityStart, cap));
+  const { dpr, profile } = qualityAt(settle(qualityStep, cap), cap);
+  // The light yacht (coarser cloth, slower cloth updates) goes with the lowest profile and with an explicit cap of 1.
+  const lightYacht = maxDpr <= 1 || profile.id === "low";
   return (
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={errorLabel} retryLabel={retryLabel} onError={onError}>
     <SceneStartup label={loadingLabel} onReady={onReady}>{ready =>
     <Canvas
+      role="img"
+      aria-label={sceneLabel}
       fallback={<span>{sceneLabel}</span>}
-      dpr={[1, maxDpr]}
+      dpr={dpr}
       camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
       gl={createSailingRenderer}
     >
-      <SailingEnvironment venue={venue} readState={readState} originRef={originRef} chartOrigin={chartOrigin} />
+      {/* Package 32 stage D: the trainers draw the venue's own light and colours, as the race does
+          (src/data/venues/look.ts), so the race and the trainers are one world. */}
+      <SailingEnvironment venue={venue} look={look} quality={profile} readState={readState} originRef={originRef} chartOrigin={chartOrigin} />
 
       <Suspense fallback={null}>
-        <Yacht stateRef={stateRef} light={maxDpr <= 1} />
+        <Yacht stateRef={stateRef} light={lightYacht} />
         {children}
         <FirstSceneFrame onReady={ready} />
       </Suspense>
 
       {showFlow && <WindFlow stateRef={stateRef} />}
 
-      {cameraRig ?? <SailingCameraRig
+      {cameraRig ?? <StageCameraRig
         poseForAspect={cameraPose}
         revision={revision}
         minDistance={view === "mainsheet" ? 2.5 : 9}
         maxDistance={120}
       />}
+      <StageView />
+      <TrainerQuality cap={cap} start={qualityStep} onStep={setQualityStep} />
       <ContextHealth />
     </Canvas>
     }</SceneStartup>

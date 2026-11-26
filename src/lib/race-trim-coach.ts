@@ -1,12 +1,17 @@
-import { getBoatParams } from "./sailing-physics/boat";
+import { CLASSIC_BOAT, CRUISER_BOAT } from "./sailing-physics/boat";
 import { tick } from "./sailing-physics/simulate";
 import { twaFromCompass } from "./sailing-physics/wind";
 import { jibAreaFraction } from "./sailing-physics/sail-plan";
 import { signedSailIncidence } from "@/features/sailing-lab/rig/response";
 import { coachFrom, trimQualityFrom, type CoachKey } from "@/features/sailing-lab/runtime/trim-coach";
 import type { RaceBoat } from "./race-physics";
+import type { BoatParams } from "./sailing-physics/types";
 
-const PARAMS = getBoatParams();
+/** The boat a race boat sails (ADR-0021): a metric-race boat carries the
+ * trainer crew's rig state (race-physical-motion.ts), a legacy boat never does. */
+function raceBoatParams(boat: RaceBoat): BoatParams {
+  return (boat as RaceBoat & { rig?: unknown }).rig ? CRUISER_BOAT : CLASSIC_BOAT;
+}
 
 /** Live Pro advice from the same diagnostics, incidence and coach as the
  * trainer. A zero-duration tick reads forces without advancing race state.
@@ -20,6 +25,7 @@ export function raceTrimCoach(boat: RaceBoat): CoachKey | null {
   if (!values.every(Number.isFinite)) return null;
   const active = { main: trim.mainHoisted !== false, jib: jibAreaFraction(trim.jibFurl) > 0 };
   if (!active.main && !active.jib) return null;
+  const PARAMS = raceBoatParams(boat);
   const state = { ...physics, heading: boat.heading, boatSpeed: Math.max(0, boat.speed) };
   const { diag } = tick(state, trim, PARAMS, 0);
   const twa = Math.abs(twaFromCompass(state.trueWindDir, state.heading));

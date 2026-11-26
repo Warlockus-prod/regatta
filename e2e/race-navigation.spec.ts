@@ -389,7 +389,7 @@ type RaceEntry = { mode?: "simple" | "pro"; embed?: boolean; viewport?: { width:
 
 async function startRace(page: Page, context: BrowserContext, entry: RaceEntry = {}) {
   const mode = entry.mode ?? "simple";
-  const modeLabel = mode === "pro" ? "Pro" : "Обычный";
+  const modeLabel = mode === "pro" ? "Pro" : "Простой";
   // Each journey uses its own real scene, ordinary input and unchanged deadlines.
   await context.addInitScript(() => {
     try {
@@ -399,6 +399,8 @@ async function startRace(page: Page, context: BrowserContext, entry: RaceEntry =
       localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels", helmReturnToCenter: false }));
       // The briefing opens by itself only on a course's first start; every journey here walks through it.
       localStorage.removeItem("regatta.race.briefing-seen.v1");
+      // F5: the race intro before the first race is seen (smoke.spec.ts walks through it).
+      localStorage.setItem("regatta.race.intro-seen.v1", "1");
     } catch { /* Ordinary browser storage may be unavailable. */ }
   });
   await page.setViewportSize(entry.viewport ?? { width: 390, height: 844 });
@@ -474,18 +476,136 @@ test("corner map and wind stay visible through dock tabs and five viewport sizes
     expect(geometry.map.width).toBeLessThanOrEqual(geometry.scene.width * .32 + 1);
     expect(geometry.map.height).toBeLessThanOrEqual(geometry.scene.height * .4 + 1);
     expect(geometry.map.left - geometry.wind.right).toBeGreaterThanOrEqual(geometry.scene.width * .2);
+    // Package 8: a square corner map whose letters read at 12 px or more on a 390 px phone.
+    expect(Math.abs(geometry.map.width - geometry.map.height)).toBeLessThanOrEqual(1);
+    if (viewport.width === 390) {
+      expect(geometry.map.width).toBeGreaterThanOrEqual(104);
+      const letters = await mini.evaluate(button => {
+        const svg = button.querySelector("svg")!;
+        const scale = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+        return [...svg.querySelectorAll("text")].map(text => Number(text.getAttribute("font-size")) * scale);
+      });
+      expect(letters.length).toBeGreaterThan(0);
+      for (const px of letters) expect(px).toBeGreaterThanOrEqual(12);
+    }
     samples.push({ viewport, ...geometry });
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  // F3: the corner map opens the big map over the scene; the dock under it
+  // stays usable while it is open, and Close brings the corner map back.
   await mini.click();
-  await expect(cockpit.getByTestId("race-overview-map")).toBeVisible();
-  await expect(mini).toBeVisible();
+  const bigMap = cockpit.getByTestId("race-big-map");
+  await expect(bigMap.getByRole("img", { name: "Карта трассы", exact: true })).toBeVisible();
+  await expect(bigMap.locator("[data-map-mark]")).toHaveCount(makeStandardCourse().marks.length);
   await cockpit.getByRole("button", { name: "Паруса", exact: true }).click();
+  await expect(bigMap).toBeVisible();
+  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  await bigMap.getByRole("button", { name: "Закрыть карту", exact: true }).click();
+  await expect(bigMap).toHaveCount(0);
   await expect(mini).toBeVisible();
   await expect(wind).toBeVisible();
-  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
-  await expect(mini).toBeVisible();
   await testInfo.attach("corner-instrument-layout", { contentType: "application/json", body: JSON.stringify(samples) });
+});
+
+// Package 8 (owner decision R-9, audit K5, TestFlight 74 feedback): the race
+// view is the default camera, a tap gives the orbit around the boat and a
+// double tap brings the race view back; the next mark is always findable (in
+// the picture under its beacon, or by the edge arrow with its distance); the
+// route hint says in words when to turn and on what course.
+test("race camera by default, orbit one tap away, double tap back, and the mark findable", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  const { scene, cockpit, canvas } = await startSimpleRace(page, context);
+  const saved = () => page.evaluate(() => localStorage.getItem("regatta.race.camera.v1"));
+  expect(await saved()).toBeNull();
+  await cockpit.getByRole("button", { name: "Настройки", exact: true }).click();
+  const cameras = cockpit.getByRole("radiogroup", { name: "Камера", exact: true });
+  await expect(cameras.getByRole("radio")).toHaveCount(4);
+  await expect(cameras.getByRole("radio", { name: "Гонка", exact: true })).toHaveAttribute("aria-checked", "true");
+  await cockpit.getByRole("button", { name: "Руль", exact: true }).click();
+  // The route call in the coach line: the band's colour, what to do and on what
+  // course; the route row under it keeps the course and how far the target is.
+  const caption = cockpit.getByTestId("race-route-caption");
+  await expect(caption).toBeVisible();
+  await expect(caption).toHaveAttribute("data-kind", /^(tack|gybe)-(now|ahead)$|^hold$|^steer$|^other$/);
+  await expect(caption).toHaveText(/\d+°/);
+  await expect(cockpit.getByTestId("race-route-heading")).toHaveText(/· \d+ м$/);
+  // The mark: the edge arrow carries metres whenever it is shown; turned away, it says the mark is behind.
+  const arrow = scene.getByTestId("race-mark-arrow");
+  const distance = scene.getByTestId("race-mark-arrow-distance");
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const tap = async () => { await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * .45); };
+  await tap();
+  await expect.poll(saved).toBe("orbit");
+  // Two taps in quick succession: the first steps on, the second brings the race view back.
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * .45, { clickCount: 1 });
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * .45, { clickCount: 2 });
+  await expect.poll(saved).toBe("race");
+  // Steer away from the mark until it is astern; the arrow then shows the turn-round sign with the distance.
+  await page.keyboard.down("ArrowRight");
+  await expect(arrow).toHaveAttribute("data-turn", /^(port|starboard)$/, { timeout: 30_000 });
+  await page.keyboard.up("ArrowRight");
+  await expect(arrow).toBeVisible();
+  await expect(distance).toHaveText(/^Знак сзади · \d+ м$/);
+});
+
+// Package 13 (ADR-0022, owner decision 1): a device that never saved a
+// control steers the race with the on-screen arrows. In Simple the arrows move
+// the course; the turn button tacks to the mirrored angle and hands back;
+// BEST VMG is switched off by an arrow. Real scene, real input, no timeout raised.
+test("a new install steers with arrows, the button tacks and an arrow switches BEST VMG off", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  await context.addInitScript(() => {
+    try {
+      localStorage.setItem("regatta.lang.v1", "ru");
+      localStorage.setItem("regatta.onboarding.v1", "1");
+      localStorage.setItem("regatta.race.intro-seen.v1", "1");
+      localStorage.removeItem("regatta.controls.v1");
+      localStorage.removeItem("regatta.race.helm.v1");
+    } catch { /* Ordinary browser storage may be unavailable. */ }
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/game?embed=1");
+  await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /^Первая гонка/ }).click();
+  await page.getByRole("radio", { name: "Простой", exact: true }).click();
+  await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+  await page.getByRole("button", { name: /Готов - старт/ }).click();
+  const cockpit = page.getByTestId("race-cockpit");
+  await expect(cockpit.getByTestId("race-helm-arrows")).toBeVisible({ timeout: 25_000 });
+  await expect(cockpit.getByRole("slider")).toHaveCount(0);
+  const clock = cockpit.getByText(/^\d+:\d\d\.\d$/);
+  await expect(clock).not.toHaveText("0:00.0", { timeout: 25_000 });
+  const status = cockpit.getByTestId("race-helm-status");
+  const course = async () => Number.parseInt((await status.textContent())!.match(/Курс (\d+)°/)![1], 10);
+  const turned = (a: number, b: number) => Math.abs((((b - a) % 360) + 540) % 360 - 180);
+  // An arrow press moves the course a step; the boat holds it.
+  const before = await course();
+  await cockpit.getByRole("button", { name: "Курс правее", exact: true }).click();
+  await expect.poll(async () => turned(before, await course()), { timeout: 5_000 }).toBeGreaterThanOrEqual(1);
+  // The turn button: a tack (close-hauled start), pressed while it turns, then the course is the other tack.
+  const turn = cockpit.getByTestId("race-helm-turn");
+  await expect(turn).toHaveAttribute("data-kind", "tack");
+  const fromCourse = await course();
+  await turn.click();
+  await expect.poll(async () => turned(fromCourse, await course()), { timeout: 15_000 }).toBeGreaterThan(60);
+  await expect(turn).toHaveAttribute("aria-pressed", "false", { timeout: 15_000 });
+  // BEST VMG on, then any arrow switches it off; the VMG line is in the wind box.
+  const best = cockpit.getByTestId("race-helm-best-vmg");
+  await expect(best).toHaveText("Лучший угол");
+  await best.click();
+  await expect(best).toHaveAttribute("aria-pressed", "true");
+  await expect(cockpit.getByTestId("race-vmg")).toBeVisible();
+  await cockpit.getByRole("button", { name: "Курс левее", exact: true }).click();
+  await expect(best).toHaveAttribute("aria-pressed", "false", { timeout: 5_000 });
+  // Every helm control is at least 44 px and its label is whole.
+  for (const id of ["race-helm-left", "race-helm-right", "race-helm-turn", "race-helm-best-vmg", "race-hold-angle"]) {
+    const box = (await cockpit.getByTestId(id).boundingBox())!;
+    expect(box.height, id).toBeGreaterThanOrEqual(44);
+    expect(box.width, id).toBeGreaterThanOrEqual(44);
+    expect(await cockpit.getByTestId(id).evaluate(element => element.scrollWidth <= element.clientWidth + 1), id).toBe(true);
+  }
+  expect(await page.evaluate(() => localStorage.getItem("regatta.race.helm.v1"))).toBeNull();
 });
 
 test("corner mini-map visibility survives a new document and records actual changes", async ({ page, context }) => {
@@ -629,9 +749,11 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
     const instrument = root.querySelector('[data-testid="race-wind-instrument"][data-compact]')!;
     const numeric = (testId: string) => Number.parseFloat(instrument.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "");
     const course = root.querySelector('[data-testid="race-route-heading"] > span > span')?.textContent?.match(/(\d+)°/);
-    const arrow = instrument.querySelector('[data-testid="race-relative-wind-arrow"]')?.getAttribute("transform")?.match(/^rotate\(([-\d.]+) 50 50\)$/);
+    // The dial's signed bow-relative angle (its drawn points come from it, wind-dial.ts).
+    const arrow = instrument.querySelector('[data-testid="race-relative-wind-arrow"]')?.getAttribute("data-angle");
     return { heading: Number(course?.[1]), absolute: numeric("race-true-wind-direction"), twa: numeric("race-true-wind-angle"),
-      relative: Number(arrow?.[1]), absoluteLabelled: instrument.querySelector('[data-testid="race-true-wind-direction"]')?.parentElement?.textContent?.includes("TWD") === true };
+      relative: arrow ? Number(arrow) : Number.NaN,
+      tailX: Number(instrument.querySelector('[data-testid="race-relative-wind-shaft"]')?.getAttribute("x1")), absoluteLabelled: instrument.querySelector('[data-testid="race-true-wind-direction"]')?.parentElement?.textContent?.includes("TWD") === true };
   });
   const delta = (from: number, to: number) => ((to - from + 540) % 360) - 180;
   const beforeWind = await windFrame();
@@ -648,6 +770,8 @@ test("Simple 3D keeps all wind choices and Helm input in the reserved cockpit", 
   expect(Math.abs(delta(beforeWind.absolute, afterWind.absolute))).toBeLessThan(Math.abs(delta(beforeWind.heading, afterWind.heading)));
   expect(Math.abs(delta(afterWind.relative, delta(afterWind.heading, afterWind.absolute)))).toBeLessThanOrEqual(1.1);
   expect(afterWind.twa).toBe(Math.round(Math.abs(afterWind.relative)));
+  // The drawn tail sits on the side the wind comes from: starboard (positive) right of the bow.
+  for (const frame of [beforeWind, afterWind]) if (Math.abs(frame.relative) > 2 && Math.abs(frame.relative) < 178) expect(Math.sign(frame.tailX - 50)).toBe(Math.sign(frame.relative));
   await expect(startup).toHaveAttribute("data-scene-startup", "ready");
   await testInfo.attach("race-wind-bow-relative", { body: Buffer.from(JSON.stringify({ before: beforeWind, after: afterWind })), contentType: "application/json" });
 
@@ -734,14 +858,14 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
       await evidence.observe(`${label}:before-primary-check`);
       let validatedPrimary: Awaited<ReturnType<typeof primaryWheelGeometry>> | undefined;
       await step("primary-visible", () => expect.poll(async () => {
-        validatedPrimary = await primaryWheelGeometry(cockpit, "Держать курс");
+        validatedPrimary = await primaryWheelGeometry(cockpit, "Держать угол");
         return validatedPrimary;
       }).toMatchObject({
         scrollTop: 0, count: names.length, allVisibleTogether: true,
       }));
       if (!validatedPrimary) throw new Error("Validated primary geometry is unavailable");
       const primary = validatedPrimary;
-      const autopilot = cockpit.getByRole("button", { name: "Держать курс", exact: true });
+      const autopilot = cockpit.getByRole("button", { name: "Держать угол", exact: true });
       const pilot = primary.pilot;
       if (!pilot) throw new Error("Heading hold geometry is unavailable");
       expect(pilot).toMatchObject({ actions: 5, inReservedActions: true, insideViewport: true });
@@ -789,19 +913,20 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
         svgInsidePanel: true, captionInsidePanel: true, svgInsideViewport: true, captionInsideViewport: true,
       }));
       await expect.poll(() => mapOpenCount(page)).toBe(previousOpens! + 1);
-      // Fleet intentionally scrolls this very same Map panel. Tapping its
-      // persistent corner shortcut again must restore the complete overview,
-      // without pretending that an already-open Map was opened a second time.
+      // Fleet intentionally scrolls this very same Map panel inside itself.
       await step("map-fleet-scroll", () => dock.getByRole("heading", { name: "Флот", exact: true }).scrollIntoViewIfNeeded());
       await overview.evaluate(figure => {
         const panel = figure.parentElement!.parentElement!;
         panel.scrollTop = panel.scrollHeight;
       });
       await expect.poll(async () => (await mapGeometry(overview)).scrollTop).toBeGreaterThan(0);
-      await step("map-retap", () => mini.click());
-      await step("map-restored", () => expect.poll(() => mapGeometry(overview)).toMatchObject({
-        scrollTop: 0, svgInsidePanel: true, captionInsidePanel: true, svgInsideViewport: true, captionInsideViewport: true,
-      }));
+      // F3: the corner shortcut opens the big map over the scene instead of
+      // the dock tab, so it never counts as opening the Map tab again.
+      await step("big-map-open", () => mini.click());
+      const bigMap = cockpit.getByTestId("race-big-map");
+      await step("big-map-visible", () => expect(bigMap.getByRole("img", { name: "Карта трассы", exact: true })).toBeVisible());
+      await step("big-map-close", () => bigMap.getByRole("button", { name: "Закрыть карту", exact: true }).click());
+      await expect(bigMap).toHaveCount(0);
       expect(await mapOpenCount(page)).toBe(previousOpens! + 1);
       await step("settings-open", () => cockpit.getByRole("button", { name: "Настройки", exact: true }).click());
       const diagnostics = dock.locator("details > summary");
@@ -855,17 +980,17 @@ for (const mode of ["simple", "pro"] as const) for (const journey of COCKPIT_JOU
 // Entry expressions follow the actual localized GameMenu/GameClient actions.
 const localizedProEntries = [
   { lang: "en", first: /^First race/, start: /^Start your first race →$/, ready: /^Ready - starting in/,
-    actions: ["Helm", "Sails", "Course map", "Settings", "Hold heading"], wheels: ["Helm", "Mainsheet", "Jib sheet"] },
+    actions: ["Helm", "Sails", "Course map", "Settings", "Hold angle"], wheels: ["Helm", "Mainsheet", "Jib sheet"] },
   { lang: "pl", first: /^Pierwszy wyścig/, start: /^Zacznij pierwszy wyścig →$/, ready: /^Gotowy - start za/,
-    actions: ["Ster", "Żagle", "Mapa trasy", "Ustawienia", "Trzymaj kurs"], wheels: ["Ster", "Szot grota", "Szot foka"] },
+    actions: ["Ster", "Żagle", "Mapa trasy", "Ustawienia", "Trzymaj kąt"], wheels: ["Ster", "Szot grota", "Szot foka"] },
   { lang: "es", first: /^Primera regata/, start: /^Empezar la primera regata →$/, ready: /^Listo - salida en/,
-    actions: ["Timón", "Velas", "Mapa del recorrido", "Ajustes", "Mantener rumbo"], wheels: ["Timón", "Escota de mayor", "Escota de foque"] },
+    actions: ["Timón", "Velas", "Mapa del recorrido", "Ajustes", "Mantener ángulo"], wheels: ["Timón", "Escota de mayor", "Escota de foque"] },
   { lang: "fr", first: /^Première course/, start: /^Lancer la première course →$/, ready: /^Prêt - départ dans/,
-    actions: ["Barre", "Voiles", "Carte du parcours", "Réglages", "Garder le cap"], wheels: ["Barre", "Écoute de grand-voile", "Écoute de foc"] },
+    actions: ["Barre", "Voiles", "Carte du parcours", "Réglages", "Garder l'angle"], wheels: ["Barre", "Écoute de grand-voile", "Écoute de foc"] },
   { lang: "de", first: /^Erstes Rennen\./, start: /^Erstes Rennen starten →$/, ready: /^Bereit - Start in/,
-    actions: ["Steuer", "Segel", "Kurskarte", "Einstellungen", "Kurs halten"], wheels: ["Steuer", "Großschot", "Fockschot"] },
+    actions: ["Steuer", "Segel", "Kurskarte", "Einstellungen", "Winkel halten"], wheels: ["Steuer", "Großschot", "Fockschot"] },
   { lang: "it", first: /^Prima regata/, start: /^Inizia la prima regata →$/, ready: /^Pronto - partenza tra/,
-    actions: ["Timone", "Vele", "Mappa del percorso", "Impostazioni", "Mantieni rotta"], wheels: ["Timone", "Scotta della randa", "Scotta del fiocco"] },
+    actions: ["Timone", "Vele", "Mappa del percorso", "Impostazioni", "Mantieni angolo"], wheels: ["Timone", "Scotta della randa", "Scotta del fiocco"] },
 ] as const;
 
 for (const localized of localizedProEntries) {
@@ -876,6 +1001,7 @@ for (const localized of localizedProEntries) {
       await evidence.step("storage-init", () => context.addInitScript(() => {
         localStorage.setItem("regatta.onboarding.v1", "1");
         localStorage.setItem("regatta.v3.tour.v1", "1");
+        localStorage.setItem("regatta.race.intro-seen.v1", "1");
         localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels", helmReturnToCenter: false }));
       }));
       await evidence.step("short:resize", () => page.setViewportSize({ width: 320, height: 568 }));
@@ -954,6 +1080,22 @@ for (const localized of localizedProEntries) {
       expect(water.height).toBeGreaterThanOrEqual(160);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
       await testInfo.attach(`race-${localized.lang}-short-primary`, { contentType: "application/json", body: JSON.stringify({ lang: localized.lang, viewport: page.viewportSize(), briefingPreview, scene: water, primary, actions }) });
+
+      // Landscape phone (M2 leftovers): no dock tab label breaks inside a word
+      // (never more lines than words), and every tab stays a 44 px target.
+      await evidence.step("landscape:resize", () => page.setViewportSize({ width: 844, height: 390 }));
+      const tabFit = () => reserved.getByRole("button").evaluateAll(tabs => tabs.map(tab => {
+        const label = Array.from(tab.querySelectorAll("span")).find(span => !span.querySelector("svg") && (span.textContent ?? "").trim());
+        const box = tab.getBoundingClientRect();
+        if (!label || getComputedStyle(label).position === "absolute") return { ok: box.width >= 44 && box.height >= 44 };
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        const lines = new Set(Array.from(range.getClientRects()).filter(rect => rect.width > 0).map(rect => Math.round(rect.top))).size;
+        const words = (label.textContent ?? "").trim().split(/\s+/).length;
+        return { text: label.textContent, lines, words, ok: lines <= words && box.width >= 44 && box.height >= 44 };
+      }));
+      await evidence.step("landscape:tabs-fit", () => expect.poll(async () => (await tabFit()).every(tab => tab.ok)).toBe(true));
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     } finally {
       await evidence.finish();
     }

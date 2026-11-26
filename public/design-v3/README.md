@@ -5,7 +5,8 @@ These images are not evidence of simulator quality or of a real location.
 
 | Asset | Source | Use |
 | --- | --- | --- |
-| sailing-editorial.webp | Newly generated image, 1440 x 960, quality 82 WebP | Web home and design review atmosphere |
+| race-scene.webp | Still captured 2026-11-02 from the real race scene (`/game`, Göcek, easy, at the start, HUD hidden), local production build, 1200 x 860, quality 74 WebP | Web home, Race hub and race lobby frame (package 9); native copy `mobile/assets/design/race-scene.jpg`, 960 x 688 |
+| sailing-editorial.webp | Newly generated image, 1440 x 960, quality 82 WebP | Former web home and lobby atmosphere, unused in code since package 9 |
 | mobile-home-concept.png | Newly generated mobile UI concept | Design review only, no baked UI in application |
 | yacht-anatomy-photo.webp | User-supplied handoff photos/r26-03.jpg | Review anatomy with proportionally placed hotspots |
 

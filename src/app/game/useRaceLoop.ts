@@ -7,7 +7,13 @@
 
 import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { playTack, playMarkRound, playFinish, playNoGo, readRaceSound } from '@/lib/sounds';
-import { analyseRaceLocally, analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
+import { raceHaptic } from '@/lib/race-haptics';
+import { analyseRaceLocallyWithFocus } from '@/lib/fallback-coach';
+import { helmProfileFor, raceUpwind } from '@/features/race-hud/target';
+import { createHelmAssist, helmTurnToward, stepHelmAssist, type HelmAssistState, type HelmView } from '@/lib/helm-assist';
+import { legOf, legTarget, madeGood } from '@/lib/helm-angles';
+import { assistCostsGold, raceAssistRecord, type RaceHelmControl } from '@/lib/race-helm';
+import { HELM_ASSIST_COPY } from '@/data/helm-assist-copy';
 import { evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import type { useI18n } from '@/lib/i18n';
 import { tryUpdateBestRecord, type BestRecord } from '@/lib/best-times';
@@ -16,50 +22,125 @@ import {
   stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, MIN_BOAT_SEPARATION,
   WIND_DIRECTION_BASE as WIND_DIRECTION,
   calcTWA,
-  angleDiff,
-  WORLD,
+  bearing,
   type RaceBoat,
 } from '@/lib/race-physics';
-import { classifyManoeuvre, createManoeuvreState, inNoGoZone, pressedAgainstEdge } from '@/lib/race-manoeuvres';
+import { classifyManoeuvre, createManoeuvreState, inNoGoZone, pressedAgainstEdge, NO_GO } from '@/lib/race-manoeuvres';
+import { coachLuffing, createSilentTargets, mapRaceSoundscape, type RaceSoundscapeInput } from '@/lib/race-soundscape';
+import type { RaceSoundscape } from '@/lib/race-soundscape-audio';
+import { raceTrimCoach } from '@/lib/race-trim-coach';
 import type { Controls } from "@/lib/sailing-physics/types";
 import { raceRanks } from '@/features/race-3d/pose';
 import type { StandingRow } from '@/features/race-hud/RaceHud';
 import type { FeedbackTone } from '@/features/race-hud/feedback';
-import { TURN_COST, contactCue, createContactCueState, playerTouching, watchTurn } from '@/features/race-hud/race-cues';
+import { TURN_COST, contactCue, createContactCueState, physicalPlayerTouching, playerTouching, watchTurn } from '@/features/race-hud/race-cues';
+import { createFirstRaceHintState, nextFirstRaceHint, type FirstRaceHint } from '@/features/race-hud/first-race-hints';
+import type { FirstRaceHintsRecord } from '@/features/race-hud/useFirstRaceHints';
 import type { RaceEvent } from '@/features/race-hud/events';
-import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
+import { turnAhead, type RaceGuidance } from "@/lib/race-guidance";
 import { evaluateRaceRules, type RaceRuleEvent, type RaceRulesState } from "@/lib/race-rules";
+import { raceScale } from "@/lib/race-scale";
+import type { PhysicalRaceImpact } from "@/lib/race-physical-response";
+import { playerRecallChange } from "@/lib/race-start-signals";
 import type { RaceJudgeDebrief } from "@/lib/race-judge";
-import { isStartJostle } from "@/lib/race-start-jostle";
+import { isStartJostleWithin } from "@/lib/race-start-jostle";
 import { isNativeRace, postNativeRace, type NativeRaceSnapshot } from "@/lib/race-native";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { bindClockLifecycle } from "@/features/sailing-lab/runtime/clock-lifecycle";
 import type { createRaceStartupGate } from "@/lib/race-startup";
 import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-completion";
+import { createPhysicalFleetResolver, physicalRaceTimeUp, type PhysicalFleetResolver } from "@/lib/race-physical-completion";
 import { recordDiagnostic } from "@/lib/diagnostics-controls";
 import { trackRaceEnd, trackRaceMark, trackRaceTack } from "@/lib/funnel";
 import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 import { NATIVE_BEST_PENDING_LIMIT, type createPendingNativeBestCommands } from "@/lib/race-best-command";
-import { LEGACY_RACE_CONTEXT, physicalRaceContext, type PhysicalRaceProfile } from "@/lib/race-context";
+import { physicalRaceContext, raceContextFor, raceRecordsEnabled, type PhysicalRaceProfile, type RaceContext } from "@/lib/race-context";
 import { physicalCourseDefinition } from "@/lib/race-courses";
 import type { PhysicalBotState } from "@/lib/race-physical-bot";
 import { physicalTrialSteering } from "@/lib/race-trial";
 import { ghostClassKey, ghostPose, makeGhostTrack, readGhostStore, rememberGhost, writeGhostStore, type GhostTrack } from "@/lib/race-ghost";
+import { ghostMarkSplit, raceGhostSplits, splitTone, type GhostSplit } from "@/lib/race-ghost-splits";
+import { awardRaceMedal, raceUsesHints, readMedalStore, writeMedalStore, type MedalAward } from "@/lib/race-medals";
+import { readRaceHomeStore, recordRaceEnd, writeRaceHomeStore } from "@/lib/race-next-step";
 import type { Difficulty } from './config';
 import type { RacePrefs } from './race-prefs';
-import { MISSED_MARK_NOTICE, type useRaceCopy } from './race-copy';
+import { MISSED_MARK_NOTICE, STUCK_NOTICE, type useRaceCopy } from './race-copy';
+import { createRaceStuckWatch, physicalPlayerPinned, stepRaceStuckWatch } from "@/lib/race-stuck-watch";
 import { createMissedMarkState, detectMissedMark } from "@/lib/race-missed-mark";
 import { createGroundSpeedWindow, displayedBoatSpeed, recordGroundStep } from "@/lib/race-ground-speed";
 import { pickLocalized } from "@/lib/languages";
 import type { NativeBestSaveState, NativeSaveStatus } from './RaceResults';
-import { finishHoldActive, scheduleFinishedScreen } from './race-finish-hold';
+import { finishHoldActive, finishHoldStore, scheduleFinishedScreen } from './race-finish-hold';
 import { raceOrientation, raceSummaryDiagnostics, withJudgeIncidents, type RaceSetupRecord, type RaceTally } from './race-diagnostic-summary';
 import {
-  localStore, raceLogTally, recordSample, soloRaceWind, sortRaceResults,
-  type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type Vec2,
+  localStore, planRouteGuidance, playerPlaceSettled, raceContextField, raceLogTally, recordSample, soloRaceWind, sortRaceResults,
+  type Boat, type Coaching, type Course, type GameState, type LogEvent, type LogSample, type RaceResultRow, type RouteGuidanceState, type Vec2,
 } from './race-model';
 
 type PhysicalFleetModule = typeof import("@/lib/race-physical-fleet");
+
+/** M5 (ADR-0015 point 8): how long one animation frame may spend sailing the
+ * rest of the metric fleet home after the player's finish. */
+export const FLEET_RESOLUTION_FRAME_MS = 6;
+/** The one metric fleet resolution in flight (a page runs one solo race). */
+let fleetResolution: { raceId: string; leave: () => void } | null = null;
+
+/** How a metric fleet resolution ended: every bot sailed home or hit the
+ * limit, a fleet frame was rejected (the rest estimated), or the race was left
+ * or replaced first (the rest estimated). */
+export type FleetSettlement = "resolved" | "failed" | "left";
+
+/** Sail the rest of the metric fleet home, one deadline-bounded slice per
+ * animation frame, during the finish hold, the results and the replay. The
+ * player's result, saves and snapshot were fixed at the finish tick; only the
+ * fleet rows (and the hold plate's place and count) follow. A new race stops it
+ * without touching anything (the race id moved on); leaving the race first
+ * (Menu, unmount) gives the remaining bots their estimated times. `onSettled`
+ * runs exactly once with the final rows, also when the race was replaced. */
+function runFleetResolution({ raceId, resolver, isCurrentRace, setResults, onSettled }: {
+  raceId: string; resolver: PhysicalFleetResolver<Boat>; isCurrentRace: () => boolean; setResults: SetState<RaceResultRow[]>;
+  onSettled?: (rows: RaceResultRow[], how: FleetSettlement) => void;
+}) {
+  let handle: number | null = null, over = false, shownPending = resolver.pending().size;
+  const publish = (rows: RaceResultRow[]) => {
+    if (!isCurrentRace()) return;
+    setResults(rows);
+    const hold = finishHoldStore.get();
+    if (hold && finishHoldActive(raceId)) finishHoldStore.set({ ...hold, place: rows.findIndex(r => r.isPlayer) + 1,
+      stillRacing: rows.filter(r => r.pending).length });
+  };
+  const estimatedRows = (boats: readonly Boat[], penalties: Readonly<Record<string, number | undefined>>) =>
+    sortRaceResults(boats, penalties, { estimated: resolver.estimate() });
+  const finish = (rows: RaceResultRow[], how: FleetSettlement) => {
+    if (over) return;
+    over = true;
+    if (handle !== null) cancelAnimationFrame(handle);
+    handle = null;
+    if (fleetResolution === run) fleetResolution = null;
+    publish(rows);
+    onSettled?.(rows, how);
+  };
+  let last = resolver.advance({ maxTicks: 0 });
+  const frame = () => {
+    handle = null;
+    if (over) return;
+    if (!isCurrentRace()) { finish(estimatedRows(last.boats, last.rules.penalties), "left"); return; }
+    last = resolver.advance({ deadlineMs: FLEET_RESOLUTION_FRAME_MS });
+    if (last.done) {
+      finish(last.failed ? estimatedRows(last.boats, last.rules.penalties) : sortRaceResults(last.boats, last.rules.penalties),
+        last.failed ? "failed" : "resolved");
+      return;
+    }
+    const pending = resolver.pending();
+    if (pending.size !== shownPending) { shownPending = pending.size; publish(sortRaceResults(last.boats, last.rules.penalties, { pending })); }
+    handle = requestAnimationFrame(frame);
+  };
+  const run = { raceId, leave: () => finish(estimatedRows(last.boats, last.rules.penalties), "left") };
+  fleetResolution?.leave();
+  fleetResolution = run;
+  handle = requestAnimationFrame(frame);
+}
+
 const nativeLogEvent = (e: LogEvent): e is LogEvent & { type: NativeRaceSnapshot["events"][number]["type"] } => e.type !== 'gybe';
 type I18n = ReturnType<typeof useI18n>;
 type SetState<T> = Dispatch<SetStateAction<T>>;
@@ -69,6 +150,10 @@ export interface RaceLoopRefs {
   boatsRef: RefObject<Boat[]>;
   courseRef: RefObject<Course>;
   physicalRef: RefObject<PhysicalRaceProfile | null>;
+  /** M5 step 7: the context of the race on the water, frozen by GameClient
+   * at the countdown; every record of this race is keyed on it. Without it
+   * (tests, older callers) the loop derives it from physicalRef. */
+  raceContextRef?: RefObject<RaceContext | null>;
   physicalNavRef: RefObject<ReadonlyMap<string, PhysicalBotState> | undefined>;
   fleetRef: RefObject<PhysicalFleetModule | null>;
   keysRef: RefObject<Set<string>>;
@@ -102,7 +187,7 @@ export interface RaceLoopRefs {
   raceIdRef: RefObject<string>;
   pendingNativeSaves: RefObject<ReturnType<typeof createPendingRaceSaves>>;
   pendingNativeBests: RefObject<ReturnType<typeof createPendingNativeBestCommands>>;
-  guidanceStateRef: RefObject<RaceGuidanceState | null>;
+  guidanceStateRef: RefObject<RouteGuidanceState | null>;
   rafRef: RefObject<number | null>;
   simulationClockRef: RefObject<ReturnType<typeof createFixedClock> | null>;
   startupGate: RefObject<ReturnType<typeof createRaceStartupGate>>;
@@ -112,7 +197,21 @@ export interface RaceLoopRefs {
   raceSetupRef: RefObject<RaceSetupRecord>;
   /** Missed-mark notices and contact frames of this race (diagnostics only). */
   raceTallyRef: RefObject<RaceTally>;
+  /** M4-5: route or trim hints were on at some moment of this race (no gold then). Reset by GameClient per race. */
+  raceHintsRef?: RefObject<boolean>;
+  /** M4-7: the first race hints this device has shown (useFirstRaceHints). */
+  firstHintsRef?: RefObject<FirstRaceHintsRecord>;
+  /** Package 13 (ADR-0022): the helm assist of this race (reset by GameClient
+   * per race), the on-screen arrows (held direction and a pending tap step)
+   * and the helm control the race is steered with. */
+  helmRef?: RefObject<HelmAssistState>;
+  helmInputRef?: RefObject<{ arrows: number; nudge: number }>;
+  helmControlRef?: RefObject<RaceHelmControl>;
 }
+
+
+/** What the AI coach reads (POST /api/coach): the local coach's race log. */
+export type AiCoachPayload = Parameters<typeof analyseRaceLocallyWithFocus>[0] & { lang: string };
 
 /** The state setters the loop publishes to; all owned by GameClient. */
 export interface RaceLoopSetters {
@@ -129,6 +228,11 @@ export interface RaceLoopSetters {
   setCoachingSource: SetState<"local" | "ai">;
   setCoachingLoading: SetState<boolean>;
   setCoachingError: SetState<string | null>;
+  /** Package 7 (owner decision R-11): the race log the AI coach may read. The
+   * finish screen asks the AI only when the player presses its button; the
+   * main advice stays the local coach's. Null for a race the AI never reads
+   * (the app, a race left before its place settled). */
+  setAiCoachPayload?: SetState<AiCoachPayload | null>;
   setNativeSave: SetState<NativeSaveStatus>;
   setNativeBestSave: SetState<NativeBestSaveState>;
   setPlayerTWA: SetState<number>;
@@ -137,6 +241,12 @@ export interface RaceLoopSetters {
   setNavigation: SetState<RaceNavigationSnapshot | null>;
   setRouteGuidance: SetState<RaceGuidance | null>;
   setElapsed: SetState<number>;
+  /** M4-4: the splits against your best race, set at the race end (empty without a ghost). */
+  setGhostSplits?: SetState<GhostSplit[]>;
+  /** M4-5: the course medal this race earned or kept; null for the physical trial or a did-not-finish. */
+  setMedalAward?: SetState<MedalAward | null>;
+  /** Package 13: the helm view (HelmView) at the HUD rate. */
+  setHelmView?: SetState<HelmView>;
 }
 
 export interface RaceLoopInput {
@@ -144,6 +254,8 @@ export interface RaceLoopInput {
   difficulty: Difficulty;
   windStrength: 'light' | 'medium' | 'heavy';
   selectedMission: Mission | null;
+  /** M4-6: the daily race day of this race, or null; a finished daily race counts as done for the race menu. */
+  dailyDay?: string | null;
   lang: I18n["lang"];
   tp: I18n["tp"];
   paused: boolean;
@@ -154,11 +266,17 @@ export interface RaceLoopInput {
   /** M1-3: the player's hull touched another boat (the red frame round the scene). */
   showContact: () => void;
   requestNativeBest: (raceId: string, action?: "request" | "retry") => void;
+  /** M3-2 race soundscape (ADR-0019); fed at the HUD cadence, at most ten times per second. */
+  soundscape?: RaceSoundscape;
+  /** M4-7: a first race hint is due (solo race only; M5 step 6: the metric race too). */
+  showHint?: (hint: FirstRaceHint) => void;
+  /** M3-3: the race detected the player's premature start (true) or the player cleared it (false); the page shows flag X and sounds the recall. */
+  onStartRecall?: (over: boolean) => void;
   refs: RaceLoopRefs;
   set: RaceLoopSetters;
 }
 
-export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, lang, tp, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, refs, set }: RaceLoopInput) {
+export function useRaceLoop({ gameState, difficulty, windStrength, selectedMission, dailyDay = null, lang, paused, sceneReady, showEvent, showNotice, showContact, requestNativeBest, soundscape, onStartRecall, showHint, refs, set }: RaceLoopInput) {
   const {
     boatsRef, courseRef, physicalRef, physicalNavRef, fleetRef, keysRef, rudderRef, autopilotOnRef, autopilotHeadingRef,
     racePrefsRef, trimRef, windDirRef, windGustRef, windStrengthRef, raceClockRef, hudRefreshRef, ruleStateRef, ruleEventsRef,
@@ -191,12 +309,56 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     let groundSpeed = createGroundSpeedWindow();
     // M1-3: per-race memory of the contact frame (edge, cooldown, start jostle).
     let contact = createContactCueState();
+    // M5: the metric race tells a pinned player to bear away (no automatic separation).
+    let stuck = createRaceStuckWatch();
+    // M4-7: per-race memory of the first race hints; "Show hints again" bumps the revision.
+    let firstHints = createFirstRaceHintState();
+    let firstHintsRevision = refs.firstHintsRef?.current.revision;
     // M0-4: tacks and gybes are told apart, and wobbles and flips at the edge
     // are not logged. The committed side survives an effect restart via
     // lastTackSignRef, which GameClient resets for each race.
     let manoeuvres = createManoeuvreState(Math.sign(lastTackSignRef.current) as -1 | 0 | 1);
+    // M3-2: one input and one target object per race loop, reused every HUD tick.
+    const soundIn: RaceSoundscapeInput = { apparentWindKn: 0, boatSpeedKn: 0, heelDeg: 0, luffing: false, inIrons: false, mode: "simple", paused: false, muted: false };
+    const soundOut = createSilentTargets();
+    // Package 13 (ADR-0022): the helm assist. Without GameClient's ref (unit
+    // tests of the loop) it lives here; the course hold stays the autopilot refs.
+    const helm = refs.helmRef ?? { current: createHelmAssist() };
+    let lastButtonTurnT = -Infinity, shownRudder = 0;
+    const vmgTrend: number[] = [];
+    const nextMark = (boat: Boat) => boat.lapDone >= 1
+      ? { x: (courseRef.current.finishLine.a.x + courseRef.current.finishLine.b.x) / 2, y: (courseRef.current.finishLine.a.y + courseRef.current.finishLine.b.y) / 2 }
+      : courseRef.current.marks[0].pos;
+    const helmProfile = () => helmProfileFor(12 * windStrengthRef.current, physicalRef.current ? "cruiser" : "classic");
+    /** One helm tick of the player: manual rudder, Simple arrows, the holds and the button turn. */
+    const helmTick = (boat: Boat, dt: number) => {
+      const pro = racePrefsRef.current.mode === "pro";
+      const held = (Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft"))) || Math.sign(refs.helmInputRef?.current.arrows ?? 0);
+      const nudge = pro ? 0 : refs.helmInputRef?.current.nudge ?? 0;
+      if (refs.helmInputRef) refs.helmInputRef.current.nudge = 0;
+      // R-6: in Pro the arrows (screen and keys) are the rudder; in Simple they move the course.
+      const manual = pro ? held || rudderRef.current : rudderRef.current;
+      const markTwa = calcTWA(bearing(boat.pos, nextMark(boat)), windDirRef.current);
+      const r = stepHelmAssist(helm.current, { dt, heading: boat.heading, windDir: windDirRef.current, speedKn: boat.speed, manual,
+        arrows: pro ? 0 : held, nudgeDeg: nudge, courseHold: autopilotOnRef.current ? autopilotHeadingRef.current : null, markTwa, profile: helmProfile() });
+      helm.current = r.state;
+      if (r.courseHold === null) { if (autopilotOnRef.current) { autopilotOnRef.current = false; setAutopilotOn(false); } }
+      else { autopilotHeadingRef.current = r.courseHold; if (!autopilotOnRef.current) { autopilotOnRef.current = true; setAutopilotOn(true); } }
+      if (r.state.turn || r.event === "turn-done") lastButtonTurnT = raceClockRef.current;
+      if (r.event === "vmg-off") showNotice(pickLocalized(langRef.current, HELM_ASSIST_COPY.vmgOff), "rule", "info");
+      if (r.event === "irons") showNotice(pickLocalized(langRef.current, HELM_ASSIST_COPY.irons), "rule", "info");
+      // R-8: time with BEST VMG costs gold like the route hints.
+      if (refs.raceHintsRef && assistCostsGold(r.state.usage)) refs.raceHintsRef.current = true;
+      // R-7: in Pro the button turn, BEST VMG and the angle hold steer through the rudder law.
+      const assisted = r.heading !== null && (r.state.turn !== null || r.state.hold !== "off");
+      return { heading: r.heading, manual: r.heading === null ? manual : 0, rudderLaw: assisted && pro };
+    };
     const step = (now: number) => {
       const refreshHud = now - hudRefreshRef.current >= 100;
+      // M4-5: route or trim hints on at any moment of the countdown or the
+      // race take gold off it, paused frames included: the route hint and the
+      // settings switches stay on screen while the clock is stopped.
+      if (!ended && refs.raceHintsRef && raceUsesHints(racePrefsRef.current)) refs.raceHintsRef.current = true;
       const advanced = clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
       if (ended) return;
       // A loop restarted during this race's finish hold (M1-4) must not move the boats or the clock.
@@ -215,14 +377,24 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       const prevPositions = new Map<string, Vec2>();
 
       const physical = physicalRef.current;
+      // M5 step 7: the records of this race (best time, ghost, medal, home
+      // row, native history, funnel) key on its context and are written only
+      // when that context may record (switch A for the metric race).
+      const raceContext = refs.raceContextRef?.current ?? raceContextFor(physical);
+      const records = raceRecordsEnabled(raceContext);
+      // M5: one scale model (race-scale.ts, cached per profile) for the judge,
+      // the HUD speed, the edge pin and the contact cue of this tick's model.
+      const scale = raceScale(physical);
       let physicalEvents: ReadonlyMap<string, string | null> | null = null;
+      let physicalImpacts: readonly PhysicalRaceImpact[] = [];
       if (physical) {
         for (const boat of boats) prevPositions.set(boat.id, { ...boat.pos });
         const player = boats.find(b => b.isPlayer);
-        const held = keysRef.current.has("arrowright") || keysRef.current.has("arrowleft")
-          ? Number(keysRef.current.has("arrowright")) - Number(keysRef.current.has("arrowleft")) : rudderRef.current;
-        if (held && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
-        const steering = physicalTrialSteering(held, autopilotOnRef.current, autopilotHeadingRef.current);
+        const cmd = player && player.lapDone < 2 ? helmTick(player, dt) : { heading: null, manual: 0, rudderLaw: false };
+        const steering = cmd.heading === null ? physicalTrialSteering(cmd.manual, false, 0)
+          : cmd.rudderLaw && player ? { mode: "helm" as const, rudder: helmTurnToward(player.heading, cmd.heading, 15), lowSpeedAssist: true }
+          : physicalTrialSteering(0, true, cmd.heading);
+        shownRudder = steering.mode === "helm" ? steering.rudder : player && cmd.heading !== null ? helmTurnToward(player.heading, cmd.heading) : 0;
         const stepped = player && fleetRef.current ? fleetRef.current.stepPhysicalRaceFleet({ context: physicalRaceContext(physical), course, dt,
           raceTime: raceClockRef.current, racing: isRacing, windDir: windDirRef.current, gust: windGustRef.current,
           windStrengthMul: windStrengthRef.current, navigation: physicalNavRef.current,
@@ -232,6 +404,7 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           boats = stepped.boats as Boat[]; boatsRef.current = boats;
           physicalNavRef.current = stepped.navigation;
           physicalEvents = new Map(stepped.progress.map(p => [p.boatId, p.event]));
+          physicalImpacts = stepped.impacts;
         } else recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "failed", action: "start", reason: "invalid-input" });
       }
       for (const boat of physical ? [] : boats) {
@@ -240,11 +413,10 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
 
         let turnInput = 0;
         if (boat.isPlayer) {
-          const right = keysRef.current.has("arrowright");
-          const left = keysRef.current.has("arrowleft");
-          turnInput = right || left ? Number(right) - Number(left) : rudderRef.current;
-          if (turnInput && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
-          if (!turnInput && autopilotOnRef.current) turnInput = Math.max(-1, Math.min(1, angleDiff(boat.heading, autopilotHeadingRef.current) / 12));
+          // Package 13: the helm assist decides (manual rudder, Simple arrows, holds, the button turn).
+          const cmd = helmTick(boat, dt);
+          turnInput = cmd.heading !== null ? helmTurnToward(boat.heading, cmd.heading) : cmd.manual;
+          shownRudder = turnInput;
         } else turnInput = raceAutopilotTurn(boat, course, windDirRef.current);
         stepBoat(boat, dt, windDirRef.current, windGustRef.current,
           boat.isPlayer ? { turn: turnInput, autoTrim: racePrefsRef.current.mode !== "pro", trim: trimRef.current } : { turn: turnInput },
@@ -252,24 +424,48 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       }
 
       const checked = evaluateRaceRules(ruleStateRef.current, { boats, course, windDir: windDirRef.current, time: raceClockRef.current,
-        racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions) });
+        racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions),
+        scale, ...(physical ? { impacts: physicalImpacts } : {}) });
       ruleStateRef.current = checked.state;
       if (checked.events.length && ruleEventsRef.current.length < 600) ruleEventsRef.current.push(...checked.events.slice(0, 600 - ruleEventsRef.current.length));
+      const recall = playerRecallChange(checked.events);
+      if (recall !== null) onStartRecall?.(recall);
       const startedPlayer = boats.find(b => b.isPlayer);
       if (isRacing && startedAtRef.current === undefined && startedPlayer?.started) startedAtRef.current = raceClockRef.current;
       // M0-3: penalty-free crowding right after the signal is not a lesson; the debrief groups it.
-      const playerEvents = checked.events.filter(e => e.boatId === "player" && !isStartJostle(e));
+      // M5 step 6: the start jostle of this race's scale (legacy 10 s, metric course data).
+      const playerEvents = checked.events.filter(e => e.boatId === "player" && !isStartJostleWithin(e, scale.startJostleSeconds));
       if (playerEvents.length) {
         const important = playerEvents.find(e => e.penaltySeconds || e.kind === "early-start" || e.kind === "give-way") ?? playerEvents[0];
         showNotice(copyRef.current.ruleMessage(important), "rule", important.penaltySeconds ? "danger" : "info");
         setPenalty(checked.state.penalties.player ?? 0);
       }
-      if (!physical) {
+      {
         // M1-3: a contact begins while the hulls still overlap, before they are pushed apart.
-        const cue = contactCue(contact, { touching: playerTouching(boats, MIN_BOAT_SEPARATION), t: raceClockRef.current, racing: isRacing });
+        // M5: the metric fleet never overlaps; its contact is the player's hull impact,
+        // held while the hulls stay alongside (one cue per contact episode).
+        const touching = physical
+          ? physicalPlayerTouching(physicalImpacts, boats, contact.touching,
+            { closingMetresPerSecond: scale.contactCueClosingMetresPerSecond ?? 0, releaseUnits: scale.hullUnits + 4 })
+          : playerTouching(boats, MIN_BOAT_SEPARATION);
+        const cue = contactCue(contact, { touching, t: raceClockRef.current, racing: isRacing, jostleSeconds: scale.startJostleSeconds });
         contact = cue.state;
-        if (cue.cue) { showContact(); raceTallyRef.current.contacts++; }
-        resolveCollisions(boats, dt);
+        if (cue.cue) { showContact(); soundscape?.thud(); raceHaptic('contact'); raceTallyRef.current.contacts++; }
+        if (!physical) resolveCollisions(boats, dt);
+      }
+      if (physical) {
+        const player = boats.find(b => b.isPlayer), from = player && prevPositions.get(player.id);
+        if (player && from) {
+          const watched = stepRaceStuckWatch(stuck, { t: raceClockRef.current, racing: isRacing && player.lapDone < 2,
+            stepMetres: Math.hypot(player.pos.x - from.x, player.pos.y - from.y) * physicalRaceContext(physical).metresPerUnit,
+            touching: physicalPlayerPinned(physical, player.pos, boats.filter(b => b !== player && b.lapDone < 2).map(b => b.pos)) });
+          stuck = watched.state;
+          if (watched.hint) {
+            showNotice(pickLocalized(langRef.current, STUCK_NOTICE), "rule", "info");
+            recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "stuck", mode: racePrefsRef.current.mode,
+              elapsedSeconds: Math.min(7200, raceClockRef.current) });
+          }
+        }
       }
       const ghost = ghostTrackRef.current, ghostBoat = ghostBoatsRef.current[0];
       if (ghost && ghostBoat) Object.assign(ghostBoat, ghostPose(ghost, isRacing ? raceClockRef.current : 0));
@@ -279,12 +475,15 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         const prevPos = prevPositions.get(boat.id) ?? { ...boat.pos };
 
         // M0-5: the HUD speed follows the path really covered (stepBoat clamps at the world edge).
-        if (boat.isPlayer && !physical) groundSpeed = recordGroundStep(groundSpeed, prevPos, boat.pos, boat.speed, dt);
+        if (boat.isPlayer) groundSpeed = recordGroundStep(groundSpeed, prevPos, boat.pos, boat.speed, dt, scale.unitsPerKnotSecond);
         // Mark / finish detection only counts once the race is officially on.
         if (!isRacing) continue;
         // M0-5: back across the finish line before rounding the windward mark: say why it did not count.
-        if (boat.isPlayer && !physical) {
-          const missed = detectMissedMark(missedMark, { prevPos, pos: boat.pos, lapDone: boat.lapDone, started: boat.started, course, time: raceClockRef.current });
+        // M5 step 6: the metric race too, armed at two of its hull lengths (raceScale);
+        // its fleet has already graded the tick, and a finish there leaves lapDone 0 only without the rounding.
+        if (boat.isPlayer) {
+          const missed = detectMissedMark(missedMark, { prevPos, pos: boat.pos, lapDone: boat.lapDone, started: boat.started, course, time: raceClockRef.current,
+            clearance: scale.missedMarkClearanceUnits });
           missedMark = missed.state;
           if (missed.missed) { showNotice(pickLocalized(langRef.current, MISSED_MARK_NOTICE), "missed-mark", "danger"); raceTallyRef.current.missedMarkNotices++; }
         }
@@ -299,16 +498,21 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
             const times = [...markTimesRef.current.values()];
             const place = times.filter((x) => x <= t).length;
             showEvent({ kind: 'mark', place, gapSec: t - Math.min(...times) }, place === 1 ? 'success' : 'info');
+            // M4-4: the split against your best race of this class, when it sails beside you.
+            const split = ghostMarkSplit(ghostTrackRef.current, 0, t);
+            if (split) showEvent({ kind: 'split', deltaSec: split.deltaSec, verdict: split.verdict }, splitTone(split.verdict));
           }
         }
         if (boat.isPlayer && event === "mark") {
           logEventsRef.current.push({ type: "mark-rounded", t: raceClockRef.current, note: "windward-port" });
-          if (!physical) trackRaceMark(raceIdRef.current, raceClockRef.current);
+          if (records) trackRaceMark(raceIdRef.current, raceClockRef.current);
           playMarkRound();
+          raceHaptic('mark');
         } else if (boat.isPlayer && event === "finish") {
           logEventsRef.current.push({ type: "finish", t: boat.finishTime! });
           logSamplesRef.current.push(recordSample(boat, boat.finishTime!, windDirRef.current));
           playFinish();
+          raceHaptic('finish');
         }
       }
 
@@ -344,17 +548,18 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         speedLog.push({ t, speed: playerBoat.speed });
         while (speedLog.length && speedLog[0].t < t - 3) speedLog.shift();
         // Tack or gybe: the boat settled on the other side after a crossing
-        // with way on. The physical trial has its own water bounds: no pin check.
-        const pinned = !physical && pressedAgainstEdge(playerBoat.pos, playerBoat.heading,
-          { minX: 20, maxX: WORLD.width - 20, minY: 20, maxY: WORLD.height - 20 });
+        // with way on. The edge is the race's own clamp (race-scale.ts water).
+        const pinned = pressedAgainstEdge(playerBoat.pos, playerBoat.heading, scale.water);
         const classified = classifyManoeuvre(manoeuvres, { twa: pTWA, speedKn: playerBoat.speed, pinned });
         manoeuvres = classified.state;
         lastTackSignRef.current = manoeuvres.side;
         if (classified.manoeuvre) {
           const kind = classified.manoeuvre;
-          logEventsRef.current.push({ type: kind, t, note: manoeuvres.side > 0 ? 'to-port-tack' : 'to-starboard-tack' });
+          // Package 13: a tack or gybe the button made says so (the replay and the coach read the note).
+          const byButton = t - lastButtonTurnT <= 1.5;
+          logEventsRef.current.push({ type: kind, t, note: `${manoeuvres.side > 0 ? 'to-port-tack' : 'to-starboard-tack'}${byButton ? '-button' : ''}` });
           // First-race funnel: the first real tack or gybe.
-          if (!physical) trackRaceTack(raceIdRef.current, t);
+          if (records) trackRaceTack(raceIdRef.current, t);
           playTack();
           // Its cost: the best speed of the last 3 s against the slowest
           // after it. The boat settles up to a second after it crossed the
@@ -368,6 +573,18 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
           const watched = watchTurn(turnRef.current, t, playerBoat.speed);
           turnRef.current = watched.turn;
           if (watched.cost) showEvent(watched.cost, watched.cost.lossKn > TURN_COST.bigLossKn ? 'danger' : 'info');
+        }
+        // M4-7: a first race hint at the moment it matters (first-race-hints.ts).
+        // F4: the player can switch them off in the race Settings; off, none is
+        // due or fired, so switching them back on gives the same hints later.
+        const hintsRecord = refs.firstHintsRef?.current;
+        // M5 step 6: the metric race too, with its own scale (first-race-hints.ts).
+        if (showHint && hintsRecord && racePrefsRef.current.firstRaceHints !== false) {
+          if (hintsRecord.revision !== firstHintsRevision) { firstHints = createFirstRaceHintState(); firstHintsRevision = hintsRecord.revision; }
+          const due = nextFirstRaceHint(firstHints, { t, racing: true, tacked: classified.manoeuvre === 'tack', twa: pTWA,
+            windDir: windDirRef.current, boats, course, scale }, hintsRecord.seen);
+          firstHints = due.state;
+          if (due.hint) showHint(due.hint);
         }
       }
 
@@ -406,20 +623,33 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
       // Check race end: all boats finished OR player finished - only when racing
       const allFinished = boats.every((b) => b.lapDone === 2);
       const playerFinished = player.lapDone === 2;
-      // 5 minutes max; a physical course has its own registered time limit.
-      const tooLong = elapsedSec > (physical ? physicalCourseDefinition(physical).maxRaceSeconds : 300);
+      // 5 minutes max; a physical course has its own registered time limit,
+      // ending on the same tick as the fleet resolver (physicalRaceTimeUp).
+      const tooLong = physical ? physicalRaceTimeUp(elapsedSec, physicalCourseDefinition(physical).maxRaceSeconds) : elapsedSec > 300;
 
       if (isRacing && (allFinished || playerFinished || tooLong)) {
         // A loop restarted during this race's finish hold must not end it twice.
         if (finishHoldActive(raceIdRef.current)) { ended = true; return; }
-        const sorted = sortRaceResults(boats, ruleStateRef.current.penalties);
+        // M5 (ADR-0015 point 8): the metric fleet sails on after the player's
+        // finish with the same fleet step, wind and judge, a few milliseconds
+        // per frame (runFleetResolution below); its rows say "still racing"
+        // until then. The legacy race resolved its fleet above, in this tick.
+        const fleet = fleetRef.current;
+        const resolver = physical && playerFinished && fleet && fleetResolution?.raceId !== raceIdRef.current
+          ? createPhysicalFleetResolver({ boats, navigation: physicalNavRef.current, course, context: physicalRaceContext(physical),
+            time: raceClockRef.current, windStrengthMul: windStrengthRef.current, rules: ruleStateRef.current,
+            rulesEnabled: racePrefsRef.current.rules, penaltiesEnabled: racePrefsRef.current.penalties, step: fleet.stepPhysicalRaceFleet })
+          : null;
+        const fleetPending = resolver?.pending();
+        const sorted = sortRaceResults(boats, ruleStateRef.current.penalties, fleetPending?.size ? { pending: fleetPending } : undefined);
         ended = true;
         setResults(sorted);
         // Diagnostics only (race.summary debrief): the incidents the judge debrief lists.
         let judgedIncidents: Promise<number> | null = null;
         if (racePrefsRef.current.rules) {
           const events = ruleEventsRef.current, completedRaceId = raceIdRef.current;
-          const options = { startedAt: startedAtRef.current, markRoundedAt: markTimesRef.current.get("player"), finishedAt: player.finishTime };
+          const options = { startedAt: startedAtRef.current, markRoundedAt: markTimesRef.current.get("player"), finishedAt: player.finishTime,
+            startJostleSeconds: raceScale(physical).startJostleSeconds };
           const judgeModule = import("@/lib/race-judge");
           void judgeModule.then(judge => {
             if (raceIdRef.current === completedRaceId) setJudgeDebrief(judge.buildRaceJudgeDebrief(events, options));
@@ -431,12 +661,14 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         // (records, coach, native save, analytics) still runs in this tick.
         const endedRaceId = raceIdRef.current;
         scheduleFinishedScreen({ playerFinished, place: sorted.findIndex((r) => r.isPlayer) + 1, total: sorted.length,
-          raceId: endedRaceId, isCurrentRace: () => raceIdRef.current === endedRaceId, setGameState });
+          stillRacing: fleetPending?.size ?? 0, raceId: endedRaceId, isCurrentRace: () => raceIdRef.current === endedRaceId, setGameState });
         recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: playerFinished ? "finish" : "timeout", mode: racePrefsRef.current.mode, elapsedSeconds: Math.min(7200, elapsedSec) });
         const finishHoldShown = finishHoldActive(endedRaceId);
         if (finishHoldShown) recordDiagnostic({ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "finish-hold", mode: racePrefsRef.current.mode });
-        if (!physical) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
-          totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length });
+        const assists = raceAssistRecord(refs.helmControlRef?.current ?? "wheels", helm.current.usage);
+        if (records) trackRaceEnd(raceIdRef.current, { finished: player.finishTime != null, position: sorted.findIndex((r) => r.isPlayer) + 1,
+          totalBoats: sorted.length, durationSec: elapsedSec, tacks: logEventsRef.current.filter((e) => e.type === 'tack').length,
+          helm: assists.helm, buttonTurns: assists.buttonTurns, bestVmgSec: assists.bestVmgSec });
         // Race ended cleanly - drop the resume offer so the next reload
         // starts from a fresh menu.
         clearRaceSetup();
@@ -444,15 +676,40 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         // Save / compare against personal-best for this (difficulty, wind)
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
-        // A physical trial is never recorded (PHYSICAL_RACE_EMISSION_ENABLED).
-        if (player.finishTime != null && !isNativeRace() && !physical) {
-          const track = makeGhostTrack(ghostClassKey({ raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode,
+        // A metric race records only with switch A (raceRecordsEnabled); every
+        // record below keys on this race's context, so a metric finish can
+        // never land in a legacy bucket.
+        // M4-4: the splits against the ghost this race sailed with, before the
+        // ghost row below may take this race as the new best.
+        set.setGhostSplits?.(!records ? [] : raceGhostSplits(ghostTrackRef.current, {
+          marks: markTimesRef.current.has("player") ? [markTimesRef.current.get("player")!] : [],
+          finishSec: player.finishTime == null ? null : player.finishTime + (ruleStateRef.current.penalties.player ?? 0) }));
+        if (player.finishTime != null && records) {
+          // The ghost row is written in the iOS app too: its race bridge
+          // (mobile/src/persistence/race-web-storage.ts) carries it to native
+          // storage and injects it again before the next race page loads.
+          const track = makeGhostTrack(ghostClassKey({ raceContext, mode: racePrefsRef.current.mode,
             difficulty, windStrength, missionId: selectedMission?.id ?? null }),
-            player.finishTime + (ruleStateRef.current.penalties.player ?? 0), logSamplesRef.current);
+            player.finishTime + (ruleStateRef.current.penalties.player ?? 0), logSamplesRef.current,
+            logEventsRef.current.filter(e => e.type === "mark-rounded").map(e => e.t));
           const store = localStore();
           const remembered = track ? rememberGhost(readGhostStore(store), track) : null;
           if (remembered?.replaced) writeGhostStore(store, remembered.store);
-          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
+        }
+        // M4-5: the course medal, on the web and in the app (its race bridge
+        // carries the row). A metric course has no thresholds before M5 step 10,
+        // so it awards nothing and leaves the row untouched.
+        if (records) {
+          const store = localStore();
+          const awarded = awardRaceMedal(readMedalStore(store), { raceContext, difficulty, windStrength },
+            player.finishTime == null ? null : player.finishTime + (ruleStateRef.current.penalties.player ?? 0),
+            refs.raceHintsRef?.current ?? true);
+          // A full row refuses the new course (saved false, nothing evicted): no write then.
+          const saved = awarded && awarded.award.saved !== false ? writeMedalStore(store, awarded.store) : false;
+          set.setMedalAward?.(awarded ? { ...awarded.award, saved } : null);
+        } else set.setMedalAward?.(null);
+        if (player.finishTime != null && !isNativeRace() && records) {
+          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode, raceContext);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
         }
@@ -473,93 +730,125 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         }
 
         // --- Request AI coaching ---
-        const playerRank = sorted.findIndex((r) => r.isPlayer) + 1;
-        const payload = {
-          difficulty,
-          courseInfo: {
-            windDirection: WIND_DIRECTION,
-            windwardMark: course.marks[0].pos,
-            startY: course.startLine.a.y,
-          },
-          finishTime: player.finishTime ?? null,
-          position: playerRank,
-          totalBoats: sorted.length,
-          samples: logSamplesRef.current,
-          events: logEventsRef.current,
-          lang,
-        };
-        const { coaching: localCoaching, mainMistake } = analyseRaceLocallyWithFocus(payload, langRef.current);
-        setCoaching(localCoaching);
-        // Diagnostics only (race.summary): a failure here never touches the race end.
-        try {
-          const [resultRow, debriefRow] = raceSummaryDiagnostics({ mode: racePrefsRef.current.mode, difficulty, wind: windStrength, setup: raceSetupRef.current,
-            finished: player.finishTime != null, place: playerRank, total: sorted.length,
-            botsFinished: boats.filter((b) => !b.isPlayer && b.lapDone === 2).length, raceSeconds: elapsedSec,
-            penaltySeconds: ruleStateRef.current.penalties.player ?? 0, finishHoldShown, soundOn: readRaceSound(), orientation: raceOrientation(),
-            events: logEventsRef.current, samples: logSamplesRef.current, ruleEvents: ruleEventsRef.current,
-            tally: physical ? null : raceTallyRef.current, coachScore: localCoaching.score, mainMistake });
-          recordDiagnostic(resultRow);
-          // With rules on, the debrief waits for the judge (loaded after the finish)
-          // so judgeIncidents is the count the results screen lists, not a recount.
-          if (!judgedIncidents) recordDiagnostic(debriefRow);
-          else void judgedIncidents.then(n => withJudgeIncidents(debriefRow, n), () => debriefRow)
-            .then(row => { try { recordDiagnostic(row); } catch { /* optional journal */ } });
-        } catch { /* The journal is optional; the race result is not. */ }
-        // Post within the finish tick, before a result/menu render can replace
-        // the active refs. Keep the immutable payload until its own durable ack.
-        if (isNativeRace() && !physical && player.finishTime !== undefined && logSamplesRef.current.length >= 2) {
-          const snapshot: NativeRaceSnapshot = { schema: 1, id: raceIdRef.current, mode: racePrefsRef.current.mode,
-            difficulty, windStrength, missionId: selectedMission?.id ?? null,
-            finishTimeSec: player.finishTime, position: playerRank, totalBoats: sorted.length,
-            // The native validator (race-native.ts, also inside installed app
-            // builds) knows no 'gybe' event yet; the coaching above has them.
-            course, samples: logSamplesRef.current, events: logEventsRef.current.filter(nativeLogEvent), coaching: localCoaching,
-            penaltySeconds: ruleStateRef.current.penalties.player ?? 0 };
-          pendingNativeSaves.current.add(snapshot);
-          const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
-          setNativeSave(sent ? "saving" : "error");
-          recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "request", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
-          // This live engine is legacy. This explicit PB authority does not
-          // backfill the separate historical snapshot's absent provenance.
-          const queued = pendingNativeBests.current.add({ schema: 1, id: snapshot.id,
-            comparison: { raceContext: LEGACY_RACE_CONTEXT, mode: racePrefsRef.current.mode, difficulty, windStrength },
-            rawFinishTimeSec: player.finishTime, penaltySeconds: snapshot.penaltySeconds ?? 0,
-            finishTimeSec: player.finishTime + (snapshot.penaltySeconds ?? 0), course: snapshot.course });
-          if (queued) requestNativeBest(snapshot.id);
-          else if (!pendingNativeBests.current.has(snapshot.id)) {
-            setNativeBestSave({ status: "error", id: snapshot.id, requestId: "", retryable: false });
-            recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action: "error", outcome: "failed",
-              reason: pendingNativeBests.current.size() >= NATIVE_BEST_PENDING_LIMIT ? "limit" : "invalid-input" });
-          }
-        }
-        setCoachingLoading(!isNativeRace());
+        // M5: while metric bots are still racing, the place of a penalised
+        // player may still change (playerPlaceSettled): its coaching and the
+        // coach request then wait for the settled rows. The race.summary row
+        // of a metric race with bots still racing always waits (its place and
+        // botsFinished are the resolved fleet's). The legacy race, a timeout
+        // and a race with nothing left to resolve do all of it in this tick.
         const completedRaceId = raceIdRef.current;
-        if (!isNativeRace()) fetch('/api/coach', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            if (raceIdRef.current !== completedRaceId) return;
-            if (data.coaching) {
-              setCoaching(data.coaching); setCoachingSource(data.fallback ? "local" : "ai");
-            } else {
-              // Fall back to local rule-based analysis so the user still gets feedback
-              const local = analyseRaceLocally(payload, lang);
-              setCoaching(local);
-              if (data.fallback) setCoachingError(null);
-              else setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
+        const isCompletedRace = () => raceIdRef.current === completedRaceId;
+        const samples = logSamplesRef.current, events = logEventsRef.current, ruleEvents = ruleEventsRef.current;
+        const playerPenalty = ruleStateRef.current.penalties.player ?? 0;
+        const summaryInput = { mode: racePrefsRef.current.mode, setup: raceSetupRef.current, soundOn: readRaceSound(), orientation: raceOrientation(),
+          tally: physical ? null : raceTallyRef.current, startJostleSeconds: raceScale(physical).startJostleSeconds };
+        const coach = (rows: readonly RaceResultRow[]) => {
+          const playerRank = rows.findIndex((r) => r.isPlayer) + 1;
+          const payload = {
+            difficulty,
+            courseInfo: {
+              windDirection: WIND_DIRECTION,
+              windwardMark: course.marks[0].pos,
+              startY: course.startLine.a.y,
+            },
+            finishTime: player.finishTime ?? null,
+            position: playerRank,
+            totalBoats: rows.length,
+            samples,
+            events,
+            lang,
+            // Package 7: the race's best course to windward, the angle the
+            // route hint sails; the coach grades the beat against its VMG.
+            ...(physical ? {} : { upwindTarget: raceUpwind(12 * windStrengthRef.current) }),
+          };
+          const { coaching: localCoaching, mainMistake } = analyseRaceLocallyWithFocus(payload, langRef.current);
+          if (isCompletedRace()) setCoaching(localCoaching);
+          // M4-6: the race menu's next step (src/lib/race-next-step.ts): this
+          // race's day, its main mistake as the next goal, a finished daily
+          // race. Web and app alike (the app's race bridge carries the row);
+          // a metric race only with switch A.
+          if (records) {
+            const store = localStore();
+            writeRaceHomeStore(store, recordRaceEnd(readRaceHomeStore(store),
+              { now: new Date(), goal: mainMistake, dailyDay, finished: player.finishTime != null }));
+          }
+          return { playerRank, total: rows.length, payload, localCoaching, mainMistake };
+        };
+        type Coached = ReturnType<typeof coach>;
+        const summarise = (coached: Coached, botsFinished: number) => {
+          // Diagnostics only (race.summary): a failure here never touches the race end.
+          try {
+            const [resultRow, debriefRow] = raceSummaryDiagnostics({ ...summaryInput, difficulty, wind: windStrength,
+              finished: player.finishTime != null, place: coached.playerRank, total: coached.total,
+              botsFinished, raceSeconds: elapsedSec,
+              penaltySeconds: playerPenalty, finishHoldShown,
+              events, samples, ruleEvents, coachScore: coached.localCoaching.score, mainMistake: coached.mainMistake });
+            recordDiagnostic(resultRow);
+            // With rules on, the debrief waits for the judge (loaded after the finish)
+            // so judgeIncidents is the count the results screen lists, not a recount.
+            if (!judgedIncidents) recordDiagnostic(debriefRow);
+            else void judgedIncidents.then(n => withJudgeIncidents(debriefRow, n), () => debriefRow)
+              .then(row => { try { recordDiagnostic(row); } catch { /* optional journal */ } });
+          } catch { /* The journal is optional; the race result is not. */ }
+        };
+        const requestCoach = ({ playerRank, total, payload, localCoaching }: Coached) => {
+          // Post within the finish tick, before a result/menu render can replace
+          // the active refs. Keep the immutable payload until its own durable ack.
+          if (isNativeRace() && records && player.finishTime !== undefined && samples.length >= 2) {
+            // A legacy snapshot stays as before (no context: historical absence);
+            // a metric one carries its context, which the native validator requires.
+            const snapshot: NativeRaceSnapshot = { schema: 1, id: completedRaceId, mode: racePrefsRef.current.mode,
+              ...raceContextField(raceContext),
+              difficulty, windStrength, missionId: selectedMission?.id ?? null,
+              finishTimeSec: player.finishTime, position: playerRank, totalBoats: total,
+              // The native validator (race-native.ts, also inside installed app
+              // builds) knows no 'gybe' event yet; the coaching above has them.
+              course, samples, events: events.filter(nativeLogEvent), coaching: localCoaching,
+              penaltySeconds: playerPenalty, ...(refs.helmControlRef ? { assists } : {}) };
+            pendingNativeSaves.current.add(snapshot);
+            const sent = postNativeRace(pendingNativeSaves.current.get(snapshot.id)!);
+            setNativeSave(sent ? "saving" : "error");
+            recordDiagnostic({ type: "race.save", surface: "race", outcome: sent ? "accepted" : "failed", action: "request", target: "local", ...(sent ? {} : { reason: "storage-unavailable" }) });
+            // This explicit PB authority names the race's class; it does not
+            // backfill the separate historical snapshot's absent provenance.
+            const queued = pendingNativeBests.current.add({ schema: 1, id: snapshot.id,
+              comparison: { raceContext, mode: racePrefsRef.current.mode, difficulty, windStrength },
+              rawFinishTimeSec: player.finishTime, penaltySeconds: snapshot.penaltySeconds ?? 0,
+              finishTimeSec: player.finishTime + (snapshot.penaltySeconds ?? 0), course: snapshot.course });
+            if (queued) requestNativeBest(snapshot.id);
+            else if (!pendingNativeBests.current.has(snapshot.id)) {
+              setNativeBestSave({ status: "error", id: snapshot.id, requestId: "", retryable: false });
+              recordDiagnostic({ type: "race.save", surface: "race", target: "personal-best", action: "error", outcome: "failed",
+                reason: pendingNativeBests.current.size() >= NATIVE_BEST_PENDING_LIMIT ? "limit" : "invalid-input" });
             }
-          })
-          .catch(() => {
-            if (raceIdRef.current !== completedRaceId) return;
-            // Network error - use local analysis
-            const local = analyseRaceLocally(payload, lang);
-            setCoaching(local);
-            setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
-          })
-          .finally(() => { if (raceIdRef.current === completedRaceId) setCoachingLoading(false); });
+          }
+          if (!isCompletedRace()) return;
+          // Package 7 (R-11): the local analysis above is the finish screen's
+          // one main advice; the AI coach is asked only from its button
+          // (GameClient askAiCoach), never automatically. The app has no AI.
+          setCoachingLoading(false);
+          set.setAiCoachPayload?.(isNativeRace() ? null : payload);
+        };
+
+        if (resolver && fleetPending?.size) {
+          // A place that cannot change is coached now; otherwise the results
+          // screen shows the analysis loading until the fleet is home.
+          const early = playerPlaceSettled(boats, ruleStateRef.current.penalties, fleetPending, raceClockRef.current) ? coach(sorted) : null;
+          if (early) requestCoach(early);
+          else setCoachingLoading(true);
+          runFleetResolution({ raceId: endedRaceId, resolver, isCurrentRace: isCompletedRace, setResults, onSettled: (rows, how) => {
+            const coached = early ?? coach(rows);
+            summarise(coached, rows.filter(r => !r.isPlayer && Number.isFinite(r.time) && !r.estimated).length);
+            if (early) return;
+            // Left before the fleet was home: no coach request for a screen nobody sees.
+            if (how === "left") { if (isCompletedRace()) setCoachingLoading(false); return; }
+            requestCoach(coached);
+          } });
+        } else {
+          const coached = coach(sorted);
+          summarise(coached, boats.filter((b) => !b.isPlayer && b.lapDone === 2).length);
+          requestCoach(coached);
+        }
 
         return;
       }
@@ -571,11 +860,44 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
         const player = boatsRef.current.find(boat => boat.isPlayer);
         if (player) {
           hudRefreshRef.current = now;
-          setPlayerTWA(calcTWA(player.heading, windDirRef.current)); setPlayerSpeed(physicalRef.current ? player.speed : displayedBoatSpeed(groundSpeed, player.speed));
-          setWindReading(raceWindReading({ heading: player.heading, boatSpeedKn: player.speed, windFrom: windDirRef.current,
-            windKnots: player.physics?.trueWindSpeed, leeway: player.physics?.leeway }));
+          const twa = calcTWA(player.heading, windDirRef.current);
+          const shownSpeed = displayedBoatSpeed(groundSpeed, player.speed, raceScale(physicalRef.current).unitsPerKnotSecond);
+          setPlayerTWA(twa); setPlayerSpeed(shownSpeed);
+          if (set.setHelmView) {
+            // Package 13: the VMG line (VMC on a reach) against the polar's best, with its trend.
+            const st = helm.current, profile = helmProfile();
+            const markTwa = calcTWA(bearing(player.pos, nextMark(player)), windDirRef.current);
+            const leg = st.leg ?? legOf(markTwa, profile.angles);
+            const kn = madeGood(shownSpeed, twa, leg, markTwa);
+            vmgTrend.push(kn); if (vmgTrend.length > 21) vmgTrend.shift();
+            const change = kn - vmgTrend[0];
+            set.setHelmView({ hold: st.hold, course: autopilotOnRef.current ? autopilotHeadingRef.current : null, rudder: shownRudder,
+              turning: st.turn ? { kind: st.turn.kind, heading: (((windDirRef.current + st.turn.targetTwa) % 360) + 360) % 360 } : null,
+              vmg: player.lapDone < 2 ? { kn, targetKn: legTarget(profile.speedAt, profile.angles, markTwa, twa, leg).targetKn, leg,
+                trend: Math.abs(change) < 0.1 ? 0 : change > 0 ? 1 : -1 } : null });
+          }
+          const reading = raceWindReading({ heading: player.heading, boatSpeedKn: player.speed, windFrom: windDirRef.current,
+            windKnots: player.physics?.trueWindSpeed, leeway: player.physics?.leeway });
+          setWindReading(reading);
+          if (soundscape) {
+            // Sails flog in the no-go zone in both modes; a luff counts only in Pro, where the player holds the sheets.
+            const mode = racePrefsRef.current.mode;
+            soundIn.apparentWindKn = reading?.apparentKnots ?? player.physics?.trueWindSpeed ?? 0;
+            soundIn.boatSpeedKn = player.speed; soundIn.heelDeg = player.physics?.heel ?? 0;
+            soundIn.inIrons = Math.abs(twa) < NO_GO.angleDeg;
+            soundIn.luffing = mode === "pro" && !soundIn.inIrons && coachLuffing(raceTrimCoach(player));
+            soundIn.mode = mode; soundIn.paused = pausedRef.current || document.hidden;
+            soundIn.muted = !readRaceSound();
+            soundscape.update(mapRaceSoundscape(soundIn, soundOut));
+          }
           setNavigation(createRaceNavigationSnapshot({ course: courseRef.current, boats: boatsRef.current, windFrom: windDirRef.current }));
-          const advisory = planRaceGuidance(player, courseRef.current, windDirRef.current, guidanceStateRef.current);
+          // M5 step 6: the planner of the race's model (race-model.ts planRouteGuidance).
+          const metric = physicalRef.current;
+          const plan = (boat: typeof player, memory: RouteGuidanceState | null) => planRouteGuidance(boat, courseRef.current, windDirRef.current, memory,
+            metric ? { profile: metric, plan: fleetRef.current?.planPhysicalRaceGuidance } : null, metric ? undefined : raceUpwind(12 * windStrengthRef.current).twa);
+          const advisory = plan(player, guidanceStateRef.current);
+          // Package 8: the caption says when the hint will call the next tack or gybe.
+          if (advisory.guidance) advisory.guidance.next = turnAhead(player, advisory.guidance, advisory.state, plan);
           guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
         }
         if (isRacing) setElapsed(raceClockRef.current);
@@ -591,6 +913,12 @@ export function useRaceLoop({ gameState, difficulty, windStrength, selectedMissi
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, difficulty, requestNativeBest]);
+  // M5: leaving the race (Menu, briefing, a new countdown) ends the metric
+  // fleet resolution; the finish hold, the results and the replay keep it.
+  useEffect(() => {
+    if (gameState !== 'racing' && gameState !== 'finished' && gameState !== 'replay') fleetResolution?.leave();
+  }, [gameState]);
+  useEffect(() => () => { fleetResolution?.leave(); }, []);
   useEffect(() => {
     simulationClockRef.current?.synchronize(performance.now(), startupGate.current.active(pausedRef.current, document.hidden));
     // The refs are GameClient's stable useRef objects; the dependencies are the original ones.

@@ -60,7 +60,8 @@ export function markBriefingSeen(course: string): void {
 
 /** Inside the app the Race hub hands over a complete setup (level and wind, a
  * mission or the daily race) in the query: the race then starts without its
- * own menu. A saved replay or a metric trial is never a hand-off. */
-export function hubHandsOffSetup(input: { native: boolean; linkedSetup: boolean; replay: boolean; trial: boolean }): boolean {
-  return input.native && input.linkedSetup && !input.replay && !input.trial;
+ * own menu. On the website the hub's "Play" does the same with `play=1`
+ * (package 9). A saved replay or a metric trial is never a hand-off. */
+export function hubHandsOffSetup(input: { native: boolean; play?: boolean; linkedSetup: boolean; replay: boolean; trial: boolean }): boolean {
+  return (input.native || input.play === true) && input.linkedSetup && !input.replay && !input.trial;
 }

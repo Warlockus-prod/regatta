@@ -51,8 +51,11 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
+import { SubjectThumbs } from '../../src/learning/SubjectVisuals';
+import { drillVisuals } from '../../../src/data/sailing-visuals';
 import type { SailState } from '../../src/simulator/sail-feedback';
 import { leewayAngleDeg } from '../../src/simulator/sail-geometry';
+import { NO_GO_HALF_DEG } from '../../src/simulator/physics';
 import {
   formatSpeed,
   formatWindSpeed,
@@ -62,6 +65,8 @@ import {
 } from '../../src/persistence/units';
 import { useControlPrefs } from '../../src/persistence/controls';
 import { WheelDeck } from '../../src/simulator/WheelDeck';
+/** What stands above the wheels in the turned dock: scroll padding, the trim panel's margin, padding and header row. */
+const DOCK_CHROME_H = 112;
 import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
 import { useLandscapeWhileFocused } from '../../src/simulator/orientation';
 import { colors, darkColors as sceneColors, radii, shadow, spacing } from '../../src/design-system/tokens';
@@ -259,8 +264,10 @@ function roseWedgePath(r: number, minDeg: number, maxDeg: number) {
  * the boat is currently sailing that point of sail.
  */
 const ROSE_SECTORS: { id: string; min: number; max: number; tint: string; hi: string }[] = [
-  { id: 'in-irons', min: 0, max: 30, tint: 'rgba(255, 80, 80, 0.22)', hi: 'rgba(255, 104, 104, 0.70)' },
-  { id: 'close-hauled', min: 30, max: 60, tint: 'rgba(255, 176, 40, 0.20)', hi: 'rgba(255, 196, 84, 0.68)' },
+  // The no-go edge is the shared reference the engine's physics agrees with
+  // (ADR-0021), not the legacy race's 30 deg.
+  { id: 'in-irons', min: 0, max: NO_GO_HALF_DEG, tint: 'rgba(255, 80, 80, 0.22)', hi: 'rgba(255, 104, 104, 0.70)' },
+  { id: 'close-hauled', min: NO_GO_HALF_DEG, max: 60, tint: 'rgba(255, 176, 40, 0.20)', hi: 'rgba(255, 196, 84, 0.68)' },
   { id: 'beam-reach', min: 60, max: 110, tint: 'rgba(60, 216, 255, 0.19)', hi: 'rgba(96, 230, 255, 0.66)' },
   { id: 'broad-reach', min: 110, max: 160, tint: 'rgba(96, 182, 255, 0.20)', hi: 'rgba(128, 202, 255, 0.66)' },
   { id: 'running', min: 160, max: 180, tint: 'rgba(80, 255, 150, 0.21)', hi: 'rgba(120, 255, 182, 0.66)' },
@@ -529,11 +536,13 @@ function Simulator() {
     return Skia.Path.Make();
   }, [windMapMode, sceneW, sceneH, sim.tickN]);
 
+  // The no-go wedge opens around the true wind (NO_GO_HALF_DEG either side),
+  // the same zone the wind rose, the drills and the lessons state.
   const noGoPath = useMemo(() => {
-    const awaScreenRad =
-      sim.boat.heading + (sim.boatExt.awaDeg * Math.PI) / 180;
-    return buildNoGoPath(sim.boat.x, sim.boat.y, awaScreenRad, 112);
-  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, sim.tickN]);
+    const twaScreenRad =
+      sim.boat.heading + (sim.boatExt.twaDeg * Math.PI) / 180;
+    return buildNoGoPath(sim.boat.x, sim.boat.y, twaScreenRad, 112);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.twaDeg, sim.tickN]);
 
   const apparentArrowPath = useMemo(() => {
     const awaScreenRad =
@@ -1577,6 +1586,8 @@ function Simulator() {
               sound={controlPrefs.sound}
               sensitivity={wheelPrefs.sensitivity}
               jibSheetSide={wheelPrefs.jibSheetSide}
+              // Package 32: turned, the dock is as high as the screen; the deck fits under the trim header.
+              height={landscape ? availableHeight - DOCK_CHROME_H : undefined}
             />
           ) : null}
           <View style={styles.sliderRow}>
@@ -1903,7 +1914,7 @@ function Simulator() {
         {mode === 'drill' ? (
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{drillSelectLabel}</Text>
-            <View style={styles.pickerChips}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pickerCards}>
               {DRILLS.map((d) => {
                 const isActive = drillState?.drillId === d.id;
                 return (
@@ -1915,10 +1926,13 @@ function Simulator() {
                   accessibilityState={{ selected: isActive }}
                   style={({ pressed }) => [
                     styles.pickerChip,
+                    styles.pickerCard,
                     isActive && styles.pickerChipActive,
                     pressed && styles.pickerChipPressed,
                   ]}
                 >
+                  {/* Package 32: every exercise shows what it practises, schematic and picture. */}
+                  <SubjectThumbs visuals={drillVisuals(d.id)} />
                   <Text
                     style={[
                       styles.pickerChipText,
@@ -1930,14 +1944,14 @@ function Simulator() {
                 </Pressable>
               );
               })}
-            </View>
+            </ScrollView>
           </View>
         ) : null}
 
         {mode === 'mission' ? (
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{missionSelectLabel}</Text>
-            <View style={styles.pickerChips}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pickerCards}>
               {MISSIONS.map((m) => {
                 const isActive = missionState?.missionId === m.id;
                 return (
@@ -1949,10 +1963,13 @@ function Simulator() {
                   accessibilityState={{ selected: isActive }}
                   style={({ pressed }) => [
                     styles.pickerChip,
+                    styles.pickerCard,
                     isActive && styles.pickerChipActive,
                     pressed && styles.pickerChipPressed,
                   ]}
                 >
+                  {/* Package 32: every exercise shows what it practises, schematic and picture. */}
+                  <SubjectThumbs visuals={drillVisuals(m.id)} />
                   <Text
                     style={[
                       styles.pickerChipText,
@@ -1964,7 +1981,7 @@ function Simulator() {
                 </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
         ) : null}
 
@@ -1989,7 +2006,7 @@ function commentaryFor({
   trimScore: number;
   tp: ReturnType<typeof useI18n>['tp'];
 }): string {
-  if (Math.abs(twaDeg) < 30) {
+  if (Math.abs(twaDeg) < NO_GO_HALF_DEG) {
     return tp(
       'Мёртвая зона: яхта теряет тягу, увались от ветра.',
       'No-go zone: the sails lose drive, bear away from the wind.',
@@ -3132,10 +3149,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-  pickerChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  pickerCards: {
+    gap: 8,
+    paddingRight: spacing.sm,
+  },
+  pickerCard: {
+    width: 208,
+    padding: 6,
     gap: 6,
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
   },
   pickerChip: {
     paddingHorizontal: spacing.sm,

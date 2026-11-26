@@ -1,1 +1,1 @@
-sail,boat,yacht,sailboat,racing,lessons,course,school,game,tactics,trim,wind,quiz,skipper,crew
+boat,sailboat,racing,lessons,course,school,game,wind,tacking,gybe,mooring,skipper,helm,crew,quiz

@@ -56,7 +56,7 @@ export function SceneElevation({ view, ui, sim, tp }: {
   return <div className="absolute inset-0 flex min-h-0 flex-col" style={{ background: "var(--bg-primary)" }}>
     <div className="flex items-start justify-between gap-4 px-5 pt-5">
       <div><h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{title}</h2>
-        <p className={`${styles.elevationHint} mt-1 hidden text-xs leading-relaxed sm:block`} style={{ color: "var(--text-secondary)" }}>{hint}</p></div>
+        <p className={`${styles.elevationHint} mt-1 hidden text-sm leading-relaxed sm:block`} style={{ color: "var(--text-secondary)" }}>{hint}</p></div>
       <div className="shrink-0 text-right"><span className="block text-xs" style={{ color: "var(--text-secondary)" }}>{heelLabel}</span>
         <strong className="text-xl tabular-nums" style={{ color: heel > 28 ? "var(--danger)" : "var(--accent-cyan)" }}>{Math.round(heel)}°</strong></div>
     </div>
@@ -119,7 +119,7 @@ export function SceneElevation({ view, ui, sim, tp }: {
       <path d="M 100 397 H 660" stroke="#2c728c" strokeWidth="2" opacity=".75" />
       <path d="M 170 414 H 275 M 490 414 H 595" stroke="#23445b" />
     </svg>
-    <div className="space-y-2 px-5 pb-4 text-xs leading-relaxed">
+    <div className="space-y-2 px-5 pb-4 text-sm leading-relaxed">
       <div className="flex flex-wrap gap-x-5 gap-y-1">
         {mainVisible && <span style={{ color: MAIN }}>● {mainName}: {Math.round(mainAngle)}°{mainStatus && ` · ${mainStatus}`}{ui.reefLevel > 0 && ` · R${ui.reefLevel}`}</span>}
         {jibVisible && <span style={{ color: JIB }}>● {jibName}: {Math.round(jibAngle)}° · {Math.round(furl * 100)}%{jibStatus && ` · ${jibStatus}`}</span>}

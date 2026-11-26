@@ -1,13 +1,17 @@
 // Texts of the race events the HUD shows for a moment (game audit F2): the
-// cost of a tack or gybe, the split at the windward mark, an overtake.
+// cost of a tack or gybe, the split at the windward mark, an overtake, and
+// (M4-4) the split against your best race at the mark.
 
 import type { Lang as Language } from "@/lib/languages";
+import type { SplitVerdict } from "@/lib/race-ghost-splits";
+import { ghostSplitToast } from "@/data/race-ghost-copy";
 import { gapText, knotsText } from "./units";
 
 export type RaceEvent =
   | { kind: "tack" | "gybe"; lossKn: number }
   | { kind: "mark"; place: number; gapSec: number }
-  | { kind: "gained" | "lost"; place: number };
+  | { kind: "gained" | "lost"; place: number }
+  | { kind: "split"; deltaSec: number; verdict: SplitVerdict };
 
 /** "2nd", "2-й", "2." ... as each language writes a place. */
 export function ordinal(lang: Language, n: number): string {
@@ -27,8 +31,8 @@ export function ordinal(lang: Language, n: number): string {
 const T = {
   tack: { ru: "Оверштаг", en: "Tack", pl: "Zwrot przez sztag", es: "Virada", fr: "Virement", de: "Wende", it: "Virata" },
   gybe: { ru: "Фордевинд", en: "Gybe", pl: "Zwrot przez rufę", es: "Trasluchada", fr: "Empannage", de: "Halse", it: "Strambata" },
-  markFirst: { ru: "Знак пройден первым", en: "First round the mark", pl: "Pierwszy na znaku", es: "Primero en la baliza", fr: "Premier à la bouée", de: "Als Erster an der Tonne", it: "Primo alla boa" },
-  mark: { ru: "Знак", en: "Mark", pl: "Znak", es: "Baliza", fr: "Bouée", de: "Tonne", it: "Boa" },
+  markFirst: { ru: "Знак пройден первым", en: "First to round the mark", pl: "Pierwszy na znaku", es: "Primero en la baliza", fr: "Premier à la bouée", de: "Als Erster an der Bahnmarke", it: "Primo alla boa" },
+  mark: { ru: "Знак", en: "Mark", pl: "Znak", es: "Baliza", fr: "Bouée", de: "Bahnmarke", it: "Boa" },
   gained: { ru: "Обгон! Ты", en: "Overtake! You're", pl: "Wyprzedzenie! Jesteś", es: "¡Adelantamiento! Vas", fr: "Dépassement ! Tu es", de: "Überholt! Du bist", it: "Sorpasso! Sei" },
   lost: { ru: "Тебя обошли: ты", en: "Passed: you're", pl: "Wyprzedzili cię: jesteś", es: "Te han adelantado: vas", fr: "Doublé : tu es", de: "Überholt worden: Du bist", it: "Ti hanno superato: sei" },
 } as const;
@@ -45,5 +49,7 @@ export function eventText(lang: Language, e: RaceEvent): string {
     case "gained":
     case "lost":
       return `${T[e.kind][lang]} ${ordinal(lang, e.place)}`;
+    case "split":
+      return ghostSplitToast(lang, e);
   }
 }

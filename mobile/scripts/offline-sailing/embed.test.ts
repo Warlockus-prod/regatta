@@ -10,6 +10,7 @@ test("each native sailing destination resolves to its original shared page", () 
   expect(sailingEmbed(undefined, "?screen=trainer").path).toBe("/simulator-v3");
   expect(sailingEmbed(undefined, "?screen=game").path).toBe("/game");
   expect(sailingEmbed(undefined, "?screen=ads&lang=ru").path).toBe("/ads");
+  expect(sailingEmbed(undefined, "?screen=manoeuvres&lang=pl").path).toBe("/manoeuvres");
   expect(sailingEmbed(undefined, "?screen=unknown").path).toBe("/simulator2");
 });
 

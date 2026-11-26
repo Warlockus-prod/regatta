@@ -9,7 +9,8 @@ import { colors } from "../design-system/tokens";
 import { useI18n } from "../i18n/context";
 import { AnalyticsEvent } from "../analytics/events";
 import { useAnalytics } from "../analytics/use-analytics";
-import { destinations } from "../../../src/lib/product/catalog";
+import { destinations, UI_TERMS } from "../../../src/lib/product/catalog";
+import { LessonPicture } from "../learning/SubjectVisuals";
 import { copy } from "../../../src/lib/product/copy";
 import { findSailLesson, sailCourse, sailLessons } from "../../../src/data/sailing-lab/course";
 import { checkSailTheory, nextSailLesson, readSailProgress, SAIL_PROGRESS_KEY, type SailProgress } from "../../../src/features/sailing-lab/lessons/progress";
@@ -178,6 +179,8 @@ function CourseContent({ lessonId }: { lessonId?: string }) {
           <View style={styles.controls}>{diagramOptions(lesson.diagram, lang).map(option => <Button key={option.value} variant={selected === option.value ? "primary" : "secondary"} accessibilityState={{ selected: selected === option.value }} onPress={() => { setSelected(option.value); remember({ diagram: option.value }); }}>{option.label}</Button>)}</View>
           {lesson.diagram === "wind" && <Text style={styles.note}>{diagramCopy.windKeys.map((label, i) => `${i + 1}. ${label[lang]}`).join(" · ")}</Text>}
         </>}
+        {/* Package 32: beside its drawing every lesson shows the real thing, on the boat or on the water (a lesson with its own annotated photo keeps that). */}
+        {!pilot?.photo && <LessonPicture lessonId={lesson.id} name={lesson.title[lang]} labels={{ boat: UI_TERMS.visualOnBoat[lang], water: UI_TERMS.visualOnWater[lang] }} />}
         {(lessonTermIds[lesson.id] ?? []).length > 0 && <View style={styles.terms}>
           <Button variant="ghost" accessibilityState={{ expanded: termsOpen }} onPress={() => setTermsOpen(value => !value)}>{learningCopy.terms[lang]}</Button>
           {termsOpen && lessonTermIds[lesson.id]!.map(id => <View key={id} style={styles.section}><Text style={styles.moduleTitle}>{lessonTerms[id].name[lang]}</Text><Text style={styles.body}>{lessonTerms[id].meaning[lang]}</Text></View>)}

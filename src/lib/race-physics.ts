@@ -1,7 +1,12 @@
 import { tick, createInitialState } from "./sailing-physics/simulate";
-import { getBoatParams } from "./sailing-physics/boat";
+import { CLASSIC_BOAT } from "./sailing-physics/boat";
 import { trimForDrive } from "./sailing-physics/polar";
-import type { BoatState, Controls } from "./sailing-physics/types";
+import type { BoatParams, BoatState, Controls } from "./sailing-physics/types";
+
+/** The legacy race, its server copy and every record made on it sail the
+ * classic profile, frozen (DECISIONS.md ADR-0021). Physical callers pass the
+ * cruiser profile explicitly. */
+export const LEGACY_RACE_BOAT: BoatParams = CLASSIC_BOAT;
 /**
  * Pure sailing physics functions.
  *
@@ -176,7 +181,8 @@ export function raceTurnRate(speed: number, steering: RaceStepOptions["steering"
 
 /** The sheets the crew is asked to hold this step: manual trim, or the
  * automatic solve every half second. Updates boat.trim and boat.trimClock. */
-export function raceCrewTrim(boat: RaceBoat, state: BoatState, input: Pick<InputState, "autoTrim" | "trim">, dt: number): Controls {
+export function raceCrewTrim(boat: RaceBoat, state: BoatState, input: Pick<InputState, "autoTrim" | "trim">, dt: number,
+  params: BoatParams = LEGACY_RACE_BOAT): Controls {
   if (input.autoTrim === false) {
     boat.trim = raceTrim(input.trim, boat.trim);
     // Re-entering automatic trim solves it immediately, rather than keeping stale manual trim.
@@ -184,7 +190,7 @@ export function raceCrewTrim(boat: RaceBoat, state: BoatState, input: Pick<Input
   } else {
     boat.trimClock = (boat.trimClock ?? 1) + dt;
     if (!boat.trim || boat.trimClock >= .5) {
-      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM, params);
       boat.trimClock = 0;
     }
     if (input.trim) {
@@ -205,16 +211,16 @@ export function stepRaceBoatForces(
   gust: number,
   input: InputState,
   opts: Pick<RaceStepOptions, "speedMul" | "windStrengthMul"> = {},
+  params: BoatParams = LEGACY_RACE_BOAT,
 ): BoatState {
   // Bot difficulty (DECISIONS.md ADR-0007): the boat makes speedMul of the
   // speed the force model gives. The model is fed back its own speed, so the
   // handicap never compounds; a contact slow-down on boat.speed still carries.
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const params = getBoatParams();
   const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust };
-  boat.physics = tick(state, raceCrewTrim(boat, state, input, dt), params, dt).state;
+  boat.physics = tick(state, raceCrewTrim(boat, state, input, dt, params), params, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
   return boat.physics;
 }

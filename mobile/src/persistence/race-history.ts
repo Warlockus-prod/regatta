@@ -21,6 +21,18 @@ import { recordNativeDiagnostic } from '../diagnostics/journal';
 import { projectNativeRaceRecord } from './race-record-presentation';
 
 const STORAGE_KEY = 'regatta.race-history.v1';
+export const RACE_HISTORY_STORAGE_KEY = STORAGE_KEY;
+
+/** F1: how many saved races a raw history row holds, without the replay
+ * filtering or a diagnostic (the Race hub only asks "has this device raced").
+ * A missing or corrupt row holds none. */
+export function countStoredRaces(raw: string | null | undefined): number {
+  if (!raw) return 0;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(r => !!r && typeof r === 'object' && typeof (r as { id?: unknown }).id === 'string').length : 0;
+  } catch { return 0; }
+}
 export const MAX_RACES = 20;
 let historyRevision = 0;
 const historyListeners = new Set<(races: RaceRecord[]) => void>();

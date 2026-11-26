@@ -1,1 +1,1 @@
-segelkurs,segelschule,yacht,segelboot,trimm,wind,wende,halse,vorfahrt,wettfahrt,spiel,quiz,skipper
+segelkurs,segelschule,yacht,segelboot,simulator,trimm,wind,wende,halse,anlegen,manöver,wettfahrt

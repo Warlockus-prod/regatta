@@ -18,20 +18,23 @@ requests 2026-10-30). Test build only: ads exist nowhere else in the app, and
 
 Details, SDK limits and release prerequisites: `ads-lab.md`.
 
-- `mobile/app/ads/index.tsx` - format list (display, interstitial, rewarded, video, in-game) and SDK status.
+- `mobile/app/ads/index.tsx` - format list (display, interstitial, rewarded, video, native, MRAID game, in-game) and SDK status.
 - `mobile/app/ads/display.tsx` - swipe pager of simulated screens: anchored 320x50, in-content 300x250, in-feed 320x480, half page 300x600, tablet 728x90; each page requests once when first shown.
 - `mobile/app/ads/interstitial.tsx` - race-finish screen, "Next race" calls `VoxAds.showFullScreen`.
 - `mobile/app/ads/rewarded.tsx` - opt-in offer, full-screen VAST 9:16, reward granted by a 15 s app timer (SDK 1 has no completion callback; closing earlier forfeits).
 - `mobile/app/ads/video.tsx` - in-article VAST 16:9 and 9:16.
+- `mobile/app/ads/mraid-game.tsx` - MRAID game: a 300x600 inline slot (placement `mraidGame`, the moderated 300x600 place) in an article; a tap expands the creative to full screen (VOX SDK 1.4.3 stretches Hybrid's fixed frames), the creative is a short regatta round a buoy with an end card. Creative source: `~/App/sdk_hybrid/vox-sdk-2/rich-media/mraid-regatta/`.
 - `mobile/app/ads/in-game.tsx` - the installed sailing package at `/ads` (3D yacht, three local test boards); Back returns to the format list.
-- `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry).
+- `mobile/src/ads/AdSlot.tsx` - inline slot (label, native view, real-size frame on no fill) and `RequestPanel` (endpoint, placeId, status, ms, retry, and with VOX SDK 1.4.4 the SSP answer from `src/ads/ad-info.ts`: code, winning adId, network, size, bidId, seance, app id, page, SDK).
 - `mobile/src/ads/sdk.ts` - SDK switch (in memory, opens on SDK 1), Prebid Server URL and account, configID `wtr-<placement key>`, lazy Prebid start.
 - `mobile/modules/vox-prebid/` - local Expo module for VOX SDK 2: `VoxPrebidModule.swift` (start with an explicit status URL, interstitial, rewarded with the SDK reward event), `VoxPrebidBannerView.swift` (banner / outstream video, stops refresh off screen).
-- `mobile/src/ads/strings.ts` - seven-language copy; `formats.ts` - format order and routes; `vox-placements.ts` - place IDs and endpoint; `FakeContent.tsx` - grey content blocks.
-- `mobile/modules/vox-ads/` - local Expo module: `VoxAdsModule.swift` (interstitial), `VoxAdView.swift` (banner / VAST view, HTTP 204 reported as `no-fill`; off screen it stops web creatives and detaches video players, because SDK 1.2.3 otherwise keeps them alive), `index.ts` (null when the native module is absent: Android, Expo Go, Jest).
+- `mobile/src/ads/full-screen.ts` - full-screen ad order: the 1080x1920 place, then the 320x480 place; both requests name the app.
+- `mobile/src/ads/board-feed.ts` - in-game board feed for `mobile/app/ads/in-game.tsx`: asks Hybrid on that screen only with the app's identity in `browser.url` and `sdkInfo.applicationId`, hands the image to the page as data, fires Hybrid's trackers only on the page's counted view.
+- `mobile/src/ads/strings.ts` - seven-language copy; `formats.ts` - format order and routes; `vox-placements.ts` - place IDs, endpoint, `VOX_APP_BUNDLE_ID` and `VOX_APP_PAGE_URL`, the app's identity in every VOX SDK 1 request (`https://<bundle id>/`, recorded by Hybrid as Domain `com.icoffio.regatta` instead of its fallback website; a label for our own test campaigns only until Hybrid's server takes real app identity; VOX SDK 2 sends no identity; `docs/design/mobile/ads-lab.md`, last section); `FakeContent.tsx` - grey content blocks.
+- `mobile/modules/vox-ads/` - local Expo module: `VoxAdsModule.swift` (interstitial, `browser(pageUrl:language:)`), `VoxAdView.swift` (banner / VAST view, sends nothing without `pageUrl` or `language`, HTTP 204 reported as `no-fill`; off screen it stops web creatives and detaches video players, because SDK 1.2.3 otherwise keeps them alive), `index.ts` (null when the native module is absent: Android, Expo Go, Jest).
 - `mobile/plugins/with-vox-sdk.js` - adds `pod 'VOXSDK'` from the private GitHub repository pinned to a commit (`VOX_SDK_IOS_PATH` = local checkout for testing unpushed SDK fixes); `with-min-pod-deployment-target.js` - raises pod targets below iOS 15.1 (Xcode 27 rejects them).
 - `mobile/src/navigation/visibility.ts` - all `/ads` routes hide the tab bar.
-- `mobile/__tests__/ads-entry.test.tsx` - in-game route and recovery, format list navigation, no-fill mapping, placement table; `screens/settings.test.tsx` - Settings entry reaches `/ads`.
+- `mobile/__tests__/ads-entry.test.tsx` - in-game route and recovery, format list navigation, no-fill mapping, placement table; `ads-app-identity.test.tsx` - the identity equals the bundle id, and it and the app's language reach every format; `screens/settings.test.tsx` - Settings entry reaches `/ads`.
 
 `mobile/scripts/offline-sailing/entry.tsx` still dispatches the web `/ads`
 route to the local 3D lab; shared scene/camera code is mapped in the root
@@ -115,8 +118,32 @@ build script. The paragraph above describes builds before 1.6.2.
   sound, set in Settings > Trainers. `SimWebView` injects the record as
   `window.__REGATTA_CONTROLS__` before the page runs (it does not wait for the
   read: a later value is injected live) and stores what the page posts back as
-  `{"type":"controls-prefs"}`. No vibration (owner decision 2026-10-19). Tests:
+  `{"type":"controls-prefs"}`. No vibration on the controls (owner decision
+  2026-10-19, kept by decision 4 of 2026-10-31). Tests:
   `mobile/__tests__/controls-prefs.test.ts`, `mobile/__tests__/sim-webview.test.tsx`.
+- **Race haptics** (M3-4, owner decision 4 of 2026-10-31,
+  `mobile/src/simulator/race-haptics.ts`): the race page posts
+  `{"type":"race-haptic","event":"start"|"mark"|"contact"|"finish"}` for the
+  start gun, a mark rounding, a contact and the finish (never for steering,
+  wheels or sheets; web side `src/lib/race-haptics.ts`). `SimWebView` handles it
+  right after the diagnostic batches and never passes it on: exactly those two
+  keys and one of the four events, only from `/game` or `/multiplayer`, at most
+  one per 300 ms, mapped to expo-haptics (start `impactAsync(Heavy)`, mark
+  `impactAsync(Medium)`, contact `notificationAsync(Warning)`, finish
+  `notificationAsync(Success)`). `SimWebView` announces the handler with
+  `window.__REGATTA_RACE_HAPTICS__ = true` in its language script on the race
+  screens only (false elsewhere); the page offers the switch and posts the
+  message only when it sees that flag, so an older installed build that loads
+  the live `/multiplayer` page (1.6.4 (48), 1.7.0 (74)) shows no switch that
+  does nothing and never sends a "haptics" diagnostics row its older parser
+  would reject. The "Vibration" switch lives in the race page
+  (`regatta.race.haptics.v1`, default on). On `/game` (bundled offline page) it
+  crosses the race storage bridge into AsyncStorage like race sound. The live
+  `/multiplayer` page has no storage bridge, so its choice (like its race
+  sound) stays in that WKWebView's own localStorage: solo and multiplayer keep
+  separate values on purpose for now, because injecting stored rows into an
+  online origin is a separate decision. Test:
+  `mobile/__tests__/race-haptics.test.tsx`.
 - **Radio work screen** (owner 2026-10-24): the SRC simulator, the controls
   lessons and the live conversation open a fixed work screen with the radio
   pinned and the task panel scrolling under it
@@ -205,6 +232,7 @@ All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
 | `/replay/[id]` | `app/replay/[id].tsx` | World records use bundled3D; historical pixel records keep their scrubber; unavailable world data shows Back | **Bundled3D** / legacy **Skia** |
 | `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
 | `/race-3d` | `app/race-3d/index.tsx` | The solo race seen from the boat: web `/game?view=3d` in `SimWebView` (online), with the Race hub venue and shore written into the page's localStorage (`localStorage` prop); offline falls back to the native `/game` | WebView |
+| `/manoeuvres` | `app/manoeuvres/index.tsx` | Manoeuvres from the bundled sailing package (`sailing-offline.html`, route `/manoeuvres`): docking under engine on the harbour model and the sail exercises. Stars cross to AsyncStorage through `src/persistence/manoeuvres-web-storage.ts` (one row, `regatta.manoeuvres.v1`); the page opens only after that row is read. Bottom bar hidden on the route (`src/navigation/visibility.ts`); opened from the Practice hub (catalog `native: "/manoeuvres"`) | WebView (offline) |
 
 Root layout / providers: `app/_layout.tsx` (ErrorBoundary -> GestureHandler ->
 SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -> Stack).
@@ -277,8 +305,9 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, `analytics-consent.ts`, ...). |
 | `review/` | `review-prompt.ts`: App Store rating prompt after real wins (see section 1). |
-| `home/` | v3 Home and Menu progress: `copy.ts` (app-only strings, 7 languages, "N of TOTAL" / "Label: N" counts), `continue.ts` (`resolveContinue`: which course and lesson the Continue card offers, from the bookmark), `PhotoCard.tsx` (photo with a live label on a fade), `useLearningSnapshot.ts` (re-reads bootcamp evidence, sail course, bookmark and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`). |
+| `home/` | v3 Home and Menu progress: `copy.ts` (app-only strings, 7 languages, "N of TOTAL" / "Label: N" counts), `continue.ts` (`resolveContinue`: which sailing course and lesson the Continue card offers, from the bookmark; `homeStepEvidence`: package 9, the card shows only after a meaningful step, a lesson or a sail theory check passed, rule in `src/lib/product/home-entry.ts`; a radio or motorboat bookmark is never the continuation), `useLearningSnapshot.ts` (re-reads bootcamp evidence, sail course, bookmark and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`), except `race-scene.jpg`: a still of the real race scene (Göcek, at the start), used by Home (`app/index.tsx`: value line, one "Start from scratch" or the Continue card, a quiet "Go straight to a race", SRC and sternik as quiet entrances) and the Race hub. |
 | `bootcamp/learning-guide.ts`, `FoundationScene.tsx` | Three module groups, eight goals, seven new three-state diagrams and localized explanations. The first lesson keeps the wind pilot. Turn lessons use concrete practice tasks. |
+| `bootcamp/MiniTask.tsx` | In-lesson mini task (package 24): the same rules, text and drawing as the site (`src/lib/learning/mini-task.ts`, `src/data/foundation-mini-tasks.ts`), result in `regatta.progress.bootcamp.minitask.v1`, separate from quiz and done evidence. |
 | `bootcamp/lesson-position.ts`, `ReturnToLesson.tsx` | Persist step and diagram separately from grades; validate `fromLesson`; native header returns to the same lesson from practice. |
 | `bootcamp/status.ts` | Lesson state from evidence: `passed` needs a passed quiz (>= 70%) or, for a lesson without a quiz, an explicit done mark; the legacy "completed" key means viewed. `nextBootcampLesson`, `passedLessonIds`. |
 | `persistence/learning-bookmark.ts` | `regatta.learning.bookmark.v1`: last course (bootcamp, sails, radio, motor) and lesson, written on focus by the course screens, plus `positions` (last lesson per course), so an overview visit keeps the unfinished lesson and IDs never cross courses; unknown IDs degrade to the course. |
@@ -329,7 +358,9 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
   soft-wrap at the edges, no boat-to-boat collisions. Collision parity is a
   product decision, not a refactor of `race-physics`. Details in
   `WEB_VS_APP_PARITY.md`.
-- Other parity items live in `WEB_VS_APP_PARITY.md` and `SIMULATOR_V3_PARITY.md`.
+- Other parity notes live in `WEB_VS_APP_PARITY.md`; open work is in
+  `docs/BACKLOG.md` (the native trainer parity page was removed 2026-11-02: the
+  native trainer is only the offline fallback, ADR-0011).
 
 ---
 
@@ -375,4 +406,4 @@ new physical emission until result classes and the engine are ready.
 
 ## Prepared native race classification, before physical activation
 
-`mobile/src/persistence/race-record-presentation.ts` projects historical pixel/world, explicit registered and unavailable records separately. `race-native.ts` prepares raw finish plus penalty without changing saved provenance; null remains absent authority through the actual shared bridge. The physical writer remains OFF. `race-history.ts` journals actual reads and awaited serial clear without private IDs or trajectories. Real History and Leaderboard now project once per stable history array through `mobile/src/leaderboard/race-records.ts`; old score PBs retain their section, registered PBs compare adjusted time only within the same class/mode/conditions, and unavailable records stay visible without ranking. Shared seven-language names and conditions live in `src/lib/race-record-copy.ts`, also used by the historical course registry. `mobile/src/components/RaceRecordDetails.tsx` renders the authoritative time components. Actual-route, seven-language and memoization tests are in `mobile/__tests__/race-list-consumers.test.tsx`. Next installed UI and native PB finish acknowledgement remain pending in `docs/audits/2026-10-26/physical-consumers-harness.md`.
+`mobile/src/persistence/race-record-presentation.ts` projects historical pixel/world, explicit registered and unavailable records separately. `race-native.ts` prepares raw finish plus penalty without changing saved provenance; null remains absent authority through the actual shared bridge. The physical writer remains OFF. M5 step 7: the web race loop now keys every record on the race context, so with switch A a finished metric race posts its snapshot with `raceContext` (legacy snapshots stay without it), the PB command with the metric comparison, and race rows the bridge already carries: the best time under `ctx:physical-cruiser-v1:...`, the metric ghost (decimated to `GHOST_MAX_SAMPLES`, so a long race fits the bridge) and the home row; no new storage key, so `RACE_WEB_STORAGE_KEYS` is unchanged. A full medal row now refuses a new course instead of evicting one, which build 74's validator accepts. Mocked-switch test: `mobile/__tests__/race-native-metric.test.ts`. M5 step 8: the multiplayer screen title reads `QUICK_ONLINE_RACE` (`src/data/quick-online-race.ts`). `race-history.ts` journals actual reads and awaited serial clear without private IDs or trajectories. Real History and Leaderboard now project once per stable history array through `mobile/src/leaderboard/race-records.ts`; old score PBs retain their section, registered PBs compare adjusted time only within the same class/mode/conditions, and unavailable records stay visible without ranking. Shared seven-language names and conditions live in `src/lib/race-record-copy.ts`, also used by the historical course registry. `mobile/src/components/RaceRecordDetails.tsx` renders the authoritative time components. Actual-route, seven-language and memoization tests are in `mobile/__tests__/race-list-consumers.test.tsx`. Next installed UI and native PB finish acknowledgement remain pending in `docs/audits/2026-10-26/physical-consumers-harness.md`.

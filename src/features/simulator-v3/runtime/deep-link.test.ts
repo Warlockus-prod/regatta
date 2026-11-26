@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveTrainerDeepLink, readTrainerSetupFromSearch, resolveWindObservationEntry } from './deep-link';
+import { resolveTrainerDeepLink, readTrainerCameraFromSearch, readTrainerSetupFromSearch, resolveWindObservationEntry } from './deep-link';
 import { DRILLS, SCENARIO_PRESETS } from './scenario-presets';
 
 // ---------------------------------------------------------------------------
@@ -71,5 +71,9 @@ describe("first wind observation entry", () => {
     expect(readTrainerSetupFromSearch("?twa=0&tws=12")).toEqual({ twa: 0, windSpeed: 12 });
     expect(readTrainerSetupFromSearch("?twa=180")).toEqual({ twa: 180 });
     for (const value of ["", " ", "-1", "181", "NaN", "Infinity", "private-angle"]) expect(readTrainerSetupFromSearch("?twa=" + value)).toBeNull();
+  });
+  it("opens the boat on a named camera view and ignores anything else", () => {
+    for (const view of ["whole", "sails", "main", "jib", "stern", "deck"]) expect(readTrainerCameraFromSearch("?twa=90&camera=" + view)).toBe(view);
+    for (const search of ["", "?camera=", "?camera=mainsheet", "?camera=top", "?camera=WHOLE"]) expect(readTrainerCameraFromSearch(search)).toBeNull();
   });
 });

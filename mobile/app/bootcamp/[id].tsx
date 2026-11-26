@@ -31,6 +31,8 @@ import {
   isQuizPassed,
 } from '../../src/bootcamp/quiz-data';
 import { FoundationScene } from '../../src/bootcamp/FoundationScene';
+import { MiniTask } from '../../src/bootcamp/MiniTask';
+import { foundationMiniTasks, miniTaskCopy } from '../../../src/data/foundation-mini-tasks';
 import { foundationCopy, foundationGuides, foundationModules, foundationPractice } from '../../src/bootcamp/learning-guide';
 import { foundationSteps, loadFoundationPositions, saveFoundationPosition, foundationPracticeRoute, type FoundationPosition, type FoundationStep } from '../../src/bootcamp/lesson-position';
 import { destinations } from '../../../src/lib/product/catalog';
@@ -369,7 +371,8 @@ function LessonContent({ id }: { id: string }) {
           <View style={styles.cta}><Button onPress={() => changeStep("practice")} disabled={!positionReady}>{foundationCopy.practice[lang]} →</Button></View>
         </>}
         {step === "practice" && <>
-          <View style={styles.pilot}><Text variant="subtitle">{lessonCopy.practice[lang]}</Text><Text>{focus}</Text></View>
+          {foundationMiniTasks[lesson.id] ? <MiniTask key={lesson.id} lessonId={lesson.id} task={foundationMiniTasks[lesson.id]} /> : null}
+          <View style={styles.pilot}><Text variant="subtitle">{foundationMiniTasks[lesson.id] ? miniTaskCopy.fullPractice[lang] : lessonCopy.practice[lang]}</Text><Text>{focus}</Text></View>
           {practice}
           {nextLesson && <View style={styles.cta}><Button variant="secondary" onPress={() => router.push(`/bootcamp/${nextLesson.id}`)}>{foundationCopy.next[lang]}</Button></View>}
         </>}

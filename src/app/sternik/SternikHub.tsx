@@ -4,9 +4,10 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-// Types only: a value import from '@/data/sternik' would pull the whole bank
-// back into this chunk, which is what page.tsx exists to prevent.
-import type { SternikCatId, SternikCategory } from '@/data/sternik';
+import { UI_TERMS } from '@/lib/product/ui-terms';
+// Types only, from the bank-free module: the questions never ride in this
+// chunk (page.tsx computes the counts on the server).
+import type { SternikCatId, SternikCategory } from '@/data/sternik-core';
 import {
   loadSternikProgress,
   sternikWeakIds,
@@ -93,15 +94,24 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
       {/* Hero */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold sm:text-4xl" style={{ color: 'var(--text-primary)' }}>
-          ⚓ <span lang="pl">Sternik motorowodny</span>
+          <span lang="pl">Sternik motorowodny</span>
         </h1>
         <p className="mt-2 max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
           {tp(
-            'Подготовка к польскому госэкзамену на патент судоводителя моторной лодки: теория со схемами, тренажёр вопросов и пробный экзамен. Вопросы по-польски (как на экзамене), пояснения по-русски.',
-            'Preparation for the Polish state exam for the motorboat helmsman licence: theory with diagrams, a question trainer and a mock exam. Questions in Polish (as on the exam), explanations in Russian.',
+            'Подготовка к экзамену на патент судоводителя моторной лодки: теория со схемами, тренажёр вопросов и пробный экзамен. Вопросы по-польски (как на экзамене), пояснения по-русски.',
+            'Preparation for the motorboat helmsman licence exam: theory with diagrams, a question trainer and a mock exam.',
             'Przygotowanie do państwowego egzaminu na patent sternika motorowodnego: teoria ze schematami, trening pytań i próbny egzamin.',
           )}
         </p>
+        {/* Owner, 2026-11-01: no country in any title. Only the Polish text says
+            where the material comes from, in full; other languages stay short. */}
+        {lang === 'pl' && (
+          <p data-testid="sternik-source-note" className="mt-3 max-w-2xl text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Materiały przygotowaliśmy na podstawie szkolenia do polskiego patentu sternika motorowodnego: zakres teorii, pytania egzaminacyjne,
+            format egzaminu i opłaty odpowiadają przepisom o uprawianiu żeglarstwa (rozporządzenie Ministra Sportu i Turystyki z 9 kwietnia 2013 r.,
+            tekst jednolity Dz.U. 2026 poz. 604). Pytania i terminy brzmią tak, jak na egzaminie.
+          </p>
+        )}
       </header>
 
       {/* Exam format */}
@@ -110,11 +120,11 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
       >
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          📋 {tp('Формат экзамена', 'Exam format', 'Format egzaminu')}
+          {tp('Формат экзамена', 'Exam format', 'Format egzaminu')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile value={String(exam.questions)} label={tp('вопросов (A/B/C)', 'questions (A/B/C)', 'pytań (A/B/C)')} />
-          <StatTile value={`${exam.minutes} min`} label={tp('на весь тест', 'for the whole test', 'na cały test')} />
+          <StatTile value={`${exam.minutes} ${UI_TERMS.minutes[lang]}`} label={tp('на весь тест', 'for the whole test', 'na cały test')} />
           <StatTile
             value={`${exam.passCorrect}/${exam.questions}`}
             label={tp(`порог сдачи (${exam.passPct}%)`, `pass mark (${exam.passPct}%)`, `próg zdania (${exam.passPct}%)`)}
@@ -141,7 +151,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
       {/* Progress */}
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          📈 {tp('Твой прогресс', 'Your progress', 'Twój postęp')}
+          {tp('Твой прогресс', 'Your progress', 'Twój postęp')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile value={String(answered)} label={tp('ответов дано', 'answers given', 'udzielonych odpowiedzi')} />
@@ -183,8 +193,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
           className="rounded-2xl p-5 transition hover:-translate-y-0.5"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="text-3xl">📖</div>
-          <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
             {tp('Теория', 'Theory', 'Teoria')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -200,8 +209,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
           className="rounded-2xl p-5 transition hover:-translate-y-0.5"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="text-3xl">🎯</div>
-          <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
             {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytań')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -220,8 +228,7 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
             border: '1px solid var(--border-subtle)',
           }}
         >
-          <div className="text-3xl">⏱️</div>
-          <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
             {tp('Пробный экзамен', 'Mock exam', 'Próbny egzamin')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -248,9 +255,9 @@ export default function SternikHub({ data }: { data: SternikHubData }) {
             </div>
             <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {tp(
-                'Отдельный раздел про морскую УКВ-рацию: как получить SRC в UKE, каналы, MAYDAY/PAN-PAN, DSC и фонетика.',
-                'A dedicated section on the marine VHF radio: how to get the SRC at UKE, channels, MAYDAY/PAN-PAN, DSC and phonetics.',
-                'Osobny dział o radiu VHF: jak zdobyć SRC w UKE, kanały, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
+                'Отдельный раздел про морскую УКВ-рацию: как получить SRC, каналы, MAYDAY/PAN-PAN, DSC и фонетика.',
+                'A dedicated section on the marine VHF radio: how to get the SRC, channels, MAYDAY/PAN-PAN, DSC and phonetics.',
+                'Osobny dział o radiu VHF: jak zdobyć SRC, kanały, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
               )}
             </p>
           </div>

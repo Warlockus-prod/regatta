@@ -7,7 +7,7 @@
 import { RACE_SUMMARY_LIMITS, type DiagnosticInput } from "@/lib/diagnostics";
 import { measureRaceLog, type CoachGoalKind } from "@/lib/fallback-coach";
 import type { RaceRuleEvent } from "@/lib/race-rules";
-import { isStartJostle } from "@/lib/race-start-jostle";
+import { RACE_START_JOSTLE_SECONDS, isStartJostleWithin } from "@/lib/race-start-jostle";
 import type { LogEvent, LogSample } from "./race-model";
 
 type Summary = Extract<DiagnosticInput, { type: "race.summary" }>;
@@ -43,6 +43,8 @@ export interface RaceSummaryInput {
   tally: RaceTally | null;
   coachScore: number;
   mainMistake: CoachGoalKind | null;
+  /** The race's start jostle, seconds (raceScale startJostleSeconds); the legacy 10 s when omitted. */
+  startJostleSeconds?: number;
 }
 
 const int = (value: number, min: number, max: number) => Number.isFinite(value) ? Math.max(min, Math.min(max, Math.round(value))) : min;
@@ -52,7 +54,8 @@ const seconds = (value: number) => Number.isFinite(value) ? Math.max(0, Math.min
 export function raceSummaryDiagnostics(input: RaceSummaryInput): [RaceSummaryResult, RaceSummaryDebrief] {
   const total = int(input.total, 1, RACE_SUMMARY_LIMITS.boats);
   const player = input.ruleEvents.filter(e => e.boatId === "player");
-  const jostle = player.filter(isStartJostle).length;
+  const jostled = (e: RaceRuleEvent) => isStartJostleWithin(e, input.startJostleSeconds ?? RACE_START_JOSTLE_SECONDS);
+  const jostle = player.filter(jostled).length;
   const result: RaceSummaryResult = { type: "race.summary", surface: "race", outcome: "accepted", source: "system", action: "result",
     mode: input.mode, difficulty: input.difficulty, wind: input.wind, setupSource: input.setup.source, race: input.setup.race,
     briefingShown: input.setup.briefingShown, finished: input.finished, place: int(input.place, 1, total), total,
@@ -67,7 +70,7 @@ export function raceSummaryDiagnostics(input: RaceSummaryInput): [RaceSummaryRes
     startJostleEvents: count(jostle),
     // The player's rule events without the start jostle. With rules on, the loop
     // replaces this with the judge debrief's own item count (withJudgeIncidents).
-    judgeIncidents: count(player.filter(e => e.kind !== "mark-rounded" && !isStartJostle(e)).length),
+    judgeIncidents: count(player.filter(e => e.kind !== "mark-rounded" && !jostled(e)).length),
     coachScore: int(input.coachScore, 0, RACE_SUMMARY_LIMITS.score), mainMistake: input.mainMistake ?? "none" };
   return [result, debrief];
 }

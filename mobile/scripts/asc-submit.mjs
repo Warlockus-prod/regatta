@@ -54,8 +54,11 @@ async function asc(method, path, body) {
   return text ? JSON.parse(text) : null;
 }
 
+// READY_FOR_REVIEW: the version is already an item of an open submission that
+// was never sent (a run that stopped between steps 4 and 5); step 5 sends it.
 const SUBMITTABLE = new Set([
   'PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY',
+  'READY_FOR_REVIEW',
 ]);
 
 async function main() {
@@ -105,9 +108,17 @@ async function main() {
     });
     console.log('[item] appStoreVersion added to submission');
   } catch (e) {
-    if (String(e).includes('409') || String(e).toLowerCase().includes('already')) {
+    // Only a duplicate item is fine. Any other 409 (for example a required
+    // age-rating answer such as `socialMedia`, added by Apple in 2026) lists the
+    // real cause under meta.associatedErrors: print it and stop.
+    const items = await asc('GET', `/v1/reviewSubmissions/${sub.id}/items?limit=10&include=appStoreVersion`);
+    const inSubmission = (items.data || []).some((it) => it.relationships?.appStoreVersion?.data?.id === version.id);
+    if (inSubmission) {
       console.log('[item] version already in submission (ok)');
-    } else throw e;
+    } else {
+      console.error('[fatal] Apple refused to add the version to the submission:');
+      throw e;
+    }
   }
 
   // 5. Submit.

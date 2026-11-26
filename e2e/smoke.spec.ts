@@ -94,13 +94,15 @@ async function observeProPage(page: Page, stage: ProObservation["stage"]): Promi
 }
 
 // Pin language to Russian for deterministic string matches, and mark the
-// Trainer's first-run tour (simulator-v3 TourOverlay) as seen so it cannot
-// cover the controls the simulator test clicks.
+// Trainer's first-run tour (simulator-v3 TourOverlay) and the race intro (F5)
+// as seen so they cannot cover the controls the tests click. The briefing
+// test below clears the race intro and walks through it.
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
     try {
       window.localStorage.setItem('regatta.lang.v1', 'ru');
       window.localStorage.setItem('regatta.v3.tour.v1', '1');
+      window.localStorage.setItem('regatta.race.intro-seen.v1', '1');
     } catch { /* ignore */ }
   });
 });
@@ -176,12 +178,27 @@ test.describe('Smoke: critical user flows', () => {
 
   test("home starts a lesson with working course navigation", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Начать первый урок", exact: true }).click();
+    await page.locator('main a[data-action="primary"]').filter({ hasText: "Начать с нуля" }).click();
     await expect(page).toHaveURL(/\/start\?lesson=wind-direction$/);
     await expect(page.getByRole("heading", { name: "Ветер и направление", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "2. Проверить себя", exact: true }).click();
     await expect(page.getByRole("button", { name: "Проверить ответы", exact: true })).toBeDisabled();
     await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
+  });
+
+  test("race hub plays the last setup with one Play and changes it in the lobby", async ({ page }) => {
+    await page.goto("/race");
+    const play = page.locator('main a[data-action="primary"]');
+    await expect(play).toHaveCount(1);
+    await expect(play).toHaveAttribute("href", "/game?difficulty=easy&wind=medium&play=1");
+    await expect(page.getByTestId("race-play-summary")).toHaveText("Лёгкий · средний ветер · Простой");
+    await page.evaluate(() => localStorage.setItem("regatta.race.last-setup.v1", JSON.stringify({ v: 1, kind: "free", difficulty: "hard", wind: "light" })));
+    await page.reload();
+    await expect(play).toHaveAttribute("href", "/game?difficulty=hard&wind=light&play=1");
+    await expect(page.getByTestId("race-play-summary")).toHaveText("Сложный · слабый ветер · Простой");
+    await page.getByRole("link", { name: "Изменить", exact: true }).click();
+    await expect(page).toHaveURL(/\/game\?difficulty=hard&wind=light$/);
+    await expect(page.getByTestId("race-lobby")).toBeVisible();
   });
 
   test("legacy library leads to Menu and search reaches the radio course", async ({ page }) => {
@@ -206,9 +223,17 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('button', { name: /Свободная гонка/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /^Миссия/ }).first()).toBeVisible();
 
-    // Default CTA fires briefing
+    // F5: a device without the race intro sees it first; Skip leads on to the briefing.
+    // The start reads the row when pressed, so clearing it after the load is enough.
+    await page.evaluate(() => localStorage.removeItem('regatta.race.intro-seen.v1'));
+    // Default CTA fires the intro, then the briefing
     await page.getByRole('button', { name: /Начать первую гонку/i }).click();
+    const intro = page.getByRole('dialog', { name: 'Цель: старт, верхний знак, финиш' });
+    await expect(intro).toBeVisible({ timeout: 10_000 });
+    await expect(intro.getByText('Шаг 1 из 4')).toBeVisible();
+    await intro.getByRole('button', { name: 'Пропустить', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Брифинг' })).toBeVisible({ timeout: 5_000 });
+    expect(await page.evaluate(() => localStorage.getItem('regatta.race.intro-seen.v1'))).toBe('1');
   });
 
   test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }, testInfo) => {
@@ -237,16 +262,19 @@ test.describe('Smoke: critical user flows', () => {
       await expect(page.getByTestId("race-3d").locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", {
         timeout: Math.max(1, startupDeadline - Date.now()),
       });
+      // Package 13 (ADR-0022): a new install steers the race with the arrows; in
+      // Pro they are the rudder and the sheets stay beside them.
       const helm = page.getByRole("slider", { name: "Руль", exact: true });
       const main = page.getByRole("slider", { name: "Гика-шкот", exact: true });
       const jib = page.getByRole("slider", { name: "Стаксель-шкот", exact: true });
-      await expect(helm).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
-      const original = await main.getAttribute("aria-valuenow");
+      const right = page.getByRole("button", { name: "Руль вправо", exact: true });
+      await expect(right).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
+      await expect(helm).toHaveCount(0);
+      await expect(page.getByTestId("race-helm-best-vmg")).toHaveText("BEST VMG");
+      const original = await main.inputValue();
       await main.press("ArrowDown");
-      await expect(main).not.toHaveAttribute("aria-valuenow", original ?? "");
-      await helm.press("ArrowRight");
-      await expect(helm).not.toHaveAttribute("aria-valuenow", "0");
-      await helm.press("ArrowLeft");
+      await expect(main).not.toHaveValue(original);
+      await right.click();
       // Let the countdown finish; the clock must advance before and after a pause.
       observations.push(await observeProPage(page, "before-initial-clock"));
       const clock = page.getByText(/^\d+:\d\d\.\d$/);
@@ -265,29 +293,46 @@ test.describe('Smoke: critical user flows', () => {
       // Another tab may change preferences for the next race, never this race's classification.
       const other = await page.context().newPage();
       await other.goto("/game?embed=1");
-      await other.getByRole("radio", { name: "Обычный", exact: true }).click();
+      await other.getByRole("radio", { name: "Простой", exact: true }).click();
       await other.close();
       await expect(page.getByTestId("race-cockpit").locator("header")).toContainText("PRO");
-      // Keyboard sheets work in slider mode and after opening another utility tab.
-      await page.getByRole("radio", { name: "Ползунки", exact: true }).click();
-      await page.getByRole("radio", { name: "Курс", exact: true }).click();
-      await page.getByRole("button", { name: "Руль", exact: true }).click();
-      await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible();
+      // Package 11 (audit B9): the race keeps camera, sound and hints; the
+      // steering controls are chosen before the start, in the lobby.
+      await expect(page.getByRole("radio", { name: "Ползунки", exact: true })).toHaveCount(0);
+      await page.getByRole("button", { name: "Продолжить", exact: true }).click();
+      await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
+      // A mode cannot change after starting and recategorize an auto-trim record.
+      await expect(page.getByRole("radio", { name: "Простой", exact: true })).toHaveCount(0);
+      const leave = async () => {
+        await page.getByRole("button", { name: "Меню", exact: true }).click();
+        await page.getByRole("button", { name: "Выйти", exact: true }).click();
+        await page.getByRole("button", { name: "Выйти", exact: true }).click();
+      };
+      const lobbySettings = async (...choices: string[]) => {
+        const setup = page.getByTestId("race-setup");
+        if (!(await setup.evaluate(details => (details as HTMLDetailsElement).open))) await setup.locator("summary").click();
+        for (const name of choices) {
+          await setup.getByRole("radio", { name, exact: true }).click();
+          await expect(setup.getByRole("radio", { name, exact: true })).toHaveAttribute("aria-checked", "true");
+        }
+      };
+      await leave();
+      // Keyboard sheets work in slider mode, chosen in the lobby's race settings.
+      await lobbySettings("Ползунки", "Курс");
+      // The other tab chose Simple for the next race; this one is Pro again (the sheets are Pro).
+      await page.getByRole("radio", { name: "Pro", exact: true }).click();
+      await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+      await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible({ timeout: 25_000 });
+      // Package 13: the slider helm shares the panel with the turn button and BEST VMG; the Pro sheets are on the Sails tab.
+      await expect(page.getByTestId("race-helm-assist-row")).toBeVisible();
+      await page.getByTestId("race-cockpit").getByRole("button", { name: "Паруса", exact: true }).click();
       const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
       const beforeKey = await mainSlider.inputValue();
       await page.keyboard.press("q");
       await expect(mainSlider).not.toHaveValue(beforeKey);
-      await page.getByRole("button", { name: "Настройки", exact: true }).click();
-      await page.getByRole("radio", { name: "Штурвалы", exact: true }).click();
-      await page.getByRole("radio", { name: "Перо руля", exact: true }).click();
-      await page.getByRole("button", { name: "Продолжить", exact: true }).click();
-      await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
-      // A mode cannot change after starting and recategorize an auto-trim record.
-      await expect(page.getByRole("radio", { name: "Обычный", exact: true })).toHaveCount(0);
-      await page.getByRole("button", { name: "Меню", exact: true }).click();
-      await page.getByRole("button", { name: "Выйти", exact: true }).click();
-      await page.getByRole("button", { name: "Выйти", exact: true }).click();
-      await page.getByRole("radio", { name: "Обычный", exact: true }).click();
+      await leave();
+      await lobbySettings("Штурвалы", "Перо руля");
+      await page.getByRole("radio", { name: "Простой", exact: true }).click();
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
       // The classic course was briefed on the first start: the second goes straight to the countdown.
       await expect(page.getByRole("heading", { name: "Брифинг", exact: true })).toHaveCount(0);
@@ -311,7 +356,61 @@ test.describe('Smoke: critical user flows', () => {
     expect(Array.isArray(body.rows)).toBe(true);
 
     await page.goto('/leaderboard');
-    await expect(page.getByRole('heading', { name: /(Таблица|Leaderboard|Ranking)/ })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /(Результаты гонок|Leaderboard|Ranking)/ })).toBeVisible();
+  });
+
+  // R-12: a board shows only from ten results on; below that the player's own record.
+  test('/leaderboard hides a near-empty table and shows the full one', async ({ page }) => {
+    const row = (index: number, isMe = false) => ({ nickname: index === 0 ? 'Player' : `Sailor ${index}`, isMe, finish_time_sec: 300 + index, score: null });
+    let count = 9;
+    await page.route('**/api/leaderboard?*', route => route.fulfill({ json: { rows: Array.from({ length: count }, (_, index) => row(index, index === 2)) } }));
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/leaderboard?lang=en');
+    await expect(page.getByTestId('leaderboard-waiting')).toBeVisible();
+    await expect(page.getByTestId('leaderboard-waiting-count')).toHaveText('Results so far: 9');
+    await expect(page.getByTestId('leaderboard-my-best')).toContainText('5:02');
+    await expect(page.getByTestId('leaderboard-rows')).toHaveCount(0);
+
+    count = 10;
+    await page.goto('/leaderboard?lang=en');
+    await expect(page.getByTestId('leaderboard-rows')).toBeVisible();
+    await expect(page.getByTestId('leaderboard-waiting')).toHaveCount(0);
+    await expect(page.getByTestId('leaderboard-rows').getByText('Sailor', { exact: true })).toBeVisible();
+    await expect(page.getByText('Player', { exact: true })).toHaveCount(0);
+  });
+
+  // R-13: one switcher of one kind on the three trainer pages, named by task.
+  test('the three trainer pages share one switcher', async ({ page }) => {
+    for (const [path, current] of [['/simulator', 'Learn to steer'], ['/simulator2', 'Inspect the sail']] as const) {
+      await page.goto(`${path}?lang=en`);
+      const nav = page.getByTestId('trainer-switcher');
+      await expect(nav.getByRole('link')).toHaveText(['Learn to steer', 'Trim the sails', 'Inspect the sail']);
+      await expect(nav.locator('[aria-current="page"]')).toHaveText(current);
+      for (const box of await nav.getByRole('link').evaluateAll(links => links.map(link => link.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
+    }
+    await page.goto('/practice?lang=en');
+    await expect(page.getByRole('link', { name: /Learn to steer/ })).toBeVisible();
+    await expect(page.locator('main, body').getByText(/^0[1-9]$/)).toHaveCount(0);
+  });
+
+  // M5 step 8 (ADR-0015 point 12): the archive and the quick online race board
+  // answer, the page opens on the classic course with its folded archive, and
+  // the online board asks for its own rows (no archive under it).
+  test('/leaderboard course filter, archive and online board', async ({ page, request }) => {
+    for (const q of ['board=archive&difficulty=medium&wind=medium', 'board=online&difficulty=medium&wind=medium']) {
+      const res = await request.get('/api/leaderboard?' + q);
+      expect(res.ok()).toBeTruthy();
+      expect(Array.isArray((await res.json()).rows)).toBe(true);
+    }
+    expect((await request.get('/api/leaderboard?board=future&difficulty=medium&wind=medium')).status()).toBe(400);
+    await page.goto('/leaderboard');
+    await expect(page.getByTestId('leaderboard-archive')).toBeVisible();
+    await expect(page.getByRole('radio', { name: /^(Классическая трасса|Classic course|Klasyczna trasa)$/ })).toHaveAttribute('aria-checked', 'true');
+    const asked: string[] = [];
+    page.on('request', r => { if (r.url().includes('/api/leaderboard')) asked.push(r.url()); });
+    await page.getByRole('radio', { name: /^(Быстрая онлайн-гонка|Quick online race|Szybki wyścig online)$/ }).click();
+    await expect.poll(() => asked.some(u => u.includes('board=online'))).toBe(true);
+    await expect(page.getByTestId('leaderboard-archive')).toHaveCount(0);
   });
 
   test('save nickname via /api/player end-to-end', async ({ request, baseURL }) => {
@@ -499,7 +598,13 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   const canvas = await page.locator("canvas").first().boundingBox();
   expect(canvas).not.toBeNull();
   expect(canvas!.height).toBeGreaterThan(200);
-  expect(canvas!.y + canvas!.height).toBeLessThan(844);
+  // Package 32 stage B: the scene is painted on the whole phone screen and the controls lie over
+  // it, so the canvas reaches the bottom edge (never past it) and the controls stay on screen.
+  expect(canvas!.y + canvas!.height).toBeLessThanOrEqual(844);
+  const control = await page.getByRole("slider", { name: "Helm", exact: true }).boundingBox();
+  expect(control).not.toBeNull();
+  expect(control!.y).toBeGreaterThanOrEqual(0);
+  expect(control!.y + control!.height).toBeLessThanOrEqual(844);
 });
 
 // A software WebGL runner spends several seconds waiting for stable animation

@@ -7,7 +7,7 @@ export const foundationCopy = {
   next: words("Следующий урок", "Next lesson", "Następna lekcja", "Siguiente lección", "Leçon suivante", "Nächste Lektion", "Lezione successiva"),
   outline: words("Программа курса", "Course outline", "Program kursu", "Programa del curso", "Programme du cours", "Kursübersicht", "Programma del corso"),
   return: words("Вернуться к уроку", "Return to lesson", "Wróć do lekcji", "Volver a la lección", "Revenir à la leçon", "Zurück zur Lektion", "Torna alla lezione"),
-  savedError: words("Не удалось сохранить. Попробуй еще раз перед выходом.", "Could not save. Try again before leaving.", "Nie udało się zapisać. Spróbuj ponownie przed wyjściem.", "No se pudo guardar. Reinténtalo antes de salir.", "Enregistrement impossible. Réessaie avant de quitter.", "Speichern fehlgeschlagen. Vor dem Verlassen erneut versuchen.", "Salvataggio non riuscito. Riprova prima di uscire."),
+  savedError: words("Не удалось сохранить. Попробуй ещё раз перед выходом.", "Could not save. Try again before leaving.", "Nie udało się zapisać. Spróbuj ponownie przed wyjściem.", "No se pudo guardar. Reinténtalo antes de salir.", "Enregistrement impossible. Réessaie avant de quitter.", "Speichern fehlgeschlagen. Vor dem Verlassen erneut versuchen.", "Salvataggio non riuscito. Riprova prima di uscire."),
   retry: words("Повторить сохранение", "Retry saving", "Ponów zapis", "Reintentar guardar", "Réessayer l'enregistrement", "Erneut speichern", "Riprova il salvataggio"),
   sources: words("Источники", "Sources", "Źródła", "Fuentes", "Sources", "Quellen", "Fonti"),
 };

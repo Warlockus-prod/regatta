@@ -1,4 +1,4 @@
-import { words, type Language } from "../../../lib/product/catalog";
+import { UI_TERMS, words, type Language } from "../../../lib/product/catalog";
 import type { SailLesson } from "../../../data/sailing-lab/course";
 import { mainsheetCopy, mainsheetDrawing, mainsheetReadout } from "./mainsheet-diagram";
 import { shapeCopy, shapeDrawing, shapeReadout } from "./shape-diagrams";
@@ -52,7 +52,7 @@ export function diagramOptions(kind: SailLesson["diagram"], lang: Language) {
   if (kind === "winch") return [lineCopy.clutch, lineCopy.winch, lineCopy.paidOut].map((label, value) => ({ value, label: label[lang] }));
   if (kind === "vang" || kind === "outhaul") return shapeCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "mainsheet") return mainsheetCopy.options.map((label, value) => ({ value, label: label[lang] }));
-  if (kind === "wind") return [0, 4, 8].map(value => ({ value, label: `${value} kn` }));
+  if (kind === "wind") return [0, 4, 8].map(value => ({ value, label: `${value} ${UI_TERMS.knots[lang]}` }));
   return (kind === "rig" ? diagramCopy.lines : diagramCopy.positions).map((label, value) => ({ value, label: `${kind === "rig" ? `${value + 1}. ` : ""}${label[lang]}` }));
 }
 

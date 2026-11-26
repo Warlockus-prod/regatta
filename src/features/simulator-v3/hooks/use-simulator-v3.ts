@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createInitialState,
   getBoatParams,
-  settle,
   twaFromCompass,
   type Controls,
 } from '@/lib/sailing-physics';
@@ -19,13 +17,13 @@ import { bindClockLifecycle } from "../../sailing-lab/runtime/clock-lifecycle";
 import { recordDiagnostic } from "@/lib/diagnostics-controls";
 import type { SailingSession } from "../../sailing-lab/runtime/session";
 import { type RuntimeState } from '../runtime/runtime-types';
-import { recommendedTrim } from '../runtime/trim-heuristics';
+import { autoTrimStep, trainerOptimum } from '../runtime/auto-trim';
+import { AUTO_TRIM_PERIOD_S } from '@/lib/helm-trim';
 import {
   clamp,
   DEFAULT_UI,
   pointOfSailFor,
-  toJibSheet,
-  toMainSheet,
+  type OptimalTrim,
   type SimulationModel,
   type TpFn,
   type UiState,
@@ -47,6 +45,8 @@ import {
 // ---------------------------------------------------------------------------
 
 const FIXED_DT = SAILING_STEP_SECONDS;
+/** How long the course, wind and sails must rest before the optimum is solved again. */
+const OPTIMUM_SETTLE_MS = 150;
 
 interface Options {
   ui: UiState;
@@ -215,62 +215,33 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
   }, [params]);
 
   // ---------------------------------------------------------------------
-  // Optimal trim + reference speed: recomputed only when env or reef/sails
-  // change, not every frame. Uses the same two-pass AWA convergence the
-  // PR-1 code had (awa depends on bs which depends on trim, so we settle
-  // twice with optimal-so-far controls to find a self-consistent optimum).
+  // Optimal trim + reference speed (package 13 stage D): the auto-trim at
+  // rest on the intended course, from the one sheet solver
+  // (runtime/auto-trim.ts -> src/lib/helm-trim.ts, the race crew's
+  // trimForDrive). "Best" applies it and its settled speed is the 100% of the
+  // trim score. Recomputed only when the course, wind or sails change, and
+  // only once they rest for OPTIMUM_SETTLE_MS: a wheel turning the course
+  // through many degrees solves once at the end, not once per degree.
+  // mainAngle/jibAngle/twist do NOT change the optimum (the solver starts
+  // from its own sheets), so sliding a sheet does not re-run the solve.
   // ---------------------------------------------------------------------
+  const optimumInput = useMemo(() => ({
+    twa: ui.twa, tack: ui.tack, windSpeed: ui.windSpeed, reefLevel: ui.reefLevel,
+    sailsRaised: ui.sailsRaised, jibFurlPct: ui.jibFurlPct,
+  }), [ui.twa, ui.tack, ui.windSpeed, ui.reefLevel, ui.sailsRaised, ui.jibFurlPct]);
+  const [settledInput, setSettledInput] = useState(optimumInput);
+  useEffect(() => {
+    if (settledInput === optimumInput) return;
+    const id = setTimeout(() => setSettledInput(optimumInput), OPTIMUM_SETTLE_MS);
+    return () => clearTimeout(id);
+  }, [optimumInput, settledInput]);
   const optimalModel = useMemo(() => {
-    const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
-    const baseControls = uiToControls({ ...DEFAULT_UI, sailsRaised: ui.sailsRaised,
-      reefLevel: ui.reefLevel, jibFurlPct: ui.jibFurlPct }, params);
-    const init = createInitialState({
-      tws: ui.windSpeed,
-      twa: signedTwa,
-      boatSpeed: Math.max(3, ui.windSpeed * 0.45),
-    });
-    const passOne = settle(init, baseControls, params, 45, 0.1);
-    const firstOpt = recommendedTrim(
-      Math.abs(passOne.diag.awa),
-      ui.windSpeed,
-      ui.reefLevel,
-      params,
-    );
-    const firstOptCtrls: Controls = {
-      ...baseControls,
-      mainSheet: toMainSheet(firstOpt.mainAngle, params.mainMaxOff),
-      jibSheet: toJibSheet(firstOpt.jibAngle, params.jibMinOff, params.jibMaxOff),
-      mainTwist: firstOpt.mainTwistPct / 100,
-      jibTwist: firstOpt.jibTwistPct / 100,
-    };
-    const firstOptRes = settle(init, firstOptCtrls, params, 45, 0.1);
-    const optimal = recommendedTrim(
-      Math.abs(firstOptRes.diag.awa),
-      ui.windSpeed,
-      ui.reefLevel,
-      params,
-    );
-    const optCtrls: Controls = {
-      ...baseControls,
-      mainSheet: toMainSheet(optimal.mainAngle, params.mainMaxOff),
-      jibSheet: toJibSheet(optimal.jibAngle, params.jibMinOff, params.jibMaxOff),
-      mainTwist: optimal.mainTwistPct / 100,
-      jibTwist: optimal.jibTwistPct / 100,
-    };
-    const optimalResult = settle(init, optCtrls, params, 45, 0.1);
-    return { optimal, optimalResult };
-  }, [
-    ui.twa,
-    ui.tack,
-    ui.windSpeed,
-    ui.reefLevel,
-    ui.sailsRaised,
-    ui.jibFurlPct,
-    params,
-    // Keep heuristic dependencies explicit. mainAngle/jibAngle/twist do NOT
-    // affect the optimal target, only the delta; they are intentionally
-    // absent so sliding the sheet does not retrigger 3 settle() calls.
-  ]);
+    const { trim, result } = trainerOptimum({ ...DEFAULT_UI, ...settledInput }, params);
+    return { optimal: trim, optimalResult: result };
+  }, [settledInput, params]);
+  // The ghost of the best trim follows the live boat: one auto-trim step on
+  // the wind it feels now, solved at most every AUTO_TRIM_PERIOD_S of sail time.
+  const ghostRef = useRef<{ time: number; key: string; trim: OptimalTrim } | null>(null);
 
   // Derive SimulationModel from the live runtime snapshot. The heavy optimal
   // memo is reused; the feedback picker reads current state so it tracks
@@ -324,17 +295,18 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
       heelDelta,
     });
 
-    // Ghost angles: cheap per-frame heuristic based on the LIVE AWA. Unlike
-    // `optimalModel.optimal` (which is target-TWA based and memoized), this
-    // slides as the boat turns so the dashed ghost on the scene always
-    // reads "here is where these sails should be for the wind you feel
-    // RIGHT NOW". No settle() call per frame - just the piecewise formula.
-    const ghostAngles = recommendedTrim(
-      Math.abs(rt.lastDiag.awa),
-      ui.windSpeed,
-      ui.reefLevel,
-      params,
-    );
+    // Ghost angles: the auto-trim's answer for the LIVE boat. Unlike
+    // `optimalModel.optimal` (target-TWA based and memoized), this slides as
+    // the boat turns so the dashed ghost on the scene always reads "here is
+    // where these sails should be for the wind you feel RIGHT NOW". Solved
+    // at the auto-trim's cadence, not every frame; a new sail plan or wind
+    // solves at once.
+    const ghostKey = `${ui.windSpeed}:${ui.reefLevel}:${ui.sailsRaised}:${ui.jibFurlPct}`;
+    const cached = ghostRef.current;
+    const ghostAngles = cached && cached.key === ghostKey && rt.simTime >= cached.time && rt.simTime - cached.time < AUTO_TRIM_PERIOD_S
+      ? cached.trim
+      : autoTrimStep(rt.boat, ui, params);
+    if (ghostAngles !== cached?.trim) ghostRef.current = { time: rt.simTime, key: ghostKey, trim: ghostAngles };
 
     // Live sail angles in degrees, recovered from the runtime's interpolated
     // controls. Scenes draw these instead of ui.mainAngle/ui.jibAngle so the

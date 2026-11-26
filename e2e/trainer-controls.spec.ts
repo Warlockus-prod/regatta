@@ -4,6 +4,12 @@ import { expect, test, type Page } from "@playwright/test";
 // decisions 2026-10-19): on a phone the boat stays on screen whatever the
 // learner does in the control dock, and the optional wheels are real,
 // keyboard-operable sliders that move the same inputs.
+// Since package 32 (rule R-46, point 6, owner 2026-11-13) the two 3D trainers
+// are a game screen: the scene is painted over the whole phone, the wheels
+// stand on the water, the readouts are an instrument card in a corner of the
+// boat's window, the coach's line is a subtitle over the water, and the tab
+// strip waits behind one menu button.
+/** Opens the tab strip when the wheels are up (the game screen hides it behind the menu button). */
 
 const PHONE = { width: 390, height: 844 };
 const ROUTES = [
@@ -11,6 +17,11 @@ const ROUTES = [
   { path: "/simulator-v3?embed=1&lang=en", scene: '[data-testid="trainer-scene"]', firstFrame: true },
   { path: "/simulator2?embed=1&lang=en", scene: "canvas", firstFrame: true },
 ];
+
+async function openMenu(page: Page) {
+  const menu = page.getByTestId("control-menu-open");
+  if (await menu.isVisible()) await menu.click();
+}
 
 async function primaryCaptions(page: Page, includeLayout = false) {
   return page.getByTestId("wheel-deck").evaluate((deck, includeLayout) => {
@@ -69,6 +80,7 @@ for (const route of ROUTES) {
     if (route.firstFrame) {
       await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
     }
+    await openMenu(page);
     await page.getByRole("tab", { name: "More", exact: true }).click();
     await page.getByRole("tabpanel").evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
     await page.mouse.wheel(0, 2000);
@@ -95,21 +107,31 @@ test("wheel mode: the helm and both sheets are keyboard sliders on the Trainer",
   const main = page.getByRole("slider", { name: "Mainsheet", exact: true });
   const eased = Number(await main.getAttribute("aria-valuenow"));
   await main.press("ArrowDown");
-  await expect(main).toHaveAttribute("aria-valuenow", String(Math.round(eased - 5)));
+  // A step is 5% of sheet; the sheet angle keeps tenths of a degree, so the
+  // percent lands on the whole step only after rounding (the default 36 deg
+  // main of package 13 is 42.35%, one step down 31.5 deg = 37.06%).
+  await expect.poll(async () => Math.round(Number(await main.getAttribute("aria-valuenow")))).toBe(Math.round(eased) - 5);
 });
 
-// Owner rule 2026-10-21: on a phone nothing is drawn over the boat. Status and
-// buttons sit above the scene, readouts under it, and the views drawer slides
-// out from the side only when asked for, then slides back after a choice.
+// Rule R-46, point 6 (owner 2026-11-13, replacing the 2026-10-21 rule "nothing
+// is drawn over the scene"): the scene is painted over the whole phone screen
+// and the controls sit on it. The boat's window is at least 60% of the screen:
+// status and buttons are above it, the wheels under it, the instrument card in
+// its top right corner, the coach's subtitle at its bottom, and the camera is
+// centred on it, not on the canvas. The tab strip is behind the menu button.
+// The views drawer still opens only when asked for and closes after a choice.
 for (const route of [
-  { path: "/simulator-v3?embed=1&lang=en", scene: '[data-testid="trainer-scene"]', choice: "Rear" },
-  { path: "/simulator2?embed=1&lang=en", scene: "canvas", choice: "Deck" },
+  { path: "/simulator-v3?embed=1&lang=en", choice: "Rear" },
+  { path: "/simulator2?embed=1&lang=en", choice: "Deck" },
 ]) {
-  test(`nothing covers the boat, views slide out on demand: ${route.path}`, async ({ page }) => {
+  test(`the scene fills the screen and no control covers the boat's window: ${route.path}`, async ({ page }) => {
     test.setTimeout(60_000);
     await page.setViewportSize(PHONE);
+    await page.addInitScript(() => {
+      localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
+    });
     await page.goto(route.path);
-    const scene = page.locator(route.scene).first();
+    const scene = page.getByTestId("trainer-scene-window");
     const deadline = Date.now() + 25_000;
     const remaining = () => Math.max(1, deadline - Date.now());
     await expect(scene).toBeVisible({ timeout: remaining() });
@@ -117,8 +139,53 @@ for (const route of [
     const s = (await scene.boundingBox())!;
     const bar = (await page.getByTestId("scene-bar").boundingBox())!;
     const readouts = (await page.getByTestId("trainer-readouts").boundingBox())!;
+    const dock = (await page.getByTestId("control-dock").boundingBox())!;
     expect(bar.y + bar.height).toBeLessThanOrEqual(s.y + 1);
-    expect(readouts.y).toBeGreaterThanOrEqual(s.y + s.height - 1);
+    expect(dock.y).toBeGreaterThanOrEqual(s.y + s.height - 1);
+    expect(s.height).toBeGreaterThanOrEqual(PHONE.height * 0.6);
+    // The instrument card: inside the window, in its top right corner, not a band across it.
+    expect(readouts.y).toBeGreaterThanOrEqual(s.y - 1);
+    expect(readouts.x).toBeGreaterThanOrEqual(s.x + s.width / 2 - 1);
+    expect(readouts.x + readouts.width).toBeLessThanOrEqual(s.x + s.width + 1);
+    expect(readouts.y + readouts.height).toBeLessThanOrEqual(s.y + s.height * 0.4);
+    // The coach's subtitle: over the water at the bottom of the window, above the wheels.
+    const caption = (await page.getByTestId("trainer-caption").boundingBox())!;
+    expect(caption.y).toBeGreaterThanOrEqual(s.y + s.height * 0.6);
+    expect(caption.y + caption.height).toBeLessThanOrEqual(s.y + s.height + 1);
+    // One menu button instead of the tab strip; the strip comes and goes with it.
+    await expect(page.getByRole("tab").first()).toBeHidden();
+    await page.getByTestId("control-menu-open").click();
+    await expect(page.getByRole("tab", { name: "More", exact: true })).toBeVisible();
+    // A touch on the scene puts the strip away, as does picking the wheels again.
+    await page.mouse.click(s.x + s.width / 2, s.y + s.height / 2);
+    await expect(page.getByRole("tab").first()).toBeHidden();
+    await page.getByTestId("control-menu-open").click();
+    await page.getByRole("tab", { name: "More", exact: true }).click();
+    await page.getByRole("tab", { name: "Wheels", exact: true }).click();
+    await expect(page.getByRole("tab").first()).toBeHidden();
+    await expect(page.getByRole("slider", { name: "Helm", exact: true })).toBeVisible();
+    // The picture itself reaches every edge of the screen, and its canvas with it.
+    const painted = await page.locator("[data-trainer-stage]").evaluate(stage => {
+      const box = (element: Element) => { const { x, y, width, height } = element.getBoundingClientRect(); return { x, y, width, height }; };
+      return { stage: box(stage), canvas: box(stage.querySelector("canvas")!), workspace: box(stage.closest('[data-testid="trainer-workspace"]')!) };
+    });
+    for (const box of [painted.stage, painted.canvas]) {
+      expect(Math.abs(box.x - painted.workspace.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.y - painted.workspace.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.width - PHONE.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.height - painted.workspace.height)).toBeLessThanOrEqual(1);
+    }
+    expect(painted.workspace.height).toBeGreaterThanOrEqual(PHONE.height - 1);
+    // The scene is told where the free window is; the camera is centred there.
+    // The window moves when a readout wraps to a second line, so both are read
+    // in one pass and the largest difference has to settle under a pixel.
+    await expect.poll(() => page.locator("[data-trainer-stage]").evaluate(stage => {
+      const workspace = stage.closest('[data-testid="trainer-workspace"]')!.getBoundingClientRect();
+      const free = stage.closest("[data-trainer-window]")!.getBoundingClientRect();
+      const told = ((stage as HTMLElement).dataset.window ?? "").split(",").map(Number);
+      const actual = [free.left - workspace.left, free.top - workspace.top, free.width, free.height];
+      return told.length === 4 ? Math.max(...actual.map((value, index) => Math.abs(value - told[index]))) : Infinity;
+    })).toBeLessThanOrEqual(1);
     const drawer = page.getByTestId("scene-drawer").first();
     await expect(drawer).toBeHidden();
     await page.getByTestId("scene-view-button").click();
@@ -128,7 +195,41 @@ for (const route of [
   });
 }
 
-test("wheel mode: wheels and Diagnostics occupy the dock without an empty band", async ({ page }) => {
+// Owner, TestFlight 84 ("the controls do not fold back for a full screen"): in sliders mode the
+// dock folds down to its tab strip, the boat's window takes the freed height, and a tab opens it again.
+test("sliders mode: the dock folds to its tab strip and the scene takes the screen", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize(PHONE);
+  await page.addInitScript(() => {
+    localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "sliders" }));
+  });
+  await page.goto("/simulator-v3?embed=1&lang=en");
+  const scene = page.getByTestId("trainer-scene-window");
+  await expect(scene).toBeVisible({ timeout: 25_000 });
+  const fold = page.getByTestId("control-dock-fold");
+  await expect(fold).toHaveAttribute("aria-expanded", "true");
+  const before = (await scene.boundingBox())!;
+  await fold.click();
+  await expect(fold).toHaveAttribute("aria-expanded", "false");
+  await expect(fold).toHaveAccessibleName("Expand the controls");
+  await expect(page.getByRole("tabpanel")).toBeHidden();
+  await expect(page.getByRole("tab", { name: "Sails", exact: true })).toBeVisible();
+  const after = (await scene.boundingBox())!;
+  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  expect(after.height).toBeGreaterThan(before.height + 150);
+  expect(dock.height).toBeLessThanOrEqual(80);
+  expect(dock.y + dock.height).toBeLessThanOrEqual(PHONE.height + 1);
+  // A tab opens the panel again on that tab.
+  await page.getByRole("tab", { name: "Sails", exact: true }).click();
+  await expect(page.getByRole("tabpanel")).toBeVisible();
+  await expect(fold).toHaveAttribute("aria-expanded", "true");
+  await expect.poll(async () => (await scene.boundingBox())!.height).toBeLessThan(after.height - 150);
+});
+
+// The game screen (package 32): with the menu closed the wheels are all there is under the boat,
+// on the water, and nothing scrolls beneath them. The hint and Diagnostics live in the menu: they
+// follow the wheels there without an empty band and are reached by scrolling the dock.
+test("wheel mode: wheels alone on the water, the hint and Diagnostics in the menu without an empty band", async ({ page }) => {
   await page.setViewportSize(PHONE);
   await page.addInitScript(() => {
     localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
@@ -142,6 +243,22 @@ test("wheel mode: wheels and Diagnostics occupy the dock without an empty band",
   const summary = dockElement.locator("details > summary");
   await expect(summary).toHaveCount(1);
   await expect(summary).toHaveText("Diagnostics");
+  // Menu closed: no utilities, no hint, no scrolling under the menu button.
+  await expect(summary).toBeHidden();
+  await expect(page.getByTestId("wheel-hint")).toBeHidden();
+  const game = { scene: (await page.getByTestId("trainer-scene").boundingBox())!, dock: (await dockElement.boundingBox())!, deck: (await page.getByTestId("wheel-deck").boundingBox())! };
+  expect(game.dock.y).toBeGreaterThanOrEqual(game.scene.y + game.scene.height - 1);
+  expect(game.dock.y + game.dock.height).toBeLessThanOrEqual(PHONE.height + 1);
+  expect(game.deck.y + game.deck.height).toBeLessThanOrEqual(PHONE.height);
+  // The boat keeps at least 60% of the screen with the wheels up.
+  expect(game.scene.height).toBeGreaterThanOrEqual(PHONE.height * 0.6);
+  await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
+  expect(await page.getByRole("tabpanel").evaluate(panel => panel.scrollHeight - panel.clientHeight)).toBeLessThanOrEqual(1);
+  const menuButton = (await page.getByTestId("control-menu-open").boundingBox())!;
+  expect(menuButton.width).toBeGreaterThanOrEqual(44);
+  expect(menuButton.height).toBeGreaterThanOrEqual(44);
+  // Menu open: the strip, then the wheels, the hint and Diagnostics in one run.
+  await page.getByTestId("control-menu-open").click();
   await expect(summary).toBeVisible();
   const utility = dockElement.locator("details").filter({ has: page.locator("summary", { hasText: /^Diagnostics$/ }) });
   const dock = (await dockElement.boundingBox())!;
@@ -165,10 +282,16 @@ test("wheel mode: wheels and Diagnostics occupy the dock without an empty band",
   const occupiedEnd = hintBox ? hintBox.y + hintBox.height : deck.y + deck.height;
   expect(utilityBox.y).toBeGreaterThanOrEqual(occupiedEnd);
   expect(utilityBox.y - occupiedEnd).toBeLessThan(24);
-  expect(dock.y + dock.height - (utilityBox.y + utilityBox.height)).toBeLessThan(24);
   expect(dock.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
-  expect(utilityBox.y + utilityBox.height).toBeLessThanOrEqual(PHONE.height);
-  expect(deck.y + deck.height).toBeLessThanOrEqual(PHONE.height);
+  expect(dock.y + dock.height).toBeLessThanOrEqual(PHONE.height + 1);
+  await summary.scrollIntoViewIfNeeded();
+  const reached = (await summary.boundingBox())!;
+  expect(reached.y).toBeGreaterThanOrEqual(dock.y - 1);
+  expect(reached.y + reached.height).toBeLessThanOrEqual(PHONE.height + 1);
+  // Picking the wheels puts the strip away and they are alone again.
+  await page.getByRole("tab", { name: "Wheels", exact: true }).click();
+  await expect(summary).toBeHidden();
+  await expect(page.getByRole("slider", { name: "Helm", exact: true })).toBeVisible();
 });
 
 // Reproduce the owner's compact web audit, rather than checking only an
@@ -217,11 +340,13 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   if (!validatedLandscape?.layout) throw new Error("Validated landscape geometry is unavailable");
   const landscapeLayout = validatedLandscape.layout;
   const landscape = landscapeLayout.scene;
-  const sideDock = landscapeLayout.dock;
-  expect(landscape.height).toBeGreaterThanOrEqual(150);
+  // Turned, on the site with its navigation above: the window is the whole width under the bar
+  // and at least 60% of the screen height (it was 150 px beside a side column).
+  expect(landscape.height).toBeGreaterThanOrEqual(390 * 0.6);
+  expect(landscape.width).toBeGreaterThanOrEqual(844 - 1);
   expect(landscape.y).toBeGreaterThanOrEqual(0);
   expect(landscape.y + landscape.height).toBeLessThanOrEqual(390);
-  expect(sideDock.x).toBeGreaterThanOrEqual(landscape.x + landscape.width - 1);
+  // The helm is under the left thumb, both sheets under the right one, the middle is the boat's.
   for (const name of ["Helm", "Mainsheet", "Jib sheet"]) {
     const wheel = page.getByRole("slider", { name, exact: true });
     await expect(wheel).toHaveAccessibleName(name);
@@ -229,6 +354,9 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
     if (!box) throw new Error("Named wheel geometry is unavailable");
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);
+    if (name === "Helm") expect(box.x + box.width).toBeLessThanOrEqual(844 / 3);
+    else expect(box.x).toBeGreaterThanOrEqual(844 * 2 / 3);
+    expect(box.y + box.height).toBeLessThanOrEqual(390);
   }
   const readouts = page.getByTestId("trainer-readouts");
   const readings = landscapeLayout.readouts;
@@ -249,6 +377,7 @@ test("compact web Trainer gives the scene room and keeps utilities in More", asy
   await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
   await page.setViewportSize({ width: 569, height: 750 });
   await expect.poll(() => primaryCaptions(page)).toMatchObject({ scrollTop: 0, count: 3, allVisibleTogether: true });
+  await openMenu(page);
   await page.getByRole("tab", { name: "More", exact: true }).click();
   const panel = page.getByRole("tabpanel");
   const lessons = panel.getByRole("link", { name: "Lessons", exact: true });
@@ -297,6 +426,7 @@ test("short portrait Trainer keeps wheel controls and Diagnostics reachable belo
     expect(box.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
     expect(box.y + box.height).toBeLessThanOrEqual(568);
   }
+  await openMenu(page);
   const diagnostics = page.getByTestId("control-dock").locator("details > summary");
   await diagnostics.scrollIntoViewIfNeeded();
   await expect(diagnostics).toHaveText("Diagnostics");
@@ -305,4 +435,81 @@ test("short portrait Trainer keeps wheel controls and Diagnostics reachable belo
   expect(target.y).toBeGreaterThanOrEqual(scene.y + scene.height - 1);
   expect(target.y + target.height).toBeLessThanOrEqual(568);
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
+});
+
+// TestFlight 74 feedback (2026-11-01): the race wind card sits over the
+// Trainer scene in 3D and on the top view, reads the live boat, and stays out
+// of the side and rear drawings, which keep their own header in that corner.
+test("the race wind card sits over the 3D and top views and follows the boat", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize(PHONE);
+  const deadline = Date.now() + 25_000;
+  const remaining = () => Math.max(1, deadline - Date.now());
+  const scene = page.getByTestId("trainer-scene");
+  const card = scene.getByTestId("trainer-wind-box");
+  const chooseView = async (name: string) => {
+    await page.getByTestId("scene-view-button").click();
+    await page.getByTestId("scene-drawer").first().getByRole("button", { name, exact: true }).click();
+    await expect(page.getByTestId("scene-drawer").first()).toBeHidden();
+  };
+  const cardInsideScene = async () => {
+    const s = (await scene.boundingBox())!;
+    const c = (await card.boundingBox())!;
+    expect(c.x).toBeGreaterThanOrEqual(s.x - 1);
+    expect(c.y).toBeGreaterThanOrEqual(s.y - 1);
+    expect(c.x + c.width).toBeLessThanOrEqual(s.x + s.width / 2 + 1);
+    expect(c.y + c.height).toBeLessThanOrEqual(s.y + s.height + 1);
+  };
+
+  await page.goto("/simulator-v3?embed=1&lang=en&twa=120&tack=s&tws=10");
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  await expect(card).toBeVisible({ timeout: remaining() });
+  await expect(card.getByTestId("race-wind-compass")).toBeVisible();
+  await expect(card.getByTestId("race-true-wind-angle")).toHaveText("120°");
+  await expect(card.getByTestId("race-true-wind-side")).toHaveAttribute("data-side", "starboard");
+  await expect(card.getByTestId("race-true-wind-speed")).toHaveText(/^10\.\d kn$/);
+  await cardInsideScene();
+
+  await page.goto("/simulator-v3?embed=1&lang=en&twa=60&tack=p&tws=16");
+  await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
+  await expect(card.getByTestId("race-true-wind-angle")).toHaveText("60°", { timeout: remaining() });
+  await expect(card.getByTestId("race-true-wind-side")).toHaveAttribute("data-side", "port");
+  await expect(card.getByTestId("race-true-wind-speed")).toHaveText(/^1[56]\.\d kn$/);
+  await expect(card.getByTestId("trainer-boat-speed")).toHaveText(/^\d+\.\d kn$/);
+
+  await chooseView("Top");
+  await expect(card).toBeVisible();
+  await expect(card.getByTestId("race-wind-compass")).toHaveCount(0);
+  await expect(card.getByTestId("trainer-wind-heading")).toContainText("TWA");
+  await expect(card.getByTestId("race-true-wind-angle")).toHaveText("60°");
+  await cardInsideScene();
+
+  for (const name of ["Rear", "Side"]) {
+    await chooseView(name);
+    await expect(scene.getByTestId("trainer-wind-box")).toHaveCount(0);
+  }
+});
+
+// Package 13 stage D: "Show me" in the lesson drill (bootcamp "how a sail
+// works" opens /simulator-v3?drill=hold-trim). The auto-trim really trims the
+// sails past the drill's 85% for longer than its 10 s hold, and the attempt
+// still never passes: only "Now you", a new attempt, can.
+test("Show me in a drill trims the sails but never passes the attempt", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/simulator-v3?drill=hold-trim&lang=en");
+  const showMe = page.getByTestId("drill-show-me");
+  await expect(showMe).toBeVisible({ timeout: 20_000 });
+  const trim = page.getByTestId("trainer-trim-score").first();
+  const trimValue = async () => Number((await trim.innerText()).match(/\d+/)?.[0] ?? 0);
+  expect(await trimValue()).toBeLessThan(85);
+  await showMe.click();
+  await expect(page.getByTestId("drill-shown")).toBeVisible();
+  await expect.poll(trimValue).toBeGreaterThanOrEqual(85);
+  await page.waitForTimeout(10_500);
+  expect(await trimValue()).toBeGreaterThanOrEqual(85);
+  await expect(page.getByTestId("drill-shown")).toBeVisible();
+  await expect(page.getByText("DONE", { exact: true })).toHaveCount(0);
+  await page.getByTestId("drill-restart").click();
+  await expect(page.getByTestId("drill-show-me")).toBeVisible();
+  await expect(page.getByTestId("drill-shown")).toHaveCount(0);
 });

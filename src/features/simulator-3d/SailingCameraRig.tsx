@@ -4,12 +4,15 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { OrbitControls } from "three-stdlib";
 import { applySailingCameraPose, createSailingOrbitControls, type SailingCameraPose } from "./orbit-controls";
+import { stageAspect, type StageWindow } from "../trainer-controls/stage";
 
 /** Shared direct camera manipulation. Presets fit once; live boat updates never
  * overwrite a learner's orbit or pinch. Resizing retains an adjusted view. */
-export function SailingCameraRig({ poseForAspect, revision = 0, minDistance = 9, maxDistance = 240 }: {
+export function SailingCameraRig({ poseForAspect, revision = 0, minDistance = 9, maxDistance = 240, stage = null }: {
   poseForAspect: (aspect: number) => SailingCameraPose;
   revision?: number; minDistance?: number; maxDistance?: number;
+  /** Package 32 stage B: on a phone the canvas also covers the area under the controls; the boat is fitted into this free window. */
+  stage?: StageWindow | null;
 }) {
   const { camera, gl, size, get, set, invalidate } = useThree();
   const controls = useRef<OrbitControls | null>(null);
@@ -39,9 +42,9 @@ export function SailingCameraRig({ poseForAspect, revision = 0, minDistance = 9,
     if (!orbit) return;
     const changed = fitted.current?.pose !== poseForAspect || fitted.current?.revision !== revision;
     if (!changed && adjusted.current) return;
-    applySailingCameraPose(camera, orbit, poseForAspect(size.width / Math.max(1, size.height)));
+    applySailingCameraPose(camera, orbit, poseForAspect(stageAspect(size, stage)));
     fitted.current = { pose: poseForAspect, revision }; adjusted.current = false;
-  }, [camera, poseForAspect, revision, size.width, size.height]);
+  }, [camera, poseForAspect, revision, size.width, size.height, stage]);
   useFrame(() => controls.current?.update());
   return null;
 }

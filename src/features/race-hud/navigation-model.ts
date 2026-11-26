@@ -39,8 +39,10 @@ export function raceWindReading(input: RaceWindInput): RaceWindReading | null {
 
 type Point = Readonly<Vec2>;
 type Line = Readonly<{ a: Point; b: Point }>;
+export type RaceMarkSide = "port" | "starboard";
 export interface RaceMapCourse {
-  readonly marks: readonly Readonly<Pick<CourseMark, "pos" | "type">>[];
+  /** roundSide: the side the mark is left on (native and saved courses carry it; the standard course rounds windward marks to port). */
+  readonly marks: readonly Readonly<Pick<CourseMark, "pos" | "type"> & { roundSide?: RaceMarkSide }>[];
   readonly startLine: RaceCourse["startLine"];
   readonly finishLine: RaceCourse["finishLine"];
 }
@@ -61,7 +63,7 @@ export interface RaceNavigationInput {
   terrain?: readonly (readonly Point[])[];
 }
 export interface RaceNavigationSnapshot {
-  readonly course: Readonly<{ marks: readonly Readonly<{ pos: Point; type: CourseMark["type"] }>[]; startLine: Line; finishLine: Line }>;
+  readonly course: Readonly<{ marks: readonly Readonly<{ pos: Point; type: CourseMark["type"]; roundSide?: RaceMarkSide }>[]; startLine: Line; finishLine: Line }>;
   readonly boats: readonly RaceMapBoat[];
   readonly windFrom: number | null;
   readonly bounds: RaceMapBounds;
@@ -87,10 +89,12 @@ export function createRaceNavigationSnapshot(input: RaceNavigationInput): RaceNa
     || !Array.isArray(input.boats) || input.boats.length > 64) return null;
   const startLine = copyLine(input.course.startLine), finishLine = copyLine(input.course.finishLine);
   if (!startLine || !finishLine || (input.bounds && !validBounds(input.bounds))) return null;
-  const marks: { pos: Point; type: CourseMark["type"] }[] = [];
+  const marks: { pos: Point; type: CourseMark["type"]; roundSide?: RaceMarkSide }[] = [];
   for (const mark of input.course.marks) {
     if (!object(mark) || !point(mark.pos) || !["start", "windward", "finish"].includes(String(mark.type))) return null;
-    marks.push(Object.freeze({ pos: copyPoint(mark.pos), type: mark.type as CourseMark["type"] }));
+    const side = (mark as { roundSide?: unknown }).roundSide;
+    marks.push(Object.freeze({ pos: copyPoint(mark.pos), type: mark.type as CourseMark["type"],
+      ...(side === "port" || side === "starboard" ? { roundSide: side } : {}) }));
   }
   const boats: RaceMapBoat[] = [], ids = new Set<string>();
   for (const boat of input.boats) {

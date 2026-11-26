@@ -3,9 +3,10 @@
 import { useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { LessonReturn } from '../sailing-lab/ui/LessonReturn';
-import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
+import { TrainerSwitcher } from '@/components/product/TrainerSwitcher';
+import { TRAINER_NAMES } from '@/lib/product/trainer-names';
 import type { SimLabels } from './types';
 import { useSailCoachLabels } from "./useSailCoachLabels";
 import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
@@ -28,7 +29,6 @@ const Simulator3D = dynamic(() => import('./Simulator3D').then((m) => m.Simulato
 
 function SimulatorV2Inner() {
   const { tp, lang } = useI18n();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const embed = searchParams.get('embed') === '1';
   const offline = searchParams.get("offline") === "1";
@@ -146,7 +146,7 @@ function SimulatorV2Inner() {
         done: tp('Понятно', 'Got it', 'Rozumiem', { es: 'Entendido', fr: 'Compris', de: 'Verstanden', it: 'Capito' }),
         steps: [
           {
-            title: tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' }),
+            title: TRAINER_NAMES.boat[lang],
             body: tp(
               'Тяни сцену - орбита вокруг лодки, колесо или щипок - зум. Паруса, колдунчики и море - живые.',
               'Drag the scene to orbit the boat, pinch or scroll to zoom. Sails, telltales and the sea are live.',
@@ -241,58 +241,11 @@ function SimulatorV2Inner() {
     [tp, offline, sailCoach],
   );
 
-  const versions = useMemo(
-    () => [
-      {
-        href: '/simulator',
-        label: tp('Основы', 'Basics', 'Podstawy', { es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi' }),
-        title: tp('Ветер и повороты - шаг 1', 'Wind and turns - step 1', 'Wiatr i zwroty - krok 1', {
-          es: 'Viento y viradas - paso 1', fr: 'Vent et virements - étape 1', de: 'Wind und Wenden - Schritt 1', it: 'Vento e virate - passo 1',
-        }),
-      },
-      {
-        href: '/simulator-v3',
-        label: tp('Тренажёр', 'Trainer', 'Trenażer', { es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione' }),
-        title: tp('Полный тренажёр трима - шаг 2', 'Full trim trainer - step 2', 'Pełny trenażer trymu - krok 2', {
-          es: 'Simulador de trimado completo - paso 2', fr: 'Réglage des voiles complet - étape 2', de: 'Voller Trimm-Trainer - Schritt 2', it: 'Regolazione delle vele completa - passo 2',
-        }),
-      },
-      {
-        href: '/simulator2',
-        label: tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' }),
-        title: tp('Орбита 360 и живые паруса', 'Orbit 360 and live sails', 'Orbita 360 i żywe żagle', {
-          es: 'Órbita 360 y velas vivas', fr: 'Orbite 360 et voiles vivantes', de: 'Orbit 360 und lebendige Segel', it: 'Orbita 360 e vele vive',
-        }),
-      },
-    ],
-    [tp],
-  );
-
-  const switcher = embed ? null : (
-    <div className="flex gap-1">
-      {versions.map((v) => {
-        const active = pathname === v.href;
-        return (
-          <Link
-            key={v.href}
-            href={v.href}
-            title={v.title}
-            className={
-              'rounded-md px-3 py-1 text-sm font-semibold transition ' +
-              (active
-                ? 'bg-[var(--accent-cyan,#00d4ff)] text-[#04222d]'
-                : 'border border-[rgba(255,255,255,0.12)] text-[var(--text-secondary,#9fb6c4)] hover:border-[rgba(0,212,255,0.4)]')
-            }
-          >
-            {v.label}
-          </Link>
-        );
-      })}
-    </div>
-  );
+  const switcher = embed ? null : <TrainerSwitcher current="boat" lang={lang} className="w-full sm:w-[440px]" />;
 
   return (
     <div className="min-h-[calc(100dvh-var(--site-nav-h,56px))] bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      <h1 className="sr-only">{TRAINER_NAMES.boat[lang]}</h1>
       <LessonReturn lang={lang} />
       <Simulator3D labels={labels} headerSlot={switcher} embed={embed} initialMode="sail" />
     </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guidancePath } from "./guidance";
+import { guidancePath, nextTurnIndex } from "./guidance";
 import { guidanceToTarget, raceGuidance } from "@/lib/race-guidance";
 import { calcTWA, makeStandardCourse, segmentCrossed, type RaceBoat } from "@/lib/race-physics";
 
@@ -72,5 +72,26 @@ describe("water route presentation", () => {
     expect(Math.hypot(end.x - player.pos.x, end.y - player.pos.y)).toBeCloseTo(100);
     expect(Math.atan2(end.x - player.pos.x, -(end.y - player.pos.y)) * 180 / Math.PI).toBeCloseTo(guidance.suggestedHeading);
     expect(end).not.toMatchObject(guidance.target);
+  });
+});
+
+describe("next turn point (M2-2)", () => {
+  const p = (turning: boolean) => ({ x: 0, y: 0, turning });
+  it("marks the middle of the first change of course after the boat's own bend", () => {
+    expect(nextTurnIndex([p(true), p(true), p(false), p(false), p(true), p(true), p(true), p(false)])).toBe(5);
+    expect(nextTurnIndex([p(false), p(false), p(true), p(true), p(false)])).toBe(2);
+  });
+  it("has none on a straight leg, on a bend only, or past the drawn count", () => {
+    expect(nextTurnIndex([p(false), p(false)])).toBe(-1);
+    expect(nextTurnIndex([p(true), p(true), p(false)])).toBe(-1);
+    expect(nextTurnIndex([p(false), p(false), p(true)], 2)).toBe(-1);
+  });
+  it("finds the corner of a two-leg beat to an upwind gate", () => {
+    const player = boat(45);
+    const guidance = guidanceToTarget(player, { x: 400, y: 180 }, 0);
+    const path = guidancePath(player.pos, player.heading, 0, guidance);
+    const at = nextTurnIndex(path);
+    expect(at).toBeGreaterThan(0);
+    expect(path[at].turning).toBe(true);
   });
 });

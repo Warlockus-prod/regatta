@@ -5,6 +5,10 @@ import { useI18n } from '@/lib/i18n';
 import { legacyPick, legacyPickArray } from '@/lib/languages';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import { checklistSections } from '@/data/checklist';
+import { anatomyParts } from '@/data/anatomy';
+import { sectionParts } from '@/data/anatomy-visuals';
+import { PartStrip } from '@/components/anatomy/PartVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 // ============================================================================
 // CHECKLIST (/checklist) - reference page for beginners stepping on a yacht.
@@ -30,7 +34,7 @@ export default function ChecklistPage() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
-          ⚓ {tp('Готовимся к регате', 'Getting ready for a regatta', 'Przygotowania do regat',
+          {tp('Готовимся к регате', 'Getting ready for a regatta', 'Przygotowania do regat',
             { es: 'Preparando la regata', fr: 'On prépare la régate', de: 'Vorbereitung auf die Regatta', it: 'Prepariamo la regata' })}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
@@ -70,7 +74,6 @@ export default function ChecklistPage() {
           return (
             <section key={section.id} id={section.id} className="card p-4 sm:p-5 scroll-mt-24">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl shrink-0">{section.icon}</span>
                 <h2 className="text-lg sm:text-xl font-semibold">{title}</h2>
               </div>
               {intro && (
@@ -86,11 +89,15 @@ export default function ChecklistPage() {
                   </li>
                 ))}
               </ul>
+              {/* Package 32: a section that teaches parts of the yacht shows each of them, schematic and picture. */}
+              <PartStrip parts={sectionParts('checklist', section.id)} title={UI_TERMS.partsInSection[lang]}
+                names={id => legacyPick(anatomyParts.find(part => part.id === id)!, 'name', lang)}
+                labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
               {warning && (
                 <div className="mt-3 p-3 rounded-lg text-sm leading-relaxed"
                      style={{ background: 'rgba(255, 82, 82, 0.08)', border: '1px solid rgba(255, 82, 82, 0.25)' }}>
                   <span className="font-semibold" style={{ color: 'var(--danger)' }}>
-                    ⚠️ {tp('Важно', 'Important', 'Ważne',
+                    {tp('Важно', 'Important', 'Ważne',
                       { es: 'Importante', fr: 'Important', de: 'Wichtig', it: 'Importante' })}:
                   </span>{' '}
                   <span className="text-[var(--text-primary)]">{warning}</span>

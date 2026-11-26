@@ -11,7 +11,7 @@ vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (value: Record<
 vi.mock("./LanguageToggle", () => ({ default: () => null }));
 vi.mock("./ThemeToggle", () => ({ default: () => null }));
 vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
-import { claimGameLayer, gameLayerActive, GAME_LAYER_ATTRIBUTE, subscribeGameLayer } from "./game-layer";
+import { claimGameLayer, claimRaceScrollLock, gameLayerActive, GAME_LAYER_ATTRIBUTE, RACE_SCROLL_LOCK_ATTRIBUTE, subscribeGameLayer } from "./game-layer";
 import Navigation from "./Navigation";
 
 let releases: (() => void)[] = [];
@@ -46,5 +46,22 @@ describe("game layer: the race claims the viewport and the site header steps asi
     expect(hidden).toMatch(/<nav[^>]*hidden=""/);
     for (const release of releases) release(); releases = [];
     expect(renderToStaticMarkup(<Navigation />)).not.toMatch(/<nav[^>]*hidden/);
+  });
+});
+
+describe("race scroll lock (F2): a race that keeps the header still stops page scrolling", () => {
+  it("holds the body attribute while any lock lasts, without claiming the game layer", () => {
+    const attributes = new Set<string>();
+    vi.stubGlobal("document", { body: { setAttribute: (name: string) => attributes.add(name), removeAttribute: (name: string) => attributes.delete(name) } });
+    const first = claimRaceScrollLock();
+    const second = claimRaceScrollLock();
+    expect(attributes.has(RACE_SCROLL_LOCK_ATTRIBUTE)).toBe(true);
+    // The site header stays: the lock is not the game layer.
+    expect(gameLayerActive()).toBe(false);
+    expect(attributes.has(GAME_LAYER_ATTRIBUTE)).toBe(false);
+    first(); first();
+    expect(attributes.has(RACE_SCROLL_LOCK_ATTRIBUTE)).toBe(true);
+    second();
+    expect(attributes.has(RACE_SCROLL_LOCK_ATTRIBUTE)).toBe(false);
   });
 });

@@ -20,6 +20,23 @@ const posters = Object.fromEntries(readdirSync(join(root, "public/anatomy/poster
   embeddedAssets.push({ path, bytes: bytes.length, sha256: digest(bytes) });
   return [name, `data:image/jpeg;base64,${bytes.toString("base64")}`];
 }));
+// Package 32: the yacht part visuals (a picture per part, two schematic drawings) travel inside
+// the bundle too, so the app's anatomy page shows the same pair as the site without a network.
+const partImage = path => {
+  const bytes = readFileSync(join(root, path));
+  embeddedAssets.push({ path, bytes: bytes.length, sha256: digest(bytes) });
+  return `data:image/webp;base64,${bytes.toString("base64")}`;
+};
+const partPictures = Object.fromEntries(readdirSync(join(root, "public/anatomy/parts")).filter(name => name.endsWith(".webp")).sort()
+  .map(name => [name.slice(0, -5), partImage(`public/anatomy/parts/${name}`)]));
+const partDrawings = Object.fromEntries(readdirSync(join(root, "public/anatomy/diagram")).filter(name => name.endsWith(".webp")).sort()
+  .map(name => [`/anatomy/diagram/${name}`, partImage(`public/anatomy/diagram/${name}`)]));
+// The trainer page inside the bundle shows the pair of every situation and exercise it lists
+// (src/data/sailing-visuals.ts: DRILL_SUBJECTS); the pictures of those subjects travel with it.
+const trainerIds = [...readFileSync(join(root, "src/features/simulator-v3/runtime/scenario-presets.ts"), "utf8").matchAll(/^\s+id: '([A-Za-z0-9-]+)',$/gm)].map(match => match[1]);
+const drillSubjects = Object.fromEntries([...readFileSync(join(root, "src/data/sailing-visuals.ts"), "utf8").matchAll(/^\s+"?([A-Za-z0-9-]+)"?: "([a-z-]+)",$/gm)].map(match => [match[1], match[2]]));
+if (trainerIds.length < 7 || trainerIds.some(id => !drillSubjects[id])) throw new Error("Trainer exercise picture adapter needs updating");
+const subjectPictures = Object.fromEntries([...new Set(trainerIds.map(id => drillSubjects[id]))].sort().map(id => [id, partImage(`public/learning/subjects/${id}.webp`)]));
 const model = readFileSync(join(root, "public/models/regatta_sloop_sailing.glb"));
 const gltf = JSON.parse(model.subarray(20, 20 + model.readUInt32LE(12)).toString().trim());
 if ([...(gltf.buffers ?? []), ...(gltf.images ?? [])].some(item => item.uri && !item.uri.startsWith("data:"))) {
@@ -83,6 +100,24 @@ const result = await build({
         if (!contents.includes(before)) throw new Error(`Sailing embed query adapter needs updating: ${args.path}`);
         return { contents: `import {readSailingSearch as __readSailingSearch} from ${JSON.stringify(join(source, "embed.ts"))};\n${contents.replaceAll(before, "__readSailingSearch()")}`, loader: "tsx", resolveDir: dirname(args.path) };
       });
+      api.onLoad({ filter: /data\/anatomy-visuals\.generated\.ts$/ }, args => {
+        let contents = readFileSync(args.path, "utf8");
+        for (const [url, data] of Object.entries(partDrawings)) {
+          if (!contents.includes(JSON.stringify(url))) throw new Error(`Part drawing adapter needs updating: ${url}`);
+          contents = contents.replaceAll(JSON.stringify(url), JSON.stringify(data));
+        }
+        return { contents, loader: "ts", resolveDir: dirname(args.path) };
+      });
+      api.onLoad({ filter: /data\/anatomy-visuals\.ts$/ }, args => {
+        const contents = readFileSync(args.path, "utf8"), before = "src: `/anatomy/parts/${id}.webp`";
+        if (!contents.includes(before)) throw new Error("Part picture adapter needs updating");
+        return { contents: `const __offlinePartPictures=${JSON.stringify(partPictures)};\n${contents.replace(before, "src: __offlinePartPictures[id]")}`, loader: "ts", resolveDir: dirname(args.path) };
+      });
+      api.onLoad({ filter: /data\/sailing-visuals\.ts$/ }, args => {
+        const contents = readFileSync(args.path, "utf8"), before = "src: `/learning/subjects/${file}.webp`";
+        if (!contents.includes(before)) throw new Error("Subject picture adapter needs updating");
+        return { contents: `const __offlineSubjectPictures: Record<string, string>=${JSON.stringify(subjectPictures)};\n${contents.replace(before, "src: __offlineSubjectPictures[file] ?? `/learning/subjects/${file}.webp`")}`, loader: "ts", resolveDir: dirname(args.path) };
+      });
       api.onLoad({ filter: /components\/AnatomyPosters\.tsx$/ }, args => {
         let contents = readFileSync(args.path, "utf8");
         for (const suffix of [".jpg", "-thumb.jpg"]) {
@@ -106,7 +141,7 @@ const js = result.outputFiles.find(file => file.path.endsWith(".js"))?.text;
 const modulesCss = result.outputFiles.find(file => file.path.endsWith(".css"))?.text ?? "";
 if (!js) throw new Error("No sailing JavaScript generated");
 const cssPath = join(root, "src/app/globals.css");
-const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";\n@source "../app/simulator";\n@source "../app/anatomy";\n@source "../components/YachtViewer3D.tsx";\n@source "../components/AnatomyPosters.tsx";\n@source "../components/ContentFooterNav.tsx";');
+const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";\n@source "../app/simulator";\n@source "../app/anatomy";\n@source "../features/manoeuvres";\n@source "../components/YachtViewer3D.tsx";\n@source "../components/AnatomyPosters.tsx";\n@source "../components/ContentFooterNav.tsx";');
 const compiledCss = (await postcss([tailwindcss()]).process(cssInput, { from: cssPath })).css + modulesCss;
 const css = compiledCss.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quote, url) => {
   if (/^(data:|blob:|#)/.test(url)) return match;
@@ -133,7 +168,7 @@ const sourcePaths = [...new Set([...inputs.filter(path => !path.includes(":") &&
 const sourceFiles = sourcePaths.map(path => { const bytes = readFileSync(join(root, path)); return { path, bytes: bytes.length, sha256: digest(bytes) }; });
 const manifest = JSON.stringify({
   schema: 1, entry: "sailing-offline.html", version, sha256: digest(html), bytes: Buffer.byteLength(html),
-  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads"],
+  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads", "/manoeuvres"],
   model: { sha256: digest(model), bytes: model.length, embeddedSha256: digest(runtimeModel), embeddedBytes: runtimeModel.length },
   inputs, sourceFiles, embeddedAssets,
 }, null, 2) + "\n";
