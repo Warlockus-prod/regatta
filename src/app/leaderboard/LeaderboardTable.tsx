@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { MedalIcon } from "@/features/race-hud/RaceIcons";
 import { penaltyText } from "@/features/race-hud/units";
+import { ANONYMOUS_NICKNAME } from "@/lib/leaderboard-visibility";
 import type { Lang } from "@/lib/languages";
 import type { LeaderboardCopy } from "./leaderboard-copy";
 import { formatLeaderboardTime, type LeaderboardRow } from "./leaderboard-model";
@@ -26,7 +27,7 @@ export function LeaderboardTable({ rows, copy, lang, testId, empty }: {
           {place <= 3 ? <MedalIcon place={place as 1 | 2 | 3} label={copy.place(place)} /> : <span aria-label={copy.place(place)}>{place}.</span>}
         </span>
         <span className="min-w-0 flex-1 text-base leading-6 text-[var(--text-primary)]">
-          <span className="break-words font-semibold [overflow-wrap:anywhere]">{row.nickname}</span>
+          <span className="break-words font-semibold [overflow-wrap:anywhere]">{row.nickname === ANONYMOUS_NICKNAME ? copy.anonymous : row.nickname}</span>
           {row.isMe && <span className="ml-2 text-sm font-semibold text-[var(--text-primary)]">({copy.you})</span>}
           {(row.score !== null || (row.penalty_seconds ?? 0) > 0) && <span className="block text-sm text-[var(--text-muted)]">
             {row.score !== null && `${copy.score} ${row.score}/100`}

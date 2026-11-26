@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultReplayCourse, replayCourse, replayFrame, replaySamples, sharedReplay } from "./race-replay";
+import { defaultReplayCourse, replayCourse, replayEvents, replayFrame, replaySamples, sharedReplay } from "./race-replay";
 
 const trim = { mainSheet: .3, jibSheet: .4, reef: .25, jibFurl: 1, mainHoisted: false };
 const samples = [
@@ -55,5 +55,13 @@ describe("shared race replays", () => {
     const frame = replayFrame([{ ...samples[0], windDir: 358 }, { ...samples[1], windDir: 2 }], .25)!;
     expect(frame.heading).toBe(0);
     expect(frame.windDir).toBe(0);
+  });
+  it("reads the ribbon events of a shared replay and tolerates rows without them (M4-3)", () => {
+    const events = [{ type: "start", t: 0 }, { type: "tack", t: 12.5, note: "to-port-tack" }, { type: "no-go-entered", t: 14 },
+      { type: "mark-rounded", t: 40 }, { type: "tack", t: -1 }, { type: "tack", t: "9" }, null];
+    expect(replayEvents(events)).toEqual([{ type: "start", t: 0 }, { type: "tack", t: 12.5 }, { type: "mark-rounded", t: 40 }]);
+    expect(sharedReplay({ code: "ABC234", samples, events })?.events).toHaveLength(3);
+    expect(sharedReplay({ code: "ABC234", samples })?.events).toEqual([]);
+    expect(replayEvents("bad")).toEqual([]);
   });
 });

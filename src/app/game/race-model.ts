@@ -4,9 +4,12 @@
 
 import type { NativeRaceSnapshot } from "@/lib/race-native";
 import type { RaceBoat } from "@/lib/race-physics";
-import { makeStandardCourse, calcTWA, WIND_DIRECTION_BASE as WIND_DIRECTION } from "@/lib/race-physics";
+import { makeStandardCourse, calcTWA } from "@/lib/race-physics";
 import { makePhysicalRaceCourse } from "@/lib/race-courses";
-import type { PhysicalRaceProfile } from "@/lib/race-context";
+import { physicalRaceContext, type PhysicalRaceProfile, type RaceContext } from "@/lib/race-context";
+import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
+import type { PhysicalRaceGuidanceState, planPhysicalRaceGuidance } from "@/lib/race-guidance-physical";
+import type { CoachGoalKind } from "@/lib/fallback-coach";
 import { FLEET_COLORS, PLAYER_COLOR } from "@/features/race-hud/boat-colors";
 
 // ============================================================================
@@ -87,14 +90,27 @@ export interface Coaching {
     title?: string;
     explanation?: string;
     fix?: string;
+    kind?: CoachGoalKind;
   }>;
   strengths: string[];
   nextGoalRu: string;
   nextGoal?: string;
 }
 
-/** One row of the finish table: penalty-adjusted time, Infinity for a DNF. */
-export interface RaceResultRow { name: string; time: number; color: string; isPlayer: boolean }
+/** One row of the finish table: penalty-adjusted time, Infinity for a DNF.
+ * M5 metric race (ADR-0015 point 8): `pending` while the fleet resolver still
+ * sails the boat to its finish (time Infinity), `estimated` when the player
+ * left first and the time is the boat's mean-VMG estimate (Infinity when it
+ * would not make the limit). Legacy rows never carry either key. */
+export interface RaceResultRow { name: string; time: number; color: string; isPlayer: boolean; pending?: boolean; estimated?: boolean }
+
+/** M5 step 7: the context field a record message carries. A legacy race
+ * sends none, exactly as before (an absent context reads as legacy: the
+ * historical default of the replay, native history and start telemetry); a
+ * metric race names its class, which the readers require. */
+export function raceContextField(context: RaceContext): { raceContext?: RaceContext } {
+  return context.model === "legacy-race-v1" ? {} : { raceContext: context };
+}
 
 /** The browser's localStorage, or null where reading it throws. */
 export const localStore = () => { try { return window.localStorage; } catch { return null; } };
@@ -145,27 +161,43 @@ export function makeCourse(profile: PhysicalRaceProfile | null = null): Course {
 // RACE HELPERS
 // ============================================================================
 
-/**
- * The solo race wind at race time `raceT` seconds: the direction oscillates
- * ±6° with period ~22s (slow shift) plus a faster ±2° wobble with period ~7s
- * (nervous breeze); the gust multiplier blends two sines (Perlin-ish) and is
- * bounded to 0.75..1.25.
- */
-export function soloRaceWind(raceT: number): { dir: number; gust: number } {
-  const shift = Math.sin(raceT * (2 * Math.PI / 22)) * 6
-              + Math.sin(raceT * (2 * Math.PI / 7)) * 2;
-  const dir = (WIND_DIRECTION + shift + 360) % 360;
-  const gust = 1.0
-             + Math.sin(raceT * (2 * Math.PI / 9)) * 0.12
-             + Math.sin(raceT * (2 * Math.PI / 3.3)) * 0.05;
-  return { dir, gust: Math.max(0.75, Math.min(1.25, gust)) };
+/** The solo race wind (src/lib/race-solo-wind.ts, moved there unchanged in
+ * M5 so the metric fleet resolver shares it). */
+export { soloRaceWind } from "@/lib/race-solo-wind";
+
+/** Finish table: penalty-adjusted finish time, unfinished boats last as Infinity.
+ * M5 metric race: `pending` boats are still being sailed home by the fleet
+ * resolver and sit after every timed row, before the DNFs; `estimated` gives
+ * an unfinished boat its estimated raw finish (null: it would not make the
+ * limit), penalty-adjusted and placed among the real times. Without the third
+ * argument the rows are exactly the legacy ones. */
+export function sortRaceResults(boats: readonly Boat[], penalties: Readonly<Record<string, number | undefined>>,
+  fleet?: { pending?: ReadonlySet<string>; estimated?: ReadonlyMap<string, number | null> }): RaceResultRow[] {
+  return [...boats]
+    .map((b): RaceResultRow => {
+      const row = { name: b.name, time: b.finishTime === undefined ? Infinity : b.finishTime + (penalties[b.id] ?? 0), color: b.color, isPlayer: b.isPlayer };
+      if (b.finishTime !== undefined || !fleet) return row;
+      if (fleet.estimated?.has(b.id)) {
+        const raw = fleet.estimated.get(b.id) ?? null;
+        return { ...row, time: raw === null ? Infinity : raw + (penalties[b.id] ?? 0), estimated: true };
+      }
+      return fleet.pending?.has(b.id) ? { ...row, pending: true } : row;
+    })
+    .sort((a, b) => a.time === b.time ? Number(b.pending === true) - Number(a.pending === true) : a.time - b.time);
 }
 
-/** Finish table: penalty-adjusted finish time, unfinished boats last as Infinity. */
-export function sortRaceResults(boats: readonly Boat[], penalties: Readonly<Record<string, number | undefined>>): RaceResultRow[] {
-  return [...boats]
-    .map((b) => ({ name: b.name, time: b.finishTime === undefined ? Infinity : b.finishTime + (penalties[b.id] ?? 0), color: b.color, isPlayer: b.isPlayer }))
-    .sort((a, b) => a.time - b.time);
+/** M5 metric race: the player's place at its finish tick is final only when
+ * no bot still racing can finish ahead of it on penalty-adjusted time. A bot
+ * still racing at race time `now` finishes later than `now`, and a penalty
+ * only grows, so it can still pass the player only when `now` plus its
+ * current penalty is below the player's adjusted time (a penalised player).
+ * A player without a finish time has no place to settle. */
+export function playerPlaceSettled(boats: readonly Boat[], penalties: Readonly<Record<string, number | undefined>>,
+  pending: ReadonlySet<string>, now: number): boolean {
+  const player = boats.find(b => b.isPlayer);
+  if (!player || player.finishTime === undefined) return true;
+  const adjusted = player.finishTime + (penalties[player.id] ?? 0);
+  return boats.every(b => b.isPlayer || !pending.has(b.id) || now + (penalties[b.id] ?? 0) >= adjusted);
 }
 
 /** Tacks (not gybes), no-go entries and top speed of the player's race log. */
@@ -183,4 +215,26 @@ export function formatTime(seconds: number): string {
   const s = Math.floor(seconds % 60);
   const ms = Math.floor((seconds * 10) % 10);
   return `${m}:${s.toString().padStart(2, '0')}.${ms}`;
+}
+
+/** Route hint memory of either race (legacy race-guidance.ts or metric race-guidance-physical.ts). */
+export type RouteGuidanceState = RaceGuidanceState | PhysicalRaceGuidanceState;
+const isPhysicalGuidanceState = (s: RouteGuidanceState | null | undefined): s is PhysicalRaceGuidanceState => !!s && "bot" in s;
+
+/** M5 step 6: the route hint planner of the race being sailed. The metric
+ * race (a profile and its lazily loaded planner) gets planPhysicalRaceGuidance,
+ * every other race the legacy planRaceGuidance, exactly as before; each one
+ * only ever receives its own memory. Without the loaded metric planner a
+ * metric race has no route hint yet (the legacy planner refuses its course).
+ * Package 7: `upwindTwa` is the legacy race's best VMG angle at its wind
+ * (raceUpwind in features/race-hud/target.ts, the solver the skill bars and
+ * the coach grade with); the legacy hint beats at it. The metric hint keeps
+ * its own no-go floor (no-go + margin, race-guidance-physical.ts). */
+export function planRouteGuidance(player: RaceBoat, course: Course, windDir: number, previous: RouteGuidanceState | null | undefined,
+  physical: { profile: PhysicalRaceProfile; plan?: typeof planPhysicalRaceGuidance } | null, upwindTwa?: number): { guidance: RaceGuidance | null; state: RouteGuidanceState | null } {
+  if (physical) {
+    if (!physical.plan) return { guidance: null, state: null };
+    return physical.plan(player, course, physicalRaceContext(physical.profile), windDir, isPhysicalGuidanceState(previous) ? previous : null);
+  }
+  return planRaceGuidance(player, course, windDir, isPhysicalGuidanceState(previous) ? null : previous, upwindTwa);
 }

@@ -11,13 +11,14 @@ import AnatomyPage from "../../../src/app/anatomy/page";
 import { OfflineSailingI18n } from "./i18n";
 import { readSailingEmbed, sailingSearch } from "./embed";
 import AdsLab from "../../../src/features/ads-lab/AdsLab";
+import ManoeuvresApp from "../../../src/features/manoeuvres/ManoeuvresApp";
 
 function OfflineSailingApp() {
   const [embed, setEmbed] = useState(readSailingEmbed);
   useEffect(() => { initializeDiagnosticBridge(); recordWebDiagnostic({ type: "navigation", surface: diagnosticSurface(embed.path), action: "confirmed", outcome: "accepted", to: diagnosticDestination(embed.path) }); }, [embed.path]);
   useLayoutEffect(() => {
     // Content pages retain document scrolling and the poster's body scroll lock.
-    document.documentElement.dataset.sailingDocument = String(embed.path === "/anatomy" || embed.path === "/simulator");
+    document.documentElement.dataset.sailingDocument = String(embed.path === "/anatomy" || embed.path === "/simulator" || embed.path === "/manoeuvres");
   }, [embed.path]);
   useEffect(() => {
     const update = () => setEmbed(previous => {
@@ -29,7 +30,7 @@ function OfflineSailingApp() {
     return () => window.removeEventListener("regatta-embed", update);
   }, []);
   const search = sailingSearch(embed.query);
-  return <OfflineSailingI18n>{embed.path === "/ads" ? <AdsLab /> : embed.path === "/game" ? <GameClient /> : embed.path === "/simulator-v3"
+  return <OfflineSailingI18n>{embed.path === "/ads" ? <AdsLab /> : embed.path === "/manoeuvres" ? <ManoeuvresApp initialSearch={search.toString()} /> : embed.path === "/game" ? <GameClient /> : embed.path === "/simulator-v3"
     ? <SimulatorV3Page initialSearch={search.toString()} /> : embed.path === "/simulator" ? <SimulatorBasics />
     : embed.path === "/anatomy" ? <AnatomyPage /> : <SimulatorV2 />}</OfflineSailingI18n>;
 }

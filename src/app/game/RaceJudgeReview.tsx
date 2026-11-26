@@ -3,6 +3,10 @@
 import { fillJudgeTemplate, raceJudgeCopy as copy } from "@/data/race-judge-copy";
 import { useI18n } from "@/lib/i18n";
 import type { RaceJudgeDebrief, RaceJudgeItem } from "@/lib/race-judge";
+import { practiceForJudgeItem } from "@/lib/race-practice";
+import type { RaceReturn } from "@/lib/race-return";
+import { RacePracticeLink } from "./RacePracticeLink";
+import { WatchMomentButton } from "./WatchMomentButton";
 
 /** Race time as m:ss from the start signal (negative before the signal). */
 function clock(seconds: number): string {
@@ -12,13 +16,20 @@ function clock(seconds: number): string {
 }
 
 /** Presentational training judge debrief for the finish screen. Pure view of
- * buildRaceJudgeDebrief(); it decides nothing itself. No actions, so no cyan. */
-export function RaceJudgeReview({ debrief, boatName, titleHidden = false }: {
+ * buildRaceJudgeDebrief(); it decides nothing itself. Its only actions are the
+ * M4-2 practice links under each item (cyan as actions; none without a return)
+ * and the M4-3 "Watch the moment" (the replay 5 s before it; none without a replay). */
+export function RaceJudgeReview({ debrief, boatName, titleHidden = false, practiceReturn = null, native = false, onWatch }: {
   debrief: RaceJudgeDebrief;
   boatName?: (boatId: string) => string;
   /** The result screen already shows the same title on its collapsed row, so
    * the heading stays for screen readers only (no visible duplicate). */
   titleHidden?: boolean;
+  /** M4-2: the race the practice links return to; without it, no links. */
+  practiceReturn?: RaceReturn | null;
+  native?: boolean;
+  /** M4-3: open the replay at an item's moment; without it, no button. */
+  onWatch?: (at: number) => void;
 }) {
   const { tl } = useI18n();
   const { items, summary } = debrief;
@@ -70,6 +81,7 @@ export function RaceJudgeReview({ debrief, boatName, titleHidden = false }: {
                   <h3 className="font-semibold">{tl(copy.jostle)}</h3>
                   <p>{tl(copy.lesson[item.lesson])}</p>
                   {item.occurrences > 1 && <p className="text-[var(--text-muted)]">{fillJudgeTemplate(tl(copy.occurrences), { n: item.occurrences })}</p>}
+                  {onWatch && <div><WatchMomentButton at={item.time} onWatch={onWatch} /></div>}
                 </>
               ) : <>
               <h3 className="font-semibold">
@@ -86,6 +98,8 @@ export function RaceJudgeReview({ debrief, boatName, titleHidden = false }: {
               <p className="mt-2">
                 <strong>{tl(copy.nextTime)}</strong> {tl(copy.lesson[item.lesson])}
               </p>
+              {practiceReturn && <RacePracticeLink target={practiceForJudgeItem(item)} ret={practiceReturn} native={native} />}
+              {onWatch && <div><WatchMomentButton at={item.time} onWatch={onWatch} /></div>}
               </>}
             </li>
           ))}

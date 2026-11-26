@@ -13,6 +13,7 @@ import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-nati
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { Screen, Text } from '../design-system/components';
 import { useI18n } from '../i18n/context';
+import { TRAINER_NAMES } from '../../../src/lib/product/trainer-names';
 import { colors } from '../design-system/tokens';
 import { AppSurface, appStackOptions } from '../design-system/surface';
 import { APP_EMBED_THEME_SCRIPT } from '../design-system/embedded-theme';
@@ -23,11 +24,13 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
-import { isRaceShell, raceFrameInsets, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, useKeepAwakeWhileFocused } from './race-shell';
+import { isRaceShell, raceFrameInsets, raceHeaderMessage, raceOverlayInsets, raceProcessRecovery, raceShellStackOptions, raceWaterMessage, trainerStage, useKeepAwakeWhileFocused } from './race-shell';
 import { ActivityBack } from '../navigation/ActivityBack';
+import { HeaderBackButton } from '../navigation/HeaderBackButton';
 import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
 import { sailingNativeDestination } from '../navigation/sailing-entry';
 import { handleNativeDiagnosticMessage, recordNativeDiagnostic } from '../diagnostics/journal';
+import { nativeRaceHaptics } from './race-haptics';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -68,6 +71,13 @@ const SEEN_FLAGS = [
   // first time the 3D tier opened in the app.
   'regatta.3d.tour.v1',
 ];
+/** Set while native rows are written into the page, so a storage bridge
+ * (mobile/src/persistence/race-web-storage.ts) does not post them back. */
+export const NATIVE_STORAGE_SYNC_FLAG = "__REGATTA_NATIVE_STORAGE_SYNC__";
+export function nativeStorageSyncScript(entriesJson: string): string {
+  return `try { window.${NATIVE_STORAGE_SYNC_FLAG} = true; var s = ${entriesJson}; for (var k in s) { if(s[k] === null) localStorage.removeItem(k); else localStorage.setItem(k, s[k]); } } catch (e) {} finally { window.${NATIVE_STORAGE_SYNC_FLAG} = false; } true;`;
+}
+
 const SET_FLAGS = SEEN_FLAGS.map((k) => `localStorage.setItem('${k}', '1');`).join(' ');
 
 // Runs before hydration. Also repeated in AFTER_LOAD because
@@ -173,15 +183,30 @@ export function SimWebView({
   useKeepAwakeWhileFocused(isRaceShell(path));
   // The context, not useSafeAreaInsets: a host without a provider renders unpadded.
   const safeArea = useContext(SafeAreaInsetsContext);
-  const frameInsets = raceFrameInsets(safeArea, fullScreen);
+  // Package 11 (K6): a race page with its own header (the live room's cockpit) hides the native one.
+  const [webHeader, setWebHeader] = useState(false);
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
   const landscape = winW > winH && winH < 600;
+  // Package 32 stage B (rule R-46, point 6): the two 3D trainers paint their scene on the whole
+  // screen (src/features/trainer-controls/SceneStage.tsx). Turned, they lose the native header
+  // and the frame's insets: the scene reaches every edge, the page keeps its own controls clear
+  // of the cutout (env(safe-area-inset-*)), and Back floats over the scene's top left corner.
+  const stage = trainerStage(tier, landscape);
+  const ownHeader = fullScreen || (isRaceShell(path) && webHeader) || stage.full;
+  // Package 31, R-45 prototype: while the race's water layout is on screen the frame steps aside.
+  const [waterEdges, setWaterEdges] = useState(false);
+  const edgeToEdge = waterEdges || stage.full;
+  // Package 32: a turned trainer keeps out of the side insets too. Its scene went under the
+  // screen cutout (the wind box of the trim trainer was hidden by it); only the race was padded.
+  const sideSafe = ownHeader || Boolean(tier);
+  const frameInsets = edgeToEdge ? null : raceFrameInsets(safeArea, sideSafe);
+  const [backWidth, setBackWidth] = useState(0);
   const controlsJson = JSON.stringify(controlPrefs);
   const controlsScript = `window.__REGATTA_CONTROLS__ = ${controlsJson}; true;`;
   const storageJson = JSON.stringify(pageStorage ?? {});
-  const storageScript = `try { var s = ${storageJson}; for (var k in s) { if(s[k] === null) localStorage.removeItem(k); else localStorage.setItem(k, s[k]); } } catch (e) {} true;`;
+  const storageScript = nativeStorageSyncScript(storageJson);
   const raceScript = path === "/game" && offlineSource
     ? `window.__REGATTA_RACE_NATIVE__ = true; window.__REGATTA_RACE_REPLAY__ = ${JSON.stringify(raceReplay ?? null)}; true;`
     : "";
@@ -191,27 +216,9 @@ export function SimWebView({
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
   // the back button pointing at the hub instead of stacking simulators.
   const tiers: { id: SimTier; route: string; label: string }[] = [
-    {
-      id: 'basics',
-      route: '/simulator-v1',
-      label: tp('Основы', 'Basics', 'Podstawy', {
-        es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
-      }),
-    },
-    {
-      id: 'trainer',
-      route: '/simulator-v3',
-      label: tp('Тренажёр', 'Trainer', 'Trenażer', {
-        es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione',
-      }),
-    },
-    {
-      id: 'boat3d',
-      route: '/simulator2',
-      label: tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
-        es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D',
-      }),
-    },
+    { id: 'basics', route: '/simulator-v1', label: TRAINER_NAMES.basics[lang] },
+    { id: 'trainer', route: '/simulator-v3', label: TRAINER_NAMES.trainer[lang] },
+    { id: 'boat3d', route: '/simulator2', label: TRAINER_NAMES.boat[lang] },
   ];
   const webRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
@@ -222,8 +229,12 @@ export function SimWebView({
   // process (memory pressure, a long background) and says so.
   const autoReloadAt = useRef<number | null>(null);
   const [processNotice, setProcessNotice] = useState(false);
-  const headerShown = !fullScreen || loading || failed;
-  const overlayInsets = raceOverlayInsets(safeArea, fullScreen, headerShown);
+  const headerShown = !ownHeader || loading || failed;
+  const overlayInsets = raceOverlayInsets(safeArea, sideSafe, headerShown);
+  const floatingBack = stage.full && !headerShown;
+  // The page's own bar starts after the floating Back (--native-back-w in TrainerControls.module.css).
+  const backInsetScript = `document.documentElement.style.setProperty("--native-back-w", "${floatingBack ? Math.ceil(backWidth) + 8 : 0}px"); document.documentElement.toggleAttribute("data-native-back", ${floatingBack}); true;`;
+  useEffect(() => { webRef.current?.injectJavaScript(backInsetScript); }, [backInsetScript]);
 
   const params = new URLSearchParams({ lang, embed: '1', ...(query ?? {}) });
   const uri = `${ORIGIN}${path}?${params.toString()}`;
@@ -234,7 +245,9 @@ export function SimWebView({
   const developmentOrigin = __DEV__ && bundledUri?.startsWith("http") ? new URL(bundledUri).origin : null;
   const hasCheckpointBridge = Boolean(offlineSource && path === "/simulator-v3");
   const diagnosticSurface = path === "/game" ? raceReplay ? "replay" : "race" : path === "/anatomy" ? "anatomy" : tier === "boat3d" ? "boat" : tier === "basics" ? "basics" : "trainer";
-  const languageScript = `window.__REGATTA_SAILING_STORAGE__ = ${hasCheckpointBridge}; window.__REGATTA_LANGUAGE__ = ${JSON.stringify(lang)}; window.__REGATTA_EMBED__ = ${JSON.stringify({ path, query: new URLSearchParams(query ?? {}).toString() })}; window.dispatchEvent(new Event("regatta-language")); window.dispatchEvent(new Event("regatta-embed")); true;`;
+  // M3-4: __REGATTA_RACE_HAPTICS__ tells the race page this app plays race-haptic messages (race screens only);
+  // without it the page offers no Vibration switch, so an older build never shows one that does nothing.
+  const languageScript = `window.__REGATTA_SAILING_STORAGE__ = ${hasCheckpointBridge}; window.__REGATTA_RACE_HAPTICS__ = ${isRaceShell(path)}; window.__REGATTA_LANGUAGE__ = ${JSON.stringify(lang)}; window.__REGATTA_EMBED__ = ${JSON.stringify({ path, query: new URLSearchParams(query ?? {}).toString() })}; window.dispatchEvent(new Event("regatta-language")); window.dispatchEvent(new Event("regatta-embed")); true;`;
   useEffect(() => {
     if (offlineSource) webRef.current?.injectJavaScript(languageScript);
   }, [offlineSource, languageScript]);
@@ -243,9 +256,18 @@ export function SimWebView({
     webRef.current?.injectJavaScript(`window.__REGATTA_CONTROLS__ = ${controlsJson}; window.dispatchEvent(new CustomEvent("regatta:controls-prefs")); true;`);
   }, [controlsJson]);
 
+  // Only rows that changed since the page was last given them are sent, and the
+  // page's storage bridge does not echo them back (NATIVE_STORAGE_SYNC_FLAG).
+  // Re-sending every row let a row the page had just written be overwritten
+  // with the native copy from before that write arrived, and the two copies
+  // then kept overwriting each other (two race-end writes back to back).
+  const givenStorage = useRef<Record<string, string | null>>(pageStorage ?? {});
   useEffect(() => {
-    if (storageJson !== "{}") webRef.current?.injectJavaScript(`${storageScript} window.dispatchEvent(new Event("storage")); true;`);
-  }, [storageJson, storageScript]);
+    const next = JSON.parse(storageJson) as Record<string, string | null>;
+    const changed = Object.fromEntries(Object.entries(next).filter(([key, value]) => givenStorage.current[key] !== value));
+    givenStorage.current = next;
+    if (Object.keys(changed).length) webRef.current?.injectJavaScript(`${nativeStorageSyncScript(JSON.stringify(changed))} window.dispatchEvent(new Event("storage")); true;`);
+  }, [storageJson]);
 
   // Watchdog: if the page never signals ready (dead network, blocked load),
   // surface the error state instead of a blank chromeless screen.
@@ -292,15 +314,15 @@ export function SimWebView({
     return () => clearTimeout(t);
   }, [processNotice]);
 
+  const backControl = () => returnLesson
+    ? <HeaderBackButton label={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} />
+    : isFoundationLesson(query?.fromLesson)
+      ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
+      : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />;
+
   return (
-    <AppSurface><Screen noTopInset={!fullScreen} style={frameInsets}>
-      <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false,
-        headerLeft: () => returnLesson
-          ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.dismissTo({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
-          : isFoundationLesson(query?.fromLesson)
-            ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
-            : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />,
-      }} />
+    <AppSurface><Screen noTopInset={!ownHeader || edgeToEdge} noBottomInset={waterEdges || stage.bottomEdge} style={frameInsets}>
+      <Stack.Screen options={{ ...appStackOptions, ...raceShellStackOptions(path), title, headerShown, headerBackVisible: false, headerLeft: backControl }} />
       {tier && !landscape && !returnLesson && !isFoundationLesson(query?.fromLesson) && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
@@ -318,7 +340,7 @@ export function SimWebView({
                   pressed && !active && styles.btnPressed,
                 ]}
               >
-                <Text style={[styles.tierText, active && styles.tierTextActive]} numberOfLines={1}>
+                <Text style={[styles.tierText, active && styles.tierTextActive]} numberOfLines={2}>
                   {t.label}
                 </Text>
               </Pressable>
@@ -358,6 +380,12 @@ export function SimWebView({
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
           if (handleNativeDiagnosticMessage(status, diagnosticSurface)) return;
+          // M3-4: race events vibrate through expo-haptics; only race screens may ask, never passed on.
+          if (nativeRaceHaptics.handle(path, status) !== null) return;
+          const ownRaceHeader = isRaceShell(path) ? raceHeaderMessage(status) : null;
+          if (ownRaceHeader !== null) { setWebHeader(ownRaceHeader); return; }
+          const raceWater = path === "/game" ? raceWaterMessage(status) : null;
+          if (raceWater !== null) { setWaterEdges(raceWater); return; }
           if (offlineSource && status.startsWith("{")) {
             const owner = webRef.current;
             onOfflineMessage?.(status, script => { if (owner && webRef.current === owner) owner.injectJavaScript(script); });
@@ -398,7 +426,7 @@ export function SimWebView({
           }
           if (status === 'scene-error' && tier === 'trainer') recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "scene-load", attempt: reloadKey });
         }}
-        onLoadStart={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "begin", outcome: "accepted", attempt: reloadKey }); }}
+        onLoadStart={() => { setWaterEdges(false); recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "begin", outcome: "accepted", attempt: reloadKey }); }}
         onLoadEnd={() => { if (!offlineSource && tier !== 'boat3d') setLoading(false); }}
         onHttpError={() => { recordNativeDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface, action: "error", outcome: "failed", reason: "connection", attempt: reloadKey }); setLoading(false); setFailed(true); }}
         onContentProcessDidTerminate={processGone}
@@ -413,6 +441,12 @@ export function SimWebView({
       {loading && !failed && (
         <View style={[styles.overlay, { left: overlayInsets.left, right: overlayInsets.right }]} pointerEvents="none">
           <ActivityIndicator color={colors.accentCyan} size="large" />
+        </View>
+      )}
+      {floatingBack && (
+        <View style={[styles.floatingBack, { top: 6 + Math.max(0, safeArea?.top ?? 0), left: 8 + Math.max(0, safeArea?.left ?? 0) }]}
+          onLayout={event => setBackWidth(event.nativeEvent.layout.width)} testID="trainer-floating-back">
+          {backControl()}
         </View>
       )}
       {processNotice && !failed && (
@@ -453,10 +487,10 @@ export function SimWebView({
               "Nie udało się otworzyć wyścigu. Spróbuj ponownie lub wróć do menu regat. Internet nie jest potrzebny.",
               { es: "No se pudo abrir la regata. Reintenta o vuelve al menú. No necesitas internet.", fr: "La course ne s'ouvre pas. Réessaie ou retourne au menu. Internet n'est pas nécessaire.", de: "Das Rennen konnte nicht geöffnet werden. Erneut versuchen oder zum Rennmenü zurückkehren. Kein Internet nötig.", it: "Impossibile aprire la regata. Riprova o torna al menu. Non serve internet." },
             ) : offlineSource ? tp(
-              "Не удалось открыть локальный симулятор. Повтори запуск или открой упрощенные Основы. Интернет не требуется.",
-              "The local simulator could not open. Retry or open simplified Basics. No internet is needed.",
-              "Nie udało się otworzyć lokalnego symulatora. Spróbuj ponownie lub otwórz uproszczone Podstawy. Internet nie jest potrzebny.",
-              { es: "No se pudo abrir el simulador local. Reintenta o abre Fundamentos simplificados. No necesitas internet.", fr: "Le simulateur local ne s'ouvre pas. Réessaie ou ouvre les Bases simplifiées. Internet n'est pas nécessaire.", de: "Der lokale Simulator konnte nicht geöffnet werden. Erneut versuchen oder vereinfachte Grundlagen öffnen. Kein Internet nötig.", it: "Impossibile aprire il simulatore locale. Riprova o apri le Basi semplificate. Non serve internet." },
+              "Не удалось открыть локальный симулятор. Повтори запуск или открой упрощенную версию ниже. Интернет не требуется.",
+              "The local simulator could not open. Retry or open the simple version below. No internet is needed.",
+              "Nie udało się otworzyć lokalnego symulatora. Spróbuj ponownie lub otwórz prostszą wersję poniżej. Internet nie jest potrzebny.",
+              { es: "No se pudo abrir el simulador local. Reintenta o abre la versión simple de abajo. No necesitas internet.", fr: "Le simulateur local ne s'ouvre pas. Réessaie ou ouvre la version simple ci-dessous. Internet n'est pas nécessaire.", de: "Der lokale Simulator konnte nicht geöffnet werden. Erneut versuchen oder die einfache Version unten öffnen. Kein Internet nötig.", it: "Impossibile aprire il simulatore locale. Riprova o apri la versione semplice qui sotto. Non serve internet." },
             ) : tp(
               'Не удалось загрузить симулятор. Нужен интернет.',
               'The simulator failed to load. An internet connection is required.',
@@ -507,7 +541,7 @@ export function SimWebView({
 }
 
 const styles = StyleSheet.create({
-  headerBack: { minHeight: 44, minWidth: 44, paddingRight: 12, justifyContent: "center" },
+  floatingBack: { position: "absolute", zIndex: 5, minHeight: 44, justifyContent: "center", paddingHorizontal: 2, borderRadius: 12, backgroundColor: colors.bgCard, shadowColor: "#000", shadowOpacity: 0.16, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 },
   web: { flex: 1, backgroundColor: colors.bgPrimary },
   tierBar: {
     flexDirection: 'row',
@@ -536,6 +570,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '600',
+    textAlign: 'center',
   },
   tierTextActive: {
     color: colors.accentCyan,

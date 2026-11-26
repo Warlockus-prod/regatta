@@ -2,11 +2,14 @@
 
 import { Fragment, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { legacyPick, legacyPickArray, type Lang } from '@/lib/languages';
+import { legacyPick, legacyPickArray, pickLocalized, type Lang } from '@/lib/languages';
+import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from '@/data/no-go-zone';
 import { maneuvers, pointsOfSail, type Maneuver, type PointOfSail } from '@/data/sailing-data';
 import { manoeuvres } from '@/data/sailing-lab/sources';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
+import { SubjectVisuals } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 // Map the neon points-of-sail palette (tuned for the dark ocean) to
 // theme-aware CSS vars, so the compass + detail cards stay legible on the
@@ -782,6 +785,9 @@ function TurnCard({ maneuver }: { maneuver: Maneuver }) {
       <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1 mb-4">
         {legacyPick(maneuver, 'description', lang)}
       </p>
+      {/* Package 32: the turn's schematic and a frame of it on the water, the same pair every section shows. */}
+      <SubjectVisuals id={maneuver.id} name={legacyPick(maneuver, 'name', lang)} className="mb-5"
+        labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
 
       <h4 className={heading}>
         {tp('Команды', 'Calls', 'Komendy', { es: 'Órdenes', fr: 'Ordres', de: 'Kommandos', it: 'Comandi' })}
@@ -915,6 +921,11 @@ export default function CoursesPage() {
                 <p className="text-xs text-[var(--text-muted)] mt-0.5">{activePoint.nameEn}</p>
               )}
               <p className="text-xs text-[var(--text-secondary)] mt-2">{posSailWork(activePoint, lang)}</p>
+              {/* Package 7: the no-go sector links its one glossary article. */}
+              {activePoint.id === 'in-irons' && (
+                <Link href={NO_GO_GLOSSARY_HREF} className="mt-1 inline-flex min-h-11 items-center text-sm text-[var(--accent-cyan)] underline underline-offset-2"
+                  data-testid="courses-no-go-link">{pickLocalized(lang, NO_GO_LINK)}</Link>
+              )}
             </div>
           )}
         </div>
@@ -937,13 +948,17 @@ export default function CoursesPage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {pointsOfSail.map((point) => (
-            <DetailCard
-              key={point.id}
-              point={point}
-              isActive={activeId === point.id}
-              onSelect={() => handleSelect(point.id)}
-              lang={lang}
-            />
+            <div key={point.id} className="flex flex-col gap-2">
+              <DetailCard
+                point={point}
+                isActive={activeId === point.id}
+                onSelect={() => handleSelect(point.id)}
+                lang={lang}
+              />
+              {/* Package 32: the course's schematic and a frame of the boat on it, the same pair every section shows. */}
+              <SubjectVisuals id={point.id} name={posName(point, lang)}
+                labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
+            </div>
           ))}
         </div>
       </section>

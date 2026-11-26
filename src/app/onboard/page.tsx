@@ -6,6 +6,10 @@ import { useState } from 'react';
 import { onboardSections } from '@/data/onboard';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
+import { anatomyParts } from '@/data/anatomy';
+import { sectionParts } from '@/data/anatomy-visuals';
+import { PartStrip } from '@/components/anatomy/PartVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 export default function OnboardPage() {
   const { lang, tp } = useI18n();
@@ -64,7 +68,6 @@ export default function OnboardPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{section.icon}</span>
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{title}</div>
                   </div>
@@ -94,6 +97,10 @@ export default function OnboardPage() {
                       </li>
                     ))}
                   </ul>
+                  {/* Package 32: a section that teaches parts of the yacht shows each of them, schematic and picture. */}
+                  <PartStrip parts={sectionParts('onboard', section.id)} title={UI_TERMS.partsInSection[lang]}
+                    names={id => legacyPick(anatomyParts.find(part => part.id === id)!, 'name', lang)}
+                    labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnBoat[lang] }} />
                   {warning && (
                     <div className="p-3 rounded-lg text-sm leading-relaxed"
                          style={{ background: 'rgba(255, 170, 0, 0.08)', border: '1px solid rgba(255, 170, 0, 0.25)' }}>

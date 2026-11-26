@@ -1,18 +1,74 @@
 import ExpoModulesCore
+import UIKit
 import VOXSDK
 
 /// Bridge to VOX SDK 1 (classic Hybrid SSP SDK). Used only by the ads demo
 /// screen (Settings -> Ads); nothing else in the app requests ads.
 public class VoxAdsModule: Module {
+  /// The address, language and screen of a request, the same fields as the board feed. JS
+  /// gives the address (`VOX_APP_PAGE_URL`), so a request names the app whatever the SDK's
+  /// own default is; without it Hybrid records the request on its fallback website. JS also
+  /// gives the language chosen in the app, the "app language" of the privacy texts, which
+  /// the device's preferred language is not.
+  @MainActor
+  static func browser(pageUrl: String, language: String) -> BrowserModel {
+    let screen = UIScreen.main.bounds.size
+    return BrowserModel(
+      url: pageUrl,
+      referrer: "",
+      language: language,
+      timezoneOffset: Float(-TimeZone.current.secondsFromGMT() / 60),
+      screenWidth: Int(screen.width),
+      screenHeight: Int(screen.height)
+    )
+  }
+
   public func definition() -> ModuleDefinition {
     Name("VoxAds")
 
     Constant("sdkName") { "VOX SDK 1" }
-    Constant("sdkVersion") { "1.2.3" }
+    Constant("sdkVersion") { VOXAds.sdkVersion }
+
+    // The numeric App Store id, sent as mobileSdk.appStoreId with the store URL (VOX SDK 1.4.1),
+    // so buyers can find the app and check its app-ads.txt. JS sets it once (VOX_APP_STORE_ID).
+    Function("setAppStoreId") { (appStoreId: String) in
+      Task { @MainActor in VOXAds.appStoreId = appStoreId }
+    }
+
+    // The last request on a place and the SSP's answer (VOX SDK 1.4.4): what was sent and
+    // which creative won. The Ads screens show it under each slot. Nil before the first request.
+    Function("lastAdInfo") { (placeId: String) -> [String: Any]? in
+      guard let info = VOXAds.lastAdInfo(forPlaceId: placeId) else { return nil }
+      var out: [String: Any] = [
+        "endpoint": info.endpoint,
+        "placeId": info.placeId,
+        "startedAt": info.startedAt.timeIntervalSince1970 * 1000,
+        "durationMs": info.durationMs,
+        "result": info.result.rawValue,
+        "isPassback": info.isPassback,
+        "isVast": info.isVast,
+      ]
+      let optional: [String: Any?] = [
+        "applicationId": info.applicationId,
+        "pageUrl": info.pageUrl,
+        "sdkVersion": info.sdkVersion,
+        "adId": info.adId,
+        "bidId": info.bidId,
+        "seanceId": info.seanceId,
+        "adNetwork": info.adNetwork,
+        "width": info.width,
+        "height": info.height,
+        "error": info.error,
+      ]
+      for (key, value) in optional {
+        if let value { out[key] = value }
+      }
+      return out
+    }
 
     // Interstitial: VOX presents its own full-screen controller on top of
     // the current one and resolves once the ad is on screen.
-    AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, promise: Promise) in
+    AsyncFunction("showFullScreen") { (placeId: String, closeButtonDelay: Double, pageUrl: String, language: String, promise: Promise) in
       Task { @MainActor in
         guard let controller = self.appContext?.utilities?.currentViewController() else {
           promise.reject("E_NO_CONTROLLER", "No view controller to present the ad from")
@@ -20,7 +76,8 @@ public class VoxAdsModule: Module {
         }
         do {
           let model = FullScreenBannerModel(
-            requestModel: AdRequestModel(placeId: placeId),
+            // gdpr 1 with no consent string: non-personalised ads only, as in VoxAdView.
+            requestModel: AdRequestModel(placeId: placeId, browser: Self.browser(pageUrl: pageUrl, language: language), gdpr: 1),
             presentingViewController: controller,
             closeButtonDelay: closeButtonDelay
           )
@@ -33,13 +90,19 @@ public class VoxAdsModule: Module {
     }
 
     View(VoxAdView.self) {
-      Events("onAdLoaded", "onAdFailed")
+      Events("onAdLoaded", "onAdFailed", "onAdCompleted")
 
       Prop("placeId") { (view: VoxAdView, value: String) in
         view.placeId = value
       }
       Prop("kind") { (view: VoxAdView, value: String) in
         view.kind = value
+      }
+      Prop("pageUrl") { (view: VoxAdView, value: String) in
+        view.pageUrl = value
+      }
+      Prop("language") { (view: VoxAdView, value: String) in
+        view.language = value
       }
       Prop("closeButtonDelay") { (view: VoxAdView, value: Double) in
         view.closeButtonDelay = value

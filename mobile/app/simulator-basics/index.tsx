@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
+import { TRAINER_NAMES } from '../../../src/lib/product/trainer-names';
 import { legacyPick } from '../../src/i18n/languages';
 import { Button, Screen, Text } from '../../src/design-system/components';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
@@ -160,9 +161,7 @@ function SimulatorBasicsScreen() {
   }, []);
 
   // ---- strings ------------------------------------------------------------
-  const title = tp('Основы', 'Basics', 'Podstawy', {
-    es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
-  });
+  const title = TRAINER_NAMES.basics[lang];
   const windLabel = tp('ВЕТЕР', 'WIND', 'WIATR', {
     es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO',
   });

@@ -31,7 +31,7 @@ function Base({
   return (
     <svg
       viewBox={viewBox}
-      className="h-auto w-full min-w-[620px]"
+      className="h-auto w-full min-w-[864px] md:min-w-[620px]"
       role="img"
       aria-label={`${radioText(title)}. ${radioText(desc)}`}
       xmlns="http://www.w3.org/2000/svg"

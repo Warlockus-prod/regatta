@@ -3,7 +3,8 @@
 // tested on its own: the 3D race must show the same race the canvas runs.
 
 import { calcTWA, distance, UNITS_PER_KNOT_SECOND, type Vec2 } from "@/lib/race-physics";
-import { getBoatParams } from "@/lib/sailing-physics/boat";
+import { NO_GO } from "@/lib/race-manoeuvres";
+import { CLASSIC_BOAT } from "@/lib/sailing-physics/boat";
 import type { BoatState, Controls } from "@/lib/sailing-physics/types";
 import type { YachtState } from "@/features/simulator-3d/types";
 
@@ -20,11 +21,15 @@ export const METRES_PER_UNIT = 0.6;
  */
 export const VISUAL_SPEEDUP = (UNITS_PER_KNOT_SECOND * METRES_PER_UNIT) / 0.514444;
 
-/** Free orbit around the yacht, with optional stern and tactical presets. */
-export type RaceCamera = "orbit" | "stern" | "high";
+/** The race view (the default, package 8), free orbit around the yacht, and
+ * the stern and tactical presets. */
+export type RaceCamera = "race" | "orbit" | "stern" | "high";
+/** Every camera, in the order the pickers list them. */
+export const RACE_CAMERAS = ["race", "orbit", "stern", "high"] as const satisfies readonly RaceCamera[];
 
-/** Inside this true wind angle the sails cannot fill (the canvas race uses 30 too). */
-export const NO_GO_DEG = 30;
+/** Inside this true wind angle the sails cannot fill: the race's own no-go
+ * definition (src/lib/race-manoeuvres.ts), the one the log and coach use. */
+export const NO_GO_DEG = NO_GO.angleDeg;
 
 export interface Race3DBoat {
   id: string;
@@ -54,7 +59,9 @@ export function toWorld(p: Vec2): { x: number; z: number } {
   return { x: p.x * METRES_PER_UNIT, z: p.y * METRES_PER_UNIT };
 }
 
-const PARAMS = getBoatParams();
+// The drawn sheet range of the legacy race and its replays: the classic
+// profile, unchanged by ADR-0021 (the metric race shares this drawing for now).
+const PARAMS = CLASSIC_BOAT;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 /**
@@ -103,6 +110,19 @@ export function nextTarget(boat: Race3DBoat, course: Race3DCourse): Vec2 | null 
   if (boat.lapDone === 0) return course.marks.find((m) => m.type === "windward")?.pos ?? null;
   const { a, b } = course.finishLine;
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+/** nextTarget without an allocation, for the frame loop: writes into `out`. */
+export function nextTargetInto(boat: Race3DBoat, course: Race3DCourse, out: Vec2): Vec2 | null {
+  if (boat.lapDone >= 2) return null;
+  if (boat.lapDone === 0) {
+    for (const m of course.marks) if (m.type === "windward") return m.pos;
+    return null;
+  }
+  const { a, b } = course.finishLine;
+  out.x = (a.x + b.x) / 2;
+  out.y = (a.y + b.y) / 2;
+  return out;
 }
 
 /**

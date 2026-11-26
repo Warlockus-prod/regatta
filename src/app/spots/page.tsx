@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 
 // Phase 4 "charts track" of docs/design/live-weather/DESIGN.md.
 // A "where to sail" view: a FREE nautical chart (OpenSeaMap, an OpenStreetMap
@@ -63,7 +64,11 @@ function chartUrl(spot: Spot): string {
 type WeatherState = 'loading' | 'ok' | 'error';
 
 export default function SpotsPage() {
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
+  // Package 10: unit signs of the reader's language ("уз", "м" in Russian).
+  const unitKn = tl(UI_TERMS.knots);
+  const unitM = tl(UI_TERMS.metres);
+  const unitS = tl(UI_TERMS.seconds);
   const [selected, setSelected] = useState(0);
   const [state, setState] = useState<WeatherState>('loading');
   const [data, setData] = useState<WeatherNow | null>(null);
@@ -236,7 +241,7 @@ export default function SpotsPage() {
                 </svg>
                 <div>
                   <div className="text-2xl font-bold leading-none">
-                    {Math.round(data.wind.speedKn)}<span className="text-sm font-normal text-[var(--text-muted)]"> kn</span>
+                    {Math.round(data.wind.speedKn)}<span className="text-sm font-normal text-[var(--text-muted)]"> {unitKn}</span>
                   </div>
                   <div className="text-xs text-[var(--text-muted)] mt-1">
                     {tp('от', 'from', 'z', { es: 'desde', fr: 'de', de: 'aus', it: 'da' })}{' '}
@@ -252,7 +257,7 @@ export default function SpotsPage() {
                     <div className="text-xs text-[var(--text-muted)]">
                       {tp('Порывы', 'Gusts', 'Porywy', { es: 'Rachas', fr: 'Rafales', de: 'Böen', it: 'Raffiche' })}
                     </div>
-                    <div className="font-semibold">{Math.round(data.wind.gustKn)} kn</div>
+                    <div className="font-semibold">{`${Math.round(data.wind.gustKn)} ${unitKn}`}</div>
                   </div>
                 )}
 
@@ -262,8 +267,8 @@ export default function SpotsPage() {
                       {tp('Волна', 'Waves', 'Fale', { es: 'Olas', fr: 'Vagues', de: 'Wellen', it: 'Onde' })}
                     </div>
                     <div className="font-semibold">
-                      {data.wave.heightM.toFixed(1)} m
-                      <span className="text-xs font-normal text-[var(--text-muted)]"> / {Math.round(data.wave.periodS)} s</span>
+                      {`${data.wave.heightM.toFixed(1)} ${unitM}`}
+                      <span className="text-xs font-normal text-[var(--text-muted)]"> / {`${Math.round(data.wave.periodS)} ${unitS}`}</span>
                     </div>
                   </div>
                 )}
@@ -274,7 +279,7 @@ export default function SpotsPage() {
                       {tp('Течение', 'Current', 'Prąd', { es: 'Corriente', fr: 'Courant', de: 'Strömung', it: 'Corrente' })}
                     </div>
                     <div className="font-semibold">
-                      {data.current.setKn.toFixed(1)} kn
+                      {`${data.current.setKn.toFixed(1)} ${unitKn}`}
                       <span className="text-xs font-normal text-[var(--text-muted)]"> {tp('к', 'toward', 'w kierunku', { es: 'hacia', fr: 'vers', de: 'Richtung', it: 'verso' })} {cardinal(data.current.dirDeg)}</span>
                     </div>
                   </div>

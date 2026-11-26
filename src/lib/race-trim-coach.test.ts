@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { raceTrimCoach } from "./race-trim-coach";
 import { raceTrim, type RaceBoat } from "./race-physics";
-import { createInitialState, getBoatParams, trimForDrive, twaFromCompass, type Controls } from "./sailing-physics";
+import { CLASSIC_BOAT, createInitialState, trimForDrive, twaFromCompass, type Controls } from "./sailing-physics";
 import { createSailingSession } from "@/features/sailing-lab/runtime/session";
 import { coachFrom, trimQualityFrom } from "@/features/sailing-lab/runtime/trim-coach";
 
-const PARAMS = getBoatParams();
+// These boats carry no trainer rig state: legacy race boats, which sail the
+// classic profile (ADR-0021), so the reference session sails it too.
+const PARAMS = CLASSIC_BOAT;
 const boat = (heading = 90, trim: Partial<Controls> = {}): RaceBoat => ({
   id: "p", name: "Player", color: "#fff", pos: { x: 400, y: 600 }, heading, speed: 5, lapDone: 0,
   physics: createInitialState({ tws: 12, heading, boatSpeed: 5 }), trim: raceTrim(trim),
 });
-const optimum = (b: RaceBoat) => trimForDrive(b.physics!, b.trim!);
+const optimum = (b: RaceBoat) => trimForDrive(b.physics!, b.trim!, PARAMS);
 
 describe("live race Pro trim coach", () => {
   it("names the overtrimmed sheet immediately without advancing the boat", () => {

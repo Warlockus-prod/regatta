@@ -1,24 +1,40 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Stack, useRouter, type Href } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { destinations, searchDestinations, sections, type Destination, type Section } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
+import { HUB_SCENES } from "../../../src/lib/product/hub-scenes";
 import { sailLessons } from "../../../src/data/sailing-lab/course";
 import { useI18n } from "../i18n/context";
 import { Button, ListRow, Screen, Text } from "../design-system/components";
 import { colors, radii, shadow } from "../design-system/tokens";
 import { dailySettings } from "../../../src/lib/daily-challenge";
-import { PhotoCard } from "../home/PhotoCard";
 import { useLearningSnapshot } from "../home/useLearningSnapshot";
 import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
 import { passedLessonIds } from "../bootcamp/status";
 import { bootcampLessons } from "../data";
-import { VenuePicker } from "../game/VenuePicker";
+import { RaceModeChoice, VenuePicker } from "../game/VenuePicker";
 import { RaceSetupPanel } from "./RaceSetupPanel";
-import { DEFAULT_HUB_SETUP, hubRaceHref, hubSetupCopy, type HubRaceSetup } from "./race-setup";
+import { RaceHubMedal, hubMedalCourse } from "./RaceHubMedal";
+import { RaceHubNextStep, hubRacedBefore, useRaceHubRows } from "./RaceHubNextStep";
+import { raceHomeView } from "../../../src/lib/race-next-step";
+import { useVenue } from "../persistence/venue";
+import { DEFAULT_HUB_SETUP, hubRaceHref, hubSetupSummary, type HubRaceSetup } from "./race-setup";
+import { readHubSetup, writeHubSetup } from "../persistence/race-hub-setup";
+import { raceCopy } from "../game/copy";
+import { RACE_INTRO_TITLE } from "../../../src/data/race-intro-title";
 
-const racePhoto = require("../../assets/design/race-card.jpg");
+/** Package 9: a still of the real race scene (the website uses the same frame). */
+const raceScene = require("../../assets/design/race-scene.jpg");
+/** Package 32, stage C: the frames of the other tabs (src/lib/product/hub-scenes.ts; the website shows the same ones). */
+const hubScenes = { learn: require("../../assets/design/hub-learn.jpg"), practice: require("../../assets/design/hub-practice.jpg"), library: require("../../assets/design/hub-menu.jpg") };
+/** Width over height of the hub frames; mobile/__tests__/race-hub-scene.test.tsx reads the files. */
+export const HUB_SCENE_RATIO = 960 / 480;
+/** Width over height of race-scene.jpg; mobile/__tests__/race-hub-scene.test.tsx reads the file and fails if they part. */
+export const RACE_SCENE_RATIO = 960 / 688;
+/** F5: the race page opened only for its intro (raceEntryQuery forwards the flag). */
+export const RACE_INTRO_HREF = "/game?intro=1";
 
 /**
  * A tab hub. Learn, Practice and Race list their own section. The Menu tab
@@ -30,23 +46,45 @@ const racePhoto = require("../../assets/design/race-card.jpg");
  * The status bar area stays a fixed paper strip (Screen pads it, outside the
  * scroll view), so rows never scroll under the clock and the system icons.
  *
- * The Race hub is the race lobby of the app (M1-1, M1-6): the race frame, the
- * one race setup (preset, level and wind or mission, then mode and venue) and
- * one primary start. The setup goes to the race in the route, so the race's
- * own menu and briefing never ask for it again.
+ * The Race hub is the race lobby of the app (M1-1, M1-6): a frame of the real
+ * race scene, the setup it plays named in one line, and one primary "Play"
+ * pinned under the scroll above the tab bar (F1). Package 9 (audit B10): Play
+ * starts with the last used setup (saved on every change); the choices
+ * (preset, level and wind or mission, then mode and venue) open under
+ * "Change". The easy preset is named "first race" only until this device has
+ * raced. The setup goes to the race in the route, so the race's own menu and
+ * briefing never ask for it again.
  */
 export function ProductHub({ section }: { section: Exclude<Section, "home">; menu?: boolean }) {
   const { lang } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [raceSetup, setRaceSetup] = useState<HubRaceSetup>(DEFAULT_HUB_SETUP);
+  const [changing, setChanging] = useState(false);
+  useEffect(() => {
+    if (section !== "race") return;
+    let active = true;
+    readHubSetup().then(saved => { if (active) setRaceSetup(saved); });
+    return () => { active = false; };
+  }, [section]);
+  const changeSetup = (next: HubRaceSetup) => { setRaceSetup(next); writeHubSetup(next); };
   const startRace = () => router.push(hubRaceHref(raceSetup) as Href);
-  const startLabel = raceSetup.preset === "learn" ? hubSetupCopy.startFirst[lang] : raceSetup.preset === "mission" ? hubSetupCopy.startMission[lang] : hubSetupCopy.start[lang];
   const daily = dailySettings(new Date().toISOString().slice(0, 10));
+  // M4-6: the one next-step card of the Race hub, the record and the progress.
+  const { mode, venue } = useVenue();
+  const rows = useRaceHubRows(section === "race");
+  // F1: once this device has raced, the easy preset is "Easy race" and the
+  // start says "Start the race", not "Start your first race". Until the
+  // storage read settles the words stay neutral (no "first race" flash).
+  const racedBefore = hubRacedBefore(rows);
+  // The mode has its own switch under the frame (owner, TestFlight 81), so the line names the course and the venue;
+  // the Play hint still reads all three.
+  const setupLine = `${hubSetupSummary(raceSetup, racedBefore, lang)} · ${venue.name[lang]}`;
+  const setupSummary = `${hubSetupSummary(raceSetup, racedBefore, lang)} · ${raceCopy[mode][lang]} · ${venue.name[lang]}`;
+  const home = section === "race" ? raceHomeView({ ...rows, course: hubMedalCourse(raceSetup), mode, now: new Date(), inDaily: false }) : null;
   const isMenu = section === "library";
   const current = sections.find(s => s.id === section)!;
   const title = isMenu ? copy.menu[lang] : current.title[lang];
-  const solo = destinations.find(d => d.id === "solo")!;
   const visible = isMenu ? searchDestinations(query, lang, "native") : destinations.filter(d => d.section === section && d.native && !(section === "race" && d.id === "solo"));
   const sectionTitle = (id: Section) => sections.find(s => s.id === id)!.title[lang];
   const groups = isMenu ? [
@@ -68,10 +106,31 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
-      {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={startRace} />}
-      {section === "race" && <RaceSetupPanel value={raceSetup} onChange={setRaceSetup} />}
-      {section === "race" && <VenuePicker />}
-      {section === "race" && <Button size="large" onPress={startRace}>{startLabel}</Button>}
+      {/* Package 32, stage C: Learn, Practice and the Menu open with a frame of the 3D scene, as Race does.
+          The frame sizes the picture (see the note at the Race frame below). Hidden while the Menu searches. */}
+      {section !== "race" && !query.trim() && <View style={styles.hubScene} testID="hub-scene">
+        <Image source={hubScenes[section]} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={HUB_SCENES[section].alt[lang]} accessibilityIgnoresInvertColors />
+      </View>}
+      {home && <RaceHubNextStep view={home} setup={raceSetup} onOpen={href => router.push(href as Href)} />}
+      {section === "race" && <View style={styles.play}>
+        {/* Package 32 (owner: "the picture is crooked"): the frame sizes the picture, never the file.
+            React Native puts a required asset's own width and height before the style, so an
+            Image with only width and aspectRatio came out 688 pt tall and ran off the right edge. */}
+        <View style={styles.sceneFrame} testID="race-hub-scene">
+          <Image source={raceScene} style={styles.scene} resizeMode="cover" accessible accessibilityRole="image" accessibilityLabel={homeCopy.sceneAlt[lang]} accessibilityIgnoresInvertColors />
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summary} testID="race-hub-summary">{setupLine}</Text>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: changing }} onPress={() => setChanging(v => !v)} hitSlop={8}
+            style={({ pressed }) => [styles.change, pressed && styles.changePressed]}>
+            <Text style={styles.changeText}>{homeCopy.change[lang]}</Text>
+          </Pressable>
+        </View>
+        <RaceModeChoice />
+      </View>}
+      {section === "race" && changing && <RaceSetupPanel value={raceSetup} onChange={changeSetup} racedBefore={racedBefore} />}
+      {section === "race" && changing && <VenuePicker />}
+      {section === "race" && home?.step?.kind !== "medal" && <RaceHubMedal setup={raceSetup} />}
       {isMenu && <View style={styles.search}>
         <View style={styles.field}>
           <Svg width={18} height={18} viewBox="0 0 18 18" accessibilityElementsHidden importantForAccessibility="no">
@@ -88,9 +147,16 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       {isMenu && !query.trim() && <MyProgress />}
       {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
       {section === "race" && <Group title="">
-        <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />
+        {home?.step?.kind !== "daily" && <ListRow title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />}
+        {/* F5: the race intro on request (the race's own lobby, with its entry, is not in the app). */}
+        <ListRow noBorder title={RACE_INTRO_TITLE[lang]} onPress={() => router.push(RACE_INTRO_HREF as Href)} />
       </Group>}
     </ScrollView>
+    {/* F1: the one start stays on screen above the tab bar, whatever is open
+        above it. Package 9: it is "Play", with the setup named in the hub. */}
+    {section === "race" && <View style={styles.startBar} testID="race-hub-start-bar">
+      <View style={styles.startInner}><Button size="large" onPress={startRace} accessibilityHint={setupSummary}>{homeCopy.play[lang]}</Button></View>
+    </View>}
   </Screen>;
 }
 
@@ -139,7 +205,19 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 20, maxWidth: 820, width: "100%", alignSelf: "center" },
+  startBar: { paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "rgba(18, 50, 71, 0.12)", backgroundColor: colors.bgPrimary },
+  startInner: { maxWidth: 780, width: "100%", alignSelf: "center" },
   title: { minHeight: 40 },
+  play: { gap: 10 },
+  // The frame has the file's own proportion (race-scene.jpg is 960x688), so nothing is cropped.
+  sceneFrame: { width: "100%", aspectRatio: RACE_SCENE_RATIO, borderRadius: radii.card, overflow: "hidden", backgroundColor: colors.sand },
+  hubScene: { width: "100%", aspectRatio: HUB_SCENE_RATIO, borderRadius: radii.card, overflow: "hidden", backgroundColor: colors.sand, marginBottom: 16 },
+  scene: { width: "100%", height: "100%" },
+  summaryRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 },
+  summary: { flexShrink: 1, fontSize: 15, lineHeight: 22, color: colors.textSecondary },
+  change: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 4 },
+  changePressed: { opacity: 0.7 },
+  changeText: { fontSize: 15, fontWeight: "600", color: colors.accentCyan },
   intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: -8 },
   group: { gap: 8 },
   groupTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600", color: colors.textSecondary, paddingHorizontal: 4 },

@@ -5,6 +5,7 @@
 
 import type { Lang } from "@/lib/languages";
 import type { BestRecord } from "@/lib/best-times";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { formatTime, type RaceResultRow } from "./race-model";
 
 type Copy = Record<Lang, string>;
@@ -21,16 +22,22 @@ export interface FinishSummary {
   winnerName: string | null;
   /** Seconds ahead of the second finisher when the player won. */
   aheadOfSecond: number | null;
-  /** Time minus the stored record (positive: slower). Null on a new record,
+  /** Time minus the stored record (positive: slower). Null on a new best,
    * without a record, or without a finish. */
   recordDelta: number | null;
   recordTime: number | null;
+  /** A personal best (package 7): faster than a comparable earlier attempt
+   * (same race model, mode, level and wind). The first finish of a course
+   * sets the stored best silently and is no "record". */
   newRecord: boolean;
 }
 
 /** The facts of the result screen, in its order: place and time, gap to the
- * winner, difference to the player's record. */
-export function summariseFinish(results: readonly RaceResultRow[], bestRecord: BestRecord | null, isNewRecord: boolean): FinishSummary {
+ * winner, difference to the player's record. `hadComparableBest`: a best
+ * existed for this course before the race; without one a new best is the
+ * first attempt, shown as neither a record nor a record difference. */
+export function summariseFinish(results: readonly RaceResultRow[], bestRecord: BestRecord | null, isNewRecord: boolean,
+  hadComparableBest = false): FinishSummary {
   const index = results.findIndex((r) => r.isPlayer);
   const player = index >= 0 ? results[index] : undefined;
   const finished = player !== undefined && Number.isFinite(player.time);
@@ -39,10 +46,11 @@ export function summariseFinish(results: readonly RaceResultRow[], bestRecord: B
   const winner = results[0];
   const second = results[1];
   const won = finished && place === 1;
-  const behindWinner = finished && !won && winner && Number.isFinite(winner.time) ? Math.max(0, time! - winner.time) : null;
-  const aheadOfSecond = won && second && Number.isFinite(second.time) ? Math.max(0, second.time - time!) : null;
-  const newRecord = finished && isNewRecord;
-  const recordDelta = finished && !newRecord && bestRecord ? time! - bestRecord.timeSec : null;
+  // M5: an estimated time ("~") places a boat but never makes a gap line.
+  const behindWinner = finished && !won && winner && Number.isFinite(winner.time) && !winner.estimated ? Math.max(0, time! - winner.time) : null;
+  const aheadOfSecond = won && second && Number.isFinite(second.time) && !second.estimated ? Math.max(0, second.time - time!) : null;
+  const newRecord = finished && isNewRecord && hadComparableBest;
+  const recordDelta = finished && !isNewRecord && bestRecord ? time! - bestRecord.timeSec : null;
   return {
     finished, place: Math.max(0, place), total: results.length, time,
     behindWinner, winnerName: behindWinner === null ? null : winner.name,
@@ -99,7 +107,7 @@ export const FINISH_COPY = {
     es: "+{gap} respecto al ganador ({name})", fr: "+{gap} sur le vainqueur ({name})", de: "+{gap} hinter dem Sieger ({name})",
     it: "+{gap} dal vincitore ({name})",
   },
-  newRecord: { ru: "Новый рекорд", en: "New record", pl: "Nowy rekord", es: "Nuevo récord", fr: "Nouveau record", de: "Neuer Rekord", it: "Nuovo record" },
+  newRecord: { ru: "Личный рекорд", en: "Personal best", pl: "Rekord osobisty", es: "Récord personal", fr: "Record personnel", de: "Persönliche Bestzeit", it: "Record personale" },
   slowerThanRecord: {
     ru: "+{gap} к твоему рекорду ({record})", en: "+{gap} off your record ({record})", pl: "+{gap} do twojego rekordu ({record})",
     es: "+{gap} respecto a tu récord ({record})", fr: "+{gap} sur ton record ({record})", de: "+{gap} über deinem Rekord ({record})",
@@ -115,18 +123,23 @@ export const FINISH_COPY = {
     es: "Igual que tu récord ({record})", fr: "Pile ton record ({record})", de: "Genau dein Rekord ({record})", it: "Esattamente il tuo record ({record})",
   },
   mainMistake: {
-    ru: "Главное, что исправить", en: "The one thing to fix", pl: "Najważniejsze do poprawy", es: "Lo principal a corregir",
+    ru: "Главное, что исправить", en: "The one thing to fix", pl: "Najważniejsze do poprawy", es: "Lo principal que corregir",
     fr: "Le point à corriger", de: "Das Wichtigste zum Verbessern", it: "La cosa principale da correggere",
+  },
+  /** Package 7 (R-11): the AI coach is asked only from this button. */
+  askAi: {
+    ru: "Спросить ИИ-тренера", en: "Ask the AI coach", pl: "Zapytaj trenera AI", es: "Preguntar al entrenador IA",
+    fr: "Demander au coach IA", de: "KI-Trainer fragen", it: "Chiedi al coach IA",
   },
   aiCaption: {
     ru: "Совет ИИ-тренера, может ошибаться", en: "From the AI coach, can be wrong", pl: "Od trenera AI, może się mylić",
     es: "Del entrenador IA, puede equivocarse", fr: "Du coach IA, peut se tromper", de: "Vom KI-Trainer, kann sich irren", it: "Dal coach IA, può sbagliare",
   },
   nextGoal: { ru: "Следующая цель", en: "Next goal", pl: "Następny cel", es: "Próximo objetivo", fr: "Prochain objectif", de: "Nächstes Ziel", it: "Prossimo obiettivo" },
-  again: { ru: "Еще раз", en: "Again", pl: "Jeszcze raz", es: "Otra vez", fr: "Rejouer", de: "Noch mal", it: "Di nuovo" },
+  again: UI_TERMS.again,
   judge: { ru: "Судья", en: "Judge", pl: "Sędzia", es: "Juez", fr: "Juge", de: "Schiedsrichter", it: "Giudice" },
   fleet: { ru: "Результаты флота", en: "Fleet results", pl: "Wyniki floty", es: "Resultados de la flota", fr: "Résultats de la flotte", de: "Ergebnisse der Flotte", it: "Risultati della flotta" },
-  share: { ru: "Поделиться повтором", en: "Share the replay", pl: "Udostępnij powtórkę", es: "Compartir la repetición", fr: "Partager le replay", de: "Replay teilen", it: "Condividi il replay" },
+  share: { ru: "Поделиться повтором", en: "Share the replay", pl: "Udostępnij powtórkę", es: "Compartir la repetición", fr: "Partager le replay", de: "Wiederholung teilen", it: "Condividi il replay" },
   // Did not finish: what happened and one thing to try, without blame.
   dnfTitle: { ru: "Время вышло", en: "Time ran out", pl: "Czas minął", es: "Se acabó el tiempo", fr: "Temps écoulé", de: "Zeit abgelaufen", it: "Tempo scaduto" },
   dnfBeforeMark: {
@@ -143,8 +156,8 @@ export const FINISH_COPY = {
   },
   dnfGeneric: {
     ru: "Гонка закрылась до того, как ты пересек финиш.", en: "The race closed before you crossed the finish line.",
-    pl: "Wyścig zamknięto, zanim przekroczyłeś linię mety.", es: "La regata se cerró antes de que cruzaras la línea de llegada.",
-    fr: "La course s'est terminée avant que tu franchisses la ligne d'arrivée.", de: "Das Rennen wurde beendet, bevor du die Ziellinie gekreuzt hattest.",
+    pl: "Wyścig zamknięto przed przekroczeniem linii mety.", es: "La regata se cerró antes de que cruzaras la línea de llegada.",
+    fr: "La course s'est terminée avant que tu franchisses la ligne d'arrivée.", de: "Das Rennen wurde beendet, bevor du die Ziellinie überquert hattest.",
     it: "La regata si è chiusa prima che tagliassi il traguardo.",
   },
   dnfEncourage: {
@@ -156,15 +169,16 @@ export const FINISH_COPY = {
     de: "So enden viele erste Rennen. Für den nächsten Versuch reicht eine Änderung.",
     it: "Molte prime regate finiscono così. Per il prossimo tentativo basta una modifica.",
   },
-  dnfTry: { ru: "Попробуй в следующий раз", en: "One thing to try", pl: "Spróbuj następnym razem", es: "Una cosa para probar", fr: "Une chose à essayer", de: "Probier beim nächsten Mal", it: "Una cosa da provare" },
+  dnfTry: { ru: "Попробуй в следующий раз", en: "One thing to try", pl: "Spróbuj następnym razem", es: "Una cosa que probar", fr: "Une chose à essayer", de: "Probier beim nächsten Mal", it: "Una cosa da provare" },
+  // Race copy states no no-go number (src/data/no-go-zone.ts, package 7).
   dnfTipBeforeMark: {
-    ru: "Иди в бейдевинд, примерно 45 градусов к ветру, и делай поворот оверштаг, когда знак окажется на траверзе.",
-    en: "Sail close-hauled, about 45 degrees off the wind, and tack when the mark is abeam.",
-    pl: "Płyń bajdewindem, około 45 stopni do wiatru, i zrób zwrot przez sztag, gdy znak będzie na trawersie.",
-    es: "Navega en ceñida, a unos 45 grados del viento, y vira por avante cuando la baliza esté por el través.",
-    fr: "Navigue au près, à environ 45 degrés du vent, et vire de bord quand la bouée est par le travers.",
-    de: "Segle hoch am Wind, etwa 45 Grad zum Wind, und wende, wenn die Tonne querab ist.",
-    it: "Naviga di bolina, a circa 45 gradi dal vento, e vira quando la boa è al traverso.",
+    ru: "Иди в бейдевинд по рекомендуемому курсу и делай поворот оверштаг, когда знак окажется на траверзе.",
+    en: "Sail close-hauled on the suggested course and tack when the mark is abeam.",
+    pl: "Płyń bajdewindem sugerowanym kursem i zrób zwrot przez sztag, gdy znak będzie na trawersie.",
+    es: "Navega en ceñida por el rumbo recomendado y vira por avante cuando la baliza esté por el través.",
+    fr: "Navigue au près sur le cap conseillé et vire de bord quand la bouée est par le travers.",
+    de: "Segle hoch am Wind auf dem empfohlenen Kurs und wende, wenn die Bahnmarke querab ist.",
+    it: "Naviga di bolina sulla rotta consigliata e vira quando la boa è al traverso.",
   },
   dnfTipAfterMark: {
     ru: "После знака уваливайся до бакштага и держи нос на финишную линию.",
@@ -172,7 +186,7 @@ export const FINISH_COPY = {
     pl: "Po znaku odpadnij do baksztagu i trzymaj dziób na linię mety.",
     es: "Después de la baliza, arriba hasta un largo y apunta la proa a la línea de llegada.",
     fr: "Après la bouée, abats jusqu'au grand largue et pointe l'étrave vers la ligne d'arrivée.",
-    de: "Fall nach der Tonne auf Raumschotskurs ab und halte den Bug auf die Ziellinie.",
+    de: "Fall nach der Bahnmarke auf Raumschotskurs ab und halte den Bug auf die Ziellinie.",
     it: "Dopo la boa, poggia fino al lasco e punta la prua verso il traguardo.",
   },
   dnfTipGeneric: {
@@ -180,8 +194,8 @@ export const FINISH_COPY = {
     en: "Keep the sails full: if the boat slows, bear away until it picks up speed, then head for the next mark.",
     pl: "Trzymaj żagle pełne: gdy łódź zwalnia, odpadnij, aż nabierze prędkości, i dopiero wtedy płyń do następnego znaku.",
     es: "Mantén las velas llenas: si el barco frena, arriba hasta que coja velocidad y luego ve a la siguiente baliza.",
-    fr: "Garde les voiles pleines : si le bateau ralentit, abats jusqu'à ce qu'il reprenne de la vitesse, puis va vers la marque suivante.",
-    de: "Halte die Segel voll: Wird das Boot langsamer, fall ab, bis es wieder Fahrt aufnimmt, und steuere dann die nächste Tonne an.",
+    fr: "Garde les voiles pleines : si le bateau ralentit, abats jusqu'à ce qu'il reprenne de la vitesse, puis va vers la bouée suivante.",
+    de: "Halte die Segel voll: Wird das Boot langsamer, fall ab, bis es wieder Fahrt aufnimmt, und steuere dann die nächste Bahnmarke an.",
     it: "Tieni le vele piene: se la barca rallenta, poggia finché riprende velocità, poi dirigi verso la boa successiva.",
   },
 } as const satisfies Record<string, Copy>;

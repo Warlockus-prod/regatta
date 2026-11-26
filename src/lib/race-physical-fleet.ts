@@ -1,11 +1,14 @@
 import { readRaceContext, type PhysicalRaceContext } from "./race-context";
 import { advancePhysicalRaceProgress, physicalRaceGates, physicalRaceStage, type PhysicalRaceStage } from "./race-physical-progress";
 import { isPhysicalRaceBoat, isPhysicalRaceInput, stepPhysicalBoat, type PhysicalRaceInput, type PhysicalRaceMotion } from "./race-physical-motion";
-import { avoidPhysicalBotHeading, physicalBotRudder, physicalBotTrajectory, planPhysicalBot, PHYSICAL_FLEET_HZ, type PhysicalBotState } from "./race-physical-bot";
-import type { RaceBoat, RaceCourse } from "./race-physics";
+import { avoidPhysicalBotHeading, physicalBotRudder, physicalBotTrajectory, physicalHumanCone, planPhysicalBot, PHYSICAL_FLEET_HZ,
+  type PhysicalBotPerception, type PhysicalBotState } from "./race-physical-bot";
+import type { RaceBoat, RaceCourse, Vec2 } from "./race-physics";
 import type { PhysicalRaceContact } from "./race-physical-contact";
 import { constrainPhysicalRaceTravel, type PhysicalRaceImpact } from "./race-physical-response";
-import { physicalCourseWaterBounds } from "./race-courses";
+import { physicalCourseDefinition, physicalCourseWaterBounds } from "./race-courses";
+// M5 step 6: the metric route hint travels with the lazily loaded metric engine.
+export { planPhysicalRaceGuidance } from "./race-guidance-physical";
 
 export interface PhysicalFleetEntry {
   readonly boat: RaceBoat;
@@ -27,6 +30,7 @@ export interface PhysicalFleetFrame {
 export interface PhysicalFleetStep {
   readonly boats: RaceBoat[];
   readonly navigation: ReadonlyMap<string, PhysicalBotState>;
+  /** Travelled motion per active boat after contact, with its polyline bends. */
   readonly motions: ReadonlyMap<string, PhysicalRaceMotion>;
   readonly contacts: readonly PhysicalRaceContact[];
   readonly initialContacts: readonly PhysicalRaceContact[];
@@ -36,7 +40,7 @@ export interface PhysicalFleetStep {
 }
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
-const stateKeys = new Set(["version", "profile", "tick", "lap", "tack", "shed", "down", "turnSide", "dip", "finishLoop", "plannedHeading", "predictive"]);
+const stateKeys = new Set(["version", "profile", "tick", "lap", "tack", "shed", "down", "turnSide", "dip", "finishLoop", "plannedHeading", "predictive", "stall", "escape"]);
 const stages: readonly PhysicalRaceStage[] = ["start", "round-east", "round-north", "round-west", "finish", "complete"];
 function copyState(value: PhysicalBotState | undefined, context: PhysicalRaceContext, lap: number): PhysicalBotState | null {
   if (value === undefined) return { version: 1, profile: context.profile, tick: 0, lap };
@@ -52,10 +56,17 @@ function copyState(value: PhysicalBotState | undefined, context: PhysicalRaceCon
     || value.finishLoop !== undefined && (!object(value.finishLoop) || typeof value.finishLoop.ccw !== "boolean")
     || value.predictive !== undefined && (!object(value.predictive) || !finite(value.predictive.heading)
       || !finite(value.predictive.until) || value.predictive.until < value.tick / PHYSICAL_FLEET_HZ - 1e-7
-      || value.predictive.until > value.tick / PHYSICAL_FLEET_HZ + .5 + 1e-7 || !stages.includes(value.predictive.stage))) return null;
+      || value.predictive.until > value.tick / PHYSICAL_FLEET_HZ + .5 + 1e-7 || !stages.includes(value.predictive.stage))
+    || value.stall !== undefined && (!Number.isSafeInteger(value.stall) || value.stall < 0)
+    // A committed escape ends within its hold (ADR-0015 point 5), never before this tick.
+    || value.escape !== undefined && (!object(value.escape) || Object.keys(value.escape).some(key => key !== "heading" && key !== "until")
+      || !finite(value.escape.heading) || !finite(value.escape.until)
+      || value.escape.until < value.tick / PHYSICAL_FLEET_HZ - 1e-7
+      || value.escape.until > value.tick / PHYSICAL_FLEET_HZ + physicalCourseDefinition(context.profile).bots.escape.holdSeconds + 1e-7)) return null;
   return { ...value, ...(value.dip ? { dip: { ...value.dip } } : {}),
     ...(value.finishLoop ? { finishLoop: { ...value.finishLoop } } : {}),
-    ...(value.predictive ? { predictive: { ...value.predictive } } : {}) };
+    ...(value.predictive ? { predictive: { ...value.predictive } } : {}),
+    ...(value.escape ? { escape: { ...value.escape } } : {}) };
 }
 function copyBoat(boat: RaceBoat): RaceBoat | null {
   if (!isPhysicalRaceBoat(boat) || typeof boat.id !== "string" || !boat.id.trim() || boat.id.length > 100) return null;
@@ -114,7 +125,10 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     state.plannedHeading = planPhysicalBot(boat, frame.course, frame.windDir, read.context, state).heading;
   }
   // Immutable positions, headings and shared steering inputs for this frame.
-  const perception = boats.flatMap((boat, i) => {
+  const definition = physicalCourseDefinition(context.profile), m = context.metresPerUnit;
+  const water = physicalCourseWaterBounds(context.profile), prediction = definition.bots.prediction;
+  const coast = { windDir: frame.windDir, noGoTwaDeg: prediction.noGoTwaDeg, tauSeconds: prediction.coastTauSeconds };
+  const perception: PhysicalBotPerception[] = boats.flatMap((boat, i) => {
     if (boat.lapDone === 2) return [];
     const input = entries[i].input;
     const memory = navigation.get(boat.id);
@@ -123,19 +137,44 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
     // simultaneous; an unknown future reaction is never treated as certain.
     const target = input === "bot" ? memory!.predictive?.stage === physicalRaceStage(boat)
       ? memory!.predictive.heading : memory!.plannedHeading! : input.steering;
-    return [{ id: boat.id, path: physicalBotTrajectory(boat, target, context.metresPerUnit, physicalCourseWaterBounds(context.profile)) }];
+    const path = physicalBotTrajectory(boat, target, m, water, coast);
+    // ADR-0015 point 5: bots cannot know the player's next input, so they
+    // keep clear of a cone around its heading with extra room, whatever the
+    // right of way.
+    return [input === "bot" ? { id: boat.id, path }
+      : { id: boat.id, path, alternatives: physicalHumanCone(boat, prediction.humanConeDeg, m, water), extraMetres: prediction.humanExtraMetres }];
   });
+  // Contact normals from this frame's start positions (the previous tick's
+  // result), taken for every boat before any boat moves: a pure planner
+  // input, away from every hull whose centre is within the escape contact
+  // distance, independent of entry order.
+  const touchUnits = definition.bots.escape.contactCentreMetres / m;
+  const contactNormals = new Map<string, Vec2 | null>(boats.map(boat => {
+    let x = 0, y = 0, touching = false;
+    for (const other of boats) {
+      if (other === boat || other.lapDone === 2) continue;
+      const dx = boat.pos.x - other.pos.x, dy = boat.pos.y - other.pos.y, gap = Math.hypot(dx, dy);
+      if (gap > touchUnits) continue;
+      touching = true;
+      if (gap > 0) { x += dx / gap; y += dy / gap; }
+    }
+    const length = Math.hypot(x, y);
+    return [boat.id, !touching ? null : length > 1e-9 ? { x: x / length, y: y / length } : { x: 1, y: 0 }];
+  }));
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i], boat = boats[i];
     if (boat.lapDone === 2) continue;
     let input: PhysicalRaceInput;
     if (entry.input === "bot") {
       const state = navigation.get(boat.id)!;
-      const heading = avoidPhysicalBotHeading(boat, perception, state.plannedHeading!, read.context, frame.course, state);
+      const heading = avoidPhysicalBotHeading(boat, perception, state.plannedHeading!, read.context, frame.course, state,
+        { windDir: frame.windDir, contactNormal: contactNormals.get(boat.id) ?? null });
       input = { steering: { mode: "helm", rudder: physicalBotRudder(boat.heading, heading), lowSpeedAssist: true }, autoTrim: true };
     } else input = entry.input;
+    // ADR-0015 point 5: bots sail the player's boat step, crew and rig
+    // transfer included (ADR-0014 had them on an instant sail transfer).
     const motion = stepPhysicalBoat(boat, frame.dt, frame.windDir, frame.gust, input, read.context,
-      { speedMul: entry.speedMul, windStrengthMul: frame.windStrengthMul, rigTransfer: entry.input !== "bot" });
+      { speedMul: entry.speedMul, windStrengthMul: frame.windStrengthMul, rigTransfer: true });
     if (!motion || !isPhysicalRaceBoat(boat)) return null;
     motions.set(boat.id, motion);
   }
@@ -151,6 +190,8 @@ export function stepPhysicalRaceFleet(frame: PhysicalFleetFrame): PhysicalFleetS
   }
   const progress: PhysicalFleetStep["progress"][number][] = [];
   for (const boat of boats) {
+    // The whole travelled polyline (ADR-0015: sliding bends it) goes to
+    // progress here and to the caller in `motions`, never just its chord.
     const motion = response.motions.get(boat.id) ?? { from: boat.pos, to: boat.pos };
     const result = advancePhysicalRaceProgress(boat, motion, read.context, frame.course, frame.raceTime, frame.racing);
     if (!result || !isPhysicalRaceBoat(boat)) return null;

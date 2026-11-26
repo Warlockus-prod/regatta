@@ -1,9 +1,12 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import type { Lang } from '@/lib/languages';
+import { RACE_UNITS } from '../../race-hud/units';
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
+import { NO_GO_TERM } from '@/data/no-go-zone';
 import { sailDimensions, SAIL_PLAN } from '@/lib/sailing-physics/sail-plan';
+import { TRAINER_TERMS } from '@/lib/product/trainer-terms';
 import {
   clamp,
   finite,
@@ -36,6 +39,13 @@ export function SceneTop({
   const nogoId = `v3-nogo-grad-${uid}`;
   const arrowGlowId = `v3-arrow-glow-${uid}`;
   const boatShadowId = `v3-boat-shadow-${uid}`;
+  const seaId = `v3-sea-${uid}`;
+  // TestFlight 74 feedback: labels were drawn in viewBox units, so on a 390px
+  // phone the 760 x 600 drawing scaled them to about 4 px. Measure how many
+  // viewBox units one CSS pixel covers and size every label in CSS pixels.
+  const svgRef = useRef<SVGSVGElement>(null);
+  const unitsPerPx = useSvgUnitsPerPx(svgRef, 760, 600);
+  const px = (cssPx: number) => cssPx * unitsPerPx;
 
   const width = 760;
   const height = 600;
@@ -85,6 +95,11 @@ export function SceneTop({
   const driveEnd = polarPoint(cx, cy, 34 + driveScale * 110, boatRotation);
   const sideSignAngle = sim.result.diag.side >= 0 ? 90 : -90;
   const sideEnd = polarPoint(cx, cy, 26 + sideScale * 70, boatRotation + sideSignAngle);
+  const twLabel = `TW ${Math.round(liveTws)} ${RACE_UNITS.knots[lang]}`;
+  // Monospace bold glyphs are about 0.62 em wide.
+  const twLabelHalf = twLabel.length * 0.62 * px(15) / 2;
+  const awText = `AW ${Math.round(Math.abs(finite(sim.result.diag.awa)))}°`;
+  const awLabel = placeAwLabel({ tail: awStart, cx, width, twTopY: tw.start.y, unitsPerPx, chars: awText.length });
 
   // Sector angles in world frame
   // No-go: 2 * NO_GO_HALF_DEG centered on north (wind from direction).
@@ -128,6 +143,31 @@ export function SceneTop({
   const hasMain = sim.session.live.mainHoisted !== false;
   const hasJib = sim.session.live.jibFurl < 0.9;
   const mainVisualScale = sailDimensions("main", sim.session.live.reef).height / SAIL_PLAN.main.height;
+  // Force labels sit past their arrow heads along the arrow. Package 11: they
+  // step further out until they clear the sail names and the corner wind card
+  // (TestFlight 76: "тяга" lay half under the card; "бок" touched MAIN).
+  const forceLabelPx = MIN_TOP_LABEL_PX;
+  const sailNames = { jib: TRAINER_TERMS.jib[lang], main: TRAINER_TERMS.mainsail[lang] };
+  const sailLabelSize = px(MIN_TOP_LABEL_PX);
+  const sailLabels = sailLabelPlaces({
+    cx, cy, boatRotation, sailSide, windIntensity, mainVisualScale, size: sailLabelSize,
+    main: hasMain ? { angle: sim.session.rig.main, name: sailNames.main } : null,
+    jib: hasJib ? { angle: sim.session.rig.jib, name: sailNames.jib } : null,
+  });
+  const sailBoxes = sailLabels.map(label => label.box);
+  const card = { l: 0, t: 0, r: 128 * unitsPerPx, b: 168 * unitsPerPx };
+  // The boat in units round its mast step: the transom 160 aft, the bow 96 and the jib about 164 forward.
+  const keepOut = 166;
+  const driveText = lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciąg' : lang === 'es' ? 'empuje' : lang === 'fr' ? 'poussée' : lang === 'de' ? 'Vortrieb' : lang === 'it' ? 'spinta' : 'drive';
+  const sideText = lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : lang === 'es' ? 'lateral' : lang === 'fr' ? 'latérale' : lang === 'de' ? 'Seitenkraft' : lang === 'it' ? 'laterale' : 'side';
+  // Close-hauled at the zone edge the drive arrow points at the no-go word (ADR-0023 screenshots): keep clear of it too.
+  // Stepping out past the word must not land on the true-wind shaft or the AW label either.
+  const noGoBox = noGoLabelBox({ x: cx, y: cy - sceneRadius * 0.61, size: px(MIN_TOP_LABEL_PX), chars: NO_GO_TERM[lang].length });
+  const twShaft = { l: cx - px(6), r: cx + px(6), t: tw.start.y, b: tw.end.y + px(4) };
+  const awBox = { l: awLabel.left, r: awLabel.right, t: awLabel.y - px(AW_LABEL_PX) * 0.85, b: awLabel.y + px(AW_LABEL_PX) * 0.35 };
+  const windBoxes = [noGoBox, twShaft, awBox];
+  const driveLabel = placeForceLabel({ cx, cy, tip: 34 + driveScale * 110, angle: boatRotation, gap: px(8), size: px(forceLabelPx), chars: driveText.length, avoid: [card, ...windBoxes, ...sailBoxes], bounds: { width, height }, keepOut });
+  const sideLabel = placeForceLabel({ cx, cy, tip: 26 + sideScale * 70, angle: boatRotation + sideSignAngle, gap: px(8), size: px(forceLabelPx), chars: sideText.length, avoid: [card, ...windBoxes, ...sailBoxes, driveLabel.box], bounds: { width, height }, keepOut });
   const jibVisualOpacity = clamp(1 - sim.session.live.jibFurl, 0.18, 1);
 
   // Wind-shadow factor from main onto jib. On broad reach (TWA > 130) the
@@ -142,15 +182,22 @@ export function SceneTop({
   const jibVisualOpacityShadowed = jibVisualOpacity * (1 - mainShadowOnJib * 0.55);
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-full">
+    <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="block w-full h-full" data-testid="trainer-top-scene" data-units-per-px={unitsPerPx.toFixed(2)}>
       <defs>
+        {/* Own deep-water ground, the same in the light and dark app themes:
+            the neon wind, force and sector colours were made for dark water
+            and washed out on the pale light-theme water. */}
+        <radialGradient id={seaId} cx="50%" cy="45%" r="75%">
+          <stop offset="0%" stopColor={SEA.centre} />
+          <stop offset="100%" stopColor={SEA.edge} />
+        </radialGradient>
         <radialGradient id={glowId} cx="50%" cy="42%" r="68%">
           <stop offset="0%" stopColor="rgba(0, 212, 255, 0.14)" />
           <stop offset="100%" stopColor="rgba(0, 212, 255, 0)" />
         </radialGradient>
         <radialGradient id={nogoId} cx="50%" cy="40%" r="65%">
-          <stop offset="0%" stopColor="rgba(255, 82, 82, 0.22)" />
-          <stop offset="100%" stopColor="rgba(255, 82, 82, 0.05)" />
+          <stop offset="0%" stopColor="rgba(255, 92, 92, 0.34)" />
+          <stop offset="100%" stopColor="rgba(255, 92, 92, 0.12)" />
         </radialGradient>
         <filter id={arrowGlowId} x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="2.4" result="blur" />
@@ -172,6 +219,9 @@ export function SceneTop({
         </filter>
       </defs>
 
+      {/* Sea ground, wider than the viewBox so letterboxing never shows the
+          pale page water around the drawing. */}
+      <rect x={-width} y={-height} width={width * 3} height={height * 3} fill={`url(#${seaId})`} data-testid="trainer-top-sea" />
       {/* Scene glow */}
       <rect x="0" y="0" width={width} height={height} fill={`url(#${glowId})`} />
 
@@ -291,26 +341,31 @@ export function SceneTop({
         cy={cy}
         r={sceneRadius * 0.92}
         fill="none"
-        stroke="rgba(0, 212, 255, 0.16)"
-        strokeWidth={1}
+        stroke="rgba(170, 215, 240, 0.35)"
+        strokeWidth={1.2}
         strokeDasharray="2 6"
       />
-      {['N', 'E', 'S', 'W'].map((label, i) => {
+      {(['N', 'E', 'S', 'W'] as const).map((label, i) => {
         const p = polarPoint(cx, cy, sceneRadius * 0.96, i * 90);
+        // N sits on the TW label line, right of it: on the ring it would sit
+        // on the true-wind shaft or under the AW label.
+        const north = i === 0;
+        // Package 11: on a narrow phone W sits under the corner wind card; it moves below the card on the ring's side.
+        const westUnderCard = label === 'W' && p.y - px(MIN_TOP_LABEL_PX) < card.b && p.x - px(MIN_TOP_LABEL_PX) < card.r;
         return (
-          <text
+          <SceneLabel
             key={label}
-            x={p.x}
-            y={p.y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="rgba(139, 167, 184, 0.55)"
-            fontSize="10"
-            fontWeight="700"
-            style={{ letterSpacing: '0.1em' }}
+            x={north ? cx + twLabelHalf + px(10) : p.x}
+            y={north ? tw.start.y - px(6) : westUnderCard ? card.b + px(MIN_TOP_LABEL_PX) : p.y}
+            anchor={north ? 'start' : 'middle'}
+            baseline={north ? 'auto' : 'central'}
+            fill={SEA.compass}
+            size={px(MIN_TOP_LABEL_PX)}
+            halo={px(3)}
+            testId={`trainer-top-compass-${label}`}
           >
-            {label}
-          </text>
+            {TRAINER_TERMS[`compass${label}`][lang]}
+          </SceneLabel>
         );
       })}
 
@@ -318,32 +373,36 @@ export function SceneTop({
       <path
         d={noGoPath}
         fill={`url(#${nogoId})`}
-        stroke="rgba(255, 82, 82, 0.3)"
-        strokeDasharray="4 4"
-        strokeWidth={1}
+        stroke="rgba(255, 110, 110, 0.75)"
+        strokeDasharray="5 4"
+        strokeWidth={1.6}
       />
-      <text
+      {/* Under the true-wind arrow head, inside the cone, so the arrow never
+          crosses the word. */}
+      <SceneLabel
         x={cx}
-        y={cy - sceneRadius * 0.88}
-        textAnchor="middle"
-        fill="rgba(255, 82, 82, 0.65)"
-        fontSize="10"
-        fontWeight="700"
-        style={{ letterSpacing: '0.15em' }}
+        y={cy - sceneRadius * 0.61}
+        anchor="middle"
+        fill={SEA.noGo}
+        size={px(MIN_TOP_LABEL_PX)}
+        halo={px(3)}
+        spacing="0.12em"
+        testId="trainer-top-nogo"
       >
-        NO-GO
-      </text>
+        {/* Package 7 (audit K4): the one term in the reader's language, not Latin "NO-GO". */}
+        {NO_GO_TERM[lang].toUpperCase()}
+      </SceneLabel>
 
       {/* Layer 4: wind arc (wider, fainter, includes the no-go - the actual wind
           comes from within these 120 deg at the top) */}
-      <path d={windFromPath} fill="rgba(0, 212, 255, 0.05)" stroke="none" />
+      <path d={windFromPath} fill="rgba(0, 212, 255, 0.07)" stroke="none" />
 
       {/* Layer 5: main working sector */}
       {hasMain && (
         <path
           d={mainWorkingPath}
-          fill="rgba(82, 255, 142, 0.09)"
-          stroke="rgba(82, 255, 142, 0.3)"
+          fill="rgba(82, 255, 142, 0.13)"
+          stroke="rgba(82, 255, 142, 0.55)"
           strokeDasharray="3 5"
           strokeWidth={1}
         />
@@ -353,8 +412,8 @@ export function SceneTop({
       {hasJib && (
         <path
           d={jibWorkingPath}
-          fill="rgba(246, 183, 60, 0.09)"
-          stroke="rgba(246, 183, 60, 0.3)"
+          fill="rgba(246, 183, 60, 0.13)"
+          stroke="rgba(246, 183, 60, 0.55)"
           strokeDasharray="3 5"
           strokeWidth={1}
         />
@@ -454,47 +513,80 @@ export function SceneTop({
         />
       </g>
 
-      {/* Layer 10: force vectors + wind arrows */}
+      {/* Layer 10: force vectors + wind arrows. The glow stays on the lines;
+          the labels sit outside the blur on a dark halo so they stay crisp. */}
       <g filter={`url(#${arrowGlowId})`}>
-        <Arrow
-          from={tw.start}
-          to={tw.end}
-          color="#00d4ff"
-          width={2.8}
-          label={`TW ${Math.round(liveTws)} ${lang === 'ru' ? 'уз' : lang === 'en' ? 'kts' : 'kn'}`}
-          labelPos={{ x: cx, y: cy - sceneRadius * 1.06 }}
-          labelAnchor="middle"
-        />
-        <Arrow
-          from={awStart}
-          to={awEnd}
-          color="#6fe4ff"
-          width={2.4}
-          label={`AW ${Math.round(Math.abs(sim.result.diag.awa))}°`}
-          labelPos={{ x: awStart.x + 8, y: awStart.y - 8 }}
-          labelAnchor="start"
-        />
-        <Arrow
-          from={{ x: cx, y: cy }}
-          to={driveEnd}
-          color="#52ff8e"
-          width={2.8}
-          label={lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciąg' : lang === 'es' ? 'empuje' : lang === 'fr' ? 'poussée' : lang === 'de' ? 'Vortrieb' : lang === 'it' ? 'spinta' : 'drive'}
-          labelPos={{ x: driveEnd.x + 10, y: driveEnd.y - 4 }}
-          labelAnchor="start"
-        />
-        <Arrow
-          from={{ x: cx, y: cy }}
-          to={sideEnd}
-          color="#f6b73c"
-          width={2.2}
-          label={lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : lang === 'es' ? 'lateral' : lang === 'fr' ? 'latérale' : lang === 'de' ? 'Seitenkraft' : lang === 'it' ? 'laterale' : 'side'}
-          labelPos={{
-            x: sideEnd.x + (sim.result.diag.side >= 0 ? 10 : -10),
-            y: sideEnd.y - 4,
-          }}
-          labelAnchor={sim.result.diag.side >= 0 ? 'start' : 'end'}
-        />
+        <Arrow from={tw.start} to={tw.end} color={SEA.trueWind} width={3} />
+        <Arrow from={awStart} to={awEnd} color={SEA.apparentWind} width={2.6} />
+        <Arrow from={{ x: cx, y: cy }} to={driveEnd} color={SEA.drive} width={3} />
+        <Arrow from={{ x: cx, y: cy }} to={sideEnd} color={SEA.side} width={2.6} />
+      </g>
+      <g data-testid="trainer-top-labels">
+        {sailLabels.map(label => (
+          <SceneLabel
+            key={label.sail}
+            x={label.x}
+            y={label.y}
+            anchor="middle"
+            baseline="central"
+            fill={label.sail === 'jib' ? '#9ad6ff' : '#ffd7a8'}
+            size={sailLabelSize}
+            halo={px(3)}
+            testId={`trainer-top-sail-${label.sail}`}
+          >
+            {label.name}
+          </SceneLabel>
+        ))}
+        <SceneLabel
+          x={cx}
+          y={tw.start.y - px(6)}
+          anchor="middle"
+          fill={SEA.trueWind}
+          size={px(15)}
+          halo={px(3.5)}
+          mono
+          testId="trainer-top-tw"
+        >
+          {twLabel}
+        </SceneLabel>
+        {/* The AW label runs away from the true-wind shaft, below the TW/N
+            line and clear of the corner wind card (placeAwLabel). */}
+        <SceneLabel
+          x={awLabel.x}
+          y={awLabel.y}
+          anchor={awLabel.anchor}
+          fill={SEA.apparentWind}
+          size={px(AW_LABEL_PX)}
+          halo={px(3.5)}
+          mono
+          testId="trainer-top-aw"
+        >
+          {awText}
+        </SceneLabel>
+        <SceneLabel
+          x={driveLabel.x}
+          y={driveLabel.y}
+          anchor={driveLabel.anchor}
+          baseline="central"
+          fill={SEA.drive}
+          size={px(MIN_TOP_LABEL_PX)}
+          halo={px(3)}
+          testId="trainer-top-drive"
+        >
+          {driveText}
+        </SceneLabel>
+        <SceneLabel
+          x={sideLabel.x}
+          y={sideLabel.y}
+          anchor={sideLabel.anchor}
+          baseline="central"
+          fill={SEA.side}
+          size={px(MIN_TOP_LABEL_PX)}
+          halo={px(3)}
+          testId="trainer-top-side"
+        >
+          {sideText}
+        </SceneLabel>
       </g>
     </svg>
   );
@@ -780,26 +872,6 @@ function BoatTop(args: {
             strokeWidth={1.6}
             strokeLinecap="round"
           />
-          {/* Label with pill background so it reads on any sail tint */}
-          <rect
-            x={jibSide * 18 * jibBelly - 14}
-            y={50}
-            width={28}
-            height={12}
-            rx={3}
-            fill="rgba(10, 22, 40, 0.78)"
-          />
-          <text
-            x={jibSide * 18 * jibBelly}
-            y={59}
-            fill="#7fc8ff"
-            fontSize="9"
-            fontWeight="800"
-            textAnchor="middle"
-            style={{ letterSpacing: '0.12em' }}
-          >
-            JIB
-          </text>
         </g>
       )}
 
@@ -933,26 +1005,6 @@ function BoatTop(args: {
             strokeWidth={1.8}
             strokeLinecap="round"
           />
-          {/* Label with pill background */}
-          <rect
-            x={mainSide * 34 * mainBelly - 18}
-            y={86}
-            width={36}
-            height={14}
-            rx={3}
-            fill="rgba(10, 22, 40, 0.78)"
-          />
-          <text
-            x={mainSide * 34 * mainBelly}
-            y={96}
-            fill="#ffd7a8"
-            fontSize="10"
-            fontWeight="800"
-            textAnchor="middle"
-            style={{ letterSpacing: '0.1em' }}
-          >
-            MAIN
-          </text>
         </g>
       )}
 
@@ -963,8 +1015,9 @@ function BoatTop(args: {
 }
 
 // ---------------------------------------------------------------------------
-// Arrow helper (SVG arrow with optional label). Used only by SceneTop, kept
-// colocated so callers don't need to cross-import an SVG primitive.
+// Arrow helper (SVG arrow, no text). Used only by SceneTop, kept colocated so
+// callers don't need to cross-import an SVG primitive. Labels are drawn by
+// SceneLabel outside the glow filter.
 // ---------------------------------------------------------------------------
 
 function Arrow(props: {
@@ -972,13 +1025,10 @@ function Arrow(props: {
   to: { x: number; y: number };
   color: string;
   width: number;
-  label?: string;
-  labelPos?: { x: number; y: number };
-  labelAnchor?: 'start' | 'middle' | 'end';
 }) {
-  const { from, to, color, width, label, labelPos, labelAnchor = 'middle' } = props;
+  const { from, to, color, width } = props;
   const angle = Math.atan2(to.y - from.y, to.x - from.x);
-  const headSize = 9;
+  const headSize = 11;
   const left = {
     x: to.x - Math.cos(angle - Math.PI / 6) * headSize,
     y: to.y - Math.sin(angle - Math.PI / 6) * headSize,
@@ -1006,19 +1056,244 @@ function Arrow(props: {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {label && labelPos && (
-        <text
-          x={labelPos.x}
-          y={labelPos.y}
-          textAnchor={labelAnchor}
-          fill={color}
-          fontSize="11"
-          fontWeight="800"
-          style={{ fontFamily: 'ui-monospace, monospace' }}
-        >
-          {label}
-        </text>
-      )}
     </g>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Readable labels on the top view (TestFlight 74 feedback).
+// ---------------------------------------------------------------------------
+
+/** Fixed sea and label colours of the top view, the same in both app themes.
+ * Meaning is unchanged: cyan wind, green drive, amber side force, red no-go. */
+export const SEA = Object.freeze({
+  centre: '#14456e',
+  edge: '#08213b',
+  halo: 'rgba(3, 14, 28, 0.92)',
+  compass: '#cfe2ee',
+  noGo: '#ff8a8a',
+  trueWind: '#3fdcff',
+  apparentWind: '#9eeeff',
+  drive: '#5cff98',
+  side: '#ffc457',
+});
+
+/** A label point just past an arrow tip, anchored so the text runs away from it. */
+function beyondTip(cx: number, cy: number, r: number, angleDeg: number): { x: number; y: number; anchor: 'start' | 'middle' | 'end' } {
+  const p = polarPoint(cx, cy, r, angleDeg);
+  const dx = Math.sin(finite(angleDeg) * Math.PI / 180);
+  return { x: p.x, y: p.y, anchor: dx > 0.35 ? 'start' : dx < -0.35 ? 'end' : 'middle' };
+}
+
+type LabelBox = { l: number; t: number; r: number; b: number };
+/** SVG rotate(deg) of a point about the origin. */
+const turn = (x: number, y: number, deg: number) => {
+  const a = finite(deg) * Math.PI / 180;
+  return { x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) };
+};
+const overlaps = (a: LabelBox, b: LabelBox) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+
+/** Width of a sail name in viewBox units: bold sans glyphs are about 0.62 em wide. */
+const nameWidth = (chars: number, size: number) => size * 0.62 * chars;
+
+/**
+ * Package 11 (audit B11, TestFlight 76): the sail names sit level beside the
+ * sails, in the reader's language and at the scene's label size. They were
+ * pills inside the turning sails ("JIB / MAIN", 8 px on a phone) and at a
+ * readable size they covered the sails and each other. Each name starts at its
+ * sail's belly (the same transforms BoatTop draws the sail with: the jib from
+ * the forestay, the main from the mast) and moves outward from the boat until
+ * it clears the hull. Pure, so it is unit tested.
+ */
+export function sailLabelPlaces({ cx, cy, boatRotation, sailSide, windIntensity, mainVisualScale, size, main, jib }: {
+  cx: number; cy: number; boatRotation: number; sailSide: 1 | -1; windIntensity: number; mainVisualScale: number; size: number;
+  main: { angle: number; name: string } | null; jib: { angle: number; name: string } | null;
+}): { sail: 'jib' | 'main'; name: string; x: number; y: number; box: LabelBox }[] {
+  const place = (sail: 'jib' | 'main', name: string, local: { x: number; y: number }) => {
+    const at = turn(local.x, local.y, boatRotation);
+    const len = Math.hypot(at.x, at.y) || 1;
+    const half = { w: nameWidth(name.length, size) / 2 + size * 0.3, h: size * 0.75 };
+    // Out along the line from the boat's centre until the hull (about 110 units
+    // from the centre) is behind the name's nearest edge.
+    const reach = Math.max(len, 110) + Math.abs(at.x / len) * half.w + Math.abs(at.y / len) * half.h;
+    // Kept on the drawing (centred in a 2cx by 2cy view box).
+    const x = Math.min(2 * cx - half.w, Math.max(half.w, cx + at.x / len * reach));
+    const y = Math.min(2 * cy - half.h, Math.max(half.h, cy + at.y / len * reach));
+    return { sail, name, x, y, box: { l: x - half.w, r: x + half.w, t: y - half.h, b: y + half.h } };
+  };
+  const out: ReturnType<typeof sailLabelPlaces> = [];
+  if (jib) {
+    const side = Math.abs(jib.angle) < 0.5 ? sailSide : Math.sign(jib.angle);
+    const belly = finite(1 - 0.4 * windIntensity, 1);
+    const p = turn(side * 18 * belly, 56, -jib.angle);
+    out.push(place('jib', jib.name, { x: p.x, y: p.y - 58 }));
+  }
+  if (main) {
+    const side = Math.abs(main.angle) < 0.5 ? sailSide : Math.sign(main.angle);
+    const belly = finite((1 - 0.5 * windIntensity) * mainVisualScale, 1);
+    out.push(place('main', main.name, turn(side * 34 * belly, 93 * mainVisualScale, -main.angle)));
+  }
+  // Two names on one side can meet: the main moves down past the jib.
+  if (out.length === 2 && overlaps(out[0].box, out[1].box)) {
+    const [j, m] = out;
+    const dy = (m.y >= j.y ? 1 : -1) * ((j.box.b - j.box.t) + 2 * size * 0.2);
+    const y = j.y + dy;
+    out[1] = { ...m, y, box: { ...m.box, t: y - (m.box.b - m.box.t) / 2, b: y + (m.box.b - m.box.t) / 2 } };
+  }
+  return out;
+}
+
+/**
+ * Box of the centred no-go word at the top of the view (upper case, letter
+ * spacing 0.12 em, so about 0.72 em a glyph), padded by a quarter em.
+ */
+export function noGoLabelBox({ x, y, size, chars }: { x: number; y: number; size: number; chars: number }): LabelBox {
+  const half = (size * 0.72 * chars) / 2 + size * 0.25;
+  return { l: x - half, r: x + half, t: y - size * 0.85, b: y + size * 0.35 };
+}
+
+/**
+ * A force label ("drive", "side") past its arrow head, stepped further out
+ * along the arrow until it clears the boxes to avoid (the corner wind card,
+ * the sail names, the other force label), stays off the boat and on the
+ * scene. Pure, so it is unit tested.
+ */
+export function placeForceLabel({ cx, cy, tip, angle, gap, size, chars, avoid, bounds, keepOut = 0 }: {
+  cx: number; cy: number; tip: number; angle: number; gap: number; size: number; chars: number;
+  avoid: readonly LabelBox[]; bounds: { width: number; height: number };
+  /** Radius round the scene centre that holds the hull and the sails: a light hull or sail under a label hides it. */
+  keepOut?: number;
+}): { x: number; y: number; anchor: 'start' | 'middle' | 'end'; box: LabelBox } {
+  const onBoat = (b: LabelBox) => Math.hypot(Math.max(b.l - cx, 0, cx - b.r), Math.max(b.t - cy, 0, cy - b.b)) < keepOut;
+  const textWidth = size * 0.6 * chars;
+  // `side` moves the label across the arrow (beside its head) instead of along it.
+  const at = (r: number, side = 0, flip = false) => {
+    const tipPoint = beyondTip(cx, cy, r, angle);
+    const a = finite(angle) * Math.PI / 180;
+    const anchor: 'start' | 'middle' | 'end' = !flip ? tipPoint.anchor : tipPoint.anchor === 'end' ? 'start' : tipPoint.anchor === 'start' ? 'end' : 'middle';
+    const p = { ...tipPoint, anchor, x: tipPoint.x + Math.cos(a) * side, y: tipPoint.y + Math.sin(a) * side };
+    const l = p.anchor === 'start' ? p.x : p.anchor === 'end' ? p.x - textWidth : p.x - textWidth / 2;
+    return { ...p, box: { l, r: l + textWidth, t: p.y - size * 0.6, b: p.y + size * 0.6 } };
+  };
+  const inside = (b: LabelBox) => b.l >= 0 && b.t >= 0 && b.r <= bounds.width && b.b <= bounds.height;
+  const clear = (b: LabelBox) => inside(b) && !onBoat(b) && !avoid.some(other => overlaps(b, other));
+  const first = at(tip + gap);
+  // Nearest first: along the arrow, then beside it (the text running either way).
+  for (let step = 0; step < 12; step++) {
+    for (const k of [0, 1.2, -1.2, 2.4, -2.4, 3.6, -3.6]) {
+      for (const flip of [false, true]) {
+        const candidate = at(tip + gap + step * size * 0.9, k * size, flip);
+        if (clear(candidate.box)) return candidate;
+      }
+    }
+  }
+  return first;
+}
+
+/** AW label size, CSS px; monospace bold glyphs are about 0.62 em wide. */
+export const AW_LABEL_PX = 15;
+const MONO_EM = 0.62;
+
+/**
+ * Where the apparent-wind label goes on the top view (review 2026-11-01).
+ * It runs away from the true-wind shaft at x = cx, never straddles it, sits at
+ * least 22 CSS px below the top of the true-wind arrow (so it never shares the
+ * TW / N line) and stays right of the corner wind card (about 120 x 160 CSS px
+ * at the top left). When the preferred side has no room it moves to the
+ * other side of the shaft. Pure, so it is unit tested.
+ */
+export function placeAwLabel({ tail, cx, width, twTopY, unitsPerPx, chars }: {
+  tail: { x: number; y: number }; cx: number; width: number; twTopY: number; unitsPerPx: number; chars: number;
+}): { x: number; y: number; anchor: 'start' | 'end'; left: number; right: number } {
+  const u = Number.isFinite(unitsPerPx) && unitsPerPx > 0 ? unitsPerPx : 2;
+  const size = AW_LABEL_PX * u;
+  const textWidth = chars * MONO_EM * size;
+  const gap = 6 * u;
+  const shaftClear = 10 * u;
+  const y = Math.max(finite(tail.y) - gap, twTopY + 22 * u);
+  // The card covers the scene's top-left corner; below it only the edge margin applies.
+  const underCard = y - size < 160 * u;
+  const minLeft = underCard ? 120 * u : 4 * u;
+  const maxRight = width - 4 * u;
+  const tailX = finite(tail.x, cx);
+  const right = () => {
+    const left = Math.max(tailX + gap, cx + shaftClear);
+    return left + textWidth <= maxRight ? { x: left, y, anchor: 'start' as const, left, right: left + textWidth } : null;
+  };
+  const left = () => {
+    const r = Math.min(tailX - gap, cx - shaftClear);
+    return r - textWidth >= minLeft ? { x: r, y, anchor: 'end' as const, left: r - textWidth, right: r } : null;
+  };
+  const placed = tailX >= cx ? right() ?? left() : left() ?? right();
+  if (placed) return placed;
+  const fallback = Math.min(maxRight - textWidth, Math.max(tailX + gap, cx + shaftClear));
+  return { x: fallback, y, anchor: 'start', left: fallback, right: fallback + textWidth };
+}
+
+/** Smallest label size on the top view, CSS px (a 390px phone included). */
+export const MIN_TOP_LABEL_PX = 13;
+
+/**
+ * viewBox units per CSS pixel of a `meet`-scaled SVG of the given size.
+ * Measured with a ResizeObserver; until the first measurement it assumes a
+ * phone-sized scene, so the first frame is never tiny.
+ */
+export function unitsPerCssPx(rendered: { width: number; height: number }, width: number, height: number, fallback = 2): number {
+  const scale = Math.min(rendered.width / width, rendered.height / height);
+  return Number.isFinite(scale) && scale > 0 ? 1 / scale : fallback;
+}
+
+function useSvgUnitsPerPx(ref: RefObject<SVGSVGElement | null>, width: number, height: number): number {
+  const [upp, setUpp] = useState(2);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      const next = unitsPerCssPx(r, width, height, 0);
+      if (next > 0) setUpp(prev => (Math.abs(prev - next) > 0.01 ? next : prev));
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, width, height]);
+  return upp;
+}
+
+/** Bold text on a dark halo (paint-order stroke), sized in viewBox units. */
+function SceneLabel(props: {
+  x: number;
+  y: number;
+  anchor: 'start' | 'middle' | 'end';
+  baseline?: 'central' | 'auto';
+  fill: string;
+  size: number;
+  halo: number;
+  mono?: boolean;
+  spacing?: string;
+  testId?: string;
+  children: ReactNode;
+}) {
+  const { x, y, anchor, baseline = 'auto', fill, size, halo, mono, spacing, testId, children } = props;
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={anchor}
+      dominantBaseline={baseline}
+      fill={fill}
+      fontSize={size.toFixed(1)}
+      fontWeight={800}
+      stroke={SEA.halo}
+      strokeWidth={halo.toFixed(1)}
+      strokeLinejoin="round"
+      paintOrder="stroke"
+      data-testid={testId}
+      style={{ letterSpacing: spacing, fontFamily: mono ? 'ui-monospace, monospace' : undefined }}
+    >
+      {children}
+    </text>
   );
 }

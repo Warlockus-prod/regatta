@@ -1,6 +1,9 @@
 'use client';
 
 import { FoundationReturn } from "@/components/FoundationReturn";
+import { RaceReturn } from "@/components/RaceReturn";
+import { TrainerSwitcher } from "@/components/product/TrainerSwitcher";
+import { TRAINER_NAMES } from "@/lib/product/trainer-names";
 
 import styles from "./SimulatorV3.module.css";
 import { SavePractice } from "../sailing-lab/ui/SavePractice";
@@ -10,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { useI18n } from '@/lib/i18n';
+import { RACE_UNITS } from '@/features/race-hud/units';
 import { legacyPick } from '@/lib/languages';
 import type { CameraView } from "../simulator-3d/camera";
 import { getBoatParams } from '@/lib/sailing-physics';
@@ -22,14 +26,15 @@ import { assessmentCopy } from "../../data/sailing-lab/assessment-copy";
 import { TrimStudyGoal, TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
 import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
 import { useTrainerCheckpoint } from "./hooks/use-trainer-checkpoint";
-import { resolveTrainerDeepLink, readTrainerSetupFromSearch, resolveWindObservationEntry } from './runtime/deep-link';
+import { resolveTrainerDeepLink, readTrainerCameraFromSearch, readTrainerSetupFromSearch, resolveWindObservationEntry } from './runtime/deep-link';
 import { uiToControls } from "./runtime/create-runtime-state";
 import {
   type DrillDefinition,
   type ScenarioPreset,
 } from './runtime/scenario-presets';
-import { recommendedTrim } from './runtime/trim-heuristics';
-import { advanceDrillClock } from './runtime/drill-clock';
+import { autoTrimStep, bestVmgTwa, trainerOptimum, trimDiffers } from './runtime/auto-trim';
+import { AUTO_TRIM_PERIOD_S } from '@/lib/helm-trim';
+import { advanceDrillAttempt, newDrillAttempt, showDrill, type DrillAttempt } from './runtime/drill-clock';
 import { CommentaryLine } from './ui/CommentaryLine';
 import { GlossaryFooter } from './ui/GlossaryFooter';
 import { MetricsStrip } from './ui/MetricsStrip';
@@ -37,6 +42,8 @@ import { SceneOverlayLabels } from './ui/SceneOverlayLabels';
 import { SceneRear } from './ui/SceneRear';
 import { SceneSide } from './ui/SceneSide';
 import { SceneTop } from './ui/SceneTop';
+import { TrainerWindInstrument } from './ui/TrainerWindInstrument';
+import { trainerWindCardMode } from './ui/trainer-wind';
 import { DrillCard, type DrillResult } from './ui/panels/DrillCard';
 import { ModeBar, type ModeKind } from './ui/panels/ModeBar';
 import { ScenarioPicker } from './ui/panels/ScenarioPicker';
@@ -62,6 +69,7 @@ import {
   GearButton,
   SceneBar,
   SceneDrawer,
+  SceneStage,
   TrainerWorkspace,
   ViewButton,
   WheelDeck,
@@ -74,6 +82,9 @@ import {
   type DockTab,
   type HelmTarget,
 } from '../trainer-controls';
+
+/** Water behind the flat views of the trainer, in the theme's colours. */
+const TRAINER_WATER = 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)';
 
 const TrainerBoat3D = dynamic(() => import("./ui/TrainerBoat3D"), { ssr: false });
 
@@ -135,9 +146,20 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const [ui, setUiState] = useState<UiState>(FREE_TRAINER_UI);
   const uiRef = useRef(ui);
   uiRef.current = ui;
-  const setUi = useCallback((action: SetStateAction<UiState>) => {
+  // Package 13 stage D: the auto-trim. A sheet or twist the learner moves
+  // switches it off; "assist" marks a change the solver made (auto-trim,
+  // "Best", a course preset), which leaves it on.
+  const [autoTrim, setAutoTrimState] = useState(false);
+  const autoTrimRef = useRef(false);
+  const setAutoTrim = useCallback((on: boolean) => {
+    if (autoTrimRef.current === on) return;
+    autoTrimRef.current = on; setAutoTrimState(on);
+  }, []);
+  const setUi = useCallback((action: SetStateAction<UiState>, source?: "assist") => {
     const previous = uiRef.current, next = typeof action === "function" ? action(previous) : action;
     uiRef.current = next; setUiState(action);
+    if (source !== "assist" && autoTrimRef.current && (next.mainAngle !== previous.mainAngle || next.jibAngle !== previous.jibAngle
+      || next.mainTwistPct !== previous.mainTwistPct || next.jibTwistPct !== previous.jibTwistPct || next.mainTrim)) setAutoTrim(false);
     for (const [key, control, divisor] of [["twa", "twa", 1], ["windSpeed", "wind-speed", 1], ["mainAngle", "main-angle", 1], ["jibAngle", "jib-angle", 1], ["mainTwistPct", "main-twist", 100], ["jibTwistPct", "jib-twist", 100]] as const) if (next[key] !== previous[key]) recordControlChange("trainer", control, next[key] / divisor, previous[key] / divisor);
     if (next.reefLevel !== previous.reefLevel || next.jibFurlPct !== previous.jibFurlPct) {
       const before = uiToControls(previous, params), after = uiToControls(next, params);
@@ -158,7 +180,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       if (next.mainTrim.outhaulEase !== previous.mainTrim?.outhaulEase) recordControlChange("trainer", "outhaul", next.mainTrim.outhaulEase ?? .5, previous.mainTrim?.outhaulEase ?? .5);
       if (next.mainTrim.vangSpan !== previous.mainTrim?.vangSpan && next.mainTrim.vangSpan !== undefined) recordControlChange("trainer", "vang-span", next.mainTrim.vangSpan, previous.mainTrim?.vangSpan);
     }
-  }, [params]);
+  }, [params, setAutoTrim]);
   const [boatView, setBoatView] = useState<CameraView>("sails");
   const selectBoatView = (view: CameraView) => { setBoatView(view); recordControlChange("trainer", "camera", view, boatView); };
   const activeBoatView = boatView === "mainsheet" && !ui.mainTrim ? "sails" : boatView;
@@ -267,9 +289,12 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const simRef = useRef<SimulationModel>(sim);
   simRef.current = sim;
 
+  // The attempt itself is the pure machine in runtime/drill-clock.ts: an
+  // attempt the solver trimmed for the learner ends as "shown" and never passes.
+  const drillAttemptRef = useRef<DrillAttempt>(newDrillAttempt());
   useEffect(() => {
     if (mode !== 'drill' || !activeDrill || drillResult !== 'pending') return;
-    let progress = { time: simRef.current.session.simTime, heldFor: 0 };
+    drillAttemptRef.current = newDrillAttempt(simRef.current.session.simTime);
     const tickMs = 100;
     const iv = setInterval(() => {
       const s = simRef.current;
@@ -281,24 +306,36 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
         mainStalled: s.result.diag.mainStalled,
         jibStalled: s.result.diag.jibStalled,
       });
-      progress = advanceDrillClock(progress, elapsed, ok);
+      const attempt = advanceDrillAttempt(drillAttemptRef.current, elapsed, ok, activeDrill);
+      drillAttemptRef.current = attempt;
       setDrillElapsed(elapsed);
-      setDrillHeldFor(progress.heldFor);
-      if (progress.heldFor >= activeDrill.holdDuration) {
-        setDrillResult('win');
-        clearInterval(iv);
-      } else if (elapsed >= activeDrill.timeLimit) {
-        setDrillResult('fail');
+      setDrillHeldFor(attempt.heldFor);
+      if (attempt.outcome !== 'pending') {
+        setDrillResult(attempt.outcome);
         clearInterval(iv);
       }
     }, tickMs);
     return () => clearInterval(iv);
   }, [mode, activeDrill, drillResult]);
 
+  // "Show me", "Best", a course preset or the auto-trim trimmed the boat for
+  // the learner: a running or failed attempt ends as shown (no pass); only a
+  // new attempt the learner sails can pass.
+  const markAssisted = () => {
+    if (mode !== 'drill' || !activeDrill) return;
+    const shown = showDrill({ ...drillAttemptRef.current, outcome: drillResult });
+    drillAttemptRef.current = shown;
+    if (shown.outcome !== drillResult) {
+      setDrillHeldFor(shown.heldFor);
+      setDrillResult(shown.outcome);
+    }
+  };
+
   const startDrill = (def: DrillDefinition) => {
     trimAssessment.cancel();
     trimStudy.cancel();
     setPaused(false);
+    setAutoTrim(false);
     setActiveDrill(def);
     setDrillElapsed(0);
     setDrillHeldFor(0);
@@ -324,6 +361,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     trimStudy.cancel();
     setPaused(false);
     setActiveScenarioId(s.id);
+    setAutoTrim(false);
     setUi(s.ui);
     reset(s.ui);
   };
@@ -369,6 +407,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       } else {
         const observation = resolveWindObservationEntry(search);
         if (observation) selectBoatView(observation.boatView);
+        const camera = readTrainerCameraFromSearch(initialSearch ?? window.location.search);
+        if (camera) setBoatView(camera);
         const fromUrl = readTrainerSetupFromSearch(initialSearch ?? window.location.search);
         if (fromUrl) {
           const next = { ...FREE_TRAINER_UI, ...fromUrl };
@@ -383,32 +423,47 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reset, initialSearch]);
 
+  // Course presets, "Best VMG" and "Best" all read the one sheet solver
+  // (runtime/auto-trim.ts): the auto-trim at rest on the course they set.
   const setPreset = (twa: number) => {
-    const preset = recommendedTrim(Math.max(25, twa - 18), ui.windSpeed, ui.reefLevel, params);
-    setUi((prev) => ({
-      ...prev,
-      twa,
-      mainAngle: preset.mainAngle,
-      jibAngle: preset.jibAngle,
-      mainTwistPct: preset.mainTwistPct,
-      jibTwistPct: preset.jibTwistPct,
-    }));
+    const { trim } = trainerOptimum(uiRef.current, params, twa);
+    setUi((prev) => ({ ...prev, twa, ...trim }), "assist");
+    markAssisted();
   };
+  const setBestVmg = () => setPreset(bestVmgTwa(uiRef.current));
 
   const applyOptimal = () => {
-    setUi((prev) => ({
-      ...prev,
-      mainAngle: sim.optimal.mainAngle,
-      jibAngle: sim.optimal.jibAngle,
-      mainTwistPct: sim.optimal.mainTwistPct,
-      jibTwistPct: sim.optimal.jibTwistPct,
-    }));
+    const { trim } = trainerOptimum(uiRef.current, params);
+    setUi((prev) => ({ ...prev, ...trim }), "assist");
+    markAssisted();
   };
+  const toggleAutoTrim = () => {
+    const on = !autoTrimRef.current;
+    setAutoTrim(on);
+    if (on) markAssisted();
+  };
+  const showMe = () => { setAutoTrim(true); markAssisted(); };
+  // The auto-trim: every AUTO_TRIM_PERIOD_S the crew solves the sheets on the
+  // live boat and the controls move there; the runtime eases the sails at
+  // winch speed, so the learner sees the sheets travel.
+  useEffect(() => {
+    if (!autoTrim || paused || ui.mainTrim) return;
+    const step = () => {
+      const current = uiRef.current;
+      if (current.mainTrim) return;
+      const trim = autoTrimStep(simRef.current.session.boat, current, params);
+      if (trimDiffers(current, trim)) setUi((prev) => ({ ...prev, ...trim }), "assist");
+    };
+    step();
+    const iv = setInterval(step, AUTO_TRIM_PERIOD_S * 1000);
+    return () => clearInterval(iv);
+  }, [autoTrim, paused, ui.mainTrim, params, setUi]);
 
   const resetAll = () => {
     trimAssessment.cancel();
     trimStudy.cancel();
     setPaused(false);
+    setAutoTrim(false);
     setUi(FREE_TRAINER_UI);
     reset(FREE_TRAINER_UI);
     exitDrill();
@@ -468,10 +523,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     panel.querySelector("summary")?.focus({ preventScroll: true });
   };
 
-  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />
+  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} setBestVmg={setBestVmg} autoTrim={autoTrim} toggleAutoTrim={toggleAutoTrim} />
     {ui.view === "3d" && <BoatViewPresets view={activeBoatView} onSelect={selectBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp} />}
   </>;
-  const sessionPanel = <ViewPod section="session" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>;
+  const sessionPanel = <ViewPod section="session" paused={paused} togglePause={togglePause} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} setBestVmg={setBestVmg} autoTrim={autoTrim} toggleAutoTrim={toggleAutoTrim}>{checkpointPanel}</ViewPod>;
   const controlsLabel = tp("Управление парусами", "Sail controls", "Obsługa żagli", { es: "Controles de velas", fr: "Commandes des voiles", de: "Segelbedienung", it: "Comandi delle vele" });
   const conditionsLabel = tp("Условия: ветер и курс", "Conditions: wind and course", "Warunki: wiatr i kurs", { es: "Condiciones: viento y rumbo", fr: "Conditions : vent et cap", de: "Bedingungen: Wind und Kurs", it: "Condizioni: vento e rotta" });
   const sessionLabel = tp("Настройки и сохранение", "Settings and saving", "Ustawienia i zapis", { es: "Ajustes y guardado", fr: "Réglages et sauvegarde", de: "Einstellungen und Speichern", it: "Impostazioni e salvataggio" });
@@ -480,6 +535,11 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     ? <p className={styles.groupTitle}>{trimAssessment.assessment ? assessmentCopy.title[lang] : rigTitle}</p>
     : <ModeBar active={mode} onChange={handleModeChange} tp={tp} />;
 
+  // The race wind card over the scene (TestFlight 74): 3D with the bow-up
+  // dial, the top view and the deck camera text only; the side and rear
+  // drawings keep their own header in that corner.
+  const windCardMode = trainerWindCardMode(ui.view, activeBoatView);
+  const windCard = windCardMode ? <TrainerWindInstrument sim={sim} dial={windCardMode === "dial"} /> : null;
   const pointLabel = legacyPick(sim.pos, 'name', lang);
   const tackLabel =
     ui.tack === 'starboard'
@@ -525,7 +585,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                   helm={helmTarget}
                   hideHint={Boolean(ui.mainTrim)}
                   main={ui.mainTrim ? mainTrimWheelTarget(ui.mainTrim, sim.session.mainTrim?.pose.yaw ?? sim.liveMainAngle,
-                    workingLength => setUi(p => p.mainTrim ? { ...p, mainTrim: { ...p.mainTrim, workingLength } } : p)) : {
+                    workingLength => setUi(p => p.mainTrim ? { ...p, mainTrim: { ...p.mainTrim, workingLength } } : p), RACE_UNITS.metres[lang]) : {
                     ease: Math.min(1, Math.max(0, ui.mainAngle / params.mainMaxOff)),
                     angleDeg: ui.mainAngle,
                     setEase: (v) => setUi((p) => ({ ...p, mainAngle: Math.round(v * params.mainMaxOff * 10) / 10 })),
@@ -571,7 +631,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       >
         <div className="hidden sm:flex items-center gap-2 min-w-0">
           <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase shrink-0"
             style={{
               background: 'rgba(0, 212, 255, 0.16)',
               color: 'var(--accent-cyan)',
@@ -650,56 +710,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               </button>}
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Also bundled without the Next router for offline use. Hidden in native embeds. */}
               <a href="/learn/sails" className={styles.courseLink}>{tp("К урокам", "Lessons", "Do lekcji", { es: "Lecciones", fr: "Leçons", de: "Lektionen", it: "Lezioni" })}</a>
-              <details className={styles.otherTools}>
-              <summary>{tp("Другие тренажёры", "Other simulators", "Inne symulatory", { es: "Otros simuladores", fr: "Autres simulateurs", de: "Andere Simulatoren", it: "Altri simulatori" })}</summary>
-              <nav>
-              <a
-                href="/simulator"
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
-                style={{
-                  borderColor: 'rgba(139, 167, 184, 0.22)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                {tp('Основы', 'Basics', 'Podstawy', {
-                  es: 'Fundamentos',
-                  fr: 'Bases',
-                  de: 'Grundlagen',
-                  it: 'Basi',
-                })}
-              </a>
-              <span
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border"
-                style={{
-                  background: 'rgba(0, 212, 255, 0.14)',
-                  borderColor: 'rgba(0, 212, 255, 0.35)',
-                  color: 'var(--accent-cyan)',
-                }}
-              >
-                {tp('Тренажёр', 'Trainer', 'Trenażer', {
-                  es: 'Trimado',
-                  fr: 'Réglage',
-                  de: 'Trainer',
-                  it: 'Regolazione',
-                })}
-              </span>
-              <a
-                href="/simulator2"
-                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
-                style={{
-                  borderColor: 'rgba(139, 167, 184, 0.22)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                {tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
-                  es: 'Barco 3D',
-                  fr: 'Bateau 3D',
-                  de: '3D-Boot',
-                  it: 'Barca 3D',
-                })}
-              </a>
-              </nav>
-              </details>
+              {/* R-13, audit B2: the one switcher, also on the web; on a compact screen it sits in the More panel. */}
+              <TrainerSwitcher current="trainer" lang={lang} className={isDesktop ? "w-[440px] max-w-full" : "w-full"} />
             </>
           )}
         </div>
@@ -745,7 +757,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           node: (
             <div className="space-y-2">
               {modePanel}
-              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} />}
+              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} onShowMe={showMe} />}
               {mode === 'scenario' && <ScenarioPicker activeId={activeScenarioId} onPick={pickScenario} lang={lang} tp={tp} />}
             </div>
           ),
@@ -768,7 +780,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       }`}
       style={{ background: 'var(--bg-primary)' }}
     >
+      <h1 className="sr-only">{TRAINER_NAMES.trainer[lang]}</h1>
       <FoundationReturn bar initialSearch={initialSearch} />
+      <RaceReturn bar initialSearch={initialSearch} />
       <LessonReturn lang={lang} initialSearch={initialSearch} />
       {/* Desktop keeps its utility toolbar. Compact screens keep the tour in
           SceneBar and the web-only Share/course/tier links in More. Embedded
@@ -801,6 +815,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               onStart={startDrill}
               onRestart={restartDrill}
               onExit={exitDrill}
+              onShowMe={showMe}
             />
           )}
           {mode === 'scenario' && (
@@ -843,6 +858,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             ) : (
               <SceneRear ui={ui} sim={sim} tp={tp} />
             )}
+            {onClient && windCard}
           </div>
           <MetricsStrip ui={ui} sim={sim} tp={tp} />
           <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
@@ -893,15 +909,22 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               data-session-tick={sim.session.ticks}
               data-session-heading={sim.session.boat.heading}
               className="absolute inset-0"
-              style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)' }}
+              style={ui.view === "3d" ? undefined : { background: TRAINER_WATER }}
             >
-              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} /> : ui.view === 'top' ? (
+              {/* Package 32 stage B: the picture is a stage, painted over the whole phone workspace under
+                  the controls; the flat views put their water there and keep the drawing in the window. */}
+              <SceneStage style={{ background: TRAINER_WATER }}>
+                {onClient && ui.view === "3d" && <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} />}
+              </SceneStage>
+              {/* Flat drawings keep clear of the game screen's instrument card and of the coach's subtitle (--trainer-flat-*). */}
+              {!onClient || ui.view === "3d" ? null : <div className="absolute inset-x-0" style={{ top: "var(--trainer-flat-top, 0px)", bottom: "var(--trainer-flat-bottom, 0px)" }}>{ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />
               ) : ui.view === 'side' ? (
                 <SceneSide ui={ui} sim={sim} tp={tp} />
               ) : (
                 <SceneRear ui={ui} sim={sim} tp={tp} />
-              )}
+              )}</div>}
+              {onClient && windCard}
               <SceneDrawer
                 id="trainer-views"
                 open={viewsOpen}
@@ -924,10 +947,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               </SceneDrawer>
             </div>
           }
-          readouts={<>
-            <MetricsStrip ui={ui} sim={sim} tp={tp} dense />
-            <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} dense />
-          </>}
+          readouts={<MetricsStrip ui={ui} sim={sim} tp={tp} dense />}
+          caption={<CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} dense />}
           dock={
             <ControlDock
               key={taskTab ? 'task' : 'free'}

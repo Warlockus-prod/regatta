@@ -11,22 +11,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // A direct call (no renderer) to read the lobby's real click handlers: while
 // it runs, useState returns its initial value and effects do not run;
 // `tab` stands in for the lobby's preset tab ("learn" on a first render).
-const direct = vi.hoisted(() => ({ on: false, tab: null as string | null }));
+const direct = vi.hoisted(() => ({ on: false, tab: null as string | null, effects: null as Array<() => void> | null }));
 vi.mock("react", async original => {
   const actual = await original<typeof import("react")>();
   return {
     ...actual,
     useState: (initial: unknown) => direct.on
-      ? [direct.tab && initial === "learn" ? direct.tab : typeof initial === "function" ? (initial as () => unknown)() : initial, () => {}]
+      ? (() => { const value = typeof initial === "function" ? (initial as () => unknown)() : initial; return [direct.tab && value === "learn" ? direct.tab : value, () => {}]; })()
       : actual.useState(initial),
-    useEffect: (effect: () => void, deps?: unknown[]) => direct.on ? undefined : actual.useEffect(effect, deps),
+    // A direct call collects the effects (when asked), so a test can run them as one commit.
+    useEffect: (effect: () => void, deps?: unknown[]) => direct.on ? void direct.effects?.push(effect) : actual.useEffect(effect, deps),
   };
 });
 vi.mock("./RaceCockpit", () => ({ RaceModePicker: () => <div data-testid="mode-picker" /> }));
 vi.mock("@/components/FoundationReturn", () => ({ FoundationReturn: () => null }));
 vi.mock("@/lib/i18n", () => ({ useI18n: () => ({ lang: "en", tl: (text: Record<string, string>) => text.en, tp: (_ru: string, en: string) => en }) }));
-import { GameMenu, LOBBY_HERO_SRC } from "./GameMenu";
+import { GameMenu, LOBBY_HERO_SRC, linkedMenuTab } from "./GameMenu";
 import { missions } from "@/data/missions";
+import { RACE_HOME_STORAGE_KEY } from "@/lib/race-next-step";
+import { BEST_TIMES_STORAGE_KEY } from "@/lib/best-times";
 
 const noop = () => {};
 function lobbyProps(patch: Partial<ComponentProps<typeof GameMenu>> = {}): ComponentProps<typeof GameMenu> {
@@ -57,11 +60,13 @@ afterEach(() => vi.unstubAllGlobals());
 describe("race lobby", () => {
   it("is one site screen: race frame, presets, mode, venue cards and one primary start", () => {
     const html = lobby();
-    expect(LOBBY_HERO_SRC).toBe("/design-v3/sailing-editorial.webp");
+    expect(LOBBY_HERO_SRC).toBe("/design-v3/race-scene.webp");
     expect(html).toContain(`src="${LOBBY_HERO_SRC}"`);
     expect(html).toContain('data-testid="mode-picker"');
     expect(html).toContain('data-testid="race-lobby-venues"');
-    expect(html.match(/role="radio"/g)?.length).toBe(4); // the four venue cards
+    // The four venue cards; the closed "Race settings" disclosure after them holds the setup choices (package 11).
+    expect(html.split('data-testid="race-setup"')[0].match(/role="radio"/g)?.length).toBe(4);
+    expect(html).toMatch(/<details[^>]*data-testid="race-setup"/);
     expect(html.match(/data-testid="race-lobby-start"/g)?.length).toBe(1);
     expect(html.match(/background:var\(--accent-cyan\)/g)?.length).toBe(1);
     expect(html).toContain("Start your first race");
@@ -106,5 +111,104 @@ describe("race lobby", () => {
       expect(byTestId(tree, "race-lobby-briefing")!.onClick).toBe(onShowBriefing);
       expect(byTestId(tree, "race-lobby-start")!.disabled).toBe(false);
     }
+  });
+
+  // F5: "How to race" reopens the race intro; a secondary entry, so the start stays the one cyan action.
+  it("offers How to race as a secondary 44 px button wired to onShowIntro", () => {
+    const onShowIntro = vi.fn();
+    for (const native of [false, true]) expect(byTestId(lobbyTree({ onShowIntro, native }), "race-lobby-intro")!.onClick).toBe(onShowIntro);
+    const html = lobby({ onShowIntro });
+    expect(html).toMatch(/<button[^>]*data-testid="race-lobby-intro"[^>]*class="[^"]*min-h-11[^"]*"[^>]*>(?:(?!<\/button>).)*How to race<\/button>/);
+    expect(html.match(/background:var\(--accent-cyan\)/g)?.length).toBe(1);
+    expect(lobby()).not.toContain('data-testid="race-lobby-intro"');
+  });
+});
+
+// Contract (M4-2): "Back to the race" from a practice links /game with its
+// level and wind; the lobby opens on "Free race" with them on every mount
+// (also after a race, through Menu), and never resets them to the "First
+// race" defaults. A mission, a daily race or a bare lesson link keep their tab.
+describe("race lobby opened by a linked setup (M4-2)", () => {
+  it("picks the tab from the link", () => {
+    expect(linkedMenuTab(new URLSearchParams("?difficulty=hard&wind=heavy"))).toBe("free");
+    expect(linkedMenuTab(new URLSearchParams("?difficulty=easy&wind=medium&fromLesson=mini-race"))).toBe("free");
+    expect(linkedMenuTab(new URLSearchParams("?fromLesson=mini-race"))).toBe("learn");
+    expect(linkedMenuTab(new URLSearchParams(`?mission=${missions[0].id}`))).toBe("learn");
+    expect(linkedMenuTab(new URLSearchParams("?daily=2026-10-30"))).toBe("learn");
+    expect(linkedMenuTab(new URLSearchParams(""))).toBe("learn");
+  });
+
+  /** Mount the lobby and run its mount effects as one commit (the tab is
+   * still the initial one there, as in React), recording what the lobby asks
+   * the race to set. */
+  function mount(search: string, difficulty: "easy" | "hard" = "hard") {
+    vi.stubGlobal("window", { location: { search } });
+    const calls: string[] = [];
+    direct.on = true; direct.effects = [];
+    let tree: Node;
+    try {
+      tree = GameMenu(lobbyProps({ difficulty, windStrength: "light",
+        setDifficulty: d => calls.push(`difficulty:${d}`), setWindStrength: w => calls.push(`wind:${w}`),
+        pickMission: m => calls.push(`mission:${m?.id ?? "none"}`) })) as Node;
+      for (const effect of direct.effects) effect();
+    } finally { direct.on = false; direct.effects = null; }
+    const start = byTestId(tree, "race-lobby-start")!;
+    return { calls, cta: (start.children as unknown[]).join("") };
+  }
+
+  it("opens on Free race for a linked level and wind and keeps them, on every mount", () => {
+    // The first mount and a later one (Menu after a race) behave the same.
+    for (let mountNo = 0; mountNo < 2; mountNo++) {
+      const { calls, cta } = mount("?difficulty=hard&wind=light");
+      expect(cta).toBe("Start · Hard →");
+      expect(calls).not.toContain("difficulty:easy");
+      expect(calls).not.toContain("wind:medium");
+    }
+  });
+
+  it("a bare lesson link or no link opens First race with its defaults", () => {
+    for (const search of ["?fromLesson=mini-race", ""]) {
+      const { calls, cta } = mount(search, "easy");
+      expect(cta).toBe("Start your first race →");
+      expect(calls).toEqual(expect.arrayContaining(["difficulty:easy", "wind:medium"]));
+    }
+  });
+});
+
+// Contract (F1, TestFlight 74 feedback): before the first ended solo race on
+// this device the easy preset is "First race" and the start "Start your first
+// race"; after one (the race home row or a personal best) the same preset is
+// "Easy race" and the one primary start says "Start the race".
+describe("race lobby wording after the first race (F1)", () => {
+  function lobbyWith(rows: Record<string, string>) {
+    vi.stubGlobal("window", { location: { search: "" }, localStorage: { getItem: (key: string) => rows[key] ?? null } });
+    try { return lobby(); } finally { vi.unstubAllGlobals(); vi.stubGlobal("React", React); }
+  }
+
+  it("says First race with no race on this device", () => {
+    const html = lobbyWith({});
+    expect(html).toContain('aria-label="First race.');
+    expect(html).toContain("Start your first race →");
+    expect(html).not.toContain("Easy race");
+  });
+
+  it("says Easy race and Start the race after an ended race or a personal best", () => {
+    const rows: Array<Record<string, string>> = [
+      { [RACE_HOME_STORAGE_KEY]: JSON.stringify({ schema: 1, days: ["2026-10-31"], goal: null, dailyDone: null }) },
+      { [BEST_TIMES_STORAGE_KEY]: JSON.stringify({ "easy-medium": { timeSec: 101, ts: 1 } }) },
+    ];
+    for (const row of rows) {
+      const html = lobbyWith(row);
+      expect(html).toContain('aria-label="Easy race. Easy level, medium wind.');
+      expect(html).not.toContain("First race");
+      expect(html).not.toContain("first race");
+      expect(html.match(/data-testid="race-lobby-start"/g)?.length).toBe(1);
+      expect(html).toMatch(/data-testid="race-lobby-start"[^>]*>Start the race →<\/button>/);
+    }
+  });
+
+  it("a storage that throws reads as no race", () => {
+    vi.stubGlobal("window", { location: { search: "" }, localStorage: { getItem: () => { throw new Error("denied"); } } });
+    try { expect(lobby()).toContain("Start your first race →"); } finally { vi.unstubAllGlobals(); vi.stubGlobal("React", React); }
   });
 });

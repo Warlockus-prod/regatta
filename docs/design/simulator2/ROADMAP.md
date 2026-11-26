@@ -6,6 +6,8 @@
 physics upgrades come from adopting the golden VPP engine. The 3D-quality
 items below (water, lighting, telltales, wake) remain valid as the visual
 upgrade backlog; the race-shell items (marks, AI, countdown) are cancelled.
+Those visual items are scheduled in `docs/BACKLOG.md` (package 29); this file
+keeps the detail only.
 
 The original text is kept below for reference.
 

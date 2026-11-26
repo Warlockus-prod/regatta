@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { makeStandardCourse, updateLap, type RaceBoat, type Vec2 } from "./race-physics";
 import { createMissedMarkState, detectMissedMark, MISSED_MARK_CLEARANCE, MISSED_MARK_COOLDOWN_SEC } from "./race-missed-mark";
+import { makePhysicalRaceCourse } from "./race-courses";
+import { raceScale } from "./race-scale";
 
 const course = makeStandardCourse();
 const lineY = course.finishLine.a.y; // 1050, x 320..480
@@ -100,5 +102,33 @@ describe("detectMissedMark", () => {
     expect(detectMissedMark(state, { ...frame, lapDone: 0 }).missed).toBe(true);
     expect(detectMissedMark(state, { ...frame, lapDone: 1 }).missed).toBe(false);
     expect(detectMissedMark(state, { ...frame, lapDone: 0, started: false }).missed).toBe(false);
+  });
+});
+
+// M5 step 6: the metric race arms the notice at two of its own hull lengths
+// (raceScale missedMarkClearanceUnits: 2 x 13.2 m = 44 units), the legacy race
+// keeps its 40 units.
+describe("detectMissedMark per race model", () => {
+  const metric = makePhysicalRaceCourse("short");
+  const y = metric.finishLine.a.y, x = (metric.finishLine.a.x + metric.finishLine.b.x) / 2;
+  /** Up `climb` units above the line and straight back down across it, 1-unit steps. */
+  function back(climb: number, clearance?: number): number {
+    let state = createMissedMarkState(), notices = 0, pos = { x, y: y + 5 };
+    const path = [...Array.from({ length: climb + 5 }, (_, i) => y + 4 - i), ...Array.from({ length: climb + 10 }, (_, i) => y - climb + i + 1)];
+    path.forEach((py, i) => {
+      const prevPos = pos; pos = { x, y: py };
+      const r = detectMissedMark(state, { prevPos, pos, lapDone: 0, started: true, course: metric, time: i / 30, clearance });
+      state = r.state; if (r.missed) notices++;
+    });
+    return notices;
+  }
+  it("takes the clearance from the scale: two metric hull lengths, the legacy 40 units", () => {
+    expect(raceScale(null).missedMarkClearanceUnits).toBe(MISSED_MARK_CLEARANCE);
+    const metricClearance = raceScale("short").missedMarkClearanceUnits;
+    expect(metricClearance).toBeCloseTo(2 * 13.2 / .6, 9);
+    // 42 units up and back: the legacy race would speak, the metric race has not yet left the start crowd.
+    expect(back(42)).toBe(1);
+    expect(back(42, metricClearance)).toBe(0);
+    expect(back(46, metricClearance)).toBe(1);
   });
 });

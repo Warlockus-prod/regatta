@@ -10,9 +10,13 @@ import WebKit
 class VoxAdView: ExpoView {
   let onAdLoaded = EventDispatcher()
   let onAdFailed = EventDispatcher()
+  /// The VAST video played to the end (VOX SDK 1.4.0 onComplete, at least 90% actually watched): the moment to grant a reward.
+  let onAdCompleted = EventDispatcher()
 
   var placeId = ""
   var kind = "banner"
+  var pageUrl = ""
+  var language = ""
   var closeButtonDelay: Double = 0
   var reloadKey = 0
 
@@ -45,12 +49,15 @@ class VoxAdView: ExpoView {
   }
 
   func loadIfNeeded() {
-    guard !placeId.isEmpty else { return }
-    guard bounds.width > 0 else {
+    // No request without the app's address (Hybrid would record it on its fallback website)
+    // or the app's language (the privacy texts promise it).
+    guard !placeId.isEmpty, !pageUrl.isEmpty, !language.isEmpty else { return }
+    // Off screen there is no owning controller yet, and ads load only on screen.
+    guard bounds.width > 0, window != nil else {
       pendingLoad = true
       return
     }
-    let signature = "\(kind)|\(placeId)|\(reloadKey)"
+    let signature = "\(kind)|\(placeId)|\(pageUrl)|\(language)|\(reloadKey)"
     guard signature != loadedSignature else { return }
     loadedSignature = signature
     pendingLoad = false
@@ -85,21 +92,37 @@ class VoxAdView: ExpoView {
     }
   }
 
+  /// The controller that owns this view, found through the responder chain.
+  /// The SDK adds its player as a child of the controller it is given and puts
+  /// the player's view inside our container. UIKit throws, and the app dies,
+  /// if that controller is not an ancestor of the container, so the app's
+  /// "current" controller must not be used here: under the native stack it can
+  /// be a different one from the screen that holds this slot.
+  private func owningViewController() -> UIViewController? {
+    var responder: UIResponder? = self
+    while let current = responder {
+      if let controller = current as? UIViewController { return controller }
+      responder = current.next
+    }
+    return nil
+  }
+
   private func load() {
     generation += 1
     let current = generation
     Self.detachAds(in: self)
     subviews.forEach { $0.removeFromSuperview() }
 
-    let requestModel = AdRequestModel(placeId: placeId)
+    // gdpr 1 with no consent string: the SSP serves only non-personalised ads (owner 2026-11-03).
+    let requestModel = AdRequestModel(placeId: placeId, browser: VoxAdsModule.browser(pageUrl: pageUrl, language: language), gdpr: 1)
     let width = bounds.width
     let delay = closeButtonDelay
 
     Task { @MainActor [weak self] in
-      guard let self else { return }
+      guard let self, current == self.generation else { return }
       do {
         if self.kind == "video" {
-          guard let controller = self.appContext?.utilities?.currentViewController() else {
+          guard let controller = self.owningViewController() else {
             throw VoxBridgeError.noController
           }
           let container = UIView(frame: self.bounds)
@@ -110,10 +133,17 @@ class VoxAdView: ExpoView {
             containerView: container,
             parentController: controller,
             shouldHideBannerWithText: true,
-            closeButtonDelay: delay
+            closeButtonDelay: delay,
+            events: VOXVideoEvents(onComplete: { [weak self] in self?.onAdCompleted([:]) })
           )
           try await VOXAds.createVASTVideo(with: model)
-          guard current == self.generation else { return }
+          // The slot left the screen during the request: the SDK has just attached
+          // and started a player in the old container, so it must be stopped here.
+          guard current == self.generation else {
+            Self.detachAds(in: container)
+            container.removeFromSuperview()
+            return
+          }
           self.onAdLoaded(["width": width, "height": self.bounds.height])
         } else {
           let model = BannerModel(

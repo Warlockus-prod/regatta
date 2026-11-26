@@ -6,10 +6,9 @@ import { useI18n } from '@/lib/i18n';
 import {
   STERNIK_CATEGORY_BY_ID,
   STERNIK_EXAM,
-  STERNIK_EXAM_BASE_COUNTS,
-  STERNIK_EXAM_POOL,
   filterByBase,
-} from '@/data/sternik';
+  type SternikBank,
+} from '@/data/sternik-core';
 import {
   loadSternikProgress,
   recordSternikAnswer,
@@ -20,6 +19,7 @@ import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQu
 import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
 import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
+import SternikBankGate from '../SternikBankGate';
 import { useFocusTrap } from '../useFocusTrap';
 import { trackExamFinish, trackExamStart } from '@/lib/funnel';
 
@@ -44,7 +44,13 @@ function postExamDirty(dirty: boolean): void {
 
 type Phase = 'intro' | 'exam' | 'result';
 
+// The 879 questions are not in this page's JavaScript: the gate loads the
+// versioned bank file (loading, error with Retry, then the exam).
 export default function SternikExamPage() {
+  return <SternikBankGate>{(bank) => <SternikExam sternikBank={bank} />}</SternikBankGate>;
+}
+
+function SternikExam({ sternikBank }: { sternikBank: SternikBank }) {
   const { tp } = useI18n();
   const { examBase } = useSternikPrefs();
   const [phase, setPhase] = useState<Phase>('intro');
@@ -125,7 +131,7 @@ export default function SternikExamPage() {
   }, [secondsLeft, phase, tp]);
 
   const start = () => {
-    const pool = filterByBase(STERNIK_EXAM_POOL, examBase);
+    const pool = filterByBase(sternikBank.examPool, examBase);
     const qs = shuffled(pool).slice(0, STERNIK_EXAM.questions).map(prepareQuestion);
     setQuestions(qs);
     setAnswers(new Array(qs.length).fill(null));
@@ -192,7 +198,7 @@ export default function SternikExamPage() {
           )}
         </p>
         <div className="mb-5">
-          <BaseToggle counts={STERNIK_EXAM_BASE_COUNTS} />
+          <BaseToggle counts={sternikBank.examBaseCounts} />
           <p className="mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
             {tp(
               `Экзамен берёт ${STERNIK_EXAM.questions} случайных 3-вариантных вопросов из выбранной базы (числа выше - сколько таких доступно). Материалы - оригинальные из конспекта; Интернет - из открытых источников; Общая - всё вместе.`,

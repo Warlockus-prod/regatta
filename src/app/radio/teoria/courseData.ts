@@ -1,3 +1,4 @@
+import type { Lang } from "@/lib/languages";
 import { CHAPTER_QUESTION_IDS, THEORY_ORDER, type TheoryChapterId } from "./courseMap";
 import { SUPPLEMENTAL_THEORY_CHAPTERS } from "./courseSupplement";
 
@@ -63,6 +64,31 @@ export interface TheorySource {
 }
 
 const b = (pl: string, ru: string): BiText => ({ pl, ru });
+
+// Owner, 2026-11-01: the radio course names no country. These replacements
+// carry all seven languages in one literal so the radio catalog builder pairs
+// them; chapters still read them as PL/RU pairs.
+const NEUTRAL = {
+  regionalExam: {
+    pl: "Egzamin sprawdza program SRC i praktykę krajowej administracji, która go prowadzi. Odpowiadaj według oficjalnego materiału, ale oznaczaj w pamięci, co jest regułą globalną, a co regionalną.",
+    ru: "Экзамен проверяет программу SRC и практику национальной администрации, которая его проводит. Отвечай по официальному материалу, но различай глобальные и региональные правила.",
+    en: "The exam tests the SRC syllabus and the practice of the national administration that runs it. Answer according to the official material, but keep track of which rules are global and which are regional.",
+    es: "El examen evalúa el programa SRC y la práctica de la administración nacional que lo organiza. Responde según el material oficial, pero distingue qué reglas son globales y cuáles son regionales.",
+    fr: "L'examen porte sur le programme SRC et les pratiques de l'administration nationale qui l'organise. Répondez selon le matériel officiel, tout en distinguant mentalement les règles mondiales des règles régionales.",
+    de: "Die Prüfung prüft den SRC-Lehrstoff und die Praxis der nationalen Verwaltung, die sie abnimmt. Antworte nach dem offiziellen Material, merke dir aber, welche Regeln weltweit und welche regional gelten.",
+    it: "L'esame verifica il programma SRC e la pratica dell'amministrazione nazionale che lo organizza. Rispondi secondo il materiale ufficiale, ma tieni a mente quali regole sono globali e quali regionali.",
+  },
+  checkBank: {
+    pl: "Sprawdź całą bazę pytań egzaminacyjnych",
+    ru: "Проверить всю базу экзаменационных вопросов",
+    en: "Browse the full exam question bank",
+    es: "Consultar toda la base de preguntas de examen",
+    fr: "Consulter toute la base de questions d'examen",
+    de: "Gesamten Prüfungsfragenkatalog ansehen",
+    it: "Consulta l'intera banca delle domande d'esame",
+  },
+} satisfies Record<string, Record<Lang, string>>;
+const nb = (key: keyof typeof NEUTRAL): BiText => b(NEUTRAL[key].pl, NEUTRAL[key].ru);
 
 export const THEORY_SOURCES: TheorySource[] = [
   {
@@ -953,10 +979,7 @@ const CORE_THEORY_CHAPTERS: TheoryChapter[] = [
       b("Nie zakładaj, że kanał roboczy mariny jest taki sam w każdym kraju.", "Не считай, что рабочий канал марины одинаков везде."),
       b("Nie wykonuj radio check na kanale 16, jeśli lokalna procedura wskazuje inny kanał lub test DSC.", "Не делай radio check на 16, если местные правила указывают другой канал или DSC test."),
     ],
-    exam: b(
-      "Egzamin UKE sprawdza program SRC i praktykę stosowaną w Polsce. Odpowiadaj według oficjalnego materiału, ale oznaczaj w pamięci, co jest regułą globalną, a co regionalną.",
-      "Экзамен UKE проверяет программу SRC и польскую практику. Отвечай по официальному материалу, но различай глобальные и региональные правила.",
-    ),
+    exam: nb("regionalExam"),
     practice: b(
       "Na rejsie sprawdzaj Notices to Mariners, almanach, informacje portowe i strony administracji. Kurs nie może zastąpić aktualnego planu lokalnego.",
       "В рейсе проверяй Notices to Mariners, альманах, портовые данные и сайты администрации. Курс не заменяет актуальный местный план.",
@@ -972,7 +995,7 @@ const CORE_THEORY_CHAPTERS: TheoryChapter[] = [
     ],
     sourceIds: ["uke", "appendix18", "rainwat", "uscg", "acma"],
     practiceHref: "/radio/test",
-    practiceLabel: b("Sprawdź całą bazę UKE", "Проверить всю базу UKE"),
+    practiceLabel: nb("checkBank"),
     minutes: 16,
   },
 ];

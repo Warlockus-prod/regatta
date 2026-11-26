@@ -7,14 +7,27 @@ import { useRaceCopy } from "./race-copy";
 import { useI18n } from '@/lib/i18n';
 import { missions, type Mission } from '@/data/missions';
 import { RaceModePicker } from "./RaceCockpit";
+import { RaceSetupSettings } from "./RaceSetupSettings";
+import { RACE_SETUP_COPY } from "@/data/race-setup-copy";
 import type { RacePrefs } from "./race-prefs";
 import { LobbyVenues } from "./LobbyVenues";
 import { DIFFICULTY_CONFIG, type Difficulty } from './config';
-import { TargetIcon } from "@/features/race-hud/RaceIcons";
+import { HintIcon, TargetIcon } from "@/features/race-hud/RaceIcons";
+import { RACE_INTRO_TITLE } from "@/data/race-intro-title";
+import { linkedRaceSetup } from "@/lib/race-setup";
+import { readRaceSearch } from "@/lib/race-native-env";
+import type { MedalCourse } from "@/lib/race-medals";
+import { RaceMedalLine } from "./RaceMedal";
+import { RaceDailyEntry, RaceNextStepCard, readLobbyHome, readRacedBefore } from "./RaceNextStep";
+import { easyPresetText } from "@/data/race-start-copy";
+import { localStore } from "./race-model";
+import { dailyRaceDay } from "@/lib/race-next-step";
+import { raceReturnFor } from "@/lib/race-return";
 
 // ============================================================================
 // GameMenu - the race lobby (M1-1, M1-6). One setup screen: a race frame, three
-// presets (First race / Free / Mission), the mode and the venue as compact
+// presets (First race, "Easy race" once this device has raced / Free /
+// Mission), the mode and the venue as compact
 // choices, and one primary action that starts the race. The briefing opens by
 // itself only the first time on a course; the "i" button beside the start
 // opens it on request. Inside the app the Race hub already chose the mode and
@@ -23,14 +36,24 @@ import { TargetIcon } from "@/features/race-hud/RaceIcons";
 
 type MenuTab = 'learn' | 'free' | 'mission';
 
-/** The race frame: an existing editorial still, not a new asset (site only). */
-export const LOBBY_HERO_SRC = "/design-v3/sailing-editorial.webp";
+/** M4-2: a link with its own level and wind (the way back from a practice of
+ * the race debrief) opens on "Free race" with them, not on "First race",
+ * whose easy/medium defaults would replace the linked conditions. A mission
+ * or a daily link owns its own presets; any other link opens "First race". */
+export function linkedMenuTab(query: URLSearchParams): MenuTab {
+  const linked = linkedRaceSetup(query);
+  return linked && !linked.missionId && !linked.dailyDay ? 'free' : 'learn';
+}
+
+/** The race frame: a still of the real race scene (package 9, audit B10), the
+ * same local file as the home and the Race hub (src/lib/product/home-entry.ts). */
+export const LOBBY_HERO_SRC = "/design-v3/race-scene.webp";
 
 export function GameMenu({
   difficulty, setDifficulty,
   windStrength, setWindStrength,
   selectedMission, pickMission,
-  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false,
+  onStart, onShowBriefing, racePrefs, updateRacePrefs, dailyDay, native = false, medalCourse = null, onShowIntro,
 }: {
   dailyDay: string | null;
   racePrefs: RacePrefs; updateRacePrefs: (patch: Partial<RacePrefs>) => void;
@@ -46,12 +69,23 @@ export function GameMenu({
   onShowBriefing: () => void;
   /** Inside the app: the hub owns the mode and the venue. */
   native?: boolean;
+  /** M4-5: the course whose medal and next goal the lobby shows; none for the physical trial. */
+  medalCourse?: MedalCourse | null;
+  /** F5: "How to race" opens the race intro again (a secondary entry, the start stays the one primary action). */
+  onShowIntro?: () => void;
 }) {
-  const { tp, tl } = useI18n();
+  const { tp, tl, lang } = useI18n();
   const raceCopy = useRaceCopy();
-  const [tab, setTab] = useState<MenuTab>('learn');
+  // The initial tab comes from the link, on every mount: /game is client-only
+  // (page.tsx, ssr: false), so no server render disagrees with it.
+  const [tab, setTab] = useState<MenuTab>(() => linkedMenuTab(readRaceSearch()));
 
   useEffect(() => { if (selectedMission) setTab("mission"); }, [selectedMission]);
+  // F1: after the first ended race on this device the easy preset is "Easy
+  // race" and the start "Start the race", not "first" (read once per mount:
+  // the lobby mounts again after every race).
+  const [racedBefore] = useState(() => readRacedBefore(localStore()));
+  const easy = easyPresetText(racedBefore, lang);
 
   // Wind-label helper used in several places in this menu.
   const windLabel = (w: 'light' | 'medium' | 'heavy') =>
@@ -87,7 +121,7 @@ export function GameMenu({
   const level = difficultyLabel(difficulty);
   const ctaLabel =
     dailyDay ? tl({ ru: 'Начать гонку дня', en: 'Start the daily race', pl: 'Zacznij wyścig dnia', es: 'Empezar la regata del día', fr: 'Lancer la course du jour', de: 'Tagesrennen starten', it: 'Inizia la regata del giorno' }) :
-    tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
+    tab === 'learn' ? easy.start :
     tab === 'mission' ? (selectedMission
       ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`, {
           es: `Ir a la misión: ${selectedMission.titleEs ?? selectedMission.titleEn}`,
@@ -96,9 +130,16 @@ export function GameMenu({
           it: `Vai alla missione: ${selectedMission.titleIt ?? selectedMission.titleEn}`,
         })
       : tp('Выбери миссию', 'Pick a mission', 'Wybierz misję', { es: 'Elige una misión', fr: 'Choisis une mission', de: 'Wähle eine Mission', it: 'Scegli una missione' })) :
-    tl({ ru: `Старт · ${level}`, en: `Start · ${level}`, pl: `Start · ${level}`, es: `Salida · ${level}`, fr: `Départ · ${level}`, de: `Start · ${level}`, it: `Partenza · ${level}` });
+    tl({ ru: `Старт · ${level}`, en: `Start · ${level}`, pl: `Start · ${level}`, es: `Empezar · ${level}`, fr: `Départ · ${level}`, de: `Start · ${level}`, it: `Inizia · ${level}` });
 
   const ctaDisabled = tab === 'mission' && !selectedMission && !dailyDay;
+  // M4-6: the one next-step card, the record and the progress (site only: in
+  // the app the native Race hub shows them). None for the physical trial.
+  const medalShown = tab !== 'mission' || Boolean(selectedMission) || Boolean(dailyDay);
+  const home = medalCourse && !native
+    // Only today's daily lobby is "in the daily race": an old daily link still offers today's.
+    ? readLobbyHome(localStore(), medalCourse, racePrefs.mode, { inDaily: dailyDay !== null && dailyDay === dailyRaceDay(new Date()), courseChosen: medalShown })
+    : null;
   const briefingLabel = tl({ ru: 'Брифинг: трасса и правила', en: 'Briefing: course and rules', pl: 'Odprawa: trasa i zasady', es: 'Briefing: recorrido y reglas', fr: 'Briefing : parcours et règles', de: 'Briefing: Bahn und Regeln', it: 'Briefing: percorso e regole' });
 
   return (
@@ -106,18 +147,25 @@ export function GameMenu({
       <FoundationReturn />
       {!native && (
         <div className="mb-4 h-32 sm:h-48 overflow-hidden rounded-2xl bg-[var(--bg-secondary)]" data-testid="race-lobby-hero">
-          {/* eslint-disable-next-line @next/next/no-img-element -- one local still, the same file the home page uses */}
-          <img src={LOBBY_HERO_SRC} alt="" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: '70% 55%' }} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- one local still of the race scene, the same file the home page uses */}
+          <img src={LOBBY_HERO_SRC} alt="" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: '60% 62%' }} />
         </div>
       )}
       <div className="mb-5">
-        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
-          {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
+        <h1 tabIndex={-1} className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1 outline-none">
+          {raceCopy.race}
         </h1>
         <p className="text-base text-[var(--text-secondary)]">
           {tl({ ru: 'Выбери режим гонки', en: 'Pick a race mode', pl: 'Wybierz tryb wyścigu', es: 'Elige un modo de regata', fr: 'Choisis un mode de course', de: 'Wähle einen Rennmodus', it: 'Scegli una modalità di regata' })}
         </p>
+        {onShowIntro && <button type="button" onClick={onShowIntro} data-testid="race-lobby-intro" aria-haspopup="dialog"
+          className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--border-subtle)] px-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]">
+          <HintIcon size={20} className="shrink-0 text-[var(--text-secondary)]" />{tl(RACE_INTRO_TITLE)}
+        </button>}
       </div>
+
+      {home && <RaceNextStepCard view={home} mode={racePrefs.mode}
+        practiceReturn={raceReturnFor({ difficulty, windStrength, missionId: selectedMission?.id ?? null, dailyDay, fromLesson: readRaceSearch().get("fromLesson") })} />}
 
       {dailyDay && <p className="mb-4 text-base font-semibold text-[var(--text-primary)]" data-testid="race-lobby-daily">{dailyDay}</p>}
       {/* Compact presets keep the start action visible on a phone. */}
@@ -126,25 +174,15 @@ export function GameMenu({
           active={tab === 'learn'}
           onClick={() => setTab('learn')}
           icon="first"
-          title={tl({ ru: 'Первая гонка', en: 'First race', pl: 'Pierwszy wyścig', es: 'Primera regata', fr: 'Première course', de: 'Erstes Rennen', it: 'Prima regata' })}
+          title={easy.title}
           subtitle={tl({ ru: 'Лёгкий уровень, средний ветер', en: 'Easy level, medium wind', pl: 'Łatwy poziom, średni wiatr', es: 'Nivel fácil, viento medio', fr: 'Niveau facile, vent moyen', de: 'Leichte Stufe, mittlerer Wind', it: 'Livello facile, vento medio' })}
-          desc={tp(
-            'Спокойные противники, плавные повороты. Для первого опыта гонки.',
-            'Calm opponents, gentle turns. For a first racing experience.',
-            'Spokojni rywale, łagodne zwroty. Na pierwsze regatowe doświadczenie.',
-            {
-              es: 'Rivales tranquilos, viradas suaves. Para tu primera experiencia de regata.',
-              fr: 'Adversaires calmes, virements en douceur. Pour une première expérience de course.',
-              de: 'Ruhige Gegner, sanfte Wenden. Für dein erstes Regatta-Erlebnis.',
-              it: 'Avversari tranquilli, virate morbide. Per una prima esperienza di regata.',
-            },
-          )}
+          desc={easy.desc}
         />
         <PresetCard
           active={tab === 'free'}
           onClick={() => setTab('free')}
           icon="free"
-          title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
+          title={tp('Свободная гонка', 'Free race', 'Wyścig swobodny', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
           subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
           desc={tp(
             'Выбирай сложность и ветер. Без конкретной задачи.',
@@ -177,6 +215,9 @@ export function GameMenu({
           )}
         />
       </div>
+
+      {/* M4-6: the website's entry to today's daily race, unless the card above is it. */}
+      {home && dailyDay !== home.daily.day && home.step?.kind !== 'daily' && <RaceDailyEntry view={home} />}
 
       {/* Tab-specific controls */}
       {tab === 'mission' && !dailyDay && (
@@ -270,6 +311,8 @@ export function GameMenu({
         </div>
       )}
 
+      {medalCourse && medalShown && home?.step?.kind !== 'medal' && <RaceMedalLine course={medalCourse} mode={racePrefs.mode} />}
+
       {native ? (
         <p className="mb-4 text-base leading-6 text-[var(--text-secondary)]" data-testid="race-lobby-mode">
           <span className="font-semibold text-[var(--text-primary)]">{tl({ ru: 'Режим', en: 'Mode', pl: 'Tryb', es: 'Modo', fr: 'Mode', de: 'Modus', it: 'Modalità' })}: {racePrefs.mode === 'pro' ? raceCopy.pro : raceCopy.simple}.</span>{' '}
@@ -279,6 +322,12 @@ export function GameMenu({
         <div className="mb-4"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
       )}
       {!native && <LobbyVenues />}
+
+      {/* Package 11 (audit B9): what is set before the start; the race's own Settings keep camera, sound and hints. */}
+      <details className="mb-4 rounded-xl border border-[var(--border-subtle)] px-4" data-testid="race-setup">
+        <summary className="min-h-11 flex items-center cursor-pointer text-base font-semibold text-[var(--text-primary)]">{tl(RACE_SETUP_COPY.setupTitle)}</summary>
+        <div className="pb-4"><RaceSetupSettings prefs={racePrefs} updatePrefs={updateRacePrefs} /></div>
+      </details>
 
       {/* One primary action, pinned to the bottom of the lobby's scroll area. */}
       <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 flex gap-2 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]">

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 import { AccessibilityInfo, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as Reanimated from 'react-native-reanimated';
-import { WheelDeck, type WheelDeckProps } from '../src/simulator/WheelDeck';
+import { DECK_H, MIN_DECK_H, WheelDeck, fitDeckHeight, type WheelDeckProps } from '../src/simulator/WheelDeck';
 import { playWheelTick } from '../src/simulator/wheel-sound';
 import { I18nProvider } from '../src/i18n/context';
 
@@ -99,6 +99,16 @@ describe('native wheel deck', () => {
     for (const fn of [Haptics.selectionAsync, Haptics.impactAsync, Haptics.notificationAsync]) {
       expect(fn).not.toHaveBeenCalled();
     }
+  });
+
+  // Package 32: in a turned phone the deck was cut by the bottom edge of the screen.
+  it('takes a lower deck from a host with less room, within the helm\'s limits', async () => {
+    expect(fitDeckHeight()).toBe(DECK_H);
+    expect(fitDeckHeight(190)).toBe(190);
+    expect(fitDeckHeight(40)).toBe(MIN_DECK_H);
+    expect(fitDeckHeight(900)).toBe(DECK_H);
+    const view = await mount(<WheelDeck {...props({ height: 190 })} />);
+    expect(StyleSheet.flatten(view.getByTestId('wheel-deck').props.style).height).toBe(190);
   });
 
   it('keeps every wheel at least 44 pt', async () => {

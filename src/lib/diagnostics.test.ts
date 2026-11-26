@@ -162,6 +162,11 @@ describe("diagnostic strict transport and privacy", () => {
       const preference = { type: "control.preferences", surface: "race", outcome: "accepted", preference: "mini-map", value, previous: !value };
       expect(parseDiagnosticBatch({ version: 1, events: [preference] })?.events).toEqual([preference]);
     }
+    for (const name of ["coach-strip", "first-race-hints", "soft-light", "sail-flow"]) {
+      const preference = { type: "control.preferences", surface: "race", outcome: "accepted", preference: name, value: false, previous: true };
+      expect(parseDiagnosticBatch({ version: 1, events: [preference] })?.events).toEqual([preference]);
+      expect(parseDiagnosticBatch({ version: 1, events: [{ ...preference, value: "on" }] })).toBeNull();
+    }
     for (const extra of [{ value: "PRIVATE" }, { previous: 1 }, { position: { x: 1, y: 2 } }]) {
       expect(parseDiagnosticBatch({ version: 1, events: [{ type: "control.preferences", surface: "race", outcome: "accepted", preference: "mini-map", value: true, previous: false, ...extra }] })).toBeNull();
     }
@@ -232,6 +237,7 @@ describe("diagnostic strict transport and privacy", () => {
       { type: "learning.command", surface: "learn", outcome: "accepted", action: "answer", course: "foundation", step: 5 },
       { type: "storage.operation", surface: "app", outcome: "failed", action: "write", target: "progress", reason: "storage-unavailable" },
       { type: "storage.operation", surface: "race", outcome: "failed", action: "write", target: "personal-best", reason: "storage-write" },
+      { type: "storage.operation", surface: "race", outcome: "rejected", action: "write", target: "ghost", reason: "invalid-message" },
       { type: "storage.operation", surface: "app", outcome: "accepted", action: "clear", target: "history", source: "native" },
       { type: "learning.visual", surface: "learn", outcome: "accepted", action: "mode", lesson: "how-sail-works", mode: "picture", frame: "filled" },
     ];
@@ -373,6 +379,11 @@ describe("race.summary and the M1 lifecycle actions", () => {
     // The trial does not measure missed marks or contacts: those fields are optional.
     const { missedMarkNotices: _m, contacts: _c, ...trial } = debrief;
     expect(parseDiagnosticBatch({ version: 1, events: [trial] })).not.toBeNull();
+  });
+
+  it("knows the M5 stuck hint of the metric race as a lifecycle action", () => {
+    expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "stuck", mode: "simple", elapsedSeconds: 42 }] })).not.toBeNull();
+    expect(parseDiagnosticBatch({ version: 1, events: [{ type: "race.lifecycle", surface: "race", outcome: "accepted", action: "stuck-hint" }] })).toBeNull();
   });
 
   it("knows restart with its setup source, results, the finish hold and the exit question", () => {

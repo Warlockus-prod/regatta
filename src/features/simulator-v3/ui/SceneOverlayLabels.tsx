@@ -28,7 +28,7 @@ export function SceneOverlayLabels(args: {
     <>
       <div className="flex justify-center py-1">
         <div
-          className="rounded-full px-3 py-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider"
+          className="rounded-full px-3 py-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
           style={{
             background: 'color-mix(in srgb, var(--bg-secondary) 75%, transparent)',
             border: '1px solid rgba(0, 212, 255, 0.22)',

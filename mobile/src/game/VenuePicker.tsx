@@ -5,26 +5,44 @@ import { Text } from '../design-system/components';
 import { colors, radii, spacing } from '../design-system/tokens';
 import { useVenue, type RaceMode } from '../persistence/venue';
 import { raceCopy } from './copy';
+import { RaceHelmChoice } from './RaceHelmChoice';
 
-/** Race hub setup: race mode (simple or pro), the shore switch and the venue chips. */
-export function VenuePicker() {
+/**
+ * Owner, TestFlight 81 ("it is not clear which one is Pro and which is the normal
+ * one"): the race mode is a two-way switch with a line saying what each mode
+ * means, shown in the Race hub itself, not under "Change".
+ */
+export function RaceModeChoice() {
   const { lang } = useI18n();
-  const { picked, shoreOn, mode, setVenue, setShoreOn, setRaceMode } = useVenue();
+  const { mode, setRaceMode } = useVenue();
   return (
-    <View style={styles.wrap}>
+    <View testID="race-mode-choice">
       <Text variant="muted" style={styles.label}>{raceCopy.mode[lang].toUpperCase()}</Text>
       <View style={styles.segment} accessibilityRole="radiogroup" accessibilityLabel={raceCopy.mode[lang]}>
         {(['simple', 'pro'] as RaceMode[]).map((m) => {
           const active = mode === m;
           return (
             <Pressable key={m} accessibilityRole="radio" accessibilityState={{ checked: active }} onPress={() => setRaceMode(m)}
-              style={({ pressed }) => [styles.segmentItem, active && styles.chipActive, pressed && styles.chipPressed]}>
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{raceCopy[m][lang]}</Text>
+              testID={`race-mode-${m}`}
+              style={({ pressed }) => [styles.segmentItem, active && styles.segmentActive, pressed && styles.chipPressed]}>
+              <Text style={[styles.chipText, active && styles.segmentTextActive]}>{raceCopy[m][lang]}</Text>
             </Pressable>
           );
         })}
       </View>
       <Text variant="caption" style={styles.place}>{mode === 'pro' ? raceCopy.proNote[lang] : raceCopy.simpleNote[lang]}</Text>
+    </View>
+  );
+}
+
+/** Race hub setup under "Change": the helm control, the shore switch and the venue chips (the mode is always shown above). */
+export function VenuePicker() {
+  const { lang } = useI18n();
+  const { picked, shoreOn, setVenue, setShoreOn } = useVenue();
+  return (
+    <View style={styles.wrap}>
+      {/* Package 13: the race's helm control, the same choice as the race settings and Settings. */}
+      <RaceHelmChoice />
 
       <View style={styles.shoreRow}>
         <Text variant="muted" style={[styles.label, styles.shoreLabel]}>{venueLabel[lang].toUpperCase()}</Text>
@@ -88,5 +106,8 @@ const styles = StyleSheet.create({
   chipPressed: { opacity: 0.85 },
   chipText: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
   chipTextActive: { color: colors.accentCyan },
+  // The chosen mode is a filled segment, so the choice reads at a glance (cyan: the selected control).
+  segmentActive: { borderColor: colors.accentCyan, backgroundColor: colors.accentCyan },
+  segmentTextActive: { color: '#ffffff' },
   place: { marginTop: spacing.xs },
 });

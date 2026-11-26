@@ -14,6 +14,7 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { useI18n } from '../../i18n/context';
+import { NO_GO_HALF_DEG } from '../../simulator/physics';
 import { colors, radii, spacing } from '../tokens';
 import { Text } from './Text';
 
@@ -275,14 +276,16 @@ function PointsOfSailMiniDiagram() {
   const pulse = usePulse(0.6);
   const sectors: Array<{ a0: number; a1: number; fill: string; label: string }> = useMemo(
     () => [
-      { a0: -45, a1: 45, fill: 'url(#noGoGrad)', label: 'no-go' },
-      { a0: 45, a1: 70, fill: 'rgba(0, 110, 166, 0.18)', label: 'beat' },
+      // The no-go wedge is the shared NO_GO_HALF_DEG (ADR-0021), the same
+      // number the lesson text and the glossary state.
+      { a0: -NO_GO_HALF_DEG, a1: NO_GO_HALF_DEG, fill: 'url(#noGoGrad)', label: 'no-go' },
+      { a0: NO_GO_HALF_DEG, a1: 70, fill: 'rgba(0, 110, 166, 0.18)', label: 'beat' },
       { a0: 70, a1: 110, fill: 'url(#reachGrad)', label: 'reach' },
       { a0: 110, a1: 160, fill: 'rgba(0, 110, 166, 0.18)', label: 'broad' },
       { a0: 160, a1: 200, fill: 'rgba(138, 97, 0, 0.20)', label: 'run' },
       { a0: 200, a1: 250, fill: 'rgba(0, 110, 166, 0.18)', label: 'broad' },
       { a0: 250, a1: 290, fill: 'url(#reachGrad)', label: 'reach' },
-      { a0: 290, a1: 315, fill: 'rgba(0, 110, 166, 0.18)', label: 'beat' },
+      { a0: 290, a1: 360 - NO_GO_HALF_DEG, fill: 'rgba(0, 110, 166, 0.18)', label: 'beat' },
     ],
     [],
   );
@@ -524,9 +527,9 @@ function VmgBeatingDiagram() {
         strokeWidth={2}
       />
 
-      <Boat x={130} y={96} rot={-45} color={colors.accentCyan} scale={0.85} />
-      <Boat x={76} y={76} rot={45} color={colors.accentCyan} scale={0.85} />
-      <Boat x={124} y={56} rot={-45} color={colors.accentCyan} scale={0.85} />
+      <Boat x={130} y={96} rot={-NO_GO_HALF_DEG} color={colors.accentCyan} scale={0.85} />
+      <Boat x={76} y={76} rot={NO_GO_HALF_DEG} color={colors.accentCyan} scale={0.85} />
+      <Boat x={124} y={56} rot={-NO_GO_HALF_DEG} color={colors.accentCyan} scale={0.85} />
 
       <AnimatedG opacity={pulse}>
         <Line x1={104} y1={88} x2={104} y2={32} stroke="rgba(0,0,0,0.4)" strokeWidth={3.4} />
@@ -536,11 +539,11 @@ function VmgBeatingDiagram() {
       <SvgText x={112} y={62} textAnchor="start" fontSize={8} fontWeight="800" fill={colors.success}>VMG</SvgText>
 
       <SvgText x={100} y={134} textAnchor="middle" fontSize={8} fill={colors.textSecondary}>
-        {tp('галсами под 45°, VMG = выигрыш к цели', 'tacks at 45°, VMG = gain toward goal', 'halsami pod 45°, VMG = zysk ku celowi', {
-          es: 'bordos a 45°, VMG = avance al objetivo',
-          fr: 'bords à 45°, VMG = gain vers l\'objectif',
-          de: 'Schläge unter 45°, VMG = Gewinn zum Ziel',
-          it: 'bordi a 45°, VMG = guadagno verso l\'obiettivo',
+        {tp(`галсами под ${NO_GO_HALF_DEG}°, VMG = выигрыш к ветру`, `tacks at ${NO_GO_HALF_DEG}°, VMG = gain to windward`, `halsami pod ${NO_GO_HALF_DEG}°, VMG = zysk na wiatr`, {
+          es: `bordos a ${NO_GO_HALF_DEG}°, VMG = avance a barlovento`,
+          fr: `bords à ${NO_GO_HALF_DEG}°, VMG = gain au vent`,
+          de: `Schläge unter ${NO_GO_HALF_DEG}°, VMG = Höhengewinn nach Luv`,
+          it: `bordi a ${NO_GO_HALF_DEG}°, VMG = guadagno al vento`,
         })}
       </SvgText>
     </G>

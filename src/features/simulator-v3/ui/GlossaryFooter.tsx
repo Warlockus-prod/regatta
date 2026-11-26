@@ -1,6 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
+// Package 7: the red cone is explained in the tour; here one link to the glossary article.
+import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from '@/data/no-go-zone';
 import { type TpFn } from './shared';
 
 // ---------------------------------------------------------------------------
@@ -208,7 +211,7 @@ export function GlossaryFooter({ tp }: { tp: TpFn }) {
             },
           )}
         </span>
-        <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">
+        <span className="text-xs text-[var(--text-muted)] hidden sm:inline">
           {tp(
             'TWA, AWA, AWS, slot, stall, drive, side, heel, leeway и другие',
             'TWA, AWA, AWS, slot, stall, drive, side, heel, leeway and more',
@@ -226,7 +229,7 @@ export function GlossaryFooter({ tp }: { tp: TpFn }) {
       {open && (
         <div className="px-3 pb-4 pt-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
           {entries.map((e) => (
-            <div key={e.term} className="text-[11px] sm:text-xs leading-relaxed">
+            <div key={e.term} className="text-sm leading-relaxed">
               <span className="font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>
                 {e.term}
               </span>
@@ -236,8 +239,12 @@ export function GlossaryFooter({ tp }: { tp: TpFn }) {
               </span>
             </div>
           ))}
+          <Link href={NO_GO_GLOSSARY_HREF} className="col-span-full inline-flex min-h-11 items-center text-xs text-[var(--accent-cyan)] underline underline-offset-2"
+            data-testid="trainer-no-go-link">
+            {tp(NO_GO_LINK.ru, NO_GO_LINK.en, NO_GO_LINK.pl, { es: NO_GO_LINK.es, fr: NO_GO_LINK.fr, de: NO_GO_LINK.de, it: NO_GO_LINK.it })}
+          </Link>
           <div
-            className="col-span-full mt-2 pt-2 border-t text-[10px] text-[var(--text-muted)]"
+            className="col-span-full mt-2 pt-2 border-t text-xs text-[var(--text-muted)]"
             style={{ borderColor: 'rgba(0, 212, 255, 0.08)' }}
           >
             {tp(

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { LEGACY_RACE_CONTEXT, PHYSICAL_RACE_EMISSION_ENABLED, PHYSICAL_RACE_PROFILES, physicalRaceContext, type PhysicalRaceContext } from "./race-context";
-import { physicalCourseDefinition } from "./race-courses";
-import { stepPhysicalBoat, type PhysicalRaceInput, type PhysicalRaceStepOptions } from "./race-physical-motion";
-import { stepBoat, type RaceBoat } from "./race-physics";
+import { physicalCourseDefinition, physicalCourseWaterBounds } from "./race-courses";
+import { PHYSICAL_RACE_BOAT, stepPhysicalBoat, type PhysicalRaceInput, type PhysicalRaceStepOptions } from "./race-physical-motion";
+import { stepBoat, stepRaceBoatForces, type RaceBoat } from "./race-physics";
 import { KNOT_METRES_PER_SECOND } from "./sailing-kinematics";
 
 const context = physicalRaceContext("short");
@@ -43,13 +43,20 @@ describe("explicit physical race movement", () => {
     stepBoat(legacy, dt, 0, 1, { turn: 1 });
     expect(physical.heading).toBeCloseTo(90 + 22 * dt, 12);
     expect(physical.heading).toBe(legacy.heading);
-    expect(physical.physics).toEqual(legacy.physics);
+    // The same force step on the metric race's boat, without the turn: the
+    // cruiser profile charges the turn its lateral-force drag (ADR-0021).
+    const straight = mkBoat(90, 4);
+    straight.heading = physical.heading;
+    stepRaceBoatForces(straight, dt, 0, 1, { turn: 0 }, {}, PHYSICAL_RACE_BOAT);
+    expect(physical.physics!.boatSpeed).toBeLessThan(straight.physics!.boatSpeed);
     const p = Math.hypot(motion.to.x - motion.from.x, motion.to.y - motion.from.y);
     const l = Math.hypot(legacy.pos.x - 400, legacy.pos.y - 600);
     const turn = 22 * dt * Math.PI / 180;
     const physicalRadiusMetres = p * .6 / (2 * Math.sin(turn / 2));
     const legacyRadiusMetres = l * .6 / (2 * Math.sin(turn / 2));
-    expect(legacyRadiusMetres / physicalRadiusMetres).toBeCloseTo(8 * .6 / .514444, 10);
+    // The two boats now sail different profiles (ADR-0021), so the ratio is
+    // the scale ratio times the ratio of the speeds they made this step.
+    expect(legacyRadiusMetres / physicalRadiusMetres).toBeCloseTo(8 * .6 / .514444 * legacy.speed / physical.speed, 10);
     expect(physicalRadiusMetres).toBeLessThan(7);
   });
 
@@ -68,7 +75,7 @@ describe("explicit physical race movement", () => {
     expect(boat.heading).toBeCloseTo(next, 12);
   });
 
-  it.each([true, false])("keeps the bot crew's forces, trim and non-compounding handicap equal to legacy (autoTrim=%s)", autoTrim => {
+  it.each([true, false])("keeps the bot crew's forces, trim and non-compounding handicap equal to the shared race force step (autoTrim=%s)", autoTrim => {
     for (const heading of [45, 90, 150]) {
       const physical = mkBoat(heading, 3), legacy = structuredClone(physical);
       const trim = { mainSheet: .7, jibSheet: .5, mainTwist: .3, jibTwist: .4, reef: .2, jibFurl: .1, jibSide: 1 as const };
@@ -76,7 +83,8 @@ describe("explicit physical race movement", () => {
       for (let i = 0; i < 120; i++) {
         const gust = 1 + .08 * Math.sin(i / 30);
         stepPhysicalBoat(physical, dt, 8, gust, { ...helm(), autoTrim, trim }, context, { ...opts, rigTransfer: false });
-        stepBoat(legacy, dt, 8, gust, { turn: 0, autoTrim, trim }, opts);
+        // The same force step the legacy race uses, on the metric race's boat.
+        stepRaceBoatForces(legacy, dt, 8, gust, { turn: 0, autoTrim, trim }, opts, PHYSICAL_RACE_BOAT);
         expect(physical.physics).toEqual(legacy.physics);
         expect(physical.trim).toEqual(legacy.trim);
         expect(physical.trimClock).toBe(legacy.trimClock);
@@ -96,6 +104,47 @@ describe("explicit physical race movement", () => {
     boat.pos.x += 100; boat.pos.y -= 100;
     expect(motion.to).toEqual(motion.from);
     expect(Object.isFrozen(motion) && Object.isFrozen(motion.from) && Object.isFrozen(motion.to)).toBe(true);
+  });
+
+  it("slides along the water bound with an honest tangential velocity and records the mid-tick bend", () => {
+    // ADR-0015 point 4: the bound removes only its normal component. A boat
+    // sailing WNW into the west bound keeps all of its northward travel.
+    const water = physicalCourseWaterBounds("short");
+    const boat = mkBoat(300, 6); boat.pos = { x: water.minX + .05, y: 600 };
+    const expected = (b: RaceBoat) => {
+      const angle = (b.heading + b.physics!.leeway) * Math.PI / 180, d = b.speed * .514444 * dt / .6;
+      return { dx: Math.sin(angle) * d, dy: -Math.cos(angle) * d };
+    };
+    const first = stepPhysicalBoat(boat, dt, 0, 1, helm(), context)!, free = expected(boat);
+    expect(free.dx).toBeLessThan(-.05); // the free travel would leave the water
+    expect(first.to.x).toBe(water.minX);
+    expect(first.to.y - first.from.y).toBeCloseTo(free.dy, 12);
+    expect(first.path).toHaveLength(1);
+    const t = (water.minX - first.from.x) / free.dx;
+    expect(first.path![0].x).toBe(water.minX);
+    expect(first.path![0].y).toBeCloseTo(first.from.y + free.dy * t, 12);
+    expect(Object.isFrozen(first.path) && Object.isFrozen(first.path![0])).toBe(true);
+    // Pinned at the bound: no bend (it would sit at the start), and the next
+    // ticks keep the full tangential travel instead of freezing.
+    for (let i = 0; i < 30; i++) {
+      const next = stepPhysicalBoat(boat, dt, 0, 1, helm(), context)!, step = expected(boat);
+      expect(next.from.x).toBe(water.minX); expect(next.to.x).toBe(water.minX);
+      expect(next.path).toBeUndefined();
+      expect(next.to.y - next.from.y).toBeCloseTo(step.dy, 12);
+      expect(next.to.y).toBeLessThan(next.from.y);
+    }
+    // Open water: one straight segment, no path key at all.
+    expect("path" in stepPhysicalBoat(mkBoat(300, 6), dt, 0, 1, helm(), context)!).toBe(false);
+  });
+
+  it("records both bends, in order, when a boat runs into a water corner", () => {
+    const water = physicalCourseWaterBounds("short");
+    const boat = mkBoat(315, 8); boat.pos = { x: water.minX + .03, y: water.minY + .09 };
+    const motion = stepPhysicalBoat(boat, dt, 0, 1, helm(), context)!;
+    expect(motion.to).toEqual({ x: water.minX, y: water.minY });
+    expect(motion.path).toHaveLength(1); // the second bend is the corner itself, the end point
+    expect(motion.path![0].x).toBe(water.minX);
+    expect(motion.path![0].y).toBeGreaterThan(water.minY);
   });
 
   it.each([undefined, null, LEGACY_RACE_CONTEXT, { ...context, geometryRevision: 2 }, { ...context, profile: "future" }, { ...context, metresPerUnit: 1 }])("rejects missing, legacy or unknown explicit context without a mutation", raw => {

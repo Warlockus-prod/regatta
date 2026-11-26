@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mainTrimWheelTarget } from "../simulator-v3/ui/pods/MainTrimPod";
 import { DEFAULT_CONTROL_PREFS } from "./prefs";
 import { useControlLabels } from "./labels";
-import { WheelDeck } from "./WheelDeck";
+import { CORNER_DECK_MAX_H, CORNER_DECK_MIN_W, WheelDeck, cornerDeck } from "./WheelDeck";
 import type { WheelProps } from "./Wheel";
 
 const captured = vi.hoisted(() => new Map<string, WheelProps>());
@@ -55,3 +55,20 @@ describe("physical mainsheet wheel adapter", () => {
     expect([main.ariaNow, main.ariaMin, main.ariaMax]).toEqual([20, 0, 100]);
   });
 });
+
+// Package 32, game screen. Contract: only a bottom deck laid across a turned phone (wide and
+// short) with both sheets moves its wheels to the corners; an upright phone, a side column and
+// a helm-only deck keep the helm in the middle.
+describe("wheels in the corners of a turned phone", () => {
+  it("uses the corner layout for a wide, short bottom deck with sheets", () => {
+    expect(cornerDeck("bottom", 816, 200, true)).toBe(true);
+    expect(cornerDeck("bottom", CORNER_DECK_MIN_W, CORNER_DECK_MAX_H, true)).toBe(true);
+  });
+  it("keeps the helm in the middle everywhere else", () => {
+    expect(cornerDeck("bottom", 390, 212, true)).toBe(false);
+    expect(cornerDeck("bottom", 816, 320, true)).toBe(false);
+    expect(cornerDeck("column", 816, 200, true)).toBe(false);
+    expect(cornerDeck("bottom", 816, 200, false)).toBe(false);
+  });
+});
+

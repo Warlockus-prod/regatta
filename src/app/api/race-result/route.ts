@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { insertRaceResult, insertClassifiedRaceResult, getPlayer, insertEvent } from '@/lib/db';
+import { insertRaceResult, insertClassifiedRaceResult, getPlayer, insertEvent, type RaceResultSource } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
 import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
 import { FINISH_SEC_MAX, FINISH_SEC_MIN, isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
 import { readRaceResultSelection } from "@/lib/race-record-class";
 import { readClassifiedRaceResult, type ClassifiedRaceResult } from "@/lib/race-result-eligibility";
+import { readRaceAssistRecord } from "@/lib/race-helm";
 
 export const runtime = 'nodejs';
 
@@ -34,6 +35,10 @@ interface Payload {
   penaltySeconds?: unknown;
   dailyDay?: unknown;
   daily?: unknown;
+  /** Package 13: the helm control and the assists (race-helm.ts); optional, old clients send none. */
+  assists?: unknown;
+  /** M5 step 8: 'online' from ws-server for a quick online race result; old clients send none. */
+  source?: unknown;
 }
 
 export async function POST(req: Request) {
@@ -101,6 +106,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'position above totalBoats' }, { status: 400 });
   }
 
+  // M5 step 8 (ADR-0015 point 12): the quick online race tag. Display
+  // grouping only, on the same open endpoint: accepted on an unclassified
+  // result only (a class is never taken from it), stored on a free result
+  // (a mission result keeps its mission board untagged), anything else 400.
+  let source: RaceResultSource | null = null;
+  if (body.source !== undefined && body.source !== null) {
+    if (body.source !== "online" || selection.value.kind !== "legacy-unclassified") {
+      return NextResponse.json({ error: "bad source" }, { status: 400 });
+    }
+    source = missionId === null ? "online" : null;
+  }
+
   let classified: ClassifiedRaceResult | null = null;
   if (selection.value.kind === "classified") {
     const read = readClassifiedRaceResult(body);
@@ -108,6 +125,8 @@ export async function POST(req: Request) {
     classified = read.value;
   }
   const finishTimeSec = classified?.finishTimeSec ?? body.finishTimeSec;
+  // A malformed assist record is dropped, not an error: the time itself is valid.
+  const assists = readRaceAssistRecord(body.assists);
 
   const player = getPlayer(sid);
   // Same sanitizer as /api/player: the fallback is client text that lands on
@@ -130,6 +149,8 @@ export async function POST(req: Request) {
     noGoEntries: body.noGoEntries ?? null,
     topSpeed: body.topSpeed ?? null,
     score: body.score ?? null,
+    ...(assists ? { assists } : {}),
+    ...(source ? { source } : {}),
   };
   const id = classified
     ? insertClassifiedRaceResult({ ...result, ...classified, course: body.course })
@@ -163,6 +184,8 @@ export async function POST(req: Request) {
       tacks: body.tacks ?? null,
       score: body.score ?? null,
       ...(classified ? { raceClass: classified.classId, raceMode: classified.mode } : {}),
+      ...(assists ? { helm: assists.helm, buttonTurns: assists.buttonTurns, bestVmgSec: assists.bestVmgSec, angleHoldSec: assists.angleHoldSec } : {}),
+      ...(source ? { source } : {}),
     },
   });
 

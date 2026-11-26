@@ -17,7 +17,13 @@ export interface RaceGuidance {
   /** Shared planner geometry. Online waypoint aids deliberately omit it. */
   path?: RaceRoutePath;
   beating?: boolean;
+  /** Package 8: the next tack or gybe along the suggested course (turnAhead),
+   * when the caller looked ahead: how far (world units), its kind and the
+   * course after it. Null: none within reach on this leg. */
+  next?: RaceTurnAhead | null;
 }
+
+export interface RaceTurnAhead { distance: number; action: "tack" | "gybe"; heading: number }
 
 export interface RaceGuidanceState {
   courseKey: string;
@@ -66,10 +72,21 @@ function copyMemory(memory: AutopilotState): AutopilotState {
   return { ...memory, dip: memory.dip && { ...memory.dip }, finishLoop: memory.finishLoop && { ...memory.finishLoop } };
 }
 
+/** The bots' planner sails its beat at this true wind angle (race-physics.ts
+ * AUTOPILOT.closeHauled; that file is the server's generated physics and is
+ * not changed). The hint recognises a close-hauled plan heading by it. */
+export const PLANNER_CLOSE_HAULED_TWA = 45;
+
 /** Read-only advice with independent tack/recovery memory. The caller resets
  * state for a new race. Only a shallow boat copy is passed to the shared
- * planner: it writes autopilot memory, never position, trim, helm or gates. */
-export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number, previous?: RaceGuidanceState | null): {
+ * planner: it writes autopilot memory, never position, trim, helm or gates.
+ * Package 7: with `upwindTwa` (the race's best VMG angle, raceUpwind in
+ * features/race-hud/target.ts on the same upwind-vmg.ts solver the skill bars
+ * and the coach grade with) a close-hauled plan heading is sailed at that
+ * angle on the same tack, so the suggested course is the course the race
+ * grades as best. Without it the hint is the planner's own, as before. */
+export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number, previous?: RaceGuidanceState | null,
+  upwindTwa?: number): {
   guidance: RaceGuidance | null; state: RaceGuidanceState | null;
 } {
   if (!supportedCourse(course) || !boat || !pointIsFinite(boat.pos) || ![boat.heading, boat.speed, boat.lapDone, windDir].every(Number.isFinite)
@@ -110,11 +127,27 @@ export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: nu
       : boat.roundPhase === 1 ? { x: mark.pos.x, y: center.y - radius }
         : { x: mark.pos.x - offset, y: mark.pos.y + 1 };
   }
-  const guidance = guidanceToTarget(boat, target, windDir, 45, leg);
-  applyHeading(guidance, boat.heading, windDir, leg === "complete" ? boat.heading : plan.heading);
+  const closeHauled = upwindCloseHauled(upwindTwa);
+  const guidance = guidanceToTarget(boat, target, windDir, closeHauled ?? PLANNER_CLOSE_HAULED_TWA, leg);
+  applyHeading(guidance, boat.heading, windDir, leg === "complete" ? boat.heading : beatHeading(plan.heading, windDir, closeHauled));
   guidance.path = plan.path;
   guidance.beating = plan.beating;
   return { guidance, state: { courseKey, autopilot: copyMemory(probe.autopilot!) } };
+}
+
+/** A usable solver angle (the hint never points inside 35 or freer than 60,
+ * the same clamp guidanceToTarget applies), else null. */
+function upwindCloseHauled(twa: number | undefined): number | null {
+  return typeof twa === "number" && Number.isFinite(twa) ? Math.max(35, Math.min(60, twa)) : null;
+}
+
+/** The planner's heading, or the solver's close-hauled angle on the same tack
+ * when the planner holds its own close-hauled course. */
+function beatHeading(planHeading: number, windDir: number, closeHauled: number | null): number {
+  if (closeHauled === null) return planHeading;
+  const off = angleDiff(windDir, planHeading);
+  if (Math.abs(Math.abs(off) - PLANNER_CLOSE_HAULED_TWA) > 0.01) return planHeading;
+  return normalizeAngle(windDir + Math.sign(off) * closeHauled);
 }
 
 /** Initial read-only snapshot; live races retain planRaceGuidance.state. */
@@ -161,4 +194,39 @@ export function guidanceToTarget(boat: Pick<RaceBoat, "pos" | "heading">, target
   if (leg === "complete") action = "hold";
   return { leg, action, target: { ...target }, distance: distance(boat.pos, target), bearing: direct, suggestedHeading: heading, turn,
     targetInNoGo, tack: Math.abs(before) < 1 || Math.abs(before) > 179 ? null : before > 0 ? "starboard" : "port" };
+}
+
+/** How far ahead turnAhead looks (world units, about 400 m) and its step (about 12 m). */
+export const TURN_AHEAD = { reach: 660, step: 20 } as const;
+
+/**
+ * Package 8: where the route hint will call the next tack or gybe if the boat
+ * sails the suggested course. It walks a copy of the boat along that course
+ * and asks the same planner at each step, so the caption says what the hint
+ * itself will say there ("tack in 120 m to 315"). Null when the hint calls
+ * none on this leg within TURN_AHEAD.reach; distance 0 when it calls one now.
+ * Read-only: `plan` gets a fresh probe and the memory it returned last.
+ */
+export function turnAhead<B extends Pick<RaceBoat, "pos" | "heading">, S>(boat: B, guidance: RaceGuidance, state: S | null,
+  plan: (probe: B, state: S | null) => { guidance: RaceGuidance | null; state: S | null }): RaceTurnAhead | null {
+  const now = guidance.action === "tack" || guidance.action === "gybe" ? guidance.action : null;
+  if (now) return { distance: 0, action: now, heading: guidance.suggestedHeading };
+  if (guidance.leg !== "windward" && guidance.leg !== "finish" && guidance.leg !== "waypoint") return null;
+  const probe: B = { ...boat, pos: { ...boat.pos }, heading: guidance.suggestedHeading };
+  let memory = state;
+  let closest = guidance.distance;
+  for (let d = TURN_AHEAD.step; d <= TURN_AHEAD.reach; d += TURN_AHEAD.step) {
+    const r = probe.heading * Math.PI / 180;
+    probe.pos = { x: probe.pos.x + Math.sin(r) * TURN_AHEAD.step, y: probe.pos.y - Math.cos(r) * TURN_AHEAD.step };
+    const next = plan(probe, memory);
+    const g = next.guidance;
+    const left = g ? distance(probe.pos, g.target) : 0;
+    // The leg ends there, or the walk went past its target: no turn to announce on this leg.
+    if (!g || g.leg !== guidance.leg || left < TURN_AHEAD.step || left > closest + TURN_AHEAD.step / 2) return null;
+    closest = Math.min(closest, left);
+    if (g.action === "tack" || g.action === "gybe") return { distance: d, action: g.action, heading: g.suggestedHeading };
+    probe.heading = g.suggestedHeading;
+    memory = next.state;
+  }
+  return null;
 }

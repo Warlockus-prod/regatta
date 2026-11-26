@@ -1,9 +1,9 @@
-export const SAILING_ROUTES = ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads"] as const;
+export const SAILING_ROUTES = ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy", "/ads", "/manoeuvres"] as const;
 export type SailingPath = typeof SAILING_ROUTES[number];
 export interface SailingEmbed { path: SailingPath; query: string }
 
 const previewScreens: Record<string, SailingPath> = {
-  basics: "/simulator", trainer: "/simulator-v3", boat3d: "/simulator2", game: "/game", anatomy: "/anatomy", ads: "/ads",
+  basics: "/simulator", trainer: "/simulator-v3", boat3d: "/simulator2", game: "/game", anatomy: "/anatomy", ads: "/ads", manoeuvres: "/manoeuvres",
 };
 
 /** Native paths take priority; preview aliases never discard lesson or race queries. */

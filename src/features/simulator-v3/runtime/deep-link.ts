@@ -1,4 +1,5 @@
 import type { UiState, ReefLevel } from "../ui/shared";
+import type { CameraView } from "../../simulator-3d/camera";
 import {
   DRILLS,
   SCENARIO_PRESETS,
@@ -44,6 +45,18 @@ export function resolveWindObservationEntry(params: URLSearchParams): { boatView
   if (params.get("fromLesson") !== "wind-direction" || resolveTrainerDeepLink(params)) return null;
   if (["twist", "depth"].includes(params.get("assessment") ?? "") || ["mainsheet", "shape"].includes(params.get("study") ?? "")) return null;
   return { boatView: "whole" };
+}
+
+const LINK_CAMERAS: readonly CameraView[] = ["whole", "sails", "main", "jib", "stern", "deck"];
+
+/**
+ * `?camera=<view>` opens the 3D boat on that view: a lesson, or the script that takes the
+ * pictures of the sailing subjects (scripts/capture-subject-frames.mjs), points at what it
+ * talks about. Unknown values are ignored; the saved control preferences do not change.
+ */
+export function readTrainerCameraFromSearch(search: string): CameraView | null {
+  const value = new URLSearchParams(search).get("camera");
+  return LINK_CAMERAS.find(view => view === value) ?? null;
 }
 
 export function readTrainerSetupFromSearch(search: string): Partial<UiState> | null {

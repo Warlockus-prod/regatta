@@ -1,8 +1,8 @@
 # Sternik local course
 
-`node mobile/scripts/build-sternik-offline.mjs` builds only `mobile/assets/sternik-offline.html` and its source manifest. `--check` verifies both byte-for-byte; `--validate` compiles without writing. The budget is 6 MiB. The current package is about 2.45 MiB.
+`node mobile/scripts/build-sternik-offline.mjs` builds only `mobile/assets/sternik-offline.html` and its source manifest. `--check` verifies both byte-for-byte; `--validate` compiles without writing. The budget is 6 MiB. The current package is about 2.47 MiB.
 
-The package imports the original five `/sternik` pages and `src/data/sternik.ts`. No question bank or theory is copied. The builder replaces Next navigation/dynamic adapters, analytics and root-relative cloud-photo URLs for a local WebView. Eight JPGs and fonts are embedded. CSP disallows all HTTP connections. Shared website pages and their online oral trainer remain unchanged.
+The package imports the original five `/sternik` pages. The question bank is the website's generated JSON (`public/sternik-bank/bank.<hash>.json`, written by `scripts/build-sternik-bank.mjs` from `src/data/sternik.ts`): the builder inlines that same file and preloads it in place of `src/app/sternik/bank-source.ts`, so the trainer and exam open with no loading state and no fetch. The TS bank is not bundled beside it (the builder fails if it is). No question bank or theory is copied by hand. The builder replaces Next navigation/dynamic adapters, analytics and root-relative cloud-photo URLs for a local WebView. Eight JPGs and fonts are embedded. CSP disallows all HTTP connections. Shared website pages and their online oral trainer remain unchanged.
 
 Polish is always the exam/interface language. Offline oral practice uses the shared `ORAL_PROMPTS` and factual `gradeTurn` rubric, with typed text and a visible limitation. It does not request a microphone or call transcription. Requests to the optional AI tutor show an unavailable notice. The existing theory, personal error analysis and model answers remain local.
 

@@ -42,6 +42,12 @@ describe("race.summary rows", () => {
     expect(parseDiagnosticBatch({ version: 1, events: rows })).not.toBeNull();
   });
 
+  it("counts the start jostle of the race's own model (M5 step 6)", () => {
+    const events = [rule("give-way", 5), rule("give-way", 14), rule("give-way", 40)];
+    expect(raceSummaryDiagnostics(input({ ruleEvents: events }))[1]).toMatchObject({ startJostleEvents: 1, judgeIncidents: 2 });
+    expect(raceSummaryDiagnostics(input({ ruleEvents: events, startJostleSeconds: 16 }))[1]).toMatchObject({ startJostleEvents: 2, judgeIncidents: 1 });
+  });
+
   it("takes the judge debrief's own item count, clamped, and changes nothing else", () => {
     const [, debrief] = raceSummaryDiagnostics(input());
     expect(withJudgeIncidents(debrief, 1)).toEqual({ ...debrief, judgeIncidents: 1 });

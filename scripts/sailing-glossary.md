@@ -107,9 +107,56 @@ plural "los winches".
 | no-go zone / dead zone | мёртвая зона | kąt martwy | angolo morto | zona muerta | zone morte | toter Winkel |
 | start line | стартовая линия | linia startu | linea di partenza | línea de salida | ligne de départ | Startlinie |
 | finish line | финишная линия | linia mety | linea di arrivo | línea de llegada | ligne d'arrivée | Ziellinie |
-| right of way | право дороги | prawo drogi | diritto di rotta | derecho de paso | priorité | Wegerecht |
-| give way / keep clear | уступить | ustąpić drogi | tenersi discosto | mantenerse separado | se maintenir à l'écart | sich freihalten |
-| stand on | держать курс | utrzymać kurs | mantenere la rotta | mantener el rumbo | garder son cap | Kurs halten |
+| right of way (RRS only, see below) | право дороги | prawo drogi | diritto di rotta | derecho de paso | priorité | Wegerecht |
+| keep clear (RRS) | уступить | ustąpić drogi | tenersi discosto | mantenerse separado | se maintenir à l'écart | sich freihalten |
+| overlap / overlapped (RRS) | перекрытие / в перекрытии | zachodzenie / zachodzą | ingaggio / ingaggiate | compenetración / compenetrados | engagement / engagés | Überlappung / überlappen |
+| clear ahead / clear astern (RRS) | чисто впереди / чисто позади | czysto z przodu / czysto z tyłu | libera avanti / libera dietro | claramente a proa / claramente a popa | en route libre devant / derrière | klar voraus / klar achteraus |
+| committee boat (start line end with the orange flag) | судно комиссии | statek komisji regatowej | battello del comitato | barco del comité | bateau comité | Startschiff |
+| pin end (start mark at the other end) | стартовый знак (пин) | znak startowy (pin) | boa di partenza (pin) | baliza de salida (pin) | bouée de départ | Starttonne (Pin) |
+
+## Rules terms and crew roles (package 12, expert review C1-C6)
+
+| English | Russian | Polish | Italian | Spanish | French | German |
+|---|---|---|---|---|---|---|
+| give way (COLREGS, the give-way vessel) | уступить дорогу (уступающее судно) | ustąpić z drogi (statek ustępujący) | lasciare libera la rotta | apartarse (buque que cede el paso) | s'écarter de la route | ausweichen (Ausweichpflichtiger) |
+| stand on (COLREGS, the stand-on vessel) | сохранять курс и скорость | utrzymać kurs i prędkość | mantenere rotta e velocità | mantener rumbo y velocidad (buque que sigue a rumbo) | maintenir son cap et sa vitesse | Kurs und Geschwindigkeit beibehalten (Kurshalter) |
+| skipper (in charge of the yacht and the crew) | шкипер | skiper | skipper (comandante) | patrón | chef de bord (skipper) | Skipper (Schiffsführer) |
+| helmsman (the one at the helm) | рулевой | sternik | timoniere | timonel | barreur | Rudergänger |
+| crew weight to windward (keelboat) | сидеть на наветренном борту | balastowanie (siedzieć na nawietrznej burcie) | contrappeso (sedersi sopravvento) | hacer banda (sentarse a barlovento) | rappel (s'asseoir au vent) | auf der Luvkante sitzen |
+| VMG: speed made good toward the wind (upwind) or away from it (downwind) | VMG, продвижение к ветру | VMG, postęp pod wiatr | VMG, guadagno al vento | VMG, avance al viento | VMG, gain au vent | VMG, Höhengewinn |
+| VMC: speed made good toward a mark or a destination | VMC, продвижение к знаку | VMC, postęp do znaku | VMC, guadagno verso la boa | VMC, avance hacia la baliza | VMC, gain vers la bouée | VMC, Fahrt zur Bahnmarke |
+
+- "Right of way" belongs to the racing rules only (RRS, RU "ППГ"). COLREGS text never
+  gives a vessel right of way or "priority": one vessel gives way ("уступает дорогу"),
+  the other stands on ("сохраняет курс и скорость"). Same split in every language
+  (EN give way / stand on, PL ustępuje z drogi / utrzymuje kurs i prędkość).
+- Russian racing text says "перекрытие", never "связка" or a Latin "overlap"; "место у
+  знака", never "mark-room"; "поворот оверштаг", never "tack" in Latin letters.
+- Skipper and helmsman are two people or two roles: never "Шкипер (рулевой)" or
+  "Skipper / Helmsman" as one term.
+- VMG is measured against the wind, VMC against the mark. They are equal only when the
+  mark lies dead upwind or dead downwind. Never define VMG as "speed toward the goal".
+- The start line runs between the committee boat (the mast with the orange flag) and
+  the pin end mark, not "between two buoys".
+- On a cruiser the crew "сидит на наветренном борту"; "откренивание" (hiking out) is a
+  dinghy word and stays out of beginner text.
+
+## Beginner wind words (package 12, audit B3)
+
+The Simple race (`RaceWindInstrument` with `words`, `src/features/race-hud/navigation-copy.ts`)
+reads the wind in words first; TWA stays in Pro and in the trim trainer, TWD small on
+the second line.
+
+| English | Russian | Polish | Italian | Spanish | French | German |
+|---|---|---|---|---|---|---|
+| off the bow (after the angle: "80° off the bow") | от носа | od dziobu | dalla prua | de la proa | de l'avant | vom Bug |
+| wind from the left / right | ветер слева / справа | wiatr z lewej / z prawej | vento da sinistra / da destra | viento por la izquierda / por la derecha | vent à gauche / à droite | Wind von links / von rechts |
+| wind on the nose / from behind | ветер в нос / в корму | wiatr w dziób / w rufę | vento in prua / in poppa | viento de proa / de popa | vent de face / vent arrière | Wind von vorn / von hinten |
+| "sails are working well" (the trainer's healthy line, never "slot") | паруса работают хорошо | żagle pracują dobrze | le vele lavorano bene | las velas trabajan bien | les voiles travaillent bien | die Segel arbeiten gut |
+
+The first lesson's check asks about the wind in words; abbreviations (TWA, VMG) come in
+later lessons, after the lesson has introduced them. Wrong answers are plausible
+mistakes, never jokes. `src/data/beginner-terms.test.ts` pins all of this.
 
 ## Instruments and angles
 
@@ -150,7 +197,7 @@ The seven-language map, instrument and style labels live in
 | luff (verb: sail flutters) | полоскать | łopotać | fileggiare | flamear | faseyer | killen |
 | luffing (the sail fluttering, NOT luffing up) | полоскание | łopot | fileggiamento | flameo | faseyement | Killen |
 | stall (flow separation) | срыв потока | oderwanie przepływu | stallo | desprendimiento del flujo | décrochage | Strömungsabriss |
-| slot effect (jib-main interaction) | эффект щели | efekt szczeliny | effetto fessura | efecto ranura | effet de fente | Spalteffekt |
+| slot effect (jib-main interaction; trim trainer only, beginner text says it in words) | эффект щели | efekt szczeliny | effetto fessura | efecto ranura | effet de fente | Spalteffekt |
 | reef (reduce sail area) | риф / рифить | ref / refować | mano di terzaroli / terzarolare | rizo / tomar rizos | ris / prendre un ris | Reff / reffen |
 | telltale | колдунчик | włóczka | filetto | catavientos | penon | Windfaden (Telltale) |
 
@@ -177,6 +224,101 @@ The seven-language map, instrument and style labels live in
 - Man overboard: "человек за бортом" / "człowiek za burtą" / "uomo a mare" / "hombre al agua" /
   "homme à la mer" / "Mensch über Bord". Use "MOB" as the visible abbreviation after the first
   full mention.
+
+## Race UI terms (language pass 2026-10-31)
+
+Decisions for the race (`/game`, `/multiplayer`, the app's Race hub). One name
+per thing across the toast, the HUD, the map, the result screen and the judge
+debrief. `src/app/game/race-terms.test.ts` pins the mark terms.
+
+- Mark, French: "bouée" everywhere ("Bouée touchée", "Laisse la bouée à
+  bâbord", map legend "Bouée"). The RCV word "marque" stays only in the
+  official term "place à la marque".
+- Mark, German: "Bahnmarke" for a mark in general ("Bahnmarke berührt",
+  "Bahnmarke an Backbord lassen", map legend and event chip "Bahnmarke");
+  "Luvtonne", "Leetonne", "Starttonne" for the named marks. Never a bare
+  "Tonne".
+- Finish line, German: "die Ziellinie überqueren" or "durchs Ziel", never
+  "kreuzen" (kreuzen is beating upwind).
+- Touched mark: the in-race toast starts with the judge's incident name in
+  every language (RU "Касание знака", EN "Mark touched", PL "Dotknięcie znaku",
+  ES "Baliza tocada", FR "Bouée touchée", DE "Bahnmarke berührt", IT "Boa
+  toccata").
+- Polish race words: one race is "wyścig" ("Omówienie wyścigu", "Dźwięk
+  wyścigu", "Ustawienia wyścigu"); the section and the saved list keep
+  "Regaty" ("zakładka Regaty", "Historia regat", "Do regat"). Free race is
+  "Wyścig swobodny" (short "Swobodny"), never "Wolny wyścig", which reads as
+  "slow race". The training toggles are "Przepisy treningowe", "Kary
+  treningowe", "Sędzia treningowy".
+- Multiplayer (M5 step 8, ADR-0015): "Быстрая онлайн-гонка" / "Quick online
+  race" / "Szybki wyścig online" (one race: "wyścig") / "Regata rápida en
+  línea" / "Course rapide en ligne" / "Schnelles Online-Rennen" / "Regata
+  veloce online", one term in `QUICK_ONLINE_RACE` (`src/data/quick-online-race.ts`). The legacy course of
+  the leaderboard is "Классическая трасса" / "Classic course" / "Klasyczna
+  trasa" / "Recorrido clásico" / "Parcours classique" / "Klassischer Kurs" /
+  "Percorso classico"; course lengths agree with the noun (PL "Krótka", ES
+  "Corto", FR "Court", DE "Kurz", IT "Corto").
+- Keep clear, Polish: "Ustąp drogi" (glossary "ustąpić drogi"), not "utrzymuje
+  się z dala".
+- Wind levels: EN "Light / Medium / Strong" in the lobby, the app hub and the
+  leaderboard filter (not "Heavy").
+- Start button of the lobby ("Start · Easy"): ES "Empezar", IT "Inizia" (a
+  verb; "Salida" on a button reads as "Exit"), FR "Départ", PL / DE "Start",
+  RU "Старт". The start signal itself stays a noun (ES "Salida", IT "Via").
+- Race settings: RU "Настройки гонки" (pause sheet, multiplayer) and "Настройка
+  гонки" (the app hub heading), never "Заезд" or "Условия гонки"; ES "Ajustes
+  de la regata", DE "Renneinstellungen", IT "Impostazioni della regata".
+- Replay: RU "Повтор гонки", PL "Powtórka wyścigu", ES "Repetición de la
+  regata", DE "Rennwiederholung" / "Wiederholung teilen", IT "Replay della
+  regata"; FR keeps the title "Revoir la course" and the noun "replay" ("Partager
+  le replay"). Russian never writes "replay" in Latin letters.
+- Russian "ё": optional in Russian. The race dictionaries do not write it
+  ("пересек", "развернут"). Exception since package 10: the repeat button is
+  "Ещё раз" everywhere, site and app (`UI_TERMS.again` in
+  `src/lib/product/ui-terms.ts`, most of the RU UI already wrote it so; a test
+  rejects "Еще раз"). Fixed names keep it ("Тренажёр трима", the difficulty
+  "Лёгкий"), and so does the briefing, which was written with it ("мёртвая
+  зона", "Идёшь", "ведёт"). Inside one string use one spelling only.
+- One UI dictionary (package 10): race modes "Простой" / "Pro" in every
+  language (ES "Sencillo"), never "Обычный", RU "Про" or DE "Profi"; RU
+  "ИИ-тренер", never "AI-тренер"; the product name in copy is "Week to
+  Regatta", "Regatta" only as the short header logo, never "REGATTA" in
+  capitals (the radio call "REGATTA FLEET" is a radio phrase). Units come from
+  `UI_TERMS`: Russian "уз", "м", "мин", never "kn", "m", "min".
+- Sheets in key hints always named in full (FR "Q/A écoute de grand-voile, W/S
+  écoute de foc"), per the sheet rule above.
+
+## In-lesson tasks and the leaderboard name (language pass of build 81, 2026-11-05)
+
+`src/data/foundation-mini-tasks.test.ts` pins these decisions.
+
+The three trainer pages are named by their task (owner decision R-13, one dictionary:
+`src/lib/product/trainer-names.ts`):
+
+| Page | Russian | English | Polish | Spanish | French | German | Italian |
+|---|---|---|---|---|---|---|---|
+| `/simulator` | Научиться рулить | Learn to steer | Naucz się sterować | Aprende a timonear | Apprendre à barrer | Steuern lernen | Impara a timonare |
+| `/simulator-v3` | Настроить паруса | Trim the sails | Ustaw żagle | Ajusta las velas | Régler les voiles | Segel trimmen | Regola le vele |
+| `/simulator2` | Рассмотреть парус | Inspect the sail | Obejrzyj żagiel | Observa la vela | Observer la voile | Segel ansehen | Osserva la vela |
+
+- The screen-reader name of the switcher is "Simulatoren" in German: "KI-Trainer" in
+  `UI_TERMS` is the AI coach, so a bare "Trainer" reads as a person.
+- The leaderboard has one name, the page heading, in the menu, the message under 10 results
+  and the nickname prompt: Результаты гонок / Leaderboard / Ranking / Clasificación / Classement /
+  Bestenliste / Classifica (RU by the owner's decision 2026-11-05). Not "Таблица лучших",
+  "Таблица лидеров", "Лидерборд", "table", "tabela", "tabla", "tableau", "Tabelle", "tabella" or
+  "Rangliste". The word stays "table" only where the text really speaks of several tables.
+- A task inside a lesson is an exercise: ES "ejercicio", FR "exercice", IT "esercizio". ES
+  "tarea" and IT "compito" read as homework. PL "zadanie" and DE "Aufgabe" stay.
+- The slider is held at an angle ("Hold the boat at this angle"), never on a "mark", "znak",
+  "Marke", "marca" or "segno": in this product those mean a race mark or read like it.
+- Spanish imperatives: "Arriba" alone reads as "up", so the task says "Arriba hasta poner la
+  popa al viento". Past tense follows Spain: "¡Lo has logrado!", not "¡Lo lograste!".
+- Italian "until" needs the negative: "finché il vento non arriva"; without "non" it means "as
+  long as".
+- French buttons do not start with "Plus de...", which also reads as "no more...".
+
+Open for the owner: PL "trenażer" against "symulator" in one product; DE "Am Wind" against "Hoch am Wind" (above).
 
 ## General style rules for translation
 

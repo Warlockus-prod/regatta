@@ -17,94 +17,15 @@
  * localized components (src/lessons/graphics/scenes.ts).
  */
 
-export type GraphicTheme = 'paper' | 'instrument';
+import { arrow, circle, dot, fmt, label, palettes, path, sideBoat, topBoat, type GraphicTheme } from './drawing-kit';
+
+export type { GraphicTheme } from './drawing-kit';
 export type SceneId = 'wind-direction' | 'rig-basics' | 'points-of-sail' | 'how-sail-works' | 'tacking' | 'jibing' | 'vmg-beating' | 'simple-rules' | 'mini-race';
 export type SceneState = 0 | 1 | 2;
-
-interface Palette {
-  bg: string;
-  ink: string;
-  muted: string;
-  faint: string;
-  cloth: string;
-  hull: string;
-  blue: string;
-  teal: string;
-  sand: string;
-}
-
-const palettes: Record<GraphicTheme, Palette> = {
-  paper: { bg: '#fffefa', ink: '#123247', muted: '#607583', faint: '#dce2e3', cloth: '#eee8dc', hull: '#e0e9ec', blue: '#006ea6', teal: '#006d70', sand: '#8a6100' },
-  instrument: { bg: '#0a1628', ink: '#e8f4f8', muted: '#a4bac8', faint: '#30485c', cloth: '#263b49', hull: '#193347', blue: '#74d8f4', teal: '#86d4c4', sand: '#f1c477' },
-};
 
 /** Drawing size of every scene (the kit's viewBox). */
 export const SCENE_WIDTH = 900;
 export const SCENE_HEIGHT = 560;
-
-const fmt = (n: number) => Math.round(n * 100) / 100;
-
-const path = (d: string, c: string, w = 3, dash = '', fill = 'none') =>
-  `<path d="${d}" fill="${fill}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
-
-const circle = (x: number, y: number, r: number, fill: string, stroke = 'none', w = 2) =>
-  `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${w}"/>`;
-
-const label = (x: number, y: number, s: string | number, c: string, size = 26) =>
-  `<text x="${x}" y="${y}" text-anchor="middle" fill="${c}" font-family="system-ui,sans-serif" font-size="${size}" font-weight="600">${s}</text>`;
-
-/** Numbered marker; the number matches the legend under the drawing. */
-const dot = (x: number, y: number, n: number, p: Palette, on = true) =>
-  circle(x, y, 19, p.bg, on ? p.blue : p.muted, 3) + label(x, y + 7, n, on ? p.blue : p.muted, 22);
-
-function arrow(x: number, y: number, X: number, Y: number, c: string, w = 4, dash = '') {
-  if (Math.hypot(X - x, Y - y) < 0.1) return circle(x, y, 4, c);
-  const a = Math.atan2(Y - y, X - x);
-  const r = 13;
-  return (
-    path(`M${x} ${y}L${X} ${Y}`, c, w, dash) +
-    path(`M${fmt(X - r * Math.cos(a - 0.5))} ${fmt(Y - r * Math.sin(a - 0.5))}L${X} ${Y}L${fmt(X - r * Math.cos(a + 0.5))} ${fmt(Y - r * Math.sin(a + 0.5))}`, c, w)
-  );
-}
-
-/**
- * Boat seen from above, bow up at angle 0. `boom` is the boom angle in degrees
- * off the aft centreline: positive to starboard (right), negative to port.
- */
-function topBoat(x: number, y: number, angle: number, p: Palette, scale = 1, boom: number | null = 24) {
-  return (
-    `<g transform="translate(${x} ${y}) rotate(${angle}) scale(${scale})">` +
-    path('M0-90C-42-53-47 14-30 73Q0 88 30 73C47 14 42-53 0-90Z', p.ink, 2, '', p.hull) +
-    path('M0-67C-27-37-30 10-23 55H23C30 10 27-37 0-67Z', p.muted, 1.5) +
-    path('M-15 24V57H15V24Z', p.muted, 2, '', p.bg) +
-    path('M0-33V8', p.muted, 2) +
-    (boom === null
-      ? ''
-      : path(`M0 0L${fmt(Math.sin((boom * Math.PI) / 180) * 62)} ${fmt(Math.cos((boom * Math.PI) / 180) * 62)}`, p.ink, 5) + circle(0, 0, 5, p.blue)) +
-    '</g>'
-  );
-}
-
-/** Yacht seen from the side, bow to the right, stern to the left. */
-function sideBoat(p: Palette, { reef = 0, rise = 0 }: { reef?: number; rise?: number } = {}) {
-  const by = 340 - rise;
-  return (
-    path('M91 410Q392 425 811 391L768 435Q416 484 143 448Z', p.muted, 2, '', p.hull) +
-    path('M108 428Q428 457 794 409', p.ink, 3) +
-    path('M343 408 366 379 477 367 590 399', p.muted, 2, '', p.cloth) +
-    path('M378 384 430 378 430 392 370 397ZM443 377 477 378 514 394 443 391Z', p.ink, 1, '', p.ink) +
-    path('M530 70V400', p.ink, 6) +
-    path(`M530 ${90 + reef}Q431 ${190 + reef * 0.4} ${252 + reef * 0.65} ${by}Q395 ${345 - rise * 0.5} 525 337Z`, p.muted, 2, '', p.cloth) +
-    path(`M530 340L237 ${by}`, p.ink, 7) +
-    path('M92 408 530 70 800 390', p.faint, 2) +
-    path('M106 406V382M167 410V385M235 412V387M667 404V380M745 398V374M108 383Q440 401 794 368', p.muted, 1.5) +
-    [200, 255, 310]
-      .filter((y) => y < by - 10 && y > 90 + reef)
-      .map((y) => path(`M${fmt(530 - (y - 90) * 0.6)} ${y}H525`, p.faint, 1.5))
-      .join('') +
-    path('M254 447h34m28 0h34m28-1h34m28-2h34', p.muted, 4)
-  );
-}
 
 /**
  * Boom angle of the wind-direction boat per state: head to wind the sail flaps
@@ -117,6 +38,44 @@ export const windDirectionBoom: Record<SceneState, number> = { 0: 0, 1: -45, 2: 
 export interface RenderOptions {
   /** Boom angle of the wind-direction boat; `24` reproduces the kit export. */
   boom?: number;
+}
+
+export interface AngleTaskScene {
+  /** Heading off the wind in degrees: 0 head to wind, positive clockwise. */
+  angle: number;
+  boom: number;
+  /** The mark to reach, or null when the task is finished. */
+  target: number | null;
+  /** Half-angle of the no-go wedge, from the shared constant. */
+  noGo: number;
+  /** Shown number, 0 to 180. */
+  shownAngle: number;
+  windLabel: string;
+}
+
+/** One boat, one handle: the mini task of a lesson, wind always from the top. */
+export function renderAngleTask(scene: AngleTaskScene, theme: GraphicTheme = 'paper'): string {
+  const p = palettes[theme];
+  const cx = 450, cy = 290, reach = 205;
+  const onCircle = (deg: number, r: number): [number, number] => [
+    fmt(cx + Math.sin((deg * Math.PI) / 180) * r),
+    fmt(cy - Math.cos((deg * Math.PI) / 180) * r),
+  ];
+  const [lx, ly] = onCircle(-scene.noGo, reach);
+  const [rx, ry] = onCircle(scene.noGo, reach);
+  const [hx, hy] = onCircle(scene.angle, reach);
+  const d =
+    path(`M${cx} ${cy}L${lx} ${ly}A${reach} ${reach} 0 0 1 ${rx} ${ry}Z`, p.faint, 2, '', p.faint) +
+    path(`M${cx} ${cy}L${hx} ${hy}`, p.muted, 2, '7 7') +
+    (scene.target === null ? '' : (() => {
+      const [tx, ty] = onCircle(scene.target, reach);
+      return circle(tx, ty, 17, p.bg, p.blue, 5);
+    })()) +
+    topBoat(cx, cy, scene.angle, p, 1.2, scene.boom) +
+    arrow(135, 120, 135, 225, p.blue, 6) +
+    label(135, 100, scene.windLabel, p.blue, 28) +
+    label(765, 120, `${scene.shownAngle}°`, p.ink, 56);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SCENE_WIDTH} ${SCENE_HEIGHT}"><rect width="${SCENE_WIDTH}" height="${SCENE_HEIGHT}" fill="${p.bg}"/>${d}</svg>`;
 }
 
 export function renderScene(id: SceneId, state: SceneState, theme: GraphicTheme = 'paper', options: RenderOptions = {}): string {

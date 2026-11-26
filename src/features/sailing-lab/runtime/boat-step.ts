@@ -1,5 +1,5 @@
 import type { BoatParams, BoatState, Controls, TickDiagnostics } from "../../../lib/sailing-physics";
-import { advanceSailingHeading, sailingDisplacement, type SailingSteering } from "../../../lib/sailing-kinematics";
+import { advanceSailingHeading, COURSE_ASSIST_TURN_RATE_DEG_PER_S, sailingDisplacement, type SailingSteering } from "../../../lib/sailing-kinematics";
 import type { RigMotion } from "../rig/transfer";
 import type { MainTrimCommand, MainTrimState } from "../rig/main-trim";
 import { interpolateControls } from "./controls";
@@ -42,8 +42,17 @@ export function stepSharedBoat(prev: Pick<SharedBoatState, "boat" | "live" | "ri
   // Control-mode changes require an explicit fresh study, never a hidden
   // conversion that can jump the boom or erase a loaded tackle.
   if (Boolean(prev.mainTrim) !== Boolean(command.mainTrim)) throw new RangeError("Start a new session to change rig control mode");
+  // The yaw rate the helm produced feeds the turning drag of the cruiser
+  // profile (ADR-0021); the classic profile ignores it. Below 3 kn the
+  // charged rate fades with the helm law's speed authority: course assist
+  // spinning a stopped boat is a teaching aid, not a lateral force the keel
+  // makes. At speed the whole turn is charged, assist included, so a 45 deg/s
+  // assisted tack costs more than a 22 deg/s helm tack, not nothing.
+  const rawYaw = dt > 0 ? (((heading - prev.boat.heading + 540) % 360) - 180) / dt : 0;
+  const yawCap = COURSE_ASSIST_TURN_RATE_DEG_PER_S * Math.max(0, Math.min(1, helmSpeed / 3));
+  const yawRateDegPerS = Math.max(-yawCap, Math.min(yawCap, rawYaw));
   const result = stepWithRig(boat, live, params, prev.rig, dt,
-    command.mainTrim ? { command: command.mainTrim, state: prev.mainTrim ?? null } : undefined);
+    command.mainTrim ? { command: command.mainTrim, state: prev.mainTrim ?? null } : undefined, { yawRateDegPerS });
   return {
     boat: result.state, live: result.resolvedControls,
     ...(result.mainTrim ? { mainTrim: result.mainTrim } : {}),

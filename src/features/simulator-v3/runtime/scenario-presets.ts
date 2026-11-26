@@ -137,9 +137,11 @@ export const DRILLS: DrillDefinition[] = [
     ...catalogText('hold-trim'),
     initialUi: {
       ...DEFAULT_UI,
-      // Off by ~10 deg on each sail so the user has to move, not just sit.
-      mainAngle: 40,
-      jibAngle: 40,
+      // Both sheets eased well past the solver's 36 / 43 deg (64% trim), so
+      // the learner has to sheet in, not just sit. The former 40 / 40 read
+      // 99% on the cruiser and passed by itself (package 13 stage D).
+      mainAngle: 60,
+      jibAngle: 60,
     },
     timeLimit: 40,
     holdDuration: 10,

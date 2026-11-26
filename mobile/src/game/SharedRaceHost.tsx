@@ -6,6 +6,7 @@ import { Button, Screen, Text } from "../../src/design-system/components";
 import { AppSurface, appStackOptions } from "../../src/design-system/surface";
 import { colors } from "../../src/design-system/tokens";
 import { useI18n } from "../../src/i18n/context";
+import { UI_TERMS } from "../../../src/lib/product/catalog";
 import { raceEntryQuery, raceNativeDestination } from "../../src/navigation/race-entry";
 import { loadRaceById } from "../../src/persistence/race-history";
 import { saveNativeRace, raceHistoryResponse, raceHistoryFailure } from "../../src/persistence/race-native";
@@ -22,6 +23,7 @@ import { nativeBestFailure, readNativeBestCommand, NATIVE_BEST_COMMAND_MAX_CHARS
 import { saveNativePersonalBest, nativePersonalBestResponse, matchesNativeBestStart } from "../../src/persistence/race-personal-best";
 import { nativeDataEpoch } from "../../src/persistence/data-epoch";
 import { recordNativeDiagnostic } from "../../src/diagnostics/journal";
+import { GHOST_STORAGE_KEY } from "../../../src/lib/race-ghost";
 
 const OFFLINE_SOURCE = require("../../assets/sailing-offline.html");
 
@@ -73,7 +75,13 @@ export default function SharedRaceHost({ savedReplayId }: { savedReplayId?: stri
       }
     } else if (data.type === "race-storage") {
       const entries = parseRaceStorageEntries(data.entries);
-      if (entries) void persistStorage(entries).catch(() => undefined);
+      // M4-4: the ghost row is the one large, structurally checked row; losing it leaves a trace.
+      const ghost = Boolean(data.entries && typeof data.entries === "object" && GHOST_STORAGE_KEY in data.entries);
+      const lost = (outcome: "rejected" | "failed", reason: "invalid-message" | "storage-write") => {
+        if (ghost) recordNativeDiagnostic({ type: "storage.operation", surface: "race", target: "ghost", action: "write", outcome, reason });
+      };
+      if (!entries) lost("rejected", "invalid-message");
+      else void persistStorage(entries).catch(() => lost("failed", "storage-write"));
     } else if (data.type === "race-personal-best") {
       if (replayId || message.length > NATIVE_BEST_COMMAND_MAX_CHARS + 100) return;
       const command = readNativeBestCommand(data.command);
@@ -138,7 +146,7 @@ export default function SharedRaceHost({ savedReplayId }: { savedReplayId?: stri
     }
   }, [lang, query.daily, query.fromLesson, replayId, router, persistStorage, analytics, storageEpoch, acceptBestStore]);
 
-  const title = tp("Гонка", "Race", "Wyścig", { es: "Regata", fr: "Course", de: "Rennen", it: "Regata" });
+  const title = UI_TERMS.race[lang];
   if (!storage.ready || !replayReady) return <AppSurface><Screen>
     <Stack.Screen options={{ ...appStackOptions, headerShown: true, title, headerBackVisible: false,
       headerLeft: () => query.fromLesson

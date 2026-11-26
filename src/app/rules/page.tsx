@@ -1,8 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { RaceReturn } from '@/components/RaceReturn';
+import { ruleFromSearch } from './rule-from-search';
 import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
+import { ruleVisuals, sailingVisuals } from '@/data/sailing-visuals';
+import { SchematicThumb, SubjectPicture } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import CoursesSection from './CoursesSection';
@@ -167,6 +172,17 @@ const SVG_MAP: Record<RuleScenario['svg'], () => React.ReactElement> = {
 export default function RulesPage() {
   const { lang, tp } = useI18n();
   const [openId, setOpenId] = useState<string | null>(ruleScenarios[0].id);
+  const [linkedId, setLinkedId] = useState<string | null>(null);
+  // M4-2: the race debrief links one card (?rule=<id>); open it and bring it
+  // into view after mount, so the server render stays the default.
+  useEffect(() => {
+    const id = ruleFromSearch(window.location.search);
+    if (!id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount read of ?rule= so the server render stays the default
+    setOpenId(id);
+    setLinkedId(id);
+    requestAnimationFrame(() => document.getElementById(`rule-${id}`)?.scrollIntoView({ block: 'start' }));
+  }, []);
 
   // Pick field per lang. EN stays as the international subtitle.
   const pickTitle = (r: RuleScenario) => legacyPick(r, 'title', lang);
@@ -178,22 +194,19 @@ export default function RulesPage() {
 
   return (
     <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <RaceReturn />
       {/* Header */}
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
-             style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
-          📖 {tp('Простые правила', 'Simple rules', 'Proste zasady', { es: 'Reglas simples', fr: 'Règles simples', de: 'Einfache Regeln', it: 'Regole semplici' })}
-        </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
           {tp(
-            'Правила на воде: RRS + МППСС',
-            'Rules on the water: RRS + COLREGS',
-            'Zasady na wodzie: RRS + MPZZM',
+            'Правила на воде',
+            'Rules on the water',
+            'Zasady na wodzie',
             {
-              es: 'Reglas en el agua: RRS + RIPA',
-              fr: "Règles sur l'eau : RRS + RIPAM",
-              de: 'Regeln auf dem Wasser: RRS + KVR',
-              it: 'Regole in acqua: RRS + COLREG',
+              es: 'Reglas en el agua',
+              fr: "Règles sur l'eau",
+              de: 'Regeln auf dem Wasser',
+              it: 'Regole in acqua',
             },
           )}
         </h1>
@@ -212,20 +225,11 @@ export default function RulesPage() {
         </p>
       </div>
 
-      {/* --- Kursy (patenty PL) ---------------------------------------------
-          The two Polish licence courses. They live here, in the theory section,
-          because that is where somebody who wants a certificate looks - and
-          because /radio was previously reachable only through a link buried
-          inside /sternik. The course CONTENT is Polish: these are Polish exams,
-          and a half-translated licence course would be worse than none. On the
-          Russian site version the courses additionally offer Russian commentary. */}
-      <CoursesSection />
-
       {/* --- RRS section --- */}
       <div className="mb-6 flex items-center gap-3">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(255, 170, 0, 0.12)', border: '1px solid rgba(255, 170, 0, 0.28)', color: 'var(--warning)' }}>
-          🏁 RRS
+          RRS
         </div>
         <h2 className="text-base sm:text-lg font-semibold">
           {tp('Гоночные правила (World Sailing)', 'Racing Rules of Sailing', 'Przepisy Regatowe Żeglarstwa (World Sailing)', { es: 'Reglamento de Regatas a Vela (World Sailing)', fr: 'Règles de course à la voile (World Sailing)', de: 'Wettfahrtregeln Segeln (World Sailing)', it: 'Regole di regata della vela (World Sailing)' })}
@@ -240,7 +244,8 @@ export default function RulesPage() {
           return (
             <div
               key={r.id}
-              className="card overflow-hidden transition-all"
+              id={`rule-${r.id}`}
+              className="card overflow-hidden transition-all scroll-mt-20"
               style={{ borderColor: isOpen ? 'rgba(255, 170, 0, 0.3)' : undefined }}
             >
               <button
@@ -248,7 +253,8 @@ export default function RulesPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{r.icon}</span>
+                  {/* Package 32, stage C: the card's drawing as the row's thumbnail. */}
+                  <SchematicThumb visuals={sailingVisuals(r.svg)} />
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{pickTitle(r)}</div>
                     {lang !== 'en' && (
@@ -274,11 +280,15 @@ export default function RulesPage() {
               {isOpen && (
                 <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
                   {/* Illustration */}
+                  <div className="space-y-2">
                   <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.9)' }}>
                     <SvgComp />
                     <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
                       {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali', { es: 'esquemático, no a escala', fr: "schématique, pas à l'échelle", de: 'schematisch, nicht maßstabsgetreu', it: 'schematico, non in scala' })}
                     </div>
+                  </div>
+                  {/* Package 32: the same situation in the race scene, beside the diagram. */}
+                  <SubjectPicture visuals={ruleVisuals(r)} name={pickTitle(r)} label={UI_TERMS.visualOnWater[lang]} />
                   </div>
 
                   {/* Content */}
@@ -324,6 +334,8 @@ export default function RulesPage() {
                       </div>
                     </details>
                     )}
+                    {/* M4-2: the card a race debrief opened offers the way back right here. */}
+                    {linkedId === r.id && <RaceReturn />}
                   </div>
                 </div>
               )}
@@ -336,7 +348,7 @@ export default function RulesPage() {
       <div className="mb-6 flex items-center gap-3">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.28)', color: 'var(--accent-cyan)' }}>
-          🌊 {tp('COLREGS / МППСС-72', 'COLREGS / IRPCS', 'COLREG / MPZZM', { es: 'COLREG / RIPA', fr: 'COLREG / RIPAM', de: 'COLREG / KVR', it: 'COLREG' })}
+          {tp('COLREGS / МППСС-72', 'COLREGS / IRPCS', 'COLREG / MPZZM', { es: 'COLREG / RIPA', fr: 'COLREG / RIPAM', de: 'COLREG / KVR', it: 'COLREG' })}
         </div>
         <h2 className="text-base sm:text-lg font-semibold">
           {tp(
@@ -373,7 +385,8 @@ export default function RulesPage() {
           return (
             <div
               key={r.id}
-              className="card overflow-hidden transition-all"
+              id={`rule-${r.id}`}
+              className="card overflow-hidden transition-all scroll-mt-20"
               style={{ borderColor: isOpen ? 'rgba(0, 212, 255, 0.3)' : undefined }}
             >
               <button
@@ -381,7 +394,8 @@ export default function RulesPage() {
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{r.icon}</span>
+                  {/* Package 32, stage C: the card's drawing as the row's thumbnail. */}
+                  <SchematicThumb visuals={sailingVisuals(r.svg)} />
                   <div className="min-w-0">
                     <div className="text-base sm:text-lg font-semibold break-words">{pickTitle(r)}</div>
                     {lang !== 'en' && (
@@ -400,11 +414,15 @@ export default function RulesPage() {
 
               {isOpen && (
                 <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
+                  <div className="space-y-2">
                   <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.9)' }}>
                     <SvgComp />
                     <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
                       {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali', { es: 'esquemático, no a escala', fr: "schématique, pas à l'échelle", de: 'schematisch, nicht maßstabsgetreu', it: 'schematico, non in scala' })}
                     </div>
+                  </div>
+                  {/* Package 32: the same situation in the race scene, beside the diagram. */}
+                  <SubjectPicture visuals={ruleVisuals(r)} name={pickTitle(r)} label={UI_TERMS.visualOnWater[lang]} />
                   </div>
                   <div className="space-y-4 text-sm">
                     <div>
@@ -722,6 +740,10 @@ export default function RulesPage() {
           )}
         </p>
       </div>
+
+      {/* The licence courses, after the rules this page is for (audit: they used to
+          stand above the first rule card). */}
+      <CoursesSection />
 
       <ContentFooterNav page="/rules" />
     </div>

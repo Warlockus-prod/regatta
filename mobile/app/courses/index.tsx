@@ -14,6 +14,8 @@ import { legacyPick, legacyPickArray, type Lang } from '../../src/i18n/languages
 import { manoeuvres } from '../../../src/data/sailing-lab/sources';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 import { pointOfSailTone } from '../../src/courses/tones';
+import { SubjectVisuals } from '../../src/learning/SubjectVisuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
 
 // Tacking and jibing as procedures (the web /courses#turns section): the
 // helmsman's and trimmer's side; the crew's choreography is in the checklist.
@@ -60,6 +62,8 @@ function TurnCard({
       <Text variant="body" style={styles.desc}>
         {legacyPick(maneuver, 'description', lang)}
       </Text>
+      {/* Package 32: the turn's schematic and a frame of it on the water, the same pair every section shows. */}
+      <SubjectVisuals id={maneuver.id} name={legacyPick(maneuver, 'name', lang)} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
       <Text variant="muted" style={styles.turnHeading}>
         {labels.commands.toUpperCase()}
       </Text>
@@ -312,6 +316,8 @@ export default function Courses() {
                     <Text variant="body" style={styles.sailText}>{sailWork}</Text>
                   </View>
                 ) : null}
+                {/* Package 32: the course's schematic and a frame of the boat on it, the same pair every section shows. */}
+                <SubjectVisuals id={point.id} name={name} labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
               </Card>
             </Pressable>
           );

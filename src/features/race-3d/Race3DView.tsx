@@ -13,8 +13,12 @@ import { SceneBoundary, reportScene } from "@/features/simulator-3d/SceneBoundar
 import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
 import { NEUTRAL_YACHT, type YachtState } from "@/features/simulator-3d/types";
 import { raceTerrain } from "@/data/venues/geometry";
+import { MARK_HALO, MARK_RING_COLOR, markHaloOpacity } from "@/data/venues/look";
 import { distance, makeStandardCourse } from "@/lib/race-physics";
 import type { Venue } from "@/data/venues/venues";
+import { FORESTAY_AXIS } from "@/features/simulator-3d/sails/geometry";
+import { QUALITY_PROFILES, hullScreenPx } from "@/features/race-scene/quality";
+import { FAR_JIB, FAR_JIB_RIG, FAR_MAIN, FAR_MAIN_RIG, farHullGeometry, farSailGeometry, mergeRivalStatics, switchRivalLod } from "./rival-lod";
 import { METRES_PER_UNIT, NO_GO_DEG, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
 
 // ============================================================================
@@ -39,13 +43,17 @@ const FAR_CALM: [number, number] = [45, 420];
 const DEG = Math.PI / 180;
 /** The race shore stands taller than the horizon one: it is nearer and much wider. */
 const LAND_HEIGHT = 1.8;
-const MARK_COLOR = "#ff7a1a";
-const PIN_COLOR = "#ffd23f";
+export const MARK_COLOR = "#ff7a1a";
+export const PIN_COLOR = "#ffd23f";
 /** The start line, orange dashes as on the map. */
 const LINE_COLOR = "#ffaa00";
-/** Where to sail next: the soft guidance blue of the race scene's target ring
- * (RaceScene), not the action cyan (M1-7, DESIGN.md: cyan is for actions). */
-export const GUIDANCE_COLOR = "#76c9e9";
+/** Where to sail next: the warm yellow of the route's turn points (RaceScene),
+ * high contrast on water and never the action cyan (M1-7, M2-2; DESIGN.md:
+ * cyan is for actions). The pointer over the mark and the screen-edge arrow. */
+export const GUIDANCE_COLOR = "#ffd23f";
+/** Package 8: the steady beacon over the next mark (no pulse, no animation):
+ * a translucent column this tall, metres, the pointer on top and the distance on it. */
+export const BEACON_HEIGHT = 38;
 /** The loading ring: neutral, it is a state and not an action. */
 export const LOADING_COLOR = "#c7d2da";
 export const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
@@ -148,23 +156,53 @@ export function NameTag({ text, color, y = 22 }: { text: string; color?: string;
   );
 }
 
-export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
+/** Shared by every far boat: the hull carries its colours per vertex, the sails are plain cloth. */
+let farShared: { main: THREE.BufferGeometry; jib: THREE.BufferGeometry; hull: THREE.MeshStandardMaterial; sail: THREE.MeshStandardMaterial } | null = null;
+function farBoatShared() {
+  farShared ??= {
+    main: farSailGeometry(FAR_MAIN),
+    jib: farSailGeometry(FAR_JIB),
+    hull: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0 }),
+    sail: new THREE.MeshStandardMaterial({ color: "#f4f2ec", roughness: 0.7, metalness: 0, side: THREE.DoubleSide }),
+  };
+  return farShared;
+}
+
+/**
+ * A rival or the ghost. Near, the full yacht with its static parts merged
+ * into one mesh per material (M2-6, rival-lod.ts); once its hull is shorter
+ * on screen than `farPxRef` (the quality profile, quality.ts), the far boat:
+ * the same colours, heel, heave and sail sides in three draw calls.
+ */
+export function Rival({ id, color, label, boatsRef, windDirRef, originRef, farPxRef }: {
   id: string;
   color: string;
   label: string;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
   originRef: OriginRef;
+  /** On-screen hull length (CSS px) below which the far boat is drawn. */
+  farPxRef?: MutableRefObject<number>;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, id);
   const group = useRef<THREE.Group>(null);
+  const near = useRef<THREE.Group>(null);
+  const farYaw = useRef<THREE.Group>(null);
+  const farRoot = useRef<THREE.Group>(null);
+  const farMain = useRef<THREE.Group>(null);
+  const farJib = useRef<THREE.Group>(null);
+  const isFar = useRef(false);
+  const shared = farBoatShared();
+  const farHull = useMemo(() => farHullGeometry(new THREE.Color(color).multiplyScalar(0.82)), [color]);
+  useEffect(() => () => farHull.dispose(), [farHull]);
   // The rival's race colour on its hull, the same colour as its dot on the 2D
   // map and its name tag. The GLB's gelcoat is shared by every yacht, so each
   // rival paints its own copy and puts the shared one back when it leaves.
+  // Then its static parts are merged with the paint they now wear.
   useEffect(() => {
     const tint = new THREE.Color(color);
     const painted: { mesh: THREE.Mesh; original: THREE.Material | THREE.Material[]; copies: THREE.Material[] }[] = [];
-    group.current?.traverse((o) => {
+    near.current?.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh) return;
       const original = mesh.material;
@@ -180,15 +218,19 @@ export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
       if (copies.length) painted.push({ mesh, original, copies });
       else mesh.material = original;
     });
+    const model = near.current?.getObjectByName("Hull")?.parent ?? null;
+    const unmerge = model ? mergeRivalStatics(model) : () => {};
     return () => {
+      unmerge();
       for (const p of painted) {
         p.mesh.material = p.original;
         p.copies.forEach((m) => m.dispose());
       }
     };
   }, [color]);
-  useFrame(({ camera }) => {
-    const travel = state.current.travel;
+  useFrame(({ camera, size, clock }) => {
+    const pose = state.current;
+    const travel = pose.travel;
     if (!group.current || !travel) return;
     const x = travel.x - originRef.current.x;
     const z = travel.z - originRef.current.z;
@@ -203,30 +245,88 @@ export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
     // From high above, the sight line clears a rival's masthead (21 m) until near the player.
     const sightHeight = camera.position.y * (1 - t) + 6 * t;
     group.current.visible = !(t > 0 && t < 1.05 && side < 9 && sightHeight < 21);
+    const fov = (camera as THREE.PerspectiveCamera).fov ?? 50;
+    const screen = hullScreenPx(Math.hypot(x - cx, camera.position.y, z - cz), fov, size.height);
+    isFar.current = switchRivalLod(isFar.current, screen, farPxRef?.current ?? QUALITY_PROFILES.high.rivalFarPx, near.current, farYaw.current);
+    if (!isFar.current || !farYaw.current) return;
+    // The pose Yacht gives the full model, without its smoothing: too small to see it.
+    farYaw.current.rotation.y = pose.heading === undefined ? 0 : (90 - pose.heading) * DEG;
+    farYaw.current.position.y = sampleWave(travel.x, travel.z, clock.elapsedTime).y;
+    if (farRoot.current) farRoot.current.rotation.x = pose.heel * DEG;
+    if (farMain.current) farMain.current.rotation.y = pose.boomAngle * DEG;
+    farJib.current?.quaternion.setFromAxisAngle(FORESTAY_AXIS, pose.jibAngle * DEG);
   });
   return (
     <group ref={group}>
-      <Yacht stateRef={state} light />
-      <NameTag text={label} color={color} />
+      <group ref={near}><Yacht stateRef={state} light /></group>
+      <group ref={farYaw}>
+        <group ref={farRoot}>
+          <mesh geometry={farHull} material={shared.hull} />
+          <group ref={farMain} position={FAR_MAIN_RIG as [number, number, number]}><mesh geometry={shared.main} material={shared.sail} /></group>
+          <group ref={farJib} position={FAR_JIB_RIG as [number, number, number]}><mesh geometry={shared.jib} material={shared.sail} /></group>
+        </group>
+      </group>
+      {label && <NameTag text={label} color={color} />}
     </group>
   );
 }
 
-/** A buoy that rides the swell at its place in the world. */
-function Buoy({ x, z, color, flag }: { x: number; z: number; color: string; flag?: boolean }) {
+/** How a mark is drawn (F4, look.ts raceLight): its size, whether it is lit a
+ * little from within (the softer light) and the distance halo. */
+export interface MarkLook { scale: number; glow: boolean; halo: boolean }
+export const PLAIN_MARK: MarkLook = { scale: 1, glow: false, halo: true };
+
+/** One halo picture per mark colour: a dark outline with the mark colour inside, empty in the middle. */
+const haloTextures = new Map<string, THREE.Texture>();
+export function markHaloTexture(color: string): THREE.Texture | null {
+  if (typeof document === "undefined") return null;
+  let texture = haloTextures.get(color);
+  if (texture) return texture;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 128;
+  const g = canvas.getContext("2d");
+  if (g) {
+    g.beginPath(); g.arc(64, 64, 50, 0, Math.PI * 2);
+    g.lineWidth = 16; g.strokeStyle = MARK_RING_COLOR; g.globalAlpha = 0.8; g.stroke();
+    g.globalAlpha = 1; g.lineWidth = 7; g.strokeStyle = color; g.stroke();
+  }
+  texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  haloTextures.set(color, texture);
+  return texture;
+}
+
+/** A buoy that rides the swell at its place in the world. Far away it keeps a
+ * halo that faces the camera at a fixed size on screen (look.ts MARK_HALO),
+ * so the mark can be found among the waves. With the softer light (F4) it is
+ * larger and lit a little from within so the darker picture does not dull
+ * its colour. */
+export function Buoy({ x, z, color, flag, look = PLAIN_MARK }: { x: number; z: number; color: string; flag?: boolean; look?: MarkLook }) {
   const ref = useRef<THREE.Group>(null);
-  useFrame(({ clock }) => {
+  const halo = useRef<THREE.Sprite>(null);
+  const at = useRef<THREE.Vector3 | null>(null);
+  useFrame(({ clock, camera }) => {
     if (ref.current) ref.current.position.y = sampleWave(x, z, clock.elapsedTime).y;
+    const sprite = halo.current;
+    if (!sprite) return;
+    const opacity = markHaloOpacity(camera.position.distanceTo(sprite.getWorldPosition(at.current ??= new THREE.Vector3())));
+    (sprite.material as THREE.SpriteMaterial).opacity = opacity;
+    sprite.visible = opacity > 0.01;
   });
+  const glow = look.glow ? 0.35 : 0;
   return (
     <group ref={ref} position={[x, 0, z]}>
+      {look.halo && <sprite ref={halo} name="mark-halo" position={[0, 1.6 * look.scale, 0]} scale={[MARK_HALO.size, MARK_HALO.size, 1]} renderOrder={9} visible={false}>
+        <spriteMaterial map={markHaloTexture(color)} sizeAttenuation={false} depthTest={false} depthWrite={false} transparent opacity={0} fog={false} toneMapped={false} />
+      </sprite>}
+      <group scale={look.scale}>
       <mesh position={[0, 1.1, 0]} castShadow>
         <cylinderGeometry args={[1.2, 1.5, 2.6, 16]} />
-        <meshStandardMaterial color={color} roughness={0.5} />
+        <meshStandardMaterial color={color} roughness={0.5} emissive={color} emissiveIntensity={glow} />
       </mesh>
       <mesh position={[0, 2.9, 0]}>
         <coneGeometry args={[1.2, 1.2, 16]} />
-        <meshStandardMaterial color={color} roughness={0.5} />
+        <meshStandardMaterial color={color} roughness={0.5} emissive={color} emissiveIntensity={glow} />
       </mesh>
       {flag && (
         <>
@@ -236,10 +336,11 @@ function Buoy({ x, z, color, flag }: { x: number; z: number; color: string; flag
           </mesh>
           <mesh position={[0.8, 8.2, 0]}>
             <boxGeometry args={[1.6, 1.0, 0.04]} />
-            <meshStandardMaterial color={color} side={THREE.DoubleSide} />
+            <meshStandardMaterial color={color} side={THREE.DoubleSide} emissive={color} emissiveIntensity={glow} />
           </mesh>
         </>
       )}
+      </group>
     </group>
   );
 }
@@ -394,8 +495,12 @@ const Land = memo(function Land({ venue }: { venue: Venue }) {
 });
 
 /** Everything fixed to the race area, shifted so the player stays at the origin. */
-export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land = true }: {
+export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land = true, marks = PLAIN_MARK, beacon = true }: {
   venue: Venue;
+  /** False in a staged picture (src/app/dev/race-stage): no column over the next mark. */
+  beacon?: boolean;
+  /** F4: how the course marks are drawn (the distance halo; larger and lit under the softer light). */
+  marks?: MarkLook;
   /** False when the caller draws the land itself (the next race scene, ADR-0008). */
   land?: boolean;
   courseRef: MutableRefObject<Race3DCourse>;
@@ -436,18 +541,24 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
         // The starboard end of the start line is the committee boat, the other end a pin.
         const committee = m.type === "start" && m.pos.x === Math.max(course.startLine.a.x, course.startLine.b.x);
         return committee ? <CommitteeBoat key={i} x={w.x} z={w.z} />
-          : <Buoy key={i} x={w.x} z={w.z} color={m.type === "windward" ? MARK_COLOR : PIN_COLOR} flag />;
+          : <Buoy key={i} x={w.x} z={w.z} color={m.type === "windward" ? MARK_COLOR : PIN_COLOR} flag look={marks} />;
       })}
       {start && <LineDashes a={start.a} b={start.b} />}
       {course && !finishSame && <LineDashes a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
-      {/* Where to sail next: the same target the race counts, and how far. */}
-      <group ref={pointer}>
-        <mesh rotation-x={Math.PI}>
-          <coneGeometry args={[1.8, 3.2, 4]} />
+      {/* Where to sail next: the same target the race counts, and how far.
+          Package 8: a steady beacon column from the water, seen from afar. */}
+      <group ref={pointer} name="mark-beacon"><group visible={beacon}>
+        <mesh position-y={BEACON_HEIGHT / 2 - 15} renderOrder={6}>
+          <cylinderGeometry args={[1.6, 1.6, BEACON_HEIGHT, 8, 1, true]} />
+          <meshBasicMaterial color={GUIDANCE_COLOR} transparent opacity={0.45} depthWrite={false} fog={false} toneMapped={false} />
+        </mesh>
+        <mesh rotation-x={Math.PI} position-y={BEACON_HEIGHT - 13}>
+          <coneGeometry args={[2.4, 4, 4]} />
           <meshBasicMaterial color={GUIDANCE_COLOR} fog={false} />
         </mesh>
-        {targetLabel && <NameTag text={targetLabel} y={4.5} />}
-      </group>
+        {/* The distance stays low on the column, under the horizon, where the HUD corners do not cover it. */}
+        {targetLabel && <NameTag text={targetLabel} y={5} />}
+      </group></group>
     </group>
   );
 }

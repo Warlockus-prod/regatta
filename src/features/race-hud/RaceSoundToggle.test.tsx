@@ -15,7 +15,7 @@ afterEach(() => vi.unstubAllGlobals());
 const render = (on: boolean, showLabel = false) => renderToStaticMarkup(<RaceSoundToggle on={on} onChange={() => undefined} showLabel={showLabel} />);
 
 it("names itself in every language and states on or off through aria-pressed", () => {
-  for (const [lang, name] of [["ru", "Звук гонки"], ["en", "Race sound"], ["pl", "Dźwięk regat"], ["es", "Sonido de la regata"], ["fr", "Son de la course"], ["de", "Rennton"], ["it", "Audio della regata"]] as const) {
+  for (const [lang, name] of [["ru", "Звук гонки"], ["en", "Race sound"], ["pl", "Dźwięk wyścigu"], ["es", "Sonido de la regata"], ["fr", "Son de la course"], ["de", "Rennton"], ["it", "Audio della regata"]] as const) {
     locale.value = lang;
     const on = render(true), off = render(false);
     expect(on, lang).toContain(`aria-label="${name}"`);
@@ -43,7 +43,7 @@ it("shows the name and the state as text in the pause sheet row", () => {
   locale.value = "pl";
   const html = render(false, true);
   expect(html).not.toContain("aria-label=");
-  expect(html).toContain(">Dźwięk regat</span>");
+  expect(html).toContain(">Dźwięk wyścigu</span>");
   expect(html).toContain(">Wył.</span>");
   expect(html).toContain("text-base leading-6");
 });

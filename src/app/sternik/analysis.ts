@@ -1,16 +1,17 @@
 // ============================================================================
 // Personalized error analysis: combine the localStorage progress with the bank
 // to find weak categories, stubborn questions and a concrete study plan.
-// Pure client util (imports the bank data, no React).
+// Pure client util (no React). The bank is an argument: it is loaded at run
+// time (see bank.ts), never imported into client JavaScript.
 // ============================================================================
 
 import {
-  STERNIK_BANK,
   STERNIK_CATEGORIES,
   STERNIK_CATEGORY_BY_ID,
   type SternikCategory,
   type SternikCatId,
-} from '@/data/sternik';
+  type SternikQuestion,
+} from '@/data/sternik-core';
 import type { SternikProgress } from '@/lib/sternik-progress';
 
 export type CatLevel = 'critical' | 'weak' | 'ok' | 'strong' | 'untouched';
@@ -63,7 +64,7 @@ function needScore(c: CatAnalysis): number {
   return gap * 100 + c.wrong * 2;
 }
 
-export function analyzeSternik(p: SternikProgress): SternikAnalysis {
+export function analyzeSternik(p: SternikProgress, bank: SternikQuestion[]): SternikAnalysis {
   const byCat = new Map<SternikCatId, CatAnalysis>();
   for (const cat of STERNIK_CATEGORIES) {
     byCat.set(cat.id, {
@@ -72,7 +73,7 @@ export function analyzeSternik(p: SternikProgress): SternikAnalysis {
       accuracy: 0, level: 'untouched',
     });
   }
-  for (const q of STERNIK_BANK) {
+  for (const q of bank) {
     const a = byCat.get(q.cat)!;
     a.total += 1;
     const s = p.q[q.id];
@@ -85,7 +86,7 @@ export function analyzeSternik(p: SternikProgress): SternikAnalysis {
   }
   // accuracy uses the raw answer tallies for a truer picture
   const catAccRaw = new Map<SternikCatId, { c: number; t: number }>();
-  for (const q of STERNIK_BANK) {
+  for (const q of bank) {
     const s = p.q[q.id];
     if (s && s.seen > 0) {
       const r = catAccRaw.get(q.cat) ?? { c: 0, t: 0 };
@@ -105,7 +106,7 @@ export function analyzeSternik(p: SternikProgress): SternikAnalysis {
 
   // stubborn: questions with 2+ wrong answers, not yet healed
   const stubborn: StubbornQuestion[] = [];
-  for (const q of STERNIK_BANK) {
+  for (const q of bank) {
     const s = p.q[q.id];
     if (s && s.wrong >= 2 && s.streak < 2) {
       stubborn.push({ id: q.id, cat: q.cat, q: q.q, correctText: q.options[q.correct], wrong: s.wrong });

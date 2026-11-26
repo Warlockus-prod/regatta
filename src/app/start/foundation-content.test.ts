@@ -11,12 +11,18 @@ const sha = (value: unknown) => createHash("sha256").update(JSON.stringify(value
 describe("foundation content relocation preserves the reviewed native source", () => {
   it("retains all 19 questions, stable IDs, option IDs and answer truth", () => {
     expect(Object.values(BOOTCAMP_QUIZZES).flat()).toHaveLength(19);
-    expect(sha(BOOTCAMP_QUIZZES)).toBe("8364800f668704e3b309ea63be87728b7fc1df7b53d6e8ec2f5e98f486a01b46");
+    // Package 7: the no-go and close-hauled answers state NO_GO_HALF_DEG (was 45 / ~90); ids and answers below unchanged.
+    // Package 12 (audit B3, expert C3-C4): new lesson 1 questions, fair distractors, VMG/VMC and COLREGS wording; ids and answers below unchanged (beginner-terms.test.ts).
+    // ADR-0023: NO_GO_HALF_DEG 42 -> 40, the same answers now read 40 (hash before: d4efad49eea4...89a3aae).
+    expect(sha(BOOTCAMP_QUIZZES)).toBe("f494d546b662f839d9f874f314702fe5fdd0a3878de7af96e8c8f62e6b755914");
     expect(Object.fromEntries(Object.entries(BOOTCAMP_QUIZZES).map(([id, questions]) => [id, questions.map(question => ({ id: question.id, correct: question.options.filter(option => option.correct).map(option => option.id) }))]))).toEqual({"wind-direction": [{"id": "wd-q1", "correct": ["wd-q1-a"]}, {"id": "wd-q2", "correct": ["wd-q2-b"]}, {"id": "wd-q3", "correct": ["wd-q3-b"]}], "points-of-sail": [{"id": "pos-q1", "correct": ["pos-q1-b"]}, {"id": "pos-q2", "correct": ["pos-q2-a"]}, {"id": "pos-q3", "correct": ["pos-q3-b"]}], "how-sail-works": [{"id": "hs-q1", "correct": ["hs-q1-a"]}, {"id": "hs-q2", "correct": ["hs-q2-b"]}], "tacking": [{"id": "tk-q1", "correct": ["tk-q1-a"]}, {"id": "tk-q2", "correct": ["tk-q2-a"]}], "jibing": [{"id": "jb-q1", "correct": ["jb-q1-a"]}, {"id": "jb-q2", "correct": ["jb-q2-b"]}], "vmg-beating": [{"id": "vmg-q1", "correct": ["vmg-q1-a"]}, {"id": "vmg-q2", "correct": ["vmg-q2-b"]}], "simple-rules": [{"id": "sr-q1", "correct": ["sr-q1-a"]}, {"id": "sr-q2", "correct": ["sr-q2-b"]}, {"id": "sr-q3", "correct": ["sr-q3-a"]}], "mini-race": [{"id": "mr-q1", "correct": ["mr-q1-a"]}, {"id": "mr-q2", "correct": ["mr-q2-a"]}]});
   });
   it("retains the seven existing guides and module order while adding the reviewed first lesson", () => {
     const { "wind-direction": wind, ...previousGuides } = foundationGuides;
-    expect(sha({ guides: previousGuides, copy: foundationCopy, modules: foundationModules })).toBe("7f8316e30db2e22513cb303b1d77da4b6af76997dda1b37ca3222588e95065e1");
+    // Package 10 changed one spelling only (the one UI dictionary writes "ещё раз"); undo it and the reviewed bytes match.
+    const reviewed = JSON.stringify({ guides: previousGuides, copy: foundationCopy, modules: foundationModules });
+    expect(reviewed).toContain("Попробуй ещё раз перед выходом");
+    expect(createHash("sha256").update(reviewed.split("Попробуй ещё раз перед выходом").join("Попробуй еще раз перед выходом")).digest("hex")).toBe("7f8316e30db2e22513cb303b1d77da4b6af76997dda1b37ca3222588e95065e1");
     expect(wind.goal).toBe(foundationWindLesson.goal);
     expect(wind.explanation).toBe(foundationWindLesson.explanation);
     expect(wind.states).toEqual(windDirectionScene.states.map(state => state.label));

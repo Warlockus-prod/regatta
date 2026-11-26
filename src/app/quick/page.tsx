@@ -3,6 +3,11 @@
 import Link from 'next/link';
 import { legacyPick } from '@/lib/languages';
 import { quickRefreshLessons, QUICK_REFRESH_TOTAL_MINUTES } from '@/data/bootcamp';
+import { glossaryTerms, maneuvers, pointsOfSail, racingStrategies } from '@/data/sailing-data';
+import { RACE_SUBJECT_NAMES } from '@/data/race-subject-names';
+import { sailingSectionSubjects } from '@/data/sailing-visuals';
+import { SubjectStrip } from '@/components/visuals/SubjectVisuals';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
@@ -40,9 +45,15 @@ export default function QuickRefreshPage() {
         {quickRefreshLessons.map((l, i) => {
           const title = legacyPick(l, 'title', lang);
           const tip = legacyPick(l, 'tip', lang);
+          const names = (id: string) => {
+            const item = pointsOfSail.find(p => p.id === id) ?? maneuvers.find(m => m.id === id); const term = glossaryTerms.find(t => t.id === id);
+            // The race subjects are named by the strategy or the rule card that teaches them (RACE_SUBJECT_NAMES copies those titles).
+            const strategy = racingStrategies.find(r => r.id === id);
+            return item ? legacyPick(item, 'name', lang) : term ? legacyPick(term, 'term', lang) : strategy ? legacyPick(strategy, 'title', lang) : RACE_SUBJECT_NAMES[id]?.[lang] ?? id;
+          };
           return (
+            <div key={l.id}>
             <Link
-              key={l.id}
               href={l.route}
               className="card p-4 sm:p-5 flex items-center gap-4 hover:border-[var(--success)] transition"
             >
@@ -61,6 +72,10 @@ export default function QuickRefreshPage() {
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
             </Link>
+            {/* Package 32: a card that repeats the wind, the points of sail or the turns shows each of them, schematic and picture. */}
+            <SubjectStrip ids={sailingSectionSubjects('quick', l.id)} names={names} title={UI_TERMS.subjectsInSection[lang]}
+              labels={{ diagram: UI_TERMS.visualDiagram[lang], picture: UI_TERMS.visualOnWater[lang] }} />
+            </div>
           );
         })}
       </div>

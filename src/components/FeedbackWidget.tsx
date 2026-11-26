@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
+import { feedbackHiddenOn } from '@/lib/feedback-routes';
 
 type Tab = 'ai' | 'feedback';
 type Kind = 'feedback' | 'bug';
@@ -10,7 +11,7 @@ type Category = 'useful' | 'unclear' | 'idea' | 'other';
 
 interface Props {
   /** Hide on specific routes (e.g. fullscreen game) if needed */
-  hideOn?: string[];
+  hideOn?: readonly string[];
 }
 
 interface ChatMsg {
@@ -27,7 +28,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
 
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('ai');
-  const shouldHide = hideOn.some((p) => pathname.startsWith(p));
+  const shouldHide = feedbackHiddenOn(pathname, hideOn);
 
   // The iOS app embeds content via WebView with ?embed=1. The floating widget
   // must not render there - it overlaps the embedded controls (e.g. the radio

@@ -1,8 +1,9 @@
 import { makeStandardCourse } from "./race-physics";
-import { matchesPhysicalRaceCourse } from "./race-courses";
+import { matchesPhysicalRaceCourse, physicalCourseDefinition } from "./race-courses";
+import { KNOT_METRES_PER_SECOND } from "./sailing-kinematics";
 import { PHYSICAL_RACE_EMISSION_ENABLED, readRaceContext, type RaceContext } from "./race-context";
 import { readRaceComparison, readRaceResultSelection, type RaceComparison, type RaceResultSelection } from "./race-record-class";
-import { isPlausibleFinishSec } from "./race-submission";
+import { FINISH_SEC_MIN, isPlausibleFinishSec } from "./race-submission";
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
 const finite = (value: unknown, low: number, high: number): value is number => typeof value === "number" && Number.isFinite(value) && value >= low && value <= high;
@@ -27,6 +28,18 @@ export function matchesRegisteredRaceCourse(context: RaceContext, rawCourse: unk
     });
 }
 
+/** M5 step 8 (ADR-0015 point 12): the fastest plausible finish of a class.
+ * The legacy course keeps the site-wide FINISH_SEC_MIN (20 s) on the
+ * penalty-adjusted time, exactly as before. A metric course is a beat and a
+ * run of legMetres each, and no boat of the class sails that at a mean 8 kn,
+ * so its floor is floor(2 x legMetres / 8 kn) on the sailed (raw) time, the
+ * bound the fleet test uses: short 58 s, medium 145 s, long 291 s. */
+export const METRIC_FINISH_FLOOR_KN = 8;
+export function minimumFinishSec(context: RaceContext): number {
+  if (context.model === "legacy-race-v1") return FINISH_SEC_MIN;
+  return Math.floor(2 * physicalCourseDefinition(context.profile).legMetres / (METRIC_FINISH_FLOOR_KN * KNOT_METRES_PER_SECOND));
+}
+
 export type ClassifiedRaceResult = Readonly<RaceComparison & {
   classId: Extract<RaceResultSelection, { kind: "classified" }>["classId"];
   rawFinishTimeSec: number;
@@ -48,6 +61,7 @@ export function readClassifiedRaceResult(raw: unknown): ReadClassifiedRaceResult
   if (raw.missionId != null || raw.dailyDay != null || Object.prototype.hasOwnProperty.call(raw, "daily")
     || !matchesRegisteredRaceCourse(selection.value.raceContext, raw.course)
     || !finite(raw.rawFinishTimeSec, .01, 3600) || !finite(raw.penaltySeconds, 0, 3600)
+    || (selection.value.raceContext.model === "physical-cruiser-v1" && raw.rawFinishTimeSec < minimumFinishSec(selection.value.raceContext))
     || !isPlausibleFinishSec(raw.finishTimeSec)) return { ok: false, reason: "invalid" };
   const finishTimeSec = raw.rawFinishTimeSec + raw.penaltySeconds;
   if (!isPlausibleFinishSec(finishTimeSec) || Math.abs(finishTimeSec - raw.finishTimeSec) > 1e-7) return { ok: false, reason: "invalid" };

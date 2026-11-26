@@ -214,6 +214,8 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
   }, [model, light]);
 
   useFrame((st, dt) => {
+    // A hidden yacht (a far rival drawn as the far boat, M2-6) skips its rig and cloth work.
+    for (let o: THREE.Object3D | null = yawRoot.current; o; o = o.parent) if (!o.visible) return;
     const n = nodesRef.current;
     const s = stateRef.current;
     n.trimRig?.update(s.mainTrim);

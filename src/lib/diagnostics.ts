@@ -21,7 +21,7 @@ export const RADIO_DIAGNOSTIC_ACTIONS = ["dial-hold", "dial-push", "dial-rotate"
 export const RADIO_DIAGNOSTIC_SCREENS = ["off", "standby", "volume", "squelch", "channel-select", "backlight", "menu", "m323-dsc-calls", "gps-info", "radio-info", "dsc-log", "stub-view", "config", "dsc-settings", "position-input", "individual-id-list", "individual-id-add-mmsi", "individual-id-add-name", "individual-id-delete", "distress-compose", "distress-nature", "distress-hold", "distress-tx", "distress-wait", "distress-ack", "distress-ack-done", "cancel-confirm", "cancel-tx", "cancel-voice", "cancel-done", "otherdsc-compose", "otherdsc-field", "otherdsc-sent", "otherdsc-ack", "rx-distress-alert", "rx-individual-call"] as const;
 export const DIAGNOSTIC_DESTINATIONS = ["home", "learn", "practice", "race", "library", "menu", "sails", "course", "quick", "rules", "tactics", "points", "radio", "radio-practice", "motor", "basics", "trainer", "boat", "solo", "multiplayer", "leaderboard", "history", "replay", "coach", "anatomy", "onboard", "checklist", "glossary", "spots", "gallery", "ask", "settings", "diagnostics", "support", "privacy", "ads", "unknown"] as const;
 const SOURCES = ["pointer", "keyboard", "arrow", "slider", "system", "native", "assistive"] as const;
-const CAMERAS = ["orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
+const CAMERAS = ["race", "orbit", "stern", "high", "whole", "sails", "main", "jib", "deck", "mainsheet", "top", "side", "rear", "3d"] as const;
 export const RENDER_BACKENDS = ["webgpu", "webgl2"] as const;
 /** Bounds of the race performance journal: frame rates are clamped by the meter,
  * draw calls and triangles are per-frame averages, seconds are measured racing time. */
@@ -35,7 +35,7 @@ export const RACE_COACH_MISTAKES = ["no-go", "tacks", "close-hauled", "none"] as
 /** Bounds of race.summary: counts are per race, seconds are race time. */
 export const RACE_SUMMARY_LIMITS = { boats: 64, seconds: 7200, count: 10_000, score: 100 } as const;
 const RACE_LIFECYCLE_ACTIONS = ["briefing", "init", "scene-ready", "countdown", "start", "pause", "resume", "exit", "exit-ask", "exit-stay",
-  "restart", "finish", "finish-hold", "timeout", "results"] as const;
+  "restart", "finish", "finish-hold", "timeout", "results", "stuck"] as const;
 type Member<T extends readonly string[]> = T[number];
 export type RenderBackend = Member<typeof RENDER_BACKENDS>;
 export type DiagnosticSurface = Member<typeof DIAGNOSTIC_SURFACES>;
@@ -53,11 +53,14 @@ type ControlValues = {
   "main-hoisted": boolean; "jib-open": boolean; "sails-raised": boolean; airflow: boolean;
   "wind-mode": "steady" | "shift" | "gust"; tack: "port" | "starboard";
   camera: Member<typeof CAMERAS>; view: Member<typeof CAMERAS>; "race-map": boolean;
+  /** Package 13: the race's helm assists. */
+  "best-vmg": boolean; "angle-hold": boolean; "helm-turn": "tack" | "gybe";
 };
 type PreferenceValues = {
   mode: "sliders" | "wheels"; "helm-mapping": "course" | "rudder";
   "return-center": boolean; sensitivity: 0.5 | 1 | 2; "jib-side": "left" | "right";
-  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay; "mini-map": boolean;
+  sound: boolean; haptics: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay; "mini-map": boolean; "race-helm": "arrows" | "wheels" | "sliders";
+  "coach-strip": boolean; "first-race-hints": boolean; "soft-light": boolean; "sail-flow": boolean;
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
 export type DiagnosticInput = Common & (
@@ -84,7 +87,7 @@ export type DiagnosticInput = Common & (
   | { type: "race.replay"; action: "open" | "play" | "pause" | "seek" | "rate" | "close" | "error"; timeSeconds?: number; rate?: 0.25 | 0.5 | 1 | 2 | 4 }
   | { type: "trainer.lifecycle"; action: "reset" | "restore" | "pause" | "resume" | "preset" | "ready" | "error" | "assessment"; mode?: "free" | "sail" | "drill" | "scenario" | "lesson"; attempt?: number }
   | { type: "trainer.checkpoint"; action: "save" | "restore" | "clear" | "error"; attempt?: number }
-  | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" | "personal-best" | "history" }
+  | { type: "storage.operation"; action: "read" | "write" | "clear" | "restore"; target: "course" | "progress" | "checkpoint" | "preferences" | "diagnostics" | "personal-best" | "history" | "ghost" }
   | { type: "learning.visual"; action: "mode" | "frame" | "image-ready" | "image-error"; lesson: "how-sail-works"; mode: "scheme" | "picture"; frame: "filled" | "luffing" }
   | { type: "learning.command"; action: "start" | "answer" | "check" | "next" | "back" | "complete" | "retry"; course: "foundation" | "sails" | "radio" | "sternik"; step?: number }
   | { type: "scene.gpu"; action: "lost" | "retry" | "failed"; backend: RenderBackend; attempt?: number }
@@ -127,10 +130,12 @@ const controlChecks: Record<keyof ControlValues, Check> = {
   "main-angle": numeric(-180, 180), "jib-angle": numeric(-180, 180), "main-twist": numeric(0, 1), "jib-twist": numeric(0, 1),
   camber: numeric(0, 1), heel: numeric(-90, 90), luff: numeric(0, 1), "main-hoisted": boolean, "jib-open": boolean, "sails-raised": boolean, airflow: boolean,
   "wind-mode": enumeration(["steady", "shift", "gust"]), tack: enumeration(["port", "starboard"]), camera: enumeration(CAMERAS), view: enumeration(CAMERAS), "race-map": boolean,
+  "best-vmg": boolean, "angle-hold": boolean, "helm-turn": enumeration(["tack", "gybe"]),
 };
 const preferenceChecks: Record<keyof PreferenceValues, Check> = {
   mode: enumeration(["sliders", "wheels"]), "helm-mapping": enumeration(["course", "rudder"]), "return-center": boolean,
-  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS), "mini-map": boolean,
+  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, haptics: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS), "mini-map": boolean, "race-helm": enumeration(["arrows", "wheels", "sliders"]),
+  "coach-strip": boolean, "first-race-hints": boolean, "soft-light": boolean, "sail-flow": boolean,
 };
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };
 const attempt = numeric(0, 100000, true);
@@ -162,7 +167,7 @@ const schemas: Record<DiagnosticInput["type"], { required: string[]; fields: Rec
   "race.replay": { required: ["action"], fields: { action: enumeration(["open", "play", "pause", "seek", "rate", "close", "error"]), timeSeconds: numeric(0, 86400), rate: enumeration([.25, .5, 1, 2, 4]) } },
   "trainer.lifecycle": { required: ["action"], fields: { action: enumeration(["reset", "restore", "pause", "resume", "preset", "ready", "error", "assessment"]), mode: enumeration(["free", "sail", "drill", "scenario", "lesson"]), attempt } },
   "trainer.checkpoint": { required: ["action"], fields: { action: enumeration(["save", "restore", "clear", "error"]), attempt } },
-  "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics", "personal-best", "history"]) } },
+  "storage.operation": { required: ["action", "target"], fields: { action: enumeration(["read", "write", "clear", "restore"]), target: enumeration(["course", "progress", "checkpoint", "preferences", "diagnostics", "personal-best", "history", "ghost"]) } },
   "learning.visual": { required: ["action", "lesson", "mode", "frame"], fields: { action: enumeration(["mode", "frame", "image-ready", "image-error"]), lesson: enumeration(["how-sail-works"]), mode: enumeration(["scheme", "picture"]), frame: enumeration(["filled", "luffing"]) } },
   "learning.command": { required: ["action", "course"], fields: { action: enumeration(["start", "answer", "check", "next", "back", "complete", "retry"]), course: enumeration(["foundation", "sails", "radio", "sternik"]), step: numeric(0, 10000, true) } },
   "scene.gpu": { required: ["action", "backend"], fields: { action: enumeration(["lost", "retry", "failed"]), backend: enumeration(RENDER_BACKENDS), attempt } },

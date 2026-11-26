@@ -70,10 +70,28 @@ export function playerTouching(boats: readonly CueBoat[], separation: number): b
 /** A contact frame is due when a contact begins, once the race is on and past
  * the start jostle (M0-3: crowding right after the signal stays quiet), and
  * not within the cooldown of the last frame. */
-export function contactCue(state: ContactCueState, sample: { touching: boolean; t: number; racing: boolean }): { state: ContactCueState; cue: boolean } {
+export function contactCue(state: ContactCueState, sample: { touching: boolean; t: number; racing: boolean; jostleSeconds?: number }): { state: ContactCueState; cue: boolean } {
   const began = sample.touching && !state.touching;
-  const quiet = !sample.racing || sample.t < RACE_START_JOSTLE_SECONDS;
+  // The race's own start jostle (raceScale startJostleSeconds); the legacy 10 s when omitted.
+  const quiet = !sample.racing || sample.t < (sample.jostleSeconds ?? RACE_START_JOSTLE_SECONDS);
   const cooled = state.lastAt === null || sample.t - state.lastAt >= CONTACT_CUE.cooldownSec;
   const cue = began && !quiet && cooled;
   return { state: { touching: sample.touching, lastAt: cue ? sample.t : state.lastAt }, cue };
+}
+
+interface CueImpact { kind: "hull" | "mark"; boatId: string; otherBoatId?: string; closingMetresPerSecond: number }
+
+/** Metric race (M5): the player's hull is in a contact episode. The physical
+ * fleet stops hulls exactly at the touching distance, so an overlap never
+ * shows; the episode begins with a hull impact of the player closing at
+ * `closingMetresPerSecond` or more (race-scale.ts, course data) and lasts
+ * while the hulls stay within `releaseUnits` of each other, so a boat resting
+ * or pushing against another for seconds is one contact, not one per tick. */
+export function physicalPlayerTouching(impacts: readonly CueImpact[], boats: readonly CueBoat[], was: boolean,
+  model: { closingMetresPerSecond: number; releaseUnits: number }): boolean {
+  const player = boats.find(b => b.isPlayer);
+  if (!player || player.lapDone >= 2) return false;
+  const hit = impacts.some(i => i.kind === "hull" && i.closingMetresPerSecond >= model.closingMetresPerSecond
+    && (i.boatId === player.id || i.otherBoatId === player.id));
+  return hit || (was && playerTouching(boats, model.releaseUnits));
 }

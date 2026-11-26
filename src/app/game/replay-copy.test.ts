@@ -20,6 +20,33 @@ const baseline = {
   de: "df6d896852a4ce72ffc5e979a76b5dd265b448cea8cbaa627af3ffe49c8a8f2d",
   it: "a454eeee89235726fa6ca0b24da18501cc87d327742e324f8fa43ac4da2f54da",
 } satisfies Record<Lang, string>;
+/** [current wording, wording the baseline was taken with], 2026-10-31 language pass
+ * and package 10 (the one UI dictionary: the Simple mode is "Простой", owner R-12). */
+const LANGUAGE_PASS: Partial<Record<Lang, ReadonlyArray<readonly [string, string]>>> = {
+  ru: [
+    ['"Простой"', '"Обычный"'],
+  ],
+  pl: [
+    ["Przepisy treningowe", "Przepisy w treningu"],
+    ["Omówienie wyścigu", "Omówienie regat"],
+    ["Ustąp drogi: na tym samym halsie ustępuje łódź nawietrzna lub swobodna z tyłu.", "Ustąp: na tym samym halsie łódź nawietrzna lub swobodna z tyłu utrzymuje się z dala."],
+  ],
+  es: [
+    ["Amurado a babor, cedes el paso al barco amurado a estribor. Pasa por su popa.", "Amurado a babor cedes a estribor. Pasa por la popa del otro barco."],
+    ["cede el barco de barlovento o el que va claramente a popa", "cede barlovento o el barco claramente a popa"],
+  ],
+  fr: [
+    ["départ prématuré et bouées. Contact +5 s, bouée touchée +3 s", "départ prématuré et marques. Contact +5 s, marque touchée +3 s"],
+    ["Laisse la bouée à bâbord", "Laisse la marque à bâbord"],
+    ["Bouée touchée : garde", "Marque touchée : garde"],
+    ["en laissant la bouée à bâbord", "en laissant la marque à bâbord"],
+  ],
+  de: [
+    ["Frühstart und Bahnmarken. Kontakt +5 s, Bahnmarkenberührung +3 s", "Frühstart und Tonnen. Kontakt +5 s, Tonnenberührung +3 s"],
+    ["Bahnmarke an Backbord lassen", "Tonne an Backbord lassen"],
+    ["Bahnmarke berührt: Platz", "Tonne berührt: Platz"],
+  ],
+};
 const kinds: RaceRuleEvent["kind"][] = ["give-way", "avoid-contact", "contact", "early-start", "start-clear", "mark-touch", "wrong-rounding", "mark-rounded"];
 const rules: RaceRuleEvent["rule"][] = ["10", "11", "12", "14", "29.1", "31", "28"];
 afterEach(() => { locale.current = "en"; });
@@ -32,11 +59,12 @@ describe("lightweight replay labels", () => {
       copy.ruleMessage({ id: "copy-fixture", kind, rule, boatId: "player", time: 12, penaltySeconds }))));
     // 47 = 43 original fields + the P03 four-label PB status. M1-7 adds five
     // more (52): the penalty and metre formatters, the race replay title, the
-    // Simple/Pro accessible name and the start signal.
-    expect(Object.keys(copy)).toHaveLength(52);
+    // Simple/Pro accessible name and the start signal. Package 8 adds the race
+    // camera's name (53).
+    expect(Object.keys(copy)).toHaveLength(53);
     // Keep the original43-field byte contract, including every existing
     // formatter, unchanged (see the RU penalty note below).
-    const added = ["personalBestSaving", "personalBestChecked", "personalBestError", "retryPersonalBest", "raceReplay", "controlMode", "startSignal"] as const;
+    const added = ["personalBestSaving", "personalBestChecked", "personalBestError", "retryPersonalBest", "raceReplay", "controlMode", "startSignal", "race"] as const;
     for (const key of added) expect(copy[key].trim().length).toBeGreaterThan(0);
     const addedFormatters = ["penalty", "metres"] as const;
     expect(copy.penalty(5)).toMatch(/^\+5 \S+$/);
@@ -53,9 +81,18 @@ describe("lightweight replay labels", () => {
       expect(messages.join("\n")).not.toMatch(/ \+\d+ s$/m);
     } else for (const message of penalized) expect(message).toMatch(/ \+[35] s$/);
     const asBefore = lang === "ru" ? messages.map(message => message.replace(/ \+(\d+) с$/, " +$1 s")) : messages;
-    expect(createHash("sha256").update(JSON.stringify({ copy: existing, messages: asBefore })).digest("hex")).toBe(baseline[lang]);
+    // The 2026-10-31 language pass rewrote exactly the wordings in
+    // LANGUAGE_PASS (glossary mark terms in FR/DE, natural give-way wording in
+    // ES/PL, two Polish labels). Each new wording must be there; undo only
+    // those and the original bytes must still match.
+    let bytes = JSON.stringify({ copy: existing, messages: asBefore });
+    for (const [now, before] of LANGUAGE_PASS[lang] ?? []) {
+      expect(bytes).toContain(now);
+      bytes = bytes.split(now).join(before);
+    }
+    expect(createHash("sha256").update(bytes).digest("hex")).toBe(baseline[lang]);
     const replay = useReplayCopy();
-    expect(Object.keys(replay)).toEqual(["view", "orbit", "resetCamera", "high", "stern", "pause", "resume", "back", "retry", "raceReplay"]);
+    expect(Object.keys(replay)).toEqual(["view", "race", "orbit", "resetCamera", "high", "stern", "pause", "resume", "back", "retry", "raceReplay"]);
     for (const key of Object.keys(replay) as Array<keyof typeof replay>) {
       expect(replay[key]).toBe(copy[key]);
       expect(replay[key]).toBe(REPLAY_COPY_RESOURCES[key][lang]);

@@ -1,6 +1,6 @@
 'use client';
 
-import type { SternikFigureId } from '@/data/sternik';
+import type { SternikFigureId } from '@/data/sternik-core';
 
 // ============================================================================
 // Small self-contained mark figures for picture questions ("Co to za znak?").

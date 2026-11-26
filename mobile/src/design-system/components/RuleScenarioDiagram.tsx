@@ -14,7 +14,8 @@ import { colors, radii, spacing } from '../tokens';
 import { Text } from './Text';
 
 interface RuleScenarioDiagramProps {
-  scenario: RuleScenario;
+  /** A rule card, or just the drawing it names (the tactics screen shows the same eight). */
+  scenario: Pick<RuleScenario, 'svg'>;
   caption?: string;
 }
 

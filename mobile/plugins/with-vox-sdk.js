@@ -9,24 +9,46 @@
 const { withPodfile } = require('expo/config-plugins');
 
 const VOX_SDK_GIT = 'https://github.com/Warlockus-prod/vox-sdk-ios.git';
-// Branch fix/in-app-ads-2026-10-30: viewport, full-screen layout, VAST XML, no-fill and lifetime fixes.
-const VOX_SDK_COMMIT = 'fc523af9fe88ddbf811653a34842f50dee5ff88b';
+// Tag 1.4.5 (15dc1c2): adId for VAST answers, native drops the logo the SSP repeats as the main image; 1.4.4 (e89e93d): VOXAds.lastAdInfo(forPlaceId:) gives the last request and answer per place, shown under each Ads slot; 1.4.3 (5e5b94c): MRAID expand fills the screen over Hybrid's fixed iframes and can always be closed (presented over full screen, keeps its banner); 1.4.2 (8b14cca): 728x90 fits a phone, small close cross on short banners, video shape matches the slot; 1.4.1 (d05c06b): per-ad banner analytics, VAST errors, one-tap clicks, app fields in mobileSdk; on top of 1.4.0 (end card, reward on onComplete, MRAID 3.0, native ads) (2026-11-18).
+const VOX_SDK_COMMIT = '15dc1c204424a5fc1af5f7bed3be58de9ed95f6d';
 const MARKER = '# VOX SDK 1 (plugins/with-vox-sdk.js)';
+
+// The ad pods are linked only for a build with the Ads section
+// (EXPO_PUBLIC_ADS_DEMO=1, src/config/ads-demo.ts; App Store builds from 1.7.1
+// on). Without it the local ad modules are excluded from autolinking, so the
+// binary carries neither VOXSDK nor PrebidMobile. VOX SDK 2 (vox-prebid,
+// PrebidMobile) needs the Prebid Server on this Mac, so it is linked only with
+// VOX_PREBID=1 for local tests and never ships.
+const AD_MODULES = ['vox-ads', 'vox-prebid'];
+const PREBID_MODULES = ['vox-prebid'];
+const EXCLUDE_MARKER = '# Ads demo off (plugins/with-vox-sdk.js)';
+
+function patchPodfile(podfile, adsDemo, prebid = false) {
+  if (podfile.includes(MARKER) || podfile.includes(EXCLUDE_MARKER)) return podfile;
+  const anchor = /^(\s*)use_expo_modules!.*$/m;
+  if (!anchor.test(podfile)) {
+    throw new Error('with-vox-sdk: use_expo_modules! not found in Podfile');
+  }
+  if (!adsDemo) {
+    const list = AD_MODULES.map((name) => `'${name}'`).join(', ');
+    return podfile.replace(
+      anchor,
+      (line, indent) => `${indent}${EXCLUDE_MARKER}\n${indent}use_expo_modules!(exclude: [${list}])`,
+    );
+  }
+  const local = process.env.VOX_SDK_IOS_PATH;
+  const source = local ? `:path => '${local}'` : `:git => '${VOX_SDK_GIT}', :commit => '${VOX_SDK_COMMIT}'`;
+  const exclude = PREBID_MODULES.map((name) => `'${name}'`).join(', ');
+  return podfile.replace(
+    anchor,
+    (line, indent) => `${prebid ? line : `${indent}use_expo_modules!(exclude: [${exclude}])`}\n${indent}${MARKER}\n${indent}pod 'VOXSDK', ${source}`,
+  );
+}
 
 module.exports = function withVoxSdk(config) {
   return withPodfile(config, (cfg) => {
-    const podfile = cfg.modResults.contents;
-    if (podfile.includes(MARKER)) return cfg;
-    const anchor = /^(\s*)use_expo_modules!.*$/m;
-    if (!anchor.test(podfile)) {
-      throw new Error('with-vox-sdk: use_expo_modules! not found in Podfile');
-    }
-    const local = process.env.VOX_SDK_IOS_PATH;
-    const source = local ? `:path => '${local}'` : `:git => '${VOX_SDK_GIT}', :commit => '${VOX_SDK_COMMIT}'`;
-    cfg.modResults.contents = podfile.replace(
-      anchor,
-      (line, indent) => `${line}\n${indent}${MARKER}\n${indent}pod 'VOXSDK', ${source}`,
-    );
+    cfg.modResults.contents = patchPodfile(cfg.modResults.contents, process.env.EXPO_PUBLIC_ADS_DEMO === '1', process.env.VOX_PREBID === '1');
     return cfg;
   });
 };
+module.exports.patchPodfile = patchPodfile;

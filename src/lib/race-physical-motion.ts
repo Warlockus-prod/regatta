@@ -2,9 +2,13 @@ import { readRaceContext, type PhysicalRaceContext } from "./race-context";
 import { physicalCourseWaterBounds } from "./race-courses";
 import { raceCrewTrim, stepRaceBoatForces, type InputState, type RaceBoat, type RaceStepOptions, type Vec2 } from "./race-physics";
 import { advanceSailingHeading, sailingDisplacement, type SailingSteering } from "./sailing-kinematics";
-import { getBoatParams } from "./sailing-physics/boat";
+import { CRUISER_BOAT } from "./sailing-physics/boat";
 import { createInitialState } from "./sailing-physics/simulate";
-import type { Controls } from "./sailing-physics/types";
+import type { BoatParams, Controls } from "./sailing-physics/types";
+
+/** The metric race sails the trainer's boat (ADR-0014): the cruiser profile
+ * of ADR-0021. The legacy race keeps the classic profile (race-physics.ts). */
+export const PHYSICAL_RACE_BOAT: BoatParams = CRUISER_BOAT;
 import { createSharedBoat, stepSharedBoat } from "../features/sailing-lab/runtime/boat-step";
 import type { RigMotion } from "../features/sailing-lab/rig/transfer";
 
@@ -24,7 +28,14 @@ export type PhysicalRaceStepOptions = Pick<RaceStepOptions, "speedMul" | "windSt
 export interface PhysicalRaceMotion {
   readonly from: Readonly<Vec2>;
   readonly to: Readonly<Vec2>;
+  /** Interior bend points of the travelled polyline from -> path... -> to, at
+   * most PHYSICAL_MOTION_MAX_BENDS, recorded where the velocity changed
+   * mid-tick (a water bound, a sliding contact, ADR-0015 point 4). Absent
+   * means one straight segment. Progress grades the whole polyline. */
+  readonly path?: readonly Readonly<Vec2>[];
 }
+/** A travelled polyline has at most five points: from, four bends, to. */
+export const PHYSICAL_MOTION_MAX_BENDS = 4;
 
 const object = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -88,18 +99,18 @@ export function stepPhysicalBoat(
   const from = Object.freeze({ x: boundX(boat.pos.x), y: boundY(boat.pos.y) });
   if (opts.rigTransfer === false) {
     boat.heading = advanceSailingHeading(boat.heading, boat.speed, input.steering, dt);
-    const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts);
+    const physics = stepRaceBoatForces(boat, dt, windDir, gust, { turn: 0, autoTrim: input.autoTrim, trim: input.trim }, opts, PHYSICAL_RACE_BOAT);
     return travelBoat(boat, from, sailingDisplacement(boat.heading, physics.leeway, boat.speed, dt), scale, boundX, boundY);
   }
   // The trainer's boat step: helm, crew sheet handling, rig transfer, forces.
   // Bot difficulty (ADR-0007) scales the speed made good, never the model.
   const crew = boat as RaceBoat & PhysicalRaceCrew;
-  const params = getBoatParams();
+  const params = PHYSICAL_RACE_BOAT;
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
   const wind = { speed: 12 * (opts.windStrengthMul ?? 1) * gust, direction: windDir };
   const state = { ...(boat.physics ?? createInitialState({ tws: 12 })), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: wind.direction, trueWindSpeed: wind.speed };
-  const target = raceCrewTrim(boat, state, input, dt);
+  const target = raceCrewTrim(boat, state, input, dt, params);
   const prev = crew.live && crew.rig ? { boat: state, live: crew.live, rig: crew.rig } : createSharedBoat(state, { controls: target }, params);
   const next = stepSharedBoat(prev, { controls: target, steering: input.steering }, wind, params, dt, boat.speed);
   boat.heading = next.boat.heading;
@@ -113,7 +124,20 @@ export function stepPhysicalBoat(
 function travelBoat(boat: RaceBoat, from: Readonly<Vec2>, travel: { east: number; north: number }, scale: number,
   boundX: (x: number) => number, boundY: (y: number) => number): PhysicalRaceMotion {
   // Keep the same physical hull and clearance in every course profile.
-  boat.pos.x = boundX(from.x + travel.east / scale);
-  boat.pos.y = boundY(from.y - travel.north / scale);
-  return Object.freeze({ from, to: Object.freeze({ ...boat.pos }) });
+  const dx = travel.east / scale, dy = -travel.north / scale;
+  boat.pos.x = boundX(from.x + dx);
+  boat.pos.y = boundY(from.y + dy);
+  // The per-axis clamp is a slide along the water bound: the axis into the
+  // bound stops where it meets it and the other axis keeps its full travel,
+  // so the next tick starts at the bound with an honest tangential velocity.
+  // Where that happens mid-tick the travelled path bends; record the bend.
+  const bends: { t: number; axis: "x" | "y" }[] = [];
+  if (boat.pos.x !== from.x + dx && dx !== 0) bends.push({ t: (boat.pos.x - from.x) / dx, axis: "x" });
+  if (boat.pos.y !== from.y + dy && dy !== 0) bends.push({ t: (boat.pos.y - from.y) / dy, axis: "y" });
+  const path = bends.filter(b => b.t > 0 && b.t < 1).sort((a, b) => a.t - b.t).map(b => Object.freeze({
+    // Each axis travels freely until its own bound, then stays there.
+    x: bends.some(o => o.axis === "x" && o.t <= b.t) ? boat.pos.x : from.x + dx * b.t,
+    y: bends.some(o => o.axis === "y" && o.t <= b.t) ? boat.pos.y : from.y + dy * b.t,
+  })).filter(p => p.x !== boat.pos.x || p.y !== boat.pos.y);
+  return Object.freeze({ from, to: Object.freeze({ ...boat.pos }), ...(path.length ? { path: Object.freeze(path) } : {}) });
 }

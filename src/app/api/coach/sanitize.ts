@@ -36,6 +36,9 @@ export interface RaceLog {
    * the English prompt.
    */
   lang?: string;
+  /** The race's best course to windward (package 7, fallback-coach.ts):
+   * kept only when all three numbers are plausible. */
+  upwindTarget?: { twa: number; speedKn: number; vmgKn: number };
 }
 
 export const MAX_SAMPLES = 4000;
@@ -115,5 +118,11 @@ export function sanitizeRaceLog(raw: unknown): SanitizeResult {
     }),
     lang: typeof body.lang === 'string' ? body.lang : undefined,
   };
+  const up = obj(body.upwindTarget);
+  if ([up.twa, up.speedKn, up.vmgKn].every((v) => typeof v === 'number' && Number.isFinite(v))
+    && (up.twa as number) > 0 && (up.twa as number) < 90 && (up.speedKn as number) > 0 && (up.speedKn as number) < 50
+    && (up.vmgKn as number) > 0 && (up.vmgKn as number) <= (up.speedKn as number)) {
+    log.upwindTarget = { twa: up.twa as number, speedKn: up.speedKn as number, vmgKn: up.vmgKn as number };
+  }
   return { ok: true, log };
 }

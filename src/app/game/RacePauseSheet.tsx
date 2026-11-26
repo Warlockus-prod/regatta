@@ -1,7 +1,7 @@
 'use client';
 
 // M1-2 pause sheet of the solo race: a sheet over the dimmed scene with
-// Continue, Restart, Settings and Exit. Exit asks first (the race in progress
+// Continue, Restart, Settings, the race's hints (F4) and Exit. Exit asks first (the race in progress
 // is not counted); during the finish hold the race is already over, so Exit
 // leaves at once. The dock beside or below the scene stays usable, so
 // "Race settings" opens its settings tab while the race stays paused.
@@ -31,6 +31,8 @@ export interface RacePauseSheetProps {
   sound?: ReactNode;
   /** "Back to lesson" when the race was opened from a lesson. */
   lessonReturn?: ReactNode;
+  /** F4: "Hints (n)" opens the race's hint log over the sheet. */
+  hints?: { label: string; open: () => void };
 }
 
 export function RacePauseSheet(p: RacePauseSheetProps) {
@@ -52,6 +54,7 @@ export function RacePauseSheet(p: RacePauseSheetProps) {
           <button type="button" autoFocus className={styles.pausePrimary} onClick={p.onContinue}>{p.copy.resume}</button>
           <button type="button" onClick={p.onRestart}>{p.pauseCopy.restart}</button>
           <button type="button" onClick={p.onSettings}>{p.pauseCopy.raceSettings}</button>
+          {p.hints && <button type="button" onClick={p.hints.open} data-testid="race-pause-hints">{p.hints.label}</button>}
           {p.onFullscreen && <button type="button" onClick={p.onFullscreen}>{p.pauseCopy.fullscreen}</button>}
           <button type="button" onClick={exit}>{p.pauseCopy.exit}</button>
         </div>

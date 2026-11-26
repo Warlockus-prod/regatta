@@ -6,7 +6,8 @@ import SternikHub, { type SternikHubData } from './SternikHub';
 // an id-to-category map to draw the learner's progress, and importing the
 // 879-question bank into a client component shipped it (about 175 KB gzip) to
 // every first visit of the course. The bank stays on the server; the client
-// gets the numbers. The trainer and the exam still load the bank, they use it.
+// gets the numbers. The trainer and the exam load the questions at run time
+// from the versioned JSON (scripts/build-sternik-bank.mjs, bank.ts).
 // ============================================================================
 
 function hubData(): SternikHubData {

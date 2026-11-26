@@ -32,10 +32,10 @@ describe("shared race preference storage", () => {
     h.values.set("regatta.race.mode.v1", "pro");
     h.values.set("regatta.race.assists.v1", JSON.stringify({ guidance: false, trimHints: false, rules: false, penalties: true }));
     const { readRacePrefs } = await import("./race-prefs");
-    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: false, rules: false, penalties: true, windDisplay: "compass", miniMap: true });
+    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: false, rules: false, penalties: true, windDisplay: "compass", miniMap: true, coachStrip: true, firstRaceHints: true, softLight: false, sailFlow: false });
     expect(readRacePrefs()).toBe(readRacePrefs());
     h.values.set("regatta.race.assists.v1", JSON.stringify({ guidance: false, windDisplay: "private-weather", penalties: "true" }));
-    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true });
+    expect(readRacePrefs()).toEqual({ mode: "pro", guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "compass", miniMap: true, coachStrip: true, firstRaceHints: true, softLight: false, sailFlow: false });
     h.values.set("regatta.race.assists.v1", "null");
     expect(readRacePrefs().windDisplay).toBe("compass");
   });
@@ -53,19 +53,63 @@ describe("shared race preference storage", () => {
     expect(h.postMessage).not.toHaveBeenCalled();
   });
 
+  it("records the F4 switches (coach line, first race hints, softer light) on the caller's surface", async () => {
+    host();
+    const { writeRacePrefs } = await import("./race-prefs");
+    writeRacePrefs({ coachStrip: false });
+    writeRacePrefs({ firstRaceHints: false });
+    writeRacePrefs({ softLight: true }, "multiplayer");
+    writeRacePrefs({ softLight: true }, "multiplayer");
+    expect(mocks.record.mock.calls.map(([event]) => event)).toEqual([
+      { type: "control.preferences", surface: "race", preference: "coach-strip", value: false, previous: true, outcome: "accepted" },
+      { type: "control.preferences", surface: "race", preference: "first-race-hints", value: false, previous: true, outcome: "accepted" },
+      { type: "control.preferences", surface: "multiplayer", preference: "soft-light", value: true, previous: false, outcome: "accepted" },
+      { type: "control.preferences", surface: "multiplayer", preference: "soft-light", value: true, previous: true, outcome: "noop", reason: "unchanged" },
+    ]);
+  });
+
   it("bridges the normalized style and preserves it on relaunch while removing only one-shot mode queries", async () => {
     const h = host(true);
     h.windowHost.__REGATTA_EMBED__.query = "scene=next&mode=pro";
     const prefs = await import("./race-prefs");
     expect(prefs.readRacePrefs().mode).toBe("pro");
     prefs.writeRacePrefs({ windDisplay: "both", guidance: false, miniMap: false }, "multiplayer");
-    expect(JSON.parse(h.postMessage.mock.calls[0][0])).toEqual({ type: "race-prefs", mode: "pro", assists: { guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "both", miniMap: false } });
+    expect(JSON.parse(h.postMessage.mock.calls[0][0])).toEqual({ type: "race-prefs", mode: "pro", assists: { guidance: false, trimHints: true, rules: true, penalties: false, windDisplay: "both", miniMap: false, coachStrip: true, firstRaceHints: true, softLight: false, sailFlow: false } });
     expect(h.windowHost.__REGATTA_EMBED__.query).toBe("scene=next");
     expect(h.windowHost.location.href).toBe("https://example.test/game?scene=next#private-anchor");
     expect(mocks.record).toHaveBeenCalledWith({ type: "control.preferences", surface: "multiplayer", preference: "wind-display", value: "both", previous: "compass", outcome: "accepted" });
     vi.resetModules();
     const relaunched = await import("./race-prefs");
     expect(relaunched.readRacePrefs()).toMatchObject({ mode: "pro", windDisplay: "both", guidance: false, miniMap: false });
+  });
+
+  // F4: the Hints and Graphics switches persist in the assists row the app already carries
+  // (mobile/src/persistence/race-web-storage.ts allowlist), so no new storage key.
+  it("persists the coach line, first race hints and softer light, also across a relaunch and to the app", async () => {
+    const h = host(true);
+    const prefs = await import("./race-prefs");
+    expect(prefs.readRacePrefs()).toMatchObject({ coachStrip: true, firstRaceHints: true, softLight: false, sailFlow: false });
+    prefs.writeRacePrefs({ coachStrip: false });
+    prefs.writeRacePrefs({ firstRaceHints: false, softLight: true });
+    expect(JSON.parse(h.values.get("regatta.race.assists.v1")!)).toMatchObject({ coachStrip: false, firstRaceHints: false, softLight: true, guidance: true });
+    expect([...h.values.keys()].sort()).toEqual(["regatta.race.assists.v1", "regatta.race.mode.v1"]);
+    expect(JSON.parse(h.postMessage.mock.calls.at(-1)![0]).assists).toMatchObject({ coachStrip: false, firstRaceHints: false, softLight: true });
+    vi.resetModules();
+    const relaunched = await import("./race-prefs");
+    expect(relaunched.readRacePrefs()).toMatchObject({ coachStrip: false, firstRaceHints: false, softLight: true });
+  });
+
+  it("persists wind on the sails (F6) in the same row, bridges it to the app and records the switch", async () => {
+    const h = host(true);
+    const prefs = await import("./race-prefs");
+    prefs.writeRacePrefs({ sailFlow: true });
+    expect(JSON.parse(h.values.get("regatta.race.assists.v1")!)).toMatchObject({ sailFlow: true, softLight: false });
+    expect([...h.values.keys()].sort()).toEqual(["regatta.race.assists.v1", "regatta.race.mode.v1"]);
+    expect(JSON.parse(h.postMessage.mock.calls.at(-1)![0]).assists).toMatchObject({ sailFlow: true });
+    expect(mocks.record).toHaveBeenCalledWith({ type: "control.preferences", surface: "race", preference: "sail-flow", value: true, previous: false, outcome: "accepted" });
+    vi.resetModules();
+    const relaunched = await import("./race-prefs");
+    expect(relaunched.readRacePrefs().sailFlow).toBe(true);
   });
 
   it("keeps invalid updates out of storage and diagnostics and avoids wind logs for unrelated settings", async () => {

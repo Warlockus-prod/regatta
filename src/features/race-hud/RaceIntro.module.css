@@ -1,0 +1,28 @@
+/* F5 race intro: a modal sheet over the dimmed page (lobby or race), above the
+   site navigation like the help overlay (z-index 90). One card fits a 390 x
+   844 phone without scrolling; a shorter screen scrolls inside the sheet,
+   never the page. Text 16/24, the step 14/20, every button 44 px or more.
+   Cyan only on the primary action. No animation. */
+.layer { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:16px; background:rgb(0 0 0 / .6); overscroll-behavior:contain; }
+.sheet { width:min(100%,420px); max-height:100%; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid var(--border-subtle); border-radius:16px; background:var(--bg-card,#102838); color:var(--text-primary); box-shadow:0 12px 32px rgb(0 0 0 / .35); }
+/* The sheet takes focus only so a tap on its text keeps the focus inside it. */
+.sheet:focus { outline:none; }
+.head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.step { font-size:14px; line-height:20px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.picture { flex-shrink:0; border-radius:10px; overflow:hidden; background:#0a2233; }
+.svg { display:block; width:100%; height:auto; max-height:180px; }
+.text h2 { margin:0 0 6px; font-size:20px; line-height:28px; font-weight:650; color:var(--text-primary); }
+.text p { margin:0; font-size:16px; line-height:24px; color:var(--text-secondary); }
+.dots { display:flex; justify-content:center; gap:8px; margin:0; padding:0; list-style:none; }
+.dots li { width:8px; height:8px; border-radius:50%; background:var(--border-subtle); }
+.dots li[data-current] { background:var(--text-primary); }
+.actions { display:flex; gap:8px; }
+.secondary,.primary { min-height:48px; min-width:44px; padding:8px 16px; border-radius:10px; font-size:16px; line-height:20px; cursor:pointer; touch-action:manipulation; }
+.secondary { border:1px solid var(--border-subtle); background:transparent; color:var(--text-primary); }
+.secondary:hover { background:var(--hover-bg); }
+.head .secondary { min-height:44px; }
+.primary { flex:1 1 auto; border:1px solid var(--accent-cyan); background:var(--accent-cyan); color:var(--accent-ink); font-weight:650; }
+.primary:hover { filter:brightness(1.08); }
+.secondary:focus-visible,.primary:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
+/* A short landscape phone: the picture gives the text the room. */
+@media (max-height:520px) { .svg { max-height:110px; } .sheet { gap:8px; padding:12px; } }

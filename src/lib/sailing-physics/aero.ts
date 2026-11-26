@@ -46,6 +46,18 @@ export function sailCd(aoaDeg: number): number {
   return 0.85;
 }
 
+/** Soft-sail attachment in [0, 1] (DECISIONS.md ADR-0021). Cloth cannot hold
+ *  its shape when the flow meets the luff too finely: below luffStartDeg the
+ *  sail flogs and lifts nothing, by luffFullDeg it carries the attached curve.
+ *  Smoothstep between them keeps the force continuous for the trim search. */
+export function softSailAttachment(aoaDeg: number, luffStartDeg: number, luffFullDeg: number): number {
+  const a = Math.abs(aoaDeg);
+  if (a <= luffStartDeg) return 0;
+  if (a >= luffFullDeg) return 1;
+  const t = (a - luffStartDeg) / (luffFullDeg - luffStartDeg);
+  return t * t * (3 - 2 * t);
+}
+
 /** Stall predicate. Returns true when AoA is past the stall onset. */
 export function isStalled(aoaDeg: number, stallOnset = 20): boolean {
   return Math.abs(aoaDeg) >= stallOnset;

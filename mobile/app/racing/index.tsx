@@ -6,10 +6,15 @@ import {
   RacingConceptDiagram,
   RacingCourseDiagram,
   RacingStrategyDiagram,
+  RuleScenarioDiagram,
   Screen,
   Text,
 } from '../../src/design-system/components';
 import { racingRules, racingStrategies } from '../../src/data';
+import type { RuleScenario } from '../../src/data/types';
+import { tacticsVisuals } from '../../../src/data/sailing-visuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
+import { SubjectPicture } from '../../src/learning/SubjectVisuals';
 import { legacyPick, pickLocalized, type Lang } from '../../src/i18n/languages';
 import { colors, spacing } from '../../src/design-system/tokens';
 
@@ -170,6 +175,7 @@ export default function Racing() {
         {sortedRules.map((rule) => {
           const title = legacyPick(rule, 'title', lang);
           const description = legacyPick(rule, 'description', lang);
+          const ruleVisual = tacticsVisuals(rule.id);
           const priorityLabel = tp(
             `Приоритет ${rule.priority}`,
             `Priority ${rule.priority}`,
@@ -201,6 +207,13 @@ export default function Racing() {
                 <Text variant="subtitle" style={styles.ruleTitle}>{title}</Text>
               </View>
               <Text variant="body" style={styles.ruleDesc}>{description}</Text>
+              {/* Package 32: the rule's diagram (the one its card in Rules shows) and the same situation in the race scene. */}
+              {ruleVisual ? (
+                <View style={styles.visuals}>
+                  <RuleScenarioDiagram scenario={{ svg: ruleVisual.id as RuleScenario['svg'] }} />
+                  <SubjectPicture visuals={ruleVisual} name={title} label={UI_TERMS.visualOnWater[lang]} />
+                </View>
+              ) : null}
             </Card>
           );
         })}
@@ -216,6 +229,9 @@ export default function Racing() {
               <Text variant="subtitle">{title}</Text>
               <Text variant="body" style={styles.stratDesc}>{description}</Text>
               <RacingStrategyDiagram strategyId={strategy.id} />
+              <View style={styles.visuals}>
+                <SubjectPicture visuals={tacticsVisuals(strategy.id)} name={title} label={UI_TERMS.visualOnWater[lang]} />
+              </View>
               <View style={styles.tips}>
                 {strategy.tips.map((tip, i) => (
                   <View key={i} style={styles.tipRow}>
@@ -272,6 +288,10 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
+  },
+  visuals: {
+    marginTop: spacing.md,
+    gap: spacing.sm,
   },
   ruleHeader: {
     flexDirection: 'row',

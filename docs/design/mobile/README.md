@@ -35,7 +35,8 @@ items for the Shared chat to land:
 - `README.md` (this file): high-level overview + links
 - `DECISIONS.md`: ADR-style entries for stack choice, architecture,
   data sharing, API contracts
-- `ROADMAP.md`: living execution plan (phases, milestones, exit criteria, risks)
+- Open work and order: `docs/BACKLOG.md` (the one working list of the project;
+  the May 2026 mobile `ROADMAP.md` was removed 2026-11-02)
 - `ADR-0003-execution.md`: Shared-lane runbook for the workspace extraction
 - `SPEC.md`: feature spec for the iOS app (current behavior per screen)
 - `API_CONTRACT.md`: contract with the existing web API (`/api/*`)

@@ -15,10 +15,21 @@ test.describe('Multiplayer smoke', () => {
       try { window.localStorage.setItem('regatta.lang.v1', 'ru'); } catch {}
     });
     await page.goto('/multiplayer');
-    await expect(page.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: 'Быстрая онлайн-гонка' })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('button', { name: 'Создать лобби' })).toBeVisible();
     await expect(page.getByPlaceholder('XXXX')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Войти' })).toBeVisible();
+    // M2-8: a way back to the race hub, and Create is never a dead grey button:
+    // with an empty nickname a tap explains why and moves focus to the field.
+    await expect(page.getByTestId('mp-back-to-race')).toHaveAttribute('href', '/race');
+    // Clear the prefilled default name only after it arrives with the session.
+    await expect(page.getByLabel('Твой ник')).not.toHaveValue('');
+    await page.getByLabel('Твой ник').fill('');
+    const create = page.getByTestId('mp-create');
+    await expect(create).toBeEnabled();
+    await create.click();
+    await expect(page.locator('#mp-create-hint')).toHaveText('Чтобы создать лобби, введи ник.');
+    await expect(page.getByLabel('Твой ник')).toBeFocused();
   });
 
   test('WS upgrade via nginx /ws', async ({ request }) => {
@@ -36,6 +47,50 @@ test.describe('Multiplayer smoke', () => {
         [400, 404, 426, 200].includes(code),
         `Unexpected /ws status ${code}`,
       ).toBeTruthy();
+    }
+  });
+
+  // TestFlight 74 feedback: "Link copied" stayed on the card forever, so a
+  // player could not tell when a tap had copied. The line under the button says
+  // what a tap does, names what was copied, returns to idle by itself, and a
+  // clipboard failure is a failure with the link left to select by hand.
+  test('lobby code card: copy confirmation returns to idle, a failure shows the link', async ({ browser, baseURL }) => {
+    const origin = new URL(baseURL ?? 'http://localhost:3000').origin;
+    const ctx = await browser.newContext({ locale: 'ru-RU', permissions: ['clipboard-read', 'clipboard-write'] });
+    await ctx.addInitScript(() => {
+      try { window.localStorage.setItem('regatta.lang.v1', 'ru'); } catch {}
+      // The clipboard path: the system share sheet is covered by unit tests.
+      try { Object.defineProperty(navigator, 'share', { value: undefined, configurable: true }); } catch {}
+    });
+    const page = await ctx.newPage();
+    try {
+      await page.goto('/multiplayer');
+      await expect(page.getByLabel('Твой ник')).not.toHaveValue('');
+      await page.getByTestId('mp-create').click();
+      await expect(page.getByTestId('mp-room')).toBeVisible({ timeout: 15_000 });
+      const code = (await page.getByTestId('mp-room-code').innerText()).trim();
+      const status = page.getByTestId('mp-share-status');
+      await expect(status).toHaveAttribute('data-state', 'idle');
+      await expect(status).toHaveText('Нажми, чтобы скопировать ссылку-приглашение в это лобби.');
+
+      await page.getByTestId('mp-share-code').click();
+      await expect(status).toHaveAttribute('data-state', 'copied');
+      await expect(status).toHaveText(`Скопирована ссылка на лобби ${code}. Вставь её в сообщение другу.`);
+      const link = `${origin}/multiplayer?code=${code}`;
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(link);
+      await expect(page.getByTestId('mp-share-copied-link')).toHaveText(link.replace(/^https?:\/\//, ''));
+      // Back to the idle caption by itself (SHARE_CONFIRM_MS is 4 s).
+      await expect(status).toHaveAttribute('data-state', 'idle', { timeout: 8_000 });
+      await expect(page.getByTestId('mp-share-copied-link')).toHaveCount(0);
+
+      await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error('denied')); });
+      await page.getByTestId('mp-share-code').click();
+      await expect(status).toHaveAttribute('data-state', 'failed');
+      await expect(status).toHaveText('Не получилось скопировать. Выдели ссылку ниже и скопируй вручную.');
+      await expect(page.getByTestId('mp-invite-link')).toHaveValue(link);
+      await expect(page.getByTestId('mp-share-copied-link')).toHaveCount(0);
+    } finally {
+      await ctx.close();
     }
   });
 
@@ -64,8 +119,11 @@ test.describe('Multiplayer smoke', () => {
     }));
 
     await h.goto('/multiplayer');
-    await expect(h.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await expect(h.getByRole('heading', { name: 'Быстрая онлайн-гонка' })).toBeVisible({ timeout: 10_000 });
     const hostNick = 'Host_' + Date.now().toString(36);
+    // A fresh context has no stored nickname: the prefilled default name shows
+    // that hydration and the session are ready before we type.
+    await expect(h.getByPlaceholder('Введи ник')).not.toHaveValue('');
     await h.getByPlaceholder('Введи ник').fill(hostNick);
     await h.getByRole('button', { name: 'Создать лобби' }).click();
 
@@ -79,8 +137,9 @@ test.describe('Multiplayer smoke', () => {
     // Guest joins
     await g.setViewportSize({ width: 390, height: 844 });
     await g.goto('/multiplayer?embed=1');
-    await expect(g.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
+    await expect(g.getByRole('heading', { name: 'Быстрая онлайн-гонка' })).toBeVisible({ timeout: 10_000 });
     const guestNick = 'Guest_' + Date.now().toString(36);
+    await expect(g.getByPlaceholder('Введи ник')).not.toHaveValue('');
     await g.getByPlaceholder('Введи ник').fill(guestNick);
     await g.getByPlaceholder('XXXX').fill(code);
     // Wait for the join button to become enabled (requires 4 chars)
@@ -90,8 +149,9 @@ test.describe('Multiplayer smoke', () => {
 
     // Both should see 2 players in the lobby
     await expect(g.getByText(/КОД ЛОББИ/)).toBeVisible({ timeout: 10_000 });
-    await expect(h.getByText(/ИГРОКИ · 2 \/ 10/)).toBeVisible({ timeout: 10_000 });
-    await expect(g.getByText(/ИГРОКИ · 2 \/ 10/)).toBeVisible({ timeout: 10_000 });
+    // A new lobby opens with 3 bots (R-12), so host + guest + 3 bots.
+    await expect(h.getByText(/ИГРОКИ · 5 \/ 10/)).toBeVisible({ timeout: 10_000 });
+    await expect(g.getByText(/ИГРОКИ · 5 \/ 10/)).toBeVisible({ timeout: 10_000 });
     await expect(h.getByText(guestNick, { exact: true })).toBeVisible();
 
     const start = h.getByRole('button', { name: /Старт гонки/ });
@@ -99,7 +159,7 @@ test.describe('Multiplayer smoke', () => {
     await g.getByRole('button', { name: 'Я готов', exact: true }).click();
     await expect(start).toBeEnabled();
     await h.getByRole('button', { name: 'Добавить бота' }).click();
-    await expect(h.getByText(/ИГРОКИ · 3 \/ 10/)).toBeVisible();
+    await expect(h.getByText(/ИГРОКИ · 6 \/ 10/)).toBeVisible();
     await start.click();
     await expect(h.getByTestId("multiplayer-cockpit")).toBeVisible();
     await expect(g.getByTestId("multiplayer-cockpit")).toBeVisible();

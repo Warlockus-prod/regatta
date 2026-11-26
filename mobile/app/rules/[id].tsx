@@ -10,6 +10,9 @@ import {
   Text,
 } from '../../src/design-system/components';
 import { ruleScenarios } from '../../src/data';
+import { ruleVisuals } from '../../../src/data/sailing-visuals';
+import { UI_TERMS } from '../../../src/lib/product/catalog';
+import { SubjectPicture } from '../../src/learning/SubjectVisuals';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, spacing } from '../../src/design-system/tokens';
 
@@ -134,6 +137,8 @@ export default function RuleScenarioDetail() {
 
         <View style={styles.diagramWrap}>
           <RuleScenarioDiagram scenario={scenario} caption={diagramCaption} />
+          {/* Package 32: the same situation in the race scene, under the diagram. */}
+          <SubjectPicture visuals={ruleVisuals(scenario)} name={title} label={UI_TERMS.visualOnWater[lang]} />
         </View>
 
         <Section label={sceneLabel}>
@@ -230,6 +235,7 @@ const styles = StyleSheet.create({
   diagramWrap: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   section: {
     marginHorizontal: spacing.lg,

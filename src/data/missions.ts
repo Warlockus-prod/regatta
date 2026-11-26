@@ -4,6 +4,7 @@
 // ============================================================================
 
 import type { LegacyLocalized } from '@/lib/languages';
+import { MISSION_TITLES } from './mission-titles';
 
 export type MissionCheckType =
   | 'finish-under-sec'    // finish time < value seconds
@@ -36,13 +37,7 @@ export const missions: Mission[] = [
   {
     id: 'clean-laps',
     emoji: '🧼',
-    titleRu: 'Чистая гонка',
-    titleEn: 'Clean race',
-    titlePl: 'Czysty wyścig',
-    titleEs: 'Regata limpia',
-    titleFr: 'Course propre',
-    titleDe: 'Sauberes Rennen',
-    titleIt: 'Regata pulita',
+    ...MISSION_TITLES['clean-laps'],
     descRu: 'Пройди трассу ни разу не попав в мёртвую зону.',
     descEn: 'Complete the course without ever entering the no-go zone.',
     descPl: 'Pokonaj trasę, ani razu nie wchodząc w kąt martwy.',
@@ -53,24 +48,19 @@ export const missions: Mission[] = [
     difficulty: 'easy',
     windStrength: 'medium',
     constraints: [{ type: 'no-no-go' }],
-    hintRu: 'Следи за углом к ветру - не меньше 40° при лавировке.',
-    hintEn: 'Watch your TWA - at least 40° when beating upwind.',
-    hintPl: 'Pilnuj kąta do wiatru - na halsówce nie mniej niż 40°.',
-    hintEs: 'Vigila el ángulo al viento - al menos 40° cuando ciñas.',
-    hintFr: 'Surveille ton angle au vent - au moins 40° au louvoyage.',
-    hintDe: 'Achte auf den Windwinkel - beim Kreuzen nicht unter 40°.',
-    hintIt: 'Tieni d\'occhio l\'angolo al vento - non meno di 40° quando bordeggi.',
+    // Race copy states no no-go number (src/data/no-go-zone.ts, package 7).
+    hintRu: 'На лавировке держи рекомендуемый курс: он идет у самой границы мёртвой зоны, но не заходит в нее.',
+    hintEn: 'On the beat follow the suggested course: it runs right at the edge of the no-go zone without entering it.',
+    hintPl: 'Na halsówce trzymaj się sugerowanego kursu: prowadzi tuż przy granicy kąta martwego, ale w niego nie wchodzi.',
+    hintEs: 'En la ceñida sigue el rumbo recomendado: va justo al borde de la zona muerta sin entrar en ella.',
+    hintFr: 'Au louvoyage, suis le cap conseillé : il longe le bord de la zone morte sans y entrer.',
+    hintDe: 'Folge an der Kreuz dem empfohlenen Kurs: Er führt direkt am Rand des toten Winkels entlang, ohne hineinzugeraten.',
+    hintIt: "Di bolina segui la rotta consigliata: corre al bordo dell'angolo morto senza entrarci.",
   },
   {
     id: 'sub-90',
     emoji: '⏱',
-    titleRu: 'Под 90 секунд',
-    titleEn: 'Sub 90 sec',
-    titlePl: 'Poniżej 90 s',
-    titleEs: 'Menos de 90 s',
-    titleFr: 'Moins de 90 s',
-    titleDe: 'Unter 90 s',
-    titleIt: 'Sotto i 90 s',
+    ...MISSION_TITLES['sub-90'],
     descRu: 'Финишируй быстрее чем за 90 секунд.',
     descEn: 'Finish under 90 seconds.',
     descPl: 'Dopłyń do mety w mniej niż 90 sekund.',
@@ -92,13 +82,7 @@ export const missions: Mission[] = [
   {
     id: 'minimal-tacks',
     emoji: '📐',
-    titleRu: 'Экономия галсов',
-    titleEn: 'Minimal tacks',
-    titlePl: 'Minimum zwrotów',
-    titleEs: 'Pocas viradas',
-    titleFr: 'Peu de virements',
-    titleDe: 'Sparsam wenden',
-    titleIt: 'Poche virate',
+    ...MISSION_TITLES['minimal-tacks'],
     descRu: 'Пройди всю гонку не более чем за 4 поворота.',
     descEn: 'Finish the race with 4 tacks or fewer.',
     descPl: 'Ukończ wyścig w najwyżej 4 zwrotach.',
@@ -120,13 +104,7 @@ export const missions: Mission[] = [
   {
     id: 'light-wind-master',
     emoji: '🍃',
-    titleRu: 'Слабый ветер',
-    titleEn: 'Light wind',
-    titlePl: 'Słaby wiatr',
-    titleEs: 'Viento flojo',
-    titleFr: 'Vent faible',
-    titleDe: 'Leichtwind',
-    titleIt: 'Vento leggero',
+    ...MISSION_TITLES['light-wind-master'],
     descRu: 'Финишируй на слабом ветре. Любая позиция засчитывается.',
     descEn: 'Finish in light wind. Any position counts.',
     descPl: 'Dopłyń do mety przy słabym wietrze. Każde miejsce jest zaliczane.',

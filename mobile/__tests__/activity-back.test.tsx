@@ -44,3 +44,16 @@ test.each([
 ])("the stack route %s has the contextual hub %s", (route, expected) => {
   expect(activityHubForRoute(route)).toBe(expected);
 });
+
+// Owner, TestFlight 84 ("the back button is crooked"): iOS 26 wraps a custom header item in a
+// glass capsule, so the back has to be even on both sides: a drawn chevron, no text "‹", and the
+// same padding left and right.
+test("the header back is a chevron and a word with even padding on both sides", () => {
+  const view = render(<ActivityBack fallback="/simulators" />);
+  const button = view.getByTestId("header-back");
+  const style = Object.assign({}, ...[button.props.style].flat(3).filter(Boolean));
+  expect(style.paddingHorizontal).toBeGreaterThan(0);
+  expect(style.paddingLeft ?? style.paddingHorizontal).toBe(style.paddingRight ?? style.paddingHorizontal);
+  expect(view.getByText("Back")).toBeTruthy();
+  expect(view.queryByText(/‹/)).toBeNull();
+});

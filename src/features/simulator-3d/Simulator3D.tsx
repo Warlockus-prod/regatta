@@ -9,6 +9,7 @@ import { useSailAudio } from "./audio/useSailAudio";
 import { WindDial } from "./ui/WindDial";
 import { WindGlyph, WindReadout } from "./ui/WindReadout";
 import { useI18n } from "@/lib/i18n";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { PICKABLE_VENUES, shoreLabel, venueLabel } from "../../data/venues/venues";
 import { useVenue } from "../venues/useVenue";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
@@ -23,6 +24,7 @@ import {
   GearButton,
   SceneBar,
   SceneDrawer,
+  SceneStage,
   TrainerWorkspace,
   ViewButton,
   WheelDeck,
@@ -111,10 +113,13 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [view, setView] = useState<CameraView>("whole");
   const [cameraRevision, setCameraRevision] = useState(0);
   const [showFlow, setShowFlow] = useState(true);
-  const [light, setLight] = useState(embed);
+  // Package 32 stage D: the quality ladder steps a slow phone down by itself, so the app no longer starts on the light picture.
+  const [light, setLight] = useState(false);
   const [guide, setGuide] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
   const { lang, tl } = useI18n();
+  // Package 10: the knot sign of the reader's language ("уз" in Russian), not a fixed "kn".
+  const kn = UI_TERMS.knots[lang];
   const poseLabels = {
     mode: tl({ ru: "Осмотр формы", en: "Inspect shape", pl: "Oglądaj kształt", es: "Explorar forma", fr: "Observer la forme", de: "Form ansehen", it: "Esplora la forma" }),
     boom: tl({ ru: "Угол гика", en: "Boom angle", pl: "Kąt bomu", es: "Ángulo de botavara", fr: "Angle de bôme", de: "Baumwinkel", it: "Angolo del boma" }),
@@ -219,12 +224,15 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   </>;
   const windReadout = <>
         {mode === "sail" && <WindReadout awa={t.awaSigned} aws={t.awsKn} tws={sim.wind.twsKn}
-          showFlow={showFlow} onToggle={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }} labels={L.scene} />}
+          showFlow={showFlow} onToggle={() => { setShowFlow(!showFlow); recordControlChange("boat", "airflow", !showFlow, showFlow); }} labels={L.scene} knots={kn} />}
   </>;
   const viewport = <div className={styles.viewport}>
-          <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
+          {/* Package 32 stage B: on a phone the stage carries the canvas under the bar, the readouts and the dock. */}
+          <SceneStage>
+          <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : 2} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry}
             venue={venue} />
+          </SceneStage>
           {mode === "sail" && !wheels && !compact && <>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
@@ -232,7 +240,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         </div>;
   const readouts = mode === "sail" ? <>
           <div className={styles.stats}>
-            <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />
+            <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} ${kn}`} />
             <Readout label={L.heel} value={degrees(t.heelDeg)} />
             <Readout label={L.scene.heading} value={degrees(t.heading)} />
           </div>
@@ -253,17 +261,18 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   </>;
   const reefSlider = <Slider label={L.reef} value={sim.controls.reef} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("reef", v)} />;
   const windControls = <>
-            <Slider label={L.windSpeed} value={sim.wind.twsKn} min={0} max={28} step={1} fmt={(v) => `${v} kn`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
+            <Slider label={L.windSpeed} value={sim.wind.twsKn} min={0} max={28} step={1} fmt={(v) => `${v} ${kn}`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
             <Slider label={L.wind} value={sim.wind.fromDeg} min={0} max={359} step={1} fmt={degrees} onChange={(v) => sim.setWind((w) => ({ ...w, fromDeg: v }))} />
   </>;
   const instruments = <div>
             <WindDial twaSigned={t.twaSigned} awaSigned={t.awaSigned} label={L.scene.windDial} />
-            <Readout label={L.scene.target} value={`${t.targetSpeedKn.toFixed(1)} kn`} />
-            <Readout label="VMG" value={`${t.vmg.toFixed(1)} kn`} />
-            <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} kn / ${degrees(t.awaDeg)}`} />
+            <Readout label={L.scene.target} value={`${t.targetSpeedKn.toFixed(1)} ${kn}`} />
+            <Readout label="VMG" value={`${t.vmg.toFixed(1)} ${kn}`} />
+            <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} ${kn} / ${degrees(t.awaDeg)}`} />
             <Readout label={L.bestVmg} value={degrees(t.vmgTargetAngle)} />
           </div>;
-  const toggleSound = () => { toggle(); updatePrefs({ sound: !enabled }); };
+  // toggle() saves the race sound choice first, so this trainer write cannot mute the race (M3-2).
+  const toggleSound = () => { updatePrefs({ sound: toggle() }); };
   const extras = <div className="mt-2 flex flex-wrap gap-1">
           <button className={styles.button} aria-pressed={light} onClick={() => { setLight(!light); recordControlChange("boat", "light-renderer", !light, light); }}>{L.scene.light}</button>
           {mode === "sail" && <button className={styles.button} aria-pressed={enabled} onClick={toggleSound}>{L.sound}</button>}
@@ -346,22 +355,25 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         <BarIconButton label={L.tour.open} onClick={() => { setViewsOpen(false); setGuide((g) => !g); }}>?</BarIconButton>
       </>}
     />;
-    const compactReadouts = mode === "free" ? <p className={styles.coach}>{poseLabels.gesture}</p> : <>
-      <div className={styles.statsRow}>
-        {!wheels && <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />}
-        <div className={styles.stats4}>
-          <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />
-          <Readout label={L.heel} value={degrees(t.heelDeg)} />
-          <Readout label={L.scene.heading} value={degrees(t.heading)} />
-          <div className={styles.readout}><span>AWA</span><strong className={styles.windCell}>
-            <WindGlyph awa={t.awaSigned} moving={t.awsKn > .5} size={22} label={L.scene.relativeWind} />{degrees(t.awaDeg)}</strong></div>
-        </div>
-        {!wheels && <SteerButton inline dir={1} label={L.steerRight} onHold={hold} onRelease={release} />}
-      </div>
-      <p className={styles.coach} data-maneuver={t.maneuver}>
-        {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
-      </p>
-    </>;
+    // Package 32, game screen: the numbers are an instrument card in the scene's corner, the coach's
+    // line a subtitle over the water. Without wheels the two steer buttons stand beside that line.
+    const coachLine = <p className={styles.coach} data-maneuver={t.maneuver}>
+      {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
+    </p>;
+    const compactReadouts = mode === "free" ? undefined : <div className={`${styles.stats4} ${styles.hudStats}`}>
+      <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} ${kn}`} />
+      <Readout label={L.heel} value={degrees(t.heelDeg)} />
+      <Readout label={L.scene.heading} value={degrees(t.heading)} />
+      <div className={styles.readout}><span>AWA</span><strong className={styles.windCell}>
+        <WindGlyph awa={t.awaSigned} moving={t.awsKn > .5} size={22} label={L.scene.relativeWind} />{degrees(t.awaDeg)}</strong></div>
+    </div>;
+    const compactCaption = mode === "free" ? <p className={styles.coach}>{poseLabels.gesture}</p>
+      : wheels ? coachLine
+      : <div className={styles.steerCaption}>
+        <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
+        {coachLine}
+        <SteerButton inline dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
+      </div>;
     return <div className={`${trainerScreenClass(embed)} ${styles.compactRoot} ${className ?? ""}`}>
       {headerSlot && <div className={styles.compactSlot}>{headerSlot}</div>}
       <TrainerWorkspace
@@ -396,6 +408,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           </SceneDrawer>
         </div>}
         readouts={compactReadouts}
+        caption={compactCaption}
         dock={mode === "free" ? <div className={styles.poseDock}>{poseControls}</div> : <ControlDock
           surface="boat"
           layout="bottom"

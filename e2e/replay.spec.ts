@@ -34,9 +34,13 @@ test("shared world-space replay uses the same 3D scene and exact recording timel
   await expect(camera).toHaveValue("high");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("regatta.race.camera.v1"))).toBe("high");
   await page.setViewportSize({ width: 390, height: 844 });
-  const canvas = await replay.locator("canvas").boundingBox();
-  const controls = await timeline.boundingBox();
-  expect(canvas && controls && canvas.y + canvas.height <= controls.y + 1).toBeTruthy();
+  // The canvas follows the viewport on its next resize observation, so the
+  // layout is polled instead of read in the same tick as the resize.
+  await expect.poll(async () => {
+    const canvas = await replay.locator("canvas").boundingBox();
+    const controls = await timeline.boundingBox();
+    return Boolean(canvas && controls && canvas.y + canvas.height <= controls.y + 1);
+  }).toBe(true);
 });
 
 test("old shared replays without rig or course metadata remain readable", async ({ page }) => {

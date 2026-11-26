@@ -12,6 +12,7 @@ import ThemeManager from "@/components/ThemeManager";
 import { BROWSER_THEME_COLORS, THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import { I18nProvider } from "@/lib/i18n";
+import { FEEDBACK_HIDDEN_ROUTES } from "@/lib/feedback-routes";
 import {
   ENABLED_LANGUAGES,
   isLang,
@@ -52,9 +53,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogByLang: Record<Lang, { title: string; description: string; locale: string; twitter: string }> = {
     ru: {
       title: 'Week to Regatta - тренажёр парусного спорта',
-      description: 'Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. AI-тренер разбирает твою гонку.',
+      description: 'Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. ИИ-тренер разбирает твою гонку.',
       locale: 'ru_RU',
-      twitter: 'До регаты неделя? Успеешь разобраться. AI-тренер + гонка с соперниками в браузере.',
+      twitter: 'До регаты неделя? Успеешь разобраться. ИИ-тренер + гонка с соперниками в браузере.',
     },
     en: {
       title: 'Week to Regatta - Sailing Simulator',
@@ -82,9 +83,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     de: {
       title: 'Week to Regatta - Segelsimulator',
-      description: 'Interaktiver Segeltrainer für alle, die bald eine Regatta segeln. Wind, Kurse, Segel und Taktik in 45 Minuten. Ein KI-Coach analysiert dein Rennen.',
+      description: 'Interaktiver Segeltrainer für alle, die bald eine Regatta segeln. Wind, Kurse, Segel und Taktik in 45 Minuten. Ein KI-Trainer analysiert dein Rennen.',
       locale: 'de_DE',
-      twitter: 'Regatta nächste Woche? Du kannst dich noch vorbereiten. KI-Coach + Rennen gegen Gegner im Browser.',
+      twitter: 'Regatta nächste Woche? Du kannst dich noch vorbereiten. KI-Trainer + Rennen gegen Gegner im Browser.',
     },
     it: {
       title: 'Week to Regatta - simulatore di vela',
@@ -267,8 +268,10 @@ export default async function RootLayout({
               fullscreen immersive surfaces (game HUD, V3 canvas) where the
               floating bubble would compete with touch controls. Per audit
               2026-04-20: root layout previously mounted this without any
-              hideOn prop so the bubble could overlap critical controls. */}
-          <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator', '/sternik']} />
+              hideOn prop so the bubble could overlap critical controls.
+              The list (src/lib/feedback-routes.ts) also holds the shared
+              replay /r/ since M4-3, where it covered the event ribbon. */}
+          <FeedbackWidget hideOn={FEEDBACK_HIDDEN_ROUTES} />
           {/* BootcampFooterNav: sticky bottom bar that auto-shows on
               lesson-destination pages when the user is mid-bootcamp.
               Client-only, reads localStorage; silent on all other routes. */}

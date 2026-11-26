@@ -88,3 +88,23 @@ describe('getDailyLeaderboard', () => {
     expect(db.getDailyLeaderboard('2026-01-01')).toEqual([]);
   });
 });
+
+// Package 13 (ADR-0022): a row remembers the helm and the assists as checked
+// JSON; a row without them (every older row) keeps NULL and stays on the board.
+describe('helm assists stored with a result', () => {
+  it('writes the checked record, NULL without one or for a malformed one', async () => {
+    const assists = { helm: 'arrows', buttonTurns: 2, bestVmgSec: 30, angleHoldSec: 5 } as const;
+    const withAssists = db.insertRaceResult({ sid: 'helm-a', nickname: 'HELM', difficulty: 'hard', windStrength: 'heavy', finishTimeSec: 95, assists });
+    const without = db.insertRaceResult({ sid: 'helm-b', nickname: 'HELB', difficulty: 'hard', windStrength: 'heavy', finishTimeSec: 96 });
+    const bad = db.insertRaceResult({ sid: 'helm-c', nickname: 'HELC', difficulty: 'hard', windStrength: 'heavy', finishTimeSec: 97,
+      assists: { ...assists, helm: 'tiller' } as never });
+    const Database = (await import('better-sqlite3')).default;
+    const raw = new Database(path.join(dir, 'regatta-stats.db'), { readonly: true });
+    const read = (id: number | null) => (raw.prepare('SELECT helm_assists FROM race_results WHERE id = ?').get(id) as { helm_assists: string | null }).helm_assists;
+    expect(JSON.parse(read(withAssists)!)).toEqual(assists);
+    expect(read(without)).toBeNull();
+    expect(read(bad)).toBeNull();
+    raw.close();
+    expect(db.topByDifficulty('hard', 'heavy').map((r) => r.sid)).toEqual(['helm-a', 'helm-b', 'helm-c']);
+  });
+});

@@ -1,5 +1,6 @@
 import { words, type Label } from "../lib/product/catalog";
 import type { SceneId } from "../lib/learning/foundation-drawings";
+import { NO_GO_HALF_DEG } from "../lib/sailing-physics/constants";
 
 /** Shared reviewed first lesson. Native and web consume the same copy. */
 export interface SceneStateCopy {
@@ -64,13 +65,13 @@ export const foundationWindLesson = {
         "A bordo è più semplice ragionare dalla barca che dalla bussola: vento in prua, al traverso o in poppa. L'angolo tra la prua e la direzione da cui arriva il vento è il TWA, l'angolo del vento reale.",
       ),
       words(
-        "Прямо против ветра яхта не может идти под парусом: парус полощет и теряет тягу. Граница мертвой зоны зависит от яхты и условий. К цели на ветре идут галсами.",
-        "A boat cannot sail straight into the wind: the sail luffs and loses drive. The no-go boundary depends on the boat and conditions. To reach an upwind point, sail in alternating tacks.",
-        "Jacht nie płynie prosto pod wiatr: żagiel łopocze i traci siłę napędową. Granica kąta martwego zależy od jachtu i warunków. Do punktu na wiatr dociera się halsami.",
-        "Un velero no puede navegar directamente contra el viento: la vela flamea y pierde empuje. El límite de la zona muerta depende del barco y las condiciones. Para llegar a un punto a barlovento, alterna bordadas.",
-        "Un voilier ne peut pas avancer directement face au vent : la voile faseye et perd sa propulsion. La limite de la zone morte dépend du bateau et des conditions. Pour atteindre un point au vent, on tire des bords.",
-        "Ein Segelboot kann nicht dauerhaft direkt gegen den Wind segeln: Das Segel killt und verliert Vortrieb. Die Grenze des toten Winkels hängt vom Boot und den Bedingungen ab. Ein Ziel in Luv erreicht man durch Kreuzen.",
-        "Una barca non può navigare direttamente controvento: la vela fileggia e perde spinta. Il limite dell'angolo morto dipende dalla barca e dalle condizioni. Per raggiungere un punto sopravvento si alternano le mura.",
+        `Прямо против ветра яхта не может идти под парусом: парус полощет и теряет тягу. Граница мёртвой зоны зависит от яхты и условий, у нашей яхты это около ±${NO_GO_HALF_DEG}° от ветра. К цели на ветре идут галсами.`,
+        `A boat cannot sail straight into the wind: the sail luffs and loses drive. The no-go boundary depends on the boat and conditions; for our yacht it is about ±${NO_GO_HALF_DEG}° from the wind. To reach an upwind point, sail in alternating tacks.`,
+        `Jacht nie płynie prosto pod wiatr: żagiel łopocze i traci siłę napędową. Granica kąta martwego zależy od jachtu i warunków, dla naszego jachtu to około ±${NO_GO_HALF_DEG}° od wiatru. Do punktu na wiatr dociera się halsami.`,
+        `Un velero no puede navegar directamente contra el viento: la vela flamea y pierde empuje. El límite de la zona muerta depende del barco y las condiciones; en nuestro barco está a unos ±${NO_GO_HALF_DEG}° del viento. Para llegar a un punto a barlovento, alterna bordadas.`,
+        `Un voilier ne peut pas avancer directement face au vent : la voile faseye et perd sa propulsion. La limite de la zone morte dépend du bateau et des conditions ; pour notre voilier, elle est à environ ±${NO_GO_HALF_DEG}° du vent. Pour atteindre un point au vent, on tire des bords.`,
+        `Ein Segelboot kann nicht dauerhaft direkt gegen den Wind segeln: Das Segel killt und verliert Vortrieb. Die Grenze des toten Winkels hängt vom Boot und den Bedingungen ab, bei unserer Yacht liegt sie bei etwa ±${NO_GO_HALF_DEG}° zum Wind. Ein Ziel in Luv erreicht man durch Kreuzen.`,
+        `Una barca non può navigare direttamente controvento: la vela fileggia e perde spinta. Il limite dell'angolo morto dipende dalla barca e dalle condizioni; per la nostra barca è a circa ±${NO_GO_HALF_DEG}° dal vento. Per raggiungere un punto sopravvento si alternano le mura.`,
       ),
       words(
         "Когда лодка меняет курс или ветер меняется, меняется только это положение: тот же ветер приходит с другой стороны лодки. Поэтому сначала находи ветер, потом нос.",

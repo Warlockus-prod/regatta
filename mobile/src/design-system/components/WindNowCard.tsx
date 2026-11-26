@@ -11,6 +11,7 @@ import { Icon } from './Icon';
 import { radii, spacing } from '../tokens';
 import { bySurface, useSurface, useSurfaceColors } from '../surface';
 import { useI18n } from '../../i18n/context';
+import { UI_TERMS } from '../../../../src/lib/product/catalog';
 import { fetchWeatherNow, type WeatherNow } from '../../api/weather';
 
 /**
@@ -66,7 +67,7 @@ function toCardinal(dirDeg: number): string {
 export function WindNowCard() {
   const styles = themed[useSurface()];
   const colors = useSurfaceColors();
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
   const [selectedKey, setSelectedKey] = useState<string>(SPOTS[0].key);
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   // Track the in-flight request's spot so a slow earlier response can't
@@ -110,12 +111,8 @@ export function WindNowCard() {
     it: 'Vento attuale',
   });
 
-  const unitKn = tp('уз', 'kn', 'kn', {
-    es: 'kn',
-    fr: 'kn',
-    de: 'kn',
-    it: 'kn',
-  });
+  // Package 10: the knot sign of the shared dictionary ("уз", "w.", "nd", "kn").
+  const unitKn = tl(UI_TERMS.knots);
 
   const gustLabel = tp('порывы', 'gusts', 'porywy', {
     es: 'rachas',
@@ -268,6 +265,7 @@ interface WindReadoutProps {
 }
 
 function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindReadoutProps) {
+  const { tl } = useI18n();
   const styles = themed[useSurface()];
   const speed = Math.round(data.wind.speedKn);
   const dirDeg = Math.round(data.wind.dirDeg);
@@ -286,9 +284,7 @@ function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindR
       ) : null}
       {data.wave != null ? (
         <Text variant="caption" style={styles.metaText}>
-          {`${waveLabel}: ${data.wave.heightM.toFixed(1)} m / ${Math.round(
-            data.wave.periodS,
-          )} s`}
+          {`${waveLabel}: ${data.wave.heightM.toFixed(1)} ${tl(UI_TERMS.metres)} / ${Math.round(data.wave.periodS)} ${tl(UI_TERMS.seconds)}`}
         </Text>
       ) : null}
       {data.current != null ? (

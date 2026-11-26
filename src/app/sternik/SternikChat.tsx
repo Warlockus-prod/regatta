@@ -210,7 +210,7 @@ export default function SternikChat() {
           fontSize: 22,
         }}
       >
-        {open ? '×' : '🎓'}
+        {open ? '×' : <span className="text-sm font-bold">{tp('ИИ', 'AI', 'AI')}</span>}
       </button>
 
       {/* Panel */}

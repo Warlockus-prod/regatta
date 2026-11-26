@@ -1,1 +1,1 @@
-navegar,navegación,velero,barco,yate,curso,escuela,táctica,trimado,viento,virada,reglas,juego,quiz
+navegar,navegación,barco,yate,curso,escuela,trimado,viento,virada,regatas,atraque,maniobras,juego

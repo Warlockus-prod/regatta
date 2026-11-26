@@ -28,7 +28,7 @@ test("bundled vang lesson changes the diagram and enters the ungraded shape sess
   fireEvent.press(view.getByRole("button", { name: "Eased" }));
   expect(view.getByText(/Block separation:.*8°/)).toBeTruthy();
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
-  fireEvent.press(view.getByRole("button", { name: "Sail trim trainer" }));
+  fireEvent.press(view.getByRole("button", { name: "Trim the sails" }));
   expect(mockPush).toHaveBeenCalledWith("/simulator-v3?lesson=vang&study=shape");
   expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
 });
@@ -60,7 +60,7 @@ test("only saves a correct theory check, never a page visit", async () => {
   fireEvent.press(view.getByRole("button", { name: "Save theory check" }));
   await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(SAIL_PROGRESS_KEY))!).checked).toEqual(["rig-basics"]));
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
-  fireEvent.press(view.getByRole("button", { name: "3D Boat" }));
+  fireEvent.press(view.getByRole("button", { name: "Inspect the sail" }));
   expect(mockPush).toHaveBeenCalledWith("/simulator2?lesson=rig-basics");
 });
 test("resumes the next unchecked lesson and recovers an invalid deep link", async () => {
@@ -125,7 +125,7 @@ test("mainsheet comparison works from bundled content and does not claim practic
   await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(SAIL_PROGRESS_KEY))!).checked).toEqual(["mainsheet"]));
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
   expect(view.getByText(/not a practical assessment/)).toBeTruthy();
-  fireEvent.press(view.getByRole("button", { name: "Sail trim trainer" }));
+  fireEvent.press(view.getByRole("button", { name: "Trim the sails" }));
   expect(mockPush).toHaveBeenCalledWith("/simulator-v3?lesson=mainsheet&study=mainsheet");
 });
 
@@ -178,7 +178,7 @@ test("runs the offline equipment bench with load interlocks and no manufactured 
   await act(async () => { await AsyncStorage.getItem(SAIL_PROGRESS_KEY); });
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
   expect(view.getByText("Load held by: Clutch")).toBeTruthy();
-  expect(view.queryByRole("button", { name: "Sail trim trainer" })).toBeNull();
+  expect(view.queryByRole("button", { name: "Trim the sails" })).toBeNull();
   fireEvent.press(view.getByRole("button", { name: "Try another action" }));
   fireEvent.press(view.getByRole("button", { name: "Open the clutch fully" }));
   expect(view.getByText("Training interlock")).toBeTruthy();
@@ -207,7 +207,7 @@ test("returns to practice after unmount and keeps the chosen diagram", async () 
   await act(async () => { await loadLessonPositions(); });
   first.unmount();
   const returned = renderWithProviders(<SailingCourseScreen lessonId="mainsheet" />);
-  await waitFor(() => expect(returned.getByRole("button", { name: "Sail trim trainer" })).toBeTruthy());
+  await waitFor(() => expect(returned.getByRole("button", { name: "Trim the sails" })).toBeTruthy());
   fireEvent.press(returned.getByRole("button", { name: "1. Understand" }));
   expect(returned.getByText(/Boom rise: 5°/)).toBeTruthy();
   expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
@@ -237,7 +237,7 @@ test("returning to the course removes lesson history instead of leaving it behin
   const savedBefore = await AsyncStorage.multiGet(keys);
   expect(savedBefore.every(([, value]) => value !== null)).toBe(true);
   const view = renderWithProviders(<SailingCourseScreen lessonId="mainsheet" />);
-  await waitFor(() => expect(view.getByRole("button", { name: "Sail trim trainer" })).toBeTruthy());
+  await waitFor(() => expect(view.getByRole("button", { name: "Trim the sails" })).toBeTruthy());
   fireEvent.press(view.getByRole("button", { name: sailCourse.back.en }));
   expect(state.routes.map(route => route.name)).toEqual(["learn/index", "learn/sails/index"]);
   expect(state.routes[state.index].key).toBe(originalOutlineKey);

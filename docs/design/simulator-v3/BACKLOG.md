@@ -1,6 +1,9 @@
 # Simulator V3 - engineering backlog
 
-**Status:** PR-1..PR-6 all shipped on `main`. Pipeline complete; new work lands under "Nice-to-haves".
+**Status:** PR-1..PR-6 all shipped on `main`. Pipeline complete. This file is
+the history of that split; it has no open items. New Trainer work (autotrim on
+the race solver, "Best VMG" preset, twist and slot fixes, readability) is
+tracked only in `docs/BACKLOG.md` (packages 6, 11, 13, 29).
 **Scope:** V3 only
 **Related docs:**
 

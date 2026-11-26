@@ -1,5 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { foundationLessonThumb } from '../../../src/data/sailing-visuals';
+import { SUBJECT_PICTURE_ASSETS } from '../../src/learning/subject-pictures.generated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
 import { Icon, type IconName, Screen, Text } from '../../src/design-system/components';
@@ -12,6 +14,9 @@ import { useLearningBookmark } from '../../src/persistence/learning-bookmark';
 import { foundationModules } from '../../src/bootcamp/learning-guide';
 import { destinations } from '../../../src/lib/product/catalog';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+
+/** The first photo of the pair the lesson "how-sail-works" has of its own (FOUNDATION_OWN_PHOTO). */
+const OWN_PHOTO = require('../../../public/learning/mainsail-filled.jpg');
 
 /**
  * Map each lesson id to a designer icon. Bootcamp lessons cover the
@@ -139,6 +144,8 @@ export default function BootcampIndex() {
                 it: `Lezione ${lesson.order}: ${title}`,
               },
             ) + (stateWord ? `, ${stateWord}` : '');
+            const picture = foundationLessonThumb(lesson.id);
+            const thumb = picture ? (picture.subject ? SUBJECT_PICTURE_ASSETS[picture.subject] : OWN_PHOTO) : null;
             return (
               <Pressable
                 key={lesson.id}
@@ -148,13 +155,18 @@ export default function BootcampIndex() {
                 accessibilityLabel={lessonA11y}
                 accessibilityState={{ selected: status === 'passed' }}
               >
+                {/* Package 32, stage C: the lesson's picture in its row (its subject's frame, or the lesson's own photo). */}
                 {roomy && (
                   <View style={[styles.iconTile, status === 'passed' && styles.iconTileDone]}>
-                    <Icon
-                      name={LESSON_ICON[lesson.id] ?? 'compass'}
-                      size={24}
-                      color={status === 'passed' ? colors.accentTeal : colors.textPrimary}
-                    />
+                    {thumb ? (
+                      <Image source={thumb} style={styles.thumb} resizeMode="cover" accessibilityIgnoresInvertColors testID="lesson-thumb" />
+                    ) : (
+                      <Icon
+                        name={LESSON_ICON[lesson.id] ?? 'compass'}
+                        size={24}
+                        color={status === 'passed' ? colors.accentTeal : colors.textPrimary}
+                      />
+                    )}
                   </View>
                 )}
                 <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
@@ -249,9 +261,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 14,
+    overflow: 'hidden',
     backgroundColor: colors.sand,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  thumb: {
+    width: 56,
+    height: 56,
   },
   iconTileDone: {
     backgroundColor: colors.surfaceSuccess,

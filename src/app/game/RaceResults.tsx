@@ -5,13 +5,19 @@
 // coach's top one) and "Again" as the only primary button; the judge, the
 // coach's details, the fleet table and the share block are collapsed below.
 // A did-not-finish gets its own calm layout: what happened and one thing to
-// try. Empty M4 slots (RaceFinishSlots.tsx) mark where skill bars, "Watch"
-// and "Practise" go. Presentational: GameClient owns every state and action.
+// try. M4-1 skill bars (RaceSkillBars.tsx) sit under the place and time,
+// the M4-4 splits against your best race (RaceGhostSplits.tsx) under them;
+// M4 slots (RaceFinishSlots.tsx): "Practise" opens the main mistake's
+// practice (M4-2), "Watch the mistake" its moment in the replay (M4-3). M4-2
+// also links every judge item and coach mistake to its practice and gives a
+// lesson race its way back; M4-3 adds "Watch the moment" to each of them.
+// Presentational: GameClient owns every state and action.
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { UI_TERMS } from '@/lib/product/ui-terms';
 import { formatRecordTime, type BestRecord } from '@/lib/best-times';
 import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
 import { raceJudgeCopy } from '@/data/race-judge-copy';
@@ -22,8 +28,20 @@ import type { Difficulty } from './config';
 import type { useRaceCopy } from "./race-copy";
 import { PhysicalTrialNote } from "./RaceBriefing";
 import { formatTime, type Boat, type Coaching, type RaceResultRow } from "./race-model";
+import { FLEET_RESOLUTION_COPY } from "./race-copy";
 import { FINISH_COPY, dnfStage, fillFinish, formatGapSeconds, summariseFinish, type FinishSummary } from "./race-finish-summary";
-import { RaceFinishPractiseSlot, RaceFinishSkillBarsSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
+import { RaceFinishPractiseSlot, RaceFinishWatchSlot } from "./RaceFinishSlots";
+import { RaceSkillBars } from "./RaceSkillBars";
+import { RaceGhostSplits } from "./RaceGhostSplits";
+import { RaceMedalResult } from "./RaceMedal";
+import type { MedalAward, MedalCourse } from "@/lib/race-medals";
+import type { GhostSplit } from "@/lib/race-ghost-splits";
+import { RaceLessonReturn, RacePracticeLink } from "./RacePracticeLink";
+import { practiceForCoachMistake } from "@/lib/race-practice";
+import { coachMistakeMoment } from "@/lib/race-replay-teaching";
+import { WatchMomentButton } from "./WatchMomentButton";
+import type { RaceReturn } from "@/lib/race-return";
+import type { SkillBar } from "@/lib/race-skill-metrics";
 import { REPLAY_COPY_RESOURCES } from "./replay-copy";
 import { AlertIcon, CheckIcon, HintIcon, MedalIcon, ReplayIcon, ShareIcon, TargetIcon } from "@/features/race-hud/RaceIcons";
 
@@ -34,6 +52,10 @@ export type NativeSaveStatus = "idle" | "saving" | "saved" | "error";
 export interface NativeBestSaveState { status: "idle" | "saving" | "saved" | "error"; id: string; requestId: string; retryable: boolean }
 export type LeaderboardSaveState = 'idle' | 'prompting' | 'saving' | 'saved' | 'error';
 
+/** M1-7 leftover: the nickname prompt and the replay share card are neutral
+ * panels. Cyan is kept for what is pressed (Save, Share, Open), not for the
+ * box around them or its heading. */
+const NEUTRAL_PANEL = { background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' } as const;
 /** M1-7: the accessible name of a podium medal in the fleet table. */
 const MEDAL_PLACE = { ru: "Место {n}", en: "Place {n}", pl: "Miejsce {n}", es: "Puesto {n}", fr: "Place {n}", de: "Platz {n}", it: "Posizione {n}" } as const;
 
@@ -51,7 +73,7 @@ function Collapsed({ title, testId, children }: { title: string; testId: string;
   );
 }
 
-function FinishedSummary({ summary }: { summary: FinishSummary }) {
+function FinishedSummary({ summary, stillRacing }: { summary: FinishSummary; stillRacing: number }) {
   const { tp, tl, lang } = useI18n();
   const gap = (seconds: number) => formatGapSeconds(seconds, lang);
   const record = summary.recordTime === null ? "" : formatRecordTime(summary.recordTime);
@@ -74,6 +96,9 @@ function FinishedSummary({ summary }: { summary: FinishSummary }) {
       </div>
       <div className="font-mono text-xl text-[var(--text-secondary)]">{summary.time === null ? '' : formatTime(summary.time)}</div>
       {gapLine && <p className="mt-2 text-base leading-6 text-[var(--text-primary)]" data-testid="race-results-gap">{gapLine}</p>}
+      {/* M5: metric bots still sailing home; the place and the fleet rows follow when they finish. */}
+      {stillRacing > 0 && <p className="mt-1 text-base leading-6 text-[var(--text-secondary)]" data-testid="race-results-still-racing">
+        {fillFinish(tl(FLEET_RESOLUTION_COPY.stillRacingCount), { n: String(stillRacing) })}</p>}
       {/* Native waits for its own durable PB ACK; web uses checked synchronous storage. */}
       {summary.newRecord && (
         <div className="mt-3 inline-flex min-h-11 items-center rounded-full border border-[var(--warning)] px-4 text-base font-bold leading-6"
@@ -131,11 +156,106 @@ function DnfSummary({ stage, coaching, ai }: { stage: 0 | 1 | null; coaching: Co
   );
 }
 
+/** The AI-content disclosure (Apple Review 2025, EU AI Act) above any AI debrief. */
+function AiDisclosure() {
+  const { tp } = useI18n();
+  return (
+    <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
+      {tp(
+        'Разбор сгенерирован языковой моделью OpenAI по твоему логу гонки. Может ошибаться. Подробности в ',
+        'Generated by an OpenAI language model from your race log. Can be wrong. Details in our ',
+        'Wygenerowane przez model językowy OpenAI na podstawie zapisu twojego wyścigu. Może się mylić. Szczegóły w ',
+        {
+          es: 'Generado por un modelo de lenguaje de OpenAI a partir del registro de tu regata. Puede equivocarse. Más detalles en la ',
+          fr: 'Généré par un modèle de langage d\'OpenAI à partir du journal de ta course. Peut se tromper. Détails dans la ',
+          de: 'Erstellt von einem Sprachmodell von OpenAI anhand deines Rennprotokolls. Kann sich irren. Details in der ',
+          it: 'Generato da un modello linguistico di OpenAI a partire dal log della tua regata. Può sbagliare. Dettagli nell\'',
+        },
+      )}
+      <a href="/privacy" target="_blank" rel="noopener" className="underline hover:text-[var(--accent-cyan)]">{tp('политике конфиденциальности', 'privacy policy', 'polityce prywatności',
+        { es: 'política de privacidad', fr: 'politique de confidentialité', de: 'Datenschutzerklärung', it: 'informativa sulla privacy' })}</a>.
+    </div>
+  );
+}
+
+/** One coach's debrief: score and summary, mistakes with practice and replay
+ * links, strengths and the next goal. The local coach and, on request, the
+ * AI coach (package 7) render through it. */
+function CoachingDetails({ coaching, practice, practiceReturn, nativeRace, onWatch }: {
+  coaching: Coaching;
+  practice: (mistake: Coaching['mistakes'][number] | undefined) => ReturnType<typeof practiceForCoachMistake> | null;
+  practiceReturn: RaceReturn | null;
+  nativeRace: boolean;
+  onWatch?: (at: number) => void;
+}) {
+  const { tp } = useI18n();
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">{tp('Оценка', 'Score', 'Ocena', { es: 'Puntuación', fr: 'Note', de: 'Bewertung', it: 'Punteggio' })}</div>
+          <div className="text-lg font-bold" style={{
+            color: coaching.score >= 75 ? 'var(--success)' : coaching.score >= 50 ? 'var(--warning)' : 'var(--text-secondary)',
+          }}>
+            {coaching.score}/100
+          </div>
+        </div>
+        <p className="text-sm text-[var(--text-primary)] leading-relaxed">{coaching.overall}</p>
+      </div>
+
+      {coaching.mistakes.length > 0 && (
+        <div>
+          <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Błędy', { es: 'Errores', fr: 'Erreurs', de: 'Fehler', it: 'Errori' })}</div>
+          <div className="space-y-2">
+            {coaching.mistakes.map((m, i) => (
+              <div key={i} className="text-xs p-2 rounded" style={{ background: 'var(--bg-secondary)' }}>
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
+                    background: m.severity === 'major' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(255, 170, 0, 0.2)',
+                    color: m.severity === 'major' ? 'var(--danger)' : 'var(--warning)',
+                  }}>
+                    {formatTime(m.timeStart)}-{formatTime(m.timeEnd)}
+                  </span>
+                  <div className="font-semibold text-[var(--text-primary)]">{coachTitle(m)}</div>
+                </div>
+                <p className="text-[var(--text-secondary)] leading-relaxed mb-1">{coachExplanation(m)}</p>
+                <p className="flex items-start gap-1 text-[var(--success)] leading-relaxed"><HintIcon className="mt-0.5 shrink-0" /><span>{coachFix(m)}</span></p>
+                <RacePracticeLink target={practice(m)} ret={practiceReturn} native={nativeRace} />
+                {(() => { const at = coachMistakeMoment(m); return at !== null && onWatch ? <div><WatchMomentButton at={at} onWatch={onWatch} /></div> : null; })()}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {coaching.strengths.length > 0 && (
+        <div>
+          <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Сильные стороны', 'Strengths', 'Mocne strony', { es: 'Puntos fuertes', fr: 'Points forts', de: 'Stärken', it: 'Punti di forza' })}</div>
+          <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
+            {coaching.strengths.map((s, i) => (
+              <li key={i} className="flex items-start gap-1">
+                <CheckIcon className="mt-0.5 shrink-0 text-[var(--success)]" />
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="pt-2 border-t border-[var(--border-subtle)]">
+        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na następny wyścig', { es: 'Objetivo para la próxima regata', fr: 'Objectif pour la prochaine course', de: 'Ziel für das nächste Rennen', it: 'Obiettivo per la prossima regata' })}</div>
+        <p className="text-xs text-[var(--text-secondary)]">{coachNextGoal(coaching)}</p>
+      </div>
+    </div>
+  );
+}
+
 export function RaceResults({
   copy, trialProfile, judgeDebrief, boatsRef, nativeRace, nativeSave, retryNativeSave, nativeBestSave, sceneRaceId, requestNativeBest,
-  results, isNewRecord, bestRecord, missionResult, coachingSource, coaching, coachingLoading, coachingError,
+  results, isNewRecord, hadComparableBest = false, bestRecord, missionResult, coachingSource, coaching, coachingLoading, coachingError,
+  aiCoaching = null, aiCoachingLoading = false, aiCoachingError = null, onAskAiCoach,
   saveState, setSaveState, saveError, saveResult, nicknameInput, setNicknameInput, replayCode, nickname,
-  difficulty, windStrength, selectedMission, replayDisabled, onMenu, onReplay, onAgain, playerLapDone,
+  difficulty, windStrength, selectedMission, replayDisabled, onMenu, onReplay, onWatch, onAgain, playerLapDone, skillBars, ghostSplits, practiceReturn = null, medal = null,
 }: {
   copy: ReturnType<typeof useRaceCopy>;
   trialProfile: PhysicalRaceProfile | null;
@@ -149,12 +269,20 @@ export function RaceResults({
   requestNativeBest: (raceId: string, action?: "request" | "retry") => void;
   results: RaceResultRow[];
   isNewRecord: boolean;
+  /** Package 7: a best existed for this course before the race; only then is a new best a personal record. */
+  hadComparableBest?: boolean;
   bestRecord: BestRecord | null;
   missionResult: { passed: boolean; reasons: string[]; mission: Mission } | null;
   coachingSource: "local" | "ai";
   coaching: Coaching | null;
   coachingLoading: boolean;
   coachingError: string | null;
+  /** Package 7 (R-11): the AI coach's answer, asked only from its button; the main advice stays `coaching`'s. */
+  aiCoaching?: Coaching | null;
+  aiCoachingLoading?: boolean;
+  aiCoachingError?: string | null;
+  /** Asks the AI coach; none where there is no AI (the app, an old replay). */
+  onAskAiCoach?: () => void;
   saveState: LeaderboardSaveState;
   setSaveState: (state: LeaderboardSaveState) => void;
   saveError: string | null;
@@ -169,18 +297,30 @@ export function RaceResults({
   replayDisabled: boolean;
   onMenu: () => void;
   onReplay: () => void;
+  /** M4-3: open the replay at a race moment (5 s before it); none without a replay. */
+  onWatch?: (at: number) => void;
   onAgain: () => void;
   /** The player boat's lapDone at the race end (0 before the windward mark, 1 after it):
    * tells a did-not-finish what happened. Unknown when omitted. */
   playerLapDone?: number;
+  /** M4-1 skill bars of this race (race-skill-metrics.ts); none for the physical trial. */
+  skillBars?: readonly SkillBar[] | null;
+  /** M4-4 splits against your best race of this class (race-ghost-splits.ts); none without a ghost. */
+  ghostSplits?: readonly GhostSplit[] | null;
+  /** M4-2: the race the practice links return to (src/lib/race-return.ts);
+   * without it the screen shows no practice links. Its lesson, when the race
+   * was opened from a foundation lesson, adds the lesson return. */
+  practiceReturn?: RaceReturn | null;
+  /** M4-5: the course medal of this race (race-medals.ts) and how to read its next goal; none for the physical trial. */
+  medal?: { award: MedalAward | null; course: MedalCourse; mode: "simple" | "pro"; hintsUsed: boolean } | null;
 }) {
   const { tp, tl } = useI18n();
-  const summary = summariseFinish(results, bestRecord, isNewRecord);
+  const summary = summariseFinish(results, bestRecord, isNewRecord, hadComparableBest);
   const playerRank = summary.place;
   const ai = coachingSource === "ai";
   const stage = summary.finished ? null : dnfStage(playerLapDone);
-  const coachLabel = coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
-    { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' });
+  const practice = (mistake: Coaching['mistakes'][number] | undefined) => practiceReturn ? practiceForCoachMistake(mistake) : null;
+  const coachLabel = coachingSource === "local" ? copy.debrief : tl(UI_TERMS.aiCoach);
   return (
         <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
           <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
@@ -188,9 +328,12 @@ export function RaceResults({
 
             {/* 1. Place, time, gap to the winner, record; or the DNF layout. */}
             {summary.finished
-              ? <FinishedSummary summary={summary} />
+              ? <FinishedSummary summary={summary} stillRacing={results.filter(r => r.pending).length} />
               : <DnfSummary stage={stage} coaching={coaching} ai={ai} />}
-            <RaceFinishSkillBarsSlot />
+            {summary.finished && medal && <RaceMedalResult award={medal.award} course={medal.course} mode={medal.mode}
+              hintsUsed={medal.hintsUsed} finishSec={summary.time} />}
+            <RaceSkillBars bars={skillBars} />
+            <RaceGhostSplits splits={ghostSplits} />
 
             {/* Mission result card */}
             {missionResult && (
@@ -233,8 +376,8 @@ export function RaceResults({
                 {tl(FINISH_COPY.again)}
               </button>
               <div className="flex flex-wrap gap-2">
-                <RaceFinishWatchSlot />
-                <RaceFinishPractiseSlot />
+                <RaceFinishWatchSlot moment={coachMistakeMoment(coaching?.mistakes[0])} onWatch={replayDisabled ? undefined : onWatch} />
+                <RaceFinishPractiseSlot target={practice(coaching?.mistakes[0])} ret={practiceReturn} native={nativeRace} />
                 <button
                   type="button"
                   onClick={onReplay}
@@ -255,25 +398,26 @@ export function RaceResults({
               </div>
             </div>
 
+            {/* M4-2: a race opened from a foundation lesson returns to it. */}
+            <RaceLessonReturn lessonId={practiceReturn?.lesson ?? null} native={nativeRace} />
+
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
             {nativeRace && nativeBestSave.id === sceneRaceId && nativeBestSave.status !== "idle" && <div className="mb-4 text-sm" role="status" data-testid="native-personal-best-status">
               {nativeBestSave.status === "saved" ? copy.personalBestChecked : nativeBestSave.status === "error" ? copy.personalBestError : copy.personalBestSaving}
               {nativeBestSave.status === "error" && nativeBestSave.retryable && <button type="button" className="ml-2 underline" aria-label={copy.retryPersonalBest} onClick={() => requestNativeBest(nativeBestSave.id, "retry")}>{copy.retry}</button>}
             </div>}
 
-            {/* Nickname prompt: first finish without a stored nickname. The
-                nickname is stored server-side per session via POST /api/player
-                (same flow /multiplayer uses), API validates 2-20 chars.
-                Non-blocking: "skip" dismisses without saving. */}
+            {/* Nickname prompt (R-12): the result is saved and on a visible
+                board. The nickname is stored server-side per session via POST
+                /api/player, API validates 2-20 chars. Non-blocking: "skip"
+                leaves the result in the table under the neutral word. */}
             {!nativeRace && saveState === 'prompting' && (
-              <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
-                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                  {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisać wynik w rankingu?',
-                    { es: '¿Guardar tu resultado en la clasificación?', fr: 'Enregistrer ton résultat au classement ?', de: 'Ergebnis in die Bestenliste eintragen?', it: 'Salvare il risultato in classifica?' })}
+              <div className="mb-4 p-3 rounded-lg" data-testid="race-results-nickname-prompt" style={NEUTRAL_PANEL}>
+                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                  {tl({ ru: 'Ты в результатах гонок!', en: 'You made the leaderboard!', pl: 'Jesteś w rankingu!', es: '¡Has entrado en la clasificación!', fr: 'Tu entres au classement !', de: 'Du bist in der Bestenliste!', it: 'Sei in classifica!' })}
                 </div>
                 <div className="text-xs text-[var(--text-muted)] mb-2">
-                  {tp('Введи ник (2-20 символов) - он будет виден в общем рейтинге.', 'Enter a nickname (2-20 chars) - it will show on the public leaderboard.', 'Podaj nick (2-20 znaków) - będzie widoczny w publicznym rankingu.',
-                    { es: 'Escribe un apodo (2-20 caracteres) - aparecerá en la clasificación pública.', fr: 'Entre un pseudo (2-20 caractères) - il sera visible dans le classement public.', de: 'Gib einen Nickname ein (2-20 Zeichen) - er erscheint in der öffentlichen Bestenliste.', it: 'Inserisci un nickname (2-20 caratteri) - sarà visibile nella classifica pubblica.' })}
+                  {tl({ ru: 'Введи ник (2-20 символов), его увидят все. Без ника в результатах будет «Моряк».', en: 'Enter a nickname (2-20 characters), everyone will see it. Without one the leaderboard shows "Sailor".', pl: 'Podaj nick (2-20 znaków), zobaczą go wszyscy. Bez nicku w rankingu będzie "Żeglarz".', es: 'Escribe un apodo (2-20 caracteres), todos lo verán. Sin él, la clasificación mostrará "Marinero".', fr: 'Entre un pseudo (2-20 caractères), tout le monde le verra. Sans pseudo, le classement affichera "Marin".', de: 'Gib einen Nickname ein (2-20 Zeichen), alle sehen ihn. Ohne ihn steht in der Bestenliste "Segler".', it: 'Inserisci un nickname (2-20 caratteri), lo vedranno tutti. Senza, in classifica comparirà "Velista".' })}
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -283,7 +427,7 @@ export function RaceResults({
                     onKeyDown={(e) => { if (e.key === 'Enter' && nicknameInput.trim().length >= 2) saveResult(nicknameInput); }}
                     maxLength={20}
                     className="min-h-11 flex-1 min-w-0 px-3 py-2 rounded text-sm"
-                    style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
+                    style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
                     placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick',
                       { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
                   />
@@ -301,7 +445,7 @@ export function RaceResults({
                   <div className="text-xs mt-2" style={{ color: 'var(--danger)' }}>{saveError}</div>
                 )}
                 <button
-                  onClick={() => setSaveState('idle')}
+                  onClick={() => setSaveState('saved')}
                   className="mt-2 text-xs text-[var(--text-muted)] underline hover:text-[var(--text-secondary)] transition"
                 >
                   {tp('Пропустить', 'Skip', 'Pomiń',
@@ -320,8 +464,7 @@ export function RaceResults({
             {!nativeRace && saveState === 'saved' && (
               <div className="mb-4 flex items-center gap-1 text-xs" style={{ color: 'var(--success)' }} data-testid="race-results-saved">
                 <CheckIcon className="shrink-0" />
-                <span>{tp('Результат сохранён в лидерборд', 'Result saved to the leaderboard', 'Wynik zapisany w rankingu',
-                  { es: 'Resultado guardado en la clasificación', fr: 'Résultat enregistré au classement', de: 'Ergebnis in der Bestenliste gespeichert', it: 'Risultato salvato in classifica' })}</span>
+                <span>{tl({ ru: 'Результат сохранен', en: 'Result saved', pl: 'Wynik zapisany', es: 'Resultado guardado', fr: 'Résultat enregistré', de: 'Ergebnis gespeichert', it: 'Risultato salvato' })}</span>
               </div>
             )}
             {!nativeRace && saveState === 'error' && saveError && (
@@ -337,88 +480,34 @@ export function RaceResults({
             {/* 4. Details, collapsed: judge, coach, fleet table, share. */}
             <div className="mb-5 border-b border-[var(--border-subtle)]" data-testid="race-results-details">
               {judgeDebrief && <Collapsed title={tl(raceJudgeCopy.title)} testId="race-results-judge">
-                <div data-testid="race-judge-review"><RaceJudgeReview debrief={judgeDebrief} titleHidden
+                <div data-testid="race-judge-review"><RaceJudgeReview debrief={judgeDebrief} titleHidden practiceReturn={practiceReturn} native={nativeRace} onWatch={replayDisabled ? undefined : onWatch}
                   boatName={id => boatsRef.current.find(b => b.id === id)?.name ?? id} /></div>
               </Collapsed>}
 
               <Collapsed title={coachLabel} testId="race-results-coach">
-                {/* Apple Review 2025 + EU AI Act: explicit AI-content disclosure. */}
-                {ai && <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
-                  {tp(
-                    'Разбор сгенерирован языковой моделью OpenAI по твоему логу гонки. Может ошибаться. Подробности в ',
-                    'Generated by an OpenAI language model from your race log. Can be wrong. Details in our ',
-                    'Wygenerowane przez model językowy OpenAI na podstawie zapisu twojego wyścigu. Może się mylić. Szczegóły w ',
-                    {
-                      es: 'Generado por un modelo de lenguaje de OpenAI a partir del registro de tu regata. Puede equivocarse. Más detalles en la ',
-                      fr: 'Généré par un modèle de langage d\'OpenAI à partir du journal de ta course. Peut se tromper. Détails dans la ',
-                      de: 'Erstellt von einem Sprachmodell von OpenAI anhand deines Rennprotokolls. Kann sich irren. Details in der ',
-                      it: 'Generato da un modello linguistico di OpenAI a partire dal log della tua regata. Può sbagliare. Dettagli nell\'',
-                    },
-                  )}
-                  <a href="/privacy" target="_blank" rel="noopener" className="underline hover:text-[var(--accent-cyan)]">{tp('политике конфиденциальности', 'privacy policy', 'polityce prywatności',
-                    { es: 'política de privacidad', fr: 'politique de confidentialité', de: 'Datenschutzerklärung', it: 'informativa sulla privacy' })}</a>.
-                </div>}
+                {/* Apple Review 2025 + EU AI Act: an AI debrief kept from an older replay is disclosed. */}
+                {ai && <AiDisclosure />}
                 {coachingLoading && <AnalyzingProgress />}
                 {coachingError && !coaching && (
                   <div className="text-xs text-[var(--text-muted)] italic">{coachingError}</div>
                 )}
-                {coaching && (
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">{tp('Оценка', 'Score', 'Ocena', { es: 'Puntuación', fr: 'Note', de: 'Bewertung', it: 'Punteggio' })}</div>
-                        <div className="text-lg font-bold" style={{
-                          color: coaching.score >= 75 ? 'var(--success)' : coaching.score >= 50 ? 'var(--warning)' : 'var(--text-secondary)',
-                        }}>
-                          {coaching.score}/100
-                        </div>
-                      </div>
-                      <p className="text-sm text-[var(--text-primary)] leading-relaxed">{coaching.overall}</p>
-                    </div>
-
-                    {coaching.mistakes.length > 0 && (
-                      <div>
-                        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Błędy', { es: 'Errores', fr: 'Erreurs', de: 'Fehler', it: 'Errori' })}</div>
-                        <div className="space-y-2">
-                          {coaching.mistakes.map((m, i) => (
-                            <div key={i} className="text-xs p-2 rounded" style={{ background: 'var(--bg-secondary)' }}>
-                              <div className="flex items-start gap-2 mb-1">
-                                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
-                                  background: m.severity === 'major' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(255, 170, 0, 0.2)',
-                                  color: m.severity === 'major' ? 'var(--danger)' : 'var(--warning)',
-                                }}>
-                                  {formatTime(m.timeStart)}-{formatTime(m.timeEnd)}
-                                </span>
-                                <div className="font-semibold text-[var(--text-primary)]">{coachTitle(m)}</div>
-                              </div>
-                              <p className="text-[var(--text-secondary)] leading-relaxed mb-1">{coachExplanation(m)}</p>
-                              <p className="flex items-start gap-1 text-[var(--success)] leading-relaxed"><HintIcon className="mt-0.5 shrink-0" /><span>{coachFix(m)}</span></p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {coaching.strengths.length > 0 && (
-                      <div>
-                        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Сильные стороны', 'Strengths', 'Mocne strony', { es: 'Puntos fuertes', fr: 'Points forts', de: 'Stärken', it: 'Punti di forza' })}</div>
-                        <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
-                          {coaching.strengths.map((s, i) => (
-                            <li key={i} className="flex items-start gap-1">
-                              <CheckIcon className="mt-0.5 shrink-0 text-[var(--success)]" />
-                              <span>{s}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    <div className="pt-2 border-t border-[var(--border-subtle)]">
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na następny wyścig', { es: 'Objetivo para la próxima regata', fr: 'Objectif pour la prochaine course', de: 'Ziel für das nächste Rennen', it: 'Obiettivo per la prossima regata' })}</div>
-                      <p className="text-xs text-[var(--text-secondary)]">{coachNextGoal(coaching)}</p>
-                    </div>
-                  </div>
-                )}
+                {coaching && <CoachingDetails coaching={coaching} practice={practice} practiceReturn={practiceReturn} nativeRace={nativeRace}
+                  onWatch={replayDisabled ? undefined : onWatch} />}
+                {/* Package 7 (R-11): the AI coach only on this button, beside the local debrief, never instead of it. */}
+                {!ai && (onAskAiCoach || aiCoaching || aiCoachingLoading || aiCoachingError) && <section className="mt-4 border-t border-[var(--border-subtle)] pt-3" data-testid="race-results-ai-coach">
+                  {!aiCoaching && onAskAiCoach && <button type="button" onClick={onAskAiCoach} disabled={aiCoachingLoading} data-testid="race-results-ask-ai"
+                    className="w-full rounded-lg border border-[var(--border-subtle)] py-2 text-base leading-6 text-[var(--text-primary)] transition hover:border-[var(--accent-cyan)] disabled:opacity-50">
+                    {tl(FINISH_COPY.askAi)}
+                  </button>}
+                  {aiCoachingLoading && <AnalyzingProgress />}
+                  {aiCoachingError && !aiCoaching && <p className="mt-2 text-sm text-[var(--text-muted)]">{aiCoachingError}</p>}
+                  {aiCoaching && <>
+                    <h3 className="mb-2 text-sm font-semibold text-[var(--text-secondary)]">{tl(UI_TERMS.aiCoach)}</h3>
+                    <AiDisclosure />
+                    <CoachingDetails coaching={aiCoaching} practice={practice} practiceReturn={practiceReturn} nativeRace={nativeRace}
+                      onWatch={replayDisabled ? undefined : onWatch} />
+                  </>}
+                </section>}
               </Collapsed>
 
               <Collapsed title={`${tl(FINISH_COPY.fleet)} (${results.length})`} testId="race-results-fleet">
@@ -433,18 +522,22 @@ export function RaceResults({
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        {/* A boat that did not finish gets no place and no medal. */}
-                        <span className="text-xs font-mono w-6 inline-flex justify-center" style={{ color: i === 0 && r.time !== Infinity ? 'var(--warning)' : 'var(--text-muted)' }}>
-                          {r.time === Infinity ? '-' : i < 3 ? <MedalIcon place={(i + 1) as 1 | 2 | 3} size={20} label={tl(MEDAL_PLACE).replace("{n}", String(i + 1))} /> : `${i + 1}.`}
+                        {/* A boat that did not finish, or is still racing (M5), gets no place and no medal; an estimated place no medal either. */}
+                        <span className="text-xs font-mono w-6 inline-flex justify-center" style={{ color: i === 0 && r.time !== Infinity && !r.estimated ? 'var(--warning)' : 'var(--text-muted)' }}>
+                          {r.time === Infinity ? '-' : r.estimated ? `~${i + 1}.` : i < 3 ? <MedalIcon place={(i + 1) as 1 | 2 | 3} size={20} label={tl(MEDAL_PLACE).replace("{n}", String(i + 1))} /> : `${i + 1}.`}
                         </span>
                         <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />
                         <span className={`text-xs ${r.isPlayer ? 'font-semibold' : ''}`}>{r.isPlayer ? tp('Ты', 'You', 'Ty', { es: 'Tú', fr: 'Toi', de: 'Du', it: 'Tu' }) : r.name}</span>
                       </div>
-                      <span className="text-xs font-mono text-[var(--text-secondary)]">
-                        {r.time === Infinity ? 'DNF' : formatTime(r.time)}
-                      </span>
+                      {r.pending
+                        ? <span className="text-sm text-[var(--text-secondary)]" data-testid="race-results-row-racing">{tl(FLEET_RESOLUTION_COPY.stillRacing)}</span>
+                        : <span className="text-xs font-mono text-[var(--text-secondary)]">
+                          {r.time === Infinity ? 'DNF' : `${r.estimated ? '~' : ''}${formatTime(r.time)}`}
+                        </span>}
                     </div>
                   ))}
+                  {results.some(r => r.estimated && Number.isFinite(r.time)) && <p className="pt-2 text-sm leading-5 text-[var(--text-muted)]" data-testid="race-results-estimated-note">
+                    {tl(FLEET_RESOLUTION_COPY.estimated)}</p>}
                 </div>
               </Collapsed>
 
@@ -470,7 +563,7 @@ export function RaceResults({
               href={nativeRace ? "/history" : "/leaderboard"}
               className="inline-flex min-h-11 items-center text-base leading-6 text-[var(--accent-cyan)] underline-offset-4 hover:underline"
             >
-              {nativeRace ? copy.history : tp('Лидерборд', 'Leaderboard', 'Ranking',
+              {nativeRace ? copy.history : tp('Результаты гонок', 'Leaderboard', 'Ranking',
                 { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
             </Link>
           </div>
@@ -493,18 +586,18 @@ function ShareBlock({
   const timePart = finishTime ? `${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''}` : '';
   const shareText = finishTime
     ? tp(
-        `Прошёл регату за ${timePart} на weektoregatta.com - смотри replay`,
+        `Гонка пройдена за ${timePart} на weektoregatta.com - смотри повтор`,
         `Finished the race in ${timePart} at weektoregatta.com - check the replay`,
         `Wyścig ukończony w ${timePart} na weektoregatta.com - zobacz powtórkę`,
         {
           es: `Terminé la regata en ${timePart} en weektoregatta.com - mira la repetición`,
           fr: `Course terminée en ${timePart} sur weektoregatta.com - regarde le replay`,
-          de: `Rennen auf weektoregatta.com in ${timePart} beendet - schau dir das Replay an`,
+          de: `Rennen auf weektoregatta.com in ${timePart} beendet - schau dir die Wiederholung an`,
           it: `Regata conclusa in ${timePart} su weektoregatta.com - guarda il replay`,
         },
       )
-    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moja powtórka na weektoregatta.com',
-        { es: 'Mi repetición en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Mein Replay auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
+    : tp('Мой повтор гонки на weektoregatta.com', 'My replay at weektoregatta.com', 'Moja powtórka na weektoregatta.com',
+        { es: 'Mi repetición en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Meine Wiederholung auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
 
   const onShare = async () => {
     if (navigator.share) {
@@ -525,13 +618,12 @@ function ShareBlock({
     : null;
 
   return (
-    <div className="mb-4 p-3 rounded-lg"
-         style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
+    <div className="mb-4 p-3 rounded-lg" data-testid="race-results-share-card" style={NEUTRAL_PANEL}>
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-            {tp('ПОДЕЛИТЬСЯ REPLAY', 'SHARE REPLAY', 'UDOSTĘPNIJ POWTÓRKĘ',
-              { es: 'COMPARTIR REPETICIÓN', fr: 'PARTAGER LE REPLAY', de: 'REPLAY TEILEN', it: 'CONDIVIDI IL REPLAY' })}
+          <div className="text-sm uppercase tracking-wider text-[var(--text-muted)]">
+            {tp('ПОДЕЛИТЬСЯ ПОВТОРОМ', 'SHARE REPLAY', 'UDOSTĘPNIJ POWTÓRKĘ',
+              { es: 'COMPARTIR REPETICIÓN', fr: 'PARTAGER LE REPLAY', de: 'WIEDERHOLUNG TEILEN', it: 'CONDIVIDI IL REPLAY' })}
           </div>
           <div className="text-sm font-mono font-semibold text-[var(--text-primary)] mt-0.5">
             {code}
@@ -540,7 +632,7 @@ function ShareBlock({
         <div className="flex gap-2">
           <button
             onClick={onShare}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold"
+            className="inline-flex min-h-11 items-center gap-1 px-3 py-1.5 rounded text-sm font-semibold"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }}
             data-testid="race-results-share-button"
           >
@@ -553,8 +645,8 @@ function ShareBlock({
           </button>
           <Link
             href={`/r/${code}`}
-            className="inline-flex min-h-11 items-center px-3 py-1.5 rounded text-xs font-semibold border"
-            style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
+            className="inline-flex min-h-11 items-center px-3 py-1.5 rounded text-sm font-semibold border"
+            style={{ borderColor: 'var(--border-subtle)', color: 'var(--accent-cyan)' }}
           >
             {tp('Открыть', 'Open', 'Otwórz',
               { es: 'Abrir', fr: 'Ouvrir', de: 'Öffnen', it: 'Apri' })}

@@ -1,0 +1,129 @@
+// Where the next mark is when the camera does not show it (M2-2): an arrow
+// on the edge of the clear part of the picture, pointing at the mark. Pure
+// screen math from a projected point, so it is tested without a renderer.
+
+/** Pixels the HUD keeps at each edge of the scene (status line, corner instruments, notice). */
+export interface ScreenInsets { top: number; right: number; bottom: number; left: number }
+
+/** Half the 44 px target of the arrow disc. */
+export const EDGE_ARROW_RADIUS = 22;
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+/** The race HUD over the scene: a status line and the corner instruments on
+ * top, the coach notice at the bottom. Proportional, so a landscape phone
+ * (844x390) keeps a usable band and an upright one (390x844) clears the HUD.
+ * Package 8: the bottom also keeps the distance under the disc clear of the
+ * coach line that floats over the canvas on an upright phone. */
+export function edgeArrowInsets(width: number, height: number, out: ScreenInsets): ScreenInsets {
+  out.top = clamp(height * 0.18, 60, 128);
+  out.bottom = clamp(height * 0.17, 72, 128);
+  out.left = out.right = clamp(width * 0.02, 8, 16);
+  return out;
+}
+
+/**
+ * Package 31, R-45 prototype: in the water layout the helm bar and the coach line
+ * lie over the lower part of the scene, which also reaches the screen edges. The
+ * arrow lies under them, so on a portrait phone it stays above them. On a turned
+ * phone the coach line and the wind box fill the left part, so the arrow keeps to
+ * the right of them (about 40% of the width), and clear of the island's side.
+ */
+export function waterEdgeArrowInsets(width: number, height: number, out: ScreenInsets): ScreenInsets {
+  edgeArrowInsets(width, height, out);
+  if (height > width) out.bottom = 250;
+  else { out.bottom = 110; out.right = 70; out.left = Math.min(width * 0.4 + 16, 400); }
+  return out;
+}
+
+export interface EdgeArrow {
+  /** False when the mark is in the clear part of the picture. */
+  visible: boolean;
+  /** Centre of the arrow disc, CSS pixels from the scene's top left. */
+  x: number;
+  y: number;
+  /** Arrow rotation, degrees clockwise from pointing up. */
+  angle: number;
+}
+
+/**
+ * Place the arrow for a point projected by `Vector3.project(camera)`
+ * (normalised device coordinates; z > 1 means behind the camera). A point
+ * behind the camera is mirrored, so the arrow points the way to turn.
+ * Writes into `out`: the frame loop allocates nothing.
+ */
+export function edgeArrow(ndcX: number, ndcY: number, ndcZ: number, width: number, height: number, insets: ScreenInsets, out: EdgeArrow): EdgeArrow {
+  out.visible = false;
+  if (![ndcX, ndcY, ndcZ, width, height].every(Number.isFinite) || width <= 0 || height <= 0) return out;
+  const behind = ndcZ > 1;
+  const x = behind ? -ndcX : ndcX;
+  const y = behind ? -ndcY : ndcY;
+  const sx = (x + 1) / 2 * width;
+  const sy = (1 - y) / 2 * height;
+  const left = insets.left, right = width - insets.right, top = insets.top, bottom = height - insets.bottom;
+  if (!behind && sx >= left && sx <= right && sy >= top && sy <= bottom) return out;
+  // The clear band shrunk by the disc radius: the whole disc stays inside it.
+  const minX = left + EDGE_ARROW_RADIUS, maxX = right - EDGE_ARROW_RADIUS;
+  const minY = top + EDGE_ARROW_RADIUS, maxY = bottom - EDGE_ARROW_RADIUS;
+  // From the middle of the picture (where the boat is) out to the edge of the band.
+  const cx = clamp(width / 2, minX, Math.max(minX, maxX)), cy = clamp(height / 2, minY, Math.max(minY, maxY));
+  const dx = sx - width / 2;
+  let dy = sy - height / 2;
+  // Straight behind: point down, the way back past the stern.
+  if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) dy = 1;
+  const tx = dx > 1e-9 ? (maxX - cx) / dx : dx < -1e-9 ? (minX - cx) / dx : Infinity;
+  const ty = dy > 1e-9 ? (maxY - cy) / dy : dy < -1e-9 ? (minY - cy) / dy : Infinity;
+  const t = Math.max(0, Math.min(tx, ty));
+  out.visible = true;
+  out.x = clamp(cx + dx * t, minX, Math.max(minX, maxX));
+  out.y = clamp(cy + dy * t, minY, Math.max(minY, maxY));
+  out.angle = Math.atan2(dx, -dy) * 180 / Math.PI;
+  return out;
+}
+
+/** What the DOM arrow shows now. NaN means "never written". */
+export interface EdgeArrowStyle { shown: boolean; x: number; y: number; angle: number }
+interface Styled { style: { display: string; transform: string } }
+
+/** Moved by more than half a pixel or degree, or never written (NaN). */
+const moved = (prev: number, next: number) => !(Math.abs(next - prev) <= 0.5);
+
+/**
+ * Write the arrow into the DOM, touching only what changed since the last
+ * frame. `shown` starts as { shown: false, x: NaN, y: NaN, angle: NaN } for
+ * an element rendered with display none, so the first show writes the place.
+ */
+export function applyEdgeArrow(el: Styled, glyph: Styled | null, arrow: EdgeArrow, shown: EdgeArrowStyle): void {
+  if (arrow.visible !== shown.shown) { el.style.display = arrow.visible ? "flex" : "none"; shown.shown = arrow.visible; }
+  if (!arrow.visible) return;
+  if (moved(shown.x, arrow.x) || moved(shown.y, arrow.y)) {
+    shown.x = arrow.x; shown.y = arrow.y;
+    el.style.transform = `translate(${(arrow.x - EDGE_ARROW_RADIUS).toFixed(1)}px, ${(arrow.y - EDGE_ARROW_RADIUS).toFixed(1)}px)`;
+  }
+  if (glyph && moved(shown.angle, arrow.angle)) {
+    shown.angle = arrow.angle;
+    glyph.style.transform = `rotate(${arrow.angle.toFixed(1)}deg)`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Package 8: the arrow says how far the mark is, and when the mark is astern
+// it turns into a "turn round" sign on the side of the shorter turn.
+
+/** Beyond this angle off the bow (degrees) the mark counts as astern. */
+export const ASTERN_DEG = 110;
+
+/** Signed angle from the bow to a point `dx` east and `dy` south of the boat
+ * (race coordinates), -180..180; positive means to starboard. */
+export function offBow(heading: number, dx: number, dy: number): number {
+  const bearing = Math.atan2(dx, -dy) * 180 / Math.PI;
+  return ((((bearing - heading) % 360) + 540) % 360) - 180;
+}
+
+/** Distance shown at the arrow: whole tens of metres, at least 10. */
+export const arrowMetres = (metres: number) => Number.isFinite(metres) ? Math.max(10, Math.round(metres / 10) * 10) : 10;
+
+/** Where the distance label sits under the disc so it stays inside the picture. */
+export function labelSide(x: number, width: number): "start" | "center" | "end" {
+  return x < width / 3 ? "start" : x > width * 2 / 3 ? "end" : "center";
+}

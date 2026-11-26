@@ -3,16 +3,23 @@ import { Vector3 } from "three";
 import { ADS_CAMERAS, ADS_FOVS } from "../../lib/ads-preview";
 import { ADS_CAMERA_MAX_DISTANCE, adsCameraPose, rotateAdsCamera } from "./camera";
 import { adsCopy } from "../../lib/ads-copy";
+import { raceViewFov } from "../race-scene/camera";
 
 describe("Ads camera inspection", () => {
   it.each(ADS_CAMERAS)("fits finite %s poses at portrait/wide aspects and each declared lens", view => {
     for (const fov of ADS_FOVS) for (const aspect of [.45, 1, 2]) {
       const pose = adsCameraPose(view, fov, aspect);
-      expect(pose.fov).toBe(fov);
+      expect(pose.fov).toBe(view === "race" ? raceViewFov(aspect) : fov);
       expect([...pose.position.toArray(), ...pose.target.toArray()].every(Number.isFinite)).toBe(true);
       expect(pose.position.distanceTo(pose.target)).toBeGreaterThan(2);
       expect(pose.position.distanceTo(pose.target)).toBeLessThan(ADS_CAMERA_MAX_DISTANCE);
     }
+  });
+  it("stands where the race camera stands", () => {
+    const pose = adsCameraPose("race", 60, .6);
+    expect(pose.fov).toBe(58);
+    expect(pose.position.distanceTo(new Vector3(0, 2, 0))).toBeCloseTo(13 * (5.2 + .12 * 6), 6);
+    expect(pose.position.x).toBeLessThan(0); // astern of a yacht sailing east
   });
   it("turns left/right oppositely and retains radius/target without mutating vectors", () => {
     const position = new Vector3(10, 10, 10), target = new Vector3(0, 2, 0);

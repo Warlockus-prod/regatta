@@ -21,6 +21,19 @@ it("passes the on-screen frame counter flag through, and nothing else under its 
   for (const fps of ["0", "true", "1&gl=webgl2", ["1"], undefined]) expect(raceEntryQuery({ fps }, "simple")).not.toHaveProperty("fps");
 });
 
+// Package 31: the race page picks the water layout itself on a touch screen; the route only
+// passes a deep link's explicit choice (on or off) and the old prototype build flag.
+it("passes the water layout choice of a deep link and leaves the default to the race", () => {
+  expect(raceEntryQuery({}, "simple")).not.toHaveProperty("water");
+  expect(raceEntryQuery({ water: "1" }, "simple")).toMatchObject({ water: "1" });
+  expect(raceEntryQuery({ water: "0" }, "simple")).toMatchObject({ water: "0" });
+  for (const water of ["true", ["1"], undefined]) expect(raceEntryQuery({ water }, "simple")).not.toHaveProperty("water");
+  const before = process.env.EXPO_PUBLIC_RACE_WATER;
+  process.env.EXPO_PUBLIC_RACE_WATER = "1";
+  try { expect(raceEntryQuery({}, "pro")).toMatchObject({ water: "1" }); }
+  finally { if (before === undefined) delete process.env.EXPO_PUBLIC_RACE_WATER; else process.env.EXPO_PUBLIC_RACE_WATER = before; }
+});
+
 it("confines native navigation to known race destinations", () => {
   expect(raceNativeDestination("/")).toBe("/race");
   expect(raceNativeDestination("/replay/web-race-10")).toBe("/replay/web-race-10");
@@ -38,5 +51,16 @@ it("preserves only the eight real lesson return IDs and keeps history and replay
     expect(raceEntryQuery({ fromLesson: id }, "pro")).not.toHaveProperty("fromLesson");
     expect(raceNativeDestination("/race", id)).toBe("/race");
   }
-  expect(raceNativeDestination("/bootcamp/mini-race", "mini-race")).toBeNull();
+  // M4-2: a lesson the finish screen links (practice or next lesson) is a known destination now.
+  expect(raceNativeDestination("/bootcamp/mini-race", "mini-race")).toBe("/bootcamp/mini-race");
+});
+
+it("opens only the shared debrief practices, the next lesson and the sails course from the finish screen (M4-2)", () => {
+  expect(raceNativeDestination("/rules/start-line")).toBe("/rules/start-line");
+  expect(raceNativeDestination("/rules/port-vs-starboard", "mini-race")).toBe("/rules/port-vs-starboard");
+  expect(raceNativeDestination("/bootcamp/wind-direction")).toBe("/bootcamp/wind-direction");
+  expect(raceNativeDestination("/learn/sails", "mini-race")).toBe("/learn/sails");
+  for (const href of ["/rules/no-such-card", "/rules/colregs-fishing", "/bootcamp/unknown", "/learn/sails/../settings", "/simulator-v3?drill=noGo", "/simulator?drill=noGoRecovery"]) {
+    expect(raceNativeDestination(href)).toBeNull();
+  }
 });

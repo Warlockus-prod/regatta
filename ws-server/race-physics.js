@@ -55,6 +55,13 @@ function sailCd(aoaDeg) {
   if (a < 180) return 1.2 - (a - 90) / 90 * 0.35;
   return 0.85;
 }
+function softSailAttachment(aoaDeg, luffStartDeg, luffFullDeg) {
+  const a = Math.abs(aoaDeg);
+  if (a <= luffStartDeg) return 0;
+  if (a >= luffFullDeg) return 1;
+  const t = (a - luffStartDeg) / (luffFullDeg - luffStartDeg);
+  return t * t * (3 - 2 * t);
+}
 function isStalled(aoaDeg, stallOnset = 20) {
   return Math.abs(aoaDeg) >= stallOnset;
 }
@@ -68,7 +75,20 @@ function outhaulDepthFactor(ease, height) {
 
 // src/lib/sailing-physics/forces.ts
 var RHO_AIR = 1.225;
-function computeSectionForce(aw, awsMps, cfg, clMultiplier = 1, cdMultiplier = 1) {
+function postStallCoefficients(aoaDeg) {
+  const a = Math.min(180, Math.abs(aoaDeg));
+  if (a < 18) return null;
+  const plate = (deg) => {
+    const cn = 1.15 + 0.1 * Math.min(1, Math.max(0, (deg - 25) / 65));
+    const r = deg * DEG_TO_RAD;
+    return { cl: Math.max(0, cn * Math.cos(r)), cd: Math.max(sailCd(deg), cn * Math.abs(Math.sin(r))) };
+  };
+  if (a >= 25) return plate(a);
+  const at25 = plate(25);
+  const t = (a - 18) / 7;
+  return { cl: 1.5 + (at25.cl - 1.5) * t, cd: sailCd(a) + (at25.cd - sailCd(25)) * t };
+}
+function computeSectionForce(aw, awsMps, cfg, clMultiplier = 1, cdMultiplier = 1, model) {
   if (awsMps < 1e-4 || cfg.area < 1e-4) {
     return { drive: 0, side: 0, aoa: 0, stalled: false };
   }
@@ -92,9 +112,20 @@ function computeSectionForce(aw, awsMps, cfg, clMultiplier = 1, cdMultiplier = 1
   }
   const flowDotLeeward = flowX * leewardX + flowY * leewardY;
   const backed = flowDotLeeward < 0;
-  const clRaw = sailCl(aoa, 1.5) * clMultiplier;
-  const cl = backed ? -clRaw * 0.5 : clRaw;
-  const cd = sailCd(aoa) * cdMultiplier;
+  let cl;
+  let cd;
+  if (!model) {
+    const clRaw = sailCl(aoa, 1.5) * clMultiplier;
+    cl = backed ? -clRaw * 0.5 : clRaw;
+    cd = sailCd(aoa) * cdMultiplier;
+  } else {
+    const attached = softSailAttachment(aoa, model.luffStartDeg, model.luffFullDeg) * Math.max(0, Math.min(1, cfg.attached ?? 1));
+    const post = postStallCoefficients(aoa);
+    const curve = post ? post.cl : sailCl(aoa, 1.5);
+    const clRaw = curve * clMultiplier * attached;
+    cl = backed ? -clRaw * 0.5 : clRaw;
+    cd = (post ? post.cd : sailCd(aoa)) * cdMultiplier + model.luffCd * (1 - attached) + model.sailInducedK * cl * cl;
+  }
   const stalled = isStalled(aoa, 18);
   const q = 0.5 * RHO_AIR * awsMps * awsMps;
   const liftMag = q * cfg.area * cl;
@@ -124,7 +155,7 @@ var MAX_SAIL_TWIST_DEG = 20;
 function sectionTwistDegrees(twist, height) {
   return Math.max(0, Math.min(1, twist)) * MAX_SAIL_TWIST_DEG * Math.pow(height, 1.6);
 }
-function computeSailForce(aw, awsMps, cfg, clMultiplier = 1) {
+function computeSailForce(aw, awsMps, cfg, clMultiplier = 1, model) {
   let drive = 0, side = 0, aoa = 0, stalledArea = 0;
   for (let i = 0; i < 5; i++) {
     const height = (i + 0.5) / 5;
@@ -135,7 +166,7 @@ function computeSailForce(aw, awsMps, cfg, clMultiplier = 1) {
       area: cfg.area * weight,
       angleOff: cfg.angleOff + sectionTwistDegrees(cfg.twist, height),
       twist: 0
-    }, clMultiplier * (1 + 0.8 * depthDelta), 1 + 1.2 * depthDelta);
+    }, clMultiplier * (1 + 0.8 * depthDelta), 1 + 1.2 * depthDelta, model);
     drive += section.drive;
     side += section.side;
     aoa += section.aoa * weight;
@@ -162,19 +193,52 @@ function slotMultiplier(args) {
 var G = 9.80665;
 var KEEL_HEEL_EXP = 2;
 function computeBalance(args) {
-  const { fSideMainN, fSideJibN, mainCop, jibCop, boatSpeedKn, params: params2 } = args;
+  const { fSideMainN, fSideJibN, mainCop, jibCop, boatSpeedKn, params } = args;
   const heelingMoment = fSideMainN * mainCop + fSideJibN * jibCop;
-  const rightingCoeff = params2.displacement * G * params2.gm;
+  const rightingCoeff = params.displacement * G * params.gm;
   const tanHeel = heelingMoment / Math.max(rightingCoeff, 1);
   const heelEquilibrium = Math.atan(tanHeel) * RAD_TO_DEG;
   const vMps = Math.max(boatSpeedKn * KN_TO_MPS, 0);
   const keelGrip = Math.pow(Math.max(Math.cos(heelEquilibrium * DEG_TO_RAD), 0.2), KEEL_HEEL_EXP);
-  const denom = params2.keelK * keelGrip * (vMps + 0.5) * (vMps + 0.5);
+  const denom = params.keelK * keelGrip * (vMps + 0.5) * (vMps + 0.5);
   const totalSide = fSideMainN + fSideJibN;
   const leewayRadRaw = totalSide / denom;
   const leewayDegRaw = leewayRadRaw * RAD_TO_DEG;
   const leewayEquilibrium = Number.isFinite(leewayDegRaw) ? Math.max(-12, Math.min(12, leewayDegRaw)) : 0;
   return { heelEquilibrium, leewayEquilibrium };
+}
+
+// src/lib/sailing-physics/resistance.ts
+var G2 = 9.80665;
+var RHO_WATER = 1025;
+function residuaryShare(fn, table) {
+  if (!(fn > 0) || table.length === 0) return 0;
+  if (fn <= table[0][0]) return table[0][1] * fn / Math.max(table[0][0], 1e-9);
+  for (let i = 1; i < table.length; i++) {
+    const [f1, r1] = table[i];
+    if (fn <= f1) {
+      const [f0, r0] = table[i - 1];
+      return r0 + (r1 - r0) * (fn - f0) / (f1 - f0);
+    }
+  }
+  const [fa, ra] = table[table.length - 2] ?? [0, 0];
+  const [fb, rb] = table[table.length - 1];
+  return rb + (rb - ra) / Math.max(fb - fa, 1e-9) * (fn - fb);
+}
+function cruiserResistance(args) {
+  const { params, model } = args;
+  const v = Math.max(0, args.speedMps);
+  const fn = v / Math.sqrt(G2 * params.lwl);
+  const friction = params.hullDragK * v * v;
+  const residuary = residuaryShare(fn, model.residuary) * params.displacement * G2;
+  const heelRad = Math.abs(args.heelDeg) * DEG_TO_RAD;
+  const heel = (friction + residuary) * model.heelDragK * heelRad * heelRad;
+  const keelInduced = model.keelInducedShare * Math.abs(args.sideN) * Math.abs(Math.tan(args.leewayDeg * DEG_TO_RAD)) * v / (v + 0.5);
+  const r = Math.abs(args.yawRateDegPerS) * DEG_TO_RAD;
+  const lateral = params.surgeMass * v * r;
+  const turn = r > 0 ? lateral * lateral / (0.5 * RHO_WATER * (v + 0.5) * (v + 0.5) * Math.PI * model.turnSpanM * model.turnSpanM) : 0;
+  const total = friction + residuary + heel + keelInduced + turn;
+  return { friction, residuary, heel, keelInduced, turn, total };
 }
 
 // src/lib/sailing-physics/sail-plan.ts
@@ -187,6 +251,7 @@ var reefAreaFraction = (reef) => 1 - 0.65 * clampSailFraction(reef);
 var jibAreaFraction = (furl) => 1 - clampSailFraction(furl);
 
 // src/lib/sailing-physics/simulate.ts
+var RHO_AIR2 = 1.225;
 function createInitialState(args) {
   const heading = args.heading ?? 0;
   let trueWindDir;
@@ -215,7 +280,8 @@ function effectiveCop(fullCop, reduction01) {
   const r = Math.max(0, Math.min(1, reduction01));
   return fullCop * (1 - 0.35 * r);
 }
-function tick(state, controls, params2, dt, rig) {
+function tick(state, controls, params, dt, rig, motion) {
+  const model = params.model;
   const twa = twaFromCompass(state.trueWindDir, state.heading);
   const aw = apparentWind(
     state.trueWindSpeed,
@@ -226,19 +292,20 @@ function tick(state, controls, params2, dt, rig) {
   const awsMps = aw.aws * KN_TO_MPS;
   const mainSideSign = rig?.main.side ?? (twa > 0 ? -1 : twa < 0 ? 1 : -1);
   const jibSideSign = rig?.jib.side ?? (controls.jibSide === -1 ? mainSideSign === 1 ? -1 : 1 : mainSideSign);
-  const mainAngle = rig?.main.angleOff ?? sailAngleOff(controls.mainSheet, 0, params2.mainMaxOff);
-  const jibAngle = rig?.jib.angleOff ?? sailAngleOff(controls.jibSheet, params2.jibMinOff, params2.jibMaxOff);
+  const mainAngle = rig?.main.angleOff ?? sailAngleOff(controls.mainSheet, 0, params.mainMaxOff);
+  const jibAngle = rig?.jib.angleOff ?? sailAngleOff(controls.jibSheet, params.jibMinOff, params.jibMaxOff);
   const mainLoad = Math.max(0, Math.min(1, rig?.main.load ?? 1));
   const jibLoad = Math.max(0, Math.min(1, rig?.jib.load ?? 1));
-  const mainArea = controls.mainHoisted === false ? 0 : effectiveArea(params2.mainArea, controls.reef);
-  const jibArea = params2.jibArea * jibAreaFraction(controls.jibFurl);
+  const mainArea = controls.mainHoisted === false ? 0 : effectiveArea(params.mainArea, controls.reef);
+  const jibArea = params.jibArea * jibAreaFraction(controls.jibFurl);
   const jibCfg = {
-    area: jibArea * jibLoad,
+    area: model ? jibArea : jibArea * jibLoad,
     angleOff: jibAngle,
     side: jibSideSign,
-    twist: controls.jibTwist
+    twist: controls.jibTwist,
+    ...model ? { attached: jibLoad } : {}
   };
-  const jibF = computeSailForce(aw.vec, awsMps, jibCfg, 1);
+  const jibF = computeSailForce(aw.vec, awsMps, jibCfg, 1, model);
   const slot = slotMultiplier({
     jibAoA: jibF.aoa,
     jibStalled: jibF.stalled,
@@ -248,18 +315,40 @@ function tick(state, controls, params2, dt, rig) {
     mainSide: mainSideSign
   });
   const mainCfg = {
-    area: mainArea * mainLoad,
+    area: model ? mainArea : mainArea * mainLoad,
     angleOff: mainAngle,
     side: mainSideSign,
     twist: controls.mainTwist,
-    outhaulEase: rig?.main.outhaulEase
+    outhaulEase: rig?.main.outhaulEase,
+    ...model ? { attached: mainLoad } : {}
   };
-  const mainF = computeSailForce(aw.vec, awsMps, mainCfg, slot.mult);
+  let mainAw = aw.vec;
+  if (model && model.mainBackwindDeg > 0 && jibSideSign === mainSideSign && awsMps > 1e-4) {
+    const drawing = jibArea * jibLoad / Math.max(params.jibArea, 1e-9) * softSailAttachment(jibF.aoa, model.luffStartDeg, model.luffFullDeg);
+    const fade = Math.max(0, Math.min(1, (100 - Math.abs(aw.awa)) / 40));
+    const eps = model.mainBackwindDeg * drawing * fade;
+    if (eps > 0) {
+      const finer = (aw.awa - Math.sign(aw.awa) * Math.min(eps, Math.abs(aw.awa))) * Math.PI / 180;
+      mainAw = { x: -awsMps * Math.sin(finer), y: -awsMps * Math.cos(finer) };
+    }
+  }
+  const mainF = computeSailForce(mainAw, awsMps, mainCfg, slot.mult, model);
   const twaFromDead = 180 - Math.abs(twa);
-  if (mainArea > 0 && jibSideSign === mainSideSign && twaFromDead < 45) {
-    const blanketFactor = 0.4 + 0.6 * (twaFromDead / 45);
-    jibF.drive *= blanketFactor;
-    jibF.side *= blanketFactor;
+  if (!model) {
+    if (mainArea > 0 && jibSideSign === mainSideSign && twaFromDead < 45) {
+      const blanketFactor = 0.4 + 0.6 * (twaFromDead / 45);
+      jibF.drive *= blanketFactor;
+      jibF.side *= blanketFactor;
+    }
+  } else if (mainArea > 0 && jibSideSign === mainSideSign) {
+    const fromDead = 180 - Math.abs(aw.awa);
+    const blanketFactor = Math.max(0, Math.min(1, (fromDead - 10) / 30));
+    if (blanketFactor < 1) {
+      const mainShare = mainArea * mainLoad / Math.max(params.mainArea, 1e-9);
+      const factor = 1 - (1 - blanketFactor) * Math.min(1, mainShare);
+      jibF.drive *= factor;
+      jibF.side *= factor;
+    }
   }
   const heelRad = Math.abs(state.heel) * Math.PI / 180;
   const heelSailFactor = Math.cos(heelRad);
@@ -270,13 +359,13 @@ function tick(state, controls, params2, dt, rig) {
   const balance = computeBalance({
     fSideMainN: mainSideEff,
     fSideJibN: jibSideEff,
-    mainCop: effectiveCop(params2.mainCOP, controls.reef),
+    mainCop: effectiveCop(params.mainCOP, controls.reef),
     // Roller furling narrows the jib along its full-height forestay. It does
     // not lower its head like a slab reef. Keep the reference pressure height
     // for this sectional model; area reduction already reduces the moment.
-    jibCop: params2.jibCOP,
+    jibCop: params.jibCOP,
     boatSpeedKn: state.boatSpeed,
-    params: params2
+    params
   });
   const tauHeel = 2;
   const tauLeeway = 4;
@@ -285,14 +374,32 @@ function tick(state, controls, params2, dt, rig) {
   const newHeel = state.heel + alphaHeel * (balance.heelEquilibrium - state.heel);
   const newLeeway = state.leeway + alphaLeeway * (balance.leewayEquilibrium - state.leeway);
   const bsMps = state.boatSpeed * KN_TO_MPS;
-  const hullDragN = params2.hullDragK * bsMps * bsMps;
   const totalDriveN = mainDriveEff + jibDriveEff;
-  const netN = totalDriveN - hullDragN;
-  const accMps2 = netN / params2.surgeMass;
-  let newBsMps = Math.max(0, bsMps + accMps2 * dt);
-  const hullSpeedKn = 1.34 * Math.sqrt(params2.lwl * 3.281);
-  const hullSpeedMps = hullSpeedKn * 1.25 * KN_TO_MPS;
-  if (newBsMps > hullSpeedMps) newBsMps = hullSpeedMps;
+  let newBsMps;
+  let resistanceN;
+  if (!model) {
+    const hullDragN = params.hullDragK * bsMps * bsMps;
+    const netN = totalDriveN - hullDragN;
+    const accMps2 = netN / params.surgeMass;
+    newBsMps = Math.max(0, bsMps + accMps2 * dt);
+    const hullSpeedKn = 1.34 * Math.sqrt(params.lwl * 3.281);
+    const hullSpeedMps = hullSpeedKn * 1.25 * KN_TO_MPS;
+    if (newBsMps > hullSpeedMps) newBsMps = hullSpeedMps;
+  } else {
+    const water = cruiserResistance({
+      speedMps: bsMps,
+      heelDeg: state.heel,
+      sideN: mainSideEff + jibSideEff,
+      leewayDeg: state.leeway,
+      yawRateDegPerS: motion?.yawRateDegPerS ?? 0,
+      params,
+      model
+    });
+    const windageDriveN = awsMps > 1e-4 ? 0.5 * RHO_AIR2 * awsMps * awsMps * model.windageCdA * (aw.vec.y / awsMps) : 0;
+    resistanceN = water.total - windageDriveN;
+    const accMps2 = (totalDriveN + windageDriveN - water.total) / params.surgeMass;
+    newBsMps = Math.max(0, bsMps + accMps2 * dt);
+  }
   const newBsKn = newBsMps * MPS_TO_KN;
   const diag = {
     aws: aw.aws,
@@ -304,7 +411,8 @@ function tick(state, controls, params2, dt, rig) {
     slotHealth: slot.health,
     drive: totalDriveN,
     side: mainF.side + jibF.side,
-    vmg: vmg(newBsKn, twa)
+    vmg: vmg(newBsKn, twa),
+    ...model ? { resistance: resistanceN, heelTarget: balance.heelEquilibrium } : {}
   };
   const newState = {
     ...state,
@@ -316,7 +424,7 @@ function tick(state, controls, params2, dt, rig) {
 }
 
 // src/lib/sailing-physics/boat.ts
-var DEFAULT_BOAT = {
+var CLASSIC_BOAT = Object.freeze({
   displacement: 8e3,
   // kg, typical for 40 ft cruiser
   loa: 13.8554,
@@ -358,15 +466,65 @@ var DEFAULT_BOAT = {
   surgeMass: 1e4
   // kg. Added mass of water moving with the hull raises
   // effective inertia above displacement alone.
-};
+});
+var CRUISER_BOAT = Object.freeze({
+  ...CLASSIC_BOAT,
+  jibMinOff: 10,
+  // deg. A cruiser's genoa track sheets to about 9-12 deg;
+  // 5 deg was a racing barber hauler and let the jib
+  // draw at an apparent wind of 15 deg (expert A5).
+  jibMaxOff: 65,
+  // deg. An eased genoa with the lead outboard; at 55 the
+  // jib sat stalled on a broad reach (TWA 120 was 9%
+  // slower than the beam reach, ORC cruisers are level).
+  hullDragK: 55,
+  // N per (m/s)^2, FRICTION ONLY on this profile:
+  // 0.5 * 1025 * S 33 m^2 * Cf 0.0028 * form 1.15.
+  // Wave making is the residuary table below.
+  model: Object.freeze({
+    id: "cruiser-2026-11",
+    residuary: Object.freeze([
+      [0, 0],
+      [0.15, 2e-4],
+      [0.2, 6e-4],
+      [0.25, 15e-4],
+      [0.3, 4e-3],
+      [0.35, 0.013],
+      [0.4, 0.036],
+      [0.45, 0.09],
+      [0.5, 0.15],
+      [0.55, 0.2]
+    ].map((row) => Object.freeze(row))),
+    heelDragK: 0.8,
+    keelInducedShare: 0.4,
+    turnSpanM: 1.8,
+    windageCdA: 3,
+    sailInducedK: 0.04,
+    luffStartDeg: 1,
+    luffFullDeg: 8,
+    luffCd: 0.12,
+    mainBackwindDeg: 6
+  })
+});
+var DEFAULT_BOAT = CRUISER_BOAT;
 function getBoatParams(overrides = {}) {
   return { ...DEFAULT_BOAT, ...overrides };
 }
 
 // src/lib/sailing-physics/polar.ts
-var params = getBoatParams();
+var defaultParams = getBoatParams();
 var clamp = (v) => Math.max(0, Math.min(1, v));
-function trimForDrive(state, initial) {
+function trimObjective(state, controls, params) {
+  if (!params.model) return tick(state, controls, params, 0).diag.drive;
+  let probe = state;
+  let result = tick(probe, controls, params, 0);
+  for (let i = 0; i < 2; i++) {
+    probe = { ...state, heel: result.diag.heelTarget ?? state.heel };
+    result = tick(probe, controls, params, 0);
+  }
+  return result.diag.drive - (result.diag.resistance ?? 0);
+}
+function trimForDrive(state, initial, params = defaultParams) {
   const controls = { ...initial };
   for (const step of [0.125, 0.025]) {
     for (const key of ["jibSheet", "mainSheet"]) {
@@ -374,7 +532,7 @@ function trimForDrive(state, initial) {
       let best = -Infinity;
       for (let i = -4; i <= 4; i++) {
         const value = step === 0.125 ? (i + 4) * step : clamp(centre + i * step);
-        const drive = tick(state, { ...controls, [key]: value }, params, 0).diag.drive;
+        const drive = trimObjective(state, { ...controls, [key]: value }, params);
         if (drive > best) {
           best = drive;
           controls[key] = value;
@@ -386,6 +544,7 @@ function trimForDrive(state, initial) {
 }
 
 // src/lib/race-physics.ts
+var LEGACY_RACE_BOAT = CLASSIC_BOAT;
 var WORLD = { width: 800, height: 1200 };
 var WIND_DIRECTION_BASE = 0;
 var MAX_SPEED = 8;
@@ -459,14 +618,14 @@ function raceTurnRate(speed, steering = "legacy") {
   const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
   return steering === "responsive" ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority) : TURN_RATE * authority;
 }
-function raceCrewTrim(boat, state, input, dt) {
+function raceCrewTrim(boat, state, input, dt, params = LEGACY_RACE_BOAT) {
   if (input.autoTrim === false) {
     boat.trim = raceTrim(input.trim, boat.trim);
     boat.trimClock = 0.5;
   } else {
     boat.trimClock = (boat.trimClock ?? 1) + dt;
     if (!boat.trim || boat.trimClock >= 0.5) {
-      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM, params);
       boat.trimClock = 0;
     }
     if (input.trim) {
@@ -475,9 +634,8 @@ function raceCrewTrim(boat, state, input, dt) {
   }
   return boat.trim;
 }
-function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}) {
+function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}, params = LEGACY_RACE_BOAT) {
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const params2 = getBoatParams();
   const state = {
     ...boat.physics ?? createInitialState({ tws: 12 }),
     heading: boat.heading,
@@ -485,7 +643,7 @@ function stepRaceBoatForces(boat, dt, windDir, gust, input, opts = {}) {
     trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust
   };
-  boat.physics = tick(state, raceCrewTrim(boat, state, input, dt), params2, dt).state;
+  boat.physics = tick(state, raceCrewTrim(boat, state, input, dt, params), params, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
   return boat.physics;
 }
@@ -755,6 +913,7 @@ function raceAutopilotTurn(boat, course, windDir) {
 export {
   ACCEL,
   FULL_BUMP_CLOSING_KN,
+  LEGACY_RACE_BOAT,
   MARK_ROUND_DIST,
   MAX_SPEED,
   MIN_BOAT_SEPARATION,

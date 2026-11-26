@@ -1,7 +1,7 @@
 {
   "blender": "5.1.1",
-  "mesh_count": 45,
-  "triangles": 23292,
+  "mesh_count": 48,
+  "triangles": 24856,
   "rigging_bounds_zup": {
     "min": [
       -6.113582134246826,

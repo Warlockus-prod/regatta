@@ -1,0 +1,22 @@
+/* F4 race hint log. The panel sits over the race scene like the big map
+   (RaceBigMap.module.css: z-index 5, solid, never over the dock); the host
+   sets top and bottom. Text 16/24, the time and kind 14/20, Close 44 px.
+   Tones are a left border in the success, danger or muted colour, never
+   cyan (cyan is an action). No animation. */
+.overlay { position:absolute; z-index:5; top:8px; left:8px; right:8px; bottom:8px; display:flex; flex-direction:column; gap:8px; padding:8px; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-primary,#071923); color:var(--text-primary); box-shadow:0 12px 32px rgb(0 0 0 / .35); pointer-events:auto; overflow:hidden; }
+.head { display:flex; align-items:center; gap:8px; padding-left:4px; }
+.head h2 { flex:1 1 auto; margin:0; font-size:18px; line-height:24px; font-weight:650; color:var(--text-primary); }
+.overlay .close { flex-shrink:0; min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:6px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-card,#102838); color:var(--text-primary); cursor:pointer; }
+.overlay .close:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:2px; }
+.body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; }
+.list { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+.entry { display:flex; flex-direction:column; gap:2px; padding:8px 12px; border:1px solid var(--border-subtle); border-left-width:4px; border-left-color:var(--text-muted); border-radius:8px; background:var(--bg-card,#102838); }
+.entry[data-tone=success] { border-left-color:var(--success); }
+.entry[data-tone=danger] { border-left-color:var(--danger); }
+.meta { display:flex; gap:8px; font-size:14px; line-height:20px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.text { font-size:16px; line-height:24px; color:var(--text-primary); overflow-wrap:anywhere; }
+.empty { margin:0; padding:4px; font-size:16px; line-height:24px; color:var(--text-secondary); }
+.note { margin:0; padding:0 4px; font-size:14px; line-height:20px; color:var(--text-secondary); }
+.srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* A short scene (landscape phone): the note goes, the list keeps the room. */
+@container (max-height:480px) { .overlay { gap:6px; padding:6px; } .note { display:none; } }

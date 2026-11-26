@@ -13,16 +13,18 @@ export function WindGlyph({ awa, moving, size, label }: { awa: number; moving: b
     </svg>;
 }
 
-export function WindReadout({ awa, aws, tws, showFlow, onToggle, labels: L }: {
+export function WindReadout({ awa, aws, tws, showFlow, onToggle, labels: L, knots }: {
   awa: number; aws: number; tws: number; showFlow: boolean; onToggle: () => void; labels: SceneLabels;
+  /** The knot sign of the reader's language (UI_TERMS.knots). */
+  knots: string;
 }) {
   const moving = aws > .5;
   return <div className={styles.windReadout}>
     <WindGlyph awa={awa} moving={moving} size={54} label={L.relativeWind} />
     <div className={styles.windNumbers}>
-      <strong>{L.apparent} <span>{aws.toFixed(1)} kn</span></strong>
+      <strong>{L.apparent} <span>{`${aws.toFixed(1)} ${knots}`}</span></strong>
       <span>{moving ? `${Math.round(Math.abs(awa))}° · ${L.relativeWind}` : L.calmWind}</span>
-      <span>{L.trueWind}: {tws.toFixed(0)} kn</span>
+      <span>{L.trueWind}: {`${tws.toFixed(0)} ${knots}`}</span>
     </div>
     <button className={styles.button} aria-pressed={showFlow} onClick={onToggle}>{L.flow}</button>
   </div>;

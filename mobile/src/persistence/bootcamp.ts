@@ -30,9 +30,11 @@ import { serial } from './serial';
 const STORAGE_KEY = 'regatta.progress.bootcamp.v1';
 const LAST_VIEWED_KEY = 'regatta.progress.bootcamp.lastViewed.v1';
 const DONE_KEY = 'regatta.progress.bootcamp.done.v1';
+/** Lessons whose in-lesson mini task was finished (src/lib/learning/mini-task.ts). */
+const MINI_TASK_KEY = 'regatta.progress.bootcamp.minitask.v1';
 
 /** Every bootcamp progress key, for resets. */
-export const BOOTCAMP_PROGRESS_KEYS = [STORAGE_KEY, LAST_VIEWED_KEY, DONE_KEY] as const;
+export const BOOTCAMP_PROGRESS_KEYS = [STORAGE_KEY, LAST_VIEWED_KEY, DONE_KEY, MINI_TASK_KEY] as const;
 
 async function readSetRaw(key: string): Promise<Set<string>> {
   try {
@@ -84,6 +86,22 @@ export function addViewedId(id: string): Promise<Set<string>> {
     if (!stored.has(id)) {
       stored.add(id);
       await writeSetRaw(STORAGE_KEY, stored);
+    }
+    return stored;
+  });
+}
+
+export function readMiniTaskDone(): Promise<Set<string>> {
+  return serial(() => readSetRaw(MINI_TASK_KEY));
+}
+
+/** A mini task finished in the lesson; never touches the quiz or done evidence. */
+export function addMiniTaskDone(id: string): Promise<Set<string>> {
+  return serial(async () => {
+    const stored = await readSetRaw(MINI_TASK_KEY);
+    if (!stored.has(id)) {
+      stored.add(id);
+      await writeSetRaw(MINI_TASK_KEY, stored);
     }
     return stored;
   });

@@ -7,24 +7,37 @@ import { lessonCopy } from "@/data/lesson-copy";
 import SailShapeIllustration from "./SailShapeIllustration";
 import type { SailShapeContent } from "@/data/sail-shape";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { bootcampLessons, type BootcampLesson } from "@/data/bootcamp";
+import { miniTaskCopy } from "@/data/foundation-mini-tasks";
+import type { MiniTask as MiniTaskData } from "@/lib/learning/mini-task";
+import MiniTask from "./MiniTask";
 import { getQuizForLesson, isQuizPassed, pickPrompt } from "@/data/bootcamp-quiz";
 import { foundationCopy, foundationModules } from "@/data/foundation-copy";
 import type { FoundationGuide } from "@/data/foundation-guide";
 import { useI18n } from "@/lib/i18n";
+import { NO_GO_GLOSSARY_HREF, NO_GO_LINK } from "@/data/no-go-zone";
+import { RaceReturn } from "@/components/RaceReturn";
 import { legacyPick } from "@/lib/languages";
+import { foundationLessonThumb, foundationLessonVisuals } from "@/data/sailing-visuals";
+import { SubjectPicture } from "@/components/visuals/SubjectVisuals";
+import { UI_TERMS } from "@/lib/product/ui-terms";
 import { renderScene, SCENE_HEIGHT, SCENE_WIDTH, type SceneId } from "@/lib/learning/foundation-drawings";
-import { foundationPracticeHref, foundationSteps, isFoundationLesson, passedFoundationIds, theoryResult, updateFoundationCheck, updateFoundationDraft, type FoundationAnswers, type FoundationStep } from "@/lib/learning/foundation-progress";
+import { foundationPracticeHref, foundationSteps, isFoundationLesson, passedFoundationIds, theoryResult, updateFoundationCheck, updateFoundationDraft, updateFoundationPractice, type FoundationAnswers, type FoundationStep } from "@/lib/learning/foundation-progress";
 import { destinations } from "@/lib/product/catalog";
 import { saveLearningBookmark } from "@/lib/product/learning-web";
 import { foundationWebCopy as copy } from "./copy";
 import { announceFoundation, useFoundationProgress } from "./useFoundationProgress";
 import styles from "./start.module.css";
 
-export default function FoundationClient({ guides, shapeCopy }: { guides: Record<string, FoundationGuide>; shapeCopy: SailShapeContent }) {
+/** Lessons whose text names the no-go zone (src/data/foundation-wind.ts, foundation-guide.ts). */
+const NO_GO_LESSONS = new Set(["wind-direction", "points-of-sail", "tacking"]);
+
+export default function FoundationClient({ guides, shapeCopy, miniTasks }: { guides: Record<string, FoundationGuide>; shapeCopy: SailShapeContent; miniTasks: Record<string, MiniTaskData> }) {
   const { lang } = useI18n();
   const state = useFoundationProgress();
+  const { write: writeProgress } = state;
+  const finishMiniTask = useCallback((lessonId: string) => { writeProgress(previous => updateFoundationPractice(previous, lessonId)); }, [writeProgress]);
   const id = isFoundationLesson(state.lesson) ? state.lesson : state.display.current ?? state.legacyCurrent ?? bootcampLessons[0].id;
   const lesson = bootcampLessons.find(item => item.id === id)!;
   const position = state.display.positions[id] ?? { step: "understand" as const, diagram: 0 as const };
@@ -56,15 +69,21 @@ export default function FoundationClient({ guides, shapeCopy }: { guides: Record
                 {([0, 1, 2] as const).map(diagram => <button key={diagram} disabled={state.readError || state.saveError} aria-pressed={position.diagram === diagram} onClick={() => state.write(previous => ({ ...previous, positions: { ...previous.positions, [id]: { step: "understand", diagram } } }))}>{guides[id]?.states[diagram][lang] ?? `${[0, 90, 180][diagram]}°`}</button>)}
               </div>
               <figcaption>{guides[id]?.notes[position.diagram][lang] ?? legacyPick(lesson, "focus", lang)}</figcaption>
+              {/* Package 7: the lessons that name the no-go zone link its one glossary article. */}
+              {NO_GO_LESSONS.has(id) && <Link className={styles.glossaryLink} href={NO_GO_GLOSSARY_HREF} data-testid="lesson-no-go-link">{NO_GO_LINK[lang]}</Link>}
             </figure> : null;
   const checked = passedFoundationIds(state.progress);
+  const task = miniTasks[id];
+  const taskIds = Object.keys(miniTasks);
+  const tasksDone = state.progress.practiceDone.filter(item => taskIds.includes(item));
   return <div className={styles.page}>
     <header className={styles.header}>
+      <RaceReturn />
       <h1>{copy.title[lang]}</h1>
       <p>{copy.intro[lang]}</p>
       <div className={styles.metrics} aria-live="polite">
-        <span>{copy.viewed[lang]}: {state.ready ? state.visited.length : "..."}/8</span>
         <span>{copy.checked[lang]}: {state.ready ? checked.length : "..."}/8</span>
+        <span data-testid="foundation-practice-count">{copy.practiced[lang]}: {state.ready ? tasksDone.length : "..."}/{taskIds.length}</span>
       </div>
       <p className={styles.secondary}>{copy.progressNote[lang]}</p>
       <a className={styles.outlineLink} href="#foundation-outline">{foundationCopy.outline[lang]} ↓</a>
@@ -78,9 +97,15 @@ export default function FoundationClient({ guides, shapeCopy }: { guides: Record
           <h3>{module.title[lang]}</h3>
           {module.lessons.map(lessonId => {
             const item = bootcampLessons.find(entry => entry.id === lessonId)!;
+            const thumb = foundationLessonThumb(item.id);
             return <button key={item.id} type="button" disabled={!state.ready || state.readError || state.saveError} onClick={() => navigate(item.id, state.display.positions[item.id]?.step)} aria-current={id === item.id ? "step" : undefined}>
-              <span>{item.order}. {legacyPick(item, "title", lang)}</span>
-              {checked.includes(item.id) ? <small className={styles.success}>✓ {copy.passed[lang]}</small> : state.visited.includes(item.id) ? <small>{copy.viewed[lang]}</small> : null}
+              {/* Package 32, stage C: the lesson's picture in its row (the title beside it is the label). */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- A static, pre-sized picture. */}
+              {thumb && <img className={styles.outlineThumb} src={thumb.src} width={thumb.width} height={thumb.height} alt="" loading="lazy" decoding="async" data-testid="outline-thumb" />}
+              <span className={styles.outlineText}>
+                <span>{item.order}. {legacyPick(item, "title", lang)}</span>
+                {checked.includes(item.id) ? <small className={styles.success}>✓ {copy.passed[lang]}</small> : state.visited.includes(item.id) ? <small>{copy.viewed[lang]}</small> : null}
+              </span>
             </button>;
           })}
         </div>)}
@@ -101,6 +126,8 @@ export default function FoundationClient({ guides, shapeCopy }: { guides: Record
 
             {guides[id] && <>
               <ul className={styles.legend}>{guides[id].legend.map((label, index) => <li key={index}>{label[lang]}</li>)}</ul>
+              {/* Package 32: the same subject in the 3D scene, under the lesson's drawing. */}
+              <SubjectPicture visuals={foundationLessonVisuals(id)} name={legacyPick(lesson, "title", lang)} label={UI_TERMS.visualOnWater[lang]} />
               {guides[id].explanation && <><h3>{lessonCopy.explanation[lang]}</h3>{guides[id].explanation.map((paragraph, index) => <p key={index}>{paragraph[lang]}</p>)}</>}
               <h3>{copy.mistake[lang]}</h3><p>{guides[id].mistake[lang]}</p>
               <h3>{copy.limit[lang]}</h3><p className={styles.secondary}>{guides[id].limit[lang]}</p>
@@ -109,7 +136,8 @@ export default function FoundationClient({ guides, shapeCopy }: { guides: Record
           </>}
           {step === "check" && <LessonCheck key={id} lesson={lesson} state={state} />}
           {step === "practice" && <>
-            <h3>{foundationCopy.practice[lang]}</h3>
+            {task && <MiniTask key={id} task={task} lang={lang} done={state.progress.practiceDone.includes(id)} disabled={state.readError || state.saveError} onDone={() => finishMiniTask(id)} />}
+            <h3>{task ? miniTaskCopy.fullPractice[lang] : foundationCopy.practice[lang]}</h3>
             <p>{legacyPick(lesson, "focus", lang)}</p>
             <p className={styles.secondary}>{copy.practiceNote[lang]}</p>
             {state.progress.practiceOpened.includes(id) && <p>{copy.opened[lang]}</p>}

@@ -12,22 +12,21 @@ export default function SternikSubnav() {
   const activeRef = useRef<HTMLAnchorElement | null>(null);
 
   const tabs = [
-    { href: '/sternik', label: tp('Обзор', 'Overview', 'Przegląd'), icon: '⚓' },
-    { href: '/sternik/teoria', label: tp('Теория', 'Theory', 'Teoria'), icon: '📖' },
-    { href: '/sternik/test', label: tp('Тренажёр', 'Trainer', 'Trening'), icon: '🎯' },
-    { href: '/sternik/egzamin', label: tp('Экзамен', 'Exam', 'Egzamin'), icon: '⏱️' },
-    { href: '/sternik/ustny', label: tp('Устный ответ', 'Oral answer', 'Odpowiedź ustna'), icon: '🎓' },
-    { href: '/radio', label: tp('Рация SRC', 'Radio SRC', 'Radio SRC'), icon: '📻' },
+    { href: '/sternik', label: tp('Обзор', 'Overview', 'Przegląd') },
+    { href: '/sternik/teoria', label: tp('Теория', 'Theory', 'Teoria') },
+    { href: '/sternik/test', label: tp('Тренажёр', 'Trainer', 'Trening') },
+    { href: '/sternik/egzamin', label: tp('Экзамен', 'Exam', 'Egzamin') },
+    { href: '/sternik/ustny', label: tp('Устный ответ', 'Oral answer', 'Odpowiedź ustna') },
   ];
 
-  // Keep the active tab in view (Egzamin was cut off on the right on mobile).
+  // The tabs wrap on a phone: a row that scrolled off the right edge hid the exam.
   useEffect(() => {
     activeRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' });
   }, [pathname]);
 
   return (
     <nav className="mb-6 flex flex-wrap items-center gap-2 pb-1" aria-label="Sternik">
-      <div className="flex gap-2 overflow-x-auto">
+      <div className="flex flex-wrap gap-2">
         {tabs.map((t) => {
           const active = pathname === t.href;
           return (
@@ -46,7 +45,7 @@ export default function SternikSubnav() {
                     }
               }
             >
-              {t.icon} {t.label}
+              {t.label}
             </Link>
           );
         })}

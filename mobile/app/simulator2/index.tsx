@@ -1,5 +1,6 @@
 import { SimWebView } from '../../src/simulator/SimWebView';
 import { useI18n } from '../../src/i18n/context';
+import { OPEN_BASICS_OFFLINE, TRAINER_NAMES } from '../../../src/lib/product/trainer-names';
 
 const OFFLINE_SAILING = require("../../assets/sailing-offline.html");
 
@@ -15,25 +16,15 @@ const OFFLINE_SAILING = require("../../assets/sailing-offline.html");
 // ============================================================================
 
 export default function SimulatorV2Screen() {
-  const { tp } = useI18n();
+  const { lang } = useI18n();
   return (
     <SimWebView
       path="/simulator2"
       tier="boat3d"
       offlineSource={OFFLINE_SAILING}
-      title={tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
-        es: 'Barco 3D',
-        fr: 'Bateau 3D',
-        de: '3D-Boot',
-        it: 'Barca 3D',
-      })}
+      title={TRAINER_NAMES.boat[lang]}
       fallbackRoute="/simulator-basics"
-      fallbackLabel={tp('Открыть Основы (офлайн)', 'Open Basics (offline)', 'Otwórz Podstawy (offline)', {
-        es: 'Abrir Fundamentos (sin conexión)',
-        fr: 'Ouvrir les Bases (hors ligne)',
-        de: 'Grundlagen öffnen (offline)',
-        it: 'Apri le Basi (offline)',
-      })}
+      fallbackLabel={OPEN_BASICS_OFFLINE[lang]}
     />
   );
 }

@@ -102,13 +102,13 @@ it("records actual page ready, process failure and user Retry with only static l
 it("returns to a known lesson and hides tier switching during lesson practice", async () => {
   const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "mainsheet", study: "mainsheet" }} />);
   await act(async () => {});
-  expect(view.queryByRole("tab", { name: "Basics" })).toBeNull();
+  expect(view.queryByRole("tab", { name: "Learn to steer" })).toBeNull();
   fireEvent.press(view.getByRole("button", { name: "Return to the lesson" }));
   expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
   view.unmount();
   const invalid = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "https://example.com" }} />);
   expect(invalid.queryByRole("button", { name: "Return to the lesson" })).toBeNull();
-  expect(invalid.getByRole("tab", { name: "Basics" })).toBeTruthy();
+  expect(invalid.getByRole("tab", { name: "Learn to steer" })).toBeTruthy();
 });
 
 it.each(["sails", "foundation"] as const)("%s practice return removes the trainer before the next native Back without changing saved learning evidence", async kind => {
@@ -221,7 +221,7 @@ it("loads the local source without an online fallback or network-error advice", 
   expect(web.props.onShouldStartLoadWithRequest({ url: "https://weektoregatta.com/simulator2", navigationType: "other" })).toBe(false);
   expect(web.props.onShouldStartLoadWithRequest({ url: local.uri, navigationType: "other" })).toBe(true);
   fireEvent(web, "message", { nativeEvent: { data: "scene-error" } });
-  expect(view.getByText("The local simulator could not open. Retry or open simplified Basics. No internet is needed.")).toBeTruthy();
+  expect(view.getByText("The local simulator could not open. Retry or open the simple version below. No internet is needed.")).toBeTruthy();
   fireEvent.press(view.getByText("Retry"));
   expect(view.getByTestId("webview").props.source).toEqual(local);
 });

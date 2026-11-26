@@ -99,3 +99,17 @@ export function guidancePath(position: Vec2, heading: number, windFrom: number, 
   } else line(turnEnd, target);
   return points;
 }
+
+/** Index of the next change of course along the drawn route: the middle of
+ * the first turning stretch after the boat's own bend (index 0), or -1 when
+ * the route has none. The scene marks it with the turn point (M2-2). */
+export function nextTurnIndex(points: readonly GuidancePoint[], count = points.length): number {
+  const n = Math.min(count, points.length);
+  let i = 0;
+  while (i < n && points[i].turning) i++;
+  while (i < n && !points[i].turning) i++;
+  if (i >= n) return -1;
+  let end = i;
+  while (end + 1 < n && points[end + 1].turning) end++;
+  return (i + end) >> 1;
+}

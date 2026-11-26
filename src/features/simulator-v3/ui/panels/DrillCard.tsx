@@ -7,14 +7,20 @@ import {
   pickText,
 } from '../../runtime/scenario-presets';
 import { type TpFn } from '../shared';
+import type { DrillOutcome } from '../../runtime/drill-clock';
+import { TRAINER_TERMS } from '@/lib/product/trainer-terms';
+import { SubjectThumbs } from '@/components/visuals/SubjectVisuals';
+import { drillVisuals } from '@/data/sailing-visuals';
 
 // ---------------------------------------------------------------------------
 // DrillCard - shown when mode === 'drill'. Two states:
 // - picker: no active drill, show the 3 drill cards to choose from
 // - in progress: show title, goal, timer, hold-progress, win/fail result
+// "Show me" (package 13 stage D) lets the auto-trim set the sails; the
+// attempt then ends as "shown", never as a pass (runtime/drill-clock.ts).
 // ---------------------------------------------------------------------------
 
-export type DrillResult = 'pending' | 'win' | 'fail';
+export type DrillResult = DrillOutcome;
 
 export function DrillCard({
   active,
@@ -26,6 +32,7 @@ export function DrillCard({
   onStart,
   onRestart,
   onExit,
+  onShowMe,
 }: {
   active: DrillDefinition | null;
   elapsed: number;
@@ -36,6 +43,8 @@ export function DrillCard({
   onStart: (d: DrillDefinition) => void;
   onRestart: () => void;
   onExit: () => void;
+  /** "Show me": the auto-trim sets the sails, the attempt does not count. */
+  onShowMe?: () => void;
 }) {
   if (!active) {
     return (
@@ -47,7 +56,7 @@ export function DrillCard({
         }}
       >
         <div
-          className="text-[10px] uppercase tracking-wider font-bold"
+          className="text-xs uppercase tracking-wider font-bold"
           style={{ color: 'var(--accent-cyan)' }}
         >
           {tp('Выбери упражнение', 'Pick a drill', 'Wybierz ćwiczenie', {
@@ -68,14 +77,16 @@ export function DrillCard({
               }}
             >
               <div
-                className="text-[11px] font-bold"
+                className="text-xs font-bold"
                 style={{ color: 'var(--accent-cyan)' }}
               >
                 {pickText(d.title, lang)}
               </div>
-              <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-snug">
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-snug">
                 {pickText(d.goal, lang)}
               </div>
+              {/* Package 32: every exercise shows what it practises, schematic and picture. */}
+              <SubjectThumbs visuals={drillVisuals(d.id)} />
             </button>
           ))}
         </div>
@@ -92,6 +103,8 @@ export function DrillCard({
       ? 'var(--success)'
       : result === 'fail'
       ? 'var(--danger)'
+      : result === 'shown'
+      ? 'var(--text-muted)'
       : 'var(--accent-cyan)';
 
   const cardBorder =
@@ -118,20 +131,22 @@ export function DrillCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div
-          className="text-[11px] uppercase tracking-wider font-bold"
+          className="text-xs uppercase tracking-wider font-bold"
           style={{
             color:
               result === 'win'
                 ? 'var(--success)'
                 : result === 'fail'
                 ? 'var(--danger)'
+                : result === 'shown'
+                ? 'var(--text-secondary)'
                 : 'var(--accent-cyan)',
           }}
         >
           {title}
         </div>
         <div
-          className="text-[10px] font-mono tabular-nums shrink-0"
+          className="text-xs font-mono tabular-nums shrink-0"
           style={{
             color:
               result === 'pending' && timeLeft < 5
@@ -143,7 +158,7 @@ export function DrillCard({
         </div>
       </div>
 
-      <div className="text-[11px] text-[var(--text-secondary)] leading-snug">
+      <div className="text-xs text-[var(--text-secondary)] leading-snug">
         {goal}
       </div>
 
@@ -159,7 +174,7 @@ export function DrillCard({
           }}
         />
       </div>
-      <div className="flex items-center justify-between text-[9px] text-[var(--text-muted)]">
+      <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
         <span>
           {tp('удержание', 'hold', 'utrzymanie', {
             es: 'mantenido',
@@ -185,6 +200,13 @@ export function DrillCard({
                 de: 'GESCHAFFT',
                 it: 'FATTO',
               })
+            : result === 'shown'
+            ? tp('ПОКАЗАНО', 'SHOWN', 'POKAZANO', {
+                es: 'MOSTRADO',
+                fr: 'MONTRÉ',
+                de: 'GEZEIGT',
+                it: 'MOSTRATO',
+              })
             : tp('НЕ УСПЕЛ', 'FAILED', 'NIE UDAŁO SIĘ', {
                 es: 'FALLIDO',
                 fr: 'RATÉ',
@@ -194,17 +216,43 @@ export function DrillCard({
         </span>
       </div>
 
+      {result === 'shown' && (
+        <p className="text-sm leading-relaxed text-[var(--text-secondary)]" data-testid="drill-shown" role="status">
+          {tp('Это был показ: паруса настроил автотрим. Попытка не засчитана, теперь сделай сам.', 'That was a demonstration: the auto-trim set the sails. The attempt does not count, now do it yourself.', 'To był pokaz: żagle ustawił autotrym. Próba się nie liczy, teraz zrób to sam.', {
+            es: 'Fue una demostración: el trimado automático ajustó las velas. El intento no cuenta, ahora hazlo tú.',
+            fr: "C'était une démonstration : le réglage auto a réglé les voiles. L'essai ne compte pas, à toi maintenant.",
+            de: 'Das war eine Vorführung: Der Autotrimm hat die Segel eingestellt. Der Versuch zählt nicht, jetzt bist du dran.',
+            it: 'Era una dimostrazione: la regolazione automatica ha sistemato le vele. Il tentativo non conta, ora prova tu.',
+          })}
+        </p>
+      )}
+
+      {onShowMe && (result === 'pending' || result === 'fail') && (
+        <button
+          type="button"
+          onClick={onShowMe}
+          data-testid="drill-show-me"
+          className="min-h-11 w-full rounded-md border px-2 text-sm font-semibold transition"
+          style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-primary)' }}
+        >
+          {TRAINER_TERMS.showMe[lang]}
+        </button>
+      )}
+
       {result !== 'pending' && (
         <div className="flex items-center gap-2">
           <button
             onClick={onRestart}
-            className="flex-1 text-[10px] uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
+            data-testid="drill-restart"
+            className="min-h-11 flex-1 text-xs uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
             style={{
               borderColor: 'rgba(0, 212, 255, 0.4)',
               color: 'var(--accent-cyan)',
             }}
           >
-            {tp('Ещё раз', 'Retry', 'Jeszcze raz', {
+            {result === 'shown'
+              ? tp('Теперь сам', 'Now you', 'Teraz ty', { es: 'Ahora tú', fr: 'À toi', de: 'Jetzt du', it: 'Ora tu' })
+              : tp('Ещё раз', 'Retry', 'Jeszcze raz', {
               es: 'Otra vez',
               fr: 'Recommencer',
               de: 'Nochmal',
@@ -213,7 +261,7 @@ export function DrillCard({
           </button>
           <button
             onClick={onExit}
-            className="flex-1 text-[10px] uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
+            className="min-h-11 flex-1 text-xs uppercase tracking-wider font-bold px-2 py-1.5 rounded-md border transition"
             style={{
               borderColor: 'rgba(139, 167, 184, 0.22)',
               color: 'var(--text-muted)',

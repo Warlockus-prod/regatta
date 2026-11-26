@@ -1,11 +1,9 @@
 import { loadFoundation, passedFoundationIds } from "../learning/foundation-progress";
 import { SAIL_PROGRESS_KEY } from "../../features/sailing-lab/lessons/progress";
-import { LEARNING_BOOKMARK_KEY, type LearningBookmark, type LearningSnapshot } from "./learning";
+import { LEARNING_BOOKMARK_KEY } from "./learning-bookmark";
+import type { LearningSnapshot } from "./learning";
 
-export function saveLearningBookmark(bookmark: LearningBookmark) {
-  try { localStorage.setItem(LEARNING_BOOKMARK_KEY, JSON.stringify(bookmark)); }
-  catch { /* Navigation remains available when storage is disabled. */ }
-}
+export { saveLearningBookmark } from "./learning-bookmark";
 
 export function readWebLearning(): LearningSnapshot {
   // Storage access errors must reach the UI; malformed older data is safely ignored.

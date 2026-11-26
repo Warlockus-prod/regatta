@@ -14,6 +14,17 @@
 //   finds no free slot, and is shown when a slot frees up within
 //   FEEDBACK_LIMITS.maxWaitSec of being posted, otherwise it is dropped (a
 //   tack cost from ten seconds ago is no longer news);
+// - a first race hint (M4-7) is shown alone: it is the longest message and
+//   the stack grows down towards the boat, so while a hint is on screen
+//   nothing joins it. A posted hint sends the race events on screen back to
+//   the queue; a rule notice on screen makes the hint wait, and a queued hint
+//   goes up as soon as no rule notice is left, sending the race events on
+//   screen back to the queue in turn;
+// - a queued message that something on screen holds back (a race event
+//   behind a hint, a hint behind a rule notice) does not age: its
+//   FEEDBACK_LIMITS.maxWaitSec counts from when that message leaves, so the
+//   tack cost of the first tack or a mark split comes right after the hint
+//   instead of being dropped under it;
 // - the contact frame is separate from the stack: a red frame round the scene,
 //   a flash, or a static frame when the viewer asked for reduced motion.
 //
@@ -23,17 +34,19 @@
 export type FeedbackTone = "success" | "danger" | "info";
 
 /** Where a message comes from. One message per source is kept. */
-export type FeedbackSource = "rule" | "missed-mark" | "contact" | "manoeuvre" | "mark" | "place";
+export type FeedbackSource = "rule" | "missed-mark" | "contact" | "manoeuvre" | "mark" | "place" | "split" | "hint";
 
 /** Higher first. Rule notices and the missed-mark notice explain a penalty
- * or a finish that did not count, so they outrank the race events. */
+ * or a finish that did not count, so they outrank the race events. A first
+ * race hint (M4-7, first-race-hints.ts) is shown once per device, so it
+ * outranks a tack cost or a place change, which come back all race. */
 export const FEEDBACK_PRIORITY: Readonly<Record<FeedbackSource, number>> = {
-  rule: 3, "missed-mark": 3, contact: 2, manoeuvre: 1, mark: 1, place: 1,
+  rule: 3, "missed-mark": 3, contact: 2, hint: 2, manoeuvre: 1, mark: 1, place: 1, split: 1,
 };
 
 /** Seconds a message stays once shown. A rule notice is longer to read. */
 export const FEEDBACK_DURATION: Readonly<Record<FeedbackSource, number>> = {
-  rule: 7, "missed-mark": 7, contact: 2.6, manoeuvre: 2.6, mark: 2.6, place: 2.6,
+  rule: 7, "missed-mark": 7, contact: 2.6, manoeuvre: 2.6, mark: 2.6, place: 2.6, split: 2.6, hint: 6,
 };
 
 export const FEEDBACK_LIMITS = {
@@ -50,12 +63,17 @@ export interface FeedbackPost {
   source: FeedbackSource;
   text: string;
   tone: FeedbackTone;
+  /** M4-7: which first race hint this is, so the page records it as seen once it is on screen. */
+  tag?: string;
 }
 
 export interface FeedbackToast extends FeedbackPost {
   id: number;
   priority: number;
   postedAt: number;
+  /** When its wait in the queue counts from: when it was queued, or, while
+   * something on screen holds it back, when that leaves (heldUntil). */
+  waitFrom: number;
   /** When it went on screen; null while it waits in the queue. */
   shownAt: number | null;
   /** When it leaves the screen; null while queued. */
@@ -92,43 +110,70 @@ function byPromotion(a: FeedbackToast, b: FeedbackToast): number {
   return b.priority - a.priority || a.postedAt - b.postedAt || a.id - b.id;
 }
 
+/** How many messages the stack holds now: one while a hint is on screen. */
+const capacity = (visible: readonly FeedbackToast[]) => visible.some(t => t.source === "hint") ? 1 : FEEDBACK_LIMITS.visible;
+
 const show = (toast: FeedbackToast, now: number): FeedbackToast =>
   ({ ...toast, shownAt: now, until: now + FEEDBACK_DURATION[toast.source] });
-const unshow = (toast: FeedbackToast): FeedbackToast => ({ ...toast, shownAt: null, until: null });
+/** Back to the queue from the screen: it waits again from now. */
+const stepBack = (toast: FeedbackToast, now: number): FeedbackToast => ({ ...toast, shownAt: null, until: null, postedAt: now, waitFrom: now });
+
+/** Until when a message on screen holds a queued one back, or null when none
+ * does: a hint holds every race event back, a rule notice holds a hint back. */
+function heldUntil(toast: FeedbackToast, visible: readonly FeedbackToast[]): number | null {
+  const holders = toast.source === "hint" ? visible.filter(t => t.priority > toast.priority) : visible.filter(t => t.source === "hint");
+  return holders.length ? Math.max(...holders.map(t => t.until ?? -Infinity)) : null;
+}
+/** A held message waits from when its holder leaves. */
+const hold = (queue: readonly FeedbackToast[], visible: readonly FeedbackToast[]): FeedbackToast[] => queue.map(t => {
+  const until = heldUntil(t, visible);
+  return until !== null && until > t.waitFrom ? { ...t, waitFrom: until } : t;
+});
+const sameList = (a: readonly FeedbackToast[], b: readonly FeedbackToast[]) => a.length === b.length && a.every((t, i) => t === b[i]);
 
 /** Drop what has run out, then fill free slots from the queue. */
 export function tickFeedback(state: FeedbackState, now: number): FeedbackState {
   let visible = state.visible.filter(t => t.until !== null && t.until > now);
-  let queue = state.queue.filter(t => now - t.postedAt <= FEEDBACK_LIMITS.maxWaitSec);
-  if (visible.length < FEEDBACK_LIMITS.visible && queue.length) {
-    const ordered = [...queue].sort(byPromotion);
-    const promoted = ordered.slice(0, FEEDBACK_LIMITS.visible - visible.length);
-    visible = [...visible, ...promoted.map(t => show(t, now))];
-    queue = queue.filter(t => !promoted.includes(t));
+  let queue = hold(state.queue, visible).filter(t => now - t.waitFrom <= FEEDBACK_LIMITS.maxWaitSec);
+  for (const t of [...queue].sort(byPromotion)) {
+    if (t.source === "hint") {
+      // A hint goes up alone once no rule notice holds it back.
+      if (heldUntil(t, visible) !== null) continue;
+      queue = [...queue.filter(q => q !== t), ...visible.map(v => stepBack(v, now))];
+      visible = [show(t, now)];
+    } else if (visible.length < capacity(visible)) {
+      visible = [...visible, show(t, now)];
+      queue = queue.filter(q => q !== t);
+    }
   }
+  queue = hold(queue, visible);
   const contact = state.contact && state.contact.until > now ? state.contact : null;
-  if (visible.length === state.visible.length && visible.every((t, i) => t === state.visible[i])
-    && queue.length === state.queue.length && contact === state.contact) return state;
+  if (sameList(visible, state.visible) && sameList(queue, state.queue) && contact === state.contact) return state;
   return { ...state, visible: [...visible].sort(byDisplay), queue, contact };
 }
 
 /** Post a message at `now`. */
 export function postFeedback(state: FeedbackState, post: FeedbackPost, now: number): FeedbackState {
   const settled = tickFeedback(state, now);
-  const toast: FeedbackToast = { ...post, id: settled.nextId, priority: FEEDBACK_PRIORITY[post.source], postedAt: now, shownAt: null, until: null };
+  const toast: FeedbackToast = { ...post, id: settled.nextId, priority: FEEDBACK_PRIORITY[post.source], postedAt: now, waitFrom: now, shownAt: null, until: null };
   // A newer message of the same source replaces the older one.
   let visible = settled.visible.filter(t => t.source !== post.source);
   let queue = settled.queue.filter(t => t.source !== post.source);
-  if (visible.length < FEEDBACK_LIMITS.visible) visible = [...visible, show(toast, now)];
+  if (post.source === "hint") {
+    // Shown alone: it waits behind a rule notice; the race events on screen wait behind it.
+    if (heldUntil(toast, visible) !== null) queue = [...queue, toast];
+    else { queue = [...queue, ...visible.map(t => stepBack(t, now))]; visible = [show(toast, now)]; }
+  } else if (visible.length < capacity(visible)) visible = [...visible, show(toast, now)];
   else {
     const lowest = [...visible].sort(byDisplay).at(-1)!;
     if (toast.priority > lowest.priority) {
       // The displaced message waits for a slot; its wait counts from now.
       visible = [...visible.filter(t => t !== lowest), show(toast, now)];
-      queue = [...queue, { ...unshow(lowest), postedAt: now }];
+      queue = [...queue, stepBack(lowest, now)];
     } else queue = [...queue, toast];
   }
-  return { ...settled, visible: visible.sort(byDisplay), queue, nextId: settled.nextId + 1 };
+  // Settle again: a slot freed by a replaced message is filled, held messages wait for their holder.
+  return tickFeedback({ ...settled, visible: visible.sort(byDisplay), queue: hold(queue, visible), nextId: settled.nextId + 1 }, now);
 }
 
 /** A contact: the red frame round the scene. With reduced motion it does not
@@ -145,7 +190,7 @@ export function postContact(state: FeedbackState, now: number, reducedMotion: bo
 export function nextFeedbackChange(state: FeedbackState): number | null {
   const times = [
     ...state.visible.map(t => t.until ?? Infinity),
-    ...state.queue.map(t => t.postedAt + FEEDBACK_LIMITS.maxWaitSec),
+    ...state.queue.map(t => t.waitFrom + FEEDBACK_LIMITS.maxWaitSec),
     state.contact?.until ?? Infinity,
   ];
   const next = Math.min(...times);
@@ -163,8 +208,8 @@ export function prefersReducedMotion(): boolean {
   }
 }
 
-/** The bus source of a race event (events.ts): one tack cost, one mark split
- * and one place change on screen at a time. */
-export function raceEventSource(kind: "tack" | "gybe" | "mark" | "gained" | "lost"): FeedbackSource {
-  return kind === "tack" || kind === "gybe" ? "manoeuvre" : kind === "mark" ? "mark" : "place";
+/** The bus source of a race event (events.ts): one tack cost, one mark split,
+ * one place change and (M4-4) one split against your best on screen at a time. */
+export function raceEventSource(kind: "tack" | "gybe" | "mark" | "gained" | "lost" | "split"): FeedbackSource {
+  return kind === "tack" || kind === "gybe" ? "manoeuvre" : kind === "mark" ? "mark" : kind === "split" ? "split" : "place";
 }

@@ -1,10 +1,13 @@
 import * as React from "react";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeStandardCourse } from "@/lib/race-physics";
 import { RaceOverviewMap, type RaceOverviewLabels } from "./RaceOverviewMap";
 import { createRaceNavigationSnapshot, type RaceNavigationInput } from "./navigation-model";
 import { PLAYER_COLOR } from "./boat-colors";
+import { mapFitBounds, raceMapView } from "./map-view";
 
 beforeEach(() => vi.stubGlobal("React", React));
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -24,7 +27,7 @@ describe("race overview SVG", () => {
   it("keeps actual course/fleet geometry and private IDs out of the compact button map", () => {
     const snapshot = createRaceNavigationSnapshot(input());
     const html = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} compact width={128} height={128} />);
-    expect(html).toContain('<span class="m-0" data-testid="race-mini-map">');
+    expect(html).toContain('<span class="m-0" data-testid="race-mini-map" data-map-mode="radar">');
     expect(html).toContain('viewBox="0 0 128 128"');
     expect(html.match(/data-map-mark=/g)).toHaveLength(3);
     expect(html.match(/data-map-boat=/g)).toHaveLength(2);
@@ -131,5 +134,74 @@ describe("race overview SVG", () => {
     expect(html).not.toMatch(/accent-cyan|00d4ff|\u25b2/i);
     const compact = renderToStaticMarkup(<RaceOverviewMap snapshot={createRaceNavigationSnapshot(input())} labels={labels} compact width={128} height={128} />);
     expect(compact).not.toMatch(/accent-cyan|00d4ff/i);
+  });
+
+  // M2-4: the compact map is a radar around the boat, the full map keeps the course.
+  it("zooms the compact radar to the player, its next mark and the nearest rival, on dark glass", () => {
+    const boats = [{ id: "p", pos: { x: 400, y: 600 }, heading: 0, isPlayer: true },
+      { id: "near", pos: { x: 440, y: 560 }, heading: 0, color: "#0f0" }, { id: "far", pos: { x: 100, y: 1150 }, heading: 0, color: "#00f" }];
+    const snapshot = createRaceNavigationSnapshot(input({ boats }))!;
+    const focus = { x: 400, y: 450 };
+    const html = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} compact width={128} height={128} focus={focus} />);
+    expect(html).toContain('data-map-mode="radar"');
+    expect(html).toContain('fill="rgba(4, 14, 22, 0.72)"');
+    expect(html).not.toContain("var(--bg-card");
+    // The glass is dark in both themes, so the radar's ink is fixed light, never a theme text token.
+    expect(html).not.toMatch(/var\(--text-(secondary|primary)/);
+    // The player sits in the middle of the radar, north up.
+    expect(html).toMatch(/data-map-boat="player" transform="translate\(64 64\) rotate\(0\)"/);
+    const translate = (attr: string) => [...html.matchAll(new RegExp(`${attr} transform="translate\\(([\\d.-]+) ([\\d.-]+)\\)`, "g"))].map(m => ({ x: Number(m[1]), y: Number(m[2]) }));
+    const inside = (p: { x: number; y: number }) => p.x >= 8 && p.x <= 120 && p.y >= 8 && p.y <= 120;
+    const rivals = translate('data-map-boat="rival"');
+    expect(rivals).toHaveLength(2);
+    expect(inside(rivals[0])).toBe(true);
+    expect(inside(rivals[1])).toBe(false);
+    const full = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} width={128} height={128} focus={focus} />);
+    expect(full).toContain('data-map-mode="course"');
+    expect(full).toContain("var(--bg-card");
+    expect(full).not.toContain("data-map-range");
+  });
+
+  it("puts the corner radar on a transparent button, so only its own glass covers the scene", () => {
+    // An opaque card under the radar glass turned it mid-grey in the light theme.
+    const css = readFileSync(join(process.cwd(), "src/features/race-hud/RaceCornerInstruments.module.css"), "utf8");
+    // The cascade's last background for the button wins (a shared rule gives it the card colour first).
+    const backgrounds = [...css.matchAll(/(?:^|[},])\s*[^{}]*\.instruments \.map\s*\{([^}]*)\}/g)]
+      .map(rule => rule[1].match(/background:\s*([^;]+)/)?.[1].trim()).filter(Boolean);
+    expect(backgrounds.length).toBeGreaterThan(1);
+    expect(backgrounds.at(-1)).toBe("transparent");
+  });
+
+  it("draws mark numbers after the boats so a glyph never covers them", () => {
+    const html = render();
+    expect(html.indexOf("data-map-ordinal")).toBeGreaterThan(html.lastIndexOf("data-map-boat="));
+  });
+
+  // F3: the full map shows the side to leave each mark on, the player's track
+  // and the route hint; the big map's bow up turns every direction glyph.
+  it("shows the rounding side, the track and the route on the full map only", () => {
+    const snapshot = createRaceNavigationSnapshot(input())!;
+    const extra = { track: [{ x: 400, y: 1200 }, { x: 410, y: 1150 }, { x: 400, y: 1100 }], route: [{ x: 400, y: 1100 }, { x: 450, y: 600 }, { x: 500, y: 200 }] };
+    const full = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={{ ...labels, roundPort: "Backbord lassen", track: "Spur", route: "Route" }} {...extra} />);
+    expect(full.match(/data-map-rounding="port"/g)).toHaveLength(1);
+    expect(full).toContain("<title>Backbord lassen</title>");
+    expect(full).toMatch(/data-map-track="" points="[\d., ]+"/);
+    expect(full).toContain('data-map-route=""');
+    const compact = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} compact width={128} height={128} {...extra} />);
+    expect(compact).not.toMatch(/data-map-rounding|data-map-track|data-map-route/);
+    const saved = createRaceNavigationSnapshot(input({ course: { ...makeStandardCourse(), marks: makeStandardCourse().marks.map(m => m.type === "windward" ? { ...m, roundSide: "starboard" as const } : m) } }))!;
+    expect(renderToStaticMarkup(<RaceOverviewMap snapshot={saved} labels={labels} />)).toContain('data-map-rounding="starboard"');
+  });
+
+  it("turns the boats, the wind and north with the big map's bow up view", () => {
+    const snapshot = createRaceNavigationSnapshot(input({ boats: [{ id: "p", pos: { x: 400, y: 1100 }, heading: 30, isPlayer: true }], windFrom: 10 }))!;
+    const view = raceMapView({ fit: mapFitBounds(snapshot), width: 300, height: 300, zoom: 1, orientation: "heading", player: snapshot.boats[0] });
+    const html = renderToStaticMarkup(<RaceOverviewMap snapshot={snapshot} labels={labels} width={300} height={300} view={view} caption={false} testId="big" />);
+    expect(html).toContain('data-testid="big"');
+    expect(html).toContain('data-map-rotation="330"');
+    expect(html).toMatch(/data-map-boat="player" transform="translate\(150 150\) rotate\(0\)"/);
+    expect(html).toMatch(/data-map-north="" d="[^"]+" transform="rotate\(330 18 23.5\)"/);
+    expect(html).toContain('transform="rotate(340)"');
+    expect(html).not.toContain("figcaption");
   });
 });

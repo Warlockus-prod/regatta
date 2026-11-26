@@ -29,6 +29,8 @@ import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios
 import { trackRadioTaskComplete } from '@/lib/funnel';
 import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
+import { ScenarioThumb, ScenarioVisuals } from '@/features/radio-visuals/ScenarioVisuals';
+import { PHONETIC_ENTRY_COPY, PHONETIC_DRILL_HREF } from '@/data/radio/phonetic-entry-copy';
 import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
 import { checkLabel, useTrainerI18n } from './trainerText';
 import { browserStorage, loadProgress as loadStoredProgress, recordAttempt, saveProgress as saveStoredProgress, type ProgressMap, type SaveOutcome } from './progressStore';
@@ -43,7 +45,6 @@ const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 
 // the Whisper voice grader. See docs/design/sternik-radio.md.
 // ============================================================================
 
-const ONBOARD_KEY = 'sternik.radio.onboard.v1';
 const MODEL_KEY = 'sternik.radio.model.v1';
 /** the Practice list's Learn / Exam switch, remembered between visits */
 const MODE_KEY = 'sternik.radio.mode.v1';
@@ -188,17 +189,13 @@ function RadioSimulator() {
     venue,
   };
 
-  // hydrate progress + onboarding
+  // Help opens only from the "?" button: an automatic dialog covered the radio
+  // before the first action (DESIGN.md, audit B5).
   useEffect(() => {
     setProgress(loadProgress());
-    try {
-      const search = new URLSearchParams(radioRuntimeSearch());
-      if (!search.has('scenario') && search.get('practice') !== 'free' && !window.localStorage.getItem(ONBOARD_KEY)) setOnboardStep(0);
-    } catch { /* ignore */ }
   }, []);
 
   const dismissOnboarding = useCallback(() => {
-    try { window.localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* ignore */ }
     setOnboardStep(null);
   }, []);
   const onboardRef = useFocusTrap<HTMLDivElement>(onboardStep !== null, dismissOnboarding);
@@ -521,7 +518,6 @@ function RadioSimulator() {
     const requested = search.get('practice') === 'free' ? FREE_PRACTICE : SCENARIOS.find((item) => item.id === (requestedId === "mob-panpan" ? "mob-mayday" : requestedId));
     if (!requested) return;
     deepLinkStartedRef.current = true;
-    try { window.localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* ignore */ }
     setOnboardStep(null);
     startScenario(requested, 'nauka');
   }, [modelReady, startScenario]);
@@ -694,9 +690,6 @@ function RadioSimulator() {
             <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {radioText(tp('Практика на рации ICOM', 'Practice on the ICOM radio', 'Trening na radiu ICOM'))}
             </h1>
-            {/* The tour used to be a one-shot: shown once, then locked behind a
-                localStorage flag with no way back to it. Anyone who skipped it -
-                or cleared it by finishing once - could never see it again. */}
             <button
               type="button"
               data-testid="replay-onboarding"
@@ -710,11 +703,15 @@ function RadioSimulator() {
             </button>
           </div>
           <p className="mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {radioText(tp(
-              'Учебная копия раций с практической части SRC в UKE. Меню и процедуры - по инструкциям ICOM.',
-              'A training replica of the radios used in the UKE SRC practical. Menus and procedures follow the ICOM manuals.',
-              'Treningowa kopia radiotelefonów z części praktycznej SRC w UKE. Menu i procedury wg instrukcji ICOM.',
-            ))}
+            {radioText(tl({
+              pl: 'Treningowa kopia radiotelefonów z części praktycznej egzaminu SRC. Menu i procedury wg instrukcji ICOM.',
+              ru: 'Учебная копия раций с практической части экзамена SRC. Меню и процедуры - по инструкциям ICOM.',
+              en: 'A training replica of the radios used in the SRC practical exam. Menus and procedures follow the ICOM manuals.',
+              es: 'Réplica de entrenamiento de los radioteléfonos de la parte práctica del examen SRC. Menús y procedimientos según los manuales de ICOM.',
+              fr: "Reproduction d'entraînement des radiotéléphones utilisés lors de l'épreuve pratique SRC. Menus et procédures conformes aux notices ICOM.",
+              de: 'Trainingsnachbildung der Funkgeräte aus dem praktischen Teil der SRC-Prüfung. Menüs und Verfahren gemäß den ICOM-Anleitungen.',
+              it: "Replica didattica dei ricetrasmettitori utilizzati nella parte pratica dell'esame SRC. Menu e procedure conformi ai manuali ICOM.",
+            }))}
           </p>
 
           <button type="button" data-testid="start-free-practice" onClick={()=>startScenario(FREE_PRACTICE,"nauka")} className="mb-4 flex min-h-[56px] w-full items-center justify-between rounded-xl border px-4 py-3 text-left font-semibold" style={{borderColor:"var(--accent-cyan)",color:"var(--accent-cyan)",background:"var(--bg-card)"}}>
@@ -746,7 +743,7 @@ function RadioSimulator() {
                 className="flex min-h-[44px] cursor-pointer list-none items-center gap-1.5 rounded-xl px-3 text-sm font-semibold"
                 style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
               >
-                📻 {radioText(model === 'M323' ? 'IC-M323' : radioRealistic ? tp('M330 реальный', 'M330 real', 'M330 realny') : 'IC-M330')}
+                {radioText(model === 'M323' ? 'IC-M323' : radioRealistic ? tp('M330 реальный', 'M330 real', 'M330 realny') : 'IC-M330')}
                 <span aria-hidden className="group-open:rotate-180">⌄</span>
               </summary>
               <div className="mt-2 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
@@ -777,13 +774,12 @@ function RadioSimulator() {
             className="flex min-h-[56px] items-center gap-3 rounded-2xl px-4 py-2"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
           >
-            <span className="w-7 shrink-0 text-center text-xl" aria-hidden>🎛️</span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>
                 {radioText(tp('Первые шаги: управление рацией', 'First steps: the radio controls', 'Pierwsze kroki: obsługa radia'))}
               </span>
               <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                {radioText(tp('уроки на кнопках рации', 'lessons on the radio keys', 'lekcje na przyciskach radia'))} · {radioText(tp('зад. UKE', 'UKE tasks', 'zad. UKE'))} {radioText(CONTROLS_COURSE_TASKS.join(', '))}
+                {radioText(tp('уроки на кнопках рации', 'lessons on the radio keys', 'lekcje na przyciskach radia'))} · {radioText(tl({ pl: 'zadania egzaminu', ru: 'задания экзамена', en: 'exam tasks', es: 'tareas de examen', fr: "exercices d'examen", de: 'Prüfungsaufgaben', it: "esercizi d'esame" }))} {radioText(CONTROLS_COURSE_TASKS.join(', '))}
               </span>
             </span>
             <span aria-hidden style={{ color: 'var(--text-muted)' }}>›</span>
@@ -808,12 +804,12 @@ function RadioSimulator() {
                         onClick={() => startScenario(sc, mode)}
                         className="flex min-h-[56px] w-full items-center gap-3 px-4 py-2 text-left"
                       >
-                        <span className="w-7 shrink-0 text-center text-xl" aria-hidden>{radioText(sc.icon)}</span>
+                        <ScenarioThumb id={sc.id} />
                         <span className="min-w-0 flex-1">
                           <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{radioText(bi(sc.title))}</span>
                           {tasks.length > 0 && (
                             <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                              {radioText(tasks.length === 1 ? tp('зад. UKE', 'UKE task', 'zad. UKE') : tp('зад. UKE', 'UKE tasks', 'zad. UKE'))} {radioText(tasks.join(', '))}
+                              {radioText(tasks.length === 1 ? tl({ pl: 'zadanie egzaminu', ru: 'задание экзамена', en: 'exam task', es: 'tarea de examen', fr: "exercice d'examen", de: 'Prüfungsaufgabe', it: "esercizio d'esame" }) : tl({ pl: 'zadania egzaminu', ru: 'задания экзамена', en: 'exam tasks', es: 'tareas de examen', fr: "exercices d'examen", de: 'Prüfungsaufgaben', it: "esercizi d'esame" }))} {radioText(tasks.join(', '))}
                             </span>
                           )}
                         </span>
@@ -839,10 +835,10 @@ function RadioSimulator() {
               {[
                 { href: '/radio/rozmowa', icon: '🎙️', title: tp('Живой разговор со станцией', 'Live conversation with a station', 'Rozmowa na żywo ze stacją'), note: tl({ ru: 'Голосовая или текстовая практика', en: 'Voice or typed practice', pl: 'Ćwiczenia głosowe lub tekstowe', es: 'Práctica por voz o por escrito', fr: 'Entraînement oral ou écrit', de: 'Üben per Sprache oder Text', it: 'Esercitazioni vocali o scritte' }) },
                 { href: '/radio/pozycja', icon: '🧭', title: tp('Диктовка позиции', 'Position dictation', 'Dyktowanie pozycji'), note: null },
+                { href: PHONETIC_DRILL_HREF, icon: '🔤', title: tl(PHONETIC_ENTRY_COPY.drillTitle), note: tl(PHONETIC_ENTRY_COPY.listNote) },
               ].map((item, i) => (
                 <li key={item.href} style={i > 0 ? { borderTop: '1px solid var(--border-subtle)' } : undefined}>
                   <Link href={item.href} className="flex min-h-[56px] items-center gap-3 px-4 py-2">
-                    <span className="w-7 shrink-0 text-center text-xl" aria-hidden>{radioText(item.icon)}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{radioText(item.title)}</span>
                       {item.note && <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>{radioText(item.note)}</span>}
@@ -856,7 +852,7 @@ function RadioSimulator() {
 
           <nav className="mt-4 flex flex-wrap gap-x-6" aria-label={radioText(tp('Справка', 'Reference', 'Ściągi'))}>
             <Link href="/radio/zadania" className="flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: 'var(--text-secondary)' }}>
-              📋 {radioText(tp('Все 26 заданий UKE', 'All 26 UKE tasks', 'Wszystkie 26 zadań UKE'))}
+              📋 {radioText(tl({ pl: 'Wszystkie 26 zadań praktycznych', ru: 'Все 26 практических заданий', en: 'All 26 practical tasks', es: 'Las 26 tareas prácticas', fr: 'Les 26 exercices pratiques', de: 'Alle 26 Praxisaufgaben', it: 'Tutti i 26 esercizi pratici' }))}
             </Link>
             <Link href="/radio/sciaga" className="flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: 'var(--text-secondary)' }}>
               📄 {radioText(tp('Шпаргалка', 'Cheat sheet', 'Ściąga'))}
@@ -883,7 +879,7 @@ function RadioSimulator() {
               </span>
               <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>⏱ {radioText(fmtTime(elapsedSec))}</span>
               {!stacked && (
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(scenario.icon)} {radioText(bi(scenario.title))}</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(bi(scenario.title))}</span>
               )}
             </>
           )}
@@ -963,7 +959,7 @@ function RadioSimulator() {
                     <button type="button" className="min-h-[44px] rounded-lg border px-3" style={{ borderColor: "var(--border-subtle)", color: "var(--text-secondary)" }} onClick={()=>startScenario(FREE_PRACTICE,"nauka")}>{radioText("Przywróć ustawienia ćwiczenia")}</button>
                   </div>
                   <h3 className="font-semibold">{radioText("Uruchom sytuację")}</h3>
-                  <div className="divide-y" style={{borderColor:"var(--border-subtle)"}}>{SCENARIOS.map(sc=><button key={sc.id} type="button" className="flex min-h-[44px] w-full items-center justify-between py-2 text-left text-sm" onClick={()=>{setInspect(false);startScenario(sc,"nauka");}}><span>{sc.icon} {radioText(bi(sc.title))}</span><span aria-hidden="true">›</span></button>)}</div>
+                  <div className="divide-y" style={{borderColor:"var(--border-subtle)"}}>{SCENARIOS.map(sc=><button key={sc.id} type="button" className="flex min-h-[44px] w-full items-center justify-between py-2 text-left text-sm" onClick={()=>{setInspect(false);startScenario(sc,"nauka");}}><span>{radioText(bi(sc.title))}</span><span aria-hidden="true">›</span></button>)}</div>
                 </div>
               ) : finishedAt !== null ? (
                 <div data-testid="debrief" role="status" aria-live="polite" className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
@@ -1066,7 +1062,7 @@ function RadioSimulator() {
                           <span className="ml-2 normal-case">{radioText(doneCount)} ✓</span>
                         </div>
                         {stacked && (
-                          <div className="mt-0.5 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(scenario.icon)} {radioText(bi(scenario.title))}</div>
+                          <div className="mt-0.5 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(bi(scenario.title))}</div>
                         )}
                       </div>
                       {/* "?" - show me on the radio which control this step wants.
@@ -1149,6 +1145,8 @@ function RadioSimulator() {
                 ))}
               >
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(bi(scenario.brief))}</p>
+                {/* Package 32: the call as a drawing and the radio's screen at its key moment. Not in the exam: both are hints. */}
+                {learning && <ScenarioVisuals id={scenario.id} name={radioText(bi(scenario.title))} venue={venue} />}
                 <div data-testid="variant-card" className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-xl px-3 py-2 font-mono text-xs" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
                   <span data-testid="variant-area">📍 {radioText(venue.area[lang])}</span>
                   <span>⛵ {radioText(variantData.vessel.name)}</span>
@@ -1199,45 +1197,26 @@ function RadioSimulator() {
           <div ref={onboardRef} className="w-full max-w-md rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
             {[
               {
-                icon: '📻',
-                h: tp('Это копия настоящей рации', 'This is a replica of the real radio', 'To kopia prawdziwego radia'),
-                p: tp('ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.', 'ICOM IC-M330GE - the radio used for the UKE SRC practical, along with the IC-M323. Every key, menu and display follows the original equipment.', 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.'),
-              },
-              {
-                icon: '🗺️',
-                h: tp('Сценарии из реальной жизни', 'Real-life scenarios', 'Scenariusze z życia'),
-                p: tp('Пожар, человек за бортом, поломка, ложный алерт... Каждый шаг объясняется: почему так и зачем.', 'Fire, man overboard, breakdown, false alert... Every step is explained: why this way.', 'Pożar, człowiek za burtą, awaria, fałszywy alert... Każdy krok jest wyjaśniony: dlaczego właśnie tak.'),
-              },
-              {
-                icon: '🎓',
                 h: tp('Два режима', 'Two modes', 'Dwa tryby'),
-                p: tp('Обучение - подсказки на каждом шаге. Экзамен - как в UKE: только ситуация, разбор в конце. Прогресс сохраняется.', 'Learn - hints at every step. Exam - like at UKE: situation only, debrief at the end. Progress is saved.', 'Nauka - wskazówki na każdym kroku. Egzamin - jak w UKE: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.'),
+                p: tl({ pl: 'Nauka - wskazówki na każdym kroku. Egzamin - jak na prawdziwym egzaminie: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.', ru: 'Обучение - подсказки на каждом шаге. Экзамен - как на настоящем экзамене: только ситуация, разбор в конце. Прогресс сохраняется.', en: 'Learn - hints at every step. Exam - like the real exam: situation only, debrief at the end. Progress is saved.', es: 'Aprendizaje: indicaciones en cada paso. Examen: como en el examen real, solo se presenta la situación y la explicación llega al final. El progreso se guarda.', fr: "Apprentissage : des conseils à chaque étape. Examen : comme à l'examen réel, avec seulement la situation et un bilan à la fin. Votre progression est enregistrée.", de: 'Lernen - Hinweise bei jedem Schritt. Prüfung - wie in der echten Prüfung: nur die Situation, die Auswertung folgt am Ende. Dein Fortschritt wird gespeichert.', it: "Apprendimento - suggerimenti a ogni passaggio. Esame - come all'esame vero: solo la situazione, con analisi finale. I progressi vengono salvati." }),
               },
               {
-                icon: '🔍',
                 h: tp('Не знаешь кнопку - включи Разбор', 'Do not know a key? Turn on Inspect', 'Nie znasz klawisza? Włącz Rozbiór'),
                 p: tp('В режиме "Разбор" рация не работает: жми любую кнопку, индикатор или экран - она объяснит, что это, зачем нужна и когда используется. А кнопка "?" подсветит ту кнопку, которую надо нажать сейчас.', 'In Inspect mode the radio does not react: tap any key, indicator or the screen and it explains what it is, why it exists and when you use it. The "?" button spotlights the control you need right now.', 'W trybie Rozbiór radio nie działa: dotknij dowolnego klawisza, wskaźnika lub ekranu, a wyjaśni, co to jest, po co i kiedy się tego używa. Przycisk "?" podświetli klawisz, który masz teraz nacisnąć.'),
               },
               {
-                icon: '🔊',
-                h: tp('Слушай рацию', 'Listen to the radio', 'Słuchaj radia'),
-                p: tp('У рации есть звук: шум эфира, писк клавиш, отказ на 70-м канале, тревога DSC. Шумоподавитель (SQL) настраивают на слух - задерёшь порог ради тишины и не услышишь слабый далёкий вызов. Именно это и проверяют на экзамене.', 'The radio has sound: the hiss of an open channel, key beeps, the refusal on channel 70, the DSC alarm. Squelch is set BY EAR - turn it up for silence and you go deaf to the weak distant call. That is what the exam is testing.', 'Radio ma dźwięk: szum eteru, piski klawiszy, odmowa na kanale 70, alarm DSC. Blokadę szumów (SQL) ustawia się SŁUCHEM - podkręć ją dla ciszy, a ogłuchniesz na słabe, dalekie wywołanie. Właśnie to sprawdza egzamin.'),
-              },
-              {
-                icon: '🎤',
                 h: tp('Говори в эфир, станция ответит голосом', 'Speak on air - the station answers out loud', 'Mów do eteru - stacja odpowie głosem'),
                 p: tp('MAYDAY и PAN-PAN наговариваешь в микрофон. Речь распознаётся, структура сообщения проверяется по чек-листу, а в дневнике остаётся дословно то, что ты сказал, и то, чего не хватило. Береговая станция отвечает голосом, как в эфире.', 'You speak MAYDAY and PAN-PAN into the mic. The speech is transcribed, the message structure is graded against a checklist, and the journal keeps your exact words plus what was missing. The coast station answers out loud, as it would on air.', 'MAYDAY i PAN-PAN mówisz do mikrofonu. Mowa jest rozpoznawana, struktura komunikatu oceniana według listy, a w dzienniku zostaje dosłownie to, co powiedziałeś, i to, czego zabrakło. Stacja brzegowa odpowiada głosem, jak w eterze.'),
               },
             ].map((card, i) => (i === onboardStep ? (
               <div key={i}>
-                <div className="text-3xl">{radioText(card.icon)}</div>
-                <div className="mt-2 text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{radioText(card.h)}</div>
+                <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{radioText(card.h)}</div>
                 <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(card.p)}</p>
               </div>
             ) : null))}
             <div className="mt-4 flex items-center justify-between">
               <div className="flex gap-1.5">
-                {[0, 1, 2, 3, 4, 5].map((i) => (
+                {[0, 1, 2].map((i) => (
                   <span key={i} className="h-1.5 w-5 rounded-full" style={{ background: i <= onboardStep ? 'var(--accent-cyan)' : 'var(--border-subtle)' }} />
                 ))}
               </div>
@@ -1248,19 +1227,19 @@ function RadioSimulator() {
                   className="min-h-[44px] rounded-lg px-3 text-xs"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  {radioText(tp('Пропустить', 'Skip', 'Pomiń'))}
+                  {radioText(tl({ pl: 'Zamknij', ru: 'Закрыть', en: 'Close', es: 'Cerrar', fr: 'Fermer', de: 'Schließen', it: 'Chiudi' }))}
                 </button>
                 <button
                   type="button"
                   data-testid="onboard-next"
                   onClick={() => {
-                    if (onboardStep >= 5) dismissOnboarding();
+                    if (onboardStep >= 2) dismissOnboarding();
                     else setOnboardStep(onboardStep + 1);
                   }}
                   className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
                   style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                 >
-                  {radioText(onboardStep >= 5 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej'))}
+                  {radioText(onboardStep >= 2 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej'))}
                 </button>
               </div>
             </div>

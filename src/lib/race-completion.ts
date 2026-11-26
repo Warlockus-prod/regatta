@@ -1,6 +1,7 @@
 import { SAILING_STEP_SECONDS } from "@/features/sailing-lab/runtime/fixed-clock";
 import { raceAutopilotTurn, resolveCollisions, stepBoat, updateLap, windAt, type RaceBoat, type RaceCourse } from "./race-physics";
 import { evaluateRaceRules, type RaceRulesState } from "./race-rules";
+import { raceScale } from "./race-scale";
 import type { NativeRaceSnapshot } from "./race-native";
 
 const MAX_RACE_SECONDS = 300;
@@ -32,7 +33,8 @@ export function resolveFinishedFleet<T extends RaceBoat & { speedMul?: number }>
       const turn = raceAutopilotTurn(boat, frame.course, wind.dir);
       stepBoat(boat, SAILING_STEP_SECONDS, wind.dir, wind.gust, { turn }, { windStrengthMul: frame.windStrengthMul, speedMul: boat.speedMul, steering: "legacy" });
     }
-    rules = evaluateRaceRules(rules, { boats, course: frame.course, windDir: wind.dir, time, racing: true,
+    // The legacy resolver judges with the legacy scale, named so no default can leak (M5).
+    rules = evaluateRaceRules(rules, { boats, course: frame.course, windDir: wind.dir, time, racing: true, scale: raceScale(null),
       enabled: frame.rulesEnabled, penalties: frame.penaltiesEnabled, previousPositions }).state;
     resolveCollisions(boats, SAILING_STEP_SECONDS);
     for (const boat of boats) if (!boat.isPlayer && boat.lapDone < 2) updateLap(boat, previousPositions[boat.id], frame.course, time);

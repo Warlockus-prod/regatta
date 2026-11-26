@@ -11,8 +11,8 @@ export const THEORY_SECTION_LABELS = {
     es: "Conceptos que debes distinguir", fr: "Notions à distinguer", de: "Begriffe unterscheiden", it: "Concetti da distinguere",
   },
   questionAreas: {
-    pl: "Powiązane obszary banku UKE", ru: "Связанные темы базы UKE", en: "Related UKE question topics",
-    es: "Temas relacionados del banco UKE", fr: "Thèmes associés de la banque UKE", de: "Verwandte Themen der UKE-Fragenbank", it: "Argomenti correlati della banca UKE",
+    pl: "Powiązane obszary bazy pytań", ru: "Связанные темы базы вопросов", en: "Related exam question topics",
+    es: "Temas relacionados del banco de preguntas", fr: "Thèmes associés de la banque de questions", de: "Verwandte Themen der Fragenbank", it: "Argomenti correlati della banca domande",
   },
   situation: {
     pl: "Sytuacja z życia", ru: "Ситуация из жизни", en: "A real-life situation",
@@ -35,8 +35,8 @@ export const THEORY_SECTION_LABELS = {
     es: "Procedimiento paso a paso", fr: "Procédure étape par étape", de: "Schrittweise Vorgehensweise", it: "Procedura passo per passo",
   },
   exam: {
-    pl: "Na egzaminie UKE", ru: "На экзамене UKE", en: "In the UKE exam",
-    es: "En el examen UKE", fr: "À l'examen UKE", de: "In der UKE-Prüfung", it: "All'esame UKE",
+    pl: "Na egzaminie", ru: "На экзамене", en: "At the exam",
+    es: "En el examen", fr: "À l'examen", de: "In der Prüfung", it: "All'esame",
   },
   practice: {
     pl: "Na prawdziwym rejsie", ru: "В реальном рейсе", en: "On a real voyage",
@@ -47,9 +47,16 @@ export const THEORY_SECTION_LABELS = {
     es: "Europa y el mundo", fr: "L'Europe et le monde", de: "Europa und die Welt", it: "L'Europa e il mondo",
   },
   questionPreview: {
-    pl: "Co znajdziesz w pytaniach UKE", ru: "Что встретится в вопросах UKE", en: "What the UKE questions cover",
-    es: "Qué incluyen las preguntas UKE", fr: "Ce que couvrent les questions UKE", de: "Was die UKE-Fragen behandeln", it: "Cosa trattano le domande UKE",
+    pl: "Co znajdziesz w pytaniach egzaminacyjnych", ru: "Что встретится в экзаменационных вопросах", en: "What the exam questions cover",
+    es: "Qué incluyen las preguntas de examen", fr: "Ce que couvrent les questions d'examen", de: "Was die Prüfungsfragen behandeln", it: "Cosa trattano le domande d'esame",
   },
 } satisfies Record<string, Record<Lang, string>>;
 
 export type TheorySectionId = keyof typeof THEORY_SECTION_LABELS;
+
+/** Package 32: shown under the drawing on a phone, where the drawing is wider than the screen. */
+export const THEORY_DIAGRAM_SWIPE_HINT: Record<Lang, string> = {
+  ru: "Схема шире экрана: листайте ее вбок", en: "The diagram is wider than the screen: swipe it sideways", pl: "Schemat jest szerszy niż ekran: przesuń go w bok",
+  es: "El esquema es más ancho que la pantalla: deslízalo hacia un lado", fr: "Le schéma est plus large que l'écran : faites-le glisser sur le côté",
+  de: "Das Schema ist breiter als der Bildschirm: seitlich wischen", it: "Lo schema è più largo dello schermo: scorrilo di lato",
+};

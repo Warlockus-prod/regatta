@@ -1,7 +1,7 @@
 import { readRaceContext, type PhysicalRaceContext } from "./race-context";
 import { matchesPhysicalRaceCourse, physicalCourseDefinition } from "./race-courses";
 import { segmentCrossed, type RaceBoat, type RaceCourse, type Vec2 } from "./race-physics";
-import type { PhysicalRaceMotion } from "./race-physical-motion";
+import { PHYSICAL_MOTION_MAX_BENDS, type PhysicalRaceMotion } from "./race-physical-motion";
 
 export type PhysicalRaceStage = "start" | "round-east" | "round-north" | "round-west" | "finish" | "complete";
 type Gate = { readonly a: Readonly<Vec2>; readonly b: Readonly<Vec2> };
@@ -38,9 +38,12 @@ export function physicalRaceStage(boat: Pick<RaceBoat, "lapDone" | "started" | "
 
 const point = (p: Readonly<Vec2> | undefined) => !!p && Number.isFinite(p.x) && Number.isFinite(p.y);
 
-/** Advance only from actual propelled endpoints, never the boat position
- * after boundary recovery or collision separation. The caller supplies one
- * fixed engine step and the official race time; countdown motion is ungraded.
+/** Advance only from actual propelled travel, never the boat position
+ * after boundary recovery or collision separation. The travelled polyline
+ * from -> path... -> to (ADR-0015 point 4) is graded segment by segment, each
+ * with its own direction check, so a gate counts iff the path itself crosses
+ * it, never because the chord from -> to does. The caller supplies one fixed
+ * engine step and the official race time; countdown motion is ungraded.
  * A rejected frame leaves all progress fields untouched. */
 export function advancePhysicalRaceProgress(boat: RaceBoat, motion: PhysicalRaceMotion,
   context: PhysicalRaceContext, course: RaceCourse, raceTime: number, racing: boolean): {
@@ -48,6 +51,8 @@ export function advancePhysicalRaceProgress(boat: RaceBoat, motion: PhysicalRace
   } | null {
   const gates = physicalRaceGates(context, course);
   if (!gates || !boat || !motion || !point(motion.from) || !point(motion.to)
+    || motion.path !== undefined && (!Array.isArray(motion.path) || motion.path.length > PHYSICAL_MOTION_MAX_BENDS
+      || !motion.path.every(point))
     || !Number.isFinite(raceTime) || raceTime < 0 || typeof racing !== "boolean"
     || ![0, 1, 2].includes(boat.lapDone) || ![0, 1, 2].includes(boat.roundPhase ?? 0)
     || boat.started !== undefined && typeof boat.started !== "boolean"
@@ -59,22 +64,27 @@ export function advancePhysicalRaceProgress(boat: RaceBoat, motion: PhysicalRace
     || boat.finishTime !== undefined && (!Number.isFinite(boat.finishTime) || boat.finishTime < 0)) return null;
   const stage = physicalRaceStage(boat);
   if (!racing || stage === "complete") return { stage, event: null };
-  const { from, to } = motion;
-  const crosses = (gate: Gate) => segmentCrossed(from, to, gate.a, gate.b);
-  if (stage === "start" && to.y < from.y && crosses(gates.start)) {
-    boat.started = true; return { stage: "round-east", event: "start" };
-  }
-  if (stage === "round-east" && to.y < from.y && crosses(gates.rounding[0])) {
-    boat.roundPhase = 1; return { stage: "round-north", event: "round-east" };
-  }
-  if (stage === "round-north" && to.x < from.x && crosses(gates.rounding[1])) {
-    boat.roundPhase = 2; return { stage: "round-west", event: "round-north" };
-  }
-  if (stage === "round-west" && to.y > from.y && crosses(gates.rounding[2])) {
-    boat.lapDone = 1; return { stage: "finish", event: "mark" };
-  }
-  if (stage === "finish" && to.y > from.y && crosses(gates.finish)) {
-    boat.lapDone = 2; boat.finishTime = raceTime; return { stage: "complete", event: "finish" };
+  // One stage per tick, as before: the first segment that crosses the current
+  // stage's gate in its required direction advances it.
+  const points = [motion.from, ...(motion.path ?? []), motion.to];
+  for (let i = 1; i < points.length; i++) {
+    const from = points[i - 1], to = points[i];
+    const crosses = (gate: Gate) => segmentCrossed(from, to, gate.a, gate.b);
+    if (stage === "start" && to.y < from.y && crosses(gates.start)) {
+      boat.started = true; return { stage: "round-east", event: "start" };
+    }
+    if (stage === "round-east" && to.y < from.y && crosses(gates.rounding[0])) {
+      boat.roundPhase = 1; return { stage: "round-north", event: "round-east" };
+    }
+    if (stage === "round-north" && to.x < from.x && crosses(gates.rounding[1])) {
+      boat.roundPhase = 2; return { stage: "round-west", event: "round-north" };
+    }
+    if (stage === "round-west" && to.y > from.y && crosses(gates.rounding[2])) {
+      boat.lapDone = 1; return { stage: "finish", event: "mark" };
+    }
+    if (stage === "finish" && to.y > from.y && crosses(gates.finish)) {
+      boat.lapDone = 2; boat.finishTime = raceTime; return { stage: "complete", event: "finish" };
+    }
   }
   return { stage, event: null };
 }

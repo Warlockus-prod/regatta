@@ -123,16 +123,16 @@ export default function SupportPage() {
               )}
             />
             <Faq
-              q={tp('Лидерборд и онлайн-гонки?', 'Leaderboard and online races?', 'Ranking i wyścigi online?',
+              q={tp('Результаты гонок и мультиплеер?', 'Leaderboard and online races?', 'Ranking i wyścigi online?',
                 { es: '¿Clasificación y regatas en línea?', fr: 'Classement et courses en ligne ?', de: 'Bestenliste und Online-Rennen?', it: 'Classifica e gare online?' })}
               a={tp(
-                'История твоих гонок хранится на устройстве. Общий лидерборд и мультиплеер уже работают онлайн - на сайте и в приложении.',
+                'История твоих гонок хранится на устройстве. Общие результаты гонок и мультиплеер уже работают онлайн - на сайте и в приложении.',
                 'Your race history stays on your device. The global leaderboard and multiplayer already work online, on the website and in the app.',
                 'Historia Twoich wyścigów zostaje na urządzeniu. Globalny ranking i tryb multiplayer działają już online - na stronie i w aplikacji.',
                 {
                   es: 'Tu historial de regatas se queda en tu dispositivo. La clasificación global y el multijugador ya funcionan en línea, en la web y en la app.',
                   fr: "L'historique de tes courses reste sur ton appareil. Le classement général et le multijoueur fonctionnent déjà en ligne, sur le site et dans l'appli.",
-                  de: 'Dein Rennverlauf bleibt auf deinem Gerät. Die globale Rangliste und der Mehrspielermodus funktionieren bereits online, auf der Website und in der App.',
+                  de: 'Dein Rennverlauf bleibt auf deinem Gerät. Die globale Bestenliste und der Mehrspielermodus funktionieren bereits online, auf der Website und in der App.',
                   it: "La cronologia delle tue regate resta sul dispositivo. La classifica globale e il multiplayer funzionano già online, sul sito e nell'app.",
                 },
               )}

@@ -1,5 +1,6 @@
 import { dailySettings } from "../../../src/lib/daily-challenge";
 import { bootcampLessons } from "../../../src/data/bootcamp";
+import { isRaceFinishNativeHref } from "../../../src/lib/race-practice";
 
 const knownLesson = (id: unknown): id is string => typeof id === "string" && bootcampLessons.some(lesson => lesson.id === id);
 
@@ -10,10 +11,17 @@ export function raceEntryQuery(params: Record<string, string | string[] | undefi
     const value = params[name];
     if (typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value)) query[name] = value;
   }
-  if (params.camera === "orbit" || params.camera === "high" || params.camera === "stern") query.camera = params.camera;
+  if (params.camera === "race" || params.camera === "orbit" || params.camera === "high" || params.camera === "stern") query.camera = params.camera;
   if (knownLesson(params.fromLesson)) query.fromLesson = params.fromLesson;
   // The on-screen frame counter (?fps=1) for checks on a device.
   if (params.fps === "1") query.fps = "1";
+  // F5: the Race hub's "How to race" opens the race page only to read its intro.
+  if (params.intro === "1") query.intro = "1";
+  // Package 31: the water on the whole screen is the race's own default on a touch
+  // screen (src/lib/race-water-layout.ts); a deep link can still ask for it (water=1)
+  // or for the old dock (water=0), and the old prototype build flag still forces it.
+  if (params.water === "1" || params.water === "0") query.water = params.water;
+  else if (process.env.EXPO_PUBLIC_RACE_WATER === "1") query.water = "1";
   const day = typeof params.daily === "string" ? params.daily : params.course === "daily" ? now.toISOString().slice(0, 10) : null;
   if (day) {
     try {
@@ -31,5 +39,8 @@ export function raceNativeDestination(href: unknown, fromLesson?: unknown): stri
   if (href === "/" || href === "/race") return knownLesson(fromLesson) ? `/bootcamp/${fromLesson}` : "/race";
   if (href === "/history" || href === "/leaderboard") return href;
   if (typeof href === "string" && /^\/replay\/[a-zA-Z0-9_-]{1,100}$/.test(href)) return href;
+  // M4-2: the practice of a debrief mistake, the next lesson or the sails
+  // course, only from the shared list (src/data/race-practice.ts).
+  if (isRaceFinishNativeHref(href)) return href;
   return null;
 }
