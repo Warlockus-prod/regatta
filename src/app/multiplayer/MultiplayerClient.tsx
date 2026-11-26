@@ -493,7 +493,7 @@ export default function MultiplayerClient() {
               <div className="text-2xl font-bold mb-1">{tp('Гонка окончена', 'Race finished', 'Wyścig zakończony', { es: 'Regata terminada', fr: 'Course terminée', de: 'Rennen beendet', it: 'Regata conclusa' })}</div>
               <div className="text-xs text-[var(--text-muted)]">{room?.code}</div>
             </div>
-            <div className="space-y-1 mb-4">
+            <div className="space-y-1 mb-4" data-analytics-ignore>
               {results.map((r, i) => (
                 <div key={r.id} className="flex items-center justify-between py-1.5 px-2 rounded"
                      style={{ background: r.id === room?.myId ? 'rgba(0,212,255,0.1)' : 'transparent' }}>

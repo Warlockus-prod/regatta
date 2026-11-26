@@ -12,7 +12,8 @@
  *   localStorage (capped at 50 entries). On next page load, flush the
  *   buffer opportunistically.
  * - Per-page-load budgets, one per kind, so a noisy kind cannot starve the
- *   others: 50 JS errors, 50 funnel events, 100 of everything else. A
+ *   others: 50 JS errors, 50 funnel events, 150 clicks, 100 of everything
+ *   else. A repeated click on the same control counts once per minute. A
  *   recurring error during a 90-minute exam no longer eats the exam.finish.
  *
  * Sends nothing at all (see analyticsDisabled()) to automated browsers and
@@ -39,14 +40,16 @@ const BUFFER_KEY = 'regatta.log-buffer.v1';
 const DEDUP_WINDOW_MS = 60_000; // 1 minute per signature
 const MAX_BUFFERED = 50;
 
-type Budget = 'error' | 'funnel' | 'other';
-const BUDGET_LIMITS: Record<Budget, number> = { error: 50, funnel: 50, other: 100 };
+type Budget = 'error' | 'funnel' | 'click' | 'other';
+// ui.click has its own budget so a busy page never starves page.view.
+const BUDGET_LIMITS: Record<Budget, number> = { error: 50, funnel: 50, click: 150, other: 100 };
 
 const dedupMap = new Map<string, number>(); // signature -> last emission ts
-const sent: Record<Budget, number> = { error: 0, funnel: 0, other: 0 };
+const sent: Record<Budget, number> = { error: 0, funnel: 0, click: 0, other: 0 };
 
 function budgetOf(evt: string): Budget {
   if (evt.startsWith('js.')) return 'error';
+  if (evt === 'ui.click') return 'click';
   return FUNNEL_EVENTS.has(evt) ? 'funnel' : 'other';
 }
 
@@ -82,14 +85,24 @@ function hashSig(level: Level, evt: string, fields: Record<string, unknown>): st
   const path = String(fields.path ?? '').slice(0, 80);
   // Events on one page that differ only by id (radio theory chapters,
   // simulator scenarios, two views of the same route) stay distinct.
-  const id = String(fields.lessonId ?? fields.taskId ?? fields.viewId ?? '').slice(0, 64);
+  // Clicks on different controls of one view stay distinct too (target first).
+  const id = String(fields.target ?? fields.lessonId ?? fields.taskId ?? fields.viewId ?? '').slice(0, 64);
   return `${level}:${evt}:${path}:${id}:${msg}:${firstStackLine}`;
 }
 
+/** postMessage type the iOS app forwards to /api/log (mobile first-party.ts). */
+export const RELAY_LOG_MESSAGE = 'regatta-log';
+
 function send(body: string): void {
-  // The app's offline radio bundle runs from file://, where there is no
-  // /api/log to reach (it relays what matters over postMessage instead).
-  if (!/^https?:$/.test(window.location.protocol)) return;
+  // The app's offline bundles (radio, sailing) run from file://, where there
+  // is no /api/log to reach. Inside the app they hand the event to the native
+  // side, which sends it to /api/log with the same consent check; anywhere
+  // else (a saved file) nothing is sent.
+  if (!/^https?:$/.test(window.location.protocol)) {
+    const rn = (window as unknown as { ReactNativeWebView?: { postMessage?: (m: string) => void } }).ReactNativeWebView;
+    if (typeof rn?.postMessage === 'function') rn.postMessage(JSON.stringify({ type: RELAY_LOG_MESSAGE, body }));
+    return;
+  }
   const url = '/api/log';
   if (navigator.sendBeacon) {
     const ok = navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));

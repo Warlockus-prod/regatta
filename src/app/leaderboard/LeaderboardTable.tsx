@@ -17,7 +17,7 @@ export function LeaderboardTable({ rows, copy, lang, testId, empty }: {
   rows: LeaderboardRow[]; copy: LeaderboardCopy; lang: Lang; testId: string; empty?: ReactNode;
 }) {
   if (rows.length === 0) return <div className="py-8 text-center text-base text-[var(--text-muted)]" data-testid={`${testId}-empty`}>{empty ?? copy.empty}</div>;
-  return <ol className="m-0 list-none space-y-1 p-0" data-testid={testId}>
+  return <ol className="m-0 list-none space-y-1 p-0" data-testid={testId} data-analytics-ignore>
     {rows.map((row, index) => {
       const place = index + 1;
       return <li key={`${row.nickname}-${index}`} data-me={row.isMe || undefined}

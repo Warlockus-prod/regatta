@@ -10,6 +10,7 @@ import { I18nProvider, useI18n } from '../src/i18n/context';
 import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
+import { FirstPartyActivity } from '../src/analytics/FirstPartyActivity';
 import { AppNavigation } from '../src/navigation/AppNavigation';
 import { colors } from '../src/design-system/tokens';
 import { isFoundationLesson } from '../src/bootcamp/lesson-position';
@@ -46,6 +47,7 @@ export default function RootLayout() {
               <SplashGate fontsReady={fontsLoaded || Boolean(fontError)}>
                 <FirstLaunchGate>
                   <DiagnosticLifecycle />
+                  <FirstPartyActivity />
                   <AppNavigation>
                   <Stack
                     screenOptions={({ route }) => ({
