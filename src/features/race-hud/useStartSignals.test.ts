@@ -18,6 +18,7 @@ vi.mock("react", async original => ({
 vi.mock("@/lib/sounds", () => ({ playStartSignal: vi.fn((signal: string) => { hooks.played.push(signal); }) }));
 import { useStartSignals } from "./useStartSignals";
 
+// eslint-disable-next-line react-hooks/rules-of-hooks -- react is mocked so the hook runs inline outside React
 const screen = (second: number | null, key: string | number = "race-1") => { hooks.index = 0; useStartSignals(second, key); };
 beforeEach(() => { hooks.slots = []; hooks.played = []; });
 

@@ -62,6 +62,7 @@ export function RaceIntro({ open, pro, onEnd, upwindTwa }: RaceIntroProps) {
     else if (!e.shiftKey && active === tail) { e.preventDefault(); head.focus(); }
   };
   const keyRef = useRef(onKey);
+  // eslint-disable-next-line react-hooks/refs -- latest-handler ref for the keydown listener set up once
   keyRef.current = onKey;
   useEffect(() => {
     // Back to the opener (the lobby link, the settings button) when the sheet goes.

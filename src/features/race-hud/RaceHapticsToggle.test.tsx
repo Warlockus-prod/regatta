@@ -60,6 +60,7 @@ describe("RaceHapticsToggle", () => {
 
 describe("useRaceHaptics", () => {
   let seen: ReturnType<typeof useRaceHaptics> | null = null;
+  // eslint-disable-next-line react-hooks/globals -- the probe hands the hook result to the test
   function Probe({ surface }: { surface?: "race" | "multiplayer" }) { seen = useRaceHaptics(surface); return null; }
 
   it("is not offered on a desktop browser without a vibration motor", () => {

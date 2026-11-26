@@ -81,6 +81,7 @@ export function BowSpray({ boatsRef, profileRef }: {
     for (let i = 0; i < boats.length; i++) if (boats[i].isPlayer) { player = boats[i]; break; }
     const profile = profileRef.current;
     const enabled = !reduced.current && profile.spray > 0;
+    // eslint-disable-next-line react-hooks/immutability -- three.js resources held for the component's life, mutated per frame in useFrame
     mesh.visible = enabled;
     if (!enabled || !player) {
       field.clear();

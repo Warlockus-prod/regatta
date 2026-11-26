@@ -63,6 +63,7 @@ function sail({ hints = { seen: new Set(), revision: 0 }, physical = false, head
   } as unknown as RaceLoopInput["refs"];
   const soundscape = { update: vi.fn(), winch: vi.fn(), thud: vi.fn(), setLive: vi.fn(), silence: vi.fn(), dispose: vi.fn() } satisfies RaceSoundscape;
   const showContact = vi.fn(), showHint = vi.fn();
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- react is mocked so the hook runs inline outside React
   useRaceLoop({ showHint, gameState: "racing", difficulty: "easy", windStrength: "medium", selectedMission: null, lang: "en", tp: (_ru, en) => en, paused, sceneReady: true,
     showEvent: vi.fn(), showNotice: vi.fn(), showContact, requestNativeBest: vi.fn(), soundscape, refs, set });
   for (let i = 1, now = frameMs; frame && i <= frames; i++, now += frameMs) { onFrame?.(i, refs); const step = frame; frame = null; step(now); }

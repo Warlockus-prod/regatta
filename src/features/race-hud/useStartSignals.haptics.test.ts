@@ -18,6 +18,7 @@ vi.mock("@/lib/diagnostics-web", () => ({ recordWebDiagnostic: vi.fn() }));
 import { useStartSignals } from "./useStartSignals";
 import { HAPTIC_PATTERNS, resetRaceHapticsForTests } from "@/lib/race-haptics";
 
+// eslint-disable-next-line react-hooks/rules-of-hooks -- react is mocked so the hook runs inline outside React
 const screen = (second: number | null) => { hooks.index = 0; useStartSignals(second, "race-1"); };
 let clock = 0;
 const vibrate = vi.fn((pattern: number[]) => { hooks.haptics.push(pattern.join(",")); return true; });
