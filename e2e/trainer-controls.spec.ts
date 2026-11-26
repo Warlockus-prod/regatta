@@ -230,6 +230,9 @@ test("sliders mode: the dock folds to its tab strip and the scene takes the scre
 // on the water, and nothing scrolls beneath them. The hint and Diagnostics live in the menu: they
 // follow the wheels there without an empty band and are reached by scrolling the dock.
 test("wheel mode: wheels alone on the water, the hint and Diagnostics in the menu without an empty band", async ({ page }) => {
+  // Same budget as the other scene cases here: the 20 s startup deadline alone
+  // left the GPU-less CI runner too little of the default 30 s for the menu checks.
+  test.setTimeout(60_000);
   await page.setViewportSize(PHONE);
   await page.addInitScript(() => {
     localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
