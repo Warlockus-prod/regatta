@@ -181,8 +181,12 @@ npm run dev -- --port 3007   # другой порт (нужно для ворк
 - Локальная админка: `/stats` закрыта basic-auth и без переменной
   `ADMIN_PASSWORD` отдает 503 (фолбэка в коде нет). Для локальной разработки
   задайте `ADMIN_PASSWORD` в `.env.local` любым значением.
-- Ворктри: Turbopack не принимает symlink на `node_modules`. Копируйте его из
-  основного чекаута через `cp -Rc` и поднимайте превью на своем порту.
+- Ворктри: Turbopack не принимает symlink на `node_modules`. Делайте в ворктри
+  `npm ci` (с кешем npm около 10 с) и поднимайте превью на своем порту.
+  Копировать `cp -Rc` из основного чекаута можно, только если там тот же
+  `package-lock.json`: на 2026-11-21 там Next 16.2.11 вместо 16.3.8, и сборка
+  на нем дает 9,35 МБ вместо 6,51 МБ (`scripts/check-bundle-size.mjs` теперь
+  падает на таком расхождении).
 - Next 16 в dev иногда пишет шумное `Can't resolve 'tailwindcss'` уровнем выше
   репозитория. Это косметика (tailwind лежит в `node_modules` проекта),
   игнорировать, если `/` не отдает 500.
@@ -233,8 +237,8 @@ BASE_URL=http://localhost:3025 npm run check:ui   # кегль, цели, кон
   Non-main workflow_dispatch проверяет candidate без публикации/деплоя.
   Изменение тестов не означает, что следующий browser gate уже пройден.
 - Browser Menu inventory counts catalog destinations separately from its always-reachable Diagnostics utility. The utility must keep its localized name, exact route and 44px target during empty search and after clear. DIAL browser checks use the actual LCD label `Volume:` while preserving real SQL and rim motion, lesson completion, release and geometry checks; no timeout increase.
-- The Pro smoke case attaches private CI observations before its initial clock check and in finally: bounded pageerror stacks, actual scene-startup/clock/visibility and only the shared parser's canonical diagnostic snapshot. Invalid storage never leaves the browser probe. Both deploy-workflow browser reports upload on success/failure for 14 days, including flaky-success evidence; assertions, trace policy, permissions and main-only release guards stay unchanged.
-- Pro canvas visibility and actual first-frame readiness share one 25s startup deadline before the unchanged 15s clock check and 120s case limit. CI runs independent browser cases with one worker; local defaults and each multiplayer case's real concurrent clients stay unchanged. Recorded WebGL2/ReadPixels stalls and heavy-scene overlap justify isolation, but contention as the sole cause is not proven.
+- Both Pro smoke cases attach private CI observations in finally (the first one also before its initial clock check): bounded pageerror stacks, actual scene-startup/clock/visibility and only the shared parser's canonical diagnostic snapshot. Invalid storage never leaves the browser probe. Both deploy-workflow browser reports upload on success/failure for 14 days, including flaky-success evidence; assertions, trace policy, permissions and main-only release guards stay unchanged.
+- Pro canvas visibility and actual first-frame readiness share one 25s startup deadline before the unchanged 15s clock check and 120s case limit. The Pro flow is two cases, each with its own first race: controls, clock, pause, settings, another tab and resume; slider-mode keyboard sheets, exit and a second start without the briefing. Run 44190980405 rendered every 3D test about 1.5x slower and the combined case passed 120s in all three attempts; do not raise the limit, split. CI runs independent browser cases with one worker; local defaults and each multiplayer case's real concurrent clients stay unchanged. Recorded WebGL2/ReadPixels stalls and heavy-scene overlap justify isolation, but contention as the sole cause is not proven.
 - Checkpoint64 adds `e2e/race-navigation.spec.ts` to the same loopback pre-deploy command and finite expected-file guard. It covers actual running Map, wind choices and Helm return; main-only publication, pinned actions, secrets and host authority stay unchanged.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована

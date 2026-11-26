@@ -53,6 +53,10 @@ import path from 'node:path';
 // still ~0.94 MB, no new dependency. Baseline after this change: 6,905,257
 // bytes (~6.59 MB), so the headroom is ~15 KB on purpose. Next growth means
 // moving radio and course data out of the client bundle.
+//
+// 2026-11-21: baseline on main 4438ded1 after `npm ci` is 6,821,736 bytes
+// (~6.51 MB, headroom ~96 KB). A 9.35 MB reading on the same commit came from
+// a stale install, not from code; see checkInstalledMatchesLock below.
 const BUDGET_MB_TOTAL = 6.6;
 
 // Single largest chunk. If one chunk balloons past this, something got
@@ -111,6 +115,43 @@ function checkServerChunks() {
   return problems;
 }
 
+/**
+ * Chunk sizes only mean something when the build ran on the dependencies the
+ * lockfile pins. 2026-11-21: main at 4438ded1 measured 9.35 MB on a copy of
+ * the root checkout's node_modules (Next 16.2.11, lockfile pins 16.3.8) and
+ * 6.51 MB after `npm ci`. The older Turbopack gave several routes their own
+ * copy of the ~0.94 MB three.js vendor chunk. Returns one line per runtime
+ * dependency whose installed version differs from package-lock.json.
+ */
+function checkInstalledMatchesLock() {
+  const pkgPath = path.resolve('package.json');
+  const lockPath = path.resolve('package-lock.json');
+  if (!fs.existsSync(pkgPath) || !fs.existsSync(lockPath)) return [];
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+  const problems = [];
+  for (const name of Object.keys(pkg.dependencies ?? {})) {
+    const wanted = lock.packages?.[`node_modules/${name}`]?.version;
+    if (!wanted) continue;
+    const installedPath = path.resolve('node_modules', name, 'package.json');
+    const installed = fs.existsSync(installedPath)
+      ? JSON.parse(fs.readFileSync(installedPath, 'utf8')).version
+      : 'missing';
+    if (installed !== wanted) problems.push(`${name}: installed ${installed}, lockfile ${wanted}`);
+  }
+  // The build stamps the Next version it ran on, which catches a .next left
+  // over from an older install even after node_modules was fixed.
+  const frameworkPath = path.resolve('.next/diagnostics/framework.json');
+  const wantedNext = lock.packages?.['node_modules/next']?.version;
+  if (wantedNext && fs.existsSync(frameworkPath)) {
+    const builtWith = JSON.parse(fs.readFileSync(frameworkPath, 'utf8')).version;
+    if (builtWith && builtWith !== wantedNext) {
+      problems.push(`.next was built with Next ${builtWith}, lockfile ${wantedNext}`);
+    }
+  }
+  return problems;
+}
+
 function fmtMB(bytes) {
   return (bytes / 1024 / 1024).toFixed(2);
 }
@@ -122,6 +163,14 @@ function main() {
     console.error('Run `npm run build` first.');
     process.exit(2);
   }
+  const drift = checkInstalledMatchesLock();
+  if (drift.length > 0) {
+    console.error('FAIL: the install or the build does not match package-lock.json, so these sizes are not comparable:');
+    for (const line of drift) console.error(`  ${line}`);
+    console.error('Run `npm ci`, then `npm run build` and this check again.');
+    process.exit(1);
+  }
+
   const { total, files } = dirSizeSync(staticDir);
   files.sort((a, b) => b.size - a.size);
 

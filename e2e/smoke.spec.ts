@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { copy as productCopy } from '../src/lib/product/copy';
 import { menuDestinationCount } from '../src/lib/product/menu';
 import { diagnosticTitle } from '../src/lib/diagnostic-title';
@@ -91,6 +91,46 @@ async function observeProPage(page: Page, stage: ProObservation["stage"]): Promi
   } catch {
     return { stage, captured: false, observedAtMs: Date.now() };
   }
+}
+
+// Private CI observations for the Pro cases: bounded page errors plus the
+// snapshots `body` records, attached on success and on failure.
+async function withProObservations(page: Page, testInfo: TestInfo, body: (observations: ProObservation[]) => Promise<void>) {
+  const observations: ProObservation[] = [];
+  const pageErrors: { observedAtMs: number; stack: string }[] = [];
+  const onPageError = (error: Error) => {
+    if (pageErrors.length < 10) pageErrors.push({ observedAtMs: Date.now(), stack: boundedProError(error.stack ?? error.message) });
+  };
+  page.on("pageerror", onPageError);
+  try {
+    await body(observations);
+  } finally {
+    observations.push(await observeProPage(page, "finally"));
+    page.off("pageerror", onPageError);
+    await testInfo.attach("pro-observability", {
+      body: Buffer.from(JSON.stringify({ schema: 1, retry: testInfo.retry, observations, pageErrors })),
+      contentType: "application/json",
+    });
+  }
+}
+
+// The first Pro race on a fresh profile: menu, briefing, real 3D scene.
+async function startFirstProRace(page: Page) {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/game?embed=1");
+  await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("radio", { name: "Pro", exact: true }).click();
+  await expect(page.getByRole("radio", { name: /2D/ })).toHaveCount(0);
+  await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+  await page.getByRole("button", { name: /Готов - старт/ }).click();
+  await expect(page.getByTestId("race-3d")).toBeVisible({ timeout: 25_000 });
+  // Run 40235863701 began the clock check while the real scene was loading.
+  // Canvas visibility and the first rendered frame share the existing 25s.
+  const startupDeadline = Date.now() + 25_000;
+  await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
+  await expect(page.getByTestId("race-3d").locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", {
+    timeout: Math.max(1, startupDeadline - Date.now()),
+  });
 }
 
 // Pin language to Russian for deterministic string matches, and mark the
@@ -236,32 +276,17 @@ test.describe('Smoke: critical user flows', () => {
     expect(await page.evaluate(() => localStorage.getItem('regatta.race.intro-seen.v1'))).toBe('1');
   });
 
+  // The Pro flow is two cases, each with its own first race. Together they
+  // took 78.3s in run 44166854964 and over 120s in all three attempts of run
+  // 44190980405 on the same code: that runner rendered every 3D test about 1.5x
+  // slower (software WebGL, no GPU) while 2D tests kept their time. Split, not
+  // a longer limit; every check below is the one the combined case made.
   test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }, testInfo) => {
     // Trace 40213873678: real wheel input and pause consumed 58.8s before settings.
     // Keep the complete real 3D clock, mode, controls and pause/resume contract.
     test.setTimeout(120_000);
-    const observations: ProObservation[] = [];
-    const pageErrors: { observedAtMs: number; stack: string }[] = [];
-    const onPageError = (error: Error) => {
-      if (pageErrors.length < 10) pageErrors.push({ observedAtMs: Date.now(), stack: boundedProError(error.stack ?? error.message) });
-    };
-    page.on("pageerror", onPageError);
-    try {
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto("/game?embed=1");
-      await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
-      await page.getByRole("radio", { name: "Pro", exact: true }).click();
-      await expect(page.getByRole("radio", { name: /2D/ })).toHaveCount(0);
-      await page.getByRole("button", { name: /Начать первую гонку/i }).click();
-      await page.getByRole("button", { name: /Готов - старт/ }).click();
-      await expect(page.getByTestId("race-3d")).toBeVisible({ timeout: 25_000 });
-      // Run 40235863701 began the clock check while the real scene was loading.
-      // Canvas visibility and the first rendered frame share the existing 25s.
-      const startupDeadline = Date.now() + 25_000;
-      await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
-      await expect(page.getByTestId("race-3d").locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", {
-        timeout: Math.max(1, startupDeadline - Date.now()),
-      });
+    await withProObservations(page, testInfo, async observations => {
+      await startFirstProRace(page);
       // Package 13 (ADR-0022): a new install steers the race with the arrows; in
       // Pro they are the rudder and the sheets stay beside them.
       const helm = page.getByRole("slider", { name: "Руль", exact: true });
@@ -303,6 +328,15 @@ test.describe('Smoke: critical user flows', () => {
       await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
       // A mode cannot change after starting and recategorize an auto-trim record.
       await expect(page.getByRole("radio", { name: "Простой", exact: true })).toHaveCount(0);
+    });
+  });
+
+  test("/game Pro sheets follow the keyboard in slider mode and a second start skips the briefing", async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
+    await withProObservations(page, testInfo, async () => {
+      await startFirstProRace(page);
+      const helm = page.getByRole("slider", { name: "Руль", exact: true });
+      await expect(page.getByText(/^\d+:\d\d\.\d$/)).not.toHaveText("0:00.0", { timeout: 15_000 });
       const leave = async () => {
         await page.getByRole("button", { name: "Меню", exact: true }).click();
         await page.getByRole("button", { name: "Выйти", exact: true }).click();
@@ -319,7 +353,7 @@ test.describe('Smoke: critical user flows', () => {
       await leave();
       // Keyboard sheets work in slider mode, chosen in the lobby's race settings.
       await lobbySettings("Ползунки", "Курс");
-      // The other tab chose Simple for the next race; this one is Pro again (the sheets are Pro).
+      // The sheets are Pro, so this race is Pro again.
       await page.getByRole("radio", { name: "Pro", exact: true }).click();
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
       await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible({ timeout: 25_000 });
@@ -338,14 +372,7 @@ test.describe('Smoke: critical user flows', () => {
       await expect(page.getByRole("heading", { name: "Брифинг", exact: true })).toHaveCount(0);
       await expect(helm).toBeVisible();
       await expect(page.getByRole("slider", { name: "Гика-шкот", exact: true })).toHaveCount(0);
-    } finally {
-      observations.push(await observeProPage(page, "finally"));
-      page.off("pageerror", onPageError);
-      await testInfo.attach("pro-observability", {
-        body: Buffer.from(JSON.stringify({ schema: 1, retry: testInfo.retry, observations, pageErrors })),
-        contentType: "application/json",
-      });
-    }
+    });
   });
 
   test('/leaderboard API + page load', async ({ page, request }) => {
