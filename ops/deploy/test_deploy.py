@@ -135,7 +135,7 @@ class WorkflowBoundary(unittest.TestCase):
             self.assertEqual(len(uploads), 1)
             self.assertEqual(re.findall(r"^        if: (.+)$", uploads[0], re.MULTILINE), ["always()"])
             self.assertEqual(re.findall(r"^        uses: (\S+)", uploads[0], re.MULTILINE),
-                             ["actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"])
+                             ["actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9"])
             self.assertEqual(re.findall(r"^          path: (.+)$", uploads[0], re.MULTILINE), ["playwright-report/"])
             self.assertEqual(re.findall(r"^          retention-days: (.+)$", uploads[0], re.MULTILINE), ["14"])
 
