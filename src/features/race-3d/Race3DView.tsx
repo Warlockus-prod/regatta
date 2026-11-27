@@ -605,6 +605,31 @@ export function Ready() {
   return null;
 }
 
+/** The sky: a gradient dome from the horizon haze to the zenith blue, a bright band on the horizon and a sun disc. */
+export function SkyDome({ radius = 3600 }: { radius?: number }) {
+  return (
+    <mesh renderOrder={-100}>
+      <sphereGeometry args={[radius, 24, 12]} />
+      <shaderMaterial side={THREE.BackSide} depthWrite={false} toneMapped={false} fog={false}
+        uniforms={{ horizon: { value: new THREE.Color(SKY.horizon) }, zenith: { value: new THREE.Color(SKY.zenith) }, sunDir: { value: new THREE.Vector3(...SUN).normalize() } }}
+        vertexShader={"varying vec3 vSky; void main() { vSky = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"}
+        fragmentShader={`uniform vec3 horizon; uniform vec3 zenith; uniform vec3 sunDir; varying vec3 vSky;
+          void main() {
+            vec3 direction = normalize(vSky);
+            float blend = pow(max(direction.y, 0.0), 0.45);
+            vec3 sky = mix(horizon, zenith, blend);
+            float facing = max(dot(direction, sunDir), 0.0);
+            // A bright band along the horizon and a warm glow round the sun.
+            sky += vec3(0.10, 0.10, 0.08) * exp(-abs(direction.y) * 16.0);
+            sky += vec3(0.30, 0.22, 0.10) * pow(facing, 12.0);
+            float disc = smoothstep(0.9993, 0.9997, facing);
+            gl_FragColor = vec4(mix(sky, vec3(1.0, 0.95, 0.82), disc), 1.0);
+            #include <colorspace_fragment>
+          }`} />
+    </mesh>
+  );
+}
+
 export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDirRef, venue, camera = "stern", maxDpr = 1.75, labels }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
@@ -676,25 +701,7 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
           shadow-camera-top={30}
           shadow-camera-bottom={-30}
         />
-        <mesh renderOrder={-100}>
-          <sphereGeometry args={[3600, 24, 12]} />
-          <shaderMaterial side={THREE.BackSide} depthWrite={false} toneMapped={false} fog={false}
-            uniforms={{ horizon: { value: new THREE.Color(SKY.horizon) }, zenith: { value: new THREE.Color(SKY.zenith) }, sunDir: { value: new THREE.Vector3(...SUN).normalize() } }}
-            vertexShader={"varying vec3 vSky; void main() { vSky = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"}
-            fragmentShader={`uniform vec3 horizon; uniform vec3 zenith; uniform vec3 sunDir; varying vec3 vSky;
-              void main() {
-                vec3 direction = normalize(vSky);
-                float blend = pow(max(direction.y, 0.0), 0.45);
-                vec3 sky = mix(horizon, zenith, blend);
-                float facing = max(dot(direction, sunDir), 0.0);
-                // A bright band along the horizon and a warm glow round the sun.
-                sky += vec3(0.10, 0.10, 0.08) * exp(-abs(direction.y) * 16.0);
-                sky += vec3(0.30, 0.22, 0.10) * pow(facing, 12.0);
-                float disc = smoothstep(0.9993, 0.9997, facing);
-                gl_FragColor = vec4(mix(sky, vec3(1.0, 0.95, 0.82), disc), 1.0);
-                #include <colorspace_fragment>
-              }`} />
-        </mesh>
+        <SkyDome />
         {/* Local image-based light, no external HDR (the CSP blocks it). */}
         <Environment resolution={128} frames={1} background={false}>
           <Lightformer form="rect" intensity={4} color="#fff3da" position={[30, 22, 12]} scale={[14, 14, 1]} target={[0, 0, 0]} />

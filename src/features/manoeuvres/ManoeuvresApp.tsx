@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n";
 import { isAppShell } from "@/lib/theme";
 import { MANOEUVRES, MANOEUVRE_TRACKS, manoeuvreById, type ManoeuvreExercise } from "@/data/manoeuvres";
@@ -11,6 +12,27 @@ import Schematic from "./Schematic";
 import { copy, fill } from "./copy";
 import styles from "./Manoeuvres.module.css";
 import { RACE_UNITS, knotsText } from "@/features/race-hud/units";
+import type { HarbourCameraMode } from "./scene3d";
+
+// The harbour in 3D (three.js, the yacht model): loaded only when an attempt starts.
+const Harbour3D = dynamic(() => import("./Harbour3D"), { ssr: false });
+
+/**
+ * WebGL in this browser or WebView, and whether it is drawn in software (no
+ * GPU: SwiftShader, llvmpipe). Without WebGL the attempt shows the plan, as
+ * before the 3D view; in software the 3D view drops its costly extras.
+ */
+function webGL(): { ok: boolean; software: boolean } {
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = (canvas.getContext("webgl2") ?? canvas.getContext("webgl")) as WebGLRenderingContext | null;
+    if (!gl) return { ok: false, software: false };
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return { ok: true, software: /swiftshader|llvmpipe|software/i.test(renderer) };
+  } catch { return { ok: false, software: false }; }
+}
 
 const IDS = MANOEUVRES.map(e => e.id);
 const storage = () => { try { return typeof window === "undefined" ? null : window.localStorage; } catch { return null; } };
@@ -168,6 +190,15 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
   const hintRef = useRef(false);
   const [result, setResult] = useState<{ score: RunResult; saved: boolean; stars: Stars } | null>(null);
   const [attempt, setAttempt] = useState(0);
+  // The 3D harbour unless this device has no WebGL or the scene failed: then the plan view.
+  const [gl] = useState(() => typeof document === "undefined" ? { ok: true, software: false } : webGL());
+  const [plan2d, setPlan2d] = useState(!gl.ok);
+  const [cameraMode, setCameraMode] = useState<HarbourCameraMode>("harbour");
+  // Stable for the 3D view, which is memoised: the HUD re-renders the page ten times a second.
+  const windText = useCallback((knots: number) => knotsText(lang, knots), [lang]);
+  const labels3d = useMemo(() => ({ loading: tl(copy.scene3d.loading), scene: tl(copy.scene3dLabel), error: tl(copy.scene3d.error),
+    retry: tl(copy.scene3d.retry), wind: tl(copy.hud.wind) }), [tl]);
+  const fallBack = useCallback(() => setPlan2d(true), []);
   const starsRef = useRef(stars);
   // The loop reads the latest stars and plan switch through refs, updated after each commit.
   useLayoutEffect(() => { starsRef.current = stars; hintRef.current = hint; }, [stars, hint]);
@@ -183,8 +214,9 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
     runRef.current = createRun(exercise);
     inputRef.current = { helm: 0, throttle: 0, sheets: "trim" };
     cameraRef.current = null;
-    const canvas = canvasRef.current!, ctx = canvas.getContext("2d");
-    let palette = readPalette(), paletteAt = 0, raf = 0, last = performance.now(), acc = 0, hudAt = 0, finished = false;
+    // Only the plan view draws here; the 3D view reads the same refs in its own frame loop.
+    const canvasOf = () => canvasRef.current, ctxOf = () => canvasOf()?.getContext("2d") ?? null;
+    let palette: Palette | null = null, paletteAt = 0, raf = 0, last = performance.now(), acc = 0, hudAt = 0, finished = false;
     const dt = stepSeconds(exercise);
     const frame = (now: number) => {
       const elapsed = Math.min(0.1, (now - last) / 1000);
@@ -195,17 +227,18 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
       let run = runRef.current;
       while (acc >= dt) { run = stepRun(exercise, run, inputRef.current); acc -= dt; }
       runRef.current = run;
-      if (now - paletteAt > 1000) { palette = readPalette(); paletteAt = now; }
-      const rect = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
-      const w = Math.max(1, Math.round(rect.width)), h = Math.max(1, Math.round(rect.height));
-      if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
-      if (ctx) {
+      const canvas = canvasOf(), ctx = ctxOf();
+      if (canvas && ctx) {
+        if (!palette || now - paletteAt > 1000) { palette = readPalette(); paletteAt = now; }
+        const rect = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+        const w = Math.max(1, Math.round(rect.width)), h = Math.max(1, Math.round(rect.height));
+        if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const goal = frameCamera(exercise, run, w / h), cam = cameraRef.current;
         // The camera eases towards its framing so the view does not jump.
         const k = cam ? Math.min(1, elapsed * 2) : 1;
         cameraRef.current = cam ? { cx: cam.cx + (goal.cx - cam.cx) * k, cy: cam.cy + (goal.cy - cam.cy) * k, span: cam.span + (goal.span - cam.span) * k } : goal;
-        drawScene(ctx, w, h, exercise, run, cameraRef.current, palette, { plan: hintRef.current, windLabel: knotsText(langRef.current, windAt(exercise, run.t).speed), scaleLabel: `10 ${RACE_UNITS.metres[langRef.current]}` });
+        drawScene(ctx, w, h, exercise, run, cameraRef.current, palette!, { plan: hintRef.current, windLabel: knotsText(langRef.current, windAt(exercise, run.t).speed), scaleLabel: `10 ${RACE_UNITS.metres[langRef.current]}` });
       }
       if (now - hudAt > 100 || run.status !== "running") { hudAt = now; setHud(hudOf(exercise, run, inputRef.current)); }
       if (run.status !== "running" && !finished) {
@@ -274,7 +307,12 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
     <div className={styles.playGrid}>
       <div className={styles.sceneWrap} data-testid="scene" data-status={hud.status} data-speed={hud.speedKn.toFixed(3)} data-target={hud.distance.value.toFixed(3)}
         data-x={hud.x.toFixed(2)} data-y={hud.y.toFixed(2)} data-heading={hud.heading.toFixed(1)} data-helm={hud.rudder.toFixed(2)}>
-        <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={tl(copy.sceneLabel)} />
+        {plan2d
+          ? <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={tl(copy.sceneLabel)} />
+          : <div className={styles.canvas} role="img" aria-label={tl(copy.scene3dLabel)} data-testid="scene-3d" data-lite={gl.software ? "1" : "0"}>
+            <Harbour3D exercise={exercise} runRef={runRef} inputRef={inputRef} plan={hint && !result} mode={cameraMode} lite={gl.software}
+              windText={windText} labels={labels3d} onFail={fallBack} />
+          </div>}
       </div>
       <div className={styles.side}>
         <dl className={styles.hud}>
@@ -316,7 +354,10 @@ function Play({ exercise, stars, onStars, onBack, onNext, tl }: {
         {!result && <div className={styles.toolRow}>
           <button type="button" className={styles.secondary} aria-expanded={hint} onClick={() => setHint(h => !h)}>{tl(hint ? copy.hintHide : copy.hintShow)}</button>
           <button type="button" className={styles.secondary} onClick={restart}>{tl(copy.restart)}</button>
+          {!plan2d && <button type="button" className={styles.secondary} data-testid="camera" onClick={() => setCameraMode(m => m === "harbour" ? "stern" : "harbour")}>
+            {tl(cameraMode === "harbour" ? copy.camera.toStern : copy.camera.toHarbour)}</button>}
         </div>}
+        {!result && !plan2d && <p className={styles.meta}>{tl(copy.camera.hint)}</p>}
         {hint && !result && <p className={styles.hint}>{tl(exercise.hint)}</p>}
       </div>
     </div>

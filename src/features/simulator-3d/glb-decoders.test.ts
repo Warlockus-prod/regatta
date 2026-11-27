@@ -60,7 +60,7 @@ describe("models load without a remote or missing decoder", () => {
 
   it("every model loader in src asks for neither decoder", () => {
     // drei's useGLTF defaults to the gstatic Draco decoder, so each call must opt out.
-    const files = ["src/features/simulator-3d/Yacht.tsx", "src/components/YachtViewer3D.tsx"];
+    const files = ["src/features/simulator-3d/Yacht.tsx", "src/components/YachtViewer3D.tsx", "src/features/manoeuvres/Harbour3D.tsx"];
     for (const file of files) {
       const source = readFileSync(join(process.cwd(), file), "utf8");
       const calls = [...source.matchAll(/useGLTF(?:\.preload)?\(([^)]*)\)/g)].map(match => match[1].split(",").map(arg => arg.trim()));
@@ -75,6 +75,6 @@ describe("models load without a remote or missing decoder", () => {
     const loaders = walk(join(process.cwd(), "src"))
       .filter(file => /useGLTF(?:\.preload)?\(/.test(readFileSync(file, "utf8")))
       .map(file => file.slice(process.cwd().length + 1)).sort();
-    expect(loaders).toEqual(["src/components/YachtViewer3D.tsx", "src/features/simulator-3d/Yacht.tsx"]);
+    expect(loaders).toEqual(["src/components/YachtViewer3D.tsx", "src/features/manoeuvres/Harbour3D.tsx", "src/features/simulator-3d/Yacht.tsx"]);
   });
 });

@@ -25,7 +25,8 @@ function clampRange(value: number, min: number, max: number, visible: number) {
   return Math.min(max - visible / 2, Math.max(min + visible / 2, value));
 }
 
-function focusPoint(exercise: ManoeuvreExercise, run: RunState): Vec2 {
+/** What the view keeps in frame besides the boat: the berth, the buoy, the next gate. */
+export function focusPoint(exercise: ManoeuvreExercise, run: RunState): Vec2 {
   const goal = exercise.target, find = (id: string) => exercise.obstacles.find(o => o.id === id);
   const at = (o?: SceneObstacle): Vec2 => o?.shape.type === "circle" ? [o.shape.x, o.shape.y] : o ? centroid(o.shape.points) : [run.pose.x, run.pose.y];
   switch (goal.type) {

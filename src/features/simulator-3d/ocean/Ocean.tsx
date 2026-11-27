@@ -21,14 +21,15 @@ import type { YachtState } from '../types';
 
 /** GLSL for the wave field, generated from WAVES so there is one source of
  * truth. Returns vec3(height, ddx, ddz) - matching waves.ts sampleWave(). */
-function waveGlsl(): string {
+function waveGlsl(swell = 1): string {
   const terms = WAVES.map((w) => {
+    const amp = w.amp * swell;
     const k = (2 * Math.PI) / w.len;
     return `
   {
     float phase = ${k.toFixed(6)} * (${w.dirX.toFixed(3)} * p.x + ${w.dirZ.toFixed(3)} * p.z) + t * ${w.speed.toFixed(3)};
-    h += ${w.amp.toFixed(3)} * sin(phase);
-    float d = ${w.amp.toFixed(3)} * ${k.toFixed(6)} * cos(phase);
+    h += ${amp.toFixed(4)} * sin(phase);
+    float d = ${amp.toFixed(4)} * ${k.toFixed(6)} * cos(phase);
     nx -= ${w.dirX.toFixed(3)} * d;
     nz -= ${w.dirZ.toFixed(3)} * d;
   }`;
@@ -53,6 +54,7 @@ export function Ocean({
   skyReflection = 1,
   farCalm,
   sunGlint = 1,
+  swell = 1,
 }: {
   stateRef: MutableRefObject<YachtState>;
   size?: number;
@@ -78,6 +80,9 @@ export function Ocean({
   /** Share of the sun's direct glitter on the water (the race view seen from
    *  above towards the sun turns the swell into white sheets at 1). */
   sunGlint?: number;
+  /** Share of the wave height: a sheltered harbour (the Manoeuvres section)
+   *  is nearly flat. The Yacht and the Wake take the same share. */
+  swell?: number;
 }) {
   const timeRef = useRef({ value: 0 });
   const travelRef = useRef({ value: new THREE.Vector2() });
@@ -111,7 +116,7 @@ export function Ocean({
       shader.uniforms.uTravel = travelRef.current;
       shader.vertexShader =
         `uniform float uTime; uniform vec2 uTravel; varying vec3 vOceanPosition;\n` +
-        waveGlsl() +
+        waveGlsl(swell) +
         shader.vertexShader
           .replace(
             '#include <beginnormal_vertex>',
@@ -125,7 +130,7 @@ export function Ocean({
   transformed.y += regattaW.x;
   vOceanPosition = position + vec3(uTravel.x, 0.0, uTravel.y);`,
           );
-      shader.fragmentShader = "uniform float uTime; varying vec3 vOceanPosition;\n" + waveGlsl() + shader.fragmentShader.replace(
+      shader.fragmentShader = "uniform float uTime; varying vec3 vOceanPosition;\n" + waveGlsl(swell) + shader.fragmentShader.replace(
         "#include <normal_fragment_maps>",
         `#include <normal_fragment_maps>
         vec3 waveNormal = regattaWave(vOceanPosition, uTime);
@@ -145,7 +150,7 @@ export function Ocean({
       );
     };
     return m;
-  }, [color, roughness, skyReflection, calmFrom, calmTo, sunGlint]);
+  }, [color, roughness, skyReflection, calmFrom, calmTo, sunGlint, swell]);
 
   useFrame(({ clock }) => {
     timeRef.current.value = clock.elapsedTime;

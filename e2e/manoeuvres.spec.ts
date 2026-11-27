@@ -5,7 +5,8 @@ import { test, expect, type Page } from '@playwright/test';
 // Contract: a fresh device sees the exercise list with only the first exercise
 // of each track open; the briefing starts a live attempt; a throttle detent
 // moves the boat (HUD speed and the scene's speed rise from zero) and holding
-// the helm button turns the rudder; no page error and no console error.
+// the helm button turns the rudder; the 3D harbour switches camera (or the plan
+// shows without WebGL); no page error and no console error.
 // The drill page answers a recognition question and gives feedback.
 // ============================================================================
 
@@ -53,6 +54,28 @@ test('Manoeuvres: list, briefing, start, throttle and helm change the HUD', asyn
   await expect.poll(async () => Number(await scene.getAttribute('data-helm'))).toBe(0);
   expect(held).toBeGreaterThan(0.1);
 
+  expect(errors).toEqual([]);
+});
+
+// A case of its own: on a runner without a GPU every 3D frame is slow (see AGENTS.md, do not raise the limit, split).
+test('Manoeuvres in 3D: the harbour view and the view from astern', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/manoeuvres?lang=en');
+  await page.getByTestId('exercise-alongside-onshore').click();
+  await page.getByTestId('start').click();
+  const scene = page.getByTestId('scene');
+  await expect(scene).toHaveAttribute('data-status', 'running');
+  // The attempt is the 3D harbour wherever WebGL exists; a browser without it gets the plan.
+  if (!(await page.getByTestId('scene-3d').count())) {
+    await expect(scene.locator('canvas')).toBeVisible();
+    expect(errors).toEqual([]);
+    return;
+  }
+  await expect(scene.locator('canvas')).toBeVisible();
+  const camera = page.getByTestId('camera');
+  await expect(camera).toHaveText('View from astern');
+  await camera.click();
+  await expect(camera).toHaveText('Harbour view');
   expect(errors).toEqual([]);
 });
 
