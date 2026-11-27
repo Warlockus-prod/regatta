@@ -47,7 +47,8 @@ interface Particle {
   age: number; // seconds; >= LIFE means dead/inactive
 }
 
-export function Wake({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
+/** `swell`: the share of the wave height the foam settles on (Ocean `swell`). */
+export function Wake({ stateRef, swell = 1 }: { stateRef: MutableRefObject<YachtState>; swell?: number }) {
   const pointsRef = useRef<THREE.Points>(null);
   const spawnAcc = useRef(0);
   const cursor = useRef(0);
@@ -152,7 +153,7 @@ export function Wake({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
       p.z += p.vz * dt;
       const k = p.age / LIFE;
       // Foam settles onto the moving swell surface.
-      const wave = sampleWave(p.x + (stateRef.current.travel?.x ?? 0), p.z + (stateRef.current.travel?.z ?? 0), t).y;
+      const wave = sampleWave(p.x + (stateRef.current.travel?.x ?? 0), p.z + (stateRef.current.travel?.z ?? 0), t, swell).y;
       pos.setXYZ(i, p.x, Math.max(0.04, p.y * (1 - k)) + wave, p.z);
       alpha.setX(i, intensity * (1 - k) * 0.85);
       size.setX(i, 0.35 + 0.9 * k);

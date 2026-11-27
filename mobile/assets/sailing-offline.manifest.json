@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "92b2194dd847",
-  "sha256": "d6ed57dc3d1facd61b92bf05d62f9e7171230a398b3b0e33b79bbce75d39ff90",
-  "bytes": 7644956,
+  "version": "5ed5933569d2",
+  "sha256": "62e0c59dfb329dba7ac9c950c68cce69ebe802316f636278d41193eb372523dd",
+  "bytes": 7670372,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -705,6 +705,7 @@
     "src/features/ads-lab/TestPlacements.tsx",
     "src/features/ads-lab/board-viewability.ts",
     "src/features/ads-lab/camera.ts",
+    "src/features/manoeuvres/Harbour3D.tsx",
     "src/features/manoeuvres/Manoeuvres.module.css",
     "src/features/manoeuvres/ManoeuvresApp.tsx",
     "src/features/manoeuvres/Schematic.tsx",
@@ -712,6 +713,7 @@
     "src/features/manoeuvres/progress.ts",
     "src/features/manoeuvres/runner.ts",
     "src/features/manoeuvres/scene.ts",
+    "src/features/manoeuvres/scene3d.ts",
     "src/features/race-3d/Race3DView.tsx",
     "src/features/race-3d/pose.ts",
     "src/features/race-3d/rival-lod.ts",
@@ -1593,14 +1595,19 @@
       "sha256": "c8cf4653e31fb6d4cbdada11706287c7c1b9fe6d6f6018e99cd8dcc1ba794f14"
     },
     {
+      "path": "src/features/manoeuvres/Harbour3D.tsx",
+      "bytes": 32936,
+      "sha256": "b2a2c101b2472ceb037ac0a34b8786536b2862364f956bc2c1c77705ab7d6181"
+    },
+    {
       "path": "src/features/manoeuvres/Manoeuvres.module.css",
       "bytes": 7775,
       "sha256": "3c83982ecc968e3e4ab05dff668919c788b011b86a947eb911ce9898ee2c789f"
     },
     {
       "path": "src/features/manoeuvres/ManoeuvresApp.tsx",
-      "bytes": 24509,
-      "sha256": "f865a915c8aacb706c6d8c4fdd2eb3488c758c47c7230d16b8afd58b3af08f71"
+      "bytes": 27366,
+      "sha256": "ff445dad5d5461a66c055876ffeb0460e443c7739b0623060aa1b6416e78f25f"
     },
     {
       "path": "src/features/manoeuvres/Schematic.tsx",
@@ -1609,8 +1616,8 @@
     },
     {
       "path": "src/features/manoeuvres/copy.ts",
-      "bytes": 17739,
-      "sha256": "9321de5e80792ebee131495e3a976e13c0bd5f4ac042297f0ac52d8d4d7a35d9"
+      "bytes": 20048,
+      "sha256": "a2e57784d2694b7cb6c2bf003a37a6aa18f7cbc68e8d0f6a7ea3ce22da7d78e3"
     },
     {
       "path": "src/features/manoeuvres/progress.ts",
@@ -1624,13 +1631,18 @@
     },
     {
       "path": "src/features/manoeuvres/scene.ts",
-      "bytes": 8621,
-      "sha256": "4679dd09cf514c17977783e436f4435209db112d0b22e404b17b9bf1b1259463"
+      "bytes": 8718,
+      "sha256": "25b5694ef5590668edd13cadf4c802e3abd8c1c5487438b5b6594d057dffaabc"
+    },
+    {
+      "path": "src/features/manoeuvres/scene3d.ts",
+      "bytes": 10245,
+      "sha256": "0372d6fc422ce5f9525f6878c03923612248126d39c8e88dc60c0972d847f375"
     },
     {
       "path": "src/features/race-3d/Race3DView.tsx",
-      "bytes": 36385,
-      "sha256": "6f5acd8be940619d2cc0798356a6d47c7ddc49e0daa67fcc15be4c8053462d29"
+      "bytes": 36535,
+      "sha256": "83e136c9d7d2f466664699bd8273487b0ef9a7549e580adfa03d00e83e3dd333"
     },
     {
       "path": "src/features/race-3d/pose.ts",
@@ -2139,8 +2151,8 @@
     },
     {
       "path": "src/features/simulator-3d/Yacht.tsx",
-      "bytes": 13894,
-      "sha256": "25b50ad37c30c69d761cf5cfe3e0d8b1c800f09788afb60285ee63b374a46a83"
+      "bytes": 14162,
+      "sha256": "ef7ce73248762f6ecdeb7ccac7efe0ae10910965f2bdd66188b9c8d0f40263fc"
     },
     {
       "path": "src/features/simulator-3d/audio/useSailAudio.ts",
@@ -2164,13 +2176,13 @@
     },
     {
       "path": "src/features/simulator-3d/ocean/Ocean.tsx",
-      "bytes": 6481,
-      "sha256": "53b9b345a76123a66e67a50fad555580b4e9c6549b4beabb5407df94ae32a481"
+      "bytes": 6711,
+      "sha256": "0794e6bd6107d135a261131d07a3825ce977d7244b51a326c270f62734ba2efc"
     },
     {
       "path": "src/features/simulator-3d/ocean/Wake.tsx",
-      "bytes": 6624,
-      "sha256": "d8fe35ba7f1154475627d1422b291e7fc65f1570ef8d10c32f833c04f6c9e300"
+      "bytes": 6740,
+      "sha256": "341b0466bdd09e75f479abac0fe14da6ed39bd0646482735eb74fdf15474a491"
     },
     {
       "path": "src/features/simulator-3d/ocean/WindFlow.tsx",

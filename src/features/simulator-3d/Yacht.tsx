@@ -77,7 +77,14 @@ function upgradeSailMaterial(mesh: THREE.Mesh | null, weave: THREE.DataTexture) 
   return mat;
 }
 
-export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<YachtState>; light?: boolean }) {
+export function Yacht({ stateRef, light = false, swell = 1, fenders = false }: {
+  stateRef: MutableRefObject<YachtState>;
+  light?: boolean;
+  /** Share of the shared wave height the hull rides (Ocean `swell`). */
+  swell?: number;
+  /** Keep the fenders over the side (the harbour, the Manoeuvres section). */
+  fenders?: boolean;
+}) {
   // No Draco or meshopt decoder: drei fetches Draco from www.gstatic.com, which
   // the production CSP blocks. glb-decoders.test.ts keeps every model plain.
   const { scene } = useGLTF(YACHT_MODEL_URL, false, false, observeYachtLoader);
@@ -178,7 +185,8 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
     if (main) { main.geometry = mainGeometry; main.add(mainSeams); }
     if (jib) { jib.geometry = jibGeometry; jib.add(jibSeams); }
     // Exported rigid decorations do not follow the cloth and float off it.
-    const decorations = ["Battens", "SailNumber", "Main_Telltales", "Jib_Telltales", "Running_Rigging", "Anatomy_Sheets", "Anatomy_Fender_-1", "Anatomy_Fender_1", "Anatomy_Fender_Line_-1", "Anatomy_Fender_Line_1"].map((name) => model.getObjectByName(name));
+    const decorations = ["Battens", "SailNumber", "Main_Telltales", "Jib_Telltales", "Running_Rigging", "Anatomy_Sheets",
+      ...(fenders ? [] : ["Anatomy_Fender_-1", "Anatomy_Fender_1", "Anatomy_Fender_Line_-1", "Anatomy_Fender_Line_1"])].map((name) => model.getObjectByName(name));
     decorations.forEach((object) => { if (object) object.visible = false; });
     const mainMaterial = main?.material;
     const jibMaterial = jib?.material;
@@ -211,7 +219,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
       mainUpgrade?.dispose();
       jibUpgrade?.dispose();
     };
-  }, [model, light]);
+  }, [model, light, fenders]);
 
   useFrame((st, dt) => {
     // A hidden yacht (a far rival drawn as the far boat, M2-6) skips its rig and cloth work.
@@ -269,7 +277,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
       // heave (center), pitch (bow vs stern, X axis) and roll (port vs stbd, Z).
       const waveAt = (x: number, z: number) => sampleWave(
         x * Math.cos(yaw) + z * Math.sin(yaw) + (s.travel?.x ?? 0),
-        -x * Math.sin(yaw) + z * Math.cos(yaw) + (s.travel?.z ?? 0), t,
+        -x * Math.sin(yaw) + z * Math.cos(yaw) + (s.travel?.z ?? 0), t, swell,
       ).y;
       const center = waveAt(0, 0);
       const bow = waveAt(5.8, 0);

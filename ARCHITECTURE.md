@@ -770,7 +770,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/simulator-3d/Simulator3D.module.css` - стили 3D-вида.
 - `src/features/simulator-3d/RegattaScene.tsx` - сцена R3F: свет, камера, вода, яхта.
 - `src/features/simulator-3d/SceneBoundary.tsx` - граница ошибки сцены и отчет о сбое WebGL.
-- `src/features/simulator-3d/Yacht.tsx` - рендер GLB-яхты и парусов; загрузка без декодеров Draco и meshopt (они тянутся с www.gstatic.com, CSP блокирует).
+- `src/features/simulator-3d/Yacht.tsx` - рендер GLB-яхты и парусов; загрузка без декодеров Draco и meshopt (они тянутся с www.gstatic.com, CSP блокирует). Опции `swell` (доля волны, на которой качается корпус) и `fenders` (кранцы за бортом, в гавани).
 - `src/features/simulator-3d/glb-decoders.test.ts` - ни одна модель .glb/.gltf в `public/` не использует Draco или meshopt, и каждый `useGLTF` в `src` отказывается от обоих декодеров.
 - `src/features/simulator-3d/config.ts` - конфиг модуля, URL модели.
 - `src/features/simulator-3d/types.ts` - типы состояния яхты и подписей сцены.
@@ -779,8 +779,8 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/simulator-3d/offline-asset.test.ts` - проверка, что офлайн-ассет модели на месте.
 - `src/features/simulator-3d/audio/useSailAudio.ts` - звук парусов и воды; слушается общей настройки звука гонки (`src/lib/race-sound-pref.ts`): пока она выключена, звук молчит и AudioContext не создается; нажатие «Звук» при выключенном звуке гонки включает его, выключение не трогает звук гонки, и каждое нажатие сначала сохраняет звук гонки явным выбором (ADR-0019; свой контекст Лодки 3D остается открытым пунктом).
 - `src/features/simulator-3d/audio/useSailAudio.test.ts` - Лодка 3D при выключенном звуке гонки не включает звук и не строит контекст, при выключении звука гонки замолкает и усыпляет контекст, настройку читает без модуля звука гонки; нажатия через настоящие настройки гонки и тренажера: вкл, выкл, вкл не меняют звук гонки, старое выключение по ключу `regatta.muted.v1` снимается одним нажатием.
-- `src/features/simulator-3d/ocean/Ocean.tsx` - поверхность воды; для гонки опции `roughness`, `skyReflection` (доля отраженного неба, в шейдере: при окружении сцены three.js игнорирует `envMapIntensity`), `sunGlint` (доля солнечной дорожки) и `farCalm` (волны сглаживаются вдали).
-- `src/features/simulator-3d/ocean/Wake.tsx` - кильватерный след.
+- `src/features/simulator-3d/ocean/Ocean.tsx` - поверхность воды; для гонки опции `roughness`, `skyReflection` (доля отраженного неба, в шейдере: при окружении сцены three.js игнорирует `envMapIntensity`), `sunGlint` (доля солнечной дорожки) и `farCalm` (волны сглаживаются вдали); `swell` - доля высоты волн (марина в «Манёврах» почти плоская), ее же принимают `Yacht` и `Wake`.
+- `src/features/simulator-3d/ocean/Wake.tsx` - кильватерный след; `swell` как у `Ocean`.
 - `src/features/simulator-3d/ocean/Backdrop.tsx` - горы и острова акватории на горизонте Лодки 3D (низкополигональный рельеф с воздушной перспективой); `terrainGeometry` строит меш рельефа и для 3D-гонки.
 - `src/features/simulator-3d/ocean/WindFlow.tsx` - видимый поток ветра.
 - `src/features/simulator-3d/ocean/waves.ts` - поле волн (сумма синусов), общее для воды и качки.
@@ -879,7 +879,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/features/trainer-controls/stage.test.ts` - центр камеры в середине окна, а не холста; размер лодки не меняется; повернутый телефон; без окна камеру не трогаем.
 - `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
 - `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
-- `src/features/race-3d/Race3DView.tsx` - 3D-вид одиночной гонки (ADR-0006): читает refs гонки `GameClient`, игрок в начале координат, мир сдвигается под ним; соперники, знаки, линия старта, берег, камера за кормой или сверху. `Buoy` и `World` рисуют знаки и для общей сцены гонки `RaceScene`; с F4 у знака спрайт-кольцо одного размера на экране поверх воды (`markHaloTexture`, прозрачность по расстоянию до камеры).
+- `src/features/race-3d/Race3DView.tsx` - 3D-вид одиночной гонки (ADR-0006): читает refs гонки `GameClient`, игрок в начале координат, мир сдвигается под ним; соперники, знаки, линия старта, берег, камера за кормой или сверху. `Buoy` и `World` рисуют знаки и для общей сцены гонки `RaceScene`; с F4 у знака спрайт-кольцо одного размера на экране поверх воды (`markHaloTexture`, прозрачность по расстоянию до камеры). `SkyDome` (небо куполом) общий с 3D-гаванью «Манёвров».
 - `src/features/race-3d/pose.ts` - чистое преобразование лодки гонки в позу 3D-яхты (паруса под ветер по триму лодки, заполаскивание в мертвой зоне), масштаб 0.6 м на единицу, следующая цель, места в гонке (`raceRanks`, их же считает HUD веб-гонки).
 - `src/features/race-3d/pose.test.ts` - контракт: паруса под ветер на обоих галсах, травятся при уваливании, лодка там, где ее поставила гонка.
 - `src/features/race-3d/useRaceView.ts` - выбор вида гонки 2D/3D и камеры (localStorage `regatta.race.view.v1`, `regatta.race.camera.v1`, ссылки `?view=3d`, `?camera=race|orbit|stern|high`; без сохраненного выбора камера «Гонка», пакет 8) и флаги следующего рендера (`?scene=next`, `?fps=1`).
@@ -936,11 +936,14 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 `docs/design/harbour-manoeuvres-backlog.md` раздел 7).
 
 - `src/app/manoeuvres/page.tsx` - маршрут `/manoeuvres` (раздел Practice).
-- `src/features/manoeuvres/ManoeuvresApp.tsx` - список, брифинг, игровой вид, управление, результаты.
+- `src/features/manoeuvres/ManoeuvresApp.tsx` - список, брифинг, игровой вид, управление, результаты. Игровой вид это 3D-гавань (`Harbour3D`, ленивая загрузка); без WebGL или при ошибке сцены вместо нее план сверху на canvas (`src/features/manoeuvres/scene.ts`).
 - `src/features/manoeuvres/runner.ts` - одна попытка: шаг модели гавани или общей парусной сессии, проверка цели, звезды.
 - `src/features/manoeuvres/runner.test.ts` - целостность каталога, скриптовые прохождения, подсчет звезд.
 - `src/features/manoeuvres/progress.ts` - локальные звезды и открытие упражнений (`regatta.manoeuvres.v1`).
-- `src/features/manoeuvres/scene.ts` - рисование вида сверху на canvas и камера.
+- `src/features/manoeuvres/scene.ts` - план гавани сверху на canvas (запасной вид без WebGL) и его камера; `focusPoint` (что держать в кадре кроме лодки) общий с 3D.
+- `src/features/manoeuvres/Harbour3D.tsx` - 3D-гавань (запрос владельца 2026-11-27): только читает refs попытки. Наша GLB-яхта с настоящим пером руля, на моторе паруса убраны и кранцы за бортом, под парусом рангоут из общей сессии; почти плоская вода в марине (`swell` у `Ocean`, `Yacht`, `Wake`), берег акватории на горизонте; понтоны, причал с кнехтами, сваи, бочки, человек за бортом; яхты у стенки это тот же GLB, слитый по материалам и нарисованный инстансами (дюжина вызовов отрисовки на весь проход), лодка между камерой и нашей уходит из кадра; цель пунктиром на воде, маяк над бочкой, человеком, воротами и знаком, след подсказки; камеры «гавань» (поворот пальцем, масштаб колесом и щипком) и «с кормы»; без GPU (SwiftShader, llvmpipe) без теней, кильватера и с редкой сеткой воды.
+- `src/features/manoeuvres/scene3d.ts` - чистое соответствие попытки и 3D: оси (x восток, y север в Z на юг), поза яхты из попытки, камеры гавани и с кормы, пунктиры, контур причала, кнехты, точка маяка, кто заслоняет обзор.
+- `src/features/manoeuvres/scene3d.test.ts` - контракт 3D-вида: лодка там, где ее ставит попытка, паруса убраны на моторе и поставлены под парусом, камера гавани держит лодку и цель на старте каждого упражнения, камера с кормы позади, разметка и кнехты на месте.
 - `src/features/manoeuvres/Schematic.tsx` - статичная SVG-схема упражнения из данных сцены. Проп `compact` дает тот же рисунок без слов как миниатюру строки списка упражнений.
 - `src/features/manoeuvres/copy.ts` - строки интерфейса на 7 языках.
 - `src/features/manoeuvres/Manoeuvres.module.css` - стили раздела.
